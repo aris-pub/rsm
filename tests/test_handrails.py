@@ -1,6 +1,207 @@
 from conftest import compare_have_want_handrails
 
 
+def test_codeblock_handrails():
+    compare_have_want_handrails(
+        have="""\
+        :rsm:
+
+        ```
+        comp = [abs(x) for x in range(10)]
+        ```
+
+        ::
+        """,
+        want="""\
+        <body>
+
+        <div class="manuscriptwrapper">
+
+        <div class="manuscript" data-nodeid="0">
+
+        <section class="level-1">
+
+        <div class="codeblock hr hr-hidden" tabindex=0 data-nodeid="1">
+
+        <div class="hr-collapse-zone">
+        <div class="hr-spacer"></div>
+        </div>
+
+        <div class="hr-menu-zone">
+
+        <div class="hr-menu">
+
+          <div class="hr-menu-label">
+            <span class="hr-menu-item-text">Code Block</span>
+          </div>
+
+          <div class="hr-menu-separator"></div>
+
+          <div class="hr-menu-item link disabled">
+            <span class="icon link">
+            </span>
+            <span class="hr-menu-item-text">Copy link</span>
+          </div>
+
+          <div class="hr-menu-item">
+            <span class="icon tree">
+            </span>
+            <span class="hr-menu-item-text">Tree</span>
+          </div>
+
+          <div class="hr-menu-item">
+            <span class="icon code">
+            </span>
+            <span class="hr-menu-item-text">Source</span>
+          </div>
+
+        </div>
+
+        </div>
+
+        <div class="hr-border-zone">
+
+                        <div class="hr-border-dots">
+                          <div class="icon dots">
+                          </div>
+                        </div>
+                        <div class="hr-border-rect">
+                        </div>
+
+        </div>
+
+        <div class="hr-spacer-zone">
+        <div class="hr-spacer"></div>
+        </div>
+
+        <div class="hr-content-zone">
+
+        <pre>
+        <code>comp = [abs(x) for x in range(10)]</code>
+        </pre>
+
+        </div>
+
+        <div class="hr-info-zone">
+        <div class="hr-info"></div>
+        </div>
+
+        </div>
+
+        </section>
+
+        </div>
+
+        </div>
+
+        </body>
+        """,
+    )
+
+
+def test_codeblock_with_lang_handrails():
+    compare_have_want_handrails(
+        have="""\
+        :rsm:
+
+        ```
+        :lang: python
+
+        def hello():
+            print("world")
+        ```
+
+        ::
+        """,
+        want="""\
+        <body>
+
+        <div class="manuscriptwrapper">
+
+        <div class="manuscript" data-nodeid="0">
+
+        <section class="level-1">
+
+        <div class="codeblock hr hr-hidden" tabindex=0 data-nodeid="1">
+
+        <div class="hr-collapse-zone">
+        <div class="hr-spacer"></div>
+        </div>
+
+        <div class="hr-menu-zone">
+
+        <div class="hr-menu">
+
+          <div class="hr-menu-label">
+            <span class="hr-menu-item-text">Code Block</span>
+          </div>
+
+          <div class="hr-menu-separator"></div>
+
+          <div class="hr-menu-item link disabled">
+            <span class="icon link">
+            </span>
+            <span class="hr-menu-item-text">Copy link</span>
+          </div>
+
+          <div class="hr-menu-item">
+            <span class="icon tree">
+            </span>
+            <span class="hr-menu-item-text">Tree</span>
+          </div>
+
+          <div class="hr-menu-item">
+            <span class="icon code">
+            </span>
+            <span class="hr-menu-item-text">Source</span>
+          </div>
+
+        </div>
+
+        </div>
+
+        <div class="hr-border-zone">
+
+                        <div class="hr-border-dots">
+                          <div class="icon dots">
+                          </div>
+                        </div>
+                        <div class="hr-border-rect">
+                        </div>
+
+        </div>
+
+        <div class="hr-spacer-zone">
+        <div class="hr-spacer"></div>
+        </div>
+
+        <div class="hr-content-zone">
+
+        <pre>
+        <code class="highlight python"><span class="k">def</span><span class="w"> </span><span class="nf">hello</span><span class="p">():</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;world&quot;</span><span class="p">)</span>
+        </code>
+        </pre>
+
+        </div>
+
+        <div class="hr-info-zone">
+        <div class="hr-info"></div>
+        </div>
+
+        </div>
+
+        </section>
+
+        </div>
+
+        </div>
+
+        </body>
+        """,
+    )
+
+
 def test_manuscript():
     compare_have_want_handrails(
         have="""

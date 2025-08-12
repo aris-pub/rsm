@@ -1716,6 +1716,22 @@ class HandrailsTranslator(Translator):
         batch.items.insert(-1, self._hr_info_zone_icon(getattr(node, "icon", None)))
         return batch
 
+    def visit_codeblock(self, node: nodes.CodeBlock) -> EditCommand:
+        cmd = super().visit_codeblock(node)
+        batch = self._replace_node_with_handrails(node, collapse_in_hr=False)
+        if "hr-hidden" not in batch.items[0].classes:
+            batch.items[0].classes.append("hr-hidden")
+        batch = AppendBatchAndDefer([*batch.items, *cmd.items[1:]])
+        return batch
+
+    def leave_codeblock(self, node: nodes.CodeBlock) -> EditCommand:
+        # For documentation: if a visit_* method returns a command with defers = True,
+        # then the corresponding leave_* method MUST MUST MUST call leave_node(node) and
+        # add it to the returned batch!!!
+        batch = self.leave_node(node)
+        batch.items.insert(-1, self._hr_info_zone_icon(getattr(node, "icon", None)))
+        return batch
+
     def visit_theorem(self, node: nodes.Theorem) -> EditCommand:
         batch = super().visit_theorem(node)
         hr = self._replace_node_with_handrails(node, additional_classes=["hr-labeled"])

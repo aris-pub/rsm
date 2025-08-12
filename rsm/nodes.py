@@ -1241,7 +1241,7 @@ class Code(NodeWithChildren):
 
 
 class CodeBlock(NodeWithChildren):
-    classreftext: ClassVar[str] = "Code Listing {number}"
+    classreftext: ClassVar[str] = "Code Block {number}"
     newmetakeys: ClassVar[set] = {"lang"}
 
     def __init__(self, source: str = "", lang: str = "", **kwargs: Any) -> None:
