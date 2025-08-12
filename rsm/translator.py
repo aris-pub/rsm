@@ -508,6 +508,30 @@ class AppendBatch(EditCommandBatch):
             item.execute(translator)
 
 
+def auto_leave_deferred(leave_method):
+    """
+    Decorator for leave_* methods whose corresponding visit_* method returns
+    a command with defers=True (like AppendBatchAndDefer).
+    
+    Automatically calls leave_node(node) to get the base batch, then passes
+    it to the decorated method for node-specific modifications.
+    
+    MUST be used if the corresponding visit_* method returns AppendBatchAndDefer
+    or any other command with defers=True.
+    
+    The decorated method will receive (self, node, base_batch) and should
+    modify and return the base_batch.
+    """
+    def wrapper(self, node):
+        # Get the base leave_node batch (handles deferred cleanup)
+        base_batch = self.leave_node(node)
+        
+        # Call the decorated method with the base batch for modification
+        return leave_method(self, node, base_batch)
+        
+    return wrapper
+
+
 class Translator:
     """Translate an abstract syntax tree into HTML.
 
@@ -982,14 +1006,10 @@ class Translator:
             ]
         )
 
-    def leave_proof(self, node: nodes.Proof) -> EditCommand:
-        # For documentation: if a visit_* method returns a command with defers = True,
-        # then the corresponding leave_* method MUST MUST MUST call leave_node(node) and
-        # add it to the returned batch!!!
-        batch = self.leave_node(node)
-        batch.items.insert(-1, AppendHalmos())
-        batch = AppendBatch(batch.items)
-        return batch
+    @auto_leave_deferred
+    def leave_proof(self, node: nodes.Proof, base_batch) -> EditCommand:
+        base_batch.items.insert(-1, AppendHalmos())
+        return AppendBatch(base_batch.items)
 
     def visit_cite(self, node: nodes.Cite) -> EditCommand:
         classes = ["cite"]
@@ -1724,13 +1744,10 @@ class HandrailsTranslator(Translator):
         batch = AppendBatchAndDefer([*batch.items, *cmd.items[1:]])
         return batch
 
-    def leave_codeblock(self, node: nodes.CodeBlock) -> EditCommand:
-        # For documentation: if a visit_* method returns a command with defers = True,
-        # then the corresponding leave_* method MUST MUST MUST call leave_node(node) and
-        # add it to the returned batch!!!
-        batch = self.leave_node(node)
-        batch.items.insert(-1, self._hr_info_zone_icon(getattr(node, "icon", None)))
-        return batch
+    @auto_leave_deferred
+    def leave_codeblock(self, node: nodes.CodeBlock, base_batch) -> EditCommand:
+        base_batch.items.insert(-1, self._hr_info_zone_icon(getattr(node, "icon", None)))
+        return base_batch
 
     def visit_theorem(self, node: nodes.Theorem) -> EditCommand:
         batch = super().visit_theorem(node)
@@ -1738,14 +1755,10 @@ class HandrailsTranslator(Translator):
         hr.items += batch.items[1:]
         return hr
 
-    def leave_theorem(self, node: nodes.Theorem) -> EditCommand:
-        # For documentation: if a visit_* method returns a command with defers = True,
-        # then the corresponding leave_* method MUST MUST MUST call leave_node(node) and
-        # add it to the returned batch!!!
-        batch = self.leave_node(node)
-        batch.items.insert(1, self._hr_info_zone_icon(getattr(node, "icon", None)))
-        batch = AppendBatch(batch.items)
-        return batch
+    @auto_leave_deferred
+    def leave_theorem(self, node: nodes.Theorem, base_batch) -> EditCommand:
+        base_batch.items.insert(1, self._hr_info_zone_icon(getattr(node, "icon", None)))
+        return AppendBatch(base_batch.items)
 
     def visit_sketch(self, node: nodes.Sketch) -> EditCommand:
         batch = super().visit_sketch(node)
@@ -1767,14 +1780,10 @@ class HandrailsTranslator(Translator):
         hr.items += batch.items[1:]
         return hr
 
-    def leave_proof(self, node: nodes.Proof) -> EditCommand:
-        # For documentation: if a visit_* method returns a command with defers = True,
-        # then the corresponding leave_* method MUST MUST MUST call leave_node(node) and
-        # add it to the returned batch!!!
-        batch = self.leave_node(node)
-        batch.items.insert(1, self._hr_info_zone_icon(getattr(node, "icon", None)))
-        batch = AppendBatch(batch.items)
-        return batch
+    @auto_leave_deferred
+    def leave_proof(self, node: nodes.Proof, base_batch) -> EditCommand:
+        base_batch.items.insert(1, self._hr_info_zone_icon(getattr(node, "icon", None)))
+        return AppendBatch(base_batch.items)
 
     def visit_subproof(self, node: nodes.Subproof) -> EditCommand:
         hr = self._subproof_handrails(node)
