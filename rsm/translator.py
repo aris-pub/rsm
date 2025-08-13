@@ -554,9 +554,14 @@ class Translator:
             classname = self.node.__class__.__name__
             return f'Action(node={classname}(), action="{self.action}")'
 
-    def __init__(self, quiet: bool = False):
+    def __init__(self, quiet: bool = False, asset_resolver=None):
         self.tree: nodes.Manuscript = None
         self.body: str = ""
+        # Default to disk-based asset resolver if none provided
+        if asset_resolver is None:
+            from .asset_resolver import AssetResolverFromDisk
+            asset_resolver = AssetResolverFromDisk()
+        self.asset_resolver = asset_resolver
         self.deferred: list[EditCommand] = []
         self.quiet = quiet
 
@@ -1151,15 +1156,10 @@ class Translator:
 
         # HTML files
         elif path_str.endswith(".html"):
-            try:
-                with open(node.path, "r", encoding="utf-8") as f:
-                    return f.read()
-            except FileNotFoundError:
-                logger.error(f"HTML file not found: {node.path}")
-                return f'<div class="html-error">File not found: {node.path}</div>'
-            except (OSError, UnicodeDecodeError) as e:
-                logger.error(f"Error reading HTML file {node.path}: {e}")
-                return f'<div class="html-error">Error reading {node.path}: {e}</div>'
+            content = self.asset_resolver.resolve_asset(str(node.path))
+            if content is None:
+                return f'<div class="html-error">Unable to load HTML asset: {node.path}</div>'
+            return content
 
         # Default to image behavior
         else:
@@ -1287,8 +1287,9 @@ class HandrailsTranslator(Translator):
         self,
         quiet: bool = False,
         add_source: bool = True,
+        asset_resolver=None,
     ):
-        super().__init__(quiet)
+        super().__init__(quiet, asset_resolver)
         self.add_source = add_source
 
     @staticmethod

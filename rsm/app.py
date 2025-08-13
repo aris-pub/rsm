@@ -215,16 +215,19 @@ class ProcessorApp(ParserApp):
         handrails: bool = False,
         add_source: bool = True,
         run_linter: bool = False,
+        asset_resolver=None,
     ):
         super().__init__(srcpath, plain, loglevel, log_format, log_time, log_lineno)
+        self.asset_resolver = asset_resolver
         if run_linter:
             self.add_task(Task("linter", l := linter.Linter(), l.lint))
 
         if not handrails:
-            tr = translator.Translator()
+            tr = translator.Translator(asset_resolver=asset_resolver)
         else:
             tr = translator.HandrailsTranslator(
                 add_source=add_source,
+                asset_resolver=asset_resolver
             )
         self.add_task(Task("translator", tr, tr.translate))
 
@@ -240,11 +243,12 @@ class FullBuildApp(ProcessorApp):
         log_lineno: bool = True,
         handrails: bool = True,
         run_linter: bool = False,
+        asset_resolver=None,
     ):
         super().__init__(
-            srcpath, plain, loglevel, log_format, log_time, handrails, run_linter
+            srcpath, plain, loglevel, log_format, log_time, log_lineno, handrails, add_source, run_linter, asset_resolver
         )
-        self.add_task(Task("builder", b := builder.FullBuilder(), b.build))
+        self.add_task(Task("builder", b := builder.FullBuilder(asset_resolver=asset_resolver), b.build))
         self.add_task(Task("writer", w := writer.Writer(), w.write))
 
 
@@ -257,6 +261,7 @@ def render(
     log_format: str = "rsm",
     log_time: bool = True,
     log_lineno: bool = True,
+    asset_resolver=None,
 ) -> str:
     return ProcessorApp(
         srcpath=path,
@@ -267,6 +272,7 @@ def render(
         log_format=log_format,
         log_time=log_time,
         log_lineno=log_lineno,
+        asset_resolver=asset_resolver,
     ).run()
 
 
@@ -298,6 +304,7 @@ def make(
     log_format: str = "rsm",
     log_time: bool = True,
     log_lineno: bool = True,
+    asset_resolver=None,
 ) -> str:
     return FullBuildApp(
         srcpath=path,
@@ -307,4 +314,5 @@ def make(
         log_format=log_format,
         log_time=log_time,
         log_lineno=log_lineno,
+        asset_resolver=asset_resolver,
     ).run()

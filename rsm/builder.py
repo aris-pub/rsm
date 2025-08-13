@@ -19,11 +19,16 @@ logger = logging.getLogger("RSM").getChild("build")
 class BaseBuilder(ABC):
     """Use HTML body as a string and create a WebManuscript."""
 
-    def __init__(self) -> None:
+    def __init__(self, asset_resolver=None) -> None:
         self.body: Optional[str] = None
         self.html: Optional[str] = None
         self.web: Optional[WebManuscript] = None
         self.outname: str = "index.html"
+        # Default to disk-based asset resolver if none provided
+        if asset_resolver is None:
+            from .asset_resolver import AssetResolverFromDisk
+            asset_resolver = AssetResolverFromDisk()
+        self.asset_resolver = asset_resolver
 
     def build(self, body: str, src: Path = None) -> WebManuscript:
         logger.info("Building...")
@@ -126,7 +131,16 @@ class FullBuilder(SingleFileBuilder):
             copy_file(source, fn, self.web, f"static/{fn}")
 
     def mount_required_assets(self) -> None:
-        source = open_fs(str(Path().resolve()))
-
+        """Mount required assets using the asset resolver.
+        
+        Technical Debt Note: This method demonstrates the architectural inconsistency
+        where assets use the resolver system but the main RSM file still uses
+        direct filesystem access via Reader class. This should be unified in future
+        refactoring.
+        """
         for fn in self.required_assets:
-            copy_file(source, str(fn), self.web, f"static/{fn.name}")
+            asset_content = self.asset_resolver.resolve_asset(str(fn))
+            if asset_content is not None:
+                self.web.writetext(f"static/{fn.name}", asset_content)
+            else:
+                logger.warning(f"Unable to resolve required asset: {fn}")
