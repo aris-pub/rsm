@@ -33,6 +33,8 @@ example = BlockTagInfo(None)
 """Example."""
 figure = BlockTagInfo(None)
 """Figure float."""
+html = BlockTagInfo(None)
+"""HTML asset."""
 itemize = BlockTagInfo(None)
 """Unnumbered list."""
 lemma = BlockTagInfo(None)
@@ -59,6 +61,8 @@ theorem = BlockTagInfo(None)
 """Theorem."""
 toc = BlockTagInfo(None)
 """Table of Contents"""
+video = BlockTagInfo(None)
+"""Video asset."""
 
 
 ################

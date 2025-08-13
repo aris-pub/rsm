@@ -268,6 +268,8 @@ CST_TYPE_TO_AST_TYPE: dict[str, Callable] = {
     "itemize": nodes.Itemize,
     "caption": nodes.Caption,
     "figure": nodes.Figure,
+    "video": nodes.Video,
+    "html": nodes.Html,
     "construct": nodes.Construct,
     "specialconstruct": nodes.Construct,
     "lemma": nodes.Lemma,

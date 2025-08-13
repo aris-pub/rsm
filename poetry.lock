@@ -1516,7 +1516,7 @@ optional = false
 python-versions = ">=3.9"
 groups = ["dev", "test"]
 files = []
-develop = false
+develop = true
 
 [package.extras]
 core = ["tree-sitter (>=0.22,<1.0)"]
@@ -1785,4 +1785,4 @@ doc = ["Sphinx", "pydata-sphinx-theme", "sphinx-autobuild"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.10"
-content-hash = "5ca856c9eb60dc92da1b367b1a3279d849e335909e1fd93fe3363446d91cc93e"
+content-hash = "81371168418339c480d39e417c3419273b993305b15411479537aba1ec74f2d3"

@@ -150,7 +150,7 @@ pytest-sugar = "^0.9.6"
 pylint = "^2.15.8"
 poethepoet = "^0.16.5"
 cibuildwheel = "^2.11.4"
-tree-sitter-rsm = { path = "./tree-sitter-rsm" }
+tree-sitter-rsm = { path = "./tree-sitter-rsm", develop = true }
 types-pygments = "^2.19.0.20250516"
 
 [tool.poetry.group.test.dependencies]

@@ -1562,7 +1562,7 @@ class UnknownBibitem(Bibitem):
         self.number = number
 
 
-class Figure(NodeWithChildren):
+class Asset(NodeWithChildren):
     autonumber = True
     _number_within = Section
     newmetakeys: ClassVar[set] = {"path", "scale"}
@@ -1573,6 +1573,18 @@ class Figure(NodeWithChildren):
         super().__init__(**kwargs)
         self.path = Path(path)
         self.scale = scale
+
+
+class Figure(Asset):
+    classreftext = "Figure {number}"
+
+
+class Video(Asset):
+    classreftext = "Video {number}"
+
+
+class Html(Asset):
+    classreftext = "Html {number}"
 
 
 class Draft(NodeWithChildren):
@@ -1600,7 +1612,7 @@ class TableDatum(NodeWithChildren):
 
 
 class Caption(Paragraph):
-    possible_parents: ClassVar[set[Type["NodeWithChildren"]]] = {Figure, Table}
+    possible_parents: ClassVar[set[Type["NodeWithChildren"]]] = {Figure, Video, Html, Table}
 
 
 class Contents(Itemize):

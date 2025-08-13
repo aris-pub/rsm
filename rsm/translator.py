@@ -146,7 +146,11 @@ def _make_tag(
     items = []
     if kwargs or tabindex is not None:
         if kwargs:
-            items += [f'{k}="{v}"' for k, v in kwargs.items() if v]
+            for k, v in kwargs.items():
+                if v is True:
+                    items += [k]  # Boolean attribute without value
+                elif v:
+                    items += [f'{k}="{v}"']  # Regular attribute with value
         if tabindex is not None:
             items += [f"tabindex={tabindex}"]
     if nodeid is not None:
@@ -512,23 +516,24 @@ def auto_leave_deferred(leave_method):
     """
     Decorator for leave_* methods whose corresponding visit_* method returns
     a command with defers=True (like AppendBatchAndDefer).
-    
+
     Automatically calls leave_node(node) to get the base batch, then passes
     it to the decorated method for node-specific modifications.
-    
+
     MUST be used if the corresponding visit_* method returns AppendBatchAndDefer
     or any other command with defers=True.
-    
+
     The decorated method will receive (self, node, base_batch) and should
     modify and return the base_batch.
     """
+
     def wrapper(self, node):
         # Get the base leave_node batch (handles deferred cleanup)
         base_batch = self.leave_node(node)
-        
+
         # Call the decorated method with the base batch for modification
         return leave_method(self, node, base_batch)
-        
+
     return wrapper
 
 
@@ -1101,22 +1106,93 @@ class Translator:
             [AppendNodeTag(node, "span"), AppendTextAndDefer("[ ", " ]")]
         )
 
+    def _detect_content_type_and_render(self, node: nodes.Asset) -> str:
+        """Detect content type from path and return appropriate HTML."""
+        path_str = str(node.path).lower()
+
+        # Image files
+        if any(
+            path_str.endswith(ext) for ext in [".png", ".jpg", ".jpeg", ".gif", ".svg"]
+        ):
+            return _make_tag(
+                "img",
+                id_=node.label,
+                classes=[],
+                src=node.path,
+                alt=f"{node.__class__.__name__} {node.full_number}.",
+                onload="" if node.scale == 1.0 else f"this.width*={node.scale};",
+            )
+
+        # Video files
+        elif any(path_str.endswith(ext) for ext in [".mp4", ".webm", ".avi", ".mov"]):
+            return (
+                _make_tag(
+                    "video",
+                    id_=node.label,
+                    classes=[],
+                    controls=True,
+                    src=node.path,
+                )
+                + "Your browser does not support the video tag.</video>"
+            )
+
+        # YouTube URLs - treat as videos but note the URL
+        elif "youtube.com/watch" in path_str or "youtu.be/" in path_str:
+            return (
+                _make_tag(
+                    "video",
+                    id_=node.label,
+                    classes=[],
+                    controls=True,
+                    src=node.path,
+                )
+                + f"YouTube video: {node.path}</video>"
+            )
+
+        # HTML files
+        elif path_str.endswith(".html"):
+            try:
+                with open(node.path, "r", encoding="utf-8") as f:
+                    return f.read()
+            except FileNotFoundError:
+                logger.error(f"HTML file not found: {node.path}")
+                return f'<div class="html-error">File not found: {node.path}</div>'
+            except (OSError, UnicodeDecodeError) as e:
+                logger.error(f"Error reading HTML file {node.path}: {e}")
+                return f'<div class="html-error">Error reading {node.path}: {e}</div>'
+
+        # Default to image behavior
+        else:
+            return _make_tag(
+                "img",
+                id_=node.label,
+                classes=[],
+                src=node.path,
+                alt=f"{node.__class__.__name__} {node.full_number}.",
+                onload="" if node.scale == 1.0 else f"this.width*={node.scale};",
+            )
+
     def visit_figure(self, node: nodes.Figure) -> EditCommand:
         return AppendBatchAndDefer(
             [
                 AppendNodeTag(node, "figure"),
-                AppendText(
-                    _make_tag(
-                        "img",
-                        id_=node.label,
-                        classes=[],
-                        src=node.path,
-                        alt=f"{node.__class__.__name__} {node.full_number}.",
-                        onload=""
-                        if node.scale == 1.0
-                        else f"this.width*={node.scale};",
-                    )
-                ),
+                AppendText(self._detect_content_type_and_render(node)),
+            ]
+        )
+
+    def visit_video(self, node: nodes.Video) -> EditCommand:
+        return AppendBatchAndDefer(
+            [
+                AppendNodeTag(node, "figure"),
+                AppendText(self._detect_content_type_and_render(node)),
+            ]
+        )
+
+    def visit_html(self, node: nodes.Html) -> EditCommand:
+        return AppendBatchAndDefer(
+            [
+                AppendNodeTag(node, "figure"),
+                AppendText(self._detect_content_type_and_render(node)),
             ]
         )
 
@@ -1132,7 +1208,7 @@ class Translator:
         return AppendBatchAndDefer(
             [
                 AppendOpenTag(
-                    "figcaption" if isinstance(parent, nodes.Figure) else "caption"
+                    "figcaption" if isinstance(parent, nodes.Asset) else "caption"
                 ),
                 caption,
             ]
@@ -1746,7 +1822,9 @@ class HandrailsTranslator(Translator):
 
     @auto_leave_deferred
     def leave_codeblock(self, node: nodes.CodeBlock, base_batch) -> EditCommand:
-        base_batch.items.insert(-1, self._hr_info_zone_icon(getattr(node, "icon", None)))
+        base_batch.items.insert(
+            -1, self._hr_info_zone_icon(getattr(node, "icon", None))
+        )
         return base_batch
 
     def visit_theorem(self, node: nodes.Theorem) -> EditCommand:
