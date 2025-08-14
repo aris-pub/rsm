@@ -112,6 +112,7 @@ by ``rsm-make``.
 import logging
 import re
 import textwrap
+import uuid
 from abc import ABC, abstractmethod
 from collections import namedtuple
 from typing import Any, Callable, Iterable, Literal, Optional
@@ -122,6 +123,120 @@ from . import nodes
 from .util import highlight_code
 
 logger = logging.getLogger("RSM").getChild("tlate")
+
+
+def _process_html_with_scripts(html_content: str) -> str:
+    """Process HTML content to ensure JavaScript executes when dynamically inserted.
+    
+    When HTML content is inserted via innerHTML or v-html, script tags don't execute
+    automatically. This function processes all scripts to ensure proper execution order,
+    especially handling dependencies between external and inline scripts.
+    
+    Parameters
+    ----------
+    html_content : str
+        Raw HTML content that may contain script tags
+        
+    Returns
+    -------
+    str
+        Processed HTML with scripts that will execute when inserted
+    """
+    if not html_content or '<script' not in html_content.lower():
+        return html_content
+    
+    # Find all script tags and process them in order
+    script_pattern = re.compile(
+        r'<script([^>]*)>(.*?)</script>', 
+        re.DOTALL | re.IGNORECASE
+    )
+    
+    scripts = list(script_pattern.finditer(html_content))
+    if not scripts:
+        return html_content
+    
+    # Build a queue of scripts to execute in order
+    processed_scripts = []
+    external_scripts = []
+    
+    for i, match in enumerate(scripts):
+        attributes = match.group(1)
+        script_content = match.group(2)
+        
+        if 'src=' in attributes.lower():
+            # External script - extract URL and add to queue
+            src_match = re.search(r'src=["\']([^"\']+)["\']', attributes, re.IGNORECASE)
+            if src_match:
+                src_url = src_match.group(1)
+                script_id = f"rsm_script_{uuid.uuid4().hex[:8]}"
+                external_scripts.append({
+                    'url': src_url,
+                    'id': script_id,
+                    'async': 'async' in attributes.lower(),
+                    'defer': 'defer' in attributes.lower()
+                })
+        else:
+            # Inline script - add to execution queue
+            if script_content.strip():
+                escaped_content = script_content.replace('</script>', '<\\/script>')
+                processed_scripts.append(escaped_content)
+    
+    if not processed_scripts and not external_scripts:
+        return html_content
+    
+    # Generate execution script that handles dependencies
+    execution_script = '''<script>
+(function() {
+    var scriptsLoaded = 0;
+    var totalExternalScripts = ''' + str(len(external_scripts)) + ''';
+    var inlineScripts = [''' + ',\n        '.join(f'function() {{ try {{ {script} }} catch (e) {{ console.warn("RSM: Error executing script:", e); }} }}' for script in processed_scripts) + '''];
+    
+    function executeInlineScripts() {
+        if (scriptsLoaded >= totalExternalScripts) {
+            inlineScripts.forEach(function(scriptFunc, index) {
+                try {
+                    scriptFunc();
+                } catch (e) {
+                    console.warn('RSM: Error executing inline script ' + index + ':', e);
+                }
+            });
+        }
+    }
+    
+    function onScriptLoad() {
+        scriptsLoaded++;
+        executeInlineScripts();
+    }
+'''
+    
+    # Add external script loading
+    for script in external_scripts:
+        execution_script += f'''
+    // Load external script: {script['url']}
+    var script_{script['id']} = document.createElement('script');
+    script_{script['id']}.src = '{script['url']}';
+    script_{script['id']}.id = '{script['id']}';
+    {('script_' + script['id'] + '.async = true;' if script['async'] else '')}
+    {('script_' + script['id'] + '.defer = true;' if script['defer'] else '')}
+    script_{script['id']}.onload = onScriptLoad;
+    script_{script['id']}.onerror = onScriptLoad; // Continue even if script fails
+    document.head.appendChild(script_{script['id']});
+'''
+    
+    execution_script += '''
+    
+    // If no external scripts, execute inline scripts immediately
+    if (totalExternalScripts === 0) {
+        executeInlineScripts();
+    }
+})();
+</script>'''
+    
+    # Replace all original script tags with our execution script
+    result = script_pattern.sub('', html_content)
+    result += execution_script
+    
+    return result
 
 
 class RSMTranslatorError(Exception):
@@ -1159,7 +1274,11 @@ class Translator:
             content = self.asset_resolver.resolve_asset(str(node.path))
             if content is None:
                 return f'<div class="html-error">Unable to load HTML asset: {node.path}</div>'
-            return content
+            logger.info(f"Processing HTML asset {node.path}: {len(content)} chars, has scripts: {'<script' in content.lower()}")
+            processed = _process_html_with_scripts(content)
+            if processed != content:
+                logger.info(f"Scripts were processed in {node.path}")
+            return processed
 
         # Default to image behavior
         else:
