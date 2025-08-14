@@ -11,3 +11,4 @@ from . import (
     writer,
 )
 from .app import lint, make, render, RSMApplicationError
+from .asset_resolver import AssetResolver, AssetResolverFromDisk
