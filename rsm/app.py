@@ -71,6 +71,45 @@ from .rsmlogger import GatherHandler
 logger = logging.getLogger("RSM")
 
 
+def _parse_html_to_structured(html: str) -> dict:
+    """Parse full HTML document into structured components.
+    
+    Parameters
+    ----------
+    html : str
+        Complete HTML document with <html><head>...</head><body>...</body></html>
+    
+    Returns
+    -------
+    dict
+        Dictionary with keys 'head', 'body', 'init_script'
+    """
+    import re
+    
+    # Extract head content (everything inside <head>...</head>)
+    head_match = re.search(r'<head>(.*?)</head>', html, re.DOTALL)
+    if not head_match:
+        raise RSMApplicationError("No <head> section found in HTML document")
+    
+    head_content = head_match.group(1).strip()
+    
+    # Extract body content (everything inside <body>...</body>)
+    body_match = re.search(r'<body[^>]*>(.*?)</body>', html, re.DOTALL)
+    if not body_match:
+        raise RSMApplicationError("No <body> section found in HTML document")
+    
+    body_content = body_match.group(1).strip()
+    
+    # Generate init_script by modifying the window load listener
+    init_script = "import { onload } from '/static/onload.js'; onload(document, { path: '/static/' });"
+    
+    return {
+        "head": head_content,
+        "body": body_content,
+        "init_script": init_script
+    }
+
+
 class RSMApplicationError(Exception):
     pass
 
@@ -242,6 +281,7 @@ class FullBuildApp(ProcessorApp):
         log_time: bool = True,
         log_lineno: bool = True,
         handrails: bool = True,
+        add_source: bool = True,
         run_linter: bool = False,
         asset_resolver=None,
     ):
@@ -250,6 +290,27 @@ class FullBuildApp(ProcessorApp):
         )
         self.add_task(Task("builder", b := builder.FullBuilder(asset_resolver=asset_resolver), b.build))
         self.add_task(Task("writer", w := writer.Writer(), w.write))
+    
+    def run(self, initial_args=None) -> str:
+        """Override run to return HTML content instead of None from Writer."""
+        # Run all tasks except the last one (writer)
+        result = initial_args
+        for _, _, call in self.tasks[:-1]:  # Skip writer
+            if isinstance(result, dict):
+                result = call(**result)
+            elif isinstance(result, (list, tuple)):
+                result = call(*result)
+            elif result is None:
+                result = call()
+            else:
+                result = call(result)
+        
+        # The result should now be a WebManuscript from the builder
+        if hasattr(result, 'html'):
+            return result.html
+        else:
+            logger.error("Builder did not produce WebManuscript with html attribute")
+            return ""
 
 
 def render(
@@ -305,8 +366,9 @@ def make(
     log_time: bool = True,
     log_lineno: bool = True,
     asset_resolver=None,
-) -> str:
-    return FullBuildApp(
+    structured: bool = False,
+) -> Union[str, dict]:
+    html_result = FullBuildApp(
         srcpath=path,
         plain=source,
         run_linter=lint,
@@ -316,3 +378,9 @@ def make(
         log_lineno=log_lineno,
         asset_resolver=asset_resolver,
     ).run()
+    
+    if not structured:
+        return html_result
+    
+    # Parse HTML into structured components
+    return _parse_html_to_structured(html_result)
