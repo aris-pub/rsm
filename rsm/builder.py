@@ -79,12 +79,12 @@ class SingleFileBuilder(BaseBuilder):
           <meta name="viewport" content="width=device-width, initial-scale=1.0" />
           <meta name="generator" content="RSM 0.0.1 https://github.com/leotrs/rsm" />
 
-          <link rel="stylesheet" type="text/css" href="static/rsm.css" />
-          <link rel="stylesheet" type="text/css" href="static/tooltipster.bundle.css" />
+          <link rel="stylesheet" type="text/css" href="/static/rsm.css" />
+          <link rel="stylesheet" type="text/css" href="/static/tooltipster.bundle.css" />
           <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pseudocode@latest/build/pseudocode.min.css">
 
-          <script src="static/jquery-3.6.0.js"></script>
-          <script src="static/tooltipster.bundle.js"></script>
+          <script src="/static/jquery-3.6.0.js"></script>
+          <script src="/static/tooltipster.bundle.js"></script>
           <script type="module">
             import { onload } from '/static/onload.js';
             window.addEventListener('load', (ev) => {window.lsp_ws = onload();});
