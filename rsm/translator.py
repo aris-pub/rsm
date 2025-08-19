@@ -1275,9 +1275,21 @@ class Translator:
             if content is None:
                 return f'<div class="html-error">Unable to load HTML asset: {node.path}</div>'
             logger.info(f"Processing HTML asset {node.path}: {len(content)} chars, has scripts: {'<script' in content.lower()}")
-            processed = _process_html_with_scripts(content)
-            if processed != content:
-                logger.info(f"Scripts were processed in {node.path}")
+            logger.info(f"Content preview: {content[:200]}...")
+            
+            # Check if this is a full HTML document vs simple content
+            is_full_html_doc = content.strip().lower().startswith('<html') or content.strip().lower().startswith('<!doctype')
+            
+            if is_full_html_doc:
+                # Full HTML document - extract body content and process scripts
+                processed = _process_html_with_scripts(content)
+                logger.info(f"Full HTML document processed with script handling")
+            else:
+                # Simple HTML content - use as-is (for existing RSM behavior)
+                processed = content
+                logger.info(f"Simple HTML content used as-is")
+                
+            logger.info(f"Processed content preview: {processed[:200]}...")
             return processed
 
         # Default to image behavior
@@ -1292,6 +1304,8 @@ class Translator:
             )
 
     def visit_figure(self, node: nodes.Figure) -> EditCommand:
+        print(f"🔍 VISITING FIGURE DEBUG: {node.path}")
+        logger.error(f"🔍 VISITING FIGURE: {node.path} (type: {type(node.path)})")
         return AppendBatchAndDefer(
             [
                 AppendNodeTag(node, "figure"),

@@ -100,6 +100,45 @@ def _parse_html_to_structured(html: str) -> dict:
     
     body_content = body_match.group(1).strip()
     
+    # Extract external script tags from body content and add to head
+    # This handles scripts added by HTML assets (like Plotly CDN)
+    external_scripts = []
+    script_pattern = r'<script[^>]*src=["\']([^"\']+)["\'][^>]*></script>'
+    scripts_in_body = re.findall(script_pattern, body_content)
+    
+    for script_match in re.finditer(script_pattern, body_content):
+        script_tag = script_match.group(0)
+        src = script_match.group(1)
+        
+        # Only move external scripts (CDN URLs) to head
+        if src.startswith(('http://', 'https://', '//')):
+            external_scripts.append(script_tag)
+            # Remove from body content
+            body_content = body_content.replace(script_tag, '')
+    
+    # Also check for external scripts in RSM execution scripts after </html>
+    # These are created by _process_html_with_scripts for HTML assets
+    html_end = html.find('</html>')
+    if html_end != -1:
+        post_html_content = html[html_end:]
+        # Look for script URLs in RSM execution scripts
+        src_pattern = r"script_[^.]+\.src\s*=\s*['\"]([^'\"]+)['\"]"
+        execution_script_urls = re.findall(src_pattern, post_html_content)
+        
+        for url in execution_script_urls:
+            # Only include external CDN URLs
+            if url.startswith(('http://', 'https://', '//')):
+                # Create a proper script tag for the head
+                script_tag = f'<script src="{url}"></script>'
+                external_scripts.append(script_tag)
+    
+    # Add external scripts to head content
+    if external_scripts:
+        head_content = head_content + '\n' + '\n'.join(external_scripts)
+    
+    # Clean up any extra whitespace in body content
+    body_content = body_content.strip()
+    
     # Generate init_script by modifying the window load listener
     init_script = "import { onload } from '/static/onload.js'; onload(document, { path: '/static/' });"
     
