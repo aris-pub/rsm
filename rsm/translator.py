@@ -1274,8 +1274,6 @@ class Translator:
             content = self.asset_resolver.resolve_asset(str(node.path))
             if content is None:
                 return f'<div class="html-error">Unable to load HTML asset: {node.path}</div>'
-            logger.info(f"Processing HTML asset {node.path}: {len(content)} chars, has scripts: {'<script' in content.lower()}")
-            logger.info(f"Content preview: {content[:200]}...")
             
             # Check if this is a full HTML document vs simple content
             is_full_html_doc = content.strip().lower().startswith('<html') or content.strip().lower().startswith('<!doctype')
@@ -1283,13 +1281,10 @@ class Translator:
             if is_full_html_doc:
                 # Full HTML document - extract body content and process scripts
                 processed = _process_html_with_scripts(content)
-                logger.info(f"Full HTML document processed with script handling")
             else:
                 # Simple HTML content - use as-is (for existing RSM behavior)
                 processed = content
-                logger.info(f"Simple HTML content used as-is")
                 
-            logger.info(f"Processed content preview: {processed[:200]}...")
             return processed
 
         # Default to image behavior
@@ -1304,8 +1299,6 @@ class Translator:
             )
 
     def visit_figure(self, node: nodes.Figure) -> EditCommand:
-        print(f"🔍 VISITING FIGURE DEBUG: {node.path}")
-        logger.error(f"🔍 VISITING FIGURE: {node.path} (type: {type(node.path)})")
         return AppendBatchAndDefer(
             [
                 AppendNodeTag(node, "figure"),
@@ -1944,6 +1937,53 @@ class HandrailsTranslator(Translator):
         # add it to the returned batch!!!
         batch = super().leave_paragraph(node)
         batch.items.insert(-1, self._hr_info_zone_icon(getattr(node, "icon", None)))
+        return batch
+
+    def visit_caption(self, node: nodes.Caption) -> EditCommand:
+        parent = node.parent
+        caption_label = AppendOpenCloseTag(
+            tag="span",
+            content=f"{parent.__class__.__name__} {parent.full_number}. ",
+            classes=["label"],
+            newline_inner=False,
+            newline_outer=False,
+        )
+        
+        # Create figcaption with handrail classes
+        figcaption_classes = ["hr", "hr-hidden"]
+        additional_classes = (
+            ["hr-hidden"] if node.handrail_depth == 2 else []
+        ) + (
+            ["hr-offset"] if node.handrail_depth > 0 else []
+        )
+        figcaption_classes.extend(additional_classes)
+        
+        return AppendBatchAndDefer([
+            AppendOpenTag(
+                "figcaption" if isinstance(parent, nodes.Asset) else "caption",
+                classes=figcaption_classes,
+                is_selectable=True,
+                tabindex=0
+            ),
+            self._hr_collapse_zone(collapsible=False),
+            self._hr_menu_zone(
+                label="Caption",
+                link=(True if node.label else "disabled"),
+            ),
+            self._hr_border_zone(),
+            self._hr_spacer_zone(),
+            AppendOpenTag("div", classes=["hr-content-zone"]),
+            caption_label,
+        ])
+
+    def leave_caption(self, node: nodes.Caption) -> EditCommand:
+        batch = self.leave_node(node)
+        # Close hr-content-zone, add hr-info-zone, then close figcaption
+        batch.items = [
+            AppendText("</div>"),  # Close hr-content-zone
+            self._hr_info_zone_icon(getattr(node, "icon", None)),
+            *batch.items,  # This includes the closing figcaption tag
+        ]
         return batch
 
     def visit_codeblock(self, node: nodes.CodeBlock) -> EditCommand:
