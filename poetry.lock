@@ -1676,7 +1676,7 @@ version = "0.2.0"
 description = "RSM grammar for tree-sitter"
 optional = false
 python-versions = ">=3.9"
-groups = ["dev", "test"]
+groups = ["main", "dev", "test"]
 files = []
 develop = true
 
@@ -1955,4 +1955,4 @@ doc = ["Sphinx", "pydata-sphinx-theme", "sphinx-autobuild"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.10"
-content-hash = "81371168418339c480d39e417c3419273b993305b15411479537aba1ec74f2d3"
+content-hash = "a9b2c783381f87dda7ab723632508c5e6381fe76ffec8be0a5198dae7f5fe621"

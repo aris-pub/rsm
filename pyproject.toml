@@ -18,6 +18,7 @@ dependencies = [
     "icecream >= 2.1.2",
     "livereload >= 2.6.3",
     "tree-sitter >= 0.23.2",
+    "tree-sitter-rsm >= 0.2.0",
     "ujson>=5.10.0",
 ]
 requires-python = ">=3.10"
