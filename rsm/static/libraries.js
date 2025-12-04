@@ -68,6 +68,13 @@ export async function typesetMath(root = document) {
   const mathBlocks = root.querySelectorAll("div.mathblock").length;
   console.log(`[typesetMath] BEFORE: mjx=${mjxBefore}, nested=${nestedBefore}, span.math=${mathSpans}, div.mathblock=${mathBlocks}`);
 
+  // Remove any existing mjx-containers to prevent duplication
+  // This handles cases where Vue re-renders and preserves old MathJax output
+  if (mjxBefore > 0) {
+    console.log(`[typesetMath] Removing ${mjxBefore} existing mjx-containers`);
+    root.querySelectorAll("mjx-container").forEach(el => el.remove());
+  }
+
   try {
     if (MathJax.typesetClear) {
       console.log("[typesetMath] Calling typesetClear");
