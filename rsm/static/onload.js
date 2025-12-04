@@ -7,8 +7,11 @@
 export async function onload(root = null, { path = "/static/", keys = true } = {}) {
   if (!root) root = document;
 
+  console.log(`[RSM onload] called, __rsmInitialized=${window.__rsmInitialized}`);
+
   // Use window globals because dynamic import() creates new module instances
   if (window.__rsmInitialized) {
+    console.log("[RSM onload] Already initialized, delegating to onrender()");
     window.__rsmCachedPath = path;
     return onrender(root);
   }
@@ -72,7 +75,11 @@ export async function onload(root = null, { path = "/static/", keys = true } = {
 let renderInProgress = false;
 
 export async function onrender(root = null) {
-  if (renderInProgress) return;
+  console.log(`[RSM onrender] called, renderInProgress=${renderInProgress}`);
+  if (renderInProgress) {
+    console.log("[RSM onrender] Skipping - render already in progress");
+    return;
+  }
   renderInProgress = true;
 
   if (!root) root = document;

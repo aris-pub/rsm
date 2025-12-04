@@ -61,14 +61,26 @@ export async function typesetMath(root = document) {
     return;
   }
 
+  const mjxBefore = root.querySelectorAll("mjx-container").length;
+  const nestedBefore = root.querySelectorAll("mjx-container mjx-container").length;
+  const mathSpans = root.querySelectorAll("span.math").length;
+  const mathBlocks = root.querySelectorAll("div.mathblock").length;
+  console.log(`[typesetMath] BEFORE: mjx=${mjxBefore}, nested=${nestedBefore}, span.math=${mathSpans}, div.mathblock=${mathBlocks}`);
+
   try {
     if (MathJax.typesetClear) {
+      console.log("[typesetMath] Calling typesetClear");
       MathJax.typesetClear([root]);
     }
+    console.log("[typesetMath] Calling typesetPromise");
     await MathJax.typesetPromise([root]);
   } catch (err) {
     console.error("MathJax typeset error:", err);
   }
+
+  const mjxAfter = root.querySelectorAll("mjx-container").length;
+  const nestedAfter = root.querySelectorAll("mjx-container mjx-container").length;
+  console.log(`[typesetMath] AFTER: mjx=${mjxAfter}, nested=${nestedAfter}`);
 }
 
 let pseudocodeLoaded = false;
