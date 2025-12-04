@@ -97,13 +97,6 @@ export function createTooltips() {
       setTooltipContent(instance, content);
     }
   });
-
-  if (typeof MathJax !== 'undefined' && 'typeset' in MathJax) {
-    MathJax.typeset();
-  }
-  else {
-    console.log('updated but did not find Mathjax.typeset');
-  }
 }
 
 

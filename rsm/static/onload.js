@@ -66,6 +66,8 @@ export async function onload(root = null, { path = "/static/", keys = true } = {
 
     // Render initial content
     await onrender(root);
+    const mjxAfterOnrender = root.querySelectorAll("mjx-container").length;
+    console.log(`[RSM onload] AFTER onrender returned: mjx=${mjxAfterOnrender}`);
 
   } catch (err) {
     console.error("An error occurred during initialization:", err);
@@ -103,6 +105,8 @@ export async function onrender(root = null) {
     // Re-typeset math
     try {
       await window.__rsmCachedLibs.typesetMath(root);
+      const mjxAfterTypeset = root.querySelectorAll("mjx-container").length;
+      console.log(`[RSM onrender] RIGHT AFTER typesetMath returned: mjx=${mjxAfterTypeset}`);
     } catch (err) {
       console.error("MathJax typeset FAILED!", err);
     }
@@ -122,6 +126,8 @@ export async function onrender(root = null) {
     } catch (err) {
       console.error("Pseudocode render FAILED!", err);
     }
+    const mjxAfterPseudocode = root.querySelectorAll("mjx-container").length;
+    console.log(`[RSM onrender] AFTER pseudocode: mjx=${mjxAfterPseudocode}`);
 
     // Tooltipster - already idempotent with :not(.tooltipstered) selector
     try {
@@ -130,10 +136,14 @@ export async function onrender(root = null) {
     } catch (err) {
       console.error("Loading tooltips FAILED!", err);
     }
+    const mjxAfterTooltips = root.querySelectorAll("mjx-container").length;
+    console.log(`[RSM onrender] AFTER tooltips: mjx=${mjxAfterTooltips}`);
 
   } catch (err) {
     console.error("An error occurred during render:", err);
   } finally {
     renderInProgress = false;
+    const mjxAtEnd = root.querySelectorAll("mjx-container").length;
+    console.log(`[RSM onrender] EXITING, mjx=${mjxAtEnd}`);
   }
 }

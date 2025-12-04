@@ -57,7 +57,9 @@ export function loadMathJax() {
 
 // Re-typeset math after HTML content changes
 export async function typesetMath(root = document) {
-  console.log(`[typesetMath] ENTER, root=${root === document ? 'document' : root.tagName || 'element'}`);
+  // Add unique marker to verify element identity
+  if (!root._typesetId) root._typesetId = Math.random().toString(36).substr(2, 6);
+  console.log(`[typesetMath] ENTER, root=${root === document ? 'document' : root.tagName || 'element'}, id=${root._typesetId}`);
 
   if (!mathJaxLoaded || !window.MathJax?.typesetPromise) {
     console.warn("MathJax not ready for typesetting");
@@ -87,6 +89,16 @@ export async function typesetMath(root = document) {
     console.log("[typesetMath] Calling typesetPromise...");
     await MathJax.typesetPromise([root]);
     console.log("[typesetMath] typesetPromise resolved");
+
+    // DEBUG: Check count immediately after typesetPromise
+    const mjxImmediate = root.querySelectorAll("mjx-container").length;
+    console.log(`[typesetMath] IMMEDIATE after typesetPromise: mjx=${mjxImmediate}`);
+
+    // Wait for any pending microtasks/DOM updates
+    await new Promise(resolve => setTimeout(resolve, 0));
+    const mjxAfterDelay = root.querySelectorAll("mjx-container").length;
+    console.log(`[typesetMath] AFTER setTimeout(0): mjx=${mjxAfterDelay}`);
+
   } catch (err) {
     console.error("MathJax typeset error:", err);
   }
@@ -95,7 +107,7 @@ export async function typesetMath(root = document) {
   const nestedAfter = root.querySelectorAll("mjx-container mjx-container").length;
   const docMjxAfter = document.querySelectorAll("mjx-container").length;
   console.log(`[typesetMath] AFTER: root mjx=${mjxAfter}, root nested=${nestedAfter}, doc mjx=${docMjxAfter}`);
-  console.log(`[typesetMath] EXIT`);
+  console.log(`[typesetMath] EXIT, id=${root._typesetId}`);
 }
 
 let pseudocodeLoaded = false;
