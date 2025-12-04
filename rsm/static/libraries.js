@@ -3,19 +3,6 @@
 // Load external libraries dynamically
 //
 
-// Some of these settings are required by pseudocode.js
-window.MathJax = {
-  startup: {
-    typeset: false  // Disable auto-typeset on load - we call typesetPromise explicitly
-  },
-  tex: {
-    inlineMath: [['$', '$'], ['\\(', '\\)']],
-    displayMath: [['$$', '$$'], ['\\[', '\\]']],
-    processEscapes: true,
-    processEnvironments: true,
-  }
-}
-
 let mathJaxLoaded = false;
 let mathJaxLoadPromise = null;
 
@@ -28,8 +15,19 @@ export function loadMathJax() {
     return mathJaxLoadPromise;
   }
 
+  // Configure MathJax BEFORE loading the script
+  // All settings must be in one object - MathJax reads this on load
   const config = document.createElement('script');
   config.innerHTML = `window.MathJax = {
+      startup: {
+        typeset: false  // Disable auto-typeset - we call typesetPromise explicitly
+      },
+      tex: {
+        inlineMath: [['$', '$'], ['\\\\(', '\\\\)']],
+        displayMath: [['$$', '$$'], ['\\\\[', '\\\\]']],
+        processEscapes: true,
+        processEnvironments: true
+      },
       options: {
         menuOptions: {
           settings: {
@@ -37,7 +35,7 @@ export function loadMathJax() {
           }
         }
       }
-    };`
+    };`;
   document.body.appendChild(config);
 
   const script = document.createElement('script');
