@@ -5,6 +5,9 @@
 
 // Some of these settings are required by pseudocode.js
 window.MathJax = {
+  startup: {
+    typeset: false  // Disable auto-typeset on load - we call typesetPromise explicitly
+  },
   tex: {
     inlineMath: [['$', '$'], ['\\(', '\\)']],
     displayMath: [['$$', '$$'], ['\\[', '\\]']],
