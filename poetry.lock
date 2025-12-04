@@ -1672,7 +1672,7 @@ tests = ["tree-sitter-html (>=0.23.2)", "tree-sitter-javascript (>=0.23.1)", "tr
 
 [[package]]
 name = "tree-sitter-rsm"
-version = "0.2.0"
+version = "0.2.1"
 description = "RSM grammar for tree-sitter"
 optional = false
 python-versions = ">=3.9"
@@ -1955,4 +1955,4 @@ doc = ["Sphinx", "pydata-sphinx-theme", "sphinx-autobuild"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.10"
-content-hash = "a9b2c783381f87dda7ab723632508c5e6381fe76ffec8be0a5198dae7f5fe621"
+content-hash = "a490616ba8e0bba1a173353631ca455eefd22e4ab04a79544da6eb9e4e5a0c2f"

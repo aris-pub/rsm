@@ -18,7 +18,7 @@ dependencies = [
     "icecream >= 2.1.2",
     "livereload >= 2.6.3",
     "tree-sitter >= 0.23.2",
-    "tree-sitter-rsm >= 0.2.0",
+    "tree-sitter-rsm >= 0.2.1",
     "ujson>=5.10.0",
 ]
 requires-python = ">=3.10"
@@ -137,7 +137,7 @@ pre-commit = "^2.20.0"
 ujson = "^5.6.0"
 types-ujson = "^5.6.0.0"
 pygments = "^2.14.0"
-tree-sitter-rsm = "^0.2.0"
+tree-sitter-rsm = "^0.2.1"
 
 [tool.poetry.group.dev.dependencies]
 black = "^22.12.0"
@@ -161,7 +161,7 @@ mypy-extensions = "^1.0.0"
 pytest = "^7.2.0"
 pytest-sugar = "^0.9.6"
 pylint = "^2.15.8"
-tree-sitter-rsm = "^0.2.0"
+tree-sitter-rsm = "^0.2.1"
 
 [tool.poetry.group.doc.dependencies]
 Sphinx = "^6.2.0"
