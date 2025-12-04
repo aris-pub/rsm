@@ -57,6 +57,8 @@ export function loadMathJax() {
 
 // Re-typeset math after HTML content changes
 export async function typesetMath(root = document) {
+  console.log(`[typesetMath] ENTER, root=${root === document ? 'document' : root.tagName || 'element'}`);
+
   if (!mathJaxLoaded || !window.MathJax?.typesetPromise) {
     console.warn("MathJax not ready for typesetting");
     return;
@@ -66,13 +68,15 @@ export async function typesetMath(root = document) {
   const nestedBefore = root.querySelectorAll("mjx-container mjx-container").length;
   const mathSpans = root.querySelectorAll("span.math").length;
   const mathBlocks = root.querySelectorAll("div.mathblock").length;
-  console.log(`[typesetMath] BEFORE: mjx=${mjxBefore}, nested=${nestedBefore}, span.math=${mathSpans}, div.mathblock=${mathBlocks}`);
+  const docMjxBefore = document.querySelectorAll("mjx-container").length;
+  console.log(`[typesetMath] BEFORE: root mjx=${mjxBefore}, root nested=${nestedBefore}, doc mjx=${docMjxBefore}, span.math=${mathSpans}, div.mathblock=${mathBlocks}`);
 
   // Remove any existing mjx-containers to prevent duplication
-  // This handles cases where Vue re-renders and preserves old MathJax output
   if (mjxBefore > 0) {
-    console.log(`[typesetMath] Removing ${mjxBefore} existing mjx-containers`);
+    console.log(`[typesetMath] Removing ${mjxBefore} existing mjx-containers from root`);
     root.querySelectorAll("mjx-container").forEach(el => el.remove());
+    const mjxAfterRemoval = root.querySelectorAll("mjx-container").length;
+    console.log(`[typesetMath] After removal: root mjx=${mjxAfterRemoval}`);
   }
 
   try {
@@ -80,15 +84,18 @@ export async function typesetMath(root = document) {
       console.log("[typesetMath] Calling typesetClear");
       MathJax.typesetClear([root]);
     }
-    console.log("[typesetMath] Calling typesetPromise");
+    console.log("[typesetMath] Calling typesetPromise...");
     await MathJax.typesetPromise([root]);
+    console.log("[typesetMath] typesetPromise resolved");
   } catch (err) {
     console.error("MathJax typeset error:", err);
   }
 
   const mjxAfter = root.querySelectorAll("mjx-container").length;
   const nestedAfter = root.querySelectorAll("mjx-container mjx-container").length;
-  console.log(`[typesetMath] AFTER: mjx=${mjxAfter}, nested=${nestedAfter}`);
+  const docMjxAfter = document.querySelectorAll("mjx-container").length;
+  console.log(`[typesetMath] AFTER: root mjx=${mjxAfter}, root nested=${nestedAfter}, doc mjx=${docMjxAfter}`);
+  console.log(`[typesetMath] EXIT`);
 }
 
 let pseudocodeLoaded = false;
