@@ -20,6 +20,7 @@ export function setup() {
   window.addEventListener('scroll', () => {
     const toc_mm = document.querySelector(".toc-wrapper > .minimap");
     const float_mm = document.querySelector(".float-minimap-wrapper > .minimap");
+    if (!toc_mm || !float_mm) return;
     if (withinView(toc_mm, false)) {
       float_mm.classList.add("hide");
     } else {
