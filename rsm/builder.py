@@ -54,7 +54,13 @@ class BaseBuilder(ABC):
         ]
 
 
-class SingleFileBuilder(BaseBuilder):
+class HTMLBuilder(BaseBuilder):
+    """Base class for builders that output HTML files.
+
+    Produces a single index.html file with /static/ paths for resources.
+    Subclasses can override make_html_header() to customize resource URLs.
+    """
+
     body: str
     web: WebManuscript
 
@@ -109,7 +115,53 @@ class SingleFileBuilder(BaseBuilder):
             return mobj.group(1)
 
 
-class FullBuilder(SingleFileBuilder):
+class StandaloneBuilder(HTMLBuilder):
+    """Builder that produces a single HTML file with CDN URLs for external resources.
+
+    Use this builder when the output file needs to work when opened directly
+    in a browser (file:// URLs) without a web server. Third-party libraries
+    are loaded from CDNs, and RSM-specific assets use absolute URLs to the
+    Studio backend.
+    """
+
+    CDN_JQUERY = "https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"
+    CDN_TOOLTIPSTER_CSS = "https://cdn.jsdelivr.net/npm/tooltipster@4.2.8/dist/css/tooltipster.bundle.min.css"
+    CDN_TOOLTIPSTER_JS = "https://cdn.jsdelivr.net/npm/tooltipster@4.2.8/dist/js/tooltipster.bundle.min.js"
+    CDN_PSEUDOCODE_CSS = "https://cdn.jsdelivr.net/npm/pseudocode@2.4.1/build/pseudocode.min.css"
+
+    STUDIO_STATIC_BASE = "https://aris.pub/static"
+
+    def make_html_header(self) -> str:
+        header = dedent(
+            f"""\
+        <head>
+          <meta charset="utf-8" />
+          <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+          <meta name="generator" content="RSM 0.0.1 https://github.com/leotrs/rsm" />
+
+          <link rel="stylesheet" type="text/css" href="{self.STUDIO_STATIC_BASE}/rsm.css" />
+          <link rel="stylesheet" type="text/css" href="{self.CDN_TOOLTIPSTER_CSS}" />
+          <link rel="stylesheet" href="{self.CDN_PSEUDOCODE_CSS}">
+
+          <script src="{self.CDN_JQUERY}"></script>
+          <script src="{self.CDN_TOOLTIPSTER_JS}"></script>
+          <script type="module">
+            import {{ onload }} from '{self.STUDIO_STATIC_BASE}/onload.js';
+            window.addEventListener('load', (ev) => {{window.lsp_ws = onload(null, {{path: '{self.STUDIO_STATIC_BASE}/', keys: false}});}});
+          </script>
+
+          <title>__TITLE_PLACEHOLDER__</title>
+        </head>
+        """
+        )
+        title = self._extract_title()
+        header = header.replace("__TITLE_PLACEHOLDER__", title)
+        return header
+
+
+class FolderBuilder(HTMLBuilder):
+    """Builder that outputs an HTML file plus a static/ folder with all assets."""
+
     def build(self, body: str, src: Path = None) -> WebManuscript:
         super().build(body, src)
         logger.debug("Moving default RSM assets...")

@@ -323,11 +323,16 @@ class FullBuildApp(ProcessorApp):
         add_source: bool = True,
         run_linter: bool = False,
         asset_resolver=None,
+        standalone: bool = False,
     ):
         super().__init__(
             srcpath, plain, loglevel, log_format, log_time, log_lineno, handrails, add_source, run_linter, asset_resolver
         )
-        self.add_task(Task("builder", b := builder.FullBuilder(asset_resolver=asset_resolver), b.build))
+        if standalone:
+            b = builder.StandaloneBuilder(asset_resolver=asset_resolver)
+        else:
+            b = builder.FolderBuilder(asset_resolver=asset_resolver)
+        self.add_task(Task("builder", b, b.build))
         self.add_task(Task("writer", w := writer.Writer(), w.write))
     
     def run(self, initial_args=None) -> str:
@@ -406,6 +411,7 @@ def make(
     log_lineno: bool = True,
     asset_resolver=None,
     structured: bool = False,
+    standalone: bool = False,
 ) -> Union[str, dict]:
     html_result = FullBuildApp(
         srcpath=path,
@@ -416,10 +422,11 @@ def make(
         log_time=log_time,
         log_lineno=log_lineno,
         asset_resolver=asset_resolver,
+        standalone=standalone,
     ).run()
-    
+
     if not structured:
         return html_result
-    
+
     # Parse HTML into structured components
     return _parse_html_to_structured(html_result)
