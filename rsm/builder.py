@@ -129,7 +129,12 @@ class StandaloneBuilder(HTMLBuilder):
     CDN_TOOLTIPSTER_JS = "https://cdn.jsdelivr.net/npm/tooltipster@4.2.8/dist/js/tooltipster.bundle.min.js"
     CDN_PSEUDOCODE_CSS = "https://cdn.jsdelivr.net/npm/pseudocode@2.4.1/build/pseudocode.min.css"
 
-    STUDIO_STATIC_BASE = "https://aris.pub/static"
+    # RSM static files via jsDelivr (mirrors GitHub automatically)
+    CDN_RSM_CSS = "https://cdn.jsdelivr.net/gh/aris-pub/rsm@main/rsm/static/rsm.css"
+    CDN_RSM_ONLOAD = "https://cdn.jsdelivr.net/gh/aris-pub/rsm@main/rsm/static/onload.js"
+
+    # Base path for RSM static files on jsDelivr
+    CDN_RSM_STATIC_BASE = "https://cdn.jsdelivr.net/gh/aris-pub/rsm@main/rsm/static"
 
     def make_html_header(self) -> str:
         header = dedent(
@@ -139,15 +144,15 @@ class StandaloneBuilder(HTMLBuilder):
           <meta name="viewport" content="width=device-width, initial-scale=1.0" />
           <meta name="generator" content="RSM 0.0.1 https://github.com/leotrs/rsm" />
 
-          <link rel="stylesheet" type="text/css" href="{self.STUDIO_STATIC_BASE}/rsm.css" />
+          <link rel="stylesheet" type="text/css" href="{self.CDN_RSM_CSS}" />
           <link rel="stylesheet" type="text/css" href="{self.CDN_TOOLTIPSTER_CSS}" />
           <link rel="stylesheet" href="{self.CDN_PSEUDOCODE_CSS}">
 
           <script src="{self.CDN_JQUERY}"></script>
           <script src="{self.CDN_TOOLTIPSTER_JS}"></script>
           <script type="module">
-            import {{ onload }} from '{self.STUDIO_STATIC_BASE}/onload.js';
-            window.addEventListener('load', (ev) => {{window.lsp_ws = onload(null, {{path: '{self.STUDIO_STATIC_BASE}/', keys: false}});}});
+            import {{ onload }} from '{self.CDN_RSM_ONLOAD}';
+            window.addEventListener('load', (ev) => {{window.lsp_ws = onload(null, {{path: '{self.CDN_RSM_STATIC_BASE}/', keys: false}});}});
           </script>
 
           <title>__TITLE_PLACEHOLDER__</title>
