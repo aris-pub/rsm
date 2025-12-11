@@ -3,39 +3,42 @@
 // onload() - Run ONCE when page first loads. Loads libraries, sets up event listeners.
 // onrender() - Run on EVERY re-render when HTML changes. Re-typesets math, updates icons.
 //
+// Static imports resolve relative to THIS file's URL, making this work in both:
+// - Studio: onload.js at /static/ → imports from /static/
+// - Standalone: onload.js at CDN → imports from CDN (same-origin, no CORS issues)
 
-export async function onload(root = null, { path = "/static/", keys = true } = {}) {
+import * as libs from './libraries.js';
+import * as handrails from './handrails.js';
+import * as keyboard from './keyboard.js';
+import * as minimap from './minimap.js';
+import * as icons from './icons.js';
+import * as tooltips from './tooltips.js';
+
+export async function onload(root = null, { keys = true } = {}) {
   if (!root) root = document;
 
-  // Use window globals because dynamic import() creates new module instances
   if (window.__rsmInitialized) {
-    window.__rsmCachedPath = path;
     return onrender(root);
   }
 
   try {
-    // Cache the libraries module to avoid re-importing on every render
-    window.__rsmCachedLibs = await import(`${path}libraries.js`);
-    window.__rsmCachedPath = path;
-
     // Load MathJax (idempotent)
     try {
-      await window.__rsmCachedLibs.loadMathJax();
+      await libs.loadMathJax();
     } catch (err) {
       console.error("Loading MathJax FAILED!", err);
     }
 
     // Load Pseudocode (idempotent)
     try {
-      await window.__rsmCachedLibs.loadPseudocode();
+      await libs.loadPseudocode();
     } catch (err) {
       console.error("Loading pseudocode FAILED!", err);
     }
 
     // Handrails - set up event listeners once
     try {
-      const hr = await import(`${path}handrails.js`);
-      hr.setup();
+      handrails.setup();
     } catch (err) {
       console.error("Loading handrails.js FAILED!", err);
     }
@@ -43,8 +46,7 @@ export async function onload(root = null, { path = "/static/", keys = true } = {
     // Keyboard - set up event listeners once
     try {
       if (keys) {
-        const kbd = await import(`${path}keyboard.js`);
-        kbd.setup(root);
+        keyboard.setup(root);
       }
     } catch (err) {
       console.error("Loading keyboard.js FAILED!", err);
@@ -52,8 +54,7 @@ export async function onload(root = null, { path = "/static/", keys = true } = {
 
     // Minimap - set up event listeners once
     try {
-      const mm = await import(`${path}minimap.js`);
-      mm.setup();
+      minimap.setup();
     } catch (err) {
       console.error("Loading minimap.js FAILED!", err);
     }
@@ -78,17 +79,9 @@ export async function onrender(root = null) {
 
   if (!root) root = document;
 
-  // Use cached libraries - don't re-import
-  if (!window.__rsmCachedLibs) {
-    console.warn("onrender called before onload - libraries not cached");
-    renderInProgress = false;
-    return;
-  }
-
   try {
     // Icons - safe to call multiple times
     try {
-      const icons = await import(`${window.__rsmCachedPath}icons.js`);
       icons.setup(root);
     } catch (err) {
       console.error("Loading icons.js FAILED!", err);
@@ -96,7 +89,7 @@ export async function onrender(root = null) {
 
     // Re-typeset math
     try {
-      await window.__rsmCachedLibs.typesetMath(root);
+      await libs.typesetMath(root);
     } catch (err) {
       console.error("MathJax typeset FAILED!", err);
     }
@@ -119,8 +112,7 @@ export async function onrender(root = null) {
 
     // Tooltipster - already idempotent with :not(.tooltipstered) selector
     try {
-      const tips = await import(`${window.__rsmCachedPath}tooltips.js`);
-      tips.createTooltips();
+      tooltips.createTooltips();
     } catch (err) {
       console.error("Loading tooltips FAILED!", err);
     }

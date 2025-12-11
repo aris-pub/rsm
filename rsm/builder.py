@@ -133,9 +133,6 @@ class StandaloneBuilder(HTMLBuilder):
     CDN_RSM_CSS = "https://cdn.jsdelivr.net/gh/aris-pub/rsm@main/rsm/static/rsm.css"
     CDN_RSM_ONLOAD = "https://cdn.jsdelivr.net/gh/aris-pub/rsm@main/rsm/static/onload.js"
 
-    # Base path for RSM static files on jsDelivr
-    CDN_RSM_STATIC_BASE = "https://cdn.jsdelivr.net/gh/aris-pub/rsm@main/rsm/static"
-
     def make_html_header(self) -> str:
         header = dedent(
             f"""\
@@ -152,7 +149,7 @@ class StandaloneBuilder(HTMLBuilder):
           <script src="{self.CDN_TOOLTIPSTER_JS}"></script>
           <script type="module">
             import {{ onload }} from '{self.CDN_RSM_ONLOAD}';
-            window.addEventListener('load', (ev) => {{window.lsp_ws = onload(null, {{path: '{self.CDN_RSM_STATIC_BASE}/', keys: false}});}});
+            window.addEventListener('load', (ev) => {{onload(null, {{keys: false}});}});
           </script>
 
           <title>__TITLE_PLACEHOLDER__</title>
