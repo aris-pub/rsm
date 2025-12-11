@@ -2,7 +2,7 @@
 //
 // Keyboard interaction
 //
-import { toggleHandrail, collapseAll } from '/static/handrails.js';
+import { toggleHandrail, collapseAll } from './handrails.js';
 
 export function setup(root) {
   // Nagivation: next or previous

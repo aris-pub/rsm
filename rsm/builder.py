@@ -116,46 +116,49 @@ class HTMLBuilder(BaseBuilder):
 
 
 class StandaloneBuilder(HTMLBuilder):
-    """Builder that produces a single HTML file with CDN URLs for external resources.
+    """Builder that produces a single self-contained HTML file.
 
     Use this builder when the output file needs to work when opened directly
-    in a browser (file:// URLs) without a web server. Third-party libraries
-    are loaded from CDNs, and RSM-specific assets use absolute URLs to the
-    Studio backend.
+    in a browser (file:// URLs) without a web server. All RSM JavaScript is
+    inlined directly in the HTML. Third-party libraries (jQuery, Tooltipster,
+    MathJax) are loaded from CDNs.
     """
 
     CDN_JQUERY = "https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"
     CDN_TOOLTIPSTER_CSS = "https://cdn.jsdelivr.net/npm/tooltipster@4.2.8/dist/css/tooltipster.bundle.min.css"
     CDN_TOOLTIPSTER_JS = "https://cdn.jsdelivr.net/npm/tooltipster@4.2.8/dist/js/tooltipster.bundle.min.js"
     CDN_PSEUDOCODE_CSS = "https://cdn.jsdelivr.net/npm/pseudocode@2.4.1/build/pseudocode.min.css"
-
-    # RSM static files via jsDelivr (mirrors GitHub automatically)
     CDN_RSM_CSS = "https://cdn.jsdelivr.net/gh/aris-pub/rsm@main/rsm/static/rsm.css"
-    CDN_RSM_ONLOAD = "https://cdn.jsdelivr.net/gh/aris-pub/rsm@main/rsm/static/onload.js"
+
+    def _get_inline_js(self) -> str:
+        """Read the bundled RSM JavaScript for inlining."""
+        bundle_path = Path(__file__).parent / "static" / "rsm-standalone.js"
+        return bundle_path.read_text()
 
     def make_html_header(self) -> str:
-        header = dedent(
-            f"""\
-        <head>
-          <meta charset="utf-8" />
-          <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-          <meta name="generator" content="RSM 0.0.1 https://github.com/leotrs/rsm" />
+        inline_js = self._get_inline_js()
+        header = f"""\
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="generator" content="RSM 0.0.1 https://github.com/leotrs/rsm" />
 
-          <link rel="stylesheet" type="text/css" href="{self.CDN_RSM_CSS}" />
-          <link rel="stylesheet" type="text/css" href="{self.CDN_TOOLTIPSTER_CSS}" />
-          <link rel="stylesheet" href="{self.CDN_PSEUDOCODE_CSS}">
+  <link rel="stylesheet" type="text/css" href="{self.CDN_RSM_CSS}" />
+  <link rel="stylesheet" type="text/css" href="{self.CDN_TOOLTIPSTER_CSS}" />
+  <link rel="stylesheet" href="{self.CDN_PSEUDOCODE_CSS}">
 
-          <script src="{self.CDN_JQUERY}"></script>
-          <script src="{self.CDN_TOOLTIPSTER_JS}"></script>
-          <script type="module">
-            import {{ onload }} from '{self.CDN_RSM_ONLOAD}';
-            window.addEventListener('load', (ev) => {{onload(null, {{keys: false}});}});
-          </script>
+  <script src="{self.CDN_JQUERY}"></script>
+  <script src="{self.CDN_TOOLTIPSTER_JS}"></script>
+  <script>
+{inline_js}
+  </script>
+  <script>
+    window.addEventListener('load', function() {{ RSM.onload(null, {{keys: false}}); }});
+  </script>
 
-          <title>__TITLE_PLACEHOLDER__</title>
-        </head>
-        """
-        )
+  <title>__TITLE_PLACEHOLDER__</title>
+</head>
+"""
         title = self._extract_title()
         header = header.replace("__TITLE_PLACEHOLDER__", title)
         return header
