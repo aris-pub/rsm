@@ -29,6 +29,22 @@ This project is under constant development and contributions are *very much* wel
 Please develop your feature or fix in a branch and submit a PR.
 
 
+### Rebuilding the Standalone JS Bundle
+
+The file `rsm/static/rsm-standalone.js` is a pre-built bundle of all RSM JavaScript
+for standalone HTML files (files that can be opened directly from `file://` URLs).
+
+If you modify any JS files in `rsm/static/`, you must regenerate this bundle:
+
+```bash
+npx esbuild rsm/static/onload.js --bundle --format=iife --global-name=RSM --outfile=rsm/static/rsm-standalone.js
+```
+
+This bundles `onload.js` and all its dependencies into a single IIFE that exposes
+`RSM.onload()` and `RSM.onrender()`. The bundle is committed to the repo so there's
+no runtime dependency on esbuild.
+
+
 ## Publishing
 
 This project uses `poetry`. Releasing a new version to PyPI is as easy as executing
