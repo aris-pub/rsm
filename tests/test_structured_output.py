@@ -55,14 +55,13 @@ def test_structured_body_contains_content():
     assert "Hello world!" in body
 
 
-def test_structured_init_script_correct():
-    """Test that init_script contains correct onload call."""
+def test_structured_init_script_empty_without_assets():
+    """Test that init_script is empty for content without HTML assets."""
     source = ":rsm: Hello world! ::"
     result = rsm.make(source, structured=True)
-    
-    init_script = result["init_script"]
-    expected = "import { onload } from '/static/onload.js'; onload(document, { path: '/static/' });"
-    assert init_script == expected
+
+    # No HTML assets means no execution scripts to extract
+    assert result["init_script"] == ""
 
 
 def test_structured_with_asset_resolver():
@@ -105,12 +104,251 @@ def test_structured_vs_regular_same_content():
 def test_structured_handrails_parameter():
     """Test structured output with handrails parameter."""
     source = ":rsm: Hello world! ::"
-    
+
     result_with_handrails = rsm.make(source, structured=True, handrails=True)
     result_without_handrails = rsm.make(source, structured=True, handrails=False)
-    
+
     # Both should be dictionaries with same structure
     assert isinstance(result_with_handrails, dict)
     assert isinstance(result_without_handrails, dict)
     assert set(result_with_handrails.keys()) == {"head", "body", "init_script"}
     assert set(result_without_handrails.keys()) == {"head", "body", "init_script"}
+
+
+# =============================================================================
+# Tests for _parse_html_to_structured IIFE extraction
+# =============================================================================
+
+from rsm.app import _parse_html_to_structured
+
+
+class TestParseHtmlToStructuredIIFE:
+    """Tests for IIFE extraction in _parse_html_to_structured."""
+
+    def test_extracts_iife_from_post_html_script(self):
+        """Test that IIFE content after </html> is extracted to init_script."""
+        html = '''<!DOCTYPE html>
+<html><head><title>Test</title></head>
+<body><div id="chart"></div></body></html>
+<script>
+(function() {
+    console.log("Hello from IIFE");
+})();
+</script>'''
+
+        result = _parse_html_to_structured(html)
+
+        assert "(function()" in result["init_script"]
+        assert 'console.log("Hello from IIFE")' in result["init_script"]
+
+    def test_extracts_cdn_urls_to_head(self):
+        """Test that CDN script URLs from IIFE are added to head."""
+        html = '''<!DOCTYPE html>
+<html><head><title>Test</title></head>
+<body><div id="chart"></div></body></html>
+<script>
+(function() {
+    var script_abc = document.createElement('script');
+    script_abc.src = 'https://cdn.plot.ly/plotly-latest.min.js';
+    document.head.appendChild(script_abc);
+})();
+</script>'''
+
+        result = _parse_html_to_structured(html)
+
+        assert '<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>' in result["head"]
+
+    def test_extracts_multiple_cdn_urls(self):
+        """Test extraction of multiple CDN URLs from IIFE."""
+        html = '''<!DOCTYPE html>
+<html><head><title>Test</title></head>
+<body><div id="chart"></div></body></html>
+<script>
+(function() {
+    var script_1 = document.createElement('script');
+    script_1.src = 'https://d3js.org/d3.v7.min.js';
+    var script_2 = document.createElement('script');
+    script_2.src = 'https://cdn.jsdelivr.net/npm/chart.js';
+    document.head.appendChild(script_1);
+    document.head.appendChild(script_2);
+})();
+</script>'''
+
+        result = _parse_html_to_structured(html)
+
+        assert '<script src="https://d3js.org/d3.v7.min.js"></script>' in result["head"]
+        assert '<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>' in result["head"]
+
+    def test_preserves_inline_script_execution_code(self):
+        """Test that inline script execution code is preserved in init_script."""
+        html = '''<!DOCTYPE html>
+<html><head><title>Test</title></head>
+<body><div id="chart"></div></body></html>
+<script>
+(function() {
+    var inlineScripts = [function() { Plotly.newPlot('chart', data); }];
+    function executeInlineScripts() {
+        inlineScripts.forEach(function(fn) { fn(); });
+    }
+    executeInlineScripts();
+})();
+</script>'''
+
+        result = _parse_html_to_structured(html)
+
+        assert "inlineScripts" in result["init_script"]
+        assert "Plotly.newPlot" in result["init_script"]
+        assert "executeInlineScripts" in result["init_script"]
+
+    def test_no_scripts_returns_empty_init_script(self):
+        """Test that HTML without post-html scripts returns empty init_script."""
+        html = '''<!DOCTYPE html>
+<html><head><title>Test</title></head>
+<body><div>Hello World</div></body></html>'''
+
+        result = _parse_html_to_structured(html)
+
+        assert result["init_script"] == ""
+
+    def test_ignores_relative_script_urls(self):
+        """Test that relative script URLs are not added to head."""
+        html = '''<!DOCTYPE html>
+<html><head><title>Test</title></head>
+<body><div id="chart"></div></body></html>
+<script>
+(function() {
+    var script_abc = document.createElement('script');
+    script_abc.src = '/local/script.js';
+    document.head.appendChild(script_abc);
+})();
+</script>'''
+
+        result = _parse_html_to_structured(html)
+
+        # Relative URL should not be in head
+        assert '/local/script.js' not in result["head"]
+
+    def test_handles_protocol_relative_urls(self):
+        """Test that protocol-relative URLs (//cdn.example.com) are extracted."""
+        html = '''<!DOCTYPE html>
+<html><head><title>Test</title></head>
+<body><div id="chart"></div></body></html>
+<script>
+(function() {
+    var script_abc = document.createElement('script');
+    script_abc.src = '//cdn.example.com/lib.js';
+    document.head.appendChild(script_abc);
+})();
+</script>'''
+
+        result = _parse_html_to_structured(html)
+
+        assert '<script src="//cdn.example.com/lib.js"></script>' in result["head"]
+
+    def test_body_content_unchanged(self):
+        """Test that body content is not affected by IIFE extraction."""
+        html = '''<!DOCTYPE html>
+<html><head><title>Test</title></head>
+<body><div id="chart" class="plotly-graph"></div></body></html>
+<script>(function() { console.log("test"); })();</script>'''
+
+        result = _parse_html_to_structured(html)
+
+        assert '<div id="chart" class="plotly-graph"></div>' in result["body"]
+
+    def test_multiple_post_html_scripts(self):
+        """Test handling of multiple script tags after </html>."""
+        html = '''<!DOCTYPE html>
+<html><head><title>Test</title></head>
+<body><div id="chart"></div></body></html>
+<script>
+(function() { console.log("first"); })();
+</script>
+<script>
+(function() { console.log("second"); })();
+</script>'''
+
+        result = _parse_html_to_structured(html)
+
+        assert 'console.log("first")' in result["init_script"]
+        assert 'console.log("second")' in result["init_script"]
+
+    def test_realistic_plotly_iife(self):
+        """Test extraction of a realistic Plotly IIFE structure."""
+        html = '''<!DOCTYPE html>
+<html><head><title>Chart</title></head>
+<body><div id="plotly-chart"></div></body></html>
+<script>
+(function() {
+    var scriptsLoaded = 0;
+    var totalExternalScripts = 1;
+    var inlineScripts = [function() { try {
+        Plotly.newPlot('plotly-chart', [{x: [1,2,3], y: [4,5,6], type: 'scatter'}]);
+    } catch (e) { console.warn("RSM: Error:", e); } }];
+
+    function executeInlineScripts() {
+        if (scriptsLoaded >= totalExternalScripts) {
+            inlineScripts.forEach(function(scriptFunc) {
+                try { scriptFunc(); } catch (e) { console.warn(e); }
+            });
+        }
+    }
+
+    function onScriptLoad() {
+        scriptsLoaded++;
+        executeInlineScripts();
+    }
+
+    var script_plotly = document.createElement('script');
+    script_plotly.src = 'https://cdn.plot.ly/plotly-2.27.0.min.js';
+    script_plotly.onload = onScriptLoad;
+    script_plotly.onerror = onScriptLoad;
+    document.head.appendChild(script_plotly);
+
+    if (totalExternalScripts === 0) {
+        executeInlineScripts();
+    }
+})();
+</script>'''
+
+        result = _parse_html_to_structured(html)
+
+        # CDN should be in head
+        assert '<script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>' in result["head"]
+
+        # IIFE structure should be preserved
+        assert "scriptsLoaded" in result["init_script"]
+        assert "totalExternalScripts" in result["init_script"]
+        assert "inlineScripts" in result["init_script"]
+        assert "executeInlineScripts" in result["init_script"]
+        assert "onScriptLoad" in result["init_script"]
+        assert "Plotly.newPlot" in result["init_script"]
+
+    def test_d3_chart_iife(self):
+        """Test extraction of a D3.js chart IIFE."""
+        html = '''<!DOCTYPE html>
+<html><head><title>D3 Chart</title></head>
+<body><svg id="d3-chart"></svg></body></html>
+<script>
+(function() {
+    var scriptsLoaded = 0;
+    var totalExternalScripts = 1;
+    var inlineScripts = [function() {
+        d3.select('#d3-chart')
+          .append('circle')
+          .attr('r', 50);
+    }];
+
+    function onScriptLoad() { scriptsLoaded++; }
+
+    var script_d3 = document.createElement('script');
+    script_d3.src = 'https://d3js.org/d3.v7.min.js';
+    script_d3.onload = onScriptLoad;
+    document.head.appendChild(script_d3);
+})();
+</script>'''
+
+        result = _parse_html_to_structured(html)
+
+        assert '<script src="https://d3js.org/d3.v7.min.js"></script>' in result["head"]
+        assert "d3.select" in result["init_script"]
