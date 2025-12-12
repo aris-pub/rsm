@@ -45,9 +45,20 @@ export function loadMathJax() {
   document.body.appendChild(script);
 
   mathJaxLoadPromise = new Promise((res, rej) => {
-    script.onload = () => {
-      mathJaxLoaded = true;
-      res();
+    script.onload = async () => {
+      // Wait for MathJax to fully initialize (not just script load)
+      // MathJax.startup.promise might not exist immediately, so poll for it
+      const waitForStartup = () => {
+        if (window.MathJax?.startup?.promise) {
+          window.MathJax.startup.promise.then(() => {
+            mathJaxLoaded = true;
+            res();
+          });
+        } else {
+          setTimeout(waitForStartup, 10);
+        }
+      };
+      waitForStartup();
     };
     script.onerror = rej;
   });
@@ -57,22 +68,25 @@ export function loadMathJax() {
 
 // Re-typeset math after HTML content changes
 export async function typesetMath(root = document) {
-  if (!mathJaxLoaded || !window.MathJax?.typesetPromise) {
+  if (!window.MathJax?.typesetPromise) {
     console.warn("MathJax not ready for typesetting");
     return;
   }
 
+  // MathJax needs actual DOM elements, not the document object
+  const element = root === document ? document.body : root;
+
   // Remove any existing mjx-containers to prevent duplication on re-render
-  const existingContainers = root.querySelectorAll("mjx-container");
+  const existingContainers = element.querySelectorAll("mjx-container");
   if (existingContainers.length > 0) {
     existingContainers.forEach(el => el.remove());
   }
 
   try {
     if (MathJax.typesetClear) {
-      MathJax.typesetClear([root]);
+      MathJax.typesetClear([element]);
     }
-    await MathJax.typesetPromise([root]);
+    await MathJax.typesetPromise([element]);
   } catch (err) {
     console.error("MathJax typeset error:", err);
   }

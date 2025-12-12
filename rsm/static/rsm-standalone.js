@@ -60,28 +60,38 @@ var RSM = (() => {
     script.src = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js";
     document.body.appendChild(script);
     mathJaxLoadPromise = new Promise((res, rej) => {
-      script.onload = () => {
-        mathJaxLoaded = true;
-        res();
+      script.onload = async () => {
+        const waitForStartup = () => {
+          if (window.MathJax?.startup?.promise) {
+            window.MathJax.startup.promise.then(() => {
+              mathJaxLoaded = true;
+              res();
+            });
+          } else {
+            setTimeout(waitForStartup, 10);
+          }
+        };
+        waitForStartup();
       };
       script.onerror = rej;
     });
     return mathJaxLoadPromise;
   }
   async function typesetMath(root2 = document) {
-    if (!mathJaxLoaded || !window.MathJax?.typesetPromise) {
+    if (!window.MathJax?.typesetPromise) {
       console.warn("MathJax not ready for typesetting");
       return;
     }
-    const existingContainers = root2.querySelectorAll("mjx-container");
+    const element = root2 === document ? document.body : root2;
+    const existingContainers = element.querySelectorAll("mjx-container");
     if (existingContainers.length > 0) {
       existingContainers.forEach((el) => el.remove());
     }
     try {
       if (MathJax.typesetClear) {
-        MathJax.typesetClear([root2]);
+        MathJax.typesetClear([element]);
       }
-      await MathJax.typesetPromise([root2]);
+      await MathJax.typesetPromise([element]);
     } catch (err) {
       console.error("MathJax typeset error:", err);
     }
