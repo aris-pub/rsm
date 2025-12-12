@@ -116,31 +116,38 @@ def _parse_html_to_structured(html: str) -> dict:
             # Remove from body content
             body_content = body_content.replace(script_tag, '')
     
-    # Also check for external scripts in RSM execution scripts after </html>
-    # These are created by _process_html_with_scripts for HTML assets
+    # Extract execution scripts from after </html> (created by _process_html_with_scripts)
+    asset_init_scripts = []
     html_end = html.find('</html>')
     if html_end != -1:
         post_html_content = html[html_end:]
-        # Look for script URLs in RSM execution scripts
+
+        # Extract CDN URLs for head injection
         src_pattern = r"script_[^.]+\.src\s*=\s*['\"]([^'\"]+)['\"]"
         execution_script_urls = re.findall(src_pattern, post_html_content)
-        
+
         for url in execution_script_urls:
-            # Only include external CDN URLs
             if url.startswith(('http://', 'https://', '//')):
-                # Create a proper script tag for the head
                 script_tag = f'<script src="{url}"></script>'
                 external_scripts.append(script_tag)
-    
+
+        # Extract the full IIFE content for execution
+        # The IIFE is wrapped in <script>...</script> after </html>
+        script_content_pattern = r'<script>\s*(.*?)\s*</script>'
+        script_matches = re.findall(script_content_pattern, post_html_content, re.DOTALL)
+        for script_content in script_matches:
+            if script_content.strip():
+                asset_init_scripts.append(script_content.strip())
+
     # Add external scripts to head content
     if external_scripts:
         head_content = head_content + '\n' + '\n'.join(external_scripts)
-    
+
     # Clean up any extra whitespace in body content
     body_content = body_content.strip()
-    
-    # Generate init_script by modifying the window load listener
-    init_script = "import { onload } from '/static/onload.js'; onload(document, { path: '/static/' });"
+
+    # Combine asset scripts into init_script for frontend execution
+    init_script = '\n'.join(asset_init_scripts) if asset_init_scripts else ''
     
     return {
         "head": head_content,
