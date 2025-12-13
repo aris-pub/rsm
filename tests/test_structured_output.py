@@ -352,3 +352,87 @@ class TestParseHtmlToStructuredIIFE:
 
         assert '<script src="https://d3js.org/d3.v7.min.js"></script>' in result["head"]
         assert "d3.select" in result["init_script"]
+
+    def test_content_after_chart_preserved(self):
+        """Test that content after an interactive chart is preserved in body.
+
+        Regression test: content was being cut off after charts in Studio.
+        """
+        html = '''<!DOCTYPE html>
+<html><head><title>Test</title></head>
+<body>
+<h1>Introduction</h1>
+<p>Content before the chart.</p>
+<div id="chart"></div>
+<h2>Section After Chart</h2>
+<p>This content must appear after the chart.</p>
+<h2>Conclusion</h2>
+<p>Final paragraph of the document.</p>
+</body></html>
+<script>
+(function() {
+    var script = document.createElement('script');
+    script.src = 'https://cdn.plot.ly/plotly.min.js';
+    script.onload = function() {
+        Plotly.newPlot('chart', [{x: [1,2], y: [1,2]}]);
+    };
+    document.head.appendChild(script);
+})();
+</script>'''
+
+        result = _parse_html_to_structured(html)
+
+        # All content must be preserved in body
+        assert "Introduction" in result["body"]
+        assert "Content before the chart" in result["body"]
+        assert "Section After Chart" in result["body"]
+        assert "This content must appear after the chart" in result["body"]
+        assert "Conclusion" in result["body"]
+        assert "Final paragraph of the document" in result["body"]
+
+        # Chart container must be present
+        assert 'id="chart"' in result["body"]
+
+    def test_embedded_html_with_body_tags_does_not_truncate(self):
+        """Test that embedded HTML containing </body> tags doesn't truncate content.
+
+        Regression test: Plotly exports include full HTML documents with </body>
+        tags. The regex was matching the FIRST </body> (from embedded content)
+        instead of the LAST (document's actual closing tag).
+        """
+        # Simulates a Plotly chart embedded in a document with content after
+        html = '''<!DOCTYPE html>
+<html><head><title>Document</title></head>
+<body>
+<h1>Before Chart</h1>
+<div class="figure">
+<!-- Embedded Plotly HTML starts here -->
+<html>
+<head><meta charset="utf-8" /></head>
+<body>
+<div id="plotly-chart"></div>
+<script>Plotly.newPlot('chart', data);</script>
+</body>
+</html>
+<!-- Embedded Plotly HTML ends here -->
+</div>
+<h2>After Chart Section</h2>
+<p>This content comes after the embedded chart and MUST be preserved.</p>
+<h2>Conclusion</h2>
+<p>Final content of the document.</p>
+</body></html>'''
+
+        result = _parse_html_to_structured(html)
+
+        # Content AFTER the embedded chart must be preserved
+        assert "After Chart Section" in result["body"], \
+            "Content after embedded chart was truncated!"
+        assert "This content comes after the embedded chart" in result["body"]
+        assert "Conclusion" in result["body"]
+        assert "Final content of the document" in result["body"]
+
+        # Content before chart must also be present
+        assert "Before Chart" in result["body"]
+
+        # The embedded chart div must be present
+        assert 'id="plotly-chart"' in result["body"]

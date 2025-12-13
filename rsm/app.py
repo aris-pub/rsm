@@ -94,7 +94,9 @@ def _parse_html_to_structured(html: str) -> dict:
     head_content = head_match.group(1).strip()
     
     # Extract body content (everything inside <body>...</body>)
-    body_match = re.search(r'<body[^>]*>(.*?)</body>', html, re.DOTALL)
+    # Use greedy .* to match the LAST </body> tag, not the first
+    # (embedded HTML assets like Plotly charts contain their own </body> tags)
+    body_match = re.search(r'<body[^>]*>(.*)</body>', html, re.DOTALL)
     if not body_match:
         raise RSMApplicationError("No <body> section found in HTML document")
     
