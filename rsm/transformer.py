@@ -27,6 +27,7 @@ place is of utmost importance.
 import logging
 from collections import defaultdict
 from itertools import count
+from pathlib import Path
 from string import ascii_uppercase
 from typing import Generator, Optional, Type
 
@@ -109,9 +110,16 @@ class Transformer:
 
     """
 
-    def __init__(self) -> None:
+    def __init__(
+        self,
+        root_dir: Optional[Path] = None,
+        src_file: Optional[Path] = None
+    ) -> None:
         self.tree: Optional[nodes.Manuscript] = None
         self.labels_to_nodes: dict[str, nodes.Node] = {}
+        self.root_dir = root_dir
+        self.src_file = src_file
+        self.external_manuscripts: dict[str, tuple[nodes.Manuscript, dict]] = {}
 
     def transform(self, tree: nodes.Manuscript) -> nodes.Manuscript:
         """Transform a manuscript tree.
@@ -146,6 +154,56 @@ class Transformer:
         self.assign_node_ids()
         return tree
 
+    def _load_external_manuscript(self, filepath: str) -> tuple[nodes.Manuscript, dict[str, nodes.Node]]:
+        """Load and parse an external RSM file.
+
+        Parameters
+        ----------
+        filepath
+            Path to external RSM file, relative to root_dir
+
+        Returns
+        -------
+        tuple
+            (manuscript, labels_to_nodes dict)
+
+        Raises
+        ------
+        ValueError
+            If root_dir is not set
+        FileNotFoundError
+            If the file doesn't exist
+        """
+        # Check cache first
+        if filepath in self.external_manuscripts:
+            return self.external_manuscripts[filepath]
+
+        # Validate root_dir is set
+        if self.root_dir is None:
+            raise ValueError("root_dir must be set to load external manuscripts")
+
+        # Resolve filepath relative to root_dir
+        full_path = self.root_dir / filepath
+
+        # Check file exists
+        if not full_path.exists():
+            raise FileNotFoundError(f"External manuscript not found: {full_path}")
+
+        # Parse external file using ParserApp
+        from .app import ParserApp
+        app = ParserApp(srcpath=full_path)
+        app.run()
+
+        # Extract manuscript and labels
+        manuscript = app.transformer.tree
+        labels_map = app.transformer.labels_to_nodes.copy()
+
+        # Cache the result
+        result = (manuscript, labels_map)
+        self.external_manuscripts[filepath] = result
+
+        return result
+
     def collect_labels(self) -> None:
         """Find all nodes with labels.
 
@@ -171,7 +229,26 @@ class Transformer:
                 continue
             self.labels_to_nodes[node.label] = node
 
-    def _label_to_node(self, label: str, default=nodes.Error) -> nodes.Node:
+    def _label_to_node(
+        self,
+        label: str,
+        external_file: Optional[str] = None,
+        default=nodes.Error
+    ) -> nodes.Node:
+        # Handle external file references
+        if external_file:
+            try:
+                manuscript, labels_map = self._load_external_manuscript(external_file)
+                try:
+                    return labels_map[label]
+                except KeyError:
+                    logger.warning(f'Label "{label}" not found in external file "{external_file}"')
+                    return default(f'[unknown label "{label}" in "{external_file}"]')
+            except (ValueError, FileNotFoundError) as e:
+                logger.warning(f'Failed to load external file "{external_file}": {e}')
+                return default(f'[error loading "{external_file}": {e}]')
+
+        # Handle internal references (existing behavior)
         try:
             return self.labels_to_nodes[label]
         except KeyError as e:
@@ -188,19 +265,23 @@ class Transformer:
         counter = count()
         for pending in self.tree.traverse(condition=lambda n: type(n) in classes):
             if isinstance(pending, nodes.PendingReference):
-                target = self._label_to_node(pending.target)
+                target = self._label_to_node(
+                    pending.target_label,
+                    external_file=pending.external_file
+                )
                 if isinstance(target, nodes.Error):
                     pending.replace_self(target)
                 else:
                     pending.replace_self(
                         nodes.Reference(
                             target=target,
+                            external_file=pending.external_file,
                             overwrite_reftext=pending.overwrite_reftext,
                         )
                     )
             elif isinstance(pending, nodes.PendingCite):
                 targets = [
-                    self._label_to_node(label, nodes.UnknownBibitem)
+                    self._label_to_node(label, default=nodes.UnknownBibitem)
                     for label in pending.targetlabels
                 ]
                 cite = nodes.Cite(targets=targets)

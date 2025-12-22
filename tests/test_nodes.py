@@ -118,3 +118,61 @@ def test_prev_sibling():
     assert t2.prev_sibling() is s
     assert t2.prev_sibling(Text) is t1
     assert t1.prev_sibling() is None
+
+
+def test_pending_reference_internal():
+    """Internal reference should have no external_file."""
+    pending = PendingReference(target="my-label")
+    assert pending.target_label == "my-label"
+    assert pending.external_file is None
+
+
+def test_pending_reference_external():
+    """External reference should parse file path and label."""
+    pending = PendingReference(target="definitions/def.rsm#my-label")
+    assert pending.external_file == "definitions/def.rsm"
+    assert pending.target_label == "my-label"
+
+
+def test_pending_reference_external_relative_path():
+    """External reference with relative path."""
+    pending = PendingReference(target="../theorems/thm.rsm#theorem-label")
+    assert pending.external_file == "../theorems/thm.rsm"
+    assert pending.target_label == "theorem-label"
+
+
+def test_pending_reference_external_nested_path():
+    """External reference with nested directory path."""
+    pending = PendingReference(target="math/algebra/groups.rsm#group-def")
+    assert pending.external_file == "math/algebra/groups.rsm"
+    assert pending.target_label == "group-def"
+
+
+def test_pending_reference_backward_compat():
+    """Ensure existing .target attribute still works for internal refs."""
+    pending = PendingReference(target="simple-label")
+    assert pending.target == "simple-label"
+
+
+def test_reference_internal():
+    """Internal reference should have no external_file."""
+    target_node = Paragraph(label="target-label")
+    ref = Reference(target=target_node, external_file=None)
+    assert ref.target == target_node
+    assert ref.external_file is None
+
+
+def test_reference_external():
+    """External reference should store external_file path."""
+    target_node = Paragraph(label="target-label")
+    ref = Reference(target=target_node, external_file="definitions/def.rsm")
+    assert ref.target == target_node
+    assert ref.external_file == "definitions/def.rsm"
+
+
+def test_reference_external_with_path():
+    """External reference with full path."""
+    target_node = Paragraph(label="my-theorem")
+    ref = Reference(target=target_node, external_file="../theorems/thm.rsm")
+    assert ref.target == target_node
+    assert ref.external_file == "../theorems/thm.rsm"

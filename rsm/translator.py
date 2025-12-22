@@ -1060,9 +1060,24 @@ class Translator:
         return tag
 
     def visit_reference(self, node: nodes.Reference) -> EditCommand:
-        return AppendText(
-            self._make_ahref_tag_text(node, node.target, f"#{node.target.label}")
-        )
+        # Handle external references
+        if node.external_file:
+            # Convert .rsm extension to .html
+            html_path = node.external_file.replace('.rsm', '.html')
+            href = f"{html_path}#{node.target.label}"
+
+            # Add 'external' to types
+            if 'external' not in node.types:
+                node.types.append('external')
+
+            return AppendText(
+                self._make_ahref_tag_text(node, node.target, href)
+            )
+        else:
+            # Internal reference (existing behavior)
+            return AppendText(
+                self._make_ahref_tag_text(node, node.target, f"#{node.target.label}")
+            )
 
     def visit_url(self, node: nodes.URL) -> EditCommand:
         return AppendText(

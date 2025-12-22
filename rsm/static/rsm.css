@@ -1242,3 +1242,19 @@
 /*   .fas:not(.handrail__icons-last) { */
 /*     display: none; } */
 /* } */
+
+/* External cross-file references */
+a.reference.external::after {
+  content: " ↗";
+  font-size: 0.8em;
+  vertical-align: super;
+  opacity: 0.6;
+}
+
+a.reference.external {
+  color: #0066cc;
+}
+
+a.reference.external:hover::after {
+  opacity: 1;
+}

@@ -4,7 +4,7 @@
 //
 
 export function createTooltips() {
-  $(".manuscriptwrapper a.reference:not(.tooltipstered)").tooltipster({
+  $(".manuscriptwrapper a.reference:not(.external):not(.tooltipstered)").tooltipster({
     theme: ['tooltipster-shadow', 'tooltipster-shadow-rsm'],
     minWidth: 100,
     maxWidth: 500,

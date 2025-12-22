@@ -1398,10 +1398,30 @@ class PendingReference(BaseReference):
     def __init__(self, target: str = "", **kwargs: Any) -> None:
         super().__init__(target, **kwargs)
 
+    @property
+    def external_file(self) -> Optional[str]:
+        """Extract external file path from target, or None if internal reference."""
+        if '#' in str(self.target):
+            return str(self.target).split('#', 1)[0]
+        return None
+
+    @property
+    def target_label(self) -> str:
+        """Extract label from target."""
+        if '#' in str(self.target):
+            return str(self.target).split('#', 1)[1]
+        return str(self.target)
+
 
 class Reference(BaseReference):
-    def __init__(self, target: Optional[Node] = None, **kwargs: Any) -> None:
+    def __init__(
+        self,
+        target: Optional[Node] = None,
+        external_file: Optional[str] = None,
+        **kwargs: Any
+    ) -> None:
         super().__init__(target, **kwargs)
+        self.external_file = external_file
 
 
 class PendingPrev(BaseReference):
