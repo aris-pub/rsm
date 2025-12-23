@@ -7,7 +7,7 @@ import rsm
 
 def test_external_ref_html_generation():
     """External references should generate correct HTML with external class."""
-    root_dir = Path("/Users/leo.torres/aris/rsm/tests/fixtures/crossref")
+    root_dir = Path(__file__).parent / "fixtures/crossref"
 
     src = """:rsm:
   :title: Main Document
@@ -68,7 +68,7 @@ This references :ref:my-section::.
 
 def test_external_ref_missing_file():
     """External references to missing files should generate error nodes."""
-    root_dir = Path("/Users/leo.torres/aris/rsm/tests/fixtures/crossref")
+    root_dir = Path(__file__).parent / "fixtures/crossref"
 
     src = """:rsm:
   :title: Document

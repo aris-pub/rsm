@@ -528,7 +528,7 @@ def test_load_external_manuscript_file_not_found():
     from pathlib import Path
     from rsm.transformer import Transformer
 
-    root_dir = Path("/Users/leo.torres/aris/rsm/tests/fixtures/crossref")
+    root_dir = Path(__file__).parent / "fixtures/crossref"
     t = Transformer(root_dir=root_dir)
 
     with pytest.raises(FileNotFoundError, match="nonexistent.rsm"):
@@ -540,7 +540,7 @@ def test_load_external_manuscript_success():
     from pathlib import Path
     from rsm.transformer import Transformer
 
-    root_dir = Path("/Users/leo.torres/aris/rsm/tests/fixtures/crossref")
+    root_dir = Path(__file__).parent / "fixtures/crossref"
     t = Transformer(root_dir=root_dir)
 
     manuscript, labels_map = t._load_external_manuscript("definitions/def.rsm")
@@ -555,7 +555,7 @@ def test_load_external_manuscript_caching():
     from pathlib import Path
     from rsm.transformer import Transformer
 
-    root_dir = Path("/Users/leo.torres/aris/rsm/tests/fixtures/crossref")
+    root_dir = Path(__file__).parent / "fixtures/crossref"
     t = Transformer(root_dir=root_dir)
 
     # Load first time
@@ -603,7 +603,7 @@ def test_label_to_node_external():
     from rsm.transformer import Transformer
     import rsm
 
-    root_dir = Path("/Users/leo.torres/aris/rsm/tests/fixtures/crossref")
+    root_dir = Path(__file__).parent / "fixtures/crossref"
     t = Transformer(root_dir=root_dir)
 
     # Need to initialize the transformer by transforming an empty tree
@@ -624,7 +624,7 @@ def test_label_to_node_external_not_found():
     from rsm.transformer import Transformer
     import rsm
 
-    root_dir = Path("/Users/leo.torres/aris/rsm/tests/fixtures/crossref")
+    root_dir = Path(__file__).parent / "fixtures/crossref"
     t = Transformer(root_dir=root_dir)
 
     # Need to initialize the transformer
@@ -644,7 +644,7 @@ def test_label_to_node_external_file_not_found():
     from rsm.transformer import Transformer
     import rsm
 
-    root_dir = Path("/Users/leo.torres/aris/rsm/tests/fixtures/crossref")
+    root_dir = Path(__file__).parent / "fixtures/crossref"
     t = Transformer(root_dir=root_dir)
 
     # Need to initialize the transformer
@@ -664,7 +664,7 @@ def test_resolve_pending_references_external():
     from rsm.transformer import Transformer
     import rsm
 
-    root_dir = Path("/Users/leo.torres/aris/rsm/tests/fixtures/crossref")
+    root_dir = Path(__file__).parent / "fixtures/crossref"
 
     # Parse the main.rsm file which contains an external reference
     src = """:rsm:
