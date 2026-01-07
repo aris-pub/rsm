@@ -6,6 +6,7 @@ Utilities.
 
 """
 
+import sys
 import textwrap
 from collections.abc import Generator
 from typing import Any
@@ -34,12 +35,19 @@ class RSMPygmentsFormatter(HtmlFormatter):
 
 
 def highlight_code(source: str, lang: str) -> str:
-    highlighted = highlight(
-        source,
-        get_lexer_by_name(lang),
-        RSMPygmentsFormatter(),
-    )
-    return highlighted  # type: ignore[no-any-return]
+    # Pygments PythonLexer hits recursion limits on Python 3.10-3.12
+    # Temporarily increase limit for lexer initialization
+    old_limit = sys.getrecursionlimit()
+    sys.setrecursionlimit(3000)
+    try:
+        highlighted = highlight(
+            source,
+            get_lexer_by_name(lang),
+            RSMPygmentsFormatter(),
+        )
+        return highlighted  # type: ignore[no-any-return]
+    finally:
+        sys.setrecursionlimit(old_limit)
 
 
 class EscapedString:
