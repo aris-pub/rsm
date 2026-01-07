@@ -21,6 +21,8 @@ Qualified name: ``rsm.nodes.PendingReference``
 
    .. autosummary::
      
+     ~PendingReference.external_file
+     ~PendingReference.target_label
      ~PendingReference.nodeid
      ~PendingReference.label
      ~PendingReference.types

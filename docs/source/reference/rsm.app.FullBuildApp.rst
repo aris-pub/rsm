@@ -1,4 +1,4 @@
-FullBuildApp
+﻿FullBuildApp
 ============
 
 Qualified name: ``rsm.app.FullBuildApp``
@@ -15,6 +15,7 @@ Qualified name: ``rsm.app.FullBuildApp``
    .. autosummary::
       :nosignatures:
       
+      ~FullBuildApp.run
 
    
    .. rubric:: Attributes

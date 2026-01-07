@@ -1,4 +1,4 @@
-﻿Translator
+Translator
 ==========
 
 Qualified name: ``rsm.translator.Translator``
@@ -41,6 +41,7 @@ Qualified name: ``rsm.translator.Translator``
       ~Translator.visit_enumerate
       ~Translator.visit_error
       ~Translator.visit_figure
+      ~Translator.visit_html
       ~Translator.visit_item
       ~Translator.visit_itemize
       ~Translator.visit_manuscript
@@ -66,6 +67,7 @@ Qualified name: ``rsm.translator.Translator``
       ~Translator.visit_text
       ~Translator.visit_theorem
       ~Translator.visit_url
+      ~Translator.visit_video
 
    
    

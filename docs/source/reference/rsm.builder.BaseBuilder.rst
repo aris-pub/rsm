@@ -1,4 +1,4 @@
-﻿BaseBuilder
+BaseBuilder
 ===========
 
 Qualified name: ``rsm.builder.BaseBuilder``

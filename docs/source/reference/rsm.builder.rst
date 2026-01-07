@@ -19,9 +19,11 @@
       
         BaseBuilder
       
-        FullBuilder
+        FolderBuilder
       
-        SingleFileBuilder
+        HTMLBuilder
+      
+        StandaloneBuilder
       
    
    

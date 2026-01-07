@@ -56,6 +56,11 @@
 
    
    
+   .. rubric:: Functions
+
+   
+   .. autofunction:: auto_leave_deferred
+   
    
 
    

@@ -23,6 +23,8 @@
       
         Appendix
       
+        Asset
+      
         Author
       
         BaseParagraph
@@ -59,9 +61,13 @@
       
         Example
       
+        Exercise
+      
         Figure
       
         Heading
+      
+        Html
       
         Item
       
@@ -90,6 +96,10 @@
         PendingPrev
       
         PendingReference
+      
+        Porism
+      
+        Problem
       
         Proof
       
@@ -134,6 +144,8 @@
         URL
       
         UnknownBibitem
+      
+        Video
       
    
    

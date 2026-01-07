@@ -21,8 +21,7 @@ Qualified name: ``rsm.nodes.Figure``
 
    .. autosummary::
      
-     ~Figure.autonumber
-     ~Figure.newmetakeys
+     ~Figure.classreftext
      ~Figure.nodeid
      ~Figure.label
      ~Figure.types
