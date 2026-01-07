@@ -1,10 +1,7 @@
 """Tests for AssetResolver Protocol and implementations."""
 
-import pytest
-from pathlib import Path
-from typing import Optional
 
-from rsm.asset_resolver import AssetResolver, AssetResolverFromDisk
+from rsm.asset_resolver import AssetResolverFromDisk
 
 
 class MockAssetResolver:
@@ -13,7 +10,7 @@ class MockAssetResolver:
     def __init__(self, assets: dict[str, str]):
         self.assets = assets
 
-    def resolve_asset(self, path: str) -> Optional[str]:
+    def resolve_asset(self, path: str) -> str | None:
         return self.assets.get(path)
 
 
@@ -72,16 +69,16 @@ def test_custom_resolver_integration():
 
 def test_translator_with_custom_resolver(tmp_path):
     """Test that translator uses custom asset resolver."""
+    from rsm import transformer, tsparser
     from rsm.translator import Translator
-    from rsm import tsparser, transformer
-    
+
     # Create custom resolver with test HTML
     test_html = "<div class='custom-content'>Mock HTML content</div>"
     mock_resolver = MockAssetResolver({"test.html": test_html})
-    
+
     # Create translator with custom resolver
     translator = Translator(asset_resolver=mock_resolver)
-    
+
     # Parse RSM source with HTML asset
     source = """
     :rsm:
@@ -93,15 +90,15 @@ def test_translator_with_custom_resolver(tmp_path):
     
     ::
     """
-    
+
     parser = tsparser.TSParser()
     tree = parser.parse(source)
     transformer_obj = transformer.Transformer()
     manuscript = transformer_obj.transform(tree)
-    
+
     # Translate to HTML
     result = translator.translate(manuscript)
-    
+
     # Verify custom resolver content is used
     assert test_html in result
     assert "Mock HTML content" in result
@@ -110,11 +107,11 @@ def test_translator_with_custom_resolver(tmp_path):
 def test_render_with_custom_resolver():
     """Test that render function works with custom asset resolver."""
     import rsm
-    
+
     # Create custom resolver
     test_html = "<p>Custom resolver HTML</p>"
     mock_resolver = MockAssetResolver({"custom.html": test_html})
-    
+
     # RSM source with HTML asset
     source = """
     :rsm:
@@ -126,10 +123,10 @@ def test_render_with_custom_resolver():
     
     ::
     """
-    
+
     # Render with custom resolver
     result = rsm.render(source, asset_resolver=mock_resolver)
-    
+
     # Verify custom content is used
     assert test_html in result
     assert "Custom resolver HTML" in result

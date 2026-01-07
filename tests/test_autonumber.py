@@ -1,7 +1,4 @@
-import pytest
 from conftest import compare_have_want
-
-import rsm
 
 
 def test_numbered_sections():

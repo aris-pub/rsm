@@ -45,7 +45,72 @@ This bundles `onload.js` and all its dependencies into a single IIFE that expose
 no runtime dependency on esbuild.
 
 
+## Development Setup
+
+### Prerequisites
+- Python 3.10 or higher
+- [uv](https://docs.astral.sh/uv/) - Fast Python package installer
+- [just](https://just.systems/) - Command runner
+
+### Installation
+
+#### Install uv
+```bash
+# macOS/Linux
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Or with pip
+pip install uv
+```
+
+#### Install just
+```bash
+# macOS
+brew install just
+
+# Linux
+cargo install just
+
+# Windows
+scoop install just
+```
+
+#### Clone and install rsm-markup
+```bash
+git clone --recurse-submodules https://github.com/leotrs/rsm.git
+cd rsm
+just install
+```
+
+### Common Tasks
+```bash
+just                  # List all available commands
+just test             # Run fast tests
+just test-all         # Run all tests including slow ones
+just lint             # Format code and run linter
+just check            # Run lint + tests (quality gate)
+just docs-serve       # Serve docs with live reload
+```
+
+### For Grammar Development
+If you need to modify the tree-sitter grammar:
+
+```bash
+# Install with local grammar in editable mode
+just install-local
+
+# After modifying grammar.js in tree-sitter-rsm/
+just build-grammar
+```
+
 ## Publishing
 
-This project uses `poetry`. Releasing a new version to PyPI is as easy as executing
-`poetry publish`.
+This project uses `uv` for dependency management and `just` for task automation.
+
+To release a new version to PyPI:
+
+1. Update version in `pyproject.toml`
+2. Create a git tag: `git tag v0.3.3 && git push origin v0.3.3`
+3. Publish: `just publish`
+
+Or use the GitHub Actions workflow by creating a release on GitHub.

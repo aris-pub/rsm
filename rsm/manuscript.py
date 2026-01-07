@@ -9,8 +9,6 @@ Classes that represent the manuscript at different stages.
 from pathlib import Path
 
 from fs.mountfs import MountFS
-from . import util
-from . import nodes
 
 
 class WebManuscript(MountFS):

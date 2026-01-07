@@ -1,32 +1,8 @@
 repos:
--   repo: https://github.com/python-poetry/poetry
-    rev: '1.3.0'
-    hooks:
-    -   id: poetry-check
-    -   id: poetry-export
-        args:
-        - --without-hashes
-        - -f
-        - requirements.txt
-        - -o
-        - requirements.txt
-    -   id: poetry-export
-        args:
-        - --without-hashes
-        - --with
-        - doc
-        - -f
-        - requirements.txt
-        - -o
-        - docs/requirements-doc.txt
-
 -   repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.4.0
+    rev: v4.6.0
     hooks:
     -   id: check-yaml
-
--   repo: https://github.com/pycqa/isort
-    rev: 5.11.2
-    hooks:
-      - id: isort
-        name: isort (python)
+    -   id: check-toml
+    -   id: end-of-file-fixer
+    -   id: trailing-whitespace

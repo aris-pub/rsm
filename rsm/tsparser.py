@@ -27,16 +27,15 @@ Both steps are handled by :class:`TSParser`.  The rest of this module contains a
 functions (mostly private ones) that are useful during the parsing process.
 
 """
+
 import logging
 import re
-import sys
+from collections.abc import Callable
 from itertools import groupby
-from pathlib import Path
-from typing import Any, Callable, Optional, Union
+from typing import Any
 
 import tree_sitter
 import tree_sitter_rsm
-from icecream import ic
 from tree_sitter import Node as TSNode
 from tree_sitter import Tree as TSTree
 
@@ -56,7 +55,7 @@ class RSMParserError(Exception):
 
     """
 
-    def __init__(self, pos: Optional[int] = None, msg: Optional[str] = None) -> None:
+    def __init__(self, pos: int | None = None, msg: str | None = None) -> None:
         self.pos = pos
         self.msg = f"Parser error at position {self.pos}" if msg is None else msg
         super().__init__(self.msg)
@@ -146,14 +145,14 @@ class TSParser:
         #
         self._lang = tree_sitter.Language(tree_sitter_rsm.language())
         self._parser = tree_sitter.Parser(self._lang)
-        self.cst: Optional[TSTree] = None
+        self.cst: TSTree | None = None
         """The concrete syntax tree generated from the source."""
-        self.ast: Optional[nodes.Manuscript] = None
+        self.ast: nodes.Manuscript | None = None
         """The abstract manuscript tree generated from the concrete syntax tree."""
 
     def parse(
         self, src: str, abstractify: bool = True
-    ) -> Union[TSTree, nodes.Manuscript]:
+    ) -> TSTree | nodes.Manuscript:
         """Parse RSM source into a syntax tree.
 
         For examples see class docstring.
@@ -241,7 +240,7 @@ def print_cst(tree: TSTree, named_only: bool = False) -> None:
         if indent:
             print()
         print(
-            f'{" "*indent}({node.type} {node.start_point} - {node.end_point}',
+            f"{' ' * indent}({node.type} {node.start_point} - {node.end_point}",
             end="",
         )
         if node.type == "text" and node.text is not None:
@@ -312,9 +311,17 @@ CST_TYPE_TO_AST_TYPE: dict[str, Callable] = {
 def _parse_metakey_list(cst_key: TSNode, cst_val: TSNode) -> tuple[str, list[str]]:
     key = cst_key.named_children[0].type
     if cst_val.named_children:
-        val = [c.text.decode("utf-8").strip() for c in cst_val.named_children if c.text is not None]
+        val = [
+            c.text.decode("utf-8").strip()
+            for c in cst_val.named_children
+            if c.text is not None
+        ]
     else:
-        val = [c.text.decode("utf-8").strip() for c in cst_val.named_children if c.text is not None]
+        val = [
+            c.text.decode("utf-8").strip()
+            for c in cst_val.named_children
+            if c.text is not None
+        ]
     return key, val
 
 
@@ -428,7 +435,7 @@ def _normalize_text(root: TSNode) -> str:
             node.title = EscapedString(node.title, DELIMS).escape()
         if isinstance(node, nodes.Manuscript):
             node.title = EscapedString(node.title, DELIMS).escape()
-    
+
     return ""  # This function modifies nodes in place
 
 
@@ -496,7 +503,7 @@ def _abstractify(cst: TSTree) -> nodes.Manuscript:
                 end_point=cst_node.end_point,
             )
 
-            if (section_title := cst_node.child_by_field_name("title")):
+            if section_title := cst_node.child_by_field_name("title"):
                 # Sections with a hastag shurtcut ("# Section Title") have the title as
                 # a text child node with field name 'title', so we must extract that
                 # here. Sections with a tag (":section:") have the title as a meta key,

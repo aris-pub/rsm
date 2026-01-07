@@ -1,7 +1,4 @@
-import pytest
 from conftest import compare_have_want
-
-import rsm
 
 
 def test_inline_cannot_contain_block():

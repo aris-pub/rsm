@@ -1,6 +1,5 @@
 from textwrap import dedent
 
-import rsm
 from rsm.app import ProcessorApp
 
 src = """:rsm:

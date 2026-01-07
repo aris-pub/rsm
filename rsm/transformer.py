@@ -26,12 +26,10 @@ place is of utmost importance.
 
 import logging
 from collections import defaultdict
+from collections.abc import Generator
 from itertools import count
 from pathlib import Path
 from string import ascii_uppercase
-from typing import Generator, Optional, Type
-
-from icecream import ic
 
 from . import nodes
 
@@ -111,11 +109,9 @@ class Transformer:
     """
 
     def __init__(
-        self,
-        root_dir: Optional[Path] = None,
-        src_file: Optional[Path] = None
+        self, root_dir: Path | None = None, src_file: Path | None = None
     ) -> None:
-        self.tree: Optional[nodes.Manuscript] = None
+        self.tree: nodes.Manuscript | None = None
         self.labels_to_nodes: dict[str, nodes.Node] = {}
         self.root_dir = root_dir
         self.src_file = src_file
@@ -154,7 +150,9 @@ class Transformer:
         self.assign_node_ids()
         return tree
 
-    def _load_external_manuscript(self, filepath: str) -> tuple[nodes.Manuscript, dict[str, nodes.Node]]:
+    def _load_external_manuscript(
+        self, filepath: str
+    ) -> tuple[nodes.Manuscript, dict[str, nodes.Node]]:
         """Load and parse an external RSM file.
 
         Parameters
@@ -191,6 +189,7 @@ class Transformer:
 
         # Parse external file using ParserApp
         from .app import ParserApp
+
         app = ParserApp(srcpath=full_path)
         app.run()
 
@@ -230,10 +229,7 @@ class Transformer:
             self.labels_to_nodes[node.label] = node
 
     def _label_to_node(
-        self,
-        label: str,
-        external_file: Optional[str] = None,
-        default=nodes.Error
+        self, label: str, external_file: str | None = None, default=nodes.Error
     ) -> nodes.Node:
         # Handle external file references
         if external_file:
@@ -242,7 +238,9 @@ class Transformer:
                 try:
                     return labels_map[label]
                 except KeyError:
-                    logger.warning(f'Label "{label}" not found in external file "{external_file}"')
+                    logger.warning(
+                        f'Label "{label}" not found in external file "{external_file}"'
+                    )
                     return default(f'[unknown label "{label}" in "{external_file}"]')
             except (ValueError, FileNotFoundError) as e:
                 logger.warning(f'Failed to load external file "{external_file}": {e}')
@@ -251,7 +249,7 @@ class Transformer:
         # Handle internal references (existing behavior)
         try:
             return self.labels_to_nodes[label]
-        except KeyError as e:
+        except KeyError:
             logger.warning(f'Reference to nonexistent label "{label}"')
             return default(f'[unknown label "{label}"]')
 
@@ -266,8 +264,7 @@ class Transformer:
         for pending in self.tree.traverse(condition=lambda n: type(n) in classes):
             if isinstance(pending, nodes.PendingReference):
                 target = self._label_to_node(
-                    pending.target_label,
-                    external_file=pending.external_file
+                    pending.target_label, external_file=pending.external_file
                 )
                 if isinstance(target, nodes.Error):
                     pending.replace_self(target)
@@ -351,7 +348,7 @@ class Transformer:
             step.append([statement, subproof])
 
     def autonumber_nodes(self) -> None:
-        counts: dict[Type[nodes.Node], dict[Type[nodes.Node], Generator]] = defaultdict(
+        counts: dict[type[nodes.Node], dict[type[nodes.Node], Generator]] = defaultdict(
             lambda: defaultdict(lambda: count(start=1))
         )
         within_appendix = False

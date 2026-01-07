@@ -1,7 +1,5 @@
-import pytest
 from conftest import compare_have_want
 
-import rsm
 from rsm.util import EscapedString
 
 

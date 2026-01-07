@@ -7,7 +7,8 @@ Utilities.
 """
 
 import textwrap
-from typing import Any, Generator, Optional, Union
+from collections.abc import Generator
+from typing import Any
 
 from pygments import highlight
 from pygments.formatters import HtmlFormatter  # pylint: disable=no-name-in-module
@@ -16,13 +17,19 @@ from pygments.lexers import get_lexer_by_name
 
 # pylint: disable-next=too-few-public-methods
 class RSMPygmentsFormatter(HtmlFormatter):
-    def wrap(self, source: Generator[tuple[int, str], None, None]) -> Generator[tuple[int, str], None, None]:
+    def wrap(
+        self, source: Generator[tuple[int, str], None, None]
+    ) -> Generator[tuple[int, str], None, None]:
         return self._wrap_code(source)
 
-    def _wrap_code(self, source: Generator[tuple[int, str], None, None]) -> Generator[tuple[int, str], None, None]:
+    def _wrap_code(
+        self, source: Generator[tuple[int, str], None, None]
+    ) -> Generator[tuple[int, str], None, None]:
         yield from source
 
-    def _wrap_div(self, source: Generator[tuple[int, str], None, None]) -> Generator[tuple[int, str], None, None]:
+    def _wrap_div(
+        self, source: Generator[tuple[int, str], None, None]
+    ) -> Generator[tuple[int, str], None, None]:
         yield from source
 
 
@@ -36,7 +43,7 @@ def highlight_code(source: str, lang: str) -> str:
 
 
 class EscapedString:
-    def __init__(self, src: str = "", chars: Optional[str] = None):
+    def __init__(self, src: str = "", chars: str | None = None):
         self.escape_chars = set() if chars is None else set(chars)
         self._src = str(src)
 
@@ -59,7 +66,7 @@ class EscapedString:
             ret = ret.replace(f"\\{char}", char)
         return ret
 
-    def __getitem__(self, _slice: Union[int, slice]) -> "EscapedString":
+    def __getitem__(self, _slice: int | slice) -> "EscapedString":
         return self.__class__(self._src[_slice])
 
     def __add__(self, other: str) -> str:
@@ -77,20 +84,20 @@ class EscapedString:
     def format(self, *args: Any, **kwargs: Any) -> str:
         return self._src.format(*args, **kwargs)
 
-    def strip(self, chars: Optional[str] = None, /) -> "EscapedString":
+    def strip(self, chars: str | None = None, /) -> "EscapedString":
         return self.__class__(self._src.strip(chars))
 
-    def lstrip(self, chars: Optional[str] = None, /) -> "EscapedString":
+    def lstrip(self, chars: str | None = None, /) -> "EscapedString":
         return self.__class__(self._src.lstrip(chars))
 
-    def rstrip(self, chars: Optional[str] = None, /) -> "EscapedString":
+    def rstrip(self, chars: str | None = None, /) -> "EscapedString":
         return self.__class__(self._src.rstrip(chars))
 
     def find(
         self,
         sub: str,
         start: int = 0,
-        end: Optional[int] = None,
+        end: int | None = None,
         skip_escaped: bool = True,
     ) -> int:
         if end is None:
@@ -113,7 +120,7 @@ class EscapedString:
         self,
         sub: str,
         start: int = 0,
-        end: Optional[int] = None,
+        end: int | None = None,
         skip_escaped: bool = True,
     ) -> int:
         if end is None:
@@ -126,7 +133,7 @@ class EscapedString:
         self,
         sub: str,
         start: int = 0,
-        end: Optional[int] = None,
+        end: int | None = None,
         skip_escaped: bool = True,
     ) -> int:
         if end is None:
@@ -147,7 +154,7 @@ class EscapedString:
         self,
         sub: str,
         start: int = 0,
-        end: Optional[int] = None,
+        end: int | None = None,
         skip_escaped: bool = True,
     ) -> int:
         if end is None:
@@ -167,7 +174,7 @@ class EscapedString:
         self,
         prefix: str,
         start: int = 0,
-        end: Optional[int] = None,
+        end: int | None = None,
         skip_escaped: bool = True,
     ) -> bool:
         if end == -1:
@@ -182,7 +189,7 @@ class EscapedString:
         self,
         prefix: str,
         start: int = 0,
-        end: Optional[int] = None,
+        end: int | None = None,
         skip_escaped: bool = True,
     ) -> bool:
         if end is None:
@@ -194,7 +201,7 @@ class EscapedString:
     def split(
         self,
         /,
-        sep: Optional[str] = None,
+        sep: str | None = None,
         maxsplit: int = -1,
         skip_escaped: bool = True,
     ) -> list[str]:

@@ -10,5 +10,5 @@ from . import (
     tsparser,
     writer,
 )
-from .app import lint, make, render, RSMApplicationError
+from .app import RSMApplicationError, lint, make, render
 from .asset_resolver import AssetResolver, AssetResolverFromDisk

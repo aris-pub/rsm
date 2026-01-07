@@ -1,7 +1,4 @@
-import pytest
 from conftest import EMPTY_WANT, compare_have_want
-
-import rsm
 
 
 def test_empty_manuscript():

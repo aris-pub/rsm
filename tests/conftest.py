@@ -10,9 +10,6 @@
 import sys
 from textwrap import dedent
 
-import pytest
-from icecream import ic
-
 import rsm
 
 # ic.disable()

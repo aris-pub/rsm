@@ -5,11 +5,9 @@ import re
 from abc import ABC, abstractmethod
 from pathlib import Path
 from textwrap import dedent
-from typing import Optional
 
 from fs import open_fs
 from fs.copy import copy_file
-from icecream import ic
 
 from .manuscript import WebManuscript
 
@@ -20,13 +18,14 @@ class BaseBuilder(ABC):
     """Use HTML body as a string and create a WebManuscript."""
 
     def __init__(self, asset_resolver=None) -> None:
-        self.body: Optional[str] = None
-        self.html: Optional[str] = None
-        self.web: Optional[WebManuscript] = None
+        self.body: str | None = None
+        self.html: str | None = None
+        self.web: WebManuscript | None = None
         self.outname: str = "index.html"
         # Default to disk-based asset resolver if none provided
         if asset_resolver is None:
             from .asset_resolver import AssetResolverFromDisk
+
             asset_resolver = AssetResolverFromDisk()
         self.asset_resolver = asset_resolver
 
@@ -127,7 +126,9 @@ class StandaloneBuilder(HTMLBuilder):
     CDN_JQUERY = "https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"
     CDN_TOOLTIPSTER_CSS = "https://cdn.jsdelivr.net/npm/tooltipster@4.2.8/dist/css/tooltipster.bundle.min.css"
     CDN_TOOLTIPSTER_JS = "https://cdn.jsdelivr.net/npm/tooltipster@4.2.8/dist/js/tooltipster.bundle.min.js"
-    CDN_PSEUDOCODE_CSS = "https://cdn.jsdelivr.net/npm/pseudocode@2.4.1/build/pseudocode.min.css"
+    CDN_PSEUDOCODE_CSS = (
+        "https://cdn.jsdelivr.net/npm/pseudocode@2.4.1/build/pseudocode.min.css"
+    )
     CDN_RSM_CSS = "https://cdn.jsdelivr.net/gh/aris-pub/rsm@main/rsm/static/rsm.css"
 
     def _get_inline_js(self) -> str:
@@ -189,7 +190,7 @@ class FolderBuilder(HTMLBuilder):
 
     def mount_required_assets(self) -> None:
         """Mount required assets using the asset resolver.
-        
+
         Technical Debt Note: This method demonstrates the architectural inconsistency
         where assets use the resolver system but the main RSM file still uses
         direct filesystem access via Reader class. This should be unified in future

@@ -1,4 +1,4 @@
-from conftest import compare_have_want, compare_have_want_handrails
+from conftest import compare_have_want
 
 
 def test_simple_no_handrails():

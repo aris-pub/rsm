@@ -1,8 +1,6 @@
 import re
 from pathlib import Path
 
-import pytest
-
 import rsm.tags
 
 ROOT_DIR = Path(__file__).parent.parent

@@ -13,26 +13,40 @@ classifiers = [
     "Programming Language :: Python :: 3",
 ]
 keywords = ["markup", "science", "publishing", "static site generator"]
+
+# Production dependencies
 dependencies = [
     "fs >= 2.4.15",
     "icecream >= 2.1.2",
     "livereload >= 2.6.3",
+    "pygments >= 2.14.0",
     "tree-sitter >= 0.23.2",
     "tree-sitter-rsm >= 0.2.1",
-    "ujson>=5.10.0",
+    "ujson >= 5.10.0",
 ]
 requires-python = ">=3.10"
 
 [project.optional-dependencies]
-doc = ["Sphinx>=6.2.0", "sphinx-autobuild >= 2021.3.14", "pydata-sphinx-theme >= 0.12.0"]
+# Development dependencies
 dev = [
-    "black >= 22.3.0",
-    "fastapi >= 0.86.0",
-    "isort >= 5.10.1",
     "mypy >= 1.16.1",
     "mypy-extensions >= 1.0.0",
-    "uvicorn >= 0.19.0",
-    "pytest>=7.1.1",
+    "pre-commit >= 2.20.0",
+    "pytest >= 7.1.1",
+    "pytest-sugar >= 0.9.6",
+    "ruff >= 0.1.0",
+    "types-pygments >= 2.19.0",
+    "types-ujson >= 5.6.0",
+]
+
+# Documentation dependencies
+doc = [
+    "Sphinx >= 6.2.0",
+    "sphinx-autobuild >= 2021.3.14",
+    "sphinx-copybutton >= 0.5.1",
+    "sphinx-design >= 0.5.0",
+    "sphinx-autodoc-typehints >= 1.19.5",
+    "pydata-sphinx-theme >= 0.12.0",
 ]
 
 [project.urls]
@@ -44,15 +58,44 @@ rsm-render = "rsm.cli:render"
 rsm-lint = "rsm.cli:lint"
 
 
-# cibuildwheel
+# Build system
 
-[tool.cibuildwheel]
-# build = ["cp310-manylinux_x86_64", "cp311-manylinux_x86_64", "cp310-macosx_x86_64", "cp311-macosx_x86_64", "cp310-macosx_arm64", "cp311-macosx_arm64", "cp310-win_amd64", "cp310-win32", "cp311-win_amd64", "cp311-win32"]
-build = ["cp310-macosx_x86_64", "cp311-macosx_x86_64", "cp310-macosx_arm64", "cp311-macosx_arm64", "cp310-win_amd64", "cp310-win32", "cp311-win_amd64", "cp311-win32"]
-manylinux-x86_64-image = "manylinux_2_34"
+[build-system]
+requires = ["setuptools >= 61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["rsm*"]
+
+[tool.setuptools.package-data]
+rsm = ["*.so", "*.dll", "static/**/*"]
 
 
-# Mypy
+# Tool configurations
+
+[tool.ruff]
+line-length = 88
+target-version = "py310"
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "UP",  # pyupgrade
+]
+ignore = [
+    "E501",  # line too long (handled by formatter)
+    "B008",  # do not perform function calls in argument defaults
+    "B904",  # use 'raise ... from err'
+]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]  # unused imports in __init__.py
 
 [tool.mypy]
 disallow_untyped_defs = true
@@ -64,23 +107,8 @@ warn_return_any = true
 warn_redundant_casts = true
 
 [[tool.mypy.overrides]]
-module = ["icecream.*", "livereload.*", "sass.*"]
+module = ["icecream.*", "livereload.*"]
 ignore_missing_imports = true
-
-
-# Misc. tools
-
-[tool.black]
-line-length = 88
-target-version = ["py310"]
-
-[tool.pylint.main]
-max-line-length = 88
-good-names = ["i", "j", "k", "t", "c", "h", "ex", "Run", "_", "fn"]
-disable = ["too-few-public-methods"]
-
-[tool.isort]
-profile = "black"
 
 [tool.pytest.ini_options]
 markers = [
@@ -90,92 +118,3 @@ markers = [
 filterwarnings = [
     "ignore:.*pkg_resources.*:DeprecationWarning",
 ]
-
-
-# Poe the poet
-
-[tool.poe.tasks]
-test   = "pytest -vv -k 'not slow'"
-test-all   = "pytest -vv"
-test-docs = { shell = "cd docs/ && make doctest && cd .. && pytest -vv --doctest-modules rsm/" }
-docs = "sphinx-build docs/source/ docs/build/"
-docs-clean = { shell= "cd docs && make clean" }
-docs-serve  = { shell = "sphinx-autobuild docs/source/ docs/build/ --port 7001 --watch rsm/" }
-
-
-# Build stuff
-
-[tool.poetry]
-name = "rsm-markup"
-version = "0.3.2"
-description = "ReStructured Manuscript (RSM) markup language"
-authors = ["leotrs <leo@leotrs.com>"]
-license = "MIT"
-readme = "README.md"
-packages = [
-    {include = "rsm"}
-]
-include = [
-    { path = "rsm-examples/*.rsm", format = ["sdist", "wheel"] }
-]
-
-
-[[tool.poetry.source]]
-name = "test"
-url = "https://test.pypi.org/simple/"
-priority = "supplemental"
-
-
-[tool.poetry.dependencies]
-python = "^3.10"
-tree-sitter = "^0.24.0"
-icecream = "^2.1.3"
-livereload = "^2.6.3"
-fs = "^2.4.16"
-mypy = "^1.16.1"
-pre-commit = "^2.20.0"
-ujson = "^5.6.0"
-types-ujson = "^5.6.0.0"
-pygments = "^2.14.0"
-tree-sitter-rsm = "^0.2.1"
-
-[tool.poetry.group.dev.dependencies]
-black = "^22.12.0"
-fastapi = "^0.88.0"
-isort = "^5.10.1"
-mypy = "^1.16.1"
-mypy-extensions = "^1.0.0"
-uvicorn = "^0.20.0"
-pytest = "^7.2.0"
-pytest-sugar = "^0.9.6"
-pylint = "^2.15.8"
-poethepoet = "^0.16.5"
-cibuildwheel = "^2.11.4"
-tree-sitter-rsm = { path = "./tree-sitter-rsm", develop = true }
-types-pygments = "^2.19.0.20250516"
-
-[tool.poetry.group.test.dependencies]
-black = "^22.12.0"
-mypy = "^1.16.1"
-mypy-extensions = "^1.0.0"
-pytest = "^7.2.0"
-pytest-sugar = "^0.9.6"
-pylint = "^2.15.8"
-tree-sitter-rsm = "^0.2.1"
-
-[tool.poetry.group.doc.dependencies]
-Sphinx = "^6.2.0"
-sphinx-autobuild = "^2021.3.14"
-pydata-sphinx-theme = "^0.12.0"
-sphinx-design = "^0.5.0"
-sphinx-copybutton = "^0.5.1"
-sphinx-autodoc-typehints = "^1.19.5"
-
-[tool.poetry.scripts]
-rsm-make = "rsm.cli:make"
-rsm-render = "rsm.cli:render"
-rsm-lint = "rsm.cli:lint"
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"

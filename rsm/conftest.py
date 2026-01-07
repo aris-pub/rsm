@@ -9,7 +9,6 @@ different conftest.py file in that directory.
 
 """
 
-
 import sys
 
 import pytest
@@ -17,7 +16,6 @@ import pytest
 import rsm
 
 sys.path.append("docs/source/")
-import doctest_setup
 
 
 @pytest.fixture(autouse=True)

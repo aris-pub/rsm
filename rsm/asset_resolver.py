@@ -12,8 +12,7 @@ patterns across the entire RSM package.
 """
 
 import logging
-from pathlib import Path
-from typing import Optional, Protocol
+from typing import Protocol
 
 logger = logging.getLogger("RSM").getChild("asset")
 
@@ -25,7 +24,7 @@ class AssetResolver(Protocol):
     any specific storage mechanism (filesystem, database, remote storage, etc.).
     """
 
-    def resolve_asset(self, path: str) -> Optional[str]:
+    def resolve_asset(self, path: str) -> str | None:
         """Resolve an asset path to its content.
 
         Parameters
@@ -49,7 +48,7 @@ class AssetResolverFromDisk:
     directly from disk.
     """
 
-    def resolve_asset(self, path: str) -> Optional[str]:
+    def resolve_asset(self, path: str) -> str | None:
         """Read asset content from filesystem.
 
         Parameters
@@ -64,7 +63,7 @@ class AssetResolverFromDisk:
             be read as text.
         """
         try:
-            with open(path, "r", encoding="utf-8") as f:
+            with open(path, encoding="utf-8") as f:
                 return f.read()
         except FileNotFoundError:
             logger.error(f"Asset file not found: {path}")

@@ -6,7 +6,6 @@ Locate a file in disk and read its contents.
 
 import logging
 from pathlib import Path
-from typing import Optional
 
 logger = logging.getLogger("RSM").getChild("read ")
 
@@ -21,7 +20,7 @@ class Reader:
         self.src: str = ""
         """The contents of the RSM source file."""
 
-    def read(self, path: Optional[Path]) -> str:
+    def read(self, path: Path | None) -> str:
         """Read the contents of the path.
 
         Parameters

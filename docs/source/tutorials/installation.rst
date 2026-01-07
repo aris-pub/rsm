@@ -10,12 +10,11 @@ The package name is :code:`rsm-markup` and is available via pypi,
    $ pip install rsm-markup
 
 
-Or, if you are using poetry and you already have a :code:`pyproject.toml` file in the
-current directory:
+Or, if you are using uv and already have a :code:`pyproject.toml` file:
 
 .. code-block:: bash
 
-   $ poetry add rsm-markup
+   $ uv add rsm-markup
 
 
 

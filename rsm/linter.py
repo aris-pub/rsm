@@ -7,10 +7,8 @@ RSM Linter: analyze the manuscript tree and log linting messages.
 """
 
 import logging
-from typing import Any, Optional
 
 from . import nodes
-from .rsmlogger import GatherHandler
 
 logger = logging.getLogger("RSM")
 

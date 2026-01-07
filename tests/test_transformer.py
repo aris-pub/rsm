@@ -467,7 +467,6 @@ def test_theorem_inside_subsection():
 
 def test_transformer_init_default():
     """Transformer can be initialized without root_dir or src_file."""
-    from pathlib import Path
     from rsm.transformer import Transformer
 
     t = Transformer()
@@ -479,6 +478,7 @@ def test_transformer_init_default():
 def test_transformer_init_with_root_dir():
     """Transformer can be initialized with root_dir."""
     from pathlib import Path
+
     from rsm.transformer import Transformer
 
     root_dir = Path("/some/root/directory")
@@ -491,6 +491,7 @@ def test_transformer_init_with_root_dir():
 def test_transformer_init_with_src_file():
     """Transformer can be initialized with src_file."""
     from pathlib import Path
+
     from rsm.transformer import Transformer
 
     src_file = Path("/some/file.rsm")
@@ -503,6 +504,7 @@ def test_transformer_init_with_src_file():
 def test_transformer_init_with_both():
     """Transformer can be initialized with both root_dir and src_file."""
     from pathlib import Path
+
     from rsm.transformer import Transformer
 
     root_dir = Path("/root/dir")
@@ -515,7 +517,6 @@ def test_transformer_init_with_both():
 
 def test_load_external_manuscript_no_root_dir():
     """_load_external_manuscript should raise error if root_dir not set."""
-    from pathlib import Path
     from rsm.transformer import Transformer
 
     t = Transformer()
@@ -526,6 +527,7 @@ def test_load_external_manuscript_no_root_dir():
 def test_load_external_manuscript_file_not_found():
     """_load_external_manuscript should raise FileNotFoundError if file doesn't exist."""
     from pathlib import Path
+
     from rsm.transformer import Transformer
 
     root_dir = Path(__file__).parent / "fixtures/crossref"
@@ -538,6 +540,7 @@ def test_load_external_manuscript_file_not_found():
 def test_load_external_manuscript_success():
     """_load_external_manuscript should successfully load and parse external file."""
     from pathlib import Path
+
     from rsm.transformer import Transformer
 
     root_dir = Path(__file__).parent / "fixtures/crossref"
@@ -553,6 +556,7 @@ def test_load_external_manuscript_success():
 def test_load_external_manuscript_caching():
     """_load_external_manuscript should cache results."""
     from pathlib import Path
+
     from rsm.transformer import Transformer
 
     root_dir = Path(__file__).parent / "fixtures/crossref"
@@ -574,9 +578,7 @@ def test_load_external_manuscript_caching():
 
 def test_label_to_node_internal():
     """_label_to_node should work for internal labels (existing behavior)."""
-    from pathlib import Path
     from rsm.transformer import Transformer
-    import rsm
 
     src = """:rsm:
 ## Section
@@ -600,8 +602,8 @@ Content here.
 def test_label_to_node_external():
     """_label_to_node should load external file and find label."""
     from pathlib import Path
+
     from rsm.transformer import Transformer
-    import rsm
 
     root_dir = Path(__file__).parent / "fixtures/crossref"
     t = Transformer(root_dir=root_dir)
@@ -621,8 +623,8 @@ def test_label_to_node_external():
 def test_label_to_node_external_not_found():
     """_label_to_node should return Error node if external label not found."""
     from pathlib import Path
+
     from rsm.transformer import Transformer
-    import rsm
 
     root_dir = Path(__file__).parent / "fixtures/crossref"
     t = Transformer(root_dir=root_dir)
@@ -641,8 +643,8 @@ def test_label_to_node_external_not_found():
 def test_label_to_node_external_file_not_found():
     """_label_to_node should return Error node if external file not found."""
     from pathlib import Path
+
     from rsm.transformer import Transformer
-    import rsm
 
     root_dir = Path(__file__).parent / "fixtures/crossref"
     t = Transformer(root_dir=root_dir)
@@ -661,8 +663,8 @@ def test_label_to_node_external_file_not_found():
 def test_resolve_pending_references_external():
     """resolve_pending_references should resolve external references."""
     from pathlib import Path
+
     from rsm.transformer import Transformer
-    import rsm
 
     root_dir = Path(__file__).parent / "fixtures/crossref"
 
@@ -682,7 +684,11 @@ This document references :ref:definitions/def.rsm#test-def::.
     transformed = t.transform(tree)
 
     # Find the reference node
-    refs = [node for node in transformed.traverse() if node.__class__.__name__ == "Reference"]
+    refs = [
+        node
+        for node in transformed.traverse()
+        if node.__class__.__name__ == "Reference"
+    ]
     assert len(refs) == 1
 
     ref = refs[0]

@@ -2,12 +2,12 @@ import rsm
 from rsm.nodes import (
     Paragraph,
     PendingReference,
+    Proof,
     Reference,
-    Text,
     Span,
     Step,
-    Proof,
     Subproof,
+    Text,
 )
 
 

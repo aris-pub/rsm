@@ -19,7 +19,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu, macos]
-        python-version: ['3.9', '3.10', '3.11']
+        python-version: ['3.10', '3.11', '3.12']
 
     steps:
     - name: Checkout the repository and submodules
@@ -27,33 +27,29 @@ jobs:
       with:
         submodules: true
 
-    - name: Set up Node
-      uses: actions/setup-node@v4
-      with:
-        node-version: 20
-
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
 
-    - name: Install poetry
+    - name: Install uv
       run: |
-        pipx install poetry
+        curl -LsSf https://astral.sh/uv/install.sh | sh
+        echo "$HOME/.cargo/bin" >> $GITHUB_PATH
 
     - name: Install rsm-markup
       run: |
-        poetry install --with test
-        poetry show
+        uv sync --extra dev
+        uv pip list
 
     - name: Run unit tests
       run: |
-        poetry run pytest -vv
+        uv run pytest -vv
 
     - name: Run doctests in source files
       run: |
-       poetry run pytest -vv --doctest-modules rsm
+        uv run pytest -vv --doctest-modules rsm
 
     - name: Run doctests in doc files
       run: |
-       cd docs && poetry run make doctest
+        cd docs && uv run make doctest

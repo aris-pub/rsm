@@ -6,7 +6,6 @@ opened directly in a browser without requiring a web server. This is achieved by
 2. Using absolute URLs to the Studio backend for RSM-specific assets
 """
 
-import pytest
 import rsm
 
 
@@ -106,11 +105,13 @@ class TestStandaloneBuilder:
     def test_standalone_builder_exists(self):
         """Test that StandaloneBuilder class exists."""
         from rsm.builder import StandaloneBuilder
+
         assert StandaloneBuilder is not None
 
     def test_standalone_builder_inherits_from_html_builder(self):
         """Test that StandaloneBuilder inherits from HTMLBuilder."""
-        from rsm.builder import StandaloneBuilder, HTMLBuilder
+        from rsm.builder import HTMLBuilder, StandaloneBuilder
+
         assert issubclass(StandaloneBuilder, HTMLBuilder)
 
     def test_standalone_builder_produces_single_file(self):

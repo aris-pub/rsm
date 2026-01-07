@@ -7,13 +7,12 @@ utilities.
 
 import sys
 from argparse import ArgumentParser, Namespace
+from collections.abc import Callable
 from importlib.metadata import version
-from typing import Callable, Optional
 
 import livereload
 
 from rsm import app
-from rsm.tsparser import RSMParserError
 
 
 def _init_parser() -> ArgumentParser:
@@ -76,14 +75,14 @@ def _init_parser() -> ArgumentParser:
         "--version",
         help="rsm-markup version",
         action="version",
-        version=f'rsm-markup v{version("rsm-markup")}',
+        version=f"rsm-markup v{version('rsm-markup')}",
     )
 
     return parser
 
 
 def main(
-    parser: ArgumentParser, func: Callable, args: Optional[Namespace] = None
+    parser: ArgumentParser, func: Callable, args: Namespace | None = None
 ) -> int:
     if args is None:
         args = parser.parse_args()

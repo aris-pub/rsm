@@ -1,7 +1,8 @@
 """Configure the logging module for RSM apps."""
+
 import logging
 from logging.handlers import BufferingHandler
-from typing import Any, Optional
+from typing import Any
 
 import ujson as json
 
@@ -59,7 +60,9 @@ class RSMFormatter(logging.Formatter):
         logging.CRITICAL: boldred,
     }
 
-    def __init__(self, log_time: bool = True, log_lineno: bool = True, *args: Any, **kwargs: Any) -> None:
+    def __init__(
+        self, log_time: bool = True, log_lineno: bool = True, *args: Any, **kwargs: Any
+    ) -> None:
         super().__init__(*args, **kwargs)
         self.log_time = log_time
         self.log_lineno = log_lineno
@@ -78,7 +81,9 @@ class RSMFormatter(logging.Formatter):
 
 
 class JSONFormatter(logging.Formatter):
-    def __init__(self, log_time: bool = True, log_lineno: bool = True, *args: Any, **kwargs: Any) -> None:
+    def __init__(
+        self, log_time: bool = True, log_lineno: bool = True, *args: Any, **kwargs: Any
+    ) -> None:
         super().__init__(*args, **kwargs)
         self.log_time = log_time
         self.log_lineno = log_lineno
@@ -98,11 +103,12 @@ class JSONFormatter(logging.Formatter):
 
 
 class LintFormatter:
-
     fmt_with_point = "src:%(start_row)d:%(start_col)d: %(levelname)s: %(message)s"
     fmt_sans_point = "src:1:1: %(levelname)s: %(message)s"
 
-    def __init__(self, log_time: bool = True, log_lineno: bool = True, *args: Any, **kwargs: Any) -> None:
+    def __init__(
+        self, log_time: bool = True, log_lineno: bool = True, *args: Any, **kwargs: Any
+    ) -> None:
         self._formatter_with_point = logging.Formatter(
             self.fmt_with_point, *args, **kwargs
         )
@@ -120,7 +126,7 @@ class LintFormatter:
 
 class GatherHandler(BufferingHandler):
     def __init__(
-        self, levels: list[int], target: Optional[logging.Handler] = None
+        self, levels: list[int], target: logging.Handler | None = None
     ) -> None:
         super().__init__(capacity=1000000)
         self.gatherlevels = set(levels)
@@ -162,7 +168,9 @@ def config_rsm_logger(
     _set_level(level)
 
 
-def _config_rsm_logger(fmt: str = "rsm", log_time: bool = True, log_lineno: bool = True) -> None:
+def _config_rsm_logger(
+    fmt: str = "rsm", log_time: bool = True, log_lineno: bool = True
+) -> None:
     handler = logging.StreamHandler()
     handler.setLevel(logging.WARN)
     formatter = {

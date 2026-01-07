@@ -115,9 +115,8 @@ import textwrap
 import uuid
 from abc import ABC, abstractmethod
 from collections import namedtuple
-from typing import Any, Callable, Iterable, Literal, Optional
-
-from icecream import ic
+from collections.abc import Callable, Iterable
+from typing import Any, Literal
 
 from . import nodes
 from .util import highlight_code
@@ -127,69 +126,78 @@ logger = logging.getLogger("RSM").getChild("tlate")
 
 def _process_html_with_scripts(html_content: str) -> str:
     """Process HTML content to ensure JavaScript executes when dynamically inserted.
-    
+
     When HTML content is inserted via innerHTML or v-html, script tags don't execute
     automatically. This function processes all scripts to ensure proper execution order,
     especially handling dependencies between external and inline scripts.
-    
+
     Parameters
     ----------
     html_content : str
         Raw HTML content that may contain script tags
-        
+
     Returns
     -------
     str
         Processed HTML with scripts that will execute when inserted
     """
-    if not html_content or '<script' not in html_content.lower():
+    if not html_content or "<script" not in html_content.lower():
         return html_content
-    
+
     # Find all script tags and process them in order
     script_pattern = re.compile(
-        r'<script([^>]*)>(.*?)</script>', 
-        re.DOTALL | re.IGNORECASE
+        r"<script([^>]*)>(.*?)</script>", re.DOTALL | re.IGNORECASE
     )
-    
+
     scripts = list(script_pattern.finditer(html_content))
     if not scripts:
         return html_content
-    
+
     # Build a queue of scripts to execute in order
     processed_scripts = []
     external_scripts = []
-    
+
     for i, match in enumerate(scripts):
         attributes = match.group(1)
         script_content = match.group(2)
-        
-        if 'src=' in attributes.lower():
+
+        if "src=" in attributes.lower():
             # External script - extract URL and add to queue
             src_match = re.search(r'src=["\']([^"\']+)["\']', attributes, re.IGNORECASE)
             if src_match:
                 src_url = src_match.group(1)
                 script_id = f"rsm_script_{uuid.uuid4().hex[:8]}"
-                external_scripts.append({
-                    'url': src_url,
-                    'id': script_id,
-                    'async': 'async' in attributes.lower(),
-                    'defer': 'defer' in attributes.lower()
-                })
+                external_scripts.append(
+                    {
+                        "url": src_url,
+                        "id": script_id,
+                        "async": "async" in attributes.lower(),
+                        "defer": "defer" in attributes.lower(),
+                    }
+                )
         else:
             # Inline script - add to execution queue
             if script_content.strip():
-                escaped_content = script_content.replace('</script>', '<\\/script>')
+                escaped_content = script_content.replace("</script>", "<\\/script>")
                 processed_scripts.append(escaped_content)
-    
+
     if not processed_scripts and not external_scripts:
         return html_content
-    
+
     # Generate execution script that handles dependencies
-    execution_script = '''<script>
+    execution_script = (
+        """<script>
 (function() {
     var scriptsLoaded = 0;
-    var totalExternalScripts = ''' + str(len(external_scripts)) + ''';
-    var inlineScripts = [''' + ',\n        '.join(f'function() {{ try {{ {script} }} catch (e) {{ console.warn("RSM: Error executing script:", e); }} }}' for script in processed_scripts) + '''];
+    var totalExternalScripts = """
+        + str(len(external_scripts))
+        + """;
+    var inlineScripts = ["""
+        + ",\n        ".join(
+            f'function() {{ try {{ {script} }} catch (e) {{ console.warn("RSM: Error executing script:", e); }} }}'
+            for script in processed_scripts
+        )
+        + """];
     
     function executeInlineScripts() {
         if (scriptsLoaded >= totalExternalScripts) {
@@ -207,35 +215,36 @@ def _process_html_with_scripts(html_content: str) -> str:
         scriptsLoaded++;
         executeInlineScripts();
     }
-'''
-    
+"""
+    )
+
     # Add external script loading
     for script in external_scripts:
-        execution_script += f'''
-    // Load external script: {script['url']}
-    var script_{script['id']} = document.createElement('script');
-    script_{script['id']}.src = '{script['url']}';
-    script_{script['id']}.id = '{script['id']}';
-    {('script_' + script['id'] + '.async = true;' if script['async'] else '')}
-    {('script_' + script['id'] + '.defer = true;' if script['defer'] else '')}
-    script_{script['id']}.onload = onScriptLoad;
-    script_{script['id']}.onerror = onScriptLoad; // Continue even if script fails
-    document.head.appendChild(script_{script['id']});
-'''
-    
-    execution_script += '''
+        execution_script += f"""
+    // Load external script: {script["url"]}
+    var script_{script["id"]} = document.createElement('script');
+    script_{script["id"]}.src = '{script["url"]}';
+    script_{script["id"]}.id = '{script["id"]}';
+    {("script_" + script["id"] + ".async = true;" if script["async"] else "")}
+    {("script_" + script["id"] + ".defer = true;" if script["defer"] else "")}
+    script_{script["id"]}.onload = onScriptLoad;
+    script_{script["id"]}.onerror = onScriptLoad; // Continue even if script fails
+    document.head.appendChild(script_{script["id"]});
+"""
+
+    execution_script += """
     
     // If no external scripts, execute inline scripts immediately
     if (totalExternalScripts === 0) {
         executeInlineScripts();
     }
 })();
-</script>'''
-    
+</script>"""
+
     # Replace all original script tags with our execution script
-    result = script_pattern.sub('', html_content)
+    result = script_pattern.sub("", html_content)
     result += execution_script
-    
+
     return result
 
 
@@ -468,7 +477,7 @@ class AppendNodeTag(AppendOpenTag):
         node: nodes.Node,
         tag: str = "div",
         *,
-        additional_classes: Optional[list[str]] = None,
+        additional_classes: list[str] | None = None,
         newline_inner: bool = True,
         newline_outer: bool = True,
         is_selectable: bool = False,
@@ -675,6 +684,7 @@ class Translator:
         # Default to disk-based asset resolver if none provided
         if asset_resolver is None:
             from .asset_resolver import AssetResolverFromDisk
+
             asset_resolver = AssetResolverFromDisk()
         self.asset_resolver = asset_resolver
         self.deferred: list[EditCommand] = []
@@ -1063,16 +1073,14 @@ class Translator:
         # Handle external references
         if node.external_file:
             # Convert .rsm extension to .html
-            html_path = node.external_file.replace('.rsm', '.html')
+            html_path = node.external_file.replace(".rsm", ".html")
             href = f"{html_path}#{node.target.label}"
 
             # Add 'external' to types
-            if 'external' not in node.types:
-                node.types.append('external')
+            if "external" not in node.types:
+                node.types.append("external")
 
-            return AppendText(
-                self._make_ahref_tag_text(node, node.target, href)
-            )
+            return AppendText(self._make_ahref_tag_text(node, node.target, href))
         else:
             # Internal reference (existing behavior)
             return AppendText(
@@ -1289,17 +1297,19 @@ class Translator:
             content = self.asset_resolver.resolve_asset(str(node.path))
             if content is None:
                 return f'<div class="html-error">Unable to load HTML asset: {node.path}</div>'
-            
+
             # Check if this is a full HTML document vs simple content
-            is_full_html_doc = content.strip().lower().startswith('<html') or content.strip().lower().startswith('<!doctype')
-            
+            is_full_html_doc = content.strip().lower().startswith(
+                "<html"
+            ) or content.strip().lower().startswith("<!doctype")
+
             if is_full_html_doc:
                 # Full HTML document - extract body content and process scripts
                 processed = _process_html_with_scripts(content)
             else:
                 # Simple HTML content - use as-is (for existing RSM behavior)
                 processed = content
-                
+
             return processed
 
         # Default to image behavior
@@ -1963,33 +1973,33 @@ class HandrailsTranslator(Translator):
             newline_inner=False,
             newline_outer=False,
         )
-        
+
         # Create figcaption with handrail classes
         figcaption_classes = ["hr", "hr-hidden"]
-        additional_classes = (
-            ["hr-hidden"] if node.handrail_depth == 2 else []
-        ) + (
+        additional_classes = (["hr-hidden"] if node.handrail_depth == 2 else []) + (
             ["hr-offset"] if node.handrail_depth > 0 else []
         )
         figcaption_classes.extend(additional_classes)
-        
-        return AppendBatchAndDefer([
-            AppendOpenTag(
-                "figcaption" if isinstance(parent, nodes.Asset) else "caption",
-                classes=figcaption_classes,
-                is_selectable=True,
-                tabindex=0
-            ),
-            self._hr_collapse_zone(collapsible=False),
-            self._hr_menu_zone(
-                label="Caption",
-                link=(True if node.label else "disabled"),
-            ),
-            self._hr_border_zone(),
-            self._hr_spacer_zone(),
-            AppendOpenTag("div", classes=["hr-content-zone"]),
-            caption_label,
-        ])
+
+        return AppendBatchAndDefer(
+            [
+                AppendOpenTag(
+                    "figcaption" if isinstance(parent, nodes.Asset) else "caption",
+                    classes=figcaption_classes,
+                    is_selectable=True,
+                    tabindex=0,
+                ),
+                self._hr_collapse_zone(collapsible=False),
+                self._hr_menu_zone(
+                    label="Caption",
+                    link=(True if node.label else "disabled"),
+                ),
+                self._hr_border_zone(),
+                self._hr_spacer_zone(),
+                AppendOpenTag("div", classes=["hr-content-zone"]),
+                caption_label,
+            ]
+        )
 
     def leave_caption(self, node: nodes.Caption) -> EditCommand:
         batch = self.leave_node(node)

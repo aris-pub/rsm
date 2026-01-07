@@ -29,7 +29,7 @@ def main(file_path, test_path, test_name, handrails=False):
 
     with open(out_path, encoding="utf-8") as file:
         current_tests = file.read()
-    if re.search(f"^def {test_name}\(", current_tests, flags=re.MULTILINE):
+    if re.search(rf"^def {test_name}\(", current_tests, flags=re.MULTILINE):
         raise ValueError("Test with that name already exists")
 
     with open(file_path, encoding="utf-8") as file:

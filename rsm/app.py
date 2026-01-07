@@ -48,10 +48,9 @@ the ``run()`` method on an :class:`RSMApp` instance will.
 """
 
 import logging
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Callable, NamedTuple, Optional, Union
-
-from icecream import ic
+from typing import Any, NamedTuple
 
 from rsm import (
     builder,
@@ -65,7 +64,6 @@ from rsm import (
 )
 from rsm.tsparser import RSMParserError
 
-
 from .rsmlogger import GatherHandler
 
 logger = logging.getLogger("RSM")
@@ -73,54 +71,54 @@ logger = logging.getLogger("RSM")
 
 def _parse_html_to_structured(html: str) -> dict:
     """Parse full HTML document into structured components.
-    
+
     Parameters
     ----------
     html : str
         Complete HTML document with <html><head>...</head><body>...</body></html>
-    
+
     Returns
     -------
     dict
         Dictionary with keys 'head', 'body', 'init_script'
     """
     import re
-    
+
     # Extract head content (everything inside <head>...</head>)
-    head_match = re.search(r'<head>(.*?)</head>', html, re.DOTALL)
+    head_match = re.search(r"<head>(.*?)</head>", html, re.DOTALL)
     if not head_match:
         raise RSMApplicationError("No <head> section found in HTML document")
-    
+
     head_content = head_match.group(1).strip()
-    
+
     # Extract body content (everything inside <body>...</body>)
     # Use greedy .* to match the LAST </body> tag, not the first
     # (embedded HTML assets like Plotly charts contain their own </body> tags)
-    body_match = re.search(r'<body[^>]*>(.*)</body>', html, re.DOTALL)
+    body_match = re.search(r"<body[^>]*>(.*)</body>", html, re.DOTALL)
     if not body_match:
         raise RSMApplicationError("No <body> section found in HTML document")
-    
+
     body_content = body_match.group(1).strip()
-    
+
     # Extract external script tags from body content and add to head
     # This handles scripts added by HTML assets (like Plotly CDN)
     external_scripts = []
     script_pattern = r'<script[^>]*src=["\']([^"\']+)["\'][^>]*></script>'
     scripts_in_body = re.findall(script_pattern, body_content)
-    
+
     for script_match in re.finditer(script_pattern, body_content):
         script_tag = script_match.group(0)
         src = script_match.group(1)
-        
+
         # Only move external scripts (CDN URLs) to head
-        if src.startswith(('http://', 'https://', '//')):
+        if src.startswith(("http://", "https://", "//")):
             external_scripts.append(script_tag)
             # Remove from body content
-            body_content = body_content.replace(script_tag, '')
-    
+            body_content = body_content.replace(script_tag, "")
+
     # Extract execution scripts from after </html> (created by _process_html_with_scripts)
     asset_init_scripts = []
-    html_end = html.find('</html>')
+    html_end = html.find("</html>")
     if html_end != -1:
         post_html_content = html[html_end:]
 
@@ -129,33 +127,31 @@ def _parse_html_to_structured(html: str) -> dict:
         execution_script_urls = re.findall(src_pattern, post_html_content)
 
         for url in execution_script_urls:
-            if url.startswith(('http://', 'https://', '//')):
+            if url.startswith(("http://", "https://", "//")):
                 script_tag = f'<script src="{url}"></script>'
                 external_scripts.append(script_tag)
 
         # Extract the full IIFE content for execution
         # The IIFE is wrapped in <script>...</script> after </html>
-        script_content_pattern = r'<script>\s*(.*?)\s*</script>'
-        script_matches = re.findall(script_content_pattern, post_html_content, re.DOTALL)
+        script_content_pattern = r"<script>\s*(.*?)\s*</script>"
+        script_matches = re.findall(
+            script_content_pattern, post_html_content, re.DOTALL
+        )
         for script_content in script_matches:
             if script_content.strip():
                 asset_init_scripts.append(script_content.strip())
 
     # Add external scripts to head content
     if external_scripts:
-        head_content = head_content + '\n' + '\n'.join(external_scripts)
+        head_content = head_content + "\n" + "\n".join(external_scripts)
 
     # Clean up any extra whitespace in body content
     body_content = body_content.strip()
 
     # Combine asset scripts into init_script for frontend execution
-    init_script = '\n'.join(asset_init_scripts) if asset_init_scripts else ''
-    
-    return {
-        "head": head_content,
-        "body": body_content,
-        "init_script": init_script
-    }
+    init_script = "\n".join(asset_init_scripts) if asset_init_scripts else ""
+
+    return {"head": head_content, "body": body_content, "init_script": init_script}
 
 
 class RSMApplicationError(Exception):
@@ -209,7 +205,7 @@ class RSMApp(Pipeline):
 
     def __init__(
         self,
-        tasks: Optional[list[Task]] = None,
+        tasks: list[Task] | None = None,
         loglevel: int = default_log_level,
         log_format: str = "rsm",
         log_time: bool = True,
@@ -221,7 +217,7 @@ class RSMApp(Pipeline):
         # self.config = self.config.configure()
         super().__init__(tasks or [])
 
-    def run(self, initial_args: Any = None) -> Optional[str]:
+    def run(self, initial_args: Any = None) -> str | None:
         try:
             result = super().run(initial_args)
             logger.info("Done.")
@@ -244,7 +240,7 @@ class RSMApp(Pipeline):
 class ParserApp(RSMApp):
     def __init__(
         self,
-        srcpath: Optional[Path] = None,
+        srcpath: Path | None = None,
         plain: str = "",
         loglevel: int = RSMApp.default_log_level,
         log_format: str = "rsm",
@@ -267,7 +263,7 @@ class ParserApp(RSMApp):
 
     @staticmethod
     def _validate_srcpath_and_plain(
-        srcpath: Union[Path, str, None], plain: str
+        srcpath: Path | str | None, plain: str
     ) -> None:
         if (not srcpath and not plain) or (srcpath and plain):
             raise RSMApplicationError("Must specify exactly one of srcpath, plain")
@@ -276,7 +272,7 @@ class ParserApp(RSMApp):
 class LinterApp(ParserApp):
     def __init__(
         self,
-        srcpath: Optional[Path] = None,
+        srcpath: Path | None = None,
         plain: str = "",
         loglevel: int = RSMApp.default_log_level,
         log_format: str = "rsm",
@@ -293,7 +289,7 @@ class LinterApp(ParserApp):
 class ProcessorApp(ParserApp):
     def __init__(
         self,
-        srcpath: Optional[Path] = None,
+        srcpath: Path | None = None,
         plain: str = "",
         loglevel: int = RSMApp.default_log_level,
         log_format: str = "rsm",
@@ -313,8 +309,7 @@ class ProcessorApp(ParserApp):
             tr = translator.Translator(asset_resolver=asset_resolver)
         else:
             tr = translator.HandrailsTranslator(
-                add_source=add_source,
-                asset_resolver=asset_resolver
+                add_source=add_source, asset_resolver=asset_resolver
             )
         self.add_task(Task("translator", tr, tr.translate))
 
@@ -322,7 +317,7 @@ class ProcessorApp(ParserApp):
 class FullBuildApp(ProcessorApp):
     def __init__(
         self,
-        srcpath: Optional[Path] = None,
+        srcpath: Path | None = None,
         plain: str = "",
         loglevel: int = RSMApp.default_log_level,
         log_format: str = "rsm",
@@ -335,7 +330,16 @@ class FullBuildApp(ProcessorApp):
         standalone: bool = False,
     ):
         super().__init__(
-            srcpath, plain, loglevel, log_format, log_time, log_lineno, handrails, add_source, run_linter, asset_resolver
+            srcpath,
+            plain,
+            loglevel,
+            log_format,
+            log_time,
+            log_lineno,
+            handrails,
+            add_source,
+            run_linter,
+            asset_resolver,
         )
         if standalone:
             b = builder.StandaloneBuilder(asset_resolver=asset_resolver)
@@ -343,7 +347,7 @@ class FullBuildApp(ProcessorApp):
             b = builder.FolderBuilder(asset_resolver=asset_resolver)
         self.add_task(Task("builder", b, b.build))
         self.add_task(Task("writer", w := writer.Writer(), w.write))
-    
+
     def run(self, initial_args=None) -> str:
         """Override run to return HTML content instead of None from Writer."""
         # Run all tasks except the last one (writer)
@@ -357,9 +361,9 @@ class FullBuildApp(ProcessorApp):
                 result = call()
             else:
                 result = call(result)
-        
+
         # The result should now be a WebManuscript from the builder
-        if hasattr(result, 'html'):
+        if hasattr(result, "html"):
             return result.html
         else:
             logger.error("Builder did not produce WebManuscript with html attribute")
@@ -421,7 +425,7 @@ def make(
     asset_resolver=None,
     structured: bool = False,
     standalone: bool = False,
-) -> Union[str, dict]:
+) -> str | dict:
     html_result = FullBuildApp(
         srcpath=path,
         plain=source,

@@ -1,6 +1,5 @@
 """Tests for structured output functionality in rsm.make()."""
 
-import pytest
 import rsm
 
 
@@ -8,7 +7,7 @@ def test_make_structured_returns_dict():
     """Test that structured=True returns a dictionary."""
     source = ":rsm: Hello world! ::"
     result = rsm.make(source, structured=True)
-    
+
     assert isinstance(result, dict)
     assert set(result.keys()) == {"head", "body", "init_script"}
 
@@ -17,7 +16,7 @@ def test_make_structured_false_returns_string():
     """Test that structured=False returns HTML string (backward compatibility)."""
     source = ":rsm: Hello world! ::"
     result = rsm.make(source, structured=False)
-    
+
     assert isinstance(result, str)
     assert "<html>" in result
     assert "<head>" in result
@@ -28,7 +27,7 @@ def test_make_default_structured_returns_string():
     """Test that default (no structured param) returns HTML string."""
     source = ":rsm: Hello world! ::"
     result = rsm.make(source)
-    
+
     assert isinstance(result, str)
     assert "<html>" in result
 
@@ -37,7 +36,7 @@ def test_structured_head_contains_dependencies():
     """Test that structured head contains tooltip dependencies."""
     source = ":rsm: Hello world! ::"
     result = rsm.make(source, structured=True)
-    
+
     head = result["head"]
     assert "jquery-3.6.0.js" in head
     assert "tooltipster.bundle.js" in head
@@ -49,7 +48,7 @@ def test_structured_body_contains_content():
     """Test that structured body contains manuscript content."""
     source = ":rsm: Hello world! ::"
     result = rsm.make(source, structured=True)
-    
+
     body = result["body"]
     assert "manuscriptwrapper" in body
     assert "Hello world!" in body
@@ -67,11 +66,11 @@ def test_structured_init_script_empty_without_assets():
 def test_structured_with_asset_resolver():
     """Test structured output with custom asset resolver."""
     from rsm.asset_resolver import AssetResolverFromDisk
-    
+
     source = ":rsm: Hello world! ::"
     resolver = AssetResolverFromDisk()
     result = rsm.make(source, structured=True, asset_resolver=resolver)
-    
+
     assert isinstance(result, dict)
     assert "head" in result
     assert "body" in result
@@ -81,22 +80,23 @@ def test_structured_with_asset_resolver():
 def test_structured_vs_regular_same_content():
     """Test that structured and regular output contain same essential content."""
     source = ":rsm: Hello world! ::"
-    
+
     regular = rsm.make(source, structured=False)
     structured = rsm.make(source, structured=True)
-    
+
     # Extract head and body from regular HTML
     import re
-    regular_head_match = re.search(r'<head>(.*?)</head>', regular, re.DOTALL)
-    regular_body_match = re.search(r'<body[^>]*>(.*?)</body>', regular, re.DOTALL)
-    
+
+    regular_head_match = re.search(r"<head>(.*?)</head>", regular, re.DOTALL)
+    regular_body_match = re.search(r"<body[^>]*>(.*?)</body>", regular, re.DOTALL)
+
     assert regular_head_match is not None
     assert regular_body_match is not None
-    
+
     # Compare essential content (allowing for whitespace differences)
     regular_head = regular_head_match.group(1).strip()
     regular_body = regular_body_match.group(1).strip()
-    
+
     assert structured["head"].strip() == regular_head
     assert structured["body"].strip() == regular_body
 
@@ -127,14 +127,14 @@ class TestParseHtmlToStructuredIIFE:
 
     def test_extracts_iife_from_post_html_script(self):
         """Test that IIFE content after </html> is extracted to init_script."""
-        html = '''<!DOCTYPE html>
+        html = """<!DOCTYPE html>
 <html><head><title>Test</title></head>
 <body><div id="chart"></div></body></html>
 <script>
 (function() {
     console.log("Hello from IIFE");
 })();
-</script>'''
+</script>"""
 
         result = _parse_html_to_structured(html)
 
@@ -143,7 +143,7 @@ class TestParseHtmlToStructuredIIFE:
 
     def test_extracts_cdn_urls_to_head(self):
         """Test that CDN script URLs from IIFE are added to head."""
-        html = '''<!DOCTYPE html>
+        html = """<!DOCTYPE html>
 <html><head><title>Test</title></head>
 <body><div id="chart"></div></body></html>
 <script>
@@ -152,15 +152,18 @@ class TestParseHtmlToStructuredIIFE:
     script_abc.src = 'https://cdn.plot.ly/plotly-latest.min.js';
     document.head.appendChild(script_abc);
 })();
-</script>'''
+</script>"""
 
         result = _parse_html_to_structured(html)
 
-        assert '<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>' in result["head"]
+        assert (
+            '<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>'
+            in result["head"]
+        )
 
     def test_extracts_multiple_cdn_urls(self):
         """Test extraction of multiple CDN URLs from IIFE."""
-        html = '''<!DOCTYPE html>
+        html = """<!DOCTYPE html>
 <html><head><title>Test</title></head>
 <body><div id="chart"></div></body></html>
 <script>
@@ -172,16 +175,19 @@ class TestParseHtmlToStructuredIIFE:
     document.head.appendChild(script_1);
     document.head.appendChild(script_2);
 })();
-</script>'''
+</script>"""
 
         result = _parse_html_to_structured(html)
 
         assert '<script src="https://d3js.org/d3.v7.min.js"></script>' in result["head"]
-        assert '<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>' in result["head"]
+        assert (
+            '<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>'
+            in result["head"]
+        )
 
     def test_preserves_inline_script_execution_code(self):
         """Test that inline script execution code is preserved in init_script."""
-        html = '''<!DOCTYPE html>
+        html = """<!DOCTYPE html>
 <html><head><title>Test</title></head>
 <body><div id="chart"></div></body></html>
 <script>
@@ -192,7 +198,7 @@ class TestParseHtmlToStructuredIIFE:
     }
     executeInlineScripts();
 })();
-</script>'''
+</script>"""
 
         result = _parse_html_to_structured(html)
 
@@ -202,9 +208,9 @@ class TestParseHtmlToStructuredIIFE:
 
     def test_no_scripts_returns_empty_init_script(self):
         """Test that HTML without post-html scripts returns empty init_script."""
-        html = '''<!DOCTYPE html>
+        html = """<!DOCTYPE html>
 <html><head><title>Test</title></head>
-<body><div>Hello World</div></body></html>'''
+<body><div>Hello World</div></body></html>"""
 
         result = _parse_html_to_structured(html)
 
@@ -212,7 +218,7 @@ class TestParseHtmlToStructuredIIFE:
 
     def test_ignores_relative_script_urls(self):
         """Test that relative script URLs are not added to head."""
-        html = '''<!DOCTYPE html>
+        html = """<!DOCTYPE html>
 <html><head><title>Test</title></head>
 <body><div id="chart"></div></body></html>
 <script>
@@ -221,16 +227,16 @@ class TestParseHtmlToStructuredIIFE:
     script_abc.src = '/local/script.js';
     document.head.appendChild(script_abc);
 })();
-</script>'''
+</script>"""
 
         result = _parse_html_to_structured(html)
 
         # Relative URL should not be in head
-        assert '/local/script.js' not in result["head"]
+        assert "/local/script.js" not in result["head"]
 
     def test_handles_protocol_relative_urls(self):
         """Test that protocol-relative URLs (//cdn.example.com) are extracted."""
-        html = '''<!DOCTYPE html>
+        html = """<!DOCTYPE html>
 <html><head><title>Test</title></head>
 <body><div id="chart"></div></body></html>
 <script>
@@ -239,7 +245,7 @@ class TestParseHtmlToStructuredIIFE:
     script_abc.src = '//cdn.example.com/lib.js';
     document.head.appendChild(script_abc);
 })();
-</script>'''
+</script>"""
 
         result = _parse_html_to_structured(html)
 
@@ -247,10 +253,10 @@ class TestParseHtmlToStructuredIIFE:
 
     def test_body_content_unchanged(self):
         """Test that body content is not affected by IIFE extraction."""
-        html = '''<!DOCTYPE html>
+        html = """<!DOCTYPE html>
 <html><head><title>Test</title></head>
 <body><div id="chart" class="plotly-graph"></div></body></html>
-<script>(function() { console.log("test"); })();</script>'''
+<script>(function() { console.log("test"); })();</script>"""
 
         result = _parse_html_to_structured(html)
 
@@ -258,7 +264,7 @@ class TestParseHtmlToStructuredIIFE:
 
     def test_multiple_post_html_scripts(self):
         """Test handling of multiple script tags after </html>."""
-        html = '''<!DOCTYPE html>
+        html = """<!DOCTYPE html>
 <html><head><title>Test</title></head>
 <body><div id="chart"></div></body></html>
 <script>
@@ -266,7 +272,7 @@ class TestParseHtmlToStructuredIIFE:
 </script>
 <script>
 (function() { console.log("second"); })();
-</script>'''
+</script>"""
 
         result = _parse_html_to_structured(html)
 
@@ -275,7 +281,7 @@ class TestParseHtmlToStructuredIIFE:
 
     def test_realistic_plotly_iife(self):
         """Test extraction of a realistic Plotly IIFE structure."""
-        html = '''<!DOCTYPE html>
+        html = """<!DOCTYPE html>
 <html><head><title>Chart</title></head>
 <body><div id="plotly-chart"></div></body></html>
 <script>
@@ -309,12 +315,15 @@ class TestParseHtmlToStructuredIIFE:
         executeInlineScripts();
     }
 })();
-</script>'''
+</script>"""
 
         result = _parse_html_to_structured(html)
 
         # CDN should be in head
-        assert '<script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>' in result["head"]
+        assert (
+            '<script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>'
+            in result["head"]
+        )
 
         # IIFE structure should be preserved
         assert "scriptsLoaded" in result["init_script"]
@@ -326,7 +335,7 @@ class TestParseHtmlToStructuredIIFE:
 
     def test_d3_chart_iife(self):
         """Test extraction of a D3.js chart IIFE."""
-        html = '''<!DOCTYPE html>
+        html = """<!DOCTYPE html>
 <html><head><title>D3 Chart</title></head>
 <body><svg id="d3-chart"></svg></body></html>
 <script>
@@ -346,7 +355,7 @@ class TestParseHtmlToStructuredIIFE:
     script_d3.onload = onScriptLoad;
     document.head.appendChild(script_d3);
 })();
-</script>'''
+</script>"""
 
         result = _parse_html_to_structured(html)
 
@@ -358,7 +367,7 @@ class TestParseHtmlToStructuredIIFE:
 
         Regression test: content was being cut off after charts in Studio.
         """
-        html = '''<!DOCTYPE html>
+        html = """<!DOCTYPE html>
 <html><head><title>Test</title></head>
 <body>
 <h1>Introduction</h1>
@@ -378,7 +387,7 @@ class TestParseHtmlToStructuredIIFE:
     };
     document.head.appendChild(script);
 })();
-</script>'''
+</script>"""
 
         result = _parse_html_to_structured(html)
 
@@ -401,7 +410,7 @@ class TestParseHtmlToStructuredIIFE:
         instead of the LAST (document's actual closing tag).
         """
         # Simulates a Plotly chart embedded in a document with content after
-        html = '''<!DOCTYPE html>
+        html = """<!DOCTYPE html>
 <html><head><title>Document</title></head>
 <body>
 <h1>Before Chart</h1>
@@ -420,13 +429,14 @@ class TestParseHtmlToStructuredIIFE:
 <p>This content comes after the embedded chart and MUST be preserved.</p>
 <h2>Conclusion</h2>
 <p>Final content of the document.</p>
-</body></html>'''
+</body></html>"""
 
         result = _parse_html_to_structured(html)
 
         # Content AFTER the embedded chart must be preserved
-        assert "After Chart Section" in result["body"], \
+        assert "After Chart Section" in result["body"], (
             "Content after embedded chart was truncated!"
+        )
         assert "This content comes after the embedded chart" in result["body"]
         assert "Conclusion" in result["body"]
         assert "Final content of the document" in result["body"]
