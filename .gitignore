@@ -156,3 +156,4 @@ wheelhouse/
 # don't commit compiled examples
 rsm-examples/*.html
 rsm-examples/static
+rsm/static/plotly-chart.html

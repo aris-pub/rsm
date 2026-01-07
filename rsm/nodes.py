@@ -14,17 +14,22 @@ subclasses whose only purpose is to differentiate themselves from others via the
 
 import logging
 import textwrap
-from collections.abc import Callable, Generator, Iterable
+from collections.abc import Iterable
 from datetime import datetime
 from pathlib import Path
 from typing import (
     Any,
+    Callable,
     ClassVar,
+    Generator,
     Optional,
+    Type,
     TypeVar,
     Union,
     cast,
 )
+
+from icecream import ic
 
 logger = logging.getLogger("RSM").getChild("nodes")
 
@@ -69,7 +74,7 @@ class Node:
 
     classreftext: ClassVar[str] = "{nodeclass} {number}"
 
-    possible_parents: ClassVar[set[type["NodeWithChildren"]]] = set()
+    possible_parents: ClassVar[set[Type["NodeWithChildren"]]] = set()
     """Allowed types of parent Nodes.
 
     When setting the parent of a Node, this attribute is checked to see whether the
@@ -118,10 +123,10 @@ class Node:
 
     """
 
-    _number_within: ClassVar[type["Node"] | None] = None
+    _number_within: ClassVar[Optional[Type["Node"]]] = None
     # see property number_within for documentation
 
-    _number_as: ClassVar[type["Node"] | None] = None
+    _number_as: ClassVar[Optional[Type["Node"]]] = None
     # see property number_as for documentation
 
     newmetakeys: ClassVar[set] = {"label", "types", "nonum", "reftext"}
@@ -161,8 +166,8 @@ class Node:
     def __init__(
         self,
         label: str = "",
-        types: list[str] | None = None,
-        number: int | None = None,
+        types: Optional[list[str]] = None,
+        number: Optional[int] = None,
         nonum: bool = False,
         reftext_template: str = "",
         start_point: tuple[int, int] = (-1, -1),
@@ -176,7 +181,7 @@ class Node:
         """Types of this node."""
         self.handrail_depth = 0
         """The number of ancestors of this node that have a handrail."""
-        self.number: int | None = number
+        self.number: Optional[int] = number
         """Node number."""
         self.nonum: bool = nonum
         """Whether this node should be automatically given a number."""
@@ -186,7 +191,7 @@ class Node:
         """The start point of the corresponding concrete syntax tree node."""
         self.end_point: tuple[int, int] = end_point
         """The end point of the corresponding concrete syntax tree node."""
-        self._parent: NodeWithChildren | None = None
+        self._parent: Optional["NodeWithChildren"] = None
 
     def _attrs_for_repr_and_eq(self) -> list[str]:
         return ["label", "types", "nonum", "number", "parent"]
@@ -220,7 +225,7 @@ class Node:
         self,
         tab_width: int = 2,
         meta: bool = False,
-        ignore_meta_keys: set | None = None,
+        ignore_meta_keys: Optional[set] = None,
     ) -> str:
         """Represent this node as an S expression.
 
@@ -355,7 +360,7 @@ class Node:
         return exp[1:]  # get rid of an extra newline at the start
 
     @classmethod
-    def metakeys(cls: type["Node"]) -> set[str]:
+    def metakeys(cls: Type["Node"]) -> set[str]:
         """The valid meta keys of the given class.
 
         Returns
@@ -402,11 +407,11 @@ class Node:
         return tuple()  # necessary for methods such as Nodes.traverse
 
     @property
-    def number_within(self) -> type["Node"]:
+    def number_within(self) -> Type["Node"]:
         return self.__class__._number_within or Manuscript
 
     @property
-    def number_as(self) -> type["Node"]:
+    def number_as(self) -> Type["Node"]:
         return self._number_as or self.__class__
 
     @property
@@ -434,8 +439,8 @@ class Node:
     def traverse(
         self,
         *,
-        condition: Callable[["Node"], bool] | None = None,
-        nodeclass: type["Node"] | None = None,
+        condition: Optional[Callable[["Node"], bool]] = None,
+        nodeclass: Optional[type["Node"]] = None,
     ) -> Generator[NodeSubType, None, None]:
         """Generate the descendents of this Node in depth-first order.
 
@@ -526,8 +531,8 @@ class Node:
             stack += node.children[::-1]
 
     def first_of_type(
-        self, cls: type["Node"] | tuple[type["Node"]], return_idx: bool = False
-    ) -> Optional["Node"] | tuple[Optional["Node"], int | None]:
+        self, cls: Union[Type["Node"], tuple[Type["Node"]]], return_idx: bool = False
+    ) -> Union[Optional["Node"], tuple[Optional["Node"], Optional[int]]]:
         """First child of the specified type.
 
         Parameters
@@ -572,8 +577,8 @@ class Node:
         return (None, None) if return_idx else None
 
     def last_of_type(
-        self, cls: type["Node"] | tuple[type["Node"]], return_idx: bool = False
-    ) -> Optional["Node"] | tuple[Optional["Node"], int | None]:
+        self, cls: Union[Type["Node"], tuple[Type["Node"]]], return_idx: bool = False
+    ) -> Union[Optional["Node"], tuple[Optional["Node"], Optional[int]]]:
         """Last child of the specified type.
 
         For details, see :meth:`first_of_type`.
@@ -590,7 +595,9 @@ class Node:
                 return (child, len(self.children) - idx - 1) if return_idx else child
         return (None, None) if return_idx else None
 
-    def prev_sibling(self, cls: type["Node"] | str | None = None) -> Optional["Node"]:
+    def prev_sibling(
+        self, cls: Union[Type["Node"], str, None] = None
+    ) -> Optional["Node"]:
         """The previous sibling, optionally of a specified type.
 
         Parameters
@@ -642,7 +649,7 @@ class Node:
 
         if cls == "self":
             cls = self.__class__
-        cls = cast(type["Node"], cls)
+        cls = cast(Type["Node"], cls)
 
         prev_sibs = self.parent.children[:index]
         for node in reversed(prev_sibs):
@@ -650,7 +657,7 @@ class Node:
                 return node
         return None
 
-    def next_sibling(self, cls: type["Node"] | None = None) -> Optional["Node"]:
+    def next_sibling(self, cls: Optional[Type["Node"]] = None) -> Optional["Node"]:
         """The next sibling, optionally of a specified type.
 
         For details, see :meth:`prev_sibling`.
@@ -671,7 +678,7 @@ class Node:
 
         if cls == "self":
             cls = self.__class__
-        cls = cast(type["Node"], cls)
+        cls = cast(Type["Node"], cls)
 
         next_sibs = self.parent.children[index + 1 :]
         for node in next_sibs:
@@ -680,7 +687,7 @@ class Node:
         return None
 
     def first_ancestor_of_type(
-        self, cls: type["Node"] | tuple[type["Node"]]
+        self, cls: Union[Type["Node"], tuple[Type["Node"]]]
     ) -> Optional["Node"]:
         """First ancestor of the specified type.
 
@@ -872,7 +879,7 @@ class NodeWithChildren(Node):
             c.parent = None
         self._children = []
 
-    def append(self, child: Node | Iterable[Node]) -> "NodeWithChildren":
+    def append(self, child: Union[Node, Iterable[Node]]) -> "NodeWithChildren":
         """Add a child or children after all current children.
 
         Parameters
@@ -939,7 +946,7 @@ class NodeWithChildren(Node):
             raise TypeError("Can only append a Node or iterable of Nodes as children")
         return self
 
-    def prepend(self, child: Node | Iterable[Node]) -> "NodeWithChildren":
+    def prepend(self, child: Union[Node, Iterable[Node]]) -> "NodeWithChildren":
         """Add a child or children before all current children.
 
         For details, see :meth:`append`.
@@ -1033,7 +1040,7 @@ class Manuscript(Heading):
     nonum = True
 
     def __init__(
-        self, src: str = "", date: datetime | None = None, **kwargs: Any
+        self, src: str = "", date: Optional[datetime] = None, **kwargs: Any
     ) -> None:
         super().__init__(**kwargs)
         self.src = src
@@ -1111,8 +1118,8 @@ class Abstract(NodeWithChildren):
 
     def __init__(
         self,
-        keywords: list[str] | None = None,
-        msc: list[str] | None = None,
+        keywords: Optional[list[str]] = None,
+        msc: Optional[list[str]] = None,
         **kwargs: Any,
     ) -> None:
         super().__init__(**kwargs)
@@ -1375,7 +1382,7 @@ class Appendix(Node):
 class BaseReference(Node):
     def __init__(
         self,
-        target: str | Node | None = None,
+        target: Union[str, Node, None] = None,
         overwrite_reftext: str = "",
         **kwargs: Any,
     ) -> None:
@@ -1392,26 +1399,26 @@ class PendingReference(BaseReference):
         super().__init__(target, **kwargs)
 
     @property
-    def external_file(self) -> str | None:
+    def external_file(self) -> Optional[str]:
         """Extract external file path from target, or None if internal reference."""
-        if "#" in str(self.target):
-            return str(self.target).split("#", 1)[0]
+        if '#' in str(self.target):
+            return str(self.target).split('#', 1)[0]
         return None
 
     @property
     def target_label(self) -> str:
         """Extract label from target."""
-        if "#" in str(self.target):
-            return str(self.target).split("#", 1)[1]
+        if '#' in str(self.target):
+            return str(self.target).split('#', 1)[1]
         return str(self.target)
 
 
 class Reference(BaseReference):
     def __init__(
         self,
-        target: Node | None = None,
-        external_file: str | None = None,
-        **kwargs: Any,
+        target: Optional[Node] = None,
+        external_file: Optional[str] = None,
+        **kwargs: Any
     ) -> None:
         super().__init__(target, **kwargs)
         self.external_file = external_file
@@ -1428,13 +1435,13 @@ class URL(BaseReference):
 
 
 class PendingCite(Node):
-    def __init__(self, targetlabels: list[str] | None = None, **kwargs: Any) -> None:
+    def __init__(self, targetlabels: Optional[list[str]] = None, **kwargs: Any) -> None:
         super().__init__(**kwargs)
         self.targetlabels = targetlabels or []
 
 
 class Cite(Node):
-    def __init__(self, targets: list[Node] | None = None, **kwargs: Any) -> None:
+    def __init__(self, targets: Optional[list[Node]] = None, **kwargs: Any) -> None:
         super().__init__(**kwargs)
         self.targets = targets or []
 
@@ -1458,7 +1465,7 @@ class Sketch(NodeWithChildren):
 class Step(Paragraph):
     autonumber = True
     classreftext: ClassVar[str] = "Step ⟨{number}⟩"
-    possible_parents: ClassVar[set[type["NodeWithChildren"]]] = {Proof, Subproof}
+    possible_parents: ClassVar[set[Type["NodeWithChildren"]]] = {Proof, Subproof}
     has_handrail = True
 
 
@@ -1476,7 +1483,7 @@ class Theorem(Heading):
     def __init__(
         self,
         title: str = "",
-        goals: list[BaseReference] | None = None,
+        goals: Optional[list[BaseReference]] = None,
         stars: int = 0,
         clocks: int = 0,
         **kwargs: Any,
@@ -1570,7 +1577,7 @@ class Bibitem(Node):
 
 
 class UnknownBibitem(Bibitem):
-    def __init__(self, number: str | int = "?", **kwargs: Any) -> None:
+    def __init__(self, number: Union[str, int] = "?", **kwargs: Any) -> None:
         super().__init__(**kwargs)
         self.number = number
 
@@ -1581,7 +1588,7 @@ class Asset(NodeWithChildren):
     newmetakeys: ClassVar[set] = {"path", "scale"}
 
     def __init__(
-        self, path: Path | str = "", scale: float = 1.0, **kwargs: Any
+        self, path: Union[Path, str] = "", scale: float = 1.0, **kwargs: Any
     ) -> None:
         super().__init__(**kwargs)
         self.path = Path(path)
@@ -1625,12 +1632,7 @@ class TableDatum(NodeWithChildren):
 
 
 class Caption(Paragraph):
-    possible_parents: ClassVar[set[type["NodeWithChildren"]]] = {
-        Figure,
-        Video,
-        Html,
-        Table,
-    }
+    possible_parents: ClassVar[set[Type["NodeWithChildren"]]] = {Figure, Video, Html, Table}
 
 
 class Contents(Itemize):
@@ -1638,7 +1640,7 @@ class Contents(Itemize):
 
 
 class Item(BaseParagraph):
-    possible_parents: ClassVar[set[type["NodeWithChildren"]]] = {
+    possible_parents: ClassVar[set[Type["NodeWithChildren"]]] = {
         Itemize,
         Enumerate,
         Contents,
