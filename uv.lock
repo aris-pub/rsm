@@ -525,11 +525,11 @@ wheels = [
 
 [[package]]
 name = "pygments"
-version = "2.16.1"
+version = "2.15.1"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/d6/f7/4d461ddf9c2bcd6a4d7b2b139267ca32a69439387cc1f02a924ff8883825/Pygments-2.16.1.tar.gz", hash = "sha256:1daff0494820c69bc8941e407aa20f577374ee88364ee10a98fdbe0aece96e29", size = 4872980 }
+sdist = { url = "https://files.pythonhosted.org/packages/89/6b/2114e54b290824197006e41be3f9bbe1a26e9c39d1f5fa20a6d62945a0b3/Pygments-2.15.1.tar.gz", hash = "sha256:8ace4d3c1dd481894b2005f560ead0f9f19ee64fe983366be1a21e171d12775c", size = 4819591 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/43/88/29adf0b44ba6ac85045e63734ae0997d3c58d8b1a91c914d240828d0d73d/Pygments-2.16.1-py3-none-any.whl", hash = "sha256:13fc09fa63bc8d8671a6d247e1eb303c4b343eaee81d861f3404db2935653692", size = 1164750 },
+    { url = "https://files.pythonhosted.org/packages/34/a7/37c8d68532ba71549db4212cb036dbd6161b40e463aba336770e80c72f84/Pygments-2.15.1-py3-none-any.whl", hash = "sha256:db2db3deb4b4179f399a09054b023b6a586b76499d36965813c71aa8ed7b5fd1", size = 1146422 },
 ]
 
 [[package]]
@@ -685,7 +685,7 @@ requires-dist = [
     { name = "mypy-extensions", marker = "extra == 'dev'", specifier = ">=1.0.0" },
     { name = "pre-commit", marker = "extra == 'dev'", specifier = ">=2.20.0" },
     { name = "pydata-sphinx-theme", marker = "extra == 'doc'", specifier = ">=0.12.0" },
-    { name = "pygments", specifier = ">=2.14.0,<=2.16.1" },
+    { name = "pygments", specifier = "==2.15.1" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=7.1.1" },
     { name = "pytest-sugar", marker = "extra == 'dev'", specifier = ">=0.9.6" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.1.0" },
