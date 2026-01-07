@@ -104,7 +104,7 @@ def _parse_html_to_structured(html: str) -> dict:
     # This handles scripts added by HTML assets (like Plotly CDN)
     external_scripts = []
     script_pattern = r'<script[^>]*src=["\']([^"\']+)["\'][^>]*></script>'
-    scripts_in_body = re.findall(script_pattern, body_content)
+    re.findall(script_pattern, body_content)
 
     for script_match in re.finditer(script_pattern, body_content):
         script_tag = script_match.group(0)
@@ -301,7 +301,9 @@ class ProcessorApp(ParserApp):
         super().__init__(srcpath, plain, loglevel, log_format, log_time, log_lineno)
         self.asset_resolver = asset_resolver
         if run_linter:
-            self.add_task(Task("linter", l := linter.Linter(), l.lint))
+            self.add_task(
+                Task("linter", linter_instance := linter.Linter(), linter_instance.lint)
+            )
 
         if not handrails:
             tr = translator.Translator(asset_resolver=asset_resolver)

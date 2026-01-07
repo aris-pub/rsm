@@ -1,5 +1,4 @@
 from conftest import compare_have_want
-
 from rsm.util import EscapedString
 
 

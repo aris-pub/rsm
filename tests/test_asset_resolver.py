@@ -81,12 +81,12 @@ def test_translator_with_custom_resolver(tmp_path):
     # Parse RSM source with HTML asset
     source = """
     :rsm:
-    
+
     :html:
       :path: test.html
       :caption: Test HTML asset.
     ::
-    
+
     ::
     """
 
@@ -114,12 +114,12 @@ def test_render_with_custom_resolver():
     # RSM source with HTML asset
     source = """
     :rsm:
-    
+
     :html:
       :path: custom.html
       :caption: Custom HTML.
     ::
-    
+
     ::
     """
 

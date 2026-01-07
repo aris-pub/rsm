@@ -50,8 +50,7 @@ def run(src: str, log_format: str, verbose: int = 0, replace=False, split=False)
         cmd(src, log_format, verbose),
         check=True,
         shell=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
+        capture_output=True,
     )
     # JSON output goes to stderr, warnings go to stderr too, so we need to filter
     result = proc.stderr.decode("utf-8")
@@ -70,7 +69,7 @@ def run(src: str, log_format: str, verbose: int = 0, replace=False, split=False)
     if replace:
         result = re.sub(r"}\s*{", "},{", result)
     if split:
-        result = [l.strip() for l in result.strip().split("\n")]
+        result = [line.strip() for line in result.strip().split("\n")]
     return result
 
 

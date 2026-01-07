@@ -82,6 +82,14 @@ cd rsm
 just install
 ```
 
+This installs:
+- `rsm-markup` in editable mode (you can modify the code)
+- `tree-sitter-rsm` from PyPI as a pre-built wheel (compiled grammar)
+- All development and documentation dependencies
+
+**Note:** The `tree-sitter-rsm` grammar is installed from PyPI with platform-specific
+pre-built binaries. You don't need to build anything unless you're modifying the grammar itself.
+
 ### Common Tasks
 ```bash
 just                  # List all available commands
@@ -92,16 +100,25 @@ just check            # Run lint + tests (quality gate)
 just docs-serve       # Serve docs with live reload
 ```
 
-### For Grammar Development
-If you need to modify the tree-sitter grammar:
+### Grammar Development
+
+**Most developers don't need this.** Only use these steps if you're modifying the
+tree-sitter grammar in `tree-sitter-rsm/grammar.js`.
 
 ```bash
-# Install with local grammar in editable mode
+# Install tree-sitter-rsm in editable mode (overrides PyPI version)
 just install-local
 
 # After modifying grammar.js in tree-sitter-rsm/
 just build-grammar
 ```
+
+The difference between `just install` and `just install-local`:
+
+| Command | `tree-sitter-rsm` source | Editable? | Use when |
+|---------|--------------------------|-----------|----------|
+| `just install` | PyPI wheel | No | Developing rsm-markup code (most common) |
+| `just install-local` | Local submodule | Yes | Modifying the grammar itself |
 
 ## Publishing
 

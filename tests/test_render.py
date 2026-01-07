@@ -73,9 +73,7 @@ def test_render(tmp_path):
 def test_invalid_rsm():
     have = "test_file.rsm"
     with pytest.raises(subprocess.CalledProcessError):
-        result = subprocess.run(
-            cmd(have), stdout=subprocess.PIPE, check=True, shell=True
-        )
+        subprocess.run(cmd(have), stdout=subprocess.PIPE, check=True, shell=True)
 
 
 @pytest.mark.slow

@@ -157,7 +157,7 @@ def _process_html_with_scripts(html_content: str) -> str:
     processed_scripts = []
     external_scripts = []
 
-    for i, match in enumerate(scripts):
+    for _i, match in enumerate(scripts):
         attributes = match.group(1)
         script_content = match.group(2)
 
@@ -198,7 +198,7 @@ def _process_html_with_scripts(html_content: str) -> str:
             for script in processed_scripts
         )
         + """];
-    
+
     function executeInlineScripts() {
         if (scriptsLoaded >= totalExternalScripts) {
             inlineScripts.forEach(function(scriptFunc, index) {
@@ -210,7 +210,7 @@ def _process_html_with_scripts(html_content: str) -> str:
             });
         }
     }
-    
+
     function onScriptLoad() {
         scriptsLoaded++;
         executeInlineScripts();
@@ -233,7 +233,7 @@ def _process_html_with_scripts(html_content: str) -> str:
 """
 
     execution_script += """
-    
+
     // If no external scripts, execute inline scripts immediately
     if (totalExternalScripts === 0) {
         executeInlineScripts();
@@ -692,7 +692,6 @@ class Translator:
 
     @classmethod
     def get_action_method(cls, node: nodes.Node, action: str) -> Callable:
-        ogclass = node.__class__
         nodeclass = node.__class__
         method = f"{action}_{nodeclass.__name__.lower()}"
         while not hasattr(cls, method):
@@ -1096,8 +1095,10 @@ class Translator:
         return AppendNodeTag(node)
 
     def _make_title_node(
-        self, label: str, desc: str = "", types: list = ["hr-label"]
+        self, label: str, desc: str = "", types: list = None
     ) -> nodes.Node:
+        if types is None:
+            types = ["hr-label"]
         para = nodes.Paragraph(types=types)
         if label:
             span = nodes.Span(types=["label"])
@@ -1128,7 +1129,7 @@ class Translator:
         return AppendNodeTag(node)
 
     def visit_subproof(self, node: nodes.Subproof) -> EditCommand:
-        classname = node.__class__.__name__.lower()
+        node.__class__.__name__.lower()
         return AppendBatchAndDefer([AppendNodeTag(node)])
 
     def visit_sketch(self, node: nodes.Sketch) -> EditCommand:

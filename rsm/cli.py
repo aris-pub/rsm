@@ -84,13 +84,13 @@ def _init_parser() -> ArgumentParser:
 def main(parser: ArgumentParser, func: Callable, args: Namespace | None = None) -> int:
     if args is None:
         args = parser.parse_args()
-    kwargs = dict(
-        handrails=args.handrails,
-        loglevel=app.RSMApp.default_log_level - args.verbose * 10,
-        log_format=args.log_format,
-        log_time=args.log_time,
-        log_lineno=args.log_lineno,
-    )
+    kwargs = {
+        "handrails": args.handrails,
+        "loglevel": app.RSMApp.default_log_level - args.verbose * 10,
+        "log_format": args.log_format,
+        "log_time": args.log_time,
+        "log_lineno": args.log_lineno,
+    }
     if args.string:
         kwargs["source"] = args.src
     else:

@@ -312,7 +312,7 @@ class Transformer:
                     )
                 )
 
-        for pending in self.tree.traverse(condition=lambda n: type(n) in classes):
+        for _pending in self.tree.traverse(condition=lambda n: type(n) in classes):
             raise RSMTransformerError("Found unresolved pending reference")
 
     def add_necessary_subproofs(self) -> None:

@@ -1,6 +1,7 @@
 """Tests for structured output functionality in rsm.make()."""
 
 import rsm
+from rsm.app import _parse_html_to_structured
 
 
 def test_make_structured_returns_dict():
@@ -118,8 +119,6 @@ def test_structured_handrails_parameter():
 # =============================================================================
 # Tests for _parse_html_to_structured IIFE extraction
 # =============================================================================
-
-from rsm.app import _parse_html_to_structured
 
 
 class TestParseHtmlToStructuredIIFE:

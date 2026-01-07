@@ -575,12 +575,12 @@ def _abstractify(cst: TSTree) -> nodes.Manuscript:
             end_row, end_col = cst_node.end_point
             logger.warning(
                 "The CST contains errors.",
-                extra=dict(
-                    start_row=start_row,
-                    start_col=start_col,
-                    end_row=end_row,
-                    end_col=end_col,
-                ),
+                extra={
+                    "start_row": start_row,
+                    "start_col": start_col,
+                    "end_row": end_row,
+                    "end_col": end_col,
+                },
             )
             ast_node = nodes.Error(
                 f"[CST error at ({start_row}, {start_col}) - ({end_row}, {end_col})]",
@@ -641,7 +641,7 @@ def _abstractify(cst: TSTree) -> nodes.Manuscript:
         if ast_node_type == "cite":
             target_node = cst_node.named_children[1]
             labels = target_node.text.decode("utf-8").split(",")
-            ast_node.targetlabels = [l.strip() for l in labels]
+            ast_node.targetlabels = [label.strip() for label in labels]
             skip_these_ids.add(target_node.id)
 
         # If a text node ends in a newline (i.e. if the next sibling is in a new row),
