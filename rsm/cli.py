@@ -81,9 +81,7 @@ def _init_parser() -> ArgumentParser:
     return parser
 
 
-def main(
-    parser: ArgumentParser, func: Callable, args: Namespace | None = None
-) -> int:
+def main(parser: ArgumentParser, func: Callable, args: Namespace | None = None) -> int:
     if args is None:
         args = parser.parse_args()
     kwargs = dict(

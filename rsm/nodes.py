@@ -590,9 +590,7 @@ class Node:
                 return (child, len(self.children) - idx - 1) if return_idx else child
         return (None, None) if return_idx else None
 
-    def prev_sibling(
-        self, cls: type["Node"] | str | None = None
-    ) -> Optional["Node"]:
+    def prev_sibling(self, cls: type["Node"] | str | None = None) -> Optional["Node"]:
         """The previous sibling, optionally of a specified type.
 
         Parameters

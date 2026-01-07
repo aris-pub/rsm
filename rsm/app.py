@@ -262,9 +262,7 @@ class ParserApp(RSMApp):
         super().__init__(tasks, loglevel, log_format, log_time, log_lineno)
 
     @staticmethod
-    def _validate_srcpath_and_plain(
-        srcpath: Path | str | None, plain: str
-    ) -> None:
+    def _validate_srcpath_and_plain(srcpath: Path | str | None, plain: str) -> None:
         if (not srcpath and not plain) or (srcpath and plain):
             raise RSMApplicationError("Must specify exactly one of srcpath, plain")
 

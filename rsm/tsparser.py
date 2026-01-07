@@ -150,9 +150,7 @@ class TSParser:
         self.ast: nodes.Manuscript | None = None
         """The abstract manuscript tree generated from the concrete syntax tree."""
 
-    def parse(
-        self, src: str, abstractify: bool = True
-    ) -> TSTree | nodes.Manuscript:
+    def parse(self, src: str, abstractify: bool = True) -> TSTree | nodes.Manuscript:
         """Parse RSM source into a syntax tree.
 
         For examples see class docstring.

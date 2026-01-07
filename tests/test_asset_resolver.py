@@ -1,6 +1,5 @@
 """Tests for AssetResolver Protocol and implementations."""
 
-
 from rsm.asset_resolver import AssetResolverFromDisk
 
 
