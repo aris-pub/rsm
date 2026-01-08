@@ -14,6 +14,23 @@ import * as minimap from './minimap.js';
 import * as icons from './icons.js';
 import * as tooltips from './tooltips.js';
 
+// Author toggle functionality
+function setupAuthorToggle() {
+  const toggleButtons = document.querySelectorAll('.toggle-authors');
+
+  toggleButtons.forEach(button => {
+    button.addEventListener('click', function() {
+      const container = this.closest('.authors-container');
+      if (!container) return;
+
+      const toggleableAuthors = container.querySelectorAll('.author-toggleable');
+      toggleableAuthors.forEach(author => {
+        author.classList.toggle('author-hidden');
+      });
+    });
+  });
+}
+
 export async function onload(root = null, { keys = true } = {}) {
   if (!root) root = document;
 
@@ -57,6 +74,13 @@ export async function onload(root = null, { keys = true } = {}) {
       minimap.setup();
     } catch (err) {
       console.error("Loading minimap.js FAILED!", err);
+    }
+
+    // Author toggle - set up event listeners once
+    try {
+      setupAuthorToggle();
+    } catch (err) {
+      console.error("Loading author toggle FAILED!", err);
     }
 
     window.__rsmInitialized = true;

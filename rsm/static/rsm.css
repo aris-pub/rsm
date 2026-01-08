@@ -1029,6 +1029,42 @@
 .manuscriptwrapper .author > p {
   margin: 0; }
 
+/* Author collapsed mode */
+.manuscriptwrapper .authors-container {
+  position: relative; }
+
+.manuscriptwrapper .author-hidden {
+  display: none; }
+
+.manuscriptwrapper .toggle-authors {
+  display: block;
+  width: 100%;
+  margin: 1.5rem 0;
+  padding: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: 'Source Sans 3', sans-serif;
+  font-size: 0.875rem;
+  font-weight: var(--weight-regular);
+  color: var(--gray-500);
+  text-align: center;
+  text-decoration: underline;
+  text-decoration-color: var(--gray-400);
+  text-underline-offset: 2px;
+  transition: color 0.15s ease-in-out; }
+
+.manuscriptwrapper .toggle-authors:hover {
+  color: var(--gray-700);
+  text-decoration-color: var(--gray-600); }
+
+.manuscriptwrapper .toggle-authors:active {
+  color: var(--gray-800); }
+
+.manuscriptwrapper .toggle-authors:focus {
+  outline: none;
+  color: var(--gray-700); }
+
 
 
 /* Tables */

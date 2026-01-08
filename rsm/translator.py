@@ -762,6 +762,23 @@ class Translator:
         )
         if node.title:
             batch.items.append(AppendHeading(1, node.title))
+
+        # If we have >5 authors, add opening container
+        if getattr(node, "authors_collapsed", False):
+            batch.items.append(
+                AppendOpenTagManualClose("div", classes=["authors-container"])
+            )
+
+        return batch
+
+    def leave_manuscript(self, node: nodes.Manuscript) -> EditCommand:
+        batch = self.leave_node(node)
+
+        # If we have >5 authors, close the container
+        # Insert before </section> (which is at position 0 after reversal)
+        if getattr(node, "authors_collapsed", False):
+            batch.items.insert(0, AppendText("\n</div>\n"))
+
         return batch
 
     def visit_author(self, node: nodes.Author) -> EditCommand:
@@ -795,7 +812,9 @@ class Translator:
             affiliation_html = ""
             if node.affiliation:
                 if node.affiliation_number and total_affiliations > 1:
-                    affiliation_html = f"<sup>{node.affiliation_number}</sup>{node.affiliation}"
+                    affiliation_html = (
+                        f"<sup>{node.affiliation_number}</sup>{node.affiliation}"
+                    )
                 else:
                     affiliation_html = node.affiliation
 
@@ -819,14 +838,34 @@ class Translator:
             if note_html:
                 items.append(AppendParagraph(note_html))
 
-            return AppendBatchAndDefer(
+            # Add "author-hidden" class if this author should be hidden
+            # Add "author-toggleable" class if this author is toggleable
+            additional_classes = []
+            if getattr(node, "is_hidden", False):
+                additional_classes.append("author-hidden")
+            if getattr(node, "is_toggleable", False):
+                additional_classes.append("author-toggleable")
+
+            batch_items = []
+
+            # If this author should have the button before it, insert button first
+            if getattr(node, "insert_button_before", False):
+                batch_items.append(
+                    AppendText(
+                        '\n<button class="toggle-authors">Show/hide full author information</button>\n'
+                    )
+                )
+
+            batch_items.extend(
                 [
-                    AppendNodeTag(node),
+                    AppendNodeTag(node, additional_classes=additional_classes),
                     AppendOpenTagManualClose("div", classes=["paragraph"]),
                     *items,
                     AppendText("</div>"),
                 ]
             )
+
+            return AppendBatchAndDefer(batch_items)
         else:
             return AppendNodeTag(node)
 
@@ -1931,11 +1970,26 @@ class HandrailsTranslator(Translator):
 
     def visit_author(self, node: nodes.Author) -> EditCommand:
         batch = super().visit_author(node)
+        additional_classes = ["hr-hidden"]
+        if getattr(node, "is_hidden", False):
+            additional_classes.append("author-hidden")
+        if getattr(node, "is_toggleable", False):
+            additional_classes.append("author-toggleable")
+
+        # Check if batch starts with a button (for collapsed mode)
+        has_button = getattr(node, "insert_button_before", False)
+        button_offset = 1 if has_button else 0
+
         hr = self._replace_node_with_handrails(
-            node, additional_classes=["hr-hidden"], collapse_in_hr=False
+            node, additional_classes=additional_classes, collapse_in_hr=False
         )
-        hr.items += batch.items[2:-1]
-        return hr
+        hr.items += batch.items[2 + button_offset : -1]
+
+        # If there's a button, prepend it before the handrails wrapper
+        if has_button:
+            return AppendBatchAndDefer([batch.items[0]] + hr.items)
+        else:
+            return hr
 
     def leave_author(self, node: nodes.Author) -> EditCommand:
         batch = super().leave_node(node)

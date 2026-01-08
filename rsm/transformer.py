@@ -144,6 +144,7 @@ class Transformer:
         self.resolve_pending_references()
         self.assign_author_affiliations()
         self.assign_author_note_symbols()
+        self.mark_author_visibility()
         self.add_necessary_subproofs()
         self.autonumber_nodes()
         self.make_toc()
@@ -425,6 +426,40 @@ class Transformer:
 
         # Store total count on Manuscript node for translator
         self.tree.total_unique_notes = len(note_map)
+
+    def mark_author_visibility(self) -> None:
+        """Mark which authors should be hidden in collapsed mode (>5 authors).
+
+        When there are >5 authors:
+        - Show first 3 authors
+        - Hide middle authors (positions 4 to N-2)
+        - Show last 2 authors
+        - Add container and toggle button
+        """
+        authors = list(
+            self.tree.traverse(condition=lambda n: isinstance(n, nodes.Author))
+        )
+        total_authors = len(authors)
+
+        if total_authors > 5:
+            # Mark that we need the container and button
+            self.tree.authors_collapsed = True
+            self.tree.total_authors = total_authors
+
+            # Mark middle authors as hidden and toggleable (indices 3 to total-3)
+            for i, author in enumerate(authors):
+                if 3 <= i < total_authors - 2:
+                    author.is_hidden = True
+                    author.is_toggleable = True
+                else:
+                    author.is_hidden = False
+                    author.is_toggleable = False
+
+                # Mark the first of the "last 2" authors - button goes before this one
+                if i == total_authors - 2:
+                    author.insert_button_before = True
+        else:
+            self.tree.authors_collapsed = False
 
     def add_necessary_subproofs(self) -> None:
         for step in self.tree.traverse(nodeclass=nodes.Step):

@@ -416,7 +416,7 @@ def test_author_with_affiliation_and_note():
 
 
 def test_many_notes_symbol_progression():
-    """Test symbol progression: *, †, ‡, §, ¶, ‖, **, ††."""
+    """Test symbol progression: *, †, ‡, §, ¶, ‖, **, †† (with >5 authors collapsed)."""
     compare_have_want(
         have="""\
         :rsm:
@@ -475,6 +475,8 @@ def test_many_notes_symbol_progression():
 
         <h1>Test</h1>
 
+        <div class="authors-container">
+
         <div class="author" data-nodeid="1">
 
         <div class="paragraph">
@@ -505,7 +507,7 @@ def test_many_notes_symbol_progression():
         </div>
         </div>
 
-        <div class="author" data-nodeid="4">
+        <div class="author author-hidden author-toggleable" data-nodeid="4">
 
         <div class="paragraph">
 
@@ -515,7 +517,7 @@ def test_many_notes_symbol_progression():
         </div>
         </div>
 
-        <div class="author" data-nodeid="5">
+        <div class="author author-hidden author-toggleable" data-nodeid="5">
 
         <div class="paragraph">
 
@@ -525,7 +527,7 @@ def test_many_notes_symbol_progression():
         </div>
         </div>
 
-        <div class="author" data-nodeid="6">
+        <div class="author author-hidden author-toggleable" data-nodeid="6">
 
         <div class="paragraph">
 
@@ -534,6 +536,8 @@ def test_many_notes_symbol_progression():
         <p><sup>‖</sup>Note 6</p>
         </div>
         </div>
+
+        <button class="toggle-authors">Show/hide full author information</button>
 
         <div class="author" data-nodeid="7">
 
@@ -553,6 +557,8 @@ def test_many_notes_symbol_progression():
 
         <p><sup>††</sup>Note 8</p>
         </div>
+        </div>
+
         </div>
 
         </section>
