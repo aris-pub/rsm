@@ -48,6 +48,8 @@ def test_simple():
 
         <h1>The Perron non-backtracking eigenvalue after node addition</h1>
 
+        <p class="manuscript-date">March 29, 2022</p>
+
         <div class="author" data-nodeid="1">
 
         <div class="paragraph">

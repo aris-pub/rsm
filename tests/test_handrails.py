@@ -1114,6 +1114,8 @@ def test_author():
 
         </div>
 
+        <p class="manuscript-date">April 13, 2024</p>
+
         <div class="author hr hr-hidden" tabindex=0 data-nodeid="1">
 
         <div class="hr-collapse-zone">

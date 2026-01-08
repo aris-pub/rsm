@@ -1029,6 +1029,22 @@
 .manuscriptwrapper .author > p {
   margin: 0; }
 
+/* Manuscript metadata */
+.manuscriptwrapper .manuscript-date {
+  font-size: 0.9375rem;
+  color: var(--gray-700);
+  margin-block: 0.5rem 1.5rem;
+  margin-inline-start: 48px; }
+
+/* Abstract keywords and MSC */
+.manuscriptwrapper .abstract .keywords,
+.manuscriptwrapper .abstract .msc {
+  font-size: 0.875rem;
+  font-style: italic;
+  color: var(--gray-700);
+  margin-block: 0.75rem;
+  margin-inline-start: 48px; }
+
 /* Author collapsed mode */
 .manuscriptwrapper .authors-container {
   position: relative; }

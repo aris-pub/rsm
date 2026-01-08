@@ -763,6 +763,25 @@ class Translator:
         if node.title:
             batch.items.append(AppendHeading(1, node.title))
 
+        if node.date:
+            from datetime import datetime
+
+            if isinstance(node.date, str):
+                # Try multiple date formats
+                for fmt in ["%Y-%m-%d", "%d.%m.%Y", "%m/%d/%Y"]:
+                    try:
+                        date_obj = datetime.strptime(node.date, fmt)
+                        date_str = date_obj.strftime("%B %d, %Y")
+                        break
+                    except ValueError:
+                        continue
+                else:
+                    # If no format worked, use the string as-is
+                    date_str = node.date
+            else:
+                date_str = node.date.strftime("%B %d, %Y")
+            batch.items.append(AppendParagraph(date_str, classes=["manuscript-date"]))
+
         # If we have >5 authors, add opening container
         if getattr(node, "authors_collapsed", False):
             batch.items.append(

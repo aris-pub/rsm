@@ -139,6 +139,8 @@ def test_manuscript_meta():
 
         <h1>My Title</h1>
 
+        <p class="manuscript-date">March 29, 2022</p>
+
         </section>
 
         </div>
