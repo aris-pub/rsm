@@ -119,13 +119,31 @@ def make() -> int:
     parser.set_defaults(handrails=True)
     args = parser.parse_args()
 
+    # Build kwargs for app.make with write_output=True for CLI
+    kwargs = {
+        "handrails": args.handrails,
+        "loglevel": app.RSMApp.default_log_level - args.verbose * 10,
+        "log_format": args.log_format,
+        "log_time": args.log_time,
+        "log_lineno": args.log_lineno,
+        "write_output": True,  # CLI always writes files
+    }
+    if args.string:
+        kwargs["source"] = args.src
+    else:
+        kwargs["path"] = args.src
+
     if args.serve:
         other_args = [a for a in sys.argv if a != "--serve"]
         cmd = " ".join(other_args)
         server = livereload.Server()
         server.watch(args.src, livereload.shell(cmd))
-        main(parser, app.make, args)
+        output = app.make(**kwargs)
+        if not args.silent and output:
+            print(output)
         server.serve(root=".")
     else:
-        main(parser, app.make, args)
+        output = app.make(**kwargs)
+        if not args.silent and output:
+            print(output)
     return 0

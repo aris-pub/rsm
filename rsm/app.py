@@ -328,6 +328,7 @@ class FullBuildApp(ProcessorApp):
         run_linter: bool = False,
         asset_resolver=None,
         standalone: bool = False,
+        write_output: bool = False,
     ):
         super().__init__(
             srcpath,
@@ -341,6 +342,7 @@ class FullBuildApp(ProcessorApp):
             run_linter,
             asset_resolver,
         )
+        self.write_output = write_output
         if standalone:
             b = builder.StandaloneBuilder(asset_resolver=asset_resolver)
         else:
@@ -349,25 +351,53 @@ class FullBuildApp(ProcessorApp):
         self.add_task(Task("writer", w := writer.Writer(), w.write))
 
     def run(self, initial_args=None) -> str:
-        """Override run to return HTML content instead of None from Writer."""
-        # Run all tasks except the last one (writer)
-        result = initial_args
-        for _, _, call in self.tasks[:-1]:  # Skip writer
-            if isinstance(result, dict):
-                result = call(**result)
-            elif isinstance(result, (list, tuple)):
-                result = call(*result)
-            elif result is None:
-                result = call()
-            else:
-                result = call(result)
+        """Run the build pipeline, optionally writing files to disk.
 
-        # The result should now be a WebManuscript from the builder
-        if hasattr(result, "html"):
-            return result.html
-        else:
-            logger.error("Builder did not produce WebManuscript with html attribute")
+        If write_output=True, runs all tasks including writer and writes files.
+        If write_output=False, skips writer and returns HTML content.
+        """
+        result = initial_args
+
+        if self.write_output:
+            # Run all tasks including writer
+            for _, _, call in self.tasks:
+                if isinstance(result, dict):
+                    result = call(**result)
+                elif isinstance(result, (list, tuple)):
+                    result = call(*result)
+                elif result is None:
+                    result = call()
+                else:
+                    result = call(result)
+
+            # Writer returns None, so we need to get HTML from the WebManuscript
+            # The builder result is stored before writer runs
+            for name, obj, _ in self.tasks:
+                if name == "builder" and hasattr(obj, "web") and obj.web:
+                    return obj.web.html
+
+            logger.error("Builder did not produce WebManuscript")
             return ""
+        else:
+            # Run all tasks except writer
+            for _, _, call in self.tasks[:-1]:
+                if isinstance(result, dict):
+                    result = call(**result)
+                elif isinstance(result, (list, tuple)):
+                    result = call(*result)
+                elif result is None:
+                    result = call()
+                else:
+                    result = call(result)
+
+            # The result should now be a WebManuscript from the builder
+            if hasattr(result, "html"):
+                return result.html
+            else:
+                logger.error(
+                    "Builder did not produce WebManuscript with html attribute"
+                )
+                return ""
 
 
 def render(
@@ -425,7 +455,44 @@ def make(
     asset_resolver=None,
     structured: bool = False,
     standalone: bool = False,
+    write_output: bool = False,
 ) -> str | dict:
+    """Process RSM source and optionally write output files.
+
+    Parameters
+    ----------
+    source : str
+        RSM source as a string
+    path : str
+        Path to RSM source file
+    handrails : bool
+        Include interactive handrails in output
+    lint : bool
+        Run linter before building
+    loglevel : int
+        Logging level
+    log_format : str
+        Format for log messages
+    log_time : bool
+        Include timestamps in logs
+    log_lineno : bool
+        Include line numbers in logs
+    asset_resolver : AssetResolver, optional
+        Custom asset resolver
+    structured : bool
+        Return structured dict instead of HTML string
+    standalone : bool
+        Generate standalone HTML with CDN URLs
+    write_output : bool
+        Write output files to disk (index.html + static/).
+        When False (default), returns HTML without writing files.
+        When True, writes files and still returns HTML.
+
+    Returns
+    -------
+    str or dict
+        HTML string (or structured dict if structured=True)
+    """
     html_result = FullBuildApp(
         srcpath=path,
         plain=source,
@@ -436,6 +503,7 @@ def make(
         log_lineno=log_lineno,
         asset_resolver=asset_resolver,
         standalone=standalone,
+        write_output=write_output,
     ).run()
 
     if not structured:
