@@ -540,7 +540,11 @@
   /* Margins between most elements */
   .hr {margin-block-end: 1em;}
   .hr.mathblock {margin-block-end: 0em;}
-  ol.enumerate, ul.itemize {margin-block-end: 1.0em;}
+  .hr > .hr-content-zone > ol.enumerate,
+  .hr > .hr-content-zone > ul.itemize {
+    margin-block-end: 0;
+    padding-inline-start: 1.5em;
+  }
   .proof .hr.statement, .proof .hr.paragraph {margin-block-end: 0.5em;}
 
   /* Since MathJax containers already have a bottom margin of 1.0em, the paragraphs whose

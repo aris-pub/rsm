@@ -1965,6 +1965,48 @@ class HandrailsTranslator(Translator):
         batch.items.insert(-1, self._hr_info_zone_icon(getattr(node, "icon", None)))
         return batch
 
+    def visit_enumerate(self, node: nodes.Enumerate) -> EditCommand:
+        batch = self._replace_node_with_handrails(node, collapse_in_hr=False)
+        if "hr-hidden" not in batch.items[0].classes:
+            batch.items[0].classes.append("hr-hidden")
+        batch.items.append(super().visit_enumerate(node))
+        return batch
+
+    def leave_enumerate(self, node: nodes.Enumerate) -> EditCommand:
+        batch = super().leave_node(node)
+        batch.items.insert(-1, self._hr_info_zone_icon(getattr(node, "icon", None)))
+        return batch
+
+    def visit_itemize(self, node: nodes.Itemize) -> EditCommand:
+        # Don't add handrails to itemize lists inside Contents (TOC)
+        if isinstance(node, nodes.Contents):
+            return super().visit_itemize(node)
+        # Check if any parent is a Contents node
+        current = node.parent
+        while current is not None:
+            if isinstance(current, nodes.Contents):
+                return super().visit_itemize(node)
+            current = current.parent
+        batch = self._replace_node_with_handrails(node, collapse_in_hr=False)
+        if "hr-hidden" not in batch.items[0].classes:
+            batch.items[0].classes.append("hr-hidden")
+        batch.items.append(super().visit_itemize(node))
+        return batch
+
+    def leave_itemize(self, node: nodes.Itemize) -> EditCommand:
+        # Don't add handrails to itemize lists inside Contents (TOC)
+        if isinstance(node, nodes.Contents):
+            return super().leave_node(node)
+        # Check if any parent is a Contents node
+        current = node.parent
+        while current is not None:
+            if isinstance(current, nodes.Contents):
+                return super().leave_node(node)
+            current = current.parent
+        batch = super().leave_node(node)
+        batch.items.insert(-1, self._hr_info_zone_icon(getattr(node, "icon", None)))
+        return batch
+
     def visit_caption(self, node: nodes.Caption) -> EditCommand:
         parent = node.parent
         caption_label = AppendOpenCloseTag(
