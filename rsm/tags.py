@@ -112,6 +112,12 @@ MetaTagInfo = namedtuple("MetaTagInfo", ["parent", "type"])
 
 affiliation = MetaTagInfo(None, datetime)
 """Author institutional affiliation."""
+author_display_first = MetaTagInfo(None, int)
+"""Number of authors to display at start when >5 authors."""
+author_display_last = MetaTagInfo(None, int)
+"""Number of authors to display at end when >5 authors."""
+author_note = MetaTagInfo(None, str)
+"""Author note (e.g., 'Equal contribution')."""
 date = MetaTagInfo(None, datetime)
 """Manuscript date."""
 email = MetaTagInfo(None, str)
@@ -136,6 +142,8 @@ name = MetaTagInfo(None, str)
 """Author name."""
 nonum = MetaTagInfo(None, bool)
 """Whether to number the tag."""
+orcid = MetaTagInfo(None, str)
+"""Author ORCID identifier."""
 path = MetaTagInfo(None, Path)
 """Figure path."""
 reftext = MetaTagInfo(None, str)

@@ -765,7 +765,23 @@ class Translator:
         return batch
 
     def visit_author(self, node: nodes.Author) -> EditCommand:
-        if any([node.name, node.affiliation, node.email]):
+        if any([node.name, node.affiliation, node.email, node.orcid, node.author_note]):
+            # Get unique counts from Manuscript node
+            total_affiliations = getattr(self.tree, "total_unique_affiliations", 0)
+            total_notes = getattr(self.tree, "total_unique_notes", 0)
+
+            # Build author name with superscripts (only if multiple unique items)
+            name_html = node.name if node.name else ""
+            if name_html:
+                superscripts = []
+                if node.affiliation_number and total_affiliations > 1:
+                    superscripts.append(str(node.affiliation_number))
+                if node.note_symbol and total_notes > 1:
+                    superscripts.append(node.note_symbol)
+
+                if superscripts:
+                    name_html += f"<sup>{','.join(superscripts)}</sup>"
+
             if node.email:
                 email = (
                     _make_tag("a", id_="", classes="", href=f"mailto:{node.email}")
@@ -774,15 +790,40 @@ class Translator:
                 )
             else:
                 email = ""
+
+            # Build affiliation with label (only if multiple unique)
+            affiliation_html = ""
+            if node.affiliation:
+                if node.affiliation_number and total_affiliations > 1:
+                    affiliation_html = f"<sup>{node.affiliation_number}</sup>{node.affiliation}"
+                else:
+                    affiliation_html = node.affiliation
+
+            # Build note with label (only if multiple unique)
+            note_html = ""
+            if node.author_note:
+                if node.note_symbol and total_notes > 1:
+                    note_html = f"<sup>{node.note_symbol}</sup>{node.author_note}"
+                else:
+                    note_html = node.author_note
+
+            items = []
+            if name_html:
+                items.append(AppendParagraph(name_html))
+            if affiliation_html:
+                items.append(AppendParagraph(affiliation_html))
+            if email:
+                items.append(AppendParagraph(email))
+            if node.orcid:
+                items.append(AppendParagraph(node.orcid))
+            if note_html:
+                items.append(AppendParagraph(note_html))
+
             return AppendBatchAndDefer(
                 [
                     AppendNodeTag(node),
                     AppendOpenTagManualClose("div", classes=["paragraph"]),
-                    *[
-                        AppendParagraph(str(x))
-                        for x in [node.name, node.affiliation, email]
-                        if x
-                    ],
+                    *items,
                     AppendText("</div>"),
                 ]
             )

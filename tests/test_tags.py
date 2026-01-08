@@ -11,7 +11,8 @@ TAGS_FILE = ROOT_DIR / "rsm/tags.py"
 def extract_grammar_tags():
     with open(GRAMMAR_FILE) as f:
         contents = f.read()
-    tags = set(re.findall(r":(\w+):", contents))
+    tags = set(re.findall(r":([\w-]+):", contents))
+    tags = {tag.replace("-", "_") for tag in tags}
     return tags
 
 

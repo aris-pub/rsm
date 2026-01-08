@@ -95,3 +95,143 @@ def test_empty_author():
         </body>
         """,
     )
+
+
+def test_author_with_orcid():
+    compare_have_want(
+        have="""\
+        :rsm:
+          :title: My Title
+
+        :author:
+          :name: Leo Torres
+          :affiliation: Some University
+          :orcid: 0000-0001-2345-6789
+        ::
+
+        ::
+        """,
+        want="""\
+        <body>
+
+        <div class="manuscriptwrapper">
+
+        <div class="manuscript" data-nodeid="0">
+
+        <section class="level-1">
+
+        <h1>My Title</h1>
+
+        <div class="author" data-nodeid="1">
+
+        <div class="paragraph">
+
+        <p>Leo Torres</p>
+
+        <p>Some University</p>
+
+        <p>0000-0001-2345-6789</p>
+        </div>
+        </div>
+
+        </section>
+
+        </div>
+
+        </div>
+
+        </body>
+        """,
+    )
+
+
+def test_author_with_note():
+    compare_have_want(
+        have="""\
+        :rsm:
+          :title: My Title
+
+        :author:
+          :name: Leo Torres
+          :author-note: Equal contribution
+        ::
+
+        ::
+        """,
+        want="""\
+        <body>
+
+        <div class="manuscriptwrapper">
+
+        <div class="manuscript" data-nodeid="0">
+
+        <section class="level-1">
+
+        <h1>My Title</h1>
+
+        <div class="author" data-nodeid="1">
+
+        <div class="paragraph">
+
+        <p>Leo Torres</p>
+
+        <p>Equal contribution</p>
+        </div>
+        </div>
+
+        </section>
+
+        </div>
+
+        </div>
+
+        </body>
+        """,
+    )
+
+
+def test_author_multiline_affiliation():
+    compare_have_want(
+        have="""\
+        :rsm:
+          :title: My Title
+
+        :author:
+          :name: Leo Torres
+          :affiliation: Department of Mathematics
+            University of Somewhere
+            Building 123
+        ::
+
+        ::
+        """,
+        want="""\
+        <body>
+
+        <div class="manuscriptwrapper">
+
+        <div class="manuscript" data-nodeid="0">
+
+        <section class="level-1">
+
+        <h1>My Title</h1>
+
+        <div class="author" data-nodeid="1">
+
+        <div class="paragraph">
+
+        <p>Leo Torres</p>
+
+        <p>Department of Mathematics</p>
+        </div>
+        </div>
+
+        </section>
+
+        </div>
+
+        </div>
+
+        </body>
+        """,
+    )

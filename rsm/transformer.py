@@ -142,6 +142,8 @@ class Transformer:
 
         self.collect_labels()
         self.resolve_pending_references()
+        self.assign_author_affiliations()
+        self.assign_author_note_symbols()
         self.add_necessary_subproofs()
         self.autonumber_nodes()
         self.make_toc()
@@ -314,6 +316,115 @@ class Transformer:
 
         for _pending in self.tree.traverse(condition=lambda n: type(n) in classes):
             raise RSMTransformerError("Found unresolved pending reference")
+
+    def assign_author_affiliations(self) -> None:
+        """Deduplicate affiliations and assign superscript numbers to authors.
+
+        This transform iterates through all Author nodes and:
+        1. Collects unique affiliations in order of first appearance
+        2. Assigns a number (1, 2, 3, ...) to each unique affiliation
+        3. Sets the affiliation_number attribute on each Author node
+        4. Stores the total count of unique affiliations on the Manuscript node
+
+        Authors with the same affiliation text get the same number.
+        Authors without an affiliation get affiliation_number = None.
+
+        Examples
+        --------
+        Two authors with the same affiliation get the same number:
+
+        >>> from rsm import nodes
+        >>> tree = nodes.Manuscript()
+        >>> a1 = nodes.Author(name="Alice", affiliation="MIT")
+        >>> a2 = nodes.Author(name="Bob", affiliation="MIT")
+        >>> tree.append(a1).append(a2)
+        >>> tform = Transformer()
+        >>> tform.tree = tree
+        >>> tform.assign_author_affiliations()
+        >>> a1.affiliation_number
+        1
+        >>> a2.affiliation_number
+        1
+
+        """
+        affiliation_map: dict[str, int] = {}
+        next_num = 1
+
+        for author in self.tree.traverse(
+            condition=lambda n: isinstance(n, nodes.Author)
+        ):
+            if author.affiliation:
+                if author.affiliation not in affiliation_map:
+                    affiliation_map[author.affiliation] = next_num
+                    next_num += 1
+                author.affiliation_number = affiliation_map[author.affiliation]
+
+        # Store total count on Manuscript node for translator
+        self.tree.total_unique_affiliations = len(affiliation_map)
+
+    def assign_author_note_symbols(self) -> None:
+        """Assign symbols (*, †, ‡, §, ¶, ‖, **, ††, ...) to author notes.
+
+        This transform iterates through all Author nodes and:
+        1. Collects unique note texts in order of first appearance
+        2. Assigns a symbol to each unique note
+        3. Sets the note_symbol attribute on each Author node
+        4. Stores the total count of unique notes on the Manuscript node
+
+        Symbol progression: *, †, ‡, §, ¶, ‖, **, ††, ‡‡, §§, ¶¶, ‖‖, ***, †††, ...
+
+        Authors with the same note text get the same symbol.
+        Authors without a note get note_symbol = "".
+
+        Examples
+        --------
+        Two authors with the same note get the same symbol:
+
+        >>> from rsm import nodes
+        >>> tree = nodes.Manuscript()
+        >>> a1 = nodes.Author(name="Alice", author_note="Equal contribution")
+        >>> a2 = nodes.Author(name="Bob", author_note="Equal contribution")
+        >>> tree.append(a1).append(a2)
+        >>> tform = Transformer()
+        >>> tform.tree = tree
+        >>> tform.assign_author_note_symbols()
+        >>> a1.note_symbol
+        '*'
+        >>> a2.note_symbol
+        '*'
+
+        """
+        SYMBOLS = ["*", "†", "‡", "§", "¶", "‖"]
+
+        # Collect unique notes in order of appearance
+        note_map: dict[str, str] = {}
+        symbol_idx = 0
+
+        for author in self.tree.traverse(
+            condition=lambda n: isinstance(n, nodes.Author)
+        ):
+            if author.author_note and author.author_note not in note_map:
+                # Assign next symbol
+                if symbol_idx < len(SYMBOLS):
+                    symbol = SYMBOLS[symbol_idx]
+                else:
+                    # Generate repeated symbols: **, ††, ‡‡, etc.
+                    base_idx = (symbol_idx - len(SYMBOLS)) % len(SYMBOLS)
+                    repeat_count = ((symbol_idx - len(SYMBOLS)) // len(SYMBOLS)) + 2
+                    symbol = SYMBOLS[base_idx] * repeat_count
+
+                note_map[author.author_note] = symbol
+                symbol_idx += 1
+
+        # Assign symbols to all authors
+        for author in self.tree.traverse(
+            condition=lambda n: isinstance(n, nodes.Author)
+        ):
+            if author.author_note:
+                author.note_symbol = note_map[author.author_note]
+
+        # Store total count on Manuscript node for translator
+        self.tree.total_unique_notes = len(note_map)
 
     def add_necessary_subproofs(self) -> None:
         for step in self.tree.traverse(nodeclass=nodes.Step):

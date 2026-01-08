@@ -1072,10 +1072,22 @@ class Author(Node):
 
     """
 
-    newmetakeys: ClassVar[set] = {"name", "affiliation", "email"}
+    newmetakeys: ClassVar[set] = {
+        "name",
+        "affiliation",
+        "email",
+        "orcid",
+        "author_note",
+    }
 
     def __init__(
-        self, name: str = "", affiliation: str = "", email: str = "", **kwargs: Any
+        self,
+        name: str = "",
+        affiliation: str = "",
+        email: str = "",
+        orcid: str = "",
+        author_note: str = "",
+        **kwargs: Any,
     ) -> None:
         super().__init__(**kwargs)
         self.name: str = name
@@ -1084,6 +1096,15 @@ class Author(Node):
         """Institutional affiliation."""
         self.email: str = email
         """Contact information."""
+        self.orcid: str = orcid
+        """ORCID identifier."""
+        self.author_note: str = author_note
+        """Author note (e.g., 'Equal contribution')."""
+
+        self.affiliation_number: int | None = None
+        """Affiliation number assigned by transformer (auto-deduped)."""
+        self.note_symbol: str = ""
+        """Note symbol assigned by transformer (*, †, ‡, §, ¶, ‖, **, ††, etc.)."""
 
 
 class Abstract(NodeWithChildren):
