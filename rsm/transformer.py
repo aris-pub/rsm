@@ -338,7 +338,7 @@ class Transformer:
         >>> tree = nodes.Manuscript()
         >>> a1 = nodes.Author(name="Alice", affiliation="MIT")
         >>> a2 = nodes.Author(name="Bob", affiliation="MIT")
-        >>> tree.append(a1).append(a2)
+        >>> _ = tree.append(a1).append(a2)
         >>> tform = Transformer()
         >>> tform.tree = tree
         >>> tform.assign_author_affiliations()
@@ -385,7 +385,7 @@ class Transformer:
         >>> tree = nodes.Manuscript()
         >>> a1 = nodes.Author(name="Alice", author_note="Equal contribution")
         >>> a2 = nodes.Author(name="Bob", author_note="Equal contribution")
-        >>> tree.append(a1).append(a2)
+        >>> _ = tree.append(a1).append(a2)
         >>> tform = Transformer()
         >>> tform.tree = tree
         >>> tform.assign_author_note_symbols()

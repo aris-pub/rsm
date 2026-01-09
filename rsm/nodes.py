@@ -369,7 +369,7 @@ class Node:
         True
         >>> nodes.Span.metakeys() - all_nodes_meta == {"strong", "emphas", "little", "insert", "delete"}
         True
-        >>> nodes.Author.metakeys()  - all_nodes_meta == {"name", "affiliation", "email"}
+        >>> nodes.Author.metakeys()  - all_nodes_meta == {"name", "affiliation", "email", "orcid", "author_note"}
         True
 
         """
