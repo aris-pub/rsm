@@ -1471,7 +1471,15 @@ class Translator:
         return AppendText("")
 
     def visit_table(self, node: nodes.Table) -> EditCommand:
-        return AppendNodeTag(node, "table")
+        return AppendBatchAndDefer(
+            [
+                AppendOpenTag("div", classes=["table-wrapper"]),
+                AppendNodeTag(node, "table"),
+            ]
+        )
+
+    def leave_table(self, node: nodes.Table) -> EditCommand:
+        return self.leave_node(node)
 
     def visit_tablehead(self, node: nodes.TableHead) -> EditCommand:
         return AppendNodeTag(node, "thead")
@@ -2283,7 +2291,9 @@ class HandrailsTranslator(Translator):
         )
         batch.items.insert(0, AppendText("</p>"))
         batch.items.append(AppendTextAndDefer("$$\n", "\n$$"))
-        batch.items[1].classes += ["hr-hidden", "hr-offset"]
+        # Add hr-offset if mathblock is inside a paragraph (nested), but not if it's a direct child of a section
+        offset_class = ["hr-offset"] if isinstance(node.parent, nodes.Paragraph) else []
+        batch.items[1].classes += ["hr-hidden"] + offset_class
         return batch
 
     def leave_mathblock(self, node: nodes.MathBlock) -> EditCommand:

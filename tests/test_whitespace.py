@@ -537,6 +537,8 @@ def test_table_tr():
 
         <section class="level-1">
 
+        <div class="table-wrapper">
+
         <table class="table" data-nodeid="1">
 
         <tbody class="tablebody" data-nodeid="2">
@@ -552,6 +554,8 @@ def test_table_tr():
         </tbody>
 
         </table>
+
+        </div>
 
         </section>
 
@@ -590,6 +594,8 @@ def test_table_trshort():
 
         <section class="level-1">
 
+        <div class="table-wrapper">
+
         <table class="table" data-nodeid="1">
 
         <tbody class="tablebody" data-nodeid="2">
@@ -605,6 +611,8 @@ def test_table_trshort():
         </tbody>
 
         </table>
+
+        </div>
 
         </section>
 

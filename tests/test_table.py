@@ -21,9 +21,13 @@ def test_empty_table():
 
         <section class="level-1">
 
+        <div class="table-wrapper">
+
         <table class="table" data-nodeid="1">
 
         </table>
+
+        </div>
 
         </section>
 
@@ -62,6 +66,8 @@ def test_one_row_no_header():
 
         <section class="level-1">
 
+        <div class="table-wrapper">
+
         <table class="table" data-nodeid="1">
 
         <tbody class="tablebody" data-nodeid="2">
@@ -77,6 +83,8 @@ def test_one_row_no_header():
         </tbody>
 
         </table>
+
+        </div>
 
         </section>
 
@@ -117,6 +125,8 @@ def test_two_rows_no_header():
 
         <section class="level-1">
 
+        <div class="table-wrapper">
+
         <table class="table" data-nodeid="1">
 
         <tbody class="tablebody" data-nodeid="2">
@@ -140,6 +150,8 @@ def test_two_rows_no_header():
         </tbody>
 
         </table>
+
+        </div>
 
         </section>
 
@@ -186,6 +198,8 @@ def test_with_header():
 
         <section class="level-1">
 
+        <div class="table-wrapper">
+
         <table class="table" data-nodeid="1">
 
         <thead class="tablehead" data-nodeid="2">
@@ -222,6 +236,8 @@ def test_with_header():
 
         </table>
 
+        </div>
+
         </section>
 
         </div>
@@ -257,6 +273,8 @@ def test_math_in_header():
 
         <section class="level-1">
 
+        <div class="table-wrapper">
+
         <table class="table" data-nodeid="1">
 
         <thead class="tablehead" data-nodeid="2">
@@ -274,6 +292,8 @@ def test_math_in_header():
         </thead>
 
         </table>
+
+        </div>
 
         </section>
 
@@ -312,6 +332,8 @@ def test_shortcuts_in_header():
 
         <section class="level-1">
 
+        <div class="table-wrapper">
+
         <table class="table" data-nodeid="1">
 
         <tbody class="tablebody" data-nodeid="2">
@@ -327,6 +349,8 @@ def test_shortcuts_in_header():
         </tbody>
 
         </table>
+
+        </div>
 
         </section>
 
@@ -368,6 +392,8 @@ def test_simple_caption():
 
         <section class="level-1">
 
+        <div class="table-wrapper">
+
         <table class="table" data-nodeid="1">
 
         <tbody class="tablebody" data-nodeid="2">
@@ -387,6 +413,8 @@ def test_simple_caption():
         </caption>
 
         </table>
+
+        </div>
 
         </section>
 
@@ -427,6 +455,8 @@ def test_simple_caption_with_shortcuts():
 
         <section class="level-1">
 
+        <div class="table-wrapper">
+
         <table class="table" data-nodeid="1">
 
         <tbody class="tablebody" data-nodeid="2">
@@ -446,6 +476,8 @@ def test_simple_caption_with_shortcuts():
         </caption>
 
         </table>
+
+        </div>
 
         </section>
 
@@ -487,6 +519,8 @@ def test_reference_to_table():
 
         <section class="level-1">
 
+        <div class="table-wrapper">
+
         <table id="lbl" class="table" data-nodeid="1">
 
         <tbody class="tablebody" data-nodeid="2">
@@ -502,6 +536,8 @@ def test_reference_to_table():
         </tbody>
 
         </table>
+
+        </div>
 
         <div class="paragraph" data-nodeid="8">
 
@@ -549,6 +585,8 @@ def test_reference_to_table_with_reftext():
 
         <section class="level-1">
 
+        <div class="table-wrapper">
+
         <table id="lbl" class="table" data-nodeid="1">
 
         <tbody class="tablebody" data-nodeid="2">
@@ -564,6 +602,8 @@ def test_reference_to_table_with_reftext():
         </tbody>
 
         </table>
+
+        </div>
 
         <div class="paragraph" data-nodeid="8">
 
@@ -611,6 +651,8 @@ def test_extra_space_within_tr():
 
         <section class="level-1">
 
+        <div class="table-wrapper">
+
         <table class="table" data-nodeid="1">
 
         <tbody class="tablebody" data-nodeid="2">
@@ -626,6 +668,8 @@ def test_extra_space_within_tr():
         </tbody>
 
         </table>
+
+        </div>
 
         </section>
 
@@ -668,6 +712,8 @@ def test_real_life_example():
         <div class="manuscript" data-nodeid="0">
 
         <section class="level-1">
+
+        <div class="table-wrapper">
 
         <table id="lbl" class="table" data-nodeid="1">
 
@@ -714,6 +760,8 @@ def test_real_life_example():
         </caption>
 
         </table>
+
+        </div>
 
         </section>
 
@@ -766,6 +814,8 @@ def test_real_life_example_different_spacing():
 
         <section class="level-1">
 
+        <div class="table-wrapper">
+
         <table id="lbl" class="table" data-nodeid="1">
 
         <thead class="tablehead" data-nodeid="2">
@@ -812,6 +862,8 @@ def test_real_life_example_different_spacing():
 
         </table>
 
+        </div>
+
         </section>
 
         </div>
@@ -850,6 +902,8 @@ def test_tr_shortcut():
         <div class="manuscript" data-nodeid="0">
 
         <section class="level-1">
+
+        <div class="table-wrapper">
 
         <table class="table" data-nodeid="1">
 
@@ -893,6 +947,8 @@ def test_tr_shortcut():
 
         </table>
 
+        </div>
+
         </section>
 
         </div>
@@ -929,6 +985,8 @@ def test_tr_shortcut_with_math():
         <div class="manuscript" data-nodeid="0">
 
         <section class="level-1">
+
+        <div class="table-wrapper">
 
         <table class="table" data-nodeid="1">
 
@@ -971,6 +1029,8 @@ def test_tr_shortcut_with_math():
         </tbody>
 
         </table>
+
+        </div>
 
         </section>
 
@@ -1016,6 +1076,8 @@ def test_tr_shortcut_with_newlines():
 
         <section class="level-1">
 
+        <div class="table-wrapper">
+
         <table class="table" data-nodeid="1">
 
         <thead class="tablehead" data-nodeid="2">
@@ -1058,6 +1120,8 @@ def test_tr_shortcut_with_newlines():
 
         </table>
 
+        </div>
+
         </section>
 
         </div>
@@ -1095,6 +1159,8 @@ def test_tr_shortcut_with_escaped_colon():
         <div class="manuscript" data-nodeid="0">
 
         <section class="level-1">
+
+        <div class="table-wrapper">
 
         <table class="table" data-nodeid="1">
 
@@ -1137,6 +1203,8 @@ def test_tr_shortcut_with_escaped_colon():
         </tbody>
 
         </table>
+
+        </div>
 
         </section>
 
