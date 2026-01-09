@@ -335,6 +335,7 @@ class Transformer:
         Two authors with the same affiliation get the same number:
 
         >>> from rsm import nodes
+        >>> from rsm.transformer import Transformer
         >>> tree = nodes.Manuscript()
         >>> a1 = nodes.Author(name="Alice", affiliation="MIT")
         >>> a2 = nodes.Author(name="Bob", affiliation="MIT")
@@ -382,6 +383,7 @@ class Transformer:
         Two authors with the same note get the same symbol:
 
         >>> from rsm import nodes
+        >>> from rsm.transformer import Transformer
         >>> tree = nodes.Manuscript()
         >>> a1 = nodes.Author(name="Alice", author_note="Equal contribution")
         >>> a2 = nodes.Author(name="Bob", author_note="Equal contribution")
