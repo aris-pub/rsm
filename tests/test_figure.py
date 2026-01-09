@@ -96,7 +96,7 @@ def test_caption_with_inline_tags():
         :figure:
           :path: assets/example.png
 
-          :caption: This is the *figure* caption.
+          :caption: This is the **figure** caption.
 
         ::
 

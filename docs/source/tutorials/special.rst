@@ -13,22 +13,22 @@ Shorthand
 Some tags allow for *shorthand* notation.  Shorthand notation does not need tag names or
 Halmoses to modify the contained text, it uses different delimiters instead.  For
 example, the following are two different ways for introducing bold text, one using the
-standard ``:span:`` tag and another using shorthand notation and asterisks ``*``.
+standard ``:span:`` tag and another using shorthand notation and double asterisks ``**``.
 
 .. rsm::
 
    :rsm:
    This text is :span: {:strong:} bold ::, as
-   is *this one*.
+   is **this one**.
    ::
 
-Similarly, italic text also has a shorthand version using slashes ``/``.
+Similarly, italic text also has a shorthand version using single asterisks ``*``.
 
 .. rsm::
 
    :rsm:
    This text is :span: {:emphas:} italic ::, as
-   is /this one/.
+   is *this one*.
    ::
 
 Math tags allow shorthand notation using one dollar sign ``$`` for inline and two ``$$``
@@ -38,7 +38,7 @@ for blocks.
 
    :rsm:
 
-   *Inline math.*
+   **Inline math.**
 
    Either :math:2 + 2 = 4:: or
    $2 + 2 = 4$.
@@ -49,7 +49,7 @@ for blocks.
 
    :rsm:
 
-   *Math block.*
+   **Math block.**
 
    Either
 
@@ -73,7 +73,7 @@ Code allows shorthand notation using one backtick ````` for inline or three ````
 
    :rsm:
 
-   *Inline code.*
+   **Inline code.**
 
    Either :code:var = "value":: or
    `var = "value"`.
@@ -84,7 +84,7 @@ Code allows shorthand notation using one backtick ````` for inline or three ````
 
    :rsm:
 
-   *Code block.*
+   **Code block.**
 
    Either
 
@@ -156,7 +156,7 @@ text, you need to add a label to you.  Labels can only be specified in meta tags
 meta tags can only go immediately after the opening tag of a block or inline.  Then how
 can we label a paragraph of text?
 
-The ``:paragraph:`` tag exists for this reason.  Similar to the ``:item:`` tag, it does
+The ``:paragraph:`` tag exists for this reason.  Similar to the ``:-:`` list item marker, it does
 not need a closing Halmos.  Note that if it us used, then some meta tags *must* be
 added.
 

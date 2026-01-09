@@ -89,9 +89,9 @@ def test_claim_within_list():
 
         :enumerate:
 
-        :item: {:label: one} :claim: :math:2+2=4:: ::.
+        :-: {:label: one} :claim: :math:2+2=4:: ::.
 
-        :item: {:label: two} :claim: :math:3+3=6:: ::.
+        :-: {:label: two} :claim: :math:3+3=6:: ::.
 
         ::
 

@@ -315,7 +315,7 @@ def test_shortcuts_in_header():
 
         :tbody:
 
-        :tr: :td: /foo/ :: :td: *bar* :: ::
+        :tr: :td: *foo* :: :td: **bar** :: ::
 
         ::
 
@@ -441,7 +441,7 @@ def test_simple_caption_with_shortcuts():
         ::
 
         :caption:
-        This is a /caption/ with shortcuts $2+2$.
+        This is a *caption* with shortcuts $2+2$.
 
         ::
 

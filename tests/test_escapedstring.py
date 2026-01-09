@@ -152,7 +152,7 @@ def test_colon_inside_bold_with_shortcut():
         have=r"""
         :rsm:
 
-        *Warning\: *this is a warning.
+        **Warning\: **this is a warning.
 
         ::
         """,

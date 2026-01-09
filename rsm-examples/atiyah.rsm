@@ -111,12 +111,12 @@
 
   :enumerate:
 
-    :item: :claim:{:label:unit-iff-unit-nilp} $f$ is a unit in $A[x]$ $\iff$ $a_0$ is a unit in $A$
+    :-: :claim:{:label:unit-iff-unit-nilp} $f$ is a unit in $A[x]$ $\iff$ $a_0$ is a unit in $A$
     and $a_1, \ldots , a_n$ are nilpotent. ::
 
-    :item: :claim:{:label:nilp-iff-nilp} $f$ is nilpotent $\iff$ $a_0, a_1, \ldots , a_n$ are nilpotent. ::
+    :-: :claim:{:label:nilp-iff-nilp} $f$ is nilpotent $\iff$ $a_0, a_1, \ldots , a_n$ are nilpotent. ::
 
-    :item: :claim:{:label:zerodiv-iff-zerodiv} $f$ is a zero-divisor $\iff$ there exists $a \neq 0$ in $A$ such that $af = 0$. ::
+    :-: :claim:{:label:zerodiv-iff-zerodiv} $f$ is a zero-divisor $\iff$ there exists $a \neq 0$ in $A$ such that $af = 0$. ::
 
     % :item: :claim: if $f, g \in A[x]$, then $fg$ is primitive $\iff$ $f$ and $g$ are primitive. ::
 

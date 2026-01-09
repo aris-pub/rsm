@@ -222,7 +222,7 @@ def test_span_part_of_word_with_shortcut():
         have="""\
         :rsm:
 
-        This word is half bold *bo*ring.
+        This word is half bold **bo**ring.
 
         ::
         """,

@@ -7,7 +7,7 @@ def test_one_strong():
         :rsm:
           :title: My Title
 
-        This paragraph has a *shortcut* for strong span.
+        This paragraph has a **shortcut** for strong span.
 
         ::
         """,
@@ -45,7 +45,7 @@ def test_two_strong():
         :rsm:
           :title: My Title
 
-        This paragraph has two *shortcuts* for strong *spans*.
+        This paragraph has two **shortcuts** for strong **spans**.
 
         ::
         """,
@@ -83,7 +83,7 @@ def test_one_emphas():
         :rsm:
           :title: My Title
 
-        This paragraph has a /shortcut/ for emphasis span.
+        This paragraph has a *shortcut* for emphasis span.
 
         ::
         """,
@@ -920,7 +920,7 @@ def test_escaped_colon_behind_halmos_after_shortcut():
     compare_have_want(
         have=r"""        :rsm:
 
-        Shortcut right beside an escaped colon *foo\:*
+        Shortcut right beside an escaped colon **foo\:**
 
         ::
         """,
@@ -994,9 +994,9 @@ def test_turnstile_and_math_within_list():
 
         :enumerate:
 
-        :item: {:label: one} :⊢: $2+2=4$::.
+        :-: {:label: one} :⊢: $2+2=4$::.
 
-        :item: {:label: two} :⊢: $3+3=6$::.
+        :-: {:label: two} :⊢: $3+3=6$::.
 
         ::
 

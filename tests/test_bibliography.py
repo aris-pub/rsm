@@ -73,7 +73,7 @@ def test_with_shortcuts():
         :rsm:
           :title: My Title
 
-        This has a *citation* at the end. :cite:knuth::
+        This has a **citation** at the end. :cite:knuth::
 
         :bibliography: ::
 

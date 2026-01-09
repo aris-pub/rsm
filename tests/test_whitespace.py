@@ -57,11 +57,11 @@ def test_one_word_with_shortcut():
         have="""
         :rsm:
 
-        This should be a single wo*rd*.
+        This should be a single wo**rd**.
 
-        This should be a single *wo*rd.
+        This should be a single **wo**rd.
 
-        This should be a single w*or*d.
+        This should be a single w**or**d.
 
         ::
         """,
@@ -255,9 +255,9 @@ def test_separate_words_with_shortcut():
         have="""
         :rsm:
 
-        *Separate* words.
+        **Separate** words.
 
-        Separate *words*.
+        Separate **words**.
 
         ::
         """,
@@ -373,8 +373,8 @@ def test_span_multiline_content_beginning_of_line_with_shortcut():
         :rsm:
 
         This is a paragraph with
-        * a
-        span * that takes multiple lines
+        ** a
+        span ** that takes multiple lines
 
         ::
         """,
@@ -410,8 +410,8 @@ def test_span_multiline_content_middle_of_line_with_shortcut():
         :rsm:
 
         This is a paragraph
-        with * a
-        span * that takes multiple lines
+        with ** a
+        span ** that takes multiple lines
 
         ::
         """,
@@ -520,7 +520,7 @@ def test_table_tr():
 
         :tbody:
 
-        :tr: :td: /foo/ :: :td: *bar* :: ::
+        :tr: :td: *foo* :: :td: **bar** :: ::
 
         ::
 
@@ -577,7 +577,7 @@ def test_table_trshort():
 
         :tbody:
 
-        :tr: /foo/ : *bar* ::
+        :tr: *foo* : **bar** ::
 
         ::
 
@@ -689,9 +689,9 @@ def test_ignore_space_within_inline_with_shortcut():
         have="""
         :rsm:
 
-        Ignore space * within * inline.
+        Ignore space ** within ** inline.
 
-        Ignore space *   within   * inline.
+        Ignore space **   within   ** inline.
 
         Ignore space :|-: within ::. inline.
 
@@ -754,16 +754,16 @@ def test_consecutive_lines_should_be_joined_by_spaces():
         Consecutive lines should :span:{:strong:}be
         joined:: by spaces.
 
-        Consecutive lines should *be
-        joined* by spaces.
+        Consecutive lines should **be
+        joined** by spaces.
 
         Consecutive lines should be
         :span:{:strong:}joined:: by spaces.
 
         Consecutive lines should be
-        *joined* by spaces.
+        **joined** by spaces.
 
-        Consecutive lines should *be*
+        Consecutive lines should **be**
         joined by spaces.
 
         ::

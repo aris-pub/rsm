@@ -35,8 +35,8 @@ $$
 :let: $G$ be an undirected, simple graph :: and :let: $m$ be the number of edges in
 $G$::.  :write: $E$ for the set of edges of $G$ and $\vec{E}$ for the set of directed
 edges of $G$::, i.e. where each undirected edge $i-j \in E$ corresponds to two directed
-edges $i \to j, j \to i \in \vec{E}$.  :let: $\mb{B}$ be the /non-backtracking/ (or
-simply /NB/) operator of $G$::.  That is to say, $\mb{B}$ is an operator in the
+edges $i \to j, j \to i \in \vec{E}$.  :let: $\mb{B}$ be the *non-backtracking* (or
+simply *NB*) operator of $G$::.  That is to say, $\mb{B}$ is an operator in the
 space $\mathbb{C}^{\vec{E}}$ defined by $$ \left( \mb{B} \mb{v} \right)_{i \to
 j} = \sum_{k \to i \in \vec{E}} \mb{v}_{k \to i} - \mb{v}_{j \to i}.  $$
 
@@ -70,7 +70,7 @@ $$
   :label: flip-defn
 (\mb{Pv})_{i \to j} = \mb{v}_{j \to i},
 $$
-for any $\mb{v} \in \mathbb{C}^{\vec{E}}$.  This explains where the name /flip/
+for any $\mb{v} \in \mathbb{C}^{\vec{E}}$.  This explains where the name *flip*
 comes from\: $\mb{P}$ acts by flipping the orientation of each edge.  Moreover, when
 the rows and columns of the matrix $\mb{B}$ are ordered in the usual way, we can
 write
@@ -95,14 +95,14 @@ From now on, we :let: $\mb{P}$ be the flip of $G$ ::.
   will consider them as transformations on a complex space.  The reason is that the
   eigenvalues of $\mb{B}$ are in general complex numbers.  Thus, we will discuss
   their properties with the language appropriate to complex spaces.  For example, we
-  will say that $\mb{P}$ is /unitary/ rather than /orthogonal/.
+  will say that $\mb{P}$ is *unitary* rather than *orthogonal*.
 ::
 
 :paragraph: {:label:flip-evectors, :title: A definition} :write: $\mb{v}^i :=
 \langle \ldots, 1, \ldots, 0, \ldots, 1, \ldots, 0 \rangle$, the vector with a $1$ in
-the /i/-th and /(m+i)/-th components, for each $i = 1, \ldots, m$::.  Similarly, :write:
+the *i*-th and *(m+i)*-th components, for each $i = 1, \ldots, m$::.  Similarly, :write:
 $\mb{v}^{-i} := \langle \ldots, 1, \ldots, 0, \ldots, -1, \ldots, 0 \rangle$, the
-vector with a $1$ in the /i/-th component and a $-1$ in the /(m+i)/-th component, for
+vector with a $1$ in the *i*-th component and a $-1$ in the *(m+i)*-th component, for
 each $i = 1, \ldots, m$::.
 
 :proposition:
@@ -177,8 +177,8 @@ to use their notation.::
 :label: sec-flip-sip
 :nonum:
 
-The book :cite:thebook:: repeatedly uses the so-called /sip/ matrix (short for /standard
-involutory permutation/), defined as the $n \times n$ matrix with
+The book :cite:thebook:: repeatedly uses the so-called *sip* matrix (short for *standard
+involutory permutation*), defined as the $n \times n$ matrix with
 $$
 \mb{S}_n =
 \left[
@@ -687,15 +687,15 @@ book. ::
 
   :enumerate:
 
-    :item: :claim: $\overline{\mb{v}}$ is a right eigenvector of $\overline{\lambda}$. ::
+    :-: :claim: $\overline{\mb{v}}$ is a right eigenvector of $\overline{\lambda}$. ::
 
-    :item: :claim: $\mb{u}^*$ is a left eigenvector of $\lambda$. ::
+    :-: :claim: $\mb{u}^*$ is a left eigenvector of $\lambda$. ::
 
-    :item: :claim: $\mb{u}^\top$ is a left eigenvector of $\overline{\lambda}$. ::
+    :-: :claim: $\mb{u}^\top$ is a left eigenvector of $\overline{\lambda}$. ::
 
-    :item: :claim: $\left[\mb{v}, \mb{v} \right]_\mb{P} = 0 = \left[\mb{u}, \mb{u} \right]_\mb{P}$. ::
+    :-: :claim: $\left[\mb{v}, \mb{v} \right]_\mb{P} = 0 = \left[\mb{u}, \mb{u} \right]_\mb{P}$. ::
 
-    :item: :claim: $\left[\mb{v}, \overline{\mb{v}} \right]_\mb{P} = \overline{\left[\mb{u}, \overline{\mb{u}} \right]_\mb{P}} = \mb{u}^* \mb{v} = \mb{v}^\top \mb{P v}$. ::
+    :-: :claim: $\left[\mb{v}, \overline{\mb{v}} \right]_\mb{P} = \overline{\left[\mb{u}, \overline{\mb{u}} \right]_\mb{P}} = \mb{u}^* \mb{v} = \mb{v}^\top \mb{P v}$. ::
 
   ::
 

@@ -13,12 +13,12 @@ def test_simple():
         :enumerate:
           :label: enm-foo
 
-          :item: {:label: itm-1} Foo bar.
+          :-: {:label: itm-1} Foo bar.
 
-          :item: {:label: itm-2} Lorem ipsum dolor sit amet Lorem ipsum dolor sit amet Lorem
+          :-: {:label: itm-2} Lorem ipsum dolor sit amet Lorem ipsum dolor sit amet Lorem
             ipsum dolor sit amet.
 
-          :item: {:label: itm-3}
+          :-: {:label: itm-3}
           Lorem ipsum dolor sit amet Lorem ipsum dolor sit amet Lorem
           ipsum dolor sit amet.
 
@@ -27,12 +27,12 @@ def test_simple():
         :itemize:
           :label: itm-foo
 
-          :item: {:label: itm-4} Foo bar.
+          :-: {:label: itm-4} Foo bar.
 
-          :item: {:label: itm-5} Lorem ipsum dolor sit amet Lorem ipsum dolor sit amet Lorem
+          :-: {:label: itm-5} Lorem ipsum dolor sit amet Lorem ipsum dolor sit amet Lorem
             ipsum dolor sit amet.
 
-          :item: {:label: itm-6}
+          :-: {:label: itm-6}
           Lorem ipsum dolor sit amet Lorem ipsum dolor sit amet Lorem
           ipsum dolor sit amet.
 
@@ -100,7 +100,7 @@ def test_item_with_wrong_parent():
             have="""\
             :rsm:
 
-            :item: Foo bar.
+            :-: Foo bar.
 
             ::
             """,
@@ -114,7 +114,7 @@ def test_item_with_wrong_parent():
 
             # Some section
 
-            :item: Foo bar.
+            :-: Foo bar.
 
             ::
             """,
@@ -127,7 +127,7 @@ def test_item_with_wrong_parent():
 
         ## Some section
 
-        Lorem ipsum :item: Foo bar.
+        Lorem ipsum - Foo bar.
 
         ::
         """,
@@ -146,7 +146,7 @@ def test_item_with_wrong_parent():
 
         <div class="paragraph" data-nodeid="2">
 
-        <p>Lorem ipsum [CST error at (4, 12) - (4, 18)] Foo bar.</p>
+        <p>Lorem ipsum - Foo bar.</p>
 
         </div>
 
