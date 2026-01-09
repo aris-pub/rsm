@@ -1,6 +1,5 @@
-from conftest import compare_have_want
-
 import rsm
+from conftest import compare_have_want
 
 
 def test_mechanism():

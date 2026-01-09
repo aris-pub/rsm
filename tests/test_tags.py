@@ -22,14 +22,12 @@ def extract_documented_tags():
         for t in dir(rsm.tags)
         if isinstance(
             getattr(rsm.tags, t),
-            (
-                rsm.tags.BlockTagInfo,
-                rsm.tags.InlineTagInfo,
-                rsm.tags.MathTagInfo,
-                rsm.tags.MetaTagInfo,
-                rsm.tags.ParagraphTagInfo,
-                rsm.tags.TableTagInfo,
-            ),
+            rsm.tags.BlockTagInfo
+            | rsm.tags.InlineTagInfo
+            | rsm.tags.MathTagInfo
+            | rsm.tags.MetaTagInfo
+            | rsm.tags.ParagraphTagInfo
+            | rsm.tags.TableTagInfo,
         )
     }
     return tags

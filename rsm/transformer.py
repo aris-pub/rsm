@@ -503,7 +503,7 @@ class Transformer:
                 counts[nodes.Manuscript] = defaultdict(lambda: iter(ascii_uppercase))
                 within_appendix = True
                 continue
-            if isinstance(node, (nodes.Proof, nodes.Subproof)):
+            if isinstance(node, nodes.Proof | nodes.Subproof):
                 self._autonumber_steps(node)
                 continue
             if isinstance(node, nodes.Step):

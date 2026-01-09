@@ -191,7 +191,7 @@ class Pipeline:
         for _, _, call in self.tasks:
             if isinstance(res, dict):
                 res = call(**res)
-            elif isinstance(res, (list, tuple)):
+            elif isinstance(res, list | tuple):
                 res = call(*res)
             elif res is None:
                 res = call()
@@ -363,7 +363,7 @@ class FullBuildApp(ProcessorApp):
             for _, _, call in self.tasks:
                 if isinstance(result, dict):
                     result = call(**result)
-                elif isinstance(result, (list, tuple)):
+                elif isinstance(result, list | tuple):
                     result = call(*result)
                 elif result is None:
                     result = call()
@@ -383,7 +383,7 @@ class FullBuildApp(ProcessorApp):
             for _, _, call in self.tasks[:-1]:
                 if isinstance(result, dict):
                     result = call(**result)
-                elif isinstance(result, (list, tuple)):
+                elif isinstance(result, list | tuple):
                     result = call(*result)
                 elif result is None:
                     result = call()
