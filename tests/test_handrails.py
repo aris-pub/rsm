@@ -98,8 +98,7 @@ def test_codeblock_handrails():
 def test_codeblock_with_lang_handrails():
     compare_have_want_handrails(
         have="""\
-        ```
-        :lang: python
+        ```{:lang: python}
 
         def hello():
             print("world")
@@ -200,6 +199,7 @@ def test_manuscript():
         # Some Title
 
         Hello.
+
         """,
         want="""
         <body>
@@ -363,6 +363,7 @@ def test_section():
 
         ## Section
         Hello.
+
         """,
         want="""
         <body>
@@ -1002,12 +1003,14 @@ def test_theorem():
 def test_author():
     compare_have_want_handrails(
         have=r"""
-        # Indefinite Linear Algebra of the NBM
-          {:date: 2024-04-13}
+        # Indefinite Linear Algebra of the NBM {
+          :date: 2024-04-13
+        }
 
         :author: {
           :name: Leo Torres
-          :email: leo@leotrs.com}
+          :email: leo@leotrs.com
+        }
         ::
         """,
         want=r"""
@@ -1175,6 +1178,7 @@ def test_bibliography():
         This is a citation :cite:atiyah2018introduction::.
 
         :references:
+
         @book{atiyah2018introduction,
           title={Introduction to commutative algebra},
           author={Atiyah, M.F., & MacDonald, I.G.},
@@ -1182,6 +1186,7 @@ def test_bibliography():
           publisher={CRC Press},
           doi={https://doi.org/10.1201/9780429493638},
         }
+
         ::
         """,
         want="""

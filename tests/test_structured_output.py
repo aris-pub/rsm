@@ -6,7 +6,7 @@ from rsm.app import _parse_html_to_structured
 
 def test_make_structured_returns_dict():
     """Test that structured=True returns a dictionary."""
-    source = ":rsm: Hello world! ::"
+    source = " Hello world!"
     result = rsm.make(source, structured=True)
 
     assert isinstance(result, dict)
@@ -15,7 +15,7 @@ def test_make_structured_returns_dict():
 
 def test_make_structured_false_returns_string():
     """Test that structured=False returns HTML string (backward compatibility)."""
-    source = ":rsm: Hello world! ::"
+    source = "Hello world!"
     result = rsm.make(source, structured=False)
 
     assert isinstance(result, str)
@@ -26,7 +26,7 @@ def test_make_structured_false_returns_string():
 
 def test_make_default_structured_returns_string():
     """Test that default (no structured param) returns HTML string."""
-    source = ":rsm: Hello world! ::"
+    source = "Hello world!"
     result = rsm.make(source)
 
     assert isinstance(result, str)
@@ -35,7 +35,7 @@ def test_make_default_structured_returns_string():
 
 def test_structured_head_contains_dependencies():
     """Test that structured head contains tooltip dependencies."""
-    source = ":rsm: Hello world! ::"
+    source = "Hello world!"
     result = rsm.make(source, structured=True)
 
     head = result["head"]
@@ -47,7 +47,7 @@ def test_structured_head_contains_dependencies():
 
 def test_structured_body_contains_content():
     """Test that structured body contains manuscript content."""
-    source = ":rsm: Hello world! ::"
+    source = "Hello world!"
     result = rsm.make(source, structured=True)
 
     body = result["body"]
@@ -57,7 +57,7 @@ def test_structured_body_contains_content():
 
 def test_structured_init_script_empty_without_assets():
     """Test that init_script is empty for content without HTML assets."""
-    source = ":rsm: Hello world! ::"
+    source = "Hello world!"
     result = rsm.make(source, structured=True)
 
     # No HTML assets means no execution scripts to extract
@@ -68,7 +68,7 @@ def test_structured_with_asset_resolver():
     """Test structured output with custom asset resolver."""
     from rsm.asset_resolver import AssetResolverFromDisk
 
-    source = ":rsm: Hello world! ::"
+    source = "Hello world!"
     resolver = AssetResolverFromDisk()
     result = rsm.make(source, structured=True, asset_resolver=resolver)
 
@@ -80,7 +80,7 @@ def test_structured_with_asset_resolver():
 
 def test_structured_vs_regular_same_content():
     """Test that structured and regular output contain same essential content."""
-    source = ":rsm: Hello world! ::"
+    source = "Hello world!"
 
     regular = rsm.make(source, structured=False)
     structured = rsm.make(source, structured=True)
@@ -104,7 +104,7 @@ def test_structured_vs_regular_same_content():
 
 def test_structured_handrails_parameter():
     """Test structured output with handrails parameter."""
-    source = ":rsm: Hello world! ::"
+    source = "Hello world!"
 
     result_with_handrails = rsm.make(source, structured=True, handrails=True)
     result_without_handrails = rsm.make(source, structured=True, handrails=False)

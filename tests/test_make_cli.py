@@ -17,7 +17,7 @@ class TestMakeCLIFileOutput:
     @pytest.mark.slow
     def test_make_cli_creates_index_html(self, tmp_path):
         """Test that rsm-make creates index.html file."""
-        src = ":rsm:\n# Test\n\nHello world.\n\n::"
+        src = "# Test\n\nHello world.\n"
         src_file = tmp_path / "test.rsm"
         src_file.write_text(src)
 
@@ -40,7 +40,7 @@ class TestMakeCLIFileOutput:
     @pytest.mark.slow
     def test_make_cli_creates_static_folder(self, tmp_path):
         """Test that rsm-make creates static/ folder with assets."""
-        src = ":rsm:\n# Test\n\nHello world.\n\n::"
+        src = "# Test\n\nHello world.\n"
         src_file = tmp_path / "test.rsm"
         src_file.write_text(src)
 
@@ -65,7 +65,7 @@ class TestMakeCLIFileOutput:
     @pytest.mark.slow
     def test_make_cli_with_string_flag_creates_files_in_cwd(self, tmp_path):
         """Test that rsm-make with -c flag creates files in current directory."""
-        src = ":rsm:\n# Test\n\nString source.\n\n::"
+        src = ":rsm:\n# Test\n\nString source.\n"
 
         # Run with -c flag in tmp_path
         subprocess.run(
@@ -84,7 +84,7 @@ class TestMakeCLIFileOutput:
     @pytest.mark.slow
     def test_make_cli_silent_flag_still_creates_files(self, tmp_path):
         """Test that rsm-make with -s flag still creates files (just no stdout)."""
-        src = ":rsm:\n# Test\n\nSilent mode.\n\n::"
+        src = "# Test\n\nSilent mode.\n"
         src_file = tmp_path / "test.rsm"
         src_file.write_text(src)
 
@@ -114,7 +114,7 @@ class TestMakePythonAPINoFileOutput:
 
     def test_make_api_returns_html_string(self):
         """Test that rsm.make() returns HTML as string."""
-        src = ":rsm:\n# Test\n\nAPI call.\n\n::"
+        src = "# Test\n\nAPI call.\n"
         result = rsm.make(src)
 
         assert isinstance(result, str)
@@ -123,7 +123,7 @@ class TestMakePythonAPINoFileOutput:
 
     def test_make_api_does_not_write_files(self, tmp_path):
         """Test that rsm.make() does NOT write files to disk."""
-        src = ":rsm:\n# Test\n\nAPI call.\n\n::"
+        src = "# Test\n\nAPI call.\n"
 
         # Change to tmp_path to ensure no files are written
         import os
@@ -145,7 +145,7 @@ class TestMakePythonAPINoFileOutput:
 
     def test_make_api_with_path_does_not_write_files(self, tmp_path):
         """Test that rsm.make(path=...) does NOT write files to disk."""
-        src = ":rsm:\n# Test\n\nAPI with path.\n\n::"
+        src = "# Test\n\nAPI with path.\n"
         src_file = tmp_path / "test.rsm"
         src_file.write_text(src)
 

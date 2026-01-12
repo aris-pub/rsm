@@ -4,10 +4,9 @@ from conftest import compare_have_want
 def test_simple():
     compare_have_want(
         have="""\
-        :rsm:
+        # My Title {
           :label: mylbl
-          :title: My Title
-          :date: 2022-03-29
+          :date: 2022-03-29}
 
         :author:
           :name: Leo Torres
@@ -56,10 +55,9 @@ def test_simple():
 def test_empty_author():
     compare_have_want(
         have="""\
-        :rsm:
+        # The Perron non-backtracking eigenvalue after node addition {
           :label: mylbl
-          :title: The Perron non-backtracking eigenvalue after node addition
-          :date: 2022-03-29
+          :date: 2022-03-29}
 
         :author: ::
 
@@ -104,13 +102,12 @@ def test_empty_author():
 def test_author_with_orcid():
     compare_have_want(
         have="""\
-        :rsm:
-          :title: My Title
+        # My Title
 
-        :author:
+        :author: {
           :name: Leo Torres
           :affiliation: Some University
-          :orcid: 0000-0001-2345-6789
+          :orcid: 0000-0001-2345-6789}
         ::
 
         ::
@@ -152,12 +149,11 @@ def test_author_with_orcid():
 def test_author_with_note():
     compare_have_want(
         have="""\
-        :rsm:
-          :title: My Title
+        # My Title
 
-        :author:
+        :author: {
           :name: Leo Torres
-          :author-note: Equal contribution
+          :author-note: Equal contribution}
         ::
 
         ::
@@ -197,14 +193,13 @@ def test_author_with_note():
 def test_author_multiline_affiliation():
     compare_have_want(
         have="""\
-        :rsm:
-          :title: My Title
+        # My Title
 
-        :author:
+        :author: {
           :name: Leo Torres
           :affiliation: Department of Mathematics
             University of Somewhere
-            Building 123
+            Building 123}
         ::
 
         ::

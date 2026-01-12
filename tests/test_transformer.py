@@ -543,12 +543,11 @@ def test_label_to_node_internal():
     """_label_to_node should work for internal labels (existing behavior)."""
     from rsm.transformer import Transformer
 
-    src = """:rsm:
-## Section
-  :label: my-label
+    src = """
+## Section {:label: my-label}
 
 Content here.
-::"""
+"""
 
     parser = rsm.tsparser.TSParser()
     tree = parser.parse(src)

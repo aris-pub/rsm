@@ -266,6 +266,7 @@ def test_subsubsection_shortcut():
         #### My Subsubsection
 
         Baz.
+
         """,
         want="""
         <body>
