@@ -7,34 +7,36 @@ def test_five_authors_no_collapse():
     """With exactly 5 authors, show all (no collapse)."""
     compare_have_want(
         have="""\
-        :rsm:
-          :title: Test
+        # Test
 
-        :author:
+        :author: {
           :name: Author 1
           :affiliation: MIT
+        }
         ::
 
-        :author:
+        :author: {
           :name: Author 2
           :affiliation: Harvard
+        }
         ::
 
-        :author:
+        :author: {
           :name: Author 3
           :affiliation: Stanford
+        }
         ::
 
-        :author:
+        :author: {
           :name: Author 4
           :affiliation: Berkeley
+        }
         ::
 
-        :author:
+        :author: {
           :name: Author 5
           :affiliation: Yale
-        ::
-
+        }
         ::
         """,
         want="""\
@@ -113,39 +115,42 @@ def test_six_authors_collapsed():
     """With 6 authors, show first 3 and last 2, with expand button."""
     compare_have_want(
         have="""\
-        :rsm:
-          :title: Test
+        # Test
 
-        :author:
+        :author: {
           :name: Author 1
           :affiliation: MIT
+        }
         ::
 
-        :author:
+        :author: {
           :name: Author 2
           :affiliation: Harvard
+        }
         ::
 
-        :author:
+        :author: {
           :name: Author 3
           :affiliation: Stanford
+        }
         ::
 
-        :author:
+        :author: {
           :name: Author 4
           :affiliation: Berkeley
+        }
         ::
 
-        :author:
+        :author: {
           :name: Author 5
           :affiliation: Yale
+        }
         ::
 
-        :author:
+        :author: {
           :name: Author 6
           :affiliation: Princeton
-        ::
-
+        }
         ::
         """,
         want="""\
@@ -240,49 +245,36 @@ def test_ten_authors_collapsed():
     """With 10 authors, show first 3 and last 2, hide middle 5."""
     compare_have_want(
         have="""\
-        :rsm:
-          :title: Test
+        # Test
 
-        :author:
-          :name: Author 1
+        :author:{:name: Author 1}
         ::
 
-        :author:
-          :name: Author 2
+        :author:{:name: Author 2}
         ::
 
-        :author:
-          :name: Author 3
+        :author:{:name: Author 3}
         ::
 
-        :author:
-          :name: Author 4
+        :author:{:name: Author 4}
         ::
 
-        :author:
-          :name: Author 5
+        :author:{:name: Author 5}
         ::
 
-        :author:
-          :name: Author 6
+        :author:{:name: Author 6}
         ::
 
-        :author:
-          :name: Author 7
+        :author:{:name: Author 7}
         ::
 
-        :author:
-          :name: Author 8
+        :author:{:name: Author 8}
         ::
 
-        :author:
-          :name: Author 9
+        :author:{:name: Author 9}
         ::
 
-        :author:
-          :name: Author 10
-        ::
-
+        :author:{:name: Author 10}
         ::
         """,
         want="""\

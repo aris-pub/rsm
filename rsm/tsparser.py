@@ -66,7 +66,7 @@ PUSH_THESE_TYPES = {
     "ERROR",
     "appendix",
     "bibitem",
-    "bibtex",
+    "references",
     "block",
     "caption",
     "construct",
@@ -447,19 +447,10 @@ def _abstractify(cst: TSTree) -> nodes.Manuscript:
         if cst_node.type == "comment":
             continue
 
-        # Handle bibliography-related nodes first and continue
-        if (
-            cst_node.type == "specialblock"
-            and cst_node.children
-            and cst_node.children[0].type == "bibliography"
-        ):
+        # Handle references block
+        if cst_node.type == "references":
             bibliography_node = nodes.Bibliography()
             ast_root_node.append(bibliography_node)
-            continue
-        if cst_node.type == "bibtex":
-            if bibliography_node is None:
-                logger.warning(msg="Found bibtex but no bibliography node")
-                continue
 
             stack += reversed(
                 [

@@ -6,14 +6,14 @@ def test_simple():
         have="""\
         # My Title {
           :label: mylbl
-          :date: 2022-03-29}
+          :date: 2022-03-29
+        }
 
-        :author:
+        :author: {
           :name: Leo Torres
           :affiliation: Max Planck Institute for Mathematics in the Sciences
           :email: leo@leotrs.com
-        ::
-
+        }
         ::
         """,
         want="""\
@@ -57,13 +57,12 @@ def test_empty_author():
         have="""\
         # The Perron non-backtracking eigenvalue after node addition {
           :label: mylbl
-          :date: 2022-03-29}
+          :date: 2022-03-29
+        }
 
         :author: ::
 
         Lorem ipsum.
-
-        ::
         """,
         want="""\
         <body>
@@ -107,9 +106,8 @@ def test_author_with_orcid():
         :author: {
           :name: Leo Torres
           :affiliation: Some University
-          :orcid: 0000-0001-2345-6789}
-        ::
-
+          :orcid: 0000-0001-2345-6789
+        }
         ::
         """,
         want="""\
@@ -153,9 +151,8 @@ def test_author_with_note():
 
         :author: {
           :name: Leo Torres
-          :author-note: Equal contribution}
-        ::
-
+          :author-note: Equal contribution
+        }
         ::
         """,
         want="""\
@@ -199,9 +196,8 @@ def test_author_multiline_affiliation():
           :name: Leo Torres
           :affiliation: Department of Mathematics
             University of Somewhere
-            Building 123}
-        ::
-
+            Building 123
+        }
         ::
         """,
         want="""\

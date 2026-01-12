@@ -7,13 +7,10 @@ def test_single_author_with_handrails():
     """Single author should have handrails wrapper."""
     compare_have_want_handrails(
         have="""\
-        :rsm:
-
-        :author:
+        :author:{
           :name: Alice
           :affiliation: MIT
-        ::
-
+        }
         ::
         """,
         want="""\
@@ -107,38 +104,34 @@ def test_six_authors_collapsed_with_handrails():
     """With 6 authors and handrails, should have collapsed mode with handrails wrapper."""
     compare_have_want_handrails(
         have="""\
-        :rsm:
-
-        :author:
+        :author:{
           :name: Author 1
-          :affiliation: MIT
+          :affiliation: MIT}
         ::
 
-        :author:
+        :author:{
           :name: Author 2
-          :affiliation: Harvard
+          :affiliation: Harvard}
         ::
 
-        :author:
+        :author:{
           :name: Author 3
-          :affiliation: Stanford
+          :affiliation: Stanford}
         ::
 
-        :author:
+        :author:{
           :name: Author 4
-          :affiliation: Berkeley
+          :affiliation: Berkeley}
         ::
 
-        :author:
+        :author:{
           :name: Author 5
-          :affiliation: Yale
+          :affiliation: Yale}
         ::
 
-        :author:
+        :author:{
           :name: Author 6
-          :affiliation: Princeton
-        ::
-
+          :affiliation: Princeton}
         ::
         """,
         want="""\

@@ -17,9 +17,7 @@ appendix = BlockTagInfo(None)
 """Mark where the appendix sections begin."""
 author = BlockTagInfo(None)
 """Author information."""
-bibliography = BlockTagInfo(None)
-"""Automatically generate the list of references."""
-bibtex = BlockTagInfo(None)
+references = BlockTagInfo(None)
 """List of bibliography items."""
 codeblock = BlockTagInfo(None)
 """Code listing."""

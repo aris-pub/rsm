@@ -9,10 +9,11 @@ def test_simple():
           :date: 2022-03-29
         }
 
-        :author:
+        :author: {
           :name: Leo Torres
           :affiliation: Max Planck Institute for Mathematics in the Sciences
           :email: leo@leotrs.com
+        }
         ::
 
         :abstract: {

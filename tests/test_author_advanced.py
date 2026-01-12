@@ -77,7 +77,8 @@ def test_two_authors_different_affiliations():
 
         :author: {
           :name: Bob
-          :affiliation: Harvard}
+          :affiliation: Harvard
+        }
         ::
         """,
         want="""\
@@ -130,19 +131,20 @@ def test_three_authors_mixed_affiliations():
 
         :author: {
           :name: Alice
-          :affiliation: MIT}
+          :affiliation: MIT
+        }
         ::
 
         :author:{
           :name: Bob
-          :affiliation: Harvard}
+          :affiliation: Harvard
+        }
         ::
 
         :author:{
           :name: Carol
-          :affiliation: MIT}
-        ::
-
+          :affiliation: MIT
+        }
         ::
         """,
         want="""\
@@ -204,9 +206,8 @@ def test_author_with_no_affiliation():
         # Test
 
         :author:{
-          :name: Alice}
-        ::
-
+          :name: Alice
+        }
         ::
         """,
         want="""\
@@ -247,12 +248,14 @@ def test_two_authors_same_note():
 
         :author: {
           :name: Alice
-          :author-note: Equal contribution}
+          :author-note: Equal contribution
+        }
         ::
 
         :author: {
           :name: Bob
-          :author-note: Equal contribution}
+          :author-note: Equal contribution
+        }
         ::
         """,
         want="""\
@@ -305,12 +308,14 @@ def test_two_authors_different_notes():
 
         :author: {
           :name: Alice
-          :author-note: Equal contribution}
+          :author-note: Equal contribution
+        }
         ::
 
         :author: {
           :name: Bob
-          :author-note: Now at MIT}
+          :author-note: Now at MIT
+        }
         ::
         """,
         want="""\
@@ -364,9 +369,8 @@ def test_author_with_affiliation_and_note():
         :author: {
           :name: Alice
           :affiliation: MIT
-          :author-note: Equal contribution}
-        ::
-
+          :author-note: Equal contribution
+        }
         ::
         """,
         want="""\
@@ -411,44 +415,50 @@ def test_many_notes_symbol_progression():
 
         :author:{
           :name: A1
-          :author-note: Note 1}
+          :author-note: Note 1
+        }
         ::
 
         :author:{
           :name: A2
-          :author-note: Note 2}
+          :author-note: Note 2
+        }
         ::
 
         :author:{
           :name: A3
-          :author-note: Note 3}
+          :author-note: Note 3
+        }
         ::
 
         :author:{
           :name: A4
-          :author-note: Note 4}
+          :author-note: Note 4
+        }
         ::
 
         :author:{
           :name: A5
-          :author-note: Note 5}
+          :author-note: Note 5
+        }
         ::
 
         :author:{
           :name: A6
-          :author-note: Note 6}
+          :author-note: Note 6
+        }
         ::
 
         :author:{
           :name: A7
-          :author-note: Note 7}
+          :author-note: Note 7
+        }
         ::
 
         :author:{
           :name: A8
-          :author-note: Note 8}
-        ::
-
+          :author-note: Note 8
+        }
         ::
         """,
         want="""\
@@ -569,19 +579,22 @@ def test_complex_author_combination():
           :name: Alice
           :affiliation: MIT
           :orcid: 0000-0001-1111-1111
-          :author-note: Equal contribution}
+          :author-note: Equal contribution
+        }
         ::
 
         :author:{
           :name: Bob
           :affiliation: Harvard
-          :author-note: Equal contribution}
+          :author-note: Equal contribution
+        }
         ::
 
         :author:{
           :name: Carol
           :affiliation: MIT
-          :orcid: 0000-0002-2222-2222}
+          :orcid: 0000-0002-2222-2222
+        }
         ::
         """,
         want="""\
