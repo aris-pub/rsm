@@ -4,10 +4,10 @@ from conftest import compare_have_want
 def test_simple():
     compare_have_want(
         have="""\
-        :rsm:
+        # The Perron non-backtracking eigenvalue after node addition {
           :label: mylbl
-          :title: The Perron non-backtracking eigenvalue after node addition
           :date: 2022-03-29
+        }
 
         :author:
           :name: Leo Torres
@@ -15,10 +15,10 @@ def test_simple():
           :email: leo@leotrs.com
         ::
 
-        :abstract:
-          :keywords: {spectral graph theory, non-backtracking, interlacing}
-          :msc: {05C50, 05C82, 15A18, 15B99}
-
+        :abstract: {
+            :keywords: {spectral graph theory, non-backtracking, interlacing}
+            :msc: {05C50, 05C82, 15A18, 15B99}
+          }
           first
           second
           third
@@ -28,14 +28,13 @@ def test_simple():
 
         ::
 
-        :section:
-          :title: Introduction
+        ## Introduction {
+          :title:
           :label: sec-introduction
           :types: {t1, t2}
+        }
 
         Lorem ipsum.
-
-        ::
         """,
         want="""\
         <body>

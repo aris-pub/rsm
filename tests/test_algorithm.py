@@ -3,8 +3,7 @@ from conftest import compare_have_want
 
 def test_real_life_example():
     compare_have_want(
-        have=r"""        :rsm:
-
+        have=r"""
         :algorithm:
         \begin{algorithm}
         \caption{Quicksort}
@@ -30,8 +29,6 @@ def test_real_life_example():
             \ENDPROCEDURE
         \end{algorithmic}
         \end{algorithm}
-        ::
-
         ::
         """,
         want=r"""        <body>
@@ -86,10 +83,8 @@ def test_real_life_example():
 
 def test_label():
     compare_have_want(
-        have=r"""        :rsm:
-
-        :algorithm:
-        :label: alg
+        have=r"""
+        :algorithm: {:label: alg}
 
         \begin{algorithm}
         \caption{Quicksort}
@@ -97,8 +92,6 @@ def test_label():
         k=v
         \end{algorithmic}
         \end{algorithm}
-        ::
-
         ::
         """,
         want=r"""        <body>

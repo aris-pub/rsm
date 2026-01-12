@@ -4,11 +4,8 @@ from conftest import compare_have_want
 def test_no_reftext():
     compare_have_want(
         have="""\
-        :rsm:
-
         This paragraph has a hyperlink :url:https://www.apache.com::.
 
-        ::
         """,
         want="""\
         <body>
@@ -39,11 +36,7 @@ def test_no_reftext():
 def test_custom_reftext():
     compare_have_want(
         have="""\
-        :rsm:
-
         This is a link to :url:https://www.apache.com, Apache::.
-
-        ::
         """,
         want="""\
         <body>
@@ -74,11 +67,7 @@ def test_custom_reftext():
 def test_no_target():
     compare_have_want(
         have="""\
-        :rsm:
-
         This is a malformed url :url:::.
-
-        ::
         """,
         want="""\
         <body>
@@ -107,11 +96,7 @@ def test_no_target():
 
     compare_have_want(
         have="""\
-        :rsm:
-
         This is a malformed url with a space :url: ::.
-
-        ::
         """,
         want="""\
         <body>

@@ -506,7 +506,7 @@ def _abstractify(cst: TSTree) -> nodes.Manuscript:
                 # a text child node with field name 'title', so we must extract that
                 # here. Sections with a tag (":section:") have the title as a meta key,
                 # so that is handled when meta is ingested.
-                ast_node.title = section_title.text.decode("utf-8")
+                ast_node.title = section_title.text.decode("utf-8").strip()
                 skip_these_ids.add(section_title.id)
 
             if isinstance(ast_node, nodes.Manuscript):

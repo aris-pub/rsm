@@ -4,11 +4,7 @@ from conftest import compare_have_want
 def test_code():
     compare_have_want(
         have="""\
-        :rsm:
-
         :code: comp = [abs(x) for x in range(10)] ::
-
-        ::
         """,
         want="""\
         <body>
@@ -41,11 +37,7 @@ def test_code():
 def test_code_with_shorthand():
     compare_have_want(
         have="""\
-        :rsm:
-
         `comp = [abs(x) for x in range(10)]`
-
-        ::
         """,
         want="""\
         <body>
@@ -78,12 +70,8 @@ def test_code_with_shorthand():
 def test_code_with_lang():
     compare_have_want(
         have="""\
-        :rsm:
-
         :code: {:lang: python}
           comp = [abs(x) for x in range(10)]
-        ::
-
         ::
         """,
         want="""\
@@ -118,11 +106,7 @@ def test_code_with_lang():
 def test_code_with_shorthand_and_lang():
     compare_have_want(
         have="""\
-        :rsm:
-
         `{:lang: python} comp = [abs(x) for x in range(10)]`
-
-        ::
         """,
         want="""\
         <body>
@@ -156,13 +140,9 @@ def test_code_with_shorthand_and_lang():
 def test_codeblock():
     compare_have_want(
         have="""\
-        :rsm:
-
         :codeblock:
 
           comp = [abs(x) for x in range(10)]
-
-        ::
 
         ::
         """,
@@ -197,14 +177,9 @@ def test_codeblock():
 def test_codeblock_with_lang():
     compare_have_want(
         have="""\
-        :rsm:
-
-        :codeblock:
-          :lang: python
+        :codeblock: {:lang: python}
 
           comp = [abs(x) for x in range(10)]
-
-        ::
 
         ::
         """,
@@ -240,13 +215,9 @@ def test_codeblock_with_lang():
 def test_codeblock_with_shorthand():
     compare_have_want(
         have="""\
-        :rsm:
-
         ```
         comp = [abs(x) for x in range(10)]
         ```
-
-        ::
         """,
         want="""\
         <body>
@@ -279,16 +250,11 @@ def test_codeblock_with_shorthand():
 def test_codeblock_with_shorthand_and_lang():
     compare_have_want(
         have="""\
-        :rsm:
-
-        ```
-        :lang: python
+        ```{:lang: python}
 
         comp = [abs(x) for x in range(10)]
 
         ```
-
-        ::
         """,
         want="""\
         <body>
@@ -322,23 +288,20 @@ def test_codeblock_with_shorthand_and_lang():
 def test_meta():
     compare_have_want(
         have="""\
-        :rsm:
-
         `{:label: 1}k=v`
 
         :code:{:label: 2}k=v::
 
-        :codeblock:
+        :codeblock: {
           :label: 3
+        }
           k = v
         ::
 
         ```
-          :label: 4
+          {:label: 4}
           k = v
         ```
-
-        ::
         """,
         want="""\
         <body>
@@ -395,25 +358,23 @@ def test_meta():
 def test_meta_and_lang():
     compare_have_want(
         have="""\
-        :rsm:
-
         `{:label: 1, :lang: js}k=v`
 
         :code:{:label: 2, :lang: js}k=v::
 
-        :codeblock:
+        :codeblock: {
           :label: 3
           :lang: js
+        }
           k = v
         ::
 
-        ```
+        ``` {
           :label: 4
           :lang: js
+        }
           k = v
         ```
-
-        ::
         """,
         want="""\
         <body>
@@ -474,14 +435,10 @@ def test_meta_and_lang():
 def test_multiline_codeblock():
     compare_have_want(
         have="""\
-        :rsm:
-
         :codeblock:
 
         import sys
         print(sys.argv)
-
-        ::
 
         ::
         """,
@@ -517,15 +474,10 @@ def test_multiline_codeblock():
 def test_multiline_codeblock_with_lang():
     compare_have_want(
         have="""\
-        :rsm:
-
-        :codeblock:
-          :lang: python
+        :codeblock:{:lang: python}
 
         import sys
         print(sys.argv)
-
-        ::
 
         ::
         """,
@@ -562,14 +514,10 @@ def test_multiline_codeblock_with_lang():
 def test_multiline_codeblock_with_shorthand():
     compare_have_want(
         have="""\
-        :rsm:
-
         ```
         import sys
         print(sys.argv)
         ```
-
-        ::
         """,
         want="""\
         <body>
@@ -603,17 +551,13 @@ def test_multiline_codeblock_with_shorthand():
 def test_multiline_codeblock_with_shorthand_and_lang():
     compare_have_want(
         have="""\
-        :rsm:
-
         ```
-        :lang: python
+        {:lang: python}
 
         import sys
         print(sys.argv)
 
         ```
-
-        ::
         """,
         want="""\
         <body>
@@ -648,21 +592,16 @@ def test_multiline_codeblock_with_shorthand_and_lang():
 def test_multiline_meta():
     compare_have_want(
         have="""\
-        :rsm:
-
-        :codeblock:
-        :label: 3
+        :codeblock:{:label: 3}
         k = v
         key = val
         ::
 
         ```
-        :label: 4
+        {:label: 4}
         k = v
         key = val
         ```
-
-        ::
         """,
         want="""\
         <body>
@@ -705,11 +644,10 @@ def test_multiline_meta():
 def test_multiline_meta_and_lang():
     compare_have_want(
         have="""\
-        :rsm:
-
-        :codeblock:
-        :label: 3
-        :lang: lisp
+        :codeblock: {
+          :label: 3
+          :lang: lisp
+        }
         (defun forall (list func)
          (if (null list)
            t
@@ -717,17 +655,16 @@ def test_multiline_meta_and_lang():
            (forall (cdr list) func))))
         ::
 
-        ```
-        :label: 4
-        :lang: lisp
+        ``` {
+          :label: 4
+          :lang: lisp
+        }
         (defun forall (list func)
          (if (null list)
            t
            (and (funcall func (car list))
            (forall (cdr list) func))))
         ```
-
-        ::
         """,
         want="""\
         <body>

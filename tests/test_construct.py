@@ -3,21 +3,21 @@ from conftest import compare_have_want
 
 def test_real_life_example():
     compare_have_want(
-        have=r"""        :rsm:
-        :title: A simple proof
+        have=r"""
+        # A simple proof
 
         :let: $G$ be a simple graph::.  We will prove a fundamental fact about its structure.
         :define: $L(G) := |E(G)|$, where $E(G)$ is the set of edges of $G$:: and :write:
         $\deg(u)$ for the degree of a node $u \in V(G)$::.
 
-        :theorem:
-        :label: thm-main
-        :goal: eqn-thm
-        :types: {important, main}
+        :theorem: {
+          :label: thm-main
+          :goal: eqn-thm
+          :types: {important, main}
+        }
 
           We have
-          $$
-          :label: eqn-thm
+          $${:label: eqn-thm}
             \sum_{u \in V(G)} \deg(u) = 2L(G).
           $$
 
@@ -57,16 +57,15 @@ def test_real_life_example():
           :step: :define: $\deg_G(u), \deg_H(u)$ as the degree of node $u$ in
             $G$ and $H$ respectively.:: Note $\deg_G(v) = 0$. ::
 
-          :step:
-          :label: stp-edges
+          :step:{:label: stp-edges}
+
             :claim: $L(H) = L(G) + \deg_H(v)$::.
 
             :p: Because the only added edges are those incident to $v$.::
 
           ::
 
-          :step:
-          :label: stp-sum
+          :step:{:label: stp-sum}
             :claim: $\sum_{u \in V(H)} \deg_H(u) = 2\deg_H(v) + \sum_{u \in V(G)} \deg_G(u)$::.
 
             :step: :write: $W \subset V(G)$ for the set of neighbors of $v$.::::
@@ -106,7 +105,6 @@ def test_real_life_example():
             ::
 
           ::
-
         ::
         """,
         want=r"""

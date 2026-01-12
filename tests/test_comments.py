@@ -4,11 +4,7 @@ from conftest import EMPTY_WANT, compare_have_want
 def test_comment_one_line_comment():
     compare_have_want(
         have="""\
-        :rsm:
-
         % comment
-
-        ::
         """,
         want=EMPTY_WANT,
     )
@@ -17,12 +13,8 @@ def test_comment_one_line_comment():
 def test_comment_multi_line_comment():
     compare_have_want(
         have="""\
-        :rsm:
-
         % this is a
         % multi line comment
-
-        ::
         """,
         want=EMPTY_WANT,
     )
@@ -30,11 +22,8 @@ def test_comment_multi_line_comment():
 
 def test_escape_comment_delimiter():
     compare_have_want(
-        have=r"""        :rsm:
-
+        have=r"""
         \% This is not a comment.
-
-        ::
         """,
         want="""\
         <body>
@@ -64,12 +53,8 @@ def test_escape_comment_delimiter():
 
 def test_end_of_line_comment():
     compare_have_want(
-        have="""\
-        :rsm:
-
+        have="""
         Foo.% this is a comment at the end of a line
-
-        ::
         """,
         want="""
         <body>
@@ -99,11 +84,8 @@ def test_end_of_line_comment():
 
 def test_percent_within_math_is_not_a_comment():
     compare_have_want(
-        have=r"""        :rsm:
-
+        have=r"""
         $10\%$ this is not a comment
-
-        ::
         """,
         want=r"""        <body>
 
@@ -133,13 +115,9 @@ def test_percent_within_math_is_not_a_comment():
 def test_broken_paragraph():
     compare_have_want(
         have="""
-        :rsm:
-
         This is a paragraph
         % with a comment
         in the middle
-
-        ::
         """,
         want="""
         <body>

@@ -30,15 +30,10 @@ SIMPLE_WANT = """\
 def test_simple():
     compare_have_want(
         have="""\
-        :rsm:
-
-        :figure:
+        :figure: {
           :path: assets/example.png
-
           :caption: This is the figure caption.
-
-        ::
-
+        }
         ::
         """,
         want=SIMPLE_WANT,
@@ -48,17 +43,11 @@ def test_simple():
 def test_simple_with_extra_whitespace():
     compare_have_want(
         have="""\
-        :rsm:
-
-        :figure:
+        :figure: {
           :path: assets/example.png
-
           :caption:
             This is the figure caption.
-
-
-        ::
-
+        }
         ::
         """,
         want=SIMPLE_WANT,
@@ -68,17 +57,13 @@ def test_simple_with_extra_whitespace():
 def test_simple_with_multi_line_caption():
     compare_have_want(
         have="""\
-        :rsm:
-
-        :figure:
+        :figure: {
           :path: assets/example.png
 
           :caption:
             This is the figure caption.
             And it spans multiple lines.
-
-        ::
-
+        }
         ::
         """,
         want=SIMPLE_WANT.replace(
@@ -91,15 +76,11 @@ def test_simple_with_multi_line_caption():
 def test_caption_with_inline_tags():
     compare_have_want(
         have="""\
-        :rsm:
-
-        :figure:
+        :figure: {
           :path: assets/example.png
 
           :caption: This is the **figure** caption.
-
-        ::
-
+        }
         ::
         """,
         want="""
@@ -134,14 +115,10 @@ def test_caption_with_inline_tags():
 def test_video_mp4():
     compare_have_want(
         have="""\
-        :rsm:
-
-        :video:
+        :video:{
           :path: assets/demo.mp4
 
-          :caption: This is a video demonstration.
-
-        ::
+          :caption: This is a video demonstration.}
 
         ::
         """,
@@ -176,14 +153,10 @@ def test_video_mp4():
 def test_video_youtube():
     compare_have_want(
         have="""\
-        :rsm:
-
-        :video:
+        :video: {
           :path: https://www.youtube.com/watch?v=dQw4w9WgXcQ
 
-          :caption: YouTube video example.
-
-        ::
+          :caption: YouTube video example.}
 
         ::
         """,
@@ -219,15 +192,11 @@ def test_video_youtube():
 def test_html_asset():
     compare_have_want(
         have="""\
-        :rsm:
-
-        :html:
+        :html: {
           :path: tests/assets/test.html
 
           :caption: Interactive visualization.
-
-        ::
-
+}
         ::
         """,
         want="""\
@@ -269,32 +238,28 @@ def test_html_asset():
 def test_mixed_asset_numbering():
     compare_have_want(
         have="""\
-        :rsm:
-
-        :figure:
+        :figure: {
           :path: assets/chart.png
           :caption: First figure.
-
+        }
         ::
 
-        :video:
+        :video: {
           :path: assets/demo.mp4
           :caption: First video.
-
+        }
         ::
 
-        :figure:
+        :figure: {
           :path: assets/graph.jpg
           :caption: Second figure.
-
+        }
         ::
 
-        :html:
+        :html:{
           :path: tests/assets/viz.html
           :caption: First HTML.
-
-        ::
-
+        }
         ::
         """,
         want="""\

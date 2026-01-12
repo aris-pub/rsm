@@ -7,19 +7,18 @@ def test_two_authors_same_affiliation():
     """Two authors with same affiliation: no superscripts (only 1 unique)."""
     compare_have_want(
         have="""\
-        :rsm:
-          :title: Test
+        # Test
 
-        :author:
+        :author: {
           :name: Alice
           :affiliation: MIT
+        }
         ::
 
-        :author:
+        :author:{
           :name: Bob
           :affiliation: MIT
-        ::
-
+        }
         ::
         """,
         want="""\
@@ -68,19 +67,17 @@ def test_two_authors_different_affiliations():
     """Two authors with different affiliations should get different numbers."""
     compare_have_want(
         have="""\
-        :rsm:
-          :title: Test
+        # Test
 
-        :author:
+        :author: {
           :name: Alice
           :affiliation: MIT
+        }
         ::
 
-        :author:
+        :author: {
           :name: Bob
-          :affiliation: Harvard
-        ::
-
+          :affiliation: Harvard}
         ::
         """,
         want="""\
@@ -129,22 +126,21 @@ def test_three_authors_mixed_affiliations():
     """Three authors: two share affiliation, one different."""
     compare_have_want(
         have="""\
-        :rsm:
-          :title: Test
+        # Test
 
-        :author:
+        :author: {
           :name: Alice
-          :affiliation: MIT
+          :affiliation: MIT}
         ::
 
-        :author:
+        :author:{
           :name: Bob
-          :affiliation: Harvard
+          :affiliation: Harvard}
         ::
 
-        :author:
+        :author:{
           :name: Carol
-          :affiliation: MIT
+          :affiliation: MIT}
         ::
 
         ::
@@ -205,11 +201,10 @@ def test_author_with_no_affiliation():
     """Author without affiliation should not get a number."""
     compare_have_want(
         have="""\
-        :rsm:
-          :title: Test
+        # Test
 
-        :author:
-          :name: Alice
+        :author:{
+          :name: Alice}
         ::
 
         ::
@@ -248,19 +243,16 @@ def test_two_authors_same_note():
     """Two authors with same note: no superscripts (only 1 unique)."""
     compare_have_want(
         have="""\
-        :rsm:
-          :title: Test
+        # Test
 
-        :author:
+        :author: {
           :name: Alice
-          :author-note: Equal contribution
+          :author-note: Equal contribution}
         ::
 
-        :author:
+        :author: {
           :name: Bob
-          :author-note: Equal contribution
-        ::
-
+          :author-note: Equal contribution}
         ::
         """,
         want="""\
@@ -309,19 +301,16 @@ def test_two_authors_different_notes():
     """Two authors with different notes should get different symbols."""
     compare_have_want(
         have="""\
-        :rsm:
-          :title: Test
+        # Test
 
-        :author:
+        :author: {
           :name: Alice
-          :author-note: Equal contribution
+          :author-note: Equal contribution}
         ::
 
-        :author:
+        :author: {
           :name: Bob
-          :author-note: Now at MIT
-        ::
-
+          :author-note: Now at MIT}
         ::
         """,
         want="""\
@@ -370,13 +359,12 @@ def test_author_with_affiliation_and_note():
     """Single author: no superscripts (only 1 unique affiliation and note)."""
     compare_have_want(
         have="""\
-        :rsm:
-          :title: Test
+        # Test
 
-        :author:
+        :author: {
           :name: Alice
           :affiliation: MIT
-          :author-note: Equal contribution
+          :author-note: Equal contribution}
         ::
 
         ::
@@ -419,47 +407,46 @@ def test_many_notes_symbol_progression():
     """Test symbol progression: *, †, ‡, §, ¶, ‖, **, †† (with >5 authors collapsed)."""
     compare_have_want(
         have="""\
-        :rsm:
-          :title: Test
+        # Test
 
-        :author:
+        :author:{
           :name: A1
-          :author-note: Note 1
+          :author-note: Note 1}
         ::
 
-        :author:
+        :author:{
           :name: A2
-          :author-note: Note 2
+          :author-note: Note 2}
         ::
 
-        :author:
+        :author:{
           :name: A3
-          :author-note: Note 3
+          :author-note: Note 3}
         ::
 
-        :author:
+        :author:{
           :name: A4
-          :author-note: Note 4
+          :author-note: Note 4}
         ::
 
-        :author:
+        :author:{
           :name: A5
-          :author-note: Note 5
+          :author-note: Note 5}
         ::
 
-        :author:
+        :author:{
           :name: A6
-          :author-note: Note 6
+          :author-note: Note 6}
         ::
 
-        :author:
+        :author:{
           :name: A7
-          :author-note: Note 7
+          :author-note: Note 7}
         ::
 
-        :author:
+        :author:{
           :name: A8
-          :author-note: Note 8
+          :author-note: Note 8}
         ::
 
         ::
@@ -576,28 +563,25 @@ def test_complex_author_combination():
     """Complex: 2 affiliations (show labels), 1 note (no labels)."""
     compare_have_want(
         have="""\
-        :rsm:
-          :title: Test
+        # Test
 
-        :author:
+        :author:{
           :name: Alice
           :affiliation: MIT
           :orcid: 0000-0001-1111-1111
-          :author-note: Equal contribution
+          :author-note: Equal contribution}
         ::
 
-        :author:
+        :author:{
           :name: Bob
           :affiliation: Harvard
-          :author-note: Equal contribution
+          :author-note: Equal contribution}
         ::
 
-        :author:
+        :author:{
           :name: Carol
           :affiliation: MIT
-          :orcid: 0000-0002-2222-2222
-        ::
-
+          :orcid: 0000-0002-2222-2222}
         ::
         """,
         want="""\

@@ -4,19 +4,13 @@ from conftest import compare_have_want
 def test_numbered_sections():
     compare_have_want(
         have="""\
-        :rsm:
-
-        :section:
-          :title: First
+        ## First
 
         Content of first.
 
-        :section:
-          :title: Second
+        ## Second
 
         Content of second.
-
-        ::
         """,
         want="""\
         <body>
@@ -65,25 +59,19 @@ def test_numbered_sections():
 def test_nonum():
     compare_have_want(
         have="""\
-        :rsm:
-
-        :section:
-          :title: First
+        ## First
 
         Content of first.
 
-        :section:
-          :title: Second
+        ## Second {
           :nonum:
+        }
 
         Content of second.
 
-        :section:
-          :title: Third
+        ## Third
 
         Content of third.
-
-        ::
         """,
         want="""\
         <body>

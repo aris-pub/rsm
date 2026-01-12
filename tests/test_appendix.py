@@ -4,15 +4,11 @@ from conftest import compare_have_want
 def test_simple():
     compare_have_want(
         have="""
-        :rsm:
-
         ## Foo
 
         :appendix:
 
         ## Bar
-
-        ::
         """,
         want="""
         <body>
@@ -49,8 +45,6 @@ def test_simple():
 def test_subsection():
     compare_have_want(
         have="""
-        :rsm:
-
         ## Foo
         ### Sub Foo
 
@@ -58,8 +52,6 @@ def test_subsection():
 
         ## Bar
         ### Sub Bar
-
-        ::
         """,
         want="""
         <body>
@@ -108,8 +100,6 @@ def test_subsection():
 def test_theorem():
     compare_have_want(
         have="""
-        :rsm:
-
         ## Foo
         ### Sub Foo
 
@@ -121,8 +111,6 @@ def test_theorem():
         ### Sub Bar
 
         :theorem: ::
-
-        ::
         """,
         want="""
         <body>
@@ -191,16 +179,11 @@ def test_theorem():
 def test_section_reftext():
     compare_have_want(
         have="""
-        :rsm:
-
         :ref:app::
 
         :appendix:
 
-        ## Foo bar
-          :label: app
-
-        ::
+        ## Foo bar {:label: app}
         """,
         want="""
         <body>

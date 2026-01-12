@@ -9,12 +9,10 @@ def test_external_ref_html_generation():
     """External references should generate correct HTML with external class."""
     root_dir = Path(__file__).parent / "fixtures/crossref"
 
-    src = """:rsm:
-  :title: Main Document
+    src = """# Main Document
 
 This document references :ref:definitions/def.rsm#test-def::.
-
-::"""
+"""
 
     # Parse
     parser = rsm.tsparser.TSParser()
@@ -39,15 +37,13 @@ This document references :ref:definitions/def.rsm#test-def::.
 
 def test_internal_ref_html_generation():
     """Internal references should generate normal HTML without external class."""
-    src = """:rsm:
-  :title: Document
+    src = """# Document
 
 ## Section
   :label: my-section
 
 This references :ref:my-section::.
-
-::"""
+"""
 
     # Parse
     parser = rsm.tsparser.TSParser()
@@ -76,12 +72,10 @@ def test_external_ref_missing_file():
     """External references to missing files should generate error nodes."""
     root_dir = Path(__file__).parent / "fixtures/crossref"
 
-    src = """:rsm:
-  :title: Document
+    src = """# Document
 
 This references :ref:nonexistent/file.rsm#label::.
-
-::"""
+"""
 
     # Parse
     parser = rsm.tsparser.TSParser()

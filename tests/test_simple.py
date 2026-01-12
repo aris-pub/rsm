@@ -1,30 +1,10 @@
 from conftest import EMPTY_WANT, compare_have_want
 
 
-def test_empty_manuscript():
-    compare_have_want(have=":rsm: ::\n", want=EMPTY_WANT)
-
-
-def test_no_eof_newline():
-    compare_have_want(have=":rsm: ::", want=EMPTY_WANT)
-
-
-def test_ignore_starting_space():
-    compare_have_want(have="      :rsm: ::\n", want=EMPTY_WANT)
-
-
-def test_ignore_starting_newline():
-    compare_have_want(have="\n:rsm: ::\n", want=EMPTY_WANT)
-
-
 def test_no_manuscript_title():
     compare_have_want(
         have="""\
-        :rsm:
-
         Lorem ipsum.
-
-        ::
         """,
         want="""\
         <body>
@@ -55,12 +35,9 @@ def test_no_manuscript_title():
 def test_manuscript_title():
     compare_have_want(
         have="""\
-        :rsm:
-          :title: My Title
+        # My Title
 
         Lorem ipsum.
-
-        ::
         """,
         want="""\
         <body>
@@ -93,9 +70,7 @@ def test_manuscript_title():
 def test_manuscript_with_shortcut_title():
     compare_have_want(
         have="""\
-        :rsm:
         # Title
-        ::
         """,
         want="""\
         <body>
@@ -122,11 +97,11 @@ def test_manuscript_with_shortcut_title():
 def test_manuscript_meta():
     compare_have_want(
         have="""\
-        :rsm:
+        # My Title {
           :label: mylbl
           :title: My Title
           :date: 2022-03-29
-        ::
+        }
         """,
         want="""\
         <body>
@@ -155,16 +130,11 @@ def test_manuscript_meta():
 def test_section_header():
     compare_have_want(
         have="""\
-        :rsm:
-
         Lorem ipsum.
 
-        :section:
-          :title: section title
+        ## section title
 
         Lorem ipsum.
-
-        ::
         """,
         want="""\
         <body>

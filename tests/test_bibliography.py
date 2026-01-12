@@ -4,25 +4,17 @@ from conftest import compare_have_want
 def test_single():
     compare_have_want(
         have="""\
-        :rsm:
-          :title: My Title
+        # My Title
 
         This has a citation at the end. :cite:knuth::
 
-        :bibliography: ::
-
-        ::
-
-
-        :bibtex:
-
-        @book{knuth,
-          title={Art of computer programming, volume 2, Seminumerical algorithms},
-          author={Knuth, Donald E},
-          year={2014},
-          publisher={Addison-Wesley Professional}
-        }
-
+        :references:
+          @book{knuth,
+            title={Art of computer programming, volume 2, Seminumerical algorithms},
+            author={Knuth, Donald E},
+            year={2014},
+            publisher={Addison-Wesley Professional}
+          }
         ::
         """,
         want="""\
@@ -70,25 +62,17 @@ def test_single():
 def test_with_shortcuts():
     compare_have_want(
         have="""\
-        :rsm:
-          :title: My Title
+        # My Title
 
         This has a **citation** at the end. :cite:knuth::
 
-        :bibliography: ::
-
-        ::
-
-
-        :bibtex:
-
+        :references:
         @book{knuth,
           title={Art of computer programming, volume 2: Seminumerical algorithms},
           author={Knuth, Donald E},
           year={2014},
           publisher={Addison-Wesley Professional}
         }
-
         ::
         """,
         want="""\
@@ -136,18 +120,11 @@ def test_with_shortcuts():
 def test_many():
     compare_have_want(
         have="""\
-        :rsm:
-          :title: My Title
+        # My Title
 
         This has a citation at the end. :cite:torres2020,knuth::
 
-        :bibliography: ::
-
-        ::
-
-
-        :bibtex:
-
+        :references:
         @article{torres2020,
           title={Nonbacktracking eigenvalues under node removal: X-centrality and targeted immunization},
           author={Torres, Leo and Chan, Kevin S and Tong, Hanghang and Eliassi-Rad, Tina},
@@ -163,7 +140,6 @@ def test_many():
           year={2014},
           publisher={Addison-Wesley Professional}
         }
-
         ::
         """,
         want="""\
@@ -215,18 +191,11 @@ def test_many():
 def test_order():
     compare_have_want(
         have="""\
-        :rsm:
-          :title: My Title
+        # My Title
 
         This has a citation at the end. :cite:knuth,torres2020::
 
-        :bibliography: ::
-
-        ::
-
-
-        :bibtex:
-
+        :references:
         @article{torres2020,
           title={Nonbacktracking eigenvalues under node removal: X-centrality and targeted immunization},
           author={Torres, Leo and Chan, Kevin S and Tong, Hanghang and Eliassi-Rad, Tina},
@@ -242,7 +211,6 @@ def test_order():
           year={2014},
           publisher={Addison-Wesley Professional}
         }
-
         ::
         """,
         want="""\

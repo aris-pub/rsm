@@ -4,15 +4,11 @@ from conftest import compare_have_want
 def test_one_word():
     compare_have_want(
         have="""
-        :rsm:
-
         This should be a single wo:span:{:strong:}rd::.
 
         This should be a single :span:{:strong:}wo::rd.
 
         This should be a single w:span:{:strong:}or::d.
-
-        ::
         """,
         want="""
         <body>
@@ -55,15 +51,11 @@ def test_one_word():
 def test_one_word_with_shortcut():
     compare_have_want(
         have="""
-        :rsm:
-
         This should be a single wo**rd**.
 
         This should be a single **wo**rd.
 
         This should be a single w**or**d.
-
-        ::
         """,
         want="""
         <body>
@@ -106,15 +98,11 @@ def test_one_word_with_shortcut():
 def test_period_after():
     compare_have_want(
         have="""
-        :rsm:
-
         Period after math :math:2+2=4::.
 
         Period after code:code:k=v::.
 
         Period after claim :claim:foo::.
-
-        ::
         """,
         want=r"""        <body>
 
@@ -158,15 +146,11 @@ def test_period_after():
 def test_period_after_with_shortcut():
     compare_have_want(
         have="""
-        :rsm:
-
         Period after math $2+2=4$.
 
         Period after code`k=v`.
 
         Period after claim :|-:foo::.
-
-        ::
         """,
         want=r"""        <body>
 
@@ -210,13 +194,9 @@ def test_period_after_with_shortcut():
 def test_separate_words():
     compare_have_want(
         have="""
-        :rsm:
-
         :span:{:strong:}Separate:: words.
 
         Separate :span:{:strong:}words::.
-
-        ::
         """,
         want="""
         <body>
@@ -253,13 +233,9 @@ def test_separate_words():
 def test_separate_words_with_shortcut():
     compare_have_want(
         have="""
-        :rsm:
-
         **Separate** words.
 
         Separate **words**.
-
-        ::
         """,
         want="""
         <body>
@@ -296,13 +272,9 @@ def test_separate_words_with_shortcut():
 def test_span_multiline_content_middle_of_line():
     compare_have_want(
         have="""
-        :rsm:
-
         This is a paragraph
         with :span: {:strong:} a
         span :: that takes multiple lines
-
-        ::
         """,
         want="""
         <body>
@@ -333,13 +305,9 @@ def test_span_multiline_content_middle_of_line():
 def test_span_multiline_content_beginning_of_line():
     compare_have_want(
         have="""
-        :rsm:
-
         This is a paragraph with
         :span: {:strong:} a
         span :: that takes multiple lines
-
-        ::
         """,
         want="""
         <body>
@@ -370,13 +338,9 @@ def test_span_multiline_content_beginning_of_line():
 def test_span_multiline_content_beginning_of_line_with_shortcut():
     compare_have_want(
         have="""
-        :rsm:
-
         This is a paragraph with
         ** a
         span ** that takes multiple lines
-
-        ::
         """,
         want="""
         <body>
@@ -444,12 +408,8 @@ def test_span_multiline_content_middle_of_line_with_shortcut():
 def test_math_start_of_line():
     compare_have_want(
         have="""
-        :rsm:
-
         This is a paragraph with
         :math:2+2=4:: at the start of a line.
-
-        ::
         """,
         want=r"""        <body>
 
@@ -479,12 +439,8 @@ def test_math_start_of_line():
 def test_math_start_of_line_with_shortcut():
     compare_have_want(
         have="""
-        :rsm:
-
         This is a paragraph with
         $2+2=4$ at the start of a line.
-
-        ::
         """,
         want=r"""        <body>
 
@@ -514,15 +470,11 @@ def test_math_start_of_line_with_shortcut():
 def test_table_tr():
     compare_have_want(
         have="""
-        :rsm:
-
         :table:
 
         :tbody:
 
         :tr: :td: *foo* :: :td: **bar** :: ::
-
-        ::
 
         ::
 
@@ -571,15 +523,11 @@ def test_table_tr():
 def test_table_trshort():
     compare_have_want(
         have="""
-        :rsm:
-
         :table:
 
         :tbody:
 
         :tr: *foo* : **bar** ::
-
-        ::
 
         ::
 
@@ -628,8 +576,6 @@ def test_table_trshort():
 def test_ignore_space_within_inline():
     compare_have_want(
         have="""
-        :rsm:
-
         Ignore space :span: {:strong:} within :: inline.
 
         Ignore space :span: {:strong:}   within   :: inline.
@@ -637,8 +583,6 @@ def test_ignore_space_within_inline():
         Ignore space :claim: within :: inline.
 
         Ignore space :claim:   within   :: inline.
-
-        ::
         """,
         want="""
         <body>
@@ -687,8 +631,6 @@ def test_ignore_space_within_inline():
 def test_ignore_space_within_inline_with_shortcut():
     compare_have_want(
         have="""
-        :rsm:
-
         Ignore space ** within ** inline.
 
         Ignore space **   within   ** inline.
@@ -696,8 +638,6 @@ def test_ignore_space_within_inline_with_shortcut():
         Ignore space :|-: within ::. inline.
 
         Ignore space :|-:   within   ::. inline.
-
-        ::
         """,
         want="""
         <body>
@@ -746,8 +686,6 @@ def test_ignore_space_within_inline_with_shortcut():
 def test_consecutive_lines_should_be_joined_by_spaces():
     compare_have_want(
         have="""
-        :rsm:
-
         Consecutive lines should be
         joined by spaces.
 
@@ -765,8 +703,6 @@ def test_consecutive_lines_should_be_joined_by_spaces():
 
         Consecutive lines should **be**
         joined by spaces.
-
-        ::
         """,
         want="""
         <body>
@@ -827,11 +763,7 @@ def test_consecutive_lines_should_be_joined_by_spaces():
 def test_span_span():
     compare_have_want(
         have="""
-        :rsm:
-
-          :span: foo :: :span: bar ::
-
-        ::
+        :span: foo :: :span: bar ::
         """,
         want="""
         <body>
@@ -862,11 +794,7 @@ def test_span_span():
 def test_span_construct():
     compare_have_want(
         have="""
-        :rsm:
-
-          :span: foo :: :prove: bar ::
-
-        ::
+        :span: foo :: :prove: bar ::
         """,
         want="""
         <body>
@@ -897,11 +825,7 @@ def test_span_construct():
 def test_construct_construct():
     compare_have_want(
         have="""
-        :rsm:
-
-          :pick:foo :: :st: bar ::
-
-        ::
+        :pick:foo :: :st: bar ::
         """,
         want="""
         <body>
@@ -932,11 +856,7 @@ def test_construct_construct():
 def test_math_math():
     compare_have_want(
         have="""
-        :rsm:
-
-          $2$ $2$
-
-        ::
+        $2$ $2$
         """,
         want=r"""
         <body>

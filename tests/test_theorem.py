@@ -4,13 +4,9 @@ from conftest import compare_have_want
 def test_simple():
     compare_have_want(
         have="""\
-        :rsm:
-
         :theorem:
 
         Theorem contents.
-
-        ::
 
         ::
         """,
@@ -53,8 +49,6 @@ def test_simple():
 def test_multiple():
     compare_have_want(
         have="""\
-        :rsm:
-
         :theorem:
 
         Theorem contents.
@@ -70,8 +64,6 @@ def test_multiple():
         :theorem:
 
         Another theorem.
-
-        ::
 
         ::
         """,

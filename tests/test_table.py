@@ -4,11 +4,7 @@ from conftest import compare_have_want
 def test_empty_table():
     compare_have_want(
         have="""\
-        :rsm:
-
         :table:
-
-        ::
 
         ::
         """,
@@ -43,15 +39,11 @@ def test_empty_table():
 def test_one_row_no_header():
     compare_have_want(
         have="""
-        :rsm:
-
         :table:
 
         :tbody:
 
         :tr: :td:foo:: :td:bar:: ::
-
-        ::
 
         ::
 
@@ -100,8 +92,6 @@ def test_one_row_no_header():
 def test_two_rows_no_header():
     compare_have_want(
         have="""
-        :rsm:
-
         :table:
 
         :tbody:
@@ -109,8 +99,6 @@ def test_two_rows_no_header():
         :tr: :td:one:: :td:two:: ::
 
         :tr: :td:three:: :td:four:: ::
-
-        ::
 
         ::
 
@@ -167,8 +155,6 @@ def test_two_rows_no_header():
 def test_with_header():
     compare_have_want(
         have="""
-        :rsm:
-
         :table:
 
         :thead:
@@ -182,8 +168,6 @@ def test_with_header():
         :tr: :td:one:: :td:two:: ::
 
         :tr: :td:three:: :td:four:: ::
-
-        ::
 
         ::
 
@@ -251,15 +235,12 @@ def test_with_header():
 
 def test_math_in_header():
     compare_have_want(
-        have=r"""        :rsm:
-
+        have=r"""
         :table:
 
         :thead:
 
         :tr: :td: $H^{\eta}$ :: :td: $H^{*}$ :: :td: $H^{c}$ :: ::
-
-        ::
 
         ::
 
@@ -309,15 +290,11 @@ def test_math_in_header():
 def test_shortcuts_in_header():
     compare_have_want(
         have="""
-        :rsm:
-
         :table:
 
         :tbody:
 
         :tr: :td: *foo* :: :td: **bar** :: ::
-
-        ::
 
         ::
 
@@ -366,8 +343,6 @@ def test_shortcuts_in_header():
 def test_simple_caption():
     compare_have_want(
         have="""
-        :rsm:
-
         :table:
 
         :tbody:
@@ -378,8 +353,6 @@ def test_simple_caption():
 
         :caption:
         This is a caption.
-
-        ::
 
         ::
         """,
@@ -430,8 +403,6 @@ def test_simple_caption():
 def test_simple_caption_with_shortcuts():
     compare_have_want(
         have="""
-        :rsm:
-
         :table:
 
         :tbody:
@@ -442,8 +413,6 @@ def test_simple_caption_with_shortcuts():
 
         :caption:
         This is a *caption* with shortcuts $2+2$.
-
-        ::
 
         ::
         """,
@@ -493,10 +462,7 @@ def test_simple_caption_with_shortcuts():
 def test_reference_to_table():
     compare_have_want(
         have="""
-        :rsm:
-
-        :table:
-        :label: lbl
+        :table:{:label: lbl}
 
         :tbody:
 
@@ -507,8 +473,6 @@ def test_reference_to_table():
         ::
 
         This :ref:lbl:: refers to the table.
-
-        ::
         """,
         want="""
         <body>
@@ -559,10 +523,7 @@ def test_reference_to_table():
 def test_reference_to_table_with_reftext():
     compare_have_want(
         have="""
-        :rsm:
-
-        :table:
-        :label: lbl
+        :table: {:label: lbl}
 
         :tbody:
 
@@ -573,8 +534,6 @@ def test_reference_to_table_with_reftext():
         ::
 
         This :ref:lbl,refers:: to the table.
-
-        ::
         """,
         want="""
         <body>
@@ -625,8 +584,6 @@ def test_reference_to_table_with_reftext():
 def test_extra_space_within_tr():
     compare_have_want(
         have="""
-        :rsm:
-
         :table:
 
         :tbody:
@@ -634,8 +591,6 @@ def test_extra_space_within_tr():
         :tr:
           :td:foo::
           :td:bar::
-        ::
-
         ::
 
         ::
@@ -684,10 +639,8 @@ def test_extra_space_within_tr():
 
 def test_real_life_example():
     compare_have_want(
-        have=r"""        :rsm:
-
-        :table:
-          :label: lbl
+        have=r"""
+        :table: {:label: lbl}
 
           :thead:
             :tr: :td: $H^{\tau}$ :: :td: $H^{*}$ :: :td: $H^{c}$ :: ::
@@ -700,8 +653,6 @@ def test_real_life_example():
 
           :caption:
           Values of $\epsilon$ and $\delta$ for select subgraphs of Gr-Qc.
-
-        ::
 
         ::
         """,
@@ -776,10 +727,9 @@ def test_real_life_example():
 
 def test_real_life_example_different_spacing():
     compare_have_want(
-        have=r"""         :rsm:
-
+        have=r"""
         :table:
-          :label: lbl
+        {  :label: lbl}
 
           :thead:
           :tr:
@@ -801,8 +751,6 @@ def test_real_life_example_different_spacing():
 
           :caption:
           Values of $\epsilon$ and $\delta$ for select subgraphs of Gr-Qc.
-
-        ::
 
         ::
         """,
@@ -878,8 +826,6 @@ def test_real_life_example_different_spacing():
 def test_tr_shortcut():
     compare_have_want(
         have="""
-        :rsm:
-
         :table:
 
         :thead:
@@ -888,8 +834,6 @@ def test_tr_shortcut():
         :tbody:
         :tr: a1 : a2 : a3 ::
         :tr: b1 : b2 : b3 ::
-        ::
-
         ::
 
         ::
@@ -962,8 +906,7 @@ def test_tr_shortcut():
 
 def test_tr_shortcut_with_math():
     compare_have_want(
-        have=r"""        :rsm:
-
+        have=r"""
         :table:
 
         :thead:
@@ -972,8 +915,6 @@ def test_tr_shortcut_with_math():
         :tbody:
         :tr: $0.0001$ : $0.0146$ : $0.0549$ ::
         :tr: $0.1222$ : $0.0139$ : $0.0106$ ::
-        ::
-
         ::
 
         ::
@@ -1046,8 +987,6 @@ def test_tr_shortcut_with_math():
 def test_tr_shortcut_with_newlines():
     compare_have_want(
         have="""
-        :rsm:
-
         :table:
 
         :thead:
@@ -1062,8 +1001,6 @@ def test_tr_shortcut_with_newlines():
         :tr:
         b1 : b2 : b3
         ::
-        ::
-
         ::
 
         ::
@@ -1135,8 +1072,7 @@ def test_tr_shortcut_with_newlines():
 
 def test_tr_shortcut_with_escaped_colon():
     compare_have_want(
-        have=r"""        :rsm:
-
+        have=r"""
         :table:
 
         :thead:
@@ -1145,8 +1081,6 @@ def test_tr_shortcut_with_escaped_colon():
         :tbody:
         :tr: a\: : a2 : a3 ::
         :tr: b1  : b2 : b3 ::
-        ::
-
         ::
 
         ::

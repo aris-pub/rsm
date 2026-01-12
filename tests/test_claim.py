@@ -4,14 +4,9 @@ from conftest import compare_have_want
 def test_simple():
     compare_have_want(
         have="""\
-        :rsm:
-
-        :section:
-          :title: Section
+        ## Section
 
           This paragraph contains a claim :claim: {:label: clm-lbl}all $X$ are $Y$ ::.
-
-        ::
         """,
         want=r"""
         <body>
@@ -48,11 +43,7 @@ def test_simple():
 def test_with_math():
     compare_have_want(
         have="""\
-        :rsm:
-
         This paragraph has math inside a claim :claim: :math:2+2=4:: ::.
-
-        ::
         """,
         want=r"""
         <body>
@@ -83,8 +74,6 @@ def test_with_math():
 def test_claim_within_list():
     compare_have_want(
         have="""\
-        :rsm:
-
         We now make a bunch of claims.
 
         :enumerate:
@@ -92,8 +81,6 @@ def test_claim_within_list():
         :-: {:label: one} :claim: :math:2+2=4:: ::.
 
         :-: {:label: two} :claim: :math:3+3=6:: ::.
-
-        ::
 
         ::
         """,

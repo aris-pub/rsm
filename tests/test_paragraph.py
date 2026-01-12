@@ -4,10 +4,8 @@ from conftest import compare_have_want
 def test_succeeding_blankline():
     compare_have_want(
         have="""\
-        :rsm:
-
         Foo.
-        ::
+
         """,
         want="""\
         <body>
@@ -38,10 +36,7 @@ def test_succeeding_blankline():
 def test_succeeding_blankline_with_tag():
     compare_have_want(
         have="""\
-        :rsm:
-
         :paragraph: {:types: foo}This is a paragraph.
-        ::
         """,
         want="""
         <body>
@@ -71,11 +66,8 @@ def test_succeeding_blankline_with_tag():
 
 def test_tag_no_meta():
     compare_have_want(
-        have="""\
-        :rsm:
-
+        have="""
         :paragraph: This is a paragraph.
-        ::
         """,
         want="""
         <body>
@@ -85,13 +77,7 @@ def test_tag_no_meta():
         <div class="manuscript" data-nodeid="0">
 
         <section class="level-1">
-        <span class="error" data-nodeid="1">[CST error at (2, 0) - (2, 11)]</span>
-        <div class="paragraph" data-nodeid="2">
-
-        <p>This is a paragraph.</p>
-
-        </div>
-
+        <span class="error" data-nodeid="1">[CST error at (0, 0) - (0, 32)]</span>
         </section>
 
         </div>
@@ -106,11 +92,7 @@ def test_tag_no_meta():
 def test_start_with_tag():
     compare_have_want(
         have="""\
-        :rsm:
-
         :span: {:strong:} this tag :: starts the paragraph.
-
-        ::
         """,
         want="""
         <body>
@@ -141,11 +123,7 @@ def test_start_with_tag():
 def test_start_with_shortcut():
     compare_have_want(
         have="""\
-        :rsm:
-
         :|-: A claim::.
-
-        ::
         """,
         want="""
         <body>
@@ -176,15 +154,15 @@ def test_start_with_shortcut():
 def test_simple():
     compare_have_want(
         have="""\
-        :rsm:
+        # The Perron non-backtracking eigenvalue after node addition {
           :label: mylbl
-          :title: The Perron non-backtracking eigenvalue after node addition
           :date: 2022-03-29
+        }
 
-        :section:
-          :title: Introduction
+        ## Introduction {
           :label: sec-introduction
           :types: {t1, t2}
+        }
 
         Lorem ipsum.
 
@@ -201,8 +179,6 @@ def test_simple():
         :paragraph: {:label: par3, :types: {a, b, c}} This is a paragraph with meta data. It
         has several lines of text. It has several lines of text. It has several lines of
         text. It has several lines of text. It has several lines of text.
-
-        ::
         """,
         want="""\
         <body>
@@ -261,16 +237,13 @@ def test_simple():
 def test_mathblock_inside_paragraph():
     compare_have_want(
         have="""\
-        :rsm:
-          :title: Mathblocks inside paragraphs
+        # Mathblocks inside paragraphs
 
         This is a paragraph and the following equation
         $$
         2+2 = 4,
         $$
         should be part of the same paragraph still.
-
-        ::
         """,
         want="""\
         <body>
@@ -308,15 +281,12 @@ def test_mathblock_inside_paragraph():
 def test_mathblock_ending_paragraph():
     compare_have_want(
         have="""\
-        :rsm:
-          :title: Mathblocks inside paragraphs
+        # Mathblocks inside paragraphs
 
         This is a paragraph that ends with an equation.
         $$
         2+2 = 4.
         $$
-
-        ::
         """,
         want="""\
         <body>
