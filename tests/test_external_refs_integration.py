@@ -40,7 +40,7 @@ def test_internal_ref_html_generation():
     src = """# Document
 
 ## Section
-  :label: my-section
+  {:label: my-section}
 
 This references :ref:my-section::.
 """

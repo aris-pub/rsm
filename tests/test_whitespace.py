@@ -371,13 +371,9 @@ def test_span_multiline_content_beginning_of_line_with_shortcut():
 def test_span_multiline_content_middle_of_line_with_shortcut():
     compare_have_want(
         have="""
-        :rsm:
-
         This is a paragraph
         with ** a
         span ** that takes multiple lines
-
-        ::
         """,
         want="""
         <body>

@@ -1,9 +1,6 @@
-:rsm:
-  :title: Test Definition
+# Test Definition
 
 ## Definition
-  :label: test-def
+  {:label: test-def}
 
 This is a test definition.
-
-::
