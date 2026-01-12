@@ -77,13 +77,7 @@ def test_no_target():
         <div class="manuscript" data-nodeid="0">
 
         <section class="level-1">
-
-        <div class="paragraph" data-nodeid="1">
-
-        <p>This is a malformed url [CST error at (2, 24) - (2, 31)] .</p>
-
-        </div>
-
+        <span class="error" data-nodeid="1">[CST error at (0, 0) - (0, 32)]</span>
         </section>
 
         </div>
@@ -106,13 +100,7 @@ def test_no_target():
         <div class="manuscript" data-nodeid="0">
 
         <section class="level-1">
-
-        <div class="paragraph" data-nodeid="1">
-
-        <p>This is a malformed url with a space [CST error at (2, 37) - (2, 45)] .</p>
-
-        </div>
-
+        <span class="error" data-nodeid="1">[CST error at (0, 0) - (0, 46)]</span>
         </section>
 
         </div>

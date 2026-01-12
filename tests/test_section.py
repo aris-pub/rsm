@@ -55,7 +55,6 @@ def test_subsections():
 
         Bar
 
-        ::
         """,
         want="""\
         <body>

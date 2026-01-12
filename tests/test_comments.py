@@ -55,6 +55,7 @@ def test_end_of_line_comment():
     compare_have_want(
         have="""
         Foo.% this is a comment at the end of a line
+
         """,
         want="""
         <body>

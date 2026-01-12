@@ -635,7 +635,6 @@ def test_resolve_pending_references_external():
 
 This document references :ref:definitions/def.rsm#test-def::.
 """
-
     parser = rsm.tsparser.TSParser()
     tree = parser.parse(src)
 
