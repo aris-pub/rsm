@@ -7,11 +7,10 @@ from conftest import compare_have_want
 def test_simple():
     compare_have_want(
         have="""\
-        :rsm:
-          :title: My Title
+        # My Title
 
         :enumerate:
-          :label: enm-foo
+          {:label: enm-foo}
 
           :-: {:label: itm-1} Foo bar.
 
@@ -25,7 +24,7 @@ def test_simple():
         ::
 
         :itemize:
-          :label: itm-foo
+          {:label: itm-foo}
 
           :-: {:label: itm-4} Foo bar.
 
@@ -35,8 +34,6 @@ def test_simple():
           :-: {:label: itm-6}
           Lorem ipsum dolor sit amet Lorem ipsum dolor sit amet Lorem
           ipsum dolor sit amet.
-
-        ::
 
         ::
         """,
@@ -98,11 +95,7 @@ def test_item_with_wrong_parent():
     with pytest.raises(rsm.nodes.RSMNodeError):
         compare_have_want(
             have="""\
-            :rsm:
-
             :-: Foo bar.
-
-            ::
             """,
             want="XXX",
         )
@@ -110,26 +103,18 @@ def test_item_with_wrong_parent():
     with pytest.raises(rsm.nodes.RSMNodeError):
         compare_have_want(
             have="""\
-            :rsm:
-
             # Some section
 
             :-: Foo bar.
-
-            ::
             """,
             want="XXX",
         )
 
     compare_have_want(
         have="""\
-        :rsm:
-
         ## Some section
 
         Lorem ipsum - Foo bar.
-
-        ::
         """,
         want="""\
         <body>

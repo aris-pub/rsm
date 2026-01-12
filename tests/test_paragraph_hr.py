@@ -4,15 +4,11 @@ from conftest import compare_have_want_handrails
 def test_paragraph_with_mathblock_ending_with_text():
     compare_have_want_handrails(
         have="""
-        :rsm:
-
         This is a paragraph with math inside of it
         $$
         2+2=4,
         $$
         and it ends with text.
-
-        ::
         """,
         want="""
         <body>
@@ -166,14 +162,10 @@ def test_paragraph_with_mathblock_ending_with_text():
 def test_paragraph_ending_with_mathblock():
     compare_have_want_handrails(
         have="""
-        :rsm:
-
         This is a paragraph with math inside of it
         $$
         2+2=4.
         $$
-
-        ::
         """,
         want="""
         <body>
@@ -327,8 +319,6 @@ def test_paragraph_ending_with_mathblock():
 def test_paragraph_with_icon_ending_with_mathblock():
     compare_have_want_handrails(
         have=r"""
-        :rsm:
-
         :paragraph: {:icon: heart} Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
         do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
         quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
@@ -336,9 +326,6 @@ def test_paragraph_with_icon_ending_with_mathblock():
         \left( \mathbf{B} \mathbf{v} \right)_{i \to j} = \sum_{k \to i \in \vec{E}}
         \mathbf{v}_{k \to i} - \mathbf{v}_{j \to i}.
         $$
-
-
-        ::
         """,
         want=r"""
         <body>
@@ -496,8 +483,6 @@ def test_paragraph_with_icon_ending_with_mathblock():
 def test_paragraph_with_icon_with_mathblock_ending_with_text():
     compare_have_want_handrails(
         have=r"""
-        :rsm:
-
         :paragraph: {:icon: heart} Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
         do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
         quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
@@ -506,8 +491,6 @@ def test_paragraph_with_icon_with_mathblock_ending_with_text():
         \mathbf{v}_{k \to i} - \mathbf{v}_{j \to i}.
         $$
         Lorem ipsum.
-
-        ::
         """,
         want=r"""
         <body>
@@ -665,8 +648,6 @@ def test_paragraph_with_icon_with_mathblock_ending_with_text():
 def test_two_paragraphs_with_icon():
     compare_have_want_handrails(
         have=r"""
-        :rsm:
-
         :paragraph: {:icon: heart} Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
         do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
         quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
@@ -680,8 +661,6 @@ def test_two_paragraphs_with_icon():
         sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim
         veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
         consequat.
-
-        ::
         """,
         want=r"""
         <body>
@@ -907,8 +886,6 @@ def test_two_paragraphs_with_icon():
 def test_two_paragraphs_with_icon_no_mathblock():
     compare_have_want_handrails(
         have=r"""
-        :rsm:
-
         :paragraph: {:icon: heart} Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
         do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
         quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
@@ -917,8 +894,6 @@ def test_two_paragraphs_with_icon_no_mathblock():
         sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim
         veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
         consequat.
-
-        ::
         """,
         want=r"""
         <body>

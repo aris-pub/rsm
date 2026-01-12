@@ -4,15 +4,11 @@ from conftest import compare_have_want
 def test_simple_no_handrails():
     compare_have_want(
         have="""\
-        :rsm:
-
         :sketch: Foo.::
 
         :proof:
 
           :step: Bar.::
-
-        ::
 
         ::
         """,

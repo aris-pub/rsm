@@ -4,12 +4,9 @@ from conftest import compare_have_want
 def test_one_strong():
     compare_have_want(
         have="""\
-        :rsm:
-          :title: My Title
+        # My Title
 
         This paragraph has a **shortcut** for strong span.
-
-        ::
         """,
         want="""
         <body>
@@ -42,12 +39,9 @@ def test_one_strong():
 def test_two_strong():
     compare_have_want(
         have="""\
-        :rsm:
-          :title: My Title
+        # My Title
 
         This paragraph has two **shortcuts** for strong **spans**.
-
-        ::
         """,
         want="""
         <body>
@@ -80,12 +74,9 @@ def test_two_strong():
 def test_one_emphas():
     compare_have_want(
         have="""\
-        :rsm:
-          :title: My Title
+        # My Title
 
         This paragraph has a *shortcut* for emphasis span.
-
-        ::
         """,
         want="""
         <body>
@@ -118,12 +109,9 @@ def test_one_emphas():
 def test_one_math():
     compare_have_want(
         have="""\
-        :rsm:
-          :title: My Title
+        # My Title
 
         This paragraph has some $2+2=4$ awesome math.
-
-        ::
         """,
         want=r"""        <body>
 
@@ -155,13 +143,10 @@ def test_one_math():
 def test_two_math():
     compare_have_want(
         have="""\
-        :rsm:
-          :title: My Title
+        # My Title
 
         This paragraph has some $2+2=4$ awesome math and also some math that $2 + 2 + 2
         + 2 + 2 = 10$ is broken down.
-
-        ::
         """,
         want=r"""        <body>
 
@@ -194,12 +179,8 @@ def test_two_math():
 def test_mathblock():
     compare_have_want(
         have="""\
-        :rsm:
-
         This paragraph is followed by display math
         $$2 + 2 = 4.$$
-
-        ::
         """,
         want="""
         <body>
@@ -235,14 +216,9 @@ def test_mathblock():
 def test_section_shortcut():
     compare_have_want(
         have="""\
-        :rsm:
-
-        ## My Section
-          :label: my-sec
+        ## My Section{:label: my-sec}
 
         This section contains a shortcut
-
-        ::
         """,
         want="""
         <body>
@@ -279,8 +255,6 @@ def test_section_shortcut():
 def test_subsubsection_shortcut():
     compare_have_want(
         have="""\
-        :rsm:
-
         ## My Section
 
         Foo.
@@ -292,8 +266,6 @@ def test_subsubsection_shortcut():
         #### My Subsubsection
 
         Baz.
-
-        ::
         """,
         want="""
         <body>
@@ -354,12 +326,8 @@ def test_subsubsection_shortcut():
 def test_claim_shortcut():
     compare_have_want(
         have="""\
-        :rsm:
-
         This paragraph contains a :|-: claim with a turnstile::. And also another one :⊢: but it takes
         multiple lines::.
-
-        ::
         """,
         want="""
         <body>
@@ -390,8 +358,6 @@ def test_claim_shortcut():
 def test_prev_shortcut():
     compare_have_want(
         have="""\
-        :rsm:
-
         :theorem:
 
         All $X$ are $Y$.
@@ -400,16 +366,13 @@ def test_prev_shortcut():
 
         :proof:
 
-        :step:
-          :label: st1
+        :step:{:label: st1}
           All $X$ are $Z$ and all $Z$ are $Y$.
         ::
 
         :step: :qed:.
 
            :p: Due to :prev:.::
-
-        ::
 
         ::
 
@@ -503,8 +466,6 @@ def test_prev_shortcut():
 def test_prev2_shortcut():
     compare_have_want(
         have="""\
-        :rsm:
-
         :theorem:
 
         All $X$ are $Y$.
@@ -514,20 +475,18 @@ def test_prev2_shortcut():
         :proof:
 
         :step:
-          :label: st1
+          {:label: st1}
           All $X$ are $Z$ and all $Z$ are $Y$.
         ::
 
         :step:
-          :label: st2
+          {:label: st2}
           Something inconsequential here.
         ::
 
         :step: :qed:.
 
            :p: Due to :prev2:.::
-
-        ::
 
         ::
 
@@ -635,8 +594,6 @@ def test_prev2_shortcut():
 def test_prev_and_prev2_shortcut():
     compare_have_want(
         have="""\
-        :rsm:
-
         :theorem:
 
         All $X$ are $Y$.
@@ -646,20 +603,18 @@ def test_prev_and_prev2_shortcut():
         :proof:
 
         :step:
-          :label: st1
+          {:label: st1}
           All $X$ are $Z$.
         ::
 
         :step:
-          :label: st2
+          {:label: st2}
           All $Z$ are $Y$.
         ::
 
         :step: :qed:.
 
            :p: Due to :prev: and :prev2:.::
-
-        ::
 
         ::
 
@@ -767,11 +722,7 @@ def test_prev_and_prev2_shortcut():
 def test_code_shortcut():
     compare_have_want(
         have="""\
-        :rsm:
-
         This is inline code`comp = [abs(x) for x in range(10)]`.
-
-        ::
         """,
         want="""
         <body>
@@ -804,13 +755,9 @@ def test_code_shortcut():
 def test_codeblock_shortcut():
     compare_have_want(
         have="""\
-        :rsm:
-
         ```
         comp = [abs(x) for x in range(10)]
         ```
-
-        ::
         """,
         want="""
         <body>
@@ -842,13 +789,10 @@ def test_codeblock_shortcut():
 
 def test_hashtag_not_at_the_start_of_line():
     compare_have_want(
-        have=r"""        :rsm:
-
+        have=r"""
         ## This is a section title
 
         And \# this is not!
-
-        ::
         """,
         want="""
         <body>
@@ -884,11 +828,8 @@ def test_hashtag_not_at_the_start_of_line():
 
 def test_escaped_colon_behind_halmos():
     compare_have_want(
-        have=r"""        :rsm:
-
+        have=r"""
         Shortcut right beside an escaped colon :span: {:emphas:} foo\:::
-
-        ::
         """,
         want="""
         <body>
@@ -918,11 +859,8 @@ def test_escaped_colon_behind_halmos():
 
 def test_escaped_colon_behind_halmos_after_shortcut():
     compare_have_want(
-        have=r"""        :rsm:
-
+        have=r"""
         Shortcut right beside an escaped colon **foo\:**
-
-        ::
         """,
         want="""
         <body>
@@ -953,11 +891,7 @@ def test_escaped_colon_behind_halmos_after_shortcut():
 def test_math_after_turnstile():
     compare_have_want(
         have="""\
-        :rsm:
-
         This paragraph has math inside a claim :⊢: $2+2=4$::.
-
-        ::
         """,
         want=r"""
         <body>
@@ -988,8 +922,6 @@ def test_math_after_turnstile():
 def test_turnstile_and_math_within_list():
     compare_have_want(
         have="""\
-        :rsm:
-
         We now make a bunch of claims
 
         :enumerate:
@@ -997,8 +929,6 @@ def test_turnstile_and_math_within_list():
         :-: {:label: one} :⊢: $2+2=4$::.
 
         :-: {:label: two} :⊢: $3+3=6$::.
-
-        ::
 
         ::
         """,
@@ -1042,11 +972,7 @@ def test_turnstile_and_math_within_list():
 def test_asterisk_inside_math():
     compare_have_want(
         have="""\
-        :rsm:
-
         $2*2 = 4*1$
-
-        ::
         """,
         want=r"""        <body>
 
@@ -1076,11 +1002,7 @@ def test_asterisk_inside_math():
 def test_asterisk_inside_code():
     compare_have_want(
         have="""\
-        :rsm:
-
         `[x**2 for x in range(10)]`
-
-        ::
         """,
         want=r"""        <body>
 
@@ -1112,14 +1034,10 @@ def test_asterisk_inside_code():
 def test_asterisk_inside_mathblock():
     compare_have_want(
         have=r"""
-        :rsm:
-
-        Here comes a mathblock with an asterisk\:
+        Here comes a mathblock with an asterisk:
         $$
         2*2 = 4*1
         $$
-
-        ::
         """,
         want=r"""        <body>
 
@@ -1154,13 +1072,9 @@ def test_asterisk_inside_mathblock():
 def test_asterisk_inside_codeblock():
     compare_have_want(
         have="""\
-        :rsm:
-
         ```
         2*2 = 4*1
         ```
-
-        ::
         """,
         want=r"""        <body>
 

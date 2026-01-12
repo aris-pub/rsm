@@ -4,12 +4,9 @@ from conftest import compare_have_want
 def test_list_with_only_one_element():
     compare_have_want(
         have="""\
-        :rsm:
-          :title: My Title
+        # My Title
 
         :paragraph: {:types: mytype} This paragraph has only one type
-
-        ::
         """,
         want="""
         <body>
@@ -42,13 +39,10 @@ def test_list_with_only_one_element():
 def test_list_with_one_element_before_key():
     compare_have_want(
         have="""\
-        :rsm:
-          :title: My Title
+        # My Title
 
         :paragraph: {:types: mytype, :label: lbl} This paragraph has only one type,
         that appears before another key.
-
-        ::
         """,
         want="""
         <body>
@@ -81,12 +75,9 @@ def test_list_with_one_element_before_key():
 def test_list_no_braces():
     compare_have_want(
         have="""\
-        :rsm:
-          :title: My Title
+        # My Title
 
         :paragraph: {:types: t1, t2} This paragraph has only one type
-
-        ::
         """,
         want="""
         <body>
@@ -98,13 +89,7 @@ def test_list_no_braces():
         <section class="level-1">
 
         <h1>My Title</h1>
-        <span class="error" data-nodeid="1">[CST error at (3, 0) - (3, 28)]</span>
-        <div class="paragraph" data-nodeid="2">
-
-        <p>This paragraph has only one type</p>
-
-        </div>
-
+        <span class="error" data-nodeid="1">[CST error at (2, 0) - (2, 61)]</span>
         </section>
 
         </div>
@@ -119,14 +104,10 @@ def test_list_no_braces():
 def test_inline_no_meta_start_with_tag():
     compare_have_want(
         have="""\
-        :rsm:
-
         :paragraph: {:label: lbl} Foo bar.
 
         This span starts with a tag that is not a meta key, :span: :ref:lbl,some paragraph::, instead
         it starts with a ref::.
-
-        ::
         """,
         want="""\
         <body>
@@ -163,11 +144,7 @@ def test_inline_no_meta_start_with_tag():
 def test_list_within_inline():
     compare_have_want(
         have="""\
-        :rsm:
-
         Foo :span: {:types: {t1, t2}} bar :: baz.
-
-        ::
         """,
         want="""\
         <body>
@@ -197,11 +174,8 @@ def test_list_within_inline():
 
 def test_inline_start_with_brace():
     compare_have_want(
-        have=r"""        :rsm:
-
+        have=r"""
         This span starts with a brace :span: \{ ::.
-
-        ::
         """,
         want=r"""        <body>
 
@@ -231,11 +205,7 @@ def test_inline_start_with_brace():
 def test_inline_meta_with_no_space():
     compare_have_want(
         have="""\
-        :rsm:
-
         Foo :span: {:strong:} bar ::.
-
-        ::
         """,
         want="""\
         <body>
@@ -266,11 +236,7 @@ def test_inline_meta_with_no_space():
 def test_inline_meta_with_space_in_between_braces():
     compare_have_want(
         have="""\
-        :rsm:
-
         Foo :span: { :strong: } bar ::.
-
-        ::
         """,
         want="""\
         <body>

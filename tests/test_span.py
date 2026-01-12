@@ -4,11 +4,7 @@ from conftest import compare_have_want
 def test_one_span():
     compare_have_want(
         have="""\
-        :rsm:
-
         This is a :span: {:strong:} boring :: paragraph.
-
-        ::
         """,
         want="""\
         <body>
@@ -39,12 +35,8 @@ def test_one_span():
 def test_two_spans():
     compare_have_want(
         have="""\
-        :rsm:
-
         This is a :span: {:strong:} boring :: paragraph, though it has two :span:
         {:emphas:} spans :: so it's less boring.
-
-        ::
         """,
         want="""\
         <body>
@@ -75,13 +67,9 @@ def test_two_spans():
 def test_nested():
     compare_have_want(
         have="""\
-        :rsm:
-
         This is a :span: {:strong:} paragraph with a :span: {:emphas:} span within a span ::
         :: so that makes it really cool.  BTW it also has a Halmos at the start of a
         line!
-
-        ::
         """,
         want="""\
         <body>
@@ -112,14 +100,10 @@ def test_nested():
 def test_span_with_multiline_meta():
     compare_have_want(
         have="""\
-        :rsm:
-
         This is a paragraph
         with :span: {:strong:,
         :label: lbl} a
         span :: and it is multi line.
-
-        ::
         """,
         want="""\
         <body>
@@ -150,11 +134,7 @@ def test_span_with_multiline_meta():
 def test_span_with_label():
     compare_have_want(
         have="""\
-        :rsm:
-
         This is a :span: {:label: myspn, :strong:} boring :: paragraph.
-
-        ::
         """,
         want="""\
         <body>
@@ -185,11 +165,7 @@ def test_span_with_label():
 def test_span_part_of_word():
     compare_have_want(
         have="""\
-        :rsm:
-
         This word is half bold :span: {:strong:} bo::ring.
-
-        ::
         """,
         want="""\
         <body>
@@ -220,11 +196,7 @@ def test_span_part_of_word():
 def test_span_part_of_word_with_shortcut():
     compare_have_want(
         have="""\
-        :rsm:
-
         This word is half bold **bo**ring.
-
-        ::
         """,
         want="""\
         <body>

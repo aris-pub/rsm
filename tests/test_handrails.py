@@ -4,13 +4,9 @@ from conftest import compare_have_want_handrails
 def test_codeblock_handrails():
     compare_have_want_handrails(
         have="""\
-        :rsm:
-
         ```
         comp = [abs(x) for x in range(10)]
         ```
-
-        ::
         """,
         want="""\
         <body>
@@ -102,16 +98,12 @@ def test_codeblock_handrails():
 def test_codeblock_with_lang_handrails():
     compare_have_want_handrails(
         have="""\
-        :rsm:
-
         ```
         :lang: python
 
         def hello():
             print("world")
         ```
-
-        ::
         """,
         want="""\
         <body>
@@ -205,12 +197,9 @@ def test_codeblock_with_lang_handrails():
 def test_manuscript():
     compare_have_want_handrails(
         have="""
-        :rsm:
-        :title: Some Title
+        # Some Title
 
         Hello.
-
-        ::
         """,
         want="""
         <body>
@@ -370,13 +359,10 @@ def test_manuscript():
 def test_section():
     compare_have_want_handrails(
         have="""
-        :rsm:
-        :title: Some Title
+        # Some Title
 
         ## Section
         Hello.
-
-        ::
         """,
         want="""
         <body>
@@ -610,13 +596,10 @@ def test_section():
 def test_abstract():
     compare_have_want_handrails(
         have="""
-        :rsm:
-        :title: Some Title
+        # Some Title
 
         :abstract:
           The abstract.
-        ::
-
         ::
         """,
         want="""
@@ -851,13 +834,9 @@ def test_abstract():
 def test_theorem():
     compare_have_want_handrails(
         have="""
-        :rsm:
-
         :theorem:
 
         Hello.
-
-        ::
 
         ::
         """,
@@ -1023,16 +1002,12 @@ def test_theorem():
 def test_author():
     compare_have_want_handrails(
         have=r"""
-        :rsm:
-          :title: Indefinite Linear Algebra of the NBM
-          :date: 2024-04-13
+        # Indefinite Linear Algebra of the NBM
+          {:date: 2024-04-13}
 
-
-        :author:
+        :author: {
           :name: Leo Torres
-          :email: leo@leotrs.com
-        ::
-
+          :email: leo@leotrs.com}
         ::
         """,
         want=r"""
@@ -1197,16 +1172,9 @@ def test_author():
 def test_bibliography():
     compare_have_want_handrails(
         have="""
-        :rsm:
-
         This is a citation :cite:atiyah2018introduction::.
 
-        :bibliography: ::
-
-        ::
-
-        :bibtex:
-
+        :references:
         @book{atiyah2018introduction,
           title={Introduction to commutative algebra},
           author={Atiyah, M.F., & MacDonald, I.G.},
@@ -1214,7 +1182,6 @@ def test_bibliography():
           publisher={CRC Press},
           doi={https://doi.org/10.1201/9780429493638},
         }
-
         ::
         """,
         want="""
@@ -1442,16 +1409,13 @@ def test_bibliography():
 def test_inline_math_followed_by_dot():
     compare_have_want_handrails(
         have="""
-        :rsm:
-          :title: title
+        # title
 
         one $2+2=4$.
 
         two $2+2=4$ baz.
 
         three $2+2=4$. Another sentence.
-
-        ::
         """,
         want=r"""
         <body>
@@ -1743,8 +1707,6 @@ def test_inline_math_followed_by_dot():
 def test_mathblock_nonum():
     compare_have_want_handrails(
         have="""
-        :rsm:
-
         This one has a number
         $$
         2+2=4
@@ -1752,11 +1714,9 @@ def test_mathblock_nonum():
 
         And this one does not
         $$
-        :nonum:
+        {:nonum:}
         2+2=4
         $$
-
-        ::
         """,
         want="""
         <body>
@@ -2039,22 +1999,19 @@ def test_mathblock_nonum():
 def test_toc_no_labels():
     compare_have_want_handrails(
         have="""
-        :rsm:
-                  :title: Foo
+        # Foo
 
-                :abstract:
-                  Abs.
-                ::
+        :abstract:
+          Abs.
+        ::
 
-                :toc:
+        :toc:
 
-                ## Section
+        ## Section
 
-                ## Section
+        ## Section
 
-                ### Sub-section
-
-                ::
+        ### Sub-section
         """,
         want="""
         <body>
@@ -2666,25 +2623,22 @@ def test_toc_no_labels():
 def test_toc_with_labels():
     compare_have_want_handrails(
         have="""
-        :rsm:
-                  :title: Foo
+        # Foo
 
-                :abstract:
-                  Abs.
-                ::
+        :abstract:
+          Abs.
+        ::
 
-                :toc:
+        :toc:
 
-                ## Section
-                  :label: sec-1
+        ## Section
+          {:label: sec-1}
 
-                ## Section
-                  :label: sec-2
+        ## Section
+          {:label: sec-2}
 
-                ### Sub-section
-                  :label: sub-sec
-
-                ::
+        ### Sub-section
+          {:label: sub-sec}
         """,
         want="""
         <body>

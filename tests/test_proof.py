@@ -4,8 +4,6 @@ from conftest import compare_have_want
 def test_simple():
     compare_have_want(
         have="""\
-        :rsm:
-
         :theorem:
 
         All $X$ are $Y$.
@@ -15,8 +13,6 @@ def test_simple():
         :proof:
 
         :step: Axiom.::
-
-        ::
 
         ::
         """,
@@ -84,8 +80,6 @@ def test_simple():
 def test_empty_proof():
     compare_have_want(
         have="""\
-        :rsm:
-
         :theorem:
 
         Theorem contents.
@@ -93,9 +87,6 @@ def test_empty_proof():
         ::
 
         :proof:
-
-        ::
-
 
         ::
         """,
@@ -150,8 +141,6 @@ def test_empty_proof():
 def test_sub_step():
     compare_have_want(
         have="""\
-        :rsm:
-
         :proof:
 
           :step: Top level step.
@@ -162,8 +151,6 @@ def test_sub_step():
 
             ::
           ::
-
-        ::
 
         ::
         """,
@@ -244,15 +231,11 @@ def test_sub_step():
 def test_two_steps():
     compare_have_want(
         have="""\
-        :rsm:
-
         :proof:
 
           :step: First step.::
 
           :step: Secon step.::
-
-          ::
 
         ::
         """,

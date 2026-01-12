@@ -2,8 +2,7 @@ from textwrap import dedent
 
 from rsm.app import ProcessorApp
 
-src = """:rsm:
-:title: My Title
+src = """# My Title
 
 ## My Section
 
@@ -14,11 +13,10 @@ foo :cite:foo:: bar baz
 Foobar.
 
 ## Another section
-:nonum:
+{:nonum:}
 
 $2+2=4$
 
-::
 """
 
 

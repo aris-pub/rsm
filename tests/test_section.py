@@ -4,14 +4,9 @@ from conftest import compare_have_want
 def test_simple():
     compare_have_want(
         have="""\
-        :rsm:
-
-        :section:
-          :title: Section
+        ## Section
 
         Lorem ipsum.
-
-        ::
         """,
         want="""\
         <body>
@@ -48,20 +43,15 @@ def test_simple():
 def test_subsections():
     compare_have_want(
         have="""\
-        :rsm:
-
-        :section:
-          :title: Section
+        ## Section
 
         Lorem ipsum.
 
-        :subsection:
-          :title: Sub section
+        ### Sub section
 
         Foo
 
-        :subsubsection:
-          :title: Sub sub section
+        #### Sub sub section
 
         Bar
 

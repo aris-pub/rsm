@@ -4,12 +4,9 @@ from conftest import compare_have_want
 def test_inline_cannot_contain_block():
     compare_have_want(
         have="""\
-        :rsm:
-          :title: My Title
+        # My Title
 
         This is a paragraph :span: with an inline :section: with a block. :: ::
-
-        ::
         """,
         want="""
         <body>
@@ -21,7 +18,7 @@ def test_inline_cannot_contain_block():
         <section class="level-1">
 
         <h1>My Title</h1>
-        <span class="error" data-nodeid="1">[CST error at (3, 0) - (3, 71)]</span>
+        <span class="error" data-nodeid="1">[CST error at (2, 0) - (2, 71)]</span>
         </section>
 
         </div>
@@ -36,13 +33,10 @@ def test_inline_cannot_contain_block():
 def test_paragraph_ends_at_block():
     compare_have_want(
         have="""\
-        :rsm:
-          :title: My Title
+        # My Title
 
         This paragraph will terminate before the section starts :section: And this
         is inside the section. ::
-
-        ::
         """,
         want="""\
         <body>
@@ -57,10 +51,22 @@ def test_paragraph_ends_at_block():
 
         <div class="paragraph" data-nodeid="1">
 
-        <p>This paragraph will terminate before the section starts [CST error at (3, 56) - (3, 65)] And this is inside the section.</p>
+        <p>This paragraph will terminate before the section starts</p>
 
         </div>
-        <span class="error" data-nodeid="3">[CST error at (6, 0) - (6, 2)]</span>
+
+        <section class="section level-2" data-nodeid="3">
+
+        <h2>1. </h2>
+
+        <div class="paragraph" data-nodeid="4">
+
+        <p>And this is inside the section.</p>
+
+        </div>
+
+        </section>
+        <span class="error" data-nodeid="6">[CST error at (3, 23) - (3, 25)]</span>
         </section>
 
         </div>
