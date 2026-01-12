@@ -7,18 +7,14 @@ from conftest import compare_have_want
 def test_works_with_no_reftext_and_label():
     compare_have_want(
         have="""\
-        :rsm:
-
         :proof:
 
           :step:
-            :label: lbl
+            {:label: lbl}
           Foo.
           ::
 
           :step: Bar :previous:1::.::
-
-        ::
 
         ::
         """,
@@ -85,15 +81,11 @@ def test_works_with_no_reftext_and_label():
 def test_works_with_no_reftext_and_no_label():
     compare_have_want(
         have="""\
-        :rsm:
-
         :proof:
 
           :step: Foo.::
 
           :step: Bar :previous:1::.::
-
-        ::
 
         ::
         """,
@@ -160,17 +152,13 @@ def test_works_with_no_reftext_and_no_label():
 def test_works_with_reftext_and_label():
     compare_have_want(
         have="""\
-        :rsm:
-
         :proof:
 
           :step:
-            :label: lbl
+            {:label: lbl}
           Foo.::
 
           :step: Bar :previous:1,bar::.::
-
-        ::
 
         ::
         """,
@@ -237,15 +225,11 @@ def test_works_with_reftext_and_label():
 def test_works_with_reftext_and_no_label(caplog):
     compare_have_want(
         have="""\
-        :rsm:
-
         :proof:
 
           :step: Foo.::
 
           :step: Bar :previous:1,bar::.::
-
-        ::
 
         ::
         """,
@@ -314,11 +298,7 @@ def test_previous_outside_step():
     with pytest.raises(rsm.transformer.RSMTransformerError):
         compare_have_want(
             have="""\
-            :rsm:
-
             Foo :previous:1,bar::.
-
-            ::
             """,
             want="X",
         )

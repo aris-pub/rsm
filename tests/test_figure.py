@@ -32,8 +32,8 @@ def test_simple():
         have="""\
         :figure: {
           :path: assets/example.png
-          :caption: This is the figure caption.
         }
+        :caption: This is the figure caption.
         ::
         """,
         want=SIMPLE_WANT,
@@ -45,9 +45,9 @@ def test_simple_with_extra_whitespace():
         have="""\
         :figure: {
           :path: assets/example.png
-          :caption:
-            This is the figure caption.
         }
+        :caption:
+          This is the figure caption.
         ::
         """,
         want=SIMPLE_WANT,
@@ -59,11 +59,12 @@ def test_simple_with_multi_line_caption():
         have="""\
         :figure: {
           :path: assets/example.png
-
-          :caption:
-            This is the figure caption.
-            And it spans multiple lines.
         }
+
+        :caption:
+          This is the figure caption.
+          And it spans multiple lines.
+
         ::
         """,
         want=SIMPLE_WANT.replace(
@@ -78,9 +79,9 @@ def test_caption_with_inline_tags():
         have="""\
         :figure: {
           :path: assets/example.png
-
-          :caption: This is the **figure** caption.
         }
+
+        :caption: This is the **figure** caption.
         ::
         """,
         want="""
@@ -116,10 +117,9 @@ def test_video_mp4():
     compare_have_want(
         have="""\
         :video:{
-          :path: assets/demo.mp4
-
-          :caption: This is a video demonstration.}
-
+        :path: assets/demo.mp4
+        }
+        :caption: This is a video demonstration.
         ::
         """,
         want="""\
@@ -155,9 +155,8 @@ def test_video_youtube():
         have="""\
         :video: {
           :path: https://www.youtube.com/watch?v=dQw4w9WgXcQ
-
-          :caption: YouTube video example.}
-
+        }
+        :caption: YouTube video example.
         ::
         """,
         want="""\
@@ -194,9 +193,8 @@ def test_html_asset():
         have="""\
         :html: {
           :path: tests/assets/test.html
-
-          :caption: Interactive visualization.
-}
+        }
+        :caption: Interactive visualization.
         ::
         """,
         want="""\
@@ -240,26 +238,26 @@ def test_mixed_asset_numbering():
         have="""\
         :figure: {
           :path: assets/chart.png
-          :caption: First figure.
         }
+          :caption: First figure.
         ::
 
         :video: {
           :path: assets/demo.mp4
-          :caption: First video.
         }
+          :caption: First video.
         ::
 
         :figure: {
           :path: assets/graph.jpg
-          :caption: Second figure.
         }
+          :caption: Second figure.
         ::
 
         :html:{
           :path: tests/assets/viz.html
-          :caption: First HTML.
         }
+          :caption: First HTML.
         ::
         """,
         want="""\

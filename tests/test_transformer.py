@@ -7,13 +7,10 @@ from conftest import compare_have_want
 def test_duplicate_label_warning(caplog):
     compare_have_want(
         have="""\
-        :rsm:
-          :title: Title
+        # Title
 
         There are :span: {:label: mylbl} two :: spans with the :span: {:label: mylbl}
         same :: label in this paragraph.
-
-        ::
         """,
         want="""\
         <body>
@@ -47,15 +44,7 @@ def test_duplicate_label_warning(caplog):
 def test_duplicate_bibtex_item_warning(caplog):
     compare_have_want(
         have="""\
-        :rsm:
-
-        :bibliography: ::
-
-        ::
-
-
-        :bibtex:
-
+        :references:
         @article{torres2020,
           title={Nonbacktracking eigenvalues under node removal: X-centrality and targeted immunization},
           author={Torres, Leo and Chan, Kevin S and Tong, Hanghang and Eliassi-Rad, Tina},
@@ -69,8 +58,6 @@ def test_duplicate_bibtex_item_warning(caplog):
           journal={Baz},
           year={Bug},
         }
-
-        ::
         """,
         want="""\
         <body>
@@ -114,13 +101,9 @@ def test_duplicate_bibtex_item_warning(caplog):
 def test_theorem_within_section():
     compare_have_want(
         have="""\
-        :rsm:
-
         ## Section
 
         :theorem:
-
-        ::
 
         ::
         """,
@@ -163,8 +146,6 @@ def test_theorem_within_section():
 def test_two_theorems_same_section():
     compare_have_want(
         have="""\
-        :rsm:
-
         ## Section
 
         :theorem:
@@ -172,8 +153,6 @@ def test_two_theorems_same_section():
         ::
 
         :theorem:
-
-        ::
 
         ::
         """,
@@ -226,8 +205,6 @@ def test_two_theorems_same_section():
 def test_two_theorems_different_sections():
     compare_have_want(
         have="""\
-        :rsm:
-
         ## Section 1
 
         :theorem:
@@ -237,8 +214,6 @@ def test_two_theorems_different_sections():
         ## Section 2
 
         :theorem:
-
-        ::
 
         ::
         """,
@@ -297,18 +272,14 @@ def test_two_theorems_different_sections():
 def test_two_theorems_same_section_nonum():
     compare_have_want(
         have="""\
-        :rsm:
-
         ## Section
 
         :theorem:
-        :nonum:
+        {:nonum:}
 
         ::
 
         :theorem:
-
-        ::
 
         ::
         """,
@@ -361,14 +332,10 @@ def test_two_theorems_same_section_nonum():
 def test_theorem_inside_section_with_nonum():
     compare_have_want(
         have="""\
-        :rsm:
-
         ## Section
-        :nonum:
+        {:nonum:}
 
         :theorem:
-
-        ::
 
         ::
         """,
@@ -411,15 +378,11 @@ def test_theorem_inside_section_with_nonum():
 def test_theorem_inside_subsection():
     compare_have_want(
         have="""\
-        :rsm:
-
         ## Section
 
         ### Subsection
 
         :theorem:
-
-        ::
 
         ::
         """,
@@ -609,7 +572,7 @@ def test_label_to_node_external():
     t = Transformer(root_dir=root_dir)
 
     # Need to initialize the transformer by transforming an empty tree
-    src = ":rsm:\n::"
+    src = ""
     parser = rsm.tsparser.TSParser()
     tree = parser.parse(src)
     t.transform(tree)
@@ -630,7 +593,7 @@ def test_label_to_node_external_not_found():
     t = Transformer(root_dir=root_dir)
 
     # Need to initialize the transformer
-    src = ":rsm:\n::"
+    src = ""
     parser = rsm.tsparser.TSParser()
     tree = parser.parse(src)
     t.transform(tree)
@@ -650,7 +613,7 @@ def test_label_to_node_external_file_not_found():
     t = Transformer(root_dir=root_dir)
 
     # Need to initialize the transformer
-    src = ":rsm:\n::"
+    src = ""
     parser = rsm.tsparser.TSParser()
     tree = parser.parse(src)
     t.transform(tree)
@@ -669,12 +632,10 @@ def test_resolve_pending_references_external():
     root_dir = Path(__file__).parent / "fixtures/crossref"
 
     # Parse the main.rsm file which contains an external reference
-    src = """:rsm:
-  :title: Main Document
+    src = """# Main Document
 
 This document references :ref:definitions/def.rsm#test-def::.
-
-::"""
+"""
 
     parser = rsm.tsparser.TSParser()
     tree = parser.parse(src)

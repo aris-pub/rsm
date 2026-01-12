@@ -4,17 +4,13 @@ from conftest import compare_have_want
 def test_reftext():
     compare_have_want(
         have="""\
-        :rsm:
-
-        :section:
+        :section:{
           :title: First
-          :label: sec-lbl
+          :label: sec-lbl}
 
         Content of first.
 
         This is a paragraph that refers to :ref:sec-lbl::.
-
-        ::
         """,
         want="""\
         <body>
@@ -57,17 +53,13 @@ def test_reftext():
 def test_overwrite_reftext():
     compare_have_want(
         have="""\
-        :rsm:
-
-        :section:
+        :section: {
           :title: First
           :label: sec-lbl
-
+        }
         Content of first.
 
         This is a paragraph that refers to :ref:sec-lbl,The Section::.
-
-        ::
         """,
         want="""\
         <body>
@@ -110,11 +102,7 @@ def test_overwrite_reftext():
 def test_ref_to_unknown_label(caplog):
     compare_have_want(
         have="""\
-        :rsm:
-
-        :ref:foo::
-
-        ::
+        this doesn't exist :ref:foo::
         """,
         want="""\
         <body>
@@ -127,7 +115,7 @@ def test_ref_to_unknown_label(caplog):
 
         <div class="paragraph" data-nodeid="1">
 
-        <p><span class="error" data-nodeid="2">[unknown label "foo"]</span></p>
+        <p>this doesn't exist <span class="error" data-nodeid="3">[unknown label "foo"]</span></p>
 
         </div>
 
@@ -146,11 +134,7 @@ def test_ref_to_unknown_label(caplog):
 def test_cite_to_unknown_label(caplog):
     compare_have_want(
         have="""\
-        :rsm:
-
         This is an unknown cite :cite:foobar::.
-
-        ::
         """,
         want="""\
         <body>

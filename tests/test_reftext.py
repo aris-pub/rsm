@@ -48,18 +48,15 @@ def test_nonum():
 def test_simple():
     compare_have_want(
         have="""\
-        :rsm:
-
         Some math
-        :mathblock:
+        :mathblock: {
           :label: eqn
           :reftext: Important Equation
+        }
           2+2=4
         ::
 
         Here we refer to the :ref:eqn::.
-
-        ::
         """,
         want="""\
         <body>
