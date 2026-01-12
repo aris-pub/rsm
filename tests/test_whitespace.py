@@ -100,7 +100,7 @@ def test_period_after():
         have="""
         Period after math :math:2+2=4::.
 
-        Period after code:code:k=v::.
+        Period after code :code:k=v::.
 
         Period after claim :claim:foo::.
         """,
@@ -120,9 +120,7 @@ def test_period_after():
 
         <div class="paragraph" data-nodeid="6">
 
-        <p>Period after code
-        <span class="code" data-nodeid="8"><code>k=v</code></span>
-        .</p>
+        <p>Period after code <span class="code" data-nodeid="8"><code>k=v</code></span>.</p>
 
         </div>
 
@@ -148,7 +146,7 @@ def test_period_after_with_shortcut():
         have="""
         Period after math $2+2=4$.
 
-        Period after code`k=v`.
+        Period after code `k=v`.
 
         Period after claim :|-:foo::.
         """,
@@ -168,9 +166,7 @@ def test_period_after_with_shortcut():
 
         <div class="paragraph" data-nodeid="6">
 
-        <p>Period after code
-        <span class="code" data-nodeid="8"><code>k=v</code></span>
-        .</p>
+        <p>Period after code <span class="code" data-nodeid="8"><code>k=v</code></span>.</p>
 
         </div>
 

@@ -736,9 +736,7 @@ def test_code_shortcut():
 
         <div class="paragraph" data-nodeid="1">
 
-        <p>This is inline code
-        <span class="code" data-nodeid="3"><code>comp = [abs(x) for x in range(10)]</code></span>
-        .</p>
+        <p>This is inline code<span class="code" data-nodeid="3"><code>comp = [abs(x) for x in range(10)]</code></span>.</p>
 
         </div>
 
@@ -1015,9 +1013,7 @@ def test_asterisk_inside_code():
 
         <div class="paragraph" data-nodeid="1">
 
-        <p>
-        <span class="code" data-nodeid="2"><code>[x**2 for x in range(10)]</code></span>
-        </p>
+        <p><span class="code" data-nodeid="2"><code>[x**2 for x in range(10)]</code></span></p>
 
         </div>
 

@@ -4,7 +4,7 @@ import subprocess
 import pytest
 import ujson as json
 
-EMPTY_MANUSCRIPT = ""
+EMPTY_MANUSCRIPT = " "
 EMPTY_MANUSCRIPT_LOGS = [
     {
         "name": "RSM",

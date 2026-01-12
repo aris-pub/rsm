@@ -17,9 +17,7 @@ def test_code():
 
         <div class="paragraph" data-nodeid="1">
 
-        <p>
-        <span class="code" data-nodeid="2"><code>comp = [abs(x) for x in range(10)]</code></span>
-        </p>
+        <p><span class="code" data-nodeid="2"><code>comp = [abs(x) for x in range(10)]</code></span></p>
 
         </div>
 
@@ -50,9 +48,7 @@ def test_code_with_shorthand():
 
         <div class="paragraph" data-nodeid="1">
 
-        <p>
-        <span class="code" data-nodeid="2"><code>comp = [abs(x) for x in range(10)]</code></span>
-        </p>
+        <p><span class="code" data-nodeid="2"><code>comp = [abs(x) for x in range(10)]</code></span></p>
 
         </div>
 
@@ -85,10 +81,8 @@ def test_code_with_lang():
 
         <div class="paragraph" data-nodeid="1">
 
-        <p>
-        <span class="code" data-nodeid="2"><code class="highlight python"><span class="n">comp</span> <span class="o">=</span> <span class="p">[</span><span class="nb">abs</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">)]</span>
-        </code></span>
-        </p>
+        <p><span class="code" data-nodeid="2"><code class="highlight python"><span class="n">comp</span> <span class="o">=</span> <span class="p">[</span><span class="nb">abs</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">)]</span>
+        </code></span></p>
 
         </div>
 
@@ -119,10 +113,8 @@ def test_code_with_shorthand_and_lang():
 
         <div class="paragraph" data-nodeid="1">
 
-        <p>
-        <span class="code" data-nodeid="2"><code class="highlight python"><span class="n">comp</span> <span class="o">=</span> <span class="p">[</span><span class="nb">abs</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">)]</span>
-        </code></span>
-        </p>
+        <p><span class="code" data-nodeid="2"><code class="highlight python"><span class="n">comp</span> <span class="o">=</span> <span class="p">[</span><span class="nb">abs</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">)]</span>
+        </code></span></p>
 
         </div>
 
@@ -314,17 +306,13 @@ def test_meta():
 
         <div class="paragraph" data-nodeid="1">
 
-        <p>
-        <span id="1" class="code" data-nodeid="2"><code>k=v</code></span>
-        </p>
+        <p><span id="1" class="code" data-nodeid="2"><code>k=v</code></span></p>
 
         </div>
 
         <div class="paragraph" data-nodeid="4">
 
-        <p>
-        <span id="2" class="code" data-nodeid="5"><code>k=v</code></span>
-        </p>
+        <p><span id="2" class="code" data-nodeid="5"><code>k=v</code></span></p>
 
         </div>
 
@@ -387,19 +375,15 @@ def test_meta_and_lang():
 
         <div class="paragraph" data-nodeid="1">
 
-        <p>
-        <span id="1" class="code" data-nodeid="2"><code class="highlight js"><span class="nx">k</span><span class="o">=</span><span class="nx">v</span>
-        </code></span>
-        </p>
+        <p><span id="1" class="code" data-nodeid="2"><code class="highlight js"><span class="nx">k</span><span class="o">=</span><span class="nx">v</span>
+        </code></span></p>
 
         </div>
 
         <div class="paragraph" data-nodeid="4">
 
-        <p>
-        <span id="2" class="code" data-nodeid="5"><code class="highlight js"><span class="nx">k</span><span class="o">=</span><span class="nx">v</span>
-        </code></span>
-        </p>
+        <p><span id="2" class="code" data-nodeid="5"><code class="highlight js"><span class="nx">k</span><span class="o">=</span><span class="nx">v</span>
+        </code></span></p>
 
         </div>
 

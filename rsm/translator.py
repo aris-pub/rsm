@@ -1089,7 +1089,7 @@ class Translator:
         )
 
     def visit_code(self, node: nodes.Code) -> EditCommand:
-        return AppendNodeTag(node, tag="span", newline_inner=False)
+        return AppendNodeTag(node, tag="span", newline_inner=False, newline_outer=False)
 
     def visit_codeblock(self, node: nodes.CodeBlock) -> EditCommand:
         return AppendBatchAndDefer(
