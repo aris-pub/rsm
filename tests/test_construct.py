@@ -424,3 +424,44 @@ def test_real_life_example():
         </body>
         """,
     )
+
+
+def test_construct_at_line_start():
+    """Regression test: construct tags at start of line should start new construct, not be consumed as TEXT."""
+    compare_have_want(
+        have=r"""
+        :let: $G$ be a simple graph::.  We will prove a fact.
+        :define: $L(G) := |E(G)|$, where $E(G)$ is the set of edges::.
+
+        More text here.
+        """,
+        want=r"""
+        <body>
+
+        <div class="manuscriptwrapper">
+
+        <div class="manuscript" data-nodeid="0">
+
+        <section class="level-1">
+
+        <div class="paragraph" data-nodeid="1">
+
+        <p><span class="construct let assumption" data-nodeid="2"><span class="keyword" data-nodeid="3">LET</span> <span class="math" data-nodeid="6">\(G\)</span> be a simple graph</span>.  We will prove a fact. <span class="construct define assumption" data-nodeid="10"><span class="keyword" data-nodeid="11">DEFINE</span> <span class="math" data-nodeid="14">\(L(G) := |E(G)|\)</span>, where <span class="math" data-nodeid="17">\(E(G)\)</span> is the set of edges</span>.</p>
+
+        </div>
+
+        <div class="paragraph" data-nodeid="21">
+
+        <p>More text here.</p>
+
+        </div>
+
+        </section>
+
+        </div>
+
+        </div>
+
+        </body>
+        """,
+    )
