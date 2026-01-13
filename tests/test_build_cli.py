@@ -226,6 +226,129 @@ class TestMakeCLIFileOutput:
         html_content = index_html.read_text()
         assert "cdn.jsdelivr.net" in html_content
 
+    @pytest.mark.slow
+    def test_make_cli_custom_css_flag(self, tmp_path):
+        """Test rsm-build --css copies custom CSS to static/ folder."""
+        src = "# Test\n\n:paragraph: {:types: mytype} Custom styled text\n"
+        src_file = tmp_path / "test.rsm"
+        src_file.write_text(src)
+
+        # Create custom CSS file
+        custom_css = ".mytype { color: red; }"
+        custom_css_file = tmp_path / "custom.css"
+        custom_css_file.write_text(custom_css)
+
+        subprocess.run(
+            f"rsm-build {src_file} --css {custom_css_file}",
+            cwd=tmp_path,
+            shell=True,
+            capture_output=True,
+            check=True,
+        )
+
+        # Should copy custom.css to static/ folder
+        static_dir = tmp_path / "static"
+        custom_css_in_static = static_dir / "custom.css"
+        assert custom_css_in_static.exists(), "Custom CSS should be copied to static/"
+        assert custom_css in custom_css_in_static.read_text()
+
+        # Should add link tag in HTML
+        index_html = tmp_path / "index.html"
+        html_content = index_html.read_text()
+        assert '<link rel="stylesheet" type="text/css" href="/static/custom.css"' in html_content
+
+        # Custom CSS link should come after rsm.css
+        rsm_css_pos = html_content.find('/static/rsm.css')
+        custom_css_pos = html_content.find('/static/custom.css')
+        assert rsm_css_pos < custom_css_pos, "Custom CSS should load after rsm.css"
+
+    @pytest.mark.slow
+    def test_custom_css_overrides_rsm_css(self, tmp_path):
+        """Test that rsm.css is wrapped in @layer base to allow custom CSS to override."""
+        src = "# Test\n\nA simple paragraph.\n"
+        src_file = tmp_path / "test.rsm"
+        src_file.write_text(src)
+
+        # Create custom CSS with low specificity (will still win due to @layer)
+        custom_css = ".custom { color: red; }"
+        custom_css_file = tmp_path / "custom.css"
+        custom_css_file.write_text(custom_css)
+
+        subprocess.run(
+            f"rsm-build {src_file} --css {custom_css_file}",
+            cwd=tmp_path,
+            shell=True,
+            capture_output=True,
+            check=True,
+        )
+
+        # Verify custom CSS is present
+        custom_css_in_static = tmp_path / "static" / "custom.css"
+        assert custom_css in custom_css_in_static.read_text()
+
+        # Verify rsm.css is wrapped in @layer base
+        rsm_css_in_static = tmp_path / "static" / "rsm.css"
+        rsm_css_content = rsm_css_in_static.read_text()
+        assert "@layer base" in rsm_css_content, "rsm.css should use @layer base"
+
+    @pytest.mark.slow
+    def test_make_cli_custom_css_standalone(self, tmp_path):
+        """Test rsm-build --css --standalone inlines custom CSS."""
+        src = "# Test\n\n:paragraph: {:types: mytype} Custom styled text\n"
+        src_file = tmp_path / "test.rsm"
+        src_file.write_text(src)
+
+        # Create custom CSS file
+        custom_css = ".mytype { color: red; }"
+        custom_css_file = tmp_path / "custom.css"
+        custom_css_file.write_text(custom_css)
+
+        subprocess.run(
+            f"rsm-build {src_file} --css {custom_css_file} --standalone",
+            cwd=tmp_path,
+            shell=True,
+            capture_output=True,
+            check=True,
+        )
+
+        # Should NOT create static/ folder
+        static_dir = tmp_path / "static"
+        assert not static_dir.exists(), "--standalone should not create static/ folder"
+
+        # Should inline custom CSS in <style> tag
+        index_html = tmp_path / "index.html"
+        html_content = index_html.read_text()
+        assert "<style>" in html_content
+        assert custom_css in html_content
+
+        # <style> tag should come after CDN rsm.css link
+        cdn_css_pos = html_content.find('cdn.jsdelivr.net')
+        style_tag_pos = html_content.find('<style>')
+        assert cdn_css_pos < style_tag_pos, "Inline custom CSS should come after CDN rsm.css"
+
+    @pytest.mark.slow
+    def test_make_cli_custom_css_nonexistent_file(self, tmp_path):
+        """Test rsm-build with nonexistent CSS file logs warning but continues."""
+        src = "# Test\n\nNonexistent CSS.\n"
+        src_file = tmp_path / "test.rsm"
+        src_file.write_text(src)
+
+        result = subprocess.run(
+            f"rsm-build {src_file} --css nonexistent.css",
+            cwd=tmp_path,
+            shell=True,
+            capture_output=True,
+        )
+
+        # Should still succeed (or at least not crash)
+        # Check stderr for warning
+        stderr = result.stderr.decode("utf-8")
+        assert "nonexistent.css" in stderr or "not found" in stderr.lower()
+
+        # Should still create index.html
+        index_html = tmp_path / "index.html"
+        assert index_html.exists()
+
 
 class TestMakePythonAPINoFileOutput:
     """Test that rsm.make() Python API returns HTML without writing files."""

@@ -146,3 +146,85 @@ class TestStandaloneCDNVersions:
 
         # Tooltipster 4.x series
         assert "tooltipster@4" in result
+
+
+class TestCustomCSS:
+    """Test custom CSS support in builders."""
+
+    def test_folder_builder_with_custom_css(self, tmp_path):
+        """Test FolderBuilder copies custom CSS to static/ folder."""
+        from rsm.builder import FolderBuilder
+
+        # Create custom CSS file
+        custom_css_file = tmp_path / "custom.css"
+        custom_css_content = ".mytype { color: red; }"
+        custom_css_file.write_text(custom_css_content)
+
+        # Create builder with custom_css
+        builder = FolderBuilder(custom_css=str(custom_css_file))
+        body = '<body><div class="manuscript">Test</div></body>'
+        web = builder.build(body, src=tmp_path / "test.rsm")
+
+        # Should copy custom.css to static/ folder
+        assert web.exists("static/custom.css")
+        custom_css_in_static = web.readtext("static/custom.css")
+        assert custom_css_content in custom_css_in_static
+
+        # Should add link tag in HTML
+        html = web.readtext("index.html")
+        assert '<link rel="stylesheet" type="text/css" href="/static/custom.css"' in html
+
+    def test_standalone_builder_with_custom_css(self, tmp_path):
+        """Test StandaloneBuilder inlines custom CSS in <style> tag."""
+        from rsm.builder import StandaloneBuilder
+
+        # Create custom CSS file
+        custom_css_file = tmp_path / "custom.css"
+        custom_css_content = ".mytype { color: blue; }"
+        custom_css_file.write_text(custom_css_content)
+
+        # Create builder with custom_css
+        builder = StandaloneBuilder(custom_css=str(custom_css_file))
+        body = '<body><div class="manuscript">Test</div></body>'
+        web = builder.build(body, src=tmp_path / "test.rsm")
+
+        # Should inline custom CSS in <style> tag
+        html = web.readtext("index.html")
+        assert "<style>" in html
+        assert custom_css_content in html
+
+        # Should NOT create static/ folder
+        files = list(web.listdir("/"))
+        assert "static" not in files
+
+    def test_builder_without_custom_css(self, tmp_path):
+        """Test builders work normally when custom_css=None."""
+        from rsm.builder import FolderBuilder
+
+        # Create builder WITHOUT custom_css
+        builder = FolderBuilder()
+        body = '<body><div class="manuscript">Test</div></body>'
+        web = builder.build(body, src=tmp_path / "test.rsm")
+
+        # Should work normally
+        assert web.exists("index.html")
+        html = web.readtext("index.html")
+        assert "Test" in html
+
+        # Should NOT have custom.css link
+        assert "custom.css" not in html
+
+    def test_builder_custom_css_nonexistent_file(self, tmp_path):
+        """Test builder handles nonexistent custom CSS gracefully."""
+        from rsm.builder import FolderBuilder
+
+        # Create builder with nonexistent CSS file
+        builder = FolderBuilder(custom_css="nonexistent.css")
+        body = '<body><div class="manuscript">Test</div></body>'
+        web = builder.build(body, src=tmp_path / "test.rsm")
+
+        # Should still build successfully
+        assert web.exists("index.html")
+
+        # Should NOT have custom.css in static/
+        assert not web.exists("static/nonexistent.css")

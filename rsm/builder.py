@@ -17,11 +17,12 @@ logger = logging.getLogger("RSM").getChild("build")
 class BaseBuilder(ABC):
     """Use HTML body as a string and create a WebManuscript."""
 
-    def __init__(self, asset_resolver=None, outname: str = "index.html") -> None:
+    def __init__(self, asset_resolver=None, outname: str = "index.html", custom_css: str | None = None) -> None:
         self.body: str | None = None
         self.html: str | None = None
         self.web: WebManuscript | None = None
         self.outname: str = outname
+        self.custom_css: str | None = custom_css
         # Default to disk-based asset resolver if none provided
         if asset_resolver is None:
             from .asset_resolver import AssetResolverFromDisk
@@ -77,8 +78,13 @@ class HTMLBuilder(BaseBuilder):
         self.web.html = html
 
     def make_html_header(self) -> str:
+        custom_css_link = ""
+        if self.custom_css:
+            custom_css_filename = Path(self.custom_css).name
+            custom_css_link = f'  <link rel="stylesheet" type="text/css" href="/static/{custom_css_filename}" />\n'
+
         header = dedent(
-            """\
+            f"""\
         <head>
           <meta charset="utf-8" />
           <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -87,12 +93,12 @@ class HTMLBuilder(BaseBuilder):
           <link rel="stylesheet" type="text/css" href="/static/rsm.css" />
           <link rel="stylesheet" type="text/css" href="/static/tooltipster.bundle.css" />
           <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pseudocode@latest/build/pseudocode.min.css">
-
+{custom_css_link}
           <script src="/static/jquery-3.6.0.js"></script>
           <script src="/static/tooltipster.bundle.js"></script>
           <script type="module">
-            import { onload } from '/static/onload.js';
-            window.addEventListener('load', (ev) => {window.lsp_ws = onload();});
+            import {{ onload }} from '/static/onload.js';
+            window.addEventListener('load', (ev) => {{window.lsp_ws = onload();}});
           </script>
 
           <title>__TITLE_PLACEHOLDER__</title>
@@ -136,8 +142,22 @@ class StandaloneBuilder(HTMLBuilder):
         bundle_path = Path(__file__).parent / "static" / "rsm-standalone.js"
         return bundle_path.read_text()
 
+    def _get_custom_css_inline(self) -> str:
+        """Read custom CSS and return as inline <style> tag."""
+        if not self.custom_css:
+            return ""
+
+        custom_css_path = Path(self.custom_css)
+        if custom_css_path.exists():
+            css_content = custom_css_path.read_text()
+            return f"<style>\n{css_content}\n  </style>\n  "
+        else:
+            logger.warning(f"Custom CSS file not found: {self.custom_css}")
+            return ""
+
     def make_html_header(self) -> str:
         inline_js = self._get_inline_js()
+        custom_css_inline = self._get_custom_css_inline()
         header = f"""\
 <head>
   <meta charset="utf-8" />
@@ -147,7 +167,7 @@ class StandaloneBuilder(HTMLBuilder):
   <link rel="stylesheet" type="text/css" href="{self.CDN_RSM_CSS}" />
   <link rel="stylesheet" type="text/css" href="{self.CDN_TOOLTIPSTER_CSS}" />
   <link rel="stylesheet" href="{self.CDN_PSEUDOCODE_CSS}">
-
+  {custom_css_inline}
   <script src="{self.CDN_JQUERY}"></script>
   <script src="{self.CDN_TOOLTIPSTER_JS}"></script>
   <script>
@@ -187,6 +207,17 @@ class FolderBuilder(HTMLBuilder):
             fn for fn in source.listdir(".") if Path(fn).suffix in {".js", ".css"}
         ]:
             copy_file(source, fn, self.web, f"static/{fn}")
+
+        # Copy custom CSS if provided
+        if self.custom_css:
+            custom_css_path = Path(self.custom_css)
+            if custom_css_path.exists():
+                self.web.writetext(
+                    f"static/{custom_css_path.name}",
+                    custom_css_path.read_text()
+                )
+            else:
+                logger.warning(f"Custom CSS file not found: {self.custom_css}")
 
     def mount_required_assets(self) -> None:
         """Mount required assets using the asset resolver.

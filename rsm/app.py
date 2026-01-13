@@ -331,6 +331,7 @@ class FullBuildApp(ProcessorApp):
         write_output: bool = False,
         output_dir: str = ".",
         output_filename: str = "index.html",
+        custom_css: str | None = None,
     ):
         super().__init__(
             srcpath,
@@ -346,9 +347,9 @@ class FullBuildApp(ProcessorApp):
         )
         self.write_output = write_output
         if standalone:
-            b = builder.StandaloneBuilder(asset_resolver=asset_resolver, outname=output_filename)
+            b = builder.StandaloneBuilder(asset_resolver=asset_resolver, outname=output_filename, custom_css=custom_css)
         else:
-            b = builder.FolderBuilder(asset_resolver=asset_resolver, outname=output_filename)
+            b = builder.FolderBuilder(asset_resolver=asset_resolver, outname=output_filename, custom_css=custom_css)
         self.add_task(Task("builder", b, b.build))
         self.add_task(Task("writer", w := writer.Writer(dstpath=Path(output_dir)), w.write))
 
@@ -460,6 +461,7 @@ def make(
     write_output: bool = False,
     output_dir: str = ".",
     output_filename: str = "index.html",
+    custom_css: str | None = None,
 ) -> str | dict:
     """Process RSM source and optionally write output files.
 
@@ -514,6 +516,7 @@ def make(
         write_output=write_output,
         output_dir=output_dir,
         output_filename=output_filename,
+        custom_css=custom_css,
     ).run()
 
     if not structured:

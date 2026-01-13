@@ -1,6 +1,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Source+Sans+3:ital,wght@0,200..900;1,200..900&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Source+Code+Pro:ital,wght@0,200..900;1,200..900&display=swap');
 @import url('pygments.css');
+
+@layer base {
+
 :root {
 
   /* General */
@@ -1357,4 +1360,6 @@ a.reference.external {
 
 a.reference.external:hover::after {
   opacity: 1;
+}
+
 }

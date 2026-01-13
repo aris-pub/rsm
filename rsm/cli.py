@@ -37,6 +37,12 @@ def _init_parser() -> ArgumentParser:
         help="output handrails",
         action="store_true",
     )
+    output_opts.add_argument(
+        "--css",
+        help="path to custom CSS file",
+        type=str,
+        default=None,
+    )
 
     log_opts = parser.add_argument_group("logging control")
     log_opts.add_argument(
@@ -160,6 +166,7 @@ def make() -> int:
         "standalone": args.standalone,
         "output_dir": output_dir,
         "output_filename": output_filename,
+        "custom_css": args.css,
     }
     if args.string:
         kwargs["source"] = args.src
