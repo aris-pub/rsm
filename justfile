@@ -73,6 +73,22 @@ build-grammar:
     fi
     echo "Grammar built successfully!"
 
+# Rebuild and reinstall tree-sitter-rsm after C code changes
+rebuild-grammar:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    cd tree-sitter-rsm
+    echo "Regenerating parser from grammar.js..."
+    tree-sitter generate
+    echo "Rebuilding C extension..."
+    make
+    echo "Reinstalling tree-sitter-rsm package..."
+    cd ..
+    uv pip install -e tree-sitter-rsm --force-reinstall --no-deps
+    echo "Ensuring dev dependencies are still installed..."
+    uv sync --extra dev
+    echo "Done! tree-sitter-rsm rebuilt and dev dependencies preserved"
+
 # Build distribution packages
 build:
     uv build
