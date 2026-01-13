@@ -77,7 +77,13 @@ def test_tag_no_meta():
         <div class="manuscript" data-nodeid="0">
 
         <section class="level-1">
-        <span class="error" data-nodeid="1">[CST error at (0, 0) - (0, 32)]</span>
+        <span class="error" data-nodeid="1">[CST error at (0, 0) - (0, 11)]</span>
+        <div class="paragraph" data-nodeid="2">
+
+        <p>This is a paragraph.</p>
+
+        </div>
+
         </section>
 
         </div>

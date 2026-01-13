@@ -286,7 +286,13 @@ def test_unclosed_dollar_sign():
         <div class="manuscript" data-nodeid="0">
 
         <section class="level-1">
-        <span class="error" data-nodeid="1">[CST error at (0, 0) - (0, 45)]</span>
+
+        <div class="paragraph" data-nodeid="1">
+
+        <p>There are three dollar signs here <span class="math" data-nodeid="3">\(2+2\)</span>= 0 [CST error at (0, 43) - (0, 44)] .</p>
+
+        </div>
+
         </section>
 
         </div>

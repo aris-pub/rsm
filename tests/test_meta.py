@@ -89,7 +89,13 @@ def test_list_no_braces():
         <section class="level-1">
 
         <h1>My Title</h1>
-        <span class="error" data-nodeid="1">[CST error at (2, 0) - (2, 61)]</span>
+        <span class="error" data-nodeid="1">[CST error at (2, 0) - (2, 28)]</span>
+        <div class="paragraph" data-nodeid="2">
+
+        <p>This paragraph has only one type</p>
+
+        </div>
+
         </section>
 
         </div>
