@@ -1,11 +1,10 @@
-:rsm:
-  :title: RSM Markup
+# RSM Markup
 
-:author:
+:author: {
   :name: Melvin J. Blanc
   :affiliation: ACME University
   :email: mel@acme.edu
-::
+} ::
 
 :abstract:
 
@@ -22,10 +21,8 @@
 
 ::
 
-# Awesome
+## Awesome
 
   Simple markup for :span:{:strong:, :emphas:}
- web native:: scientific publications. Foo bar baz. Foo bar baz. Foo bar baz. Foo
+  web native:: scientific publications. Foo bar baz. Foo bar baz. Foo bar baz. Foo
   bar baz. Foo bar baz.
-
-::

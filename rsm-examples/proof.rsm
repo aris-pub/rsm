@@ -1,10 +1,9 @@
-:rsm:
-  :title: Solutions to Atiyah and MacDonald
+# Solutions to Atiyah and MacDonald
 
-
-:author:
+:author: {
   :name: Leo Torres
   :email: leo@leotrs.com
+}
 ::
 
 
@@ -15,14 +14,15 @@
 ::
 
 
-# Rings and Ideals
-  :icon: alert
+## Rings and Ideals
+  {:icon: alert}
 
 :paragraph:{:icon: bookmark} In the following, :let: $A$ be a ring::.
 
-:theorem:
+:theorem: {
   :title: Exercise 1
   :icon: heart
+}
 
   :paragraph:{:icon: success} :let: $x \in A$ :: and :assume: $x$ is nilpotent::.  :span: :prove:{:label:goal-1}
   that $1 + x$ is a unit of $A$. :: ::  :span: :prove:{:label:goal-2} that the sum of a
@@ -33,12 +33,11 @@
 ::
 
 :proof:
-  :icon: question
+  {:icon: question}
 
   :sketch:
 
     Let $x$ be a nilpotent element. Then $x^n = 0$ for some $n \in N$.  Then
-
     $$
     (1 + x)(1 - x + x^2 - \ldots + (-1)^n x^n) = 1 + (−1)^n x^{n+1} = 1
     $$
@@ -49,17 +48,18 @@
   ::
 
   :step:
-    :label: x-is-nilp
+    {:label: x-is-nilp}
 
     :pick: $n \in \mathbb{N}$ :: :st: ${:label: nilpotency}x^n = 0$ ::.
 
     :p: Such an $n$ exists by definition of nilpotent. :: ::
 
-  :step: We have
+  :step:
 
-    $$
+    We have
+    $$ {
       :label: eqn-1-plus-x-is-unit
-      :isclaim:
+    }
     (1 + x)(1 - x + x^2 - \ldots + (-1)^n x^n) = 1 + (−1)^n x^{n+1} = 1
     $$
 
@@ -70,8 +70,7 @@
 
     :p: By :ref:eqn-1-plus-x-is-unit::.  :: ::
 
-  :step:
-    :label: some-lbl
+  :step: {:label: some-lbl}
 
     To prove :ref:goal-2, Goal 2::, it :suffices: to :assume: $u \in A$ :: where $u$ is
     a unit ::, and :prove: that $u + x$ is a unit. :: ::
@@ -105,7 +104,7 @@
 ::
 
 :theorem:
-  :title: Exercise 1.2
+  {:title: Exercise 1.2}
 
   :let: $A$ be a ring :: and :let: $A[x]$ be the corresponding ring of polynomials ::.
   :let: $a_0, a_1, \ldots, a_n \in A$ :: and :write: $f \colon = a_0 + a_1 x + \ldots + a_n
@@ -136,8 +135,7 @@
 
         :p:
 
-	  :step:
-	    :label:asm-f-unit
+	  :step: {:label:asm-f-unit}
 
 	    :assume: $f$ is a unit in $A[x]$. ::
 
@@ -151,15 +149,13 @@
 
 	    :p: By direct computation of the product $fg$. :: ::
 
-	  :step:
-	    :label:ck-is-zero
+	  :step: {:label:ck-is-zero}
 
 	    :claim: $c_0 = 1$ and $c_k = 0$ for each $k > 1$ ::.
 
 	    :p: From the fact that $fg = 1$. :: ::
 
-	  :step:
-	    :label:a0-b0-are-units
+	  :step: {:label:a0-b0-are-units}
 
 	    :claim: $a_0$ and $b_0$ are units in $A$. ::
 
@@ -169,8 +165,7 @@
 
 	    :p:
 
-	      :step:
-	        :label:first-substep
+	      :step: {:label:first-substep}
 
 	        :claim: $a^r_n b_{m+1-r} = 0$ for $r = 1, \ldots, m + 1$. ::
 
@@ -187,15 +182,13 @@
 	            :p:
 
 	              Consider $0 = a_n^r c_{m+n-r}$,
-
 	              $$
 	              \begin{align}
 	              0 &= a_n^r \big( b_{m-r}a_n + b_{m-r+1}a_{n-1} + \ldots + b_m a_{n-r} \big) \\
-                      0 &= a_n^{r+1} b_{m-r} + (a_n^r b_{m-r+1}) a_n a_{n-1} + \ldots + (a_n b_m) a_n^{r-1} a_{n-r} \\
-                      0 &= a_n^{r+1} b_{m-r},
-                      \end{align}
+                0 &= a_n^{r+1} b_{m-r} + (a_n^r b_{m-r+1}) a_n a_{n-1} + \ldots + (a_n b_m) a_n^{r-1} a_{n-r} \\
+                0 &= a_n^{r+1} b_{m-r},
+                \end{align}
 	              $$
-
 	              where the quantities in parentheses in the second equation each
 	              individually equal zero due to the :ref:ind-hyp, induction hypothesis.::
 
@@ -251,8 +244,7 @@
 
           :step: :write: $u \colon = \sum_{i=1}^{n} a_i x^i $. :: ::
 
-          :step:
-            :label: u-is-unit
+          :step: {:label: u-is-unit}
 
             :claim: $u$ is nilpotent. ::
 
@@ -263,7 +255,7 @@
 
             :p: Writing $f = a_0 + u $, we can see that $f$ is the sum of a unit (namely
             $a_0$, by :ref:asm-1, assumption::) and a nilpotent element (namely $u$, by
-            :prev:).  :ref:sum-nilp-unit-is-unit:: implies that $f$ is a unit. :: ::
+            :prev:).  A previous step implies that $f$ is a unit. :: ::
 
             ::
         ::
@@ -310,11 +302,7 @@
 
 ::
 
-:bibliography: ::
-
-::
-
-:bibtex:
+:references:
 
 @book{atiyah2018introduction,
   title={Introduction to commutative algebra},

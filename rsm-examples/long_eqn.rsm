@@ -1,8 +1,7 @@
-:rsm:
+# Long equation
 
 :paragraph: {:types: hide} preamble
-$$
-  :nonum:
+$$ {:nonum:}
 \newcommand{\into}[2]{{\vec{\mathbf{#1}}}^{{#2}}}
 \newcommand{\from}[2]{{{}}^{{#2}}{\vec{\mathbf{#1}}}}
 \newcommand{\mb}[1]{\mathbf{#1}}
@@ -49,5 +48,3 @@ $$
 \text{ for each } i \in \{1, \ldots, m\}
 \end{align}
 $$
-
-::

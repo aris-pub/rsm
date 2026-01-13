@@ -120,7 +120,7 @@ defining new commands inside a hidden math block with no number.
 
    :rsm:
 
-   This is not valid math\: $\tr(X)$.
+   This is not valid math: $\tr(X)$.
 
    $$
    :types: hide
@@ -128,7 +128,7 @@ defining new commands inside a hidden math block with no number.
      \DeclareMathOperator{\tr}{Tr}
    $$
 
-   After the hidden block\: $\tr(X)$.
+   After the hidden block: $\tr(X)$.
 
    ::
 

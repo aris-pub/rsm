@@ -1,7 +1,6 @@
-:rsm:
-  :title: Exercise 1
+# Exercise 1
 
-# Section one
+## Section one
 
 :pick: $g \in A[x]$ :: :st: $fg = 1$. ::
 
@@ -28,7 +27,5 @@
     ::
 
   ::
-
-::
 
 ::

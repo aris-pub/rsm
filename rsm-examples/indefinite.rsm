@@ -1,17 +1,14 @@
-:rsm:
 # Indefinite Linear Algebra of the NBM
-  :date: 2024-04-13
+  {:date: 2024-04-13}
 
-
-:author:
+:author: {
   :name: Leo Torres
   :email: leo@leotrs.com
-::
+} ::
 
 
 :paragraph: {:types: hide} preamble
-$$
-  :nonum:
+$$ {:nonum:}
 \newcommand{\into}[2]{{\vec{\mathbf{#1}}}^{{#2}}}
 \newcommand{\from}[2]{{{}}^{{#2}}{\vec{\mathbf{#1}}}}
 \newcommand{\mb}[1]{\mathbf{#1}}
@@ -30,7 +27,7 @@ $$
 
 
 ## Introduction
-  :label: sec-intro
+  {:label: sec-intro}
 
 :let: $G$ be an undirected, simple graph :: and :let: $m$ be the number of edges in
 $G$::.  :write: $E$ for the set of edges of $G$ and $\vec{E}$ for the set of directed
@@ -64,19 +61,16 @@ operator $\mb{P}$ such that
 $$
 \mb{BP} = \mb{P} \mb{B}^*.
 $$
-We call this matrix /the flip operator/ or simply /the flip/ of $G$.  The flip is
+We call this matrix *the flip operator* or simply *the flip* of $G$.  The flip is
 defined as
-$$
-  :label: flip-defn
+$${:label: flip-defn}
 (\mb{Pv})_{i \to j} = \mb{v}_{j \to i},
 $$
 for any $\mb{v} \in \mathbb{C}^{\vec{E}}$.  This explains where the name *flip*
-comes from\: $\mb{P}$ acts by flipping the orientation of each edge.  Moreover, when
+comes from: $\mb{P}$ acts by flipping the orientation of each edge.  Moreover, when
 the rows and columns of the matrix $\mb{B}$ are ordered in the usual way, we can
 write
-$$
-  :label: flip-blocks
-
+$${:label: flip-blocks}
 \mb{P} = \left(
 \begin{array}
 \,\mb{0} & \mb{I} \\
@@ -87,7 +81,6 @@ $$
 where $\mb{0}$ and $\mb{I}$ are the zero matrix and the identity matrix,
 respectively, in $\mathbb{C}^{m \times m}$.  Concretely, $\mb{P}$ swaps the $i$-th
 and $(m+i)$-th coordinates with each other.
-
 
 From now on, we :let: $\mb{P}$ be the flip of $G$ ::.
 
@@ -105,15 +98,14 @@ $\mb{v}^{-i} := \langle \ldots, 1, \ldots, 0, \ldots, -1, \ldots, 0 \rangle$, th
 vector with a $1$ in the *i*-th component and a $-1$ in the *(m+i)*-th component, for
 each $i = 1, \ldots, m$::.
 
-:proposition:
+:proposition: {
   :title: Properties of the flip
   :label: prop-flip
-
+}
   :claim: The flip $\mb{P}$ is involutory, invertible, Hermitian, and unitary ::.
   Furthermore, :claim: $\left\{ \mb{v}^{i} \right\}_{i=1}^m \cup \left\{
   \mb{v}^{-i} \right\}_{i=1}^m$ make a complete basis of eigenvectors of
   $\mb{P}$ ::.
-
 ::
 
 :proof:
@@ -146,12 +138,10 @@ to the chapters and sections of :cite:thebook::.  ::
 
 
 
-## Indefinite Inner Products
-:label: sec-indefinite-inner-products
+## Indefinite Inner Products {:label: sec-indefinite-inner-products}
 
 
-### Definition
-:label: sec-definition
+### Definition {:label: sec-definition}
 
 Since every invertible Hermitian matrix defines an indefinite inner product,
 $\mb{P}$ defines one too.  For two vectors $\mb{x}, \mb{y} \in
@@ -173,10 +163,10 @@ first argument, as $\mb{x}^* \mb{P} \mb{y}$.  Unfortunately, the authors of
 to use their notation.::
 
 
-#### The flip and the sip
-:label: sec-flip-sip
-:nonum:
-
+#### The flip and the sip {
+  :label: sec-flip-sip
+  :nonum:
+}
 The book :cite:thebook:: repeatedly uses the so-called *sip* matrix (short for *standard
 involutory permutation*), defined as the $n \times n$ matrix with
 $$
@@ -195,14 +185,13 @@ $$
 In our case, the $\mb{P}$ matrix would be exactly equal to $\mb{S}_{2m}$ if we
 had ordered the oriented edges in a different way.  Specifically, after fixing the
 orientation of the edges of $G$ and placing them as the first $m$ components, if we
-place the next $m$ components /in the reverse order/, then $\mb{P}$ would equal
+place the next $m$ components *in the reverse order*, then $\mb{P}$ would equal
 $\mb{S}_{2m}$.  Since the order of the oriented edges is arbitrary, all properties
 of the sip matrix are shared by the flip, both as operators or as matrices.  With this
 in mind, we will continue to use $\mb{P}$ and the oriented edge order defined above.
 
 
-### Orthogonality and Orthogonal Bases
-:label: sec-orthogonality
+### Orthogonality and Orthogonal Bases {:label: sec-orthogonality}
 
 Following example 2.2.1 in :cite:thebook::, we look for a subspace $\mathcal{M}$ whose
 $\mb{P}$-orthogonal companion is not its direct complement.  :let: $\alpha \to
@@ -230,10 +219,10 @@ particular $\mathcal{M}$ is degenerate.  Indeed, :claim: $\left[\mb{e}_{\alpha \
 :draft: What about the subspace corresponding to the unit eigenvalues of $\mb{B}$? ::
 
 
-#### P-Orthogonal basis
+#### P-Orthogonal basis {
 :label: sec-p-orthogonal-basis
 :nonum:
-
+}
 The canonical basis of $\mathbb{C}^{2m}$ is not $\mb{P}$-orthonormal.  Indeed,
 $\left[ \mb{e}_{i \to j}, \mb{e}_{i \to j} \right]_\mb{P} = 0$ for any edge
 $i \to j$.  Instead, we can use the basis of eigenvectors of $\mb{P}$ exhibited
@@ -295,12 +284,10 @@ $$
 $$
 
 
-### Classification of Subspaces
-:label: sec-classification-of-subspaces
+### Classification of Subspaces {:label: sec-classification-of-subspaces}
 
 
-### Exercises
-:label: sec-exercises
+### Exercises {:label: sec-exercises}
 
 The goal of most of the exercises in this section revolves around finding subspaces with
 certain properties (neutral, positive, non-negative, etc) for a given indefinite inner
@@ -309,8 +296,7 @@ product.  We do so here for the flip $\mb{P}$.
 Consider an arbitrary vector $\mb{z}$ written in the $\mb{P}$-orthogonal basis
 described :ref:flip-evectors, above:: as $\mb{z} = \sum_{r=1}^m \left(\zeta_r
 \mb{v}^r + \zeta_{-r} \mb{v}^{-r} \right)$.  In this case we have
-$$
-:label: eqn-product-basis
+$${:label: eqn-product-basis}
 \begin{align}
 \left[\mb{z}, \mb{z} \right]_\mb{P}
 &=
@@ -338,7 +324,7 @@ $$
 
 :proof:
 
-  :step: $\Longleftarrow$
+  :step: {:label:prev-stp} $\Longleftarrow$
 
     :p:
 
@@ -366,7 +352,7 @@ $$
 
       :step: $\,$ :qed:
 
-        :p: From :prev: and :ref:eqn-product-basis::. ::
+        :p: From the previous step and :ref:eqn-product-basis::. ::
 
       ::
 
@@ -402,7 +388,7 @@ We have shown that the set of all neutral vectors (the neutral? cone) is the uni
 the spaces $\left\{ \mb{z} \colon \mb{p} = \mb{R} \mb{q} \right\}$.
 This family of spaces is parameterized by the set of $m \times m$ unitary matrices
 $\mb{R}$.  This is not only a set but the Lie group $U(n)$, thus a group that is
-also a differentiable manifold.  In other words, /we have a vector bundle over $U(n)$/.
+also a differentiable manifold.  In other words, *we have a vector bundle over $U(n)$*.
 
 It is known that the tangent bundle of a Lie group is trivial.  But can we give our cone
 some other interesting topology that makes it a non-trivial vector bundle?  And if so,
@@ -424,8 +410,7 @@ and non-positive subspaces.  But what about building all?::
 positive subspace. What about $\lambda = -1$? What about other unitary evals? ::
 
 
-## Orthogonalization and Orthogonal Polynomials
-:label: sec-orthogonal-polynomials
+## Orthogonalization and Orthogonal Polynomials {:label: sec-orthogonal-polynomials}
 
 The canonical basis does not have a regular orthogonalization since the Gram matrix is
 equal to $\mb{P}$ and thus at least the first $m$ principal submatrices have
@@ -434,13 +419,10 @@ determinant equal to zero.
 :draft: Look for orthogonalizations of paticularly interesting bases. ::
 
 
-
-## Classes of Linear Transformations
-:label: sec-linear-transformations
+## Classes of Linear Transformations {:label: sec-linear-transformations}
 
 
-### Adjoint Matrices
-:label: sec-adjoint-matrices
+### Adjoint Matrices {:label: sec-adjoint-matrices}
 
 One of the most important facts is that $\mb{B}$ is $\mb{P}$-selfadjoint.  This
 is proved directly from the definitions.
@@ -597,12 +579,12 @@ $$
 :draft: are $\mb{P}$ or $\mb{B}$ persymmetric or centrosymmetric?::
 
 
-### H-selfadjoint Matrices\: Examples and Simplest Properties
-:label: sec-selfadjoint-matrices
+### H-selfadjoint Matrices: Examples and Simplest Properties
+{:label: sec-selfadjoint-matrices}
 
 
-### H-unitary Matrices\: Examples and Simplest Properties
-:label: sec-unitary-matrices
+### H-unitary Matrices: Examples and Simplest Properties
+{:label: sec-unitary-matrices}
 
 According to Proposition 4.3.4 of :cite:thebook::, we have that any Cayley transform of
 $\mb{B}$ will be $\mb{P}$-unitary.  Thus, for any $\left| \alpha \right| = 1$
@@ -623,30 +605,29 @@ book. ::
 
 
 ### A second characterization of H-unitary matrices
-:label: sec-charac-unit
+{:label: sec-charac-unit}
 
 
 ### Unitary similarity
-:label: sec-unitary-simil
+{:label: sec-unitary-simil}
 
 
 ### Contractions
-:label: sec-contractions
+{:label: sec-contractions}
 
 
 ### Dissipative matrices
-:label: sec-dissipative
+{:label: sec-dissipative}
 
 
 ### Symplectic matrices
-:label: sec-symplectic
+{:label: sec-symplectic}
 
 
 ### Exercises
-:label: sec-4-exercises
+{:label: sec-4-exercises}
 
-:proposition:
-  :title: Exercise 8
+:proposition: {:title: Exercise 8}
 
   :let: $\mb{A}$ be an $\mb{H}$-orthogonal projection in
   $\mathbb{C}^n(\mb{H})$::.  :prove: that $\text{Ker}(\mb{A})$ and
@@ -676,11 +657,9 @@ book. ::
 
 
 
-## Scratch
-:label: sec-scratch
+## Scratch {:label: sec-scratch}
 
-:proposition:
-  :label: left-right-evectors
+:proposition: {:label: left-right-evectors}
 
   :let: $\lambda$ be nonreal :: and :let: $\mb{v}$ be a right eigenvector of
   $\lambda$ ::.  :let: $\mb{u} = \overline{\mb{P v}}$ ::. Then
@@ -711,8 +690,7 @@ book. ::
   :step: :claim: $\mb{u}^*$ is a left eigenvector of $\lambda$. ::
 
     :p: We have
-      $$
-      :label: eqn-u
+      $$ {:label: eqn-u}
       \begin{align}
       \mb{B} \mb{v} &= \lambda \mb{v} \\
       \mb{P} \mb{B}^* \mb{P} \mb{v} &= \lambda \mb{v} \\
@@ -829,7 +807,7 @@ $\mb{v}^\top \mb{P} \mb{v} = 1$ purely in terms of $\mb{v}$.
       \end{align}
       $$ :: ::
 
-  :step: :claim: $\lambda^{-1} \sum_j \left|\into{v}{j}\right|^2 \left( d_j - 1 \right) = \overline{\lambda} \mb{v}^* \mb{v}$ ::.
+  :step: {:label:stp-1} :claim: $\lambda^{-1} \sum_j \left|\into{v}{j}\right|^2 \left( d_j - 1 \right) = \overline{\lambda} \mb{v}^* \mb{v}$ ::.
 
     :p:
 
@@ -859,7 +837,7 @@ $\mb{v}^\top \mb{P} \mb{v} = 1$ purely in terms of $\mb{v}$.
         \end{align}
         $$ :: :: ::
 
-  :step: :claim: $\sum_i \left|\into{v}{i}\right|^2 = \mb{v}^* \mb{v}$ ::.
+  :step: {:label:stp-2} :claim: $\sum_i \left|\into{v}{i}\right|^2 = \mb{v}^* \mb{v}$ ::.
 
     :p: We have
       $$
@@ -943,8 +921,7 @@ $\mb{v}^\top \mb{P} \mb{v} = 1$ purely in terms of $\mb{v}$.
 
 
 
-## Diagonalizability
-:label: sec-diagonaliza
+## Diagonalizability {:label: sec-diagonaliza}
 
 :draft: See exercise 10 of section 5 of the book (page 122) ::
 
@@ -1002,7 +979,7 @@ can be chosen to satisfy $\mb{v}^\top \mb{P} \mb{v} = 1$.  This is because
 $\left[ \mb{v}, \mb{v} \right]_\mb{P}$ is non-zero if and only if $\lambda$
 is non-defective.
 
-:draft: MISSING\: what if $\lambda$ has two orthogonal eigenvectors?::
+:draft: MISSING: what if $\lambda$ has two orthogonal eigenvectors?::
 
 Now :assume: $\lambda, \mu$ are two distinct nonreal eigenvalues of $\mb{B}$ ::.  We
 are interested in the form
@@ -1017,7 +994,7 @@ Furthermore, like in the real case, we have that $\mb{v}^\top \mb{P} \mb{v}
 = \left[ \mb{v}, \overline{\mb{v}} \right] = 1$ because $\lambda$ is
 non-defective.
 
-:draft: MISSING\: what if $\lambda$ has two orthogonal eigenvectors?::
+:draft: MISSING: what if $\lambda$ has two orthogonal eigenvectors?::
 
 When $\lambda$ is real and $\mu$ is not, we immediately have $\mb{v}^\top \mb{P}
 \mb{u} = \left[ \mb{v}, \overline{\mb{u}} \right]_\mb{P} = 0$.
@@ -1051,13 +1028,7 @@ $$
 
 
 
-:bibliography: ::
-
-::
-
-
-
-:bibtex:
+:references:
 
 @book{thebook,
   title={Indefinite Linear Algebra and Applications},

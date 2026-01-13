@@ -1,9 +1,9 @@
-:rsm:
 # New handrails are cool
 
-## Icons
+## Icons {
   :label: sec-one
   :icon: heart
+}
 
 :paragraph: {:icon: star} Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
 do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
@@ -14,7 +14,7 @@ incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostr
 exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
 
 :theorem:
-  :icon: question
+  {:icon: question}
 
   This is the statement of the theorem, and it contains math!
   $$

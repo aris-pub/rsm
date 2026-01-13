@@ -1025,7 +1025,8 @@ class Translator:
         )
 
     def visit_mathblock(self, node: nodes.MathBlock) -> EditCommand:
-        assert isinstance(node.parent, nodes.Paragraph)
+        if not isinstance(node.parent, nodes.Paragraph):
+            raise RSMTranslatorError(f"Found mathblock with parent {node.parent}, must be Paragraph.")
         return AppendBatchAndDefer(
             [
                 # A paragraph that contains a mathblock cannot _start_ with a mathblock,

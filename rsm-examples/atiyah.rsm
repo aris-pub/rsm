@@ -1,10 +1,9 @@
-:rsm:
-  :title: Solutions to Atiyah and MacDonald
+# Solutions to Atiyah and MacDonald
 
-
-:author:
+:author:{
   :name: Leo Torres
   :email: leo@leotrs.com
+}
 ::
 
 
@@ -18,14 +17,15 @@
 :toc:
 
 
-# Rings and Ideals
-  :label: ch-1
+## Rings and Ideals
+  {:label: ch-1}
 
 :paragraph: {:title: Foobar} In the following, :let: $A$ be a ring::.
 
-:theorem:
+:theorem: {
   :title: Exercise 1
   :label: sum-nilp-unit-is-unit
+}
 
   :let: $x \in A$ :: and :assume: $x$ is nilpotent::.  :span: :prove:{:label:goal-1}
   that $1 + x$ is a unit of $A$. :: ::  :span: :prove:{:label:goal-2} that the sum of a
@@ -36,8 +36,7 @@
 :sketch:
 
   Let $x$ be a nilpotent element. Then $x^n = 0$ for some $n \in N$.  Then
-  $$
-  :nonum:
+  $$ {:nonum:}
   (1 + x)(1 - x + x^2 - \ldots + (-1)^n x^n) = 1 + (−1)^n x^{n+1} = 1
   $$
 
@@ -48,16 +47,14 @@
 
 :proof:
 
-  :step:
-    :label: x-is-nilp
+  :step: {:label: x-is-nilp}
 
     :pick: $n \in \mathbb{N}$ :: :st: ${:label: nilpotency}x^n = 0$ ::.
 
     :p: Such an $n$ exists by definition of nilpotent. :: ::
 
   :step: We have
-    $$
-      :label: eqn-1-plus-x-is-unit
+    $$ {:label: eqn-1-plus-x-is-unit}
     (1 + x)(1 - x + x^2 - \ldots + (-1)^n x^n) = 1 + (−1)^n x^{n+1} = 1
     $$
 
@@ -68,8 +65,7 @@
 
     :p: By :ref:eqn-1-plus-x-is-unit::.  :: ::
 
-  :step:
-    :label: some-lbl
+  :step: {:label: some-lbl}
 
     To prove :ref:goal-2, Goal 2::, it :suffices: to :assume: $u \in A$ :: where $u$ is
     a unit ::, and :prove: that $u + x$ is a unit. :: ::
@@ -102,8 +98,7 @@
 
 ::
 
-:theorem:
-  :title: Exercise 1.2
+:theorem: {:title: Exercise 1.2}
 
   :let: $A$ be a ring :: and :let: $A[x]$ be the corresponding ring of polynomials ::.
   :let: $a_0, a_1, \ldots, a_n \in A$ :: and :write: $f \colon = a_0 + a_1 x + \ldots + a_n
@@ -124,7 +119,7 @@
 
 ::
 
-:proof:  :icon: heart
+:proof: {:icon: heart}
 
   :step: :claim: $f$ is a unit in $A[x]$ $\iff$ $a_0$ is a unit in $A$ and $a_1, \ldots , a_n$ are nilpotent. ::
 
@@ -134,75 +129,69 @@
 
         :p:
 
-	  :step:
-	    :label:asm-f-unit
+          :step: {:label:asm-f-unit}
 
-	    :assume: $f$ is a unit in $A[x]$. ::
+            :assume: $f$ is a unit in $A[x]$. :: ::
 
-	  ::
+          :step: :pick: $g \in A[x]$ :: :st: $fg = 1$ ::, and :write: $g = \sum_{j=0}^m b_j x^j$ ::.
 
-	  :step: :pick: $g \in A[x]$ :: :st: $fg = 1$ ::, and :write: $g = \sum_{j=0}^m b_j x^j$ ::.
+            :p: Such a $g$ exists because $f$ is a unit, as assumed in :prev:. :: ::
 
-	    :p: Such a $g$ exists because $f$ is a unit, as assumed in :prev:. :: ::
+          :step: :write: $fg = \sum_k c_k x^k$ :: and observe :claim: $c_k = \sum_{r=0}^k a_r b_{k - r}$ ::.
 
-	  :step: :write: $fg = \sum_k c_k x^k$ :: and observe :claim: $c_k = \sum_{r=0}^k a_r b_{k - r}$ ::.
+	          :p: By direct computation of the product $fg$. :: ::
 
-	    :p: By direct computation of the product $fg$. :: ::
+          :step: {:label:ck-is-zero}
 
-	  :step:
-	    :label:ck-is-zero
+            :claim: $c_0 = 1$ and $c_k = 0$ for each $k > 1$ ::.
 
-	    :claim: $c_0 = 1$ and $c_k = 0$ for each $k > 1$ ::.
+            :p: From the fact that $fg = 1$. :: ::
 
-	    :p: From the fact that $fg = 1$. :: ::
+          :step: {:label:a0-b0-are-units}
 
-	  :step:
-	    :label:a0-b0-are-units
+            :claim: $a_0$ and $b_0$ are units in $A$. ::
 
-	    :claim: $a_0$ and $b_0$ are units in $A$. ::
+            :p: Because $1 = c_0 = a_0 b_0$. :: ::
 
-	    :p: Because $1 = c_0 = a_0 b_0$. :: ::
+          :step: :claim: $a_1, \ldots , a_n$ are nilpotent. ::
 
-	  :step: :claim: $a_1, \ldots , a_n$ are nilpotent. ::
+          :p:
 
-	    :p:
+          :step: {:label:first-substep}
 
-	      :step:
-		:label:first-substep
+          :claim: $a^r_n b_{m+1-r} = 0$ for $r = 1, \ldots, m + 1$. ::
 
-		:claim: $a^r_n b_{m+1-r} = 0$ for $r = 1, \ldots, m + 1$. ::
+          :p:
 
-		:p:
+          :step: We proceed by induction.  For the base case $r=1$, we have $a_n
+            b_m = 0$ which is true because $a_n b_m = c_{n+m} = 0$, from
+            :ref:ck-is-zero::. ::
 
-		  :step: We proceed by induction.  For the base case $r=1$, we have $a_n
-		  b_m = 0$ which is true because $a_n b_m = c_{n+m} = 0$, from
-		  :ref:ck-is-zero::. ::
+          :step: :assume:{:label:ind-hyp} $a^s_n b_{m+1-s} = 0$ for each $ s = 1, \ldots, r$ ::. ::
 
-		  :step: :assume:{:label:ind-hyp} $a^s_n b_{m+1-s} = 0$ for each $ s = 1, \ldots, r$ ::. ::
+          :step: :claim: $a^{r+1}_n b_{m-r} = 0$ ::
 
-		  :step: :claim: $a^{r+1}_n b_{m-r} = 0$ ::
+            :p: Consider $0 = a_n^r c_{m+n-r}$,
+    		      $$
+    		      \begin{align}
+    		      0 &= a_n^r \big( b_{m-r}a_n + b_{m-r+1}a_{n-1} + \ldots + b_m a_{n-r} \big) \\
+                          0 &= a_n^{r+1} b_{m-r} + (a_n^r b_{m-r+1}) a_n a_{n-1} + \ldots + (a_n b_m) a_n^{r-1} a_{n-r} \\
+                          0 &= a_n^{r+1} b_{m-r},
+                          \end{align}
+    		      $$
+    		      where the quantities in parentheses in the second equation each
+    		      individually equal zero due to the :ref:ind-hyp, induction hypothesis.::
 
-		    :p: Consider $0 = a_n^r c_{m+n-r}$,
-		      $$
-		      \begin{align}
-		      0 &= a_n^r \big( b_{m-r}a_n + b_{m-r+1}a_{n-1} + \ldots + b_m a_{n-r} \big) \\
-                      0 &= a_n^{r+1} b_{m-r} + (a_n^r b_{m-r+1}) a_n a_{n-1} + \ldots + (a_n b_m) a_n^{r-1} a_{n-r} \\
-                      0 &= a_n^{r+1} b_{m-r},
-                      \end{align}
-		      $$
-		      where the quantities in parentheses in the second equation each
-		      individually equal zero due to the :ref:ind-hyp, induction hypothesis.::
+		      :: :: :: ::
 
-		    :: :: :: ::
-
-	      :step: :qed:
+	  :step: :qed:
 
 		:p:
 
 		  :step: We again proceed by induction.  To prove the base case that
-		  $a_n$ is nilpotent, observe $a_n^{m+1} b_0 = 0$ by
-		  :ref:first-substep::.  However, $b_0$ is a unit by
-		  :ref:a0-b0-are-units:: and thus $a_n$ is nilpotent. ::
+  		  $a_n$ is nilpotent, observe $a_n^{m+1} b_0 = 0$ by
+  		  :ref:first-substep::.  However, $b_0$ is a unit by
+  		  :ref:a0-b0-are-units:: and thus $a_n$ is nilpotent. ::
 
 		  :step: :assume: $a_r$ is nilpotent for each $r = r, \ldots, n$. :: ::
 
@@ -246,8 +235,7 @@
 
 	  :step: :write: $u \colon = \sum_{i=1}^{n} a_i x^i $. :: ::
 
-	  :step:
-	    :label: u-is-unit
+	  :step: {:label: u-is-unit}
 
 	    :claim: $u$ is nilpotent. ::
 
@@ -303,12 +291,7 @@
 ::
 
 
-:bibliography: ::
-
-::
-
-
-:bibtex:
+:references:
 
 @book{atiyah2018introduction,
   title={Introduction to commutative algebra},
