@@ -5,7 +5,7 @@ CLI Commands
 
 RSM provides three command line utilities when installed locally:
 
-1. ``rsm-make`` Takes a file containing RSM source and outputs a fully functioning
+1. ``rsm-build`` Takes a file containing RSM source and outputs a fully functioning
    website.2
 . ``rsm-render`` Takes a file containing RSM source and translates it to HTML.  It does
    not make a working website, it only computes the HTML body and prints it to screen.
@@ -16,7 +16,7 @@ RSM provides three command line utilities when installed locally:
 These three commands correspond one-to-one to the functions in the main package:
 ``rsm.make()``, ``rsm.render()``, and ``rsm.lint()``.
 
-Most users will spend most of their time running ``rsm-make``.  The purpose of
+Most users will spend most of their time running ``rsm-build``.  The purpose of
 ``rsm-lint`` is to be integrated to text editors in the future.  ``rsm-render`` is
 mostly useful for development, testing, and rapid iteration at the CLI or python REPL.
 
@@ -30,8 +30,8 @@ mostly useful for development, testing, and rapid iteration at the CLI or python
 Arguments and flags
 *******************
 
-We focus on the CLI flags accepted by ``rsm-make``.  The other two commands have very
-similar flags.  For a complete and updated list of arguments, run ``rsm-make -h`` at
+We focus on the CLI flags accepted by ``rsm-build``.  The other two commands have very
+similar flags.  For a complete and updated list of arguments, run ``rsm-build -h`` at
 your terminal.  Here we provide some common examples.
 
 Suppose you have a file called ``manuscript.rsm`` containing RSM source code.  The
@@ -39,7 +39,7 @@ simplest way of building your web manuscript is via:
 
 .. code-block:: bash
 
-   $ rsm-make manuscript.rsm
+   $ rsm-build manuscript.rsm
 
 This will output a ``index.html`` file in the current directory, as well as a
 ``static/`` folder containing all necessary assets.
@@ -48,25 +48,25 @@ This will output a ``index.html`` file in the current directory, as well as a
 Input
 -----
 
-By default, ``rsm-make`` interprets its first argument as a path to a file.  You may
+By default, ``rsm-build`` interprets its first argument as a path to a file.  You may
 also provide RSM source directly at the terminal via the ``-c`` flag:
 
 .. code-block:: bash
 
-   $ rsm-make ":rsm: Hello. ::" -c
+   $ rsm-build ":rsm: Hello. ::" -c
 
 
 Automatic builds
 ----------------
 
-Using the ``--serve`` flag you may specify a path to ``rsm-make`` and instruct it to
-watch the file for any modifications.  ``rsm-make`` will rebuild the entire manuscript
+Using the ``--serve`` flag you may specify a path to ``rsm-build`` and instruct it to
+watch the file for any modifications.  ``rsm-build`` will rebuild the entire manuscript
 whenever there is a change in the file, without you having to manually relaunch the
 command.
 
 .. code-block:: bash
 
-   $ rsm-make manuscript.rsm --serve
+   $ rsm-build manuscript.rsm --serve
    [server] Serving on http://127.0.0.1:5500
    [handlers]Start watching changes
    [handlers]Start detecting changes

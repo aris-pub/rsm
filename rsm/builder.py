@@ -17,11 +17,11 @@ logger = logging.getLogger("RSM").getChild("build")
 class BaseBuilder(ABC):
     """Use HTML body as a string and create a WebManuscript."""
 
-    def __init__(self, asset_resolver=None) -> None:
+    def __init__(self, asset_resolver=None, outname: str = "index.html") -> None:
         self.body: str | None = None
         self.html: str | None = None
         self.web: WebManuscript | None = None
-        self.outname: str = "index.html"
+        self.outname: str = outname
         # Default to disk-based asset resolver if none provided
         if asset_resolver is None:
             from .asset_resolver import AssetResolverFromDisk

@@ -105,7 +105,7 @@ There are two translator classes in this module.  The base translator
 simple human-readable HTML output.  It is the translator class used by ``rsm-render``.
 :class:`HandrailsTranslator` is a subclass of :class:`Translator` and overrides some
 visit and leave methods to add handrails to the output.  It is the translator class used
-by ``rsm-make``.
+by ``rsm-build``.
 
 """
 

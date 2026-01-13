@@ -1,4 +1,4 @@
-HandrailsTranslator
+﻿HandrailsTranslator
 ===================
 
 Qualified name: ``rsm.translator.HandrailsTranslator``
@@ -18,6 +18,8 @@ Qualified name: ``rsm.translator.HandrailsTranslator``
       ~HandrailsTranslator.leave_author
       ~HandrailsTranslator.leave_caption
       ~HandrailsTranslator.leave_codeblock
+      ~HandrailsTranslator.leave_enumerate
+      ~HandrailsTranslator.leave_itemize
       ~HandrailsTranslator.leave_math
       ~HandrailsTranslator.leave_mathblock
       ~HandrailsTranslator.leave_paragraph
@@ -33,6 +35,8 @@ Qualified name: ``rsm.translator.HandrailsTranslator``
       ~HandrailsTranslator.visit_caption
       ~HandrailsTranslator.visit_codeblock
       ~HandrailsTranslator.visit_contents
+      ~HandrailsTranslator.visit_enumerate
+      ~HandrailsTranslator.visit_itemize
       ~HandrailsTranslator.visit_manuscript
       ~HandrailsTranslator.visit_math
       ~HandrailsTranslator.visit_mathblock

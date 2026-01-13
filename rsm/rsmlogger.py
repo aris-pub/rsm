@@ -159,7 +159,7 @@ def config_rsm_logger(
     By default, the RSM libray creates a logger instance with name "RSM" but it does not
     add any handlers or formatters to it.  Instead, it is the responsibility of client
     application code to setup logging.  This function configures the "RSM" logger in the
-    way recommended by library author.  In particular, scripts such as rsm-make and
+    way recommended by library author.  In particular, scripts such as rsm-build and
     rsm-lint use this configuration.
 
     """

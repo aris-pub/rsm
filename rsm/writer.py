@@ -19,4 +19,8 @@ class Writer:
 
     def write(self, web: WebManuscript) -> None:
         self.web = web
-        copy_fs(web, "./")
+        # Create output directory if it doesn't exist
+        if not self.dstpath.exists():
+            logger.info(f"Creating output directory: {self.dstpath}")
+            self.dstpath.mkdir(parents=True, exist_ok=True)
+        copy_fs(web, str(self.dstpath))

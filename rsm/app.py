@@ -329,6 +329,8 @@ class FullBuildApp(ProcessorApp):
         asset_resolver=None,
         standalone: bool = False,
         write_output: bool = False,
+        output_dir: str = ".",
+        output_filename: str = "index.html",
     ):
         super().__init__(
             srcpath,
@@ -344,11 +346,11 @@ class FullBuildApp(ProcessorApp):
         )
         self.write_output = write_output
         if standalone:
-            b = builder.StandaloneBuilder(asset_resolver=asset_resolver)
+            b = builder.StandaloneBuilder(asset_resolver=asset_resolver, outname=output_filename)
         else:
-            b = builder.FolderBuilder(asset_resolver=asset_resolver)
+            b = builder.FolderBuilder(asset_resolver=asset_resolver, outname=output_filename)
         self.add_task(Task("builder", b, b.build))
-        self.add_task(Task("writer", w := writer.Writer(), w.write))
+        self.add_task(Task("writer", w := writer.Writer(dstpath=Path(output_dir)), w.write))
 
     def run(self, initial_args=None) -> str:
         """Run the build pipeline, optionally writing files to disk.
@@ -456,6 +458,8 @@ def make(
     structured: bool = False,
     standalone: bool = False,
     write_output: bool = False,
+    output_dir: str = ".",
+    output_filename: str = "index.html",
 ) -> str | dict:
     """Process RSM source and optionally write output files.
 
@@ -487,6 +491,10 @@ def make(
         Write output files to disk (index.html + static/).
         When False (default), returns HTML without writing files.
         When True, writes files and still returns HTML.
+    output_dir : str
+        Directory where output files should be written (default: ".")
+    output_filename : str
+        Name of the main HTML file (default: "index.html")
 
     Returns
     -------
@@ -504,6 +512,8 @@ def make(
         asset_resolver=asset_resolver,
         standalone=standalone,
         write_output=write_output,
+        output_dir=output_dir,
+        output_filename=output_filename,
     ).run()
 
     if not structured:

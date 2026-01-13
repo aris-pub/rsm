@@ -18,7 +18,7 @@ is stored and execute
 
 .. code-block:: bash
 
-   $ rsm-make manuscript.rsm
+   $ rsm-build manuscript.rsm
 
 This will create a new file called :code:`index.html` in the same directory.  Open this
 file with your web browser to see the web manuscript created by RSM.
@@ -44,5 +44,5 @@ that by editing :code:`manuscript.rsm` as follows
    ::
 
 Run again the ``rsm-lint`` command, and the warning should have disappeared.  You can
-now run ``rsm-make`` again and refresh your browser to see now the title of your
+now run ``rsm-build`` again and refresh your browser to see now the title of your
 manuscript displayed.

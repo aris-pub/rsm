@@ -4,7 +4,7 @@ RSM file processing steps
 =========================
 
 This guide explains the processing pipeline that occurs when executing
-``rsm.make(source)`` (or calling ``rsm-make`` from the command line).  Assume there
+``rsm.make(source)`` (or calling ``rsm-build`` from the command line).  Assume there
 exists a file called ``src.rst`` in the current directory and a user executes ``rsm.make(src)``.
 
 Steps
@@ -142,7 +142,7 @@ Writer
 ------
 
 Finally, the output folder is generated in disk.  This is the final step of the CLI
-utility ``rsm-make``.
+utility ``rsm-build``.
 
 - Input: in-memory representation of the final output folder.
 - Output: write final folder to disk.

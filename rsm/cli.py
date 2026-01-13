@@ -37,12 +37,6 @@ def _init_parser() -> ArgumentParser:
         help="output handrails",
         action="store_true",
     )
-    output_opts.add_argument(
-        "-s",
-        "--silent",
-        help="do not show output, only the logs",
-        action="store_true",
-    )
 
     log_opts = parser.add_argument_group("logging control")
     log_opts.add_argument(
@@ -81,7 +75,7 @@ def _init_parser() -> ArgumentParser:
     return parser
 
 
-def main(parser: ArgumentParser, func: Callable, args: Namespace | None = None) -> int:
+def main(parser: ArgumentParser, func: Callable, args: Namespace | None = None, print_output: bool = True) -> int:
     if args is None:
         args = parser.parse_args()
     kwargs = {
@@ -96,28 +90,64 @@ def main(parser: ArgumentParser, func: Callable, args: Namespace | None = None) 
     else:
         kwargs["path"] = args.src
     output = func(**kwargs)
-    if not args.silent and output:
+    if print_output and output:
         print(output)
     return 0
 
 
 def render() -> int:
     parser = _init_parser()
-    return main(parser, app.render)
+    parser.add_argument(
+        "-s",
+        "--silent",
+        help="do not show output, only the logs",
+        action="store_true",
+    )
+    args = parser.parse_args()
+    return main(parser, app.render, args=args, print_output=not args.silent)
 
 
 def lint() -> int:
     parser = _init_parser()
     parser.set_defaults(log_format="lint")
-    parser.set_defaults(silent=True)
-    return main(parser, app.lint)
+    return main(parser, app.lint, print_output=False)
+
+
+def _parse_output_flag(value: str) -> tuple[str, str]:
+    """Parse -o flag into (output_dir, output_filename).
+
+    Cases:
+    - "myfile" -> (".", "myfile.html")
+    - "build/" -> ("build", "index.html")
+    - "build/myfile" -> ("build", "myfile.html")
+    """
+    if "/" not in value:
+        # Case 1: no slash, it's a filename
+        return (".", f"{value}.html")
+    elif value.endswith("/"):
+        # Case 2: ends with slash, it's a directory
+        return (value.rstrip("/"), "index.html")
+    else:
+        # Case 3: contains slash but doesn't end with it
+        # Split at rightmost slash
+        parts = value.rsplit("/", 1)
+        return (parts[0], f"{parts[1]}.html")
 
 
 def make() -> int:
     parser = _init_parser()
     parser.add_argument("--serve", help="serve and autoreload", action="store_true")
+    parser.add_argument("--standalone", help="output single self-contained HTML file", action="store_true")
+    parser.add_argument("-o", "--output", help="output path and/or filename", type=str, default=None)
+    parser.add_argument("-p", "--print", help="print HTML to stdout", action="store_true", dest="print_output")
     parser.set_defaults(handrails=True)
     args = parser.parse_args()
+
+    # Parse output directory and filename
+    output_dir = "."
+    output_filename = "index.html"
+    if args.output:
+        output_dir, output_filename = _parse_output_flag(args.output)
 
     # Build kwargs for app.make with write_output=True for CLI
     kwargs = {
@@ -127,6 +157,9 @@ def make() -> int:
         "log_time": args.log_time,
         "log_lineno": args.log_lineno,
         "write_output": True,  # CLI always writes files
+        "standalone": args.standalone,
+        "output_dir": output_dir,
+        "output_filename": output_filename,
     }
     if args.string:
         kwargs["source"] = args.src
@@ -139,11 +172,11 @@ def make() -> int:
         server = livereload.Server()
         server.watch(args.src, livereload.shell(cmd))
         output = app.make(**kwargs)
-        if not args.silent and output:
+        if args.print_output and output:
             print(output)
         server.serve(root=".")
     else:
         output = app.make(**kwargs)
-        if not args.silent and output:
+        if args.print_output and output:
             print(output)
     return 0
