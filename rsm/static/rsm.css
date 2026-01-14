@@ -9,6 +9,7 @@ body {
   background: var(--surface-page);
   margin: 0;
   padding: 0;
+  transition: background 0.3s ease, color 0.3s ease;
 }
 
 :root {
@@ -408,6 +409,7 @@ body {
   line-height: var(--body-line-height);
   background: var(--surface-page);
   color: var(--extra-dark);
+  transition: background 0.3s ease, color 0.3s ease;
 
   /* Outermost wrapper when the viewport is narrow */
   &.wrapper-narrow {
@@ -1397,6 +1399,11 @@ a.reference.external:hover::after {
 
 .dark-mode-toggle:active {
   transform: scale(0.95);
+}
+
+.dark-mode-toggle:focus-visible {
+  outline: 2px solid var(--border-action);
+  outline-offset: 2px;
 }
 
 .dark-mode-toggle svg {
