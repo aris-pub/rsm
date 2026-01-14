@@ -53,9 +53,7 @@ doc = [
 Homepage = "https://write-rsm.org/"
 
 [project.scripts]
-rsm-build = "rsm.cli:make"
-rsm-render = "rsm.cli:render"
-rsm-lint = "rsm.cli:lint"
+rsm = "rsm.cli:main"
 
 
 # Build system

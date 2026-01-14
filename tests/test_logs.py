@@ -114,7 +114,8 @@ WRONG_MANUSCRIPT_LOGS_V = [
 
 def cmd(src: str, log_format: str, verbose: int = 0):
     args = [
-        "rsm-render",
+        "rsm",
+        "render",
         f'"{src}"',
         "--string",
         "--silent",

@@ -33,7 +33,8 @@ WRONG_MANUSCRIPT_LOGS = [
 
 def cmd(src: str, log_format: str, verbose: int = 0):
     args = [
-        "rsm-lint",
+        "rsm",
+        "check",
         f'"{src}"',
         "--string",
         f"--log-format {log_format}",

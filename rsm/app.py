@@ -446,7 +446,7 @@ def lint(
     ).run()
 
 
-def make(
+def build(
     source: str = "",
     path: str = "",
     handrails: bool = True,

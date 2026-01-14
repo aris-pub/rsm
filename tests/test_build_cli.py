@@ -1,7 +1,7 @@
-"""Tests for rsm-build CLI file output behavior.
+"""Tests for rsm build CLI file output behavior.
 
-The rsm-build command should write files to disk (index.html + static/ folder).
-The rsm.make() Python API should return HTML without writing files.
+The rsm build command should write files to disk (index.html + static/ folder).
+The rsm.build() Python API should return HTML without writing files.
 """
 
 import subprocess
@@ -12,18 +12,18 @@ import rsm
 
 
 class TestMakeCLIFileOutput:
-    """Test that rsm-build CLI writes files to disk."""
+    """Test that rsm build CLI writes files to disk."""
 
     @pytest.mark.slow
     def test_make_cli_creates_index_html(self, tmp_path):
-        """Test that rsm-build creates index.html file."""
+        """Test that rsm build creates index.html file."""
         src = "# Test\n\nHello world.\n"
         src_file = tmp_path / "test.rsm"
         src_file.write_text(src)
 
-        # Run rsm-build in tmp_path directory
+        # Run rsm build in tmp_path directory
         subprocess.run(
-            f"rsm-build {src_file}",
+            f"rsm build {src_file}",
             cwd=tmp_path,
             shell=True,
             capture_output=True,
@@ -32,20 +32,20 @@ class TestMakeCLIFileOutput:
 
         # Should create index.html
         index_html = tmp_path / "index.html"
-        assert index_html.exists(), "rsm-build should create index.html"
+        assert index_html.exists(), "rsm build should create index.html"
         assert index_html.read_text().strip() != "", "index.html should not be empty"
         assert "<html>" in index_html.read_text()
         assert "Hello world" in index_html.read_text()
 
     @pytest.mark.slow
     def test_make_cli_creates_static_folder(self, tmp_path):
-        """Test that rsm-build creates static/ folder with assets."""
+        """Test that rsm build creates static/ folder with assets."""
         src = "# Test\n\nHello world.\n"
         src_file = tmp_path / "test.rsm"
         src_file.write_text(src)
 
         subprocess.run(
-            f"rsm-build {src_file}",
+            f"rsm build {src_file}",
             cwd=tmp_path,
             shell=True,
             capture_output=True,
@@ -54,7 +54,7 @@ class TestMakeCLIFileOutput:
 
         # Should create static/ folder
         static_dir = tmp_path / "static"
-        assert static_dir.exists(), "rsm-build should create static/ folder"
+        assert static_dir.exists(), "rsm build should create static/ folder"
         assert static_dir.is_dir()
 
         # Should contain CSS and JS files
@@ -64,12 +64,12 @@ class TestMakeCLIFileOutput:
 
     @pytest.mark.slow
     def test_make_cli_with_string_flag_creates_files_in_cwd(self, tmp_path):
-        """Test that rsm-build with -c flag creates files in current directory."""
+        """Test that rsm build with -c flag creates files in current directory."""
         src = ":rsm:\n# Test\n\nString source.\n"
 
         # Run with -c flag in tmp_path
         subprocess.run(
-            f'rsm-build "{src}" -c',
+            f'rsm build "{src}" -c',
             cwd=tmp_path,
             shell=True,
             capture_output=True,
@@ -83,13 +83,13 @@ class TestMakeCLIFileOutput:
 
     @pytest.mark.slow
     def test_make_cli_default_no_stdout(self, tmp_path):
-        """Test that rsm-build default behavior produces no stdout."""
+        """Test that rsm build default behavior produces no stdout."""
         src = "# Test\n\nDefault mode.\n"
         src_file = tmp_path / "test.rsm"
         src_file.write_text(src)
 
         result = subprocess.run(
-            f"rsm-build {src_file}",
+            f"rsm build {src_file}",
             cwd=tmp_path,
             shell=True,
             capture_output=True,
@@ -110,13 +110,13 @@ class TestMakeCLIFileOutput:
 
     @pytest.mark.slow
     def test_make_cli_output_flag_filename(self, tmp_path):
-        """Test rsm-build -o filename creates custom-named file."""
+        """Test rsm build -o filename creates custom-named file."""
         src = "# Test\n\nCustom filename.\n"
         src_file = tmp_path / "test.rsm"
         src_file.write_text(src)
 
         subprocess.run(
-            f"rsm-build {src_file} -o myfile",
+            f"rsm build {src_file} -o myfile",
             cwd=tmp_path,
             shell=True,
             capture_output=True,
@@ -131,13 +131,13 @@ class TestMakeCLIFileOutput:
 
     @pytest.mark.slow
     def test_make_cli_output_flag_directory(self, tmp_path):
-        """Test rsm-build -o dir/ creates files in directory."""
+        """Test rsm build -o dir/ creates files in directory."""
         src = "# Test\n\nCustom directory.\n"
         src_file = tmp_path / "test.rsm"
         src_file.write_text(src)
 
         subprocess.run(
-            f"rsm-build {src_file} -o build/",
+            f"rsm build {src_file} -o build/",
             cwd=tmp_path,
             shell=True,
             capture_output=True,
@@ -153,13 +153,13 @@ class TestMakeCLIFileOutput:
 
     @pytest.mark.slow
     def test_make_cli_output_flag_both(self, tmp_path):
-        """Test rsm-build -o dir/filename creates custom file in directory."""
+        """Test rsm build -o dir/filename creates custom file in directory."""
         src = "# Test\n\nBoth custom.\n"
         src_file = tmp_path / "test.rsm"
         src_file.write_text(src)
 
         subprocess.run(
-            f"rsm-build {src_file} -o dist/document",
+            f"rsm build {src_file} -o dist/document",
             cwd=tmp_path,
             shell=True,
             capture_output=True,
@@ -175,13 +175,13 @@ class TestMakeCLIFileOutput:
 
     @pytest.mark.slow
     def test_make_cli_print_flag(self, tmp_path):
-        """Test rsm-build -p prints HTML to stdout AND creates files."""
+        """Test rsm build -p prints HTML to stdout AND creates files."""
         src = "# Test\n\nPrint flag.\n"
         src_file = tmp_path / "test.rsm"
         src_file.write_text(src)
 
         result = subprocess.run(
-            f"rsm-build {src_file} -p",
+            f"rsm build {src_file} -p",
             cwd=tmp_path,
             shell=True,
             capture_output=True,
@@ -200,13 +200,13 @@ class TestMakeCLIFileOutput:
 
     @pytest.mark.slow
     def test_make_cli_standalone_flag(self, tmp_path):
-        """Test rsm-build --standalone creates single HTML file."""
+        """Test rsm build --standalone creates single HTML file."""
         src = "# Test\n\nStandalone.\n"
         src_file = tmp_path / "test.rsm"
         src_file.write_text(src)
 
         subprocess.run(
-            f"rsm-build {src_file} --standalone",
+            f"rsm build {src_file} --standalone",
             cwd=tmp_path,
             shell=True,
             capture_output=True,
@@ -228,7 +228,7 @@ class TestMakeCLIFileOutput:
 
     @pytest.mark.slow
     def test_make_cli_custom_css_flag(self, tmp_path):
-        """Test rsm-build --css copies custom CSS to static/ folder."""
+        """Test rsm build --css copies custom CSS to static/ folder."""
         src = "# Test\n\n:paragraph: {:types: mytype} Custom styled text\n"
         src_file = tmp_path / "test.rsm"
         src_file.write_text(src)
@@ -239,7 +239,7 @@ class TestMakeCLIFileOutput:
         custom_css_file.write_text(custom_css)
 
         subprocess.run(
-            f"rsm-build {src_file} --css {custom_css_file}",
+            f"rsm build {src_file} --css {custom_css_file}",
             cwd=tmp_path,
             shell=True,
             capture_output=True,
@@ -275,7 +275,7 @@ class TestMakeCLIFileOutput:
         custom_css_file.write_text(custom_css)
 
         subprocess.run(
-            f"rsm-build {src_file} --css {custom_css_file}",
+            f"rsm build {src_file} --css {custom_css_file}",
             cwd=tmp_path,
             shell=True,
             capture_output=True,
@@ -293,7 +293,7 @@ class TestMakeCLIFileOutput:
 
     @pytest.mark.slow
     def test_make_cli_custom_css_standalone(self, tmp_path):
-        """Test rsm-build --css --standalone inlines custom CSS."""
+        """Test rsm build --css --standalone inlines custom CSS."""
         src = "# Test\n\n:paragraph: {:types: mytype} Custom styled text\n"
         src_file = tmp_path / "test.rsm"
         src_file.write_text(src)
@@ -304,7 +304,7 @@ class TestMakeCLIFileOutput:
         custom_css_file.write_text(custom_css)
 
         subprocess.run(
-            f"rsm-build {src_file} --css {custom_css_file} --standalone",
+            f"rsm build {src_file} --css {custom_css_file} --standalone",
             cwd=tmp_path,
             shell=True,
             capture_output=True,
@@ -328,13 +328,13 @@ class TestMakeCLIFileOutput:
 
     @pytest.mark.slow
     def test_make_cli_custom_css_nonexistent_file(self, tmp_path):
-        """Test rsm-build with nonexistent CSS file logs warning but continues."""
+        """Test rsm build with nonexistent CSS file logs warning but continues."""
         src = "# Test\n\nNonexistent CSS.\n"
         src_file = tmp_path / "test.rsm"
         src_file.write_text(src)
 
         result = subprocess.run(
-            f"rsm-build {src_file} --css nonexistent.css",
+            f"rsm build {src_file} --css nonexistent.css",
             cwd=tmp_path,
             shell=True,
             capture_output=True,
@@ -351,19 +351,19 @@ class TestMakeCLIFileOutput:
 
 
 class TestMakePythonAPINoFileOutput:
-    """Test that rsm.make() Python API returns HTML without writing files."""
+    """Test that rsm.build() Python API returns HTML without writing files."""
 
     def test_make_api_returns_html_string(self):
-        """Test that rsm.make() returns HTML as string."""
+        """Test that rsm.build() returns HTML as string."""
         src = "# Test\n\nAPI call.\n"
-        result = rsm.make(src)
+        result = rsm.build(src)
 
         assert isinstance(result, str)
         assert "<html>" in result
         assert "API call" in result
 
     def test_make_api_does_not_write_files(self, tmp_path):
-        """Test that rsm.make() does NOT write files to disk."""
+        """Test that rsm.build() does NOT write files to disk."""
         src = "# Test\n\nAPI call.\n"
 
         # Change to tmp_path to ensure no files are written
@@ -374,7 +374,7 @@ class TestMakePythonAPINoFileOutput:
             os.chdir(tmp_path)
 
             # Call API
-            result = rsm.make(src)
+            result = rsm.build(src)
             assert isinstance(result, str)
 
             # Should NOT create index.html or static/
@@ -385,13 +385,13 @@ class TestMakePythonAPINoFileOutput:
             os.chdir(original_cwd)
 
     def test_make_api_with_path_does_not_write_files(self, tmp_path):
-        """Test that rsm.make(path=...) does NOT write files to disk."""
+        """Test that rsm.build(path=...) does NOT write files to disk."""
         src = "# Test\n\nAPI with path.\n"
         src_file = tmp_path / "test.rsm"
         src_file.write_text(src)
 
         # Call API with path
-        result = rsm.make(path=str(src_file))
+        result = rsm.build(path=str(src_file))
         assert isinstance(result, str)
         assert "API with path" in result
 

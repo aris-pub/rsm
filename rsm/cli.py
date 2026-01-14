@@ -15,8 +15,8 @@ import livereload
 from rsm import app
 
 
-def _init_parser() -> ArgumentParser:
-    parser = ArgumentParser()
+def _add_common_args(parser: ArgumentParser) -> None:
+    """Add common arguments shared by all subcommands."""
     parser.add_argument(
         "src",
         help="RSM source path",
@@ -70,20 +70,10 @@ def _init_parser() -> ArgumentParser:
         choices=["plain", "rsm", "json", "lint"],
         default="rsm",
     )
-    parser.add_argument(
-        "-V",
-        "--version",
-        help="rsm-markup version",
-        action="version",
-        version=f"rsm-markup v{version('rsm-markup')}",
-    )
-
-    return parser
 
 
-def main(parser: ArgumentParser, func: Callable, args: Namespace | None = None, print_output: bool = True) -> int:
-    if args is None:
-        args = parser.parse_args()
+def _run_app(func: Callable, args: Namespace, print_output: bool = True) -> int:
+    """Run an RSM app function with parsed arguments."""
     kwargs = {
         "handrails": args.handrails,
         "loglevel": app.RSMApp.default_log_level - args.verbose * 10,
@@ -101,22 +91,14 @@ def main(parser: ArgumentParser, func: Callable, args: Namespace | None = None, 
     return 0
 
 
-def render() -> int:
-    parser = _init_parser()
-    parser.add_argument(
-        "-s",
-        "--silent",
-        help="do not show output, only the logs",
-        action="store_true",
-    )
-    args = parser.parse_args()
-    return main(parser, app.render, args=args, print_output=not args.silent)
+def _cmd_render(args: Namespace) -> int:
+    """Handle 'rsm render' subcommand."""
+    return _run_app(app.render, args, print_output=not args.silent)
 
 
-def lint() -> int:
-    parser = _init_parser()
-    parser.set_defaults(log_format="lint")
-    return main(parser, app.lint, print_output=False)
+def _cmd_check(args: Namespace) -> int:
+    """Handle 'rsm check' subcommand."""
+    return _run_app(app.lint, args, print_output=False)
 
 
 def _parse_output_flag(value: str) -> tuple[str, str]:
@@ -128,41 +110,28 @@ def _parse_output_flag(value: str) -> tuple[str, str]:
     - "build/myfile" -> ("build", "myfile.html")
     """
     if "/" not in value:
-        # Case 1: no slash, it's a filename
         return (".", f"{value}.html")
     elif value.endswith("/"):
-        # Case 2: ends with slash, it's a directory
         return (value.rstrip("/"), "index.html")
     else:
-        # Case 3: contains slash but doesn't end with it
-        # Split at rightmost slash
         parts = value.rsplit("/", 1)
         return (parts[0], f"{parts[1]}.html")
 
 
-def make() -> int:
-    parser = _init_parser()
-    parser.add_argument("--serve", help="serve and autoreload", action="store_true")
-    parser.add_argument("--standalone", help="output single self-contained HTML file", action="store_true")
-    parser.add_argument("-o", "--output", help="output path and/or filename", type=str, default=None)
-    parser.add_argument("-p", "--print", help="print HTML to stdout", action="store_true", dest="print_output")
-    parser.set_defaults(handrails=True)
-    args = parser.parse_args()
-
-    # Parse output directory and filename
+def _cmd_build(args: Namespace) -> int:
+    """Handle 'rsm build' subcommand."""
     output_dir = "."
     output_filename = "index.html"
     if args.output:
         output_dir, output_filename = _parse_output_flag(args.output)
 
-    # Build kwargs for app.make with write_output=True for CLI
     kwargs = {
         "handrails": args.handrails,
         "loglevel": app.RSMApp.default_log_level - args.verbose * 10,
         "log_format": args.log_format,
         "log_time": args.log_time,
         "log_lineno": args.log_lineno,
-        "write_output": True,  # CLI always writes files
+        "write_output": True,
         "standalone": args.standalone,
         "output_dir": output_dir,
         "output_filename": output_filename,
@@ -173,17 +142,166 @@ def make() -> int:
     else:
         kwargs["path"] = args.src
 
-    if args.serve:
-        other_args = [a for a in sys.argv if a != "--serve"]
-        cmd = " ".join(other_args)
-        server = livereload.Server()
-        server.watch(args.src, livereload.shell(cmd))
-        output = app.make(**kwargs)
-        if args.print_output and output:
-            print(output)
-        server.serve(root=".")
-    else:
-        output = app.make(**kwargs)
-        if args.print_output and output:
-            print(output)
+    output = app.build(**kwargs)
+    if args.print_output and output:
+        print(output)
     return 0
+
+
+def _cmd_serve(args: Namespace) -> int:
+    """Handle 'rsm serve' subcommand."""
+    output_dir = "."
+    output_filename = "index.html"
+    if args.output:
+        output_dir, output_filename = _parse_output_flag(args.output)
+
+    # Reconstruct the build command for livereload
+    cmd_parts = ["rsm", "build", args.src]
+    if args.string:
+        cmd_parts.append("-c")
+    if args.output:
+        cmd_parts.extend(["-o", args.output])
+    if args.standalone:
+        cmd_parts.append("--standalone")
+    if args.css:
+        cmd_parts.extend(["--css", args.css])
+    if args.verbose:
+        cmd_parts.append("-" + "v" * args.verbose)
+    if not args.log_time:
+        cmd_parts.append("--log-no-timestamps")
+    if not args.log_lineno:
+        cmd_parts.append("--log-no-lineno")
+    if args.log_format != "rsm":
+        cmd_parts.extend(["--log-format", args.log_format])
+
+    cmd = " ".join(cmd_parts)
+
+    # Initial build
+    kwargs = {
+        "handrails": args.handrails,
+        "loglevel": app.RSMApp.default_log_level - args.verbose * 10,
+        "log_format": args.log_format,
+        "log_time": args.log_time,
+        "log_lineno": args.log_lineno,
+        "write_output": True,
+        "standalone": args.standalone,
+        "output_dir": output_dir,
+        "output_filename": output_filename,
+        "custom_css": args.css,
+    }
+    if args.string:
+        kwargs["source"] = args.src
+    else:
+        kwargs["path"] = args.src
+
+    output = app.build(**kwargs)
+    if args.print_output and output:
+        print(output)
+
+    # Start livereload server
+    server = livereload.Server()
+    server.watch(args.src, livereload.shell(cmd))
+    if args.css:
+        server.watch(args.css, livereload.shell(cmd))
+    server.serve(root=".")
+    return 0
+
+
+def main() -> int:
+    """Main entry point for rsm CLI with subcommands."""
+    parser = ArgumentParser(
+        prog="rsm",
+        description="Readable Science Markup (RSM) markup language toolchain",
+    )
+    parser.add_argument(
+        "-V",
+        "--version",
+        help="show rsm-markup version",
+        action="version",
+        version=f"rsm-markup v{version('rsm-markup')}",
+    )
+
+    subparsers = parser.add_subparsers(
+        dest="command",
+        help="available subcommands",
+        required=True,
+    )
+
+    # Build subcommand
+    build_parser = subparsers.add_parser(
+        "build",
+        help="build RSM source to HTML with assets",
+    )
+    _add_common_args(build_parser)
+    build_parser.add_argument(
+        "--standalone",
+        help="output single self-contained HTML file",
+        action="store_true",
+    )
+    build_parser.add_argument(
+        "-o",
+        "--output",
+        help="output path and/or filename",
+        type=str,
+        default=None,
+    )
+    build_parser.add_argument(
+        "-p",
+        "--print",
+        help="print HTML to stdout",
+        action="store_true",
+        dest="print_output",
+    )
+    build_parser.set_defaults(handrails=True, func=_cmd_build)
+
+    # Render subcommand
+    render_parser = subparsers.add_parser(
+        "render",
+        help="render RSM source to HTML (stdout only)",
+    )
+    _add_common_args(render_parser)
+    render_parser.add_argument(
+        "-s",
+        "--silent",
+        help="do not show output, only the logs",
+        action="store_true",
+    )
+    render_parser.set_defaults(func=_cmd_render)
+
+    # Check subcommand
+    check_parser = subparsers.add_parser(
+        "check",
+        help="check RSM source for errors",
+    )
+    _add_common_args(check_parser)
+    check_parser.set_defaults(log_format="lint", func=_cmd_check)
+
+    # Serve subcommand
+    serve_parser = subparsers.add_parser(
+        "serve",
+        help="build and serve with auto-reload",
+    )
+    _add_common_args(serve_parser)
+    serve_parser.add_argument(
+        "--standalone",
+        help="output single self-contained HTML file",
+        action="store_true",
+    )
+    serve_parser.add_argument(
+        "-o",
+        "--output",
+        help="output path and/or filename",
+        type=str,
+        default=None,
+    )
+    serve_parser.add_argument(
+        "-p",
+        "--print",
+        help="print HTML to stdout on each rebuild",
+        action="store_true",
+        dest="print_output",
+    )
+    serve_parser.set_defaults(handrails=True, func=_cmd_serve)
+
+    args = parser.parse_args()
+    return args.func(args)

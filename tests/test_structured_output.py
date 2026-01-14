@@ -1,4 +1,4 @@
-"""Tests for structured output functionality in rsm.make()."""
+"""Tests for structured output functionality in rsm.build()."""
 
 import rsm
 from rsm.app import _parse_html_to_structured
@@ -7,7 +7,7 @@ from rsm.app import _parse_html_to_structured
 def test_make_structured_returns_dict():
     """Test that structured=True returns a dictionary."""
     source = " Hello world!"
-    result = rsm.make(source, structured=True)
+    result = rsm.build(source, structured=True)
 
     assert isinstance(result, dict)
     assert set(result.keys()) == {"head", "body", "init_script"}
@@ -16,7 +16,7 @@ def test_make_structured_returns_dict():
 def test_make_structured_false_returns_string():
     """Test that structured=False returns HTML string (backward compatibility)."""
     source = "Hello world!"
-    result = rsm.make(source, structured=False)
+    result = rsm.build(source, structured=False)
 
     assert isinstance(result, str)
     assert "<html>" in result
@@ -27,7 +27,7 @@ def test_make_structured_false_returns_string():
 def test_make_default_structured_returns_string():
     """Test that default (no structured param) returns HTML string."""
     source = "Hello world!"
-    result = rsm.make(source)
+    result = rsm.build(source)
 
     assert isinstance(result, str)
     assert "<html>" in result
@@ -36,7 +36,7 @@ def test_make_default_structured_returns_string():
 def test_structured_head_contains_dependencies():
     """Test that structured head contains tooltip dependencies."""
     source = "Hello world!"
-    result = rsm.make(source, structured=True)
+    result = rsm.build(source, structured=True)
 
     head = result["head"]
     assert "jquery-3.6.0.js" in head
@@ -48,7 +48,7 @@ def test_structured_head_contains_dependencies():
 def test_structured_body_contains_content():
     """Test that structured body contains manuscript content."""
     source = "Hello world!"
-    result = rsm.make(source, structured=True)
+    result = rsm.build(source, structured=True)
 
     body = result["body"]
     assert "manuscriptwrapper" in body
@@ -58,7 +58,7 @@ def test_structured_body_contains_content():
 def test_structured_init_script_empty_without_assets():
     """Test that init_script is empty for content without HTML assets."""
     source = "Hello world!"
-    result = rsm.make(source, structured=True)
+    result = rsm.build(source, structured=True)
 
     # No HTML assets means no execution scripts to extract
     assert result["init_script"] == ""
@@ -70,7 +70,7 @@ def test_structured_with_asset_resolver():
 
     source = "Hello world!"
     resolver = AssetResolverFromDisk()
-    result = rsm.make(source, structured=True, asset_resolver=resolver)
+    result = rsm.build(source, structured=True, asset_resolver=resolver)
 
     assert isinstance(result, dict)
     assert "head" in result
@@ -82,8 +82,8 @@ def test_structured_vs_regular_same_content():
     """Test that structured and regular output contain same essential content."""
     source = "Hello world!"
 
-    regular = rsm.make(source, structured=False)
-    structured = rsm.make(source, structured=True)
+    regular = rsm.build(source, structured=False)
+    structured = rsm.build(source, structured=True)
 
     # Extract head and body from regular HTML
     import re
@@ -106,8 +106,8 @@ def test_structured_handrails_parameter():
     """Test structured output with handrails parameter."""
     source = "Hello world!"
 
-    result_with_handrails = rsm.make(source, structured=True, handrails=True)
-    result_without_handrails = rsm.make(source, structured=True, handrails=False)
+    result_with_handrails = rsm.build(source, structured=True, handrails=True)
+    result_without_handrails = rsm.build(source, structured=True, handrails=False)
 
     # Both should be dictionaries with same structure
     assert isinstance(result_with_handrails, dict)

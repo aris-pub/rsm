@@ -7,7 +7,7 @@ import pytest
 
 
 def cmd(src):
-    return " ".join(["rsm-render", f"'{src}'"])
+    return " ".join(["rsm", "render", f"'{src}'"])
 
 
 @pytest.mark.slow
@@ -56,7 +56,7 @@ def test_render(tmp_path):
     file = tmp_path / "test.rsm"
     file.write_text(src)
     result = subprocess.run(
-        f"rsm-render {str(file.resolve())}",
+        f"rsm render {str(file.resolve())}",
         stdout=subprocess.PIPE,
         check=True,
         shell=True,
@@ -79,7 +79,7 @@ def test_invalid_rsm():
 @pytest.mark.slow
 def test_render_version():
     result = subprocess.run(
-        "rsm-render --version", stdout=subprocess.PIPE, check=True, shell=True
+        "rsm --version", stdout=subprocess.PIPE, check=True, shell=True
     )
     output = result.stdout.decode("utf-8").strip()
     assert output == f"rsm-markup v{version('rsm-markup')}"

@@ -13,16 +13,16 @@ class TestStandaloneMode:
     """Test standalone=True produces self-contained HTML."""
 
     def test_make_accepts_standalone_parameter(self):
-        """Test that rsm.make() accepts standalone parameter."""
+        """Test that rsm.build() accepts standalone parameter."""
         source = ":rsm:\n\nHello world.\n\n::"
         # Should not raise
-        result = rsm.make(source, handrails=False, lint=False, standalone=True)
+        result = rsm.build(source, handrails=False, lint=False, standalone=True)
         assert "<html" in result.lower()
 
     def test_standalone_false_uses_absolute_paths(self):
         """Test that standalone=False (default) uses /static/ paths."""
         source = ":rsm:\n\nHello world.\n\n::"
-        result = rsm.make(source, handrails=False, lint=False, standalone=False)
+        result = rsm.build(source, handrails=False, lint=False, standalone=False)
 
         assert 'href="/static/rsm.css"' in result
         assert 'href="/static/tooltipster.bundle.css"' in result
@@ -32,7 +32,7 @@ class TestStandaloneMode:
     def test_standalone_true_uses_cdn_for_jquery(self):
         """Test that standalone=True uses CDN URL for jQuery."""
         source = ":rsm:\n\nHello world.\n\n::"
-        result = rsm.make(source, handrails=False, lint=False, standalone=True)
+        result = rsm.build(source, handrails=False, lint=False, standalone=True)
 
         # Should use jsdelivr CDN for jQuery 3.6.0
         assert "cdn.jsdelivr.net/npm/jquery@3.6.0" in result
@@ -42,7 +42,7 @@ class TestStandaloneMode:
     def test_standalone_true_uses_cdn_for_tooltipster(self):
         """Test that standalone=True uses CDN URL for Tooltipster."""
         source = ":rsm:\n\nHello world.\n\n::"
-        result = rsm.make(source, handrails=False, lint=False, standalone=True)
+        result = rsm.build(source, handrails=False, lint=False, standalone=True)
 
         # Should use CDN for tooltipster CSS and JS
         assert "cdn.jsdelivr.net/npm/tooltipster@4" in result
@@ -53,7 +53,7 @@ class TestStandaloneMode:
     def test_standalone_true_uses_studio_url_for_rsm_assets(self):
         """Test that standalone=True uses Studio backend URL for RSM assets."""
         source = ":rsm:\n\nHello world.\n\n::"
-        result = rsm.make(source, handrails=False, lint=False, standalone=True)
+        result = rsm.build(source, handrails=False, lint=False, standalone=True)
 
         # RSM CSS should point to Studio backend (or be inlined)
         # The exact URL format will be determined by implementation
@@ -64,7 +64,7 @@ class TestStandaloneMode:
     def test_standalone_true_uses_cdn_for_mathjax(self):
         """Test that standalone=True preserves MathJax CDN URL."""
         source = ":rsm:\n\nHello world.\n\n::"
-        result = rsm.make(source, handrails=False, lint=False, standalone=True)
+        result = rsm.build(source, handrails=False, lint=False, standalone=True)
 
         # MathJax should still use CDN (it already does)
         # This test ensures we don't accidentally break it
@@ -73,7 +73,7 @@ class TestStandaloneMode:
     def test_standalone_true_uses_cdn_for_pseudocode(self):
         """Test that standalone=True preserves pseudocode.js CDN URL."""
         source = ":rsm:\n\nHello world.\n\n::"
-        result = rsm.make(source, handrails=False, lint=False, standalone=True)
+        result = rsm.build(source, handrails=False, lint=False, standalone=True)
 
         # Pseudocode CSS should use CDN
         assert "pseudocode" in result.lower()
@@ -81,7 +81,7 @@ class TestStandaloneMode:
     def test_standalone_output_is_valid_html(self):
         """Test that standalone output is a complete, valid HTML document."""
         source = ":rsm:\n\n# Test Title\n\nHello world.\n\n::"
-        result = rsm.make(source, handrails=False, lint=False, standalone=True)
+        result = rsm.build(source, handrails=False, lint=False, standalone=True)
 
         # Must have all required HTML structure
         assert "<html" in result.lower()
@@ -93,7 +93,7 @@ class TestStandaloneMode:
     def test_standalone_default_is_false(self):
         """Test that standalone defaults to False for backwards compatibility."""
         source = ":rsm:\n\nHello world.\n\n::"
-        result = rsm.make(source, handrails=False, lint=False)
+        result = rsm.build(source, handrails=False, lint=False)
 
         # Default behavior should use /static/ paths
         assert 'href="/static/rsm.css"' in result
@@ -134,7 +134,7 @@ class TestStandaloneCDNVersions:
     def test_jquery_version_is_3_6_0(self):
         """Test jQuery CDN uses exact version 3.6.0 to match bundled version."""
         source = ":rsm:\n\nTest.\n\n::"
-        result = rsm.make(source, handrails=False, lint=False, standalone=True)
+        result = rsm.build(source, handrails=False, lint=False, standalone=True)
 
         # Must be exact version, not "latest"
         assert "jquery@3.6.0" in result
@@ -142,7 +142,7 @@ class TestStandaloneCDNVersions:
     def test_tooltipster_version_matches_bundled(self):
         """Test Tooltipster CDN uses version compatible with bundled version."""
         source = ":rsm:\n\nTest.\n\n::"
-        result = rsm.make(source, handrails=False, lint=False, standalone=True)
+        result = rsm.build(source, handrails=False, lint=False, standalone=True)
 
         # Tooltipster 4.x series
         assert "tooltipster@4" in result
