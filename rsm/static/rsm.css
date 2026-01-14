@@ -1425,4 +1425,17 @@ a.reference.external:hover::after {
   display: none;
 }
 
+/* Responsive: reduce side padding on smaller viewports */
+@media (max-width: 768px) {
+  :root {
+    --side-padding: 2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  :root {
+    --side-padding: 1rem;
+  }
+}
+
 }
