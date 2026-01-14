@@ -69,13 +69,37 @@ class HTMLBuilder(BaseBuilder):
             "<html>\n\n"
             + self.make_html_header()
             + "\n"
-            + self.body.strip()
+            + self._inject_dark_mode_button(self.body.strip())
             + "\n\n"
             + self.make_html_footer()
             + "</html>\n"
         )
         self.web.writetext(self.outname, html)
         self.web.html = html
+
+    def _inject_dark_mode_button(self, body: str) -> str:
+        """Inject dark mode toggle button right after <body> tag."""
+        button_html = dedent("""\
+            <button class="dark-mode-toggle" onclick="toggleDarkMode()" aria-label="Toggle dark mode">
+              <svg class="light-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="4"></circle>
+                <path d="M12 2v2"></path>
+                <path d="M12 20v2"></path>
+                <path d="m4.93 4.93 1.41 1.41"></path>
+                <path d="m17.66 17.66 1.41 1.41"></path>
+                <path d="M2 12h2"></path>
+                <path d="M20 12h2"></path>
+                <path d="m6.34 17.66-1.41 1.41"></path>
+                <path d="m19.07 4.93-1.41 1.41"></path>
+              </svg>
+              <svg class="dark-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1 -9 -9"></path>
+              </svg>
+            </button>
+        """)
+        # Insert button right after <body> tag
+        return body.replace("<body>", f"<body>\n\n{button_html}")
+
 
     def make_html_header(self) -> str:
         custom_css_link = ""
@@ -99,6 +123,24 @@ class HTMLBuilder(BaseBuilder):
           <script type="module">
             import {{ onload }} from '/static/onload.js';
             window.addEventListener('load', (ev) => {{window.lsp_ws = onload();}});
+          </script>
+
+          <script>
+            // Dark mode toggle with localStorage and system preference detection
+            (function() {{
+              const savedTheme = localStorage.getItem('rsm-theme');
+              const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+              const isDark = savedTheme === 'dark' || (!savedTheme && prefersDark);
+
+              if (isDark) {{
+                document.documentElement.classList.add('dark-theme');
+              }}
+            }})();
+
+            function toggleDarkMode() {{
+              const isDark = document.documentElement.classList.toggle('dark-theme');
+              localStorage.setItem('rsm-theme', isDark ? 'dark' : 'light');
+            }}
           </script>
 
           <title>__TITLE_PLACEHOLDER__</title>
@@ -175,6 +217,24 @@ class StandaloneBuilder(HTMLBuilder):
   </script>
   <script>
     window.addEventListener('load', function() {{ RSM.onload(null, {{keys: false}}); }});
+  </script>
+
+  <script>
+    // Dark mode toggle with localStorage and system preference detection
+    (function() {{
+      const savedTheme = localStorage.getItem('rsm-theme');
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const isDark = savedTheme === 'dark' || (!savedTheme && prefersDark);
+
+      if (isDark) {{
+        document.documentElement.classList.add('dark-theme');
+      }}
+    }})();
+
+    function toggleDarkMode() {{
+      const isDark = document.documentElement.classList.toggle('dark-theme');
+      localStorage.setItem('rsm-theme', isDark ? 'dark' : 'light');
+    }}
   </script>
 
   <title>__TITLE_PLACEHOLDER__</title>

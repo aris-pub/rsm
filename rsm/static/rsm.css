@@ -4,6 +4,13 @@
 
 @layer base {
 
+/* Page-level background for dark mode */
+body {
+  background: var(--surface-page);
+  margin: 0;
+  padding: 0;
+}
+
 :root {
 
   /* General */
@@ -1360,6 +1367,55 @@ a.reference.external {
 
 a.reference.external:hover::after {
   opacity: 1;
+}
+
+/* Dark mode toggle button */
+.dark-mode-toggle {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 1000;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  border: 2px solid var(--border-primary);
+  background-color: var(--surface-primary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 0;
+}
+
+.dark-mode-toggle:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  background-color: var(--surface-hover);
+}
+
+.dark-mode-toggle:active {
+  transform: scale(0.95);
+}
+
+.dark-mode-toggle svg {
+  width: 1.25rem;
+  height: 1.25rem;
+  stroke: var(--extra-dark);
+}
+
+/* Show/hide icons based on theme */
+.dark-mode-toggle .dark-icon {
+  display: none;
+}
+
+.dark-theme .dark-mode-toggle .dark-icon {
+  display: block;
+}
+
+.dark-theme .dark-mode-toggle .light-icon {
+  display: none;
 }
 
 }
