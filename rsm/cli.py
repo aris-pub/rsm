@@ -9,6 +9,7 @@ import sys
 from argparse import ArgumentParser, Namespace
 from collections.abc import Callable
 from importlib.metadata import version
+from pathlib import Path
 
 import livereload
 
@@ -148,62 +149,281 @@ def _cmd_build(args: Namespace) -> int:
     return 0
 
 
+def _find_html_files(directory: str) -> list:
+    """Find all HTML files in the given directory (non-recursive).
+
+    Excludes the special .rsm-index.html file used for directory listings.
+
+    Parameters
+    ----------
+    directory : str
+        Path to directory to search
+
+    Returns
+    -------
+    list of Path
+        List of HTML file paths, sorted alphabetically
+    """
+    dir_path = Path(directory)
+    html_files = []
+
+    for file_path in dir_path.glob("*.html"):
+        if file_path.is_file() and file_path.name != ".rsm-index.html":
+            html_files.append(file_path)
+
+    return sorted(html_files, key=lambda p: p.name)
+
+
+def _generate_index_page(html_files: list) -> str:
+    """Generate an HTML index page listing all HTML files.
+
+    Parameters
+    ----------
+    html_files : list of Path
+        List of HTML file paths to include in the listing
+
+    Returns
+    -------
+    str
+        HTML content for the index page
+    """
+    sorted_files = sorted(html_files, key=lambda p: p.name)
+
+    links = []
+    for file_path in sorted_files:
+        filename = file_path.name
+        links.append(f'        <li><a href="{filename}">{filename}</a></li>')
+
+    links_html = "\n".join(links)
+
+    html = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RSM - Available Pages</title>
+    <style>
+        body {{
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            line-height: 1.6;
+        }}
+        h1 {{
+            color: #333;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 0.5rem;
+        }}
+        ul {{
+            list-style: none;
+            padding: 0;
+        }}
+        li {{
+            margin: 0.75rem 0;
+        }}
+        a {{
+            color: #0066cc;
+            text-decoration: none;
+            font-size: 1.1rem;
+            padding: 0.5rem;
+            display: block;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }}
+        a:hover {{
+            background-color: #f0f0f0;
+        }}
+        .info {{
+            color: #666;
+            font-size: 0.9rem;
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 1px solid #e0e0e0;
+        }}
+    </style>
+</head>
+<body>
+    <h1>Available Pages</h1>
+    <ul>
+{links_html}
+    </ul>
+    <div class="info">
+        <p>Serving {len(sorted_files)} HTML file(s) from this directory.</p>
+    </div>
+</body>
+</html>"""
+
+    return html
+
+
+
+
 def _cmd_serve(args: Namespace) -> int:
-    """Handle 'rsm serve' subcommand."""
-    output_dir = "."
+    """Handle 'rsm serve' subcommand.
+
+    Two modes:
+    1. With src: Build the source file first, then serve with auto-rebuild
+    2. Without src: Just serve existing HTML files in current directory
+    """
+    import os
+
+    # Get the actual working directory (where the user ran the command from)
+    # This works even with uv run --project because we capture it immediately
+    output_dir = Path.cwd()
     output_filename = "index.html"
     if args.output:
-        output_dir, output_filename = _parse_output_flag(args.output)
+        output_dir_str, output_filename = _parse_output_flag(args.output)
+        output_dir = Path(output_dir_str)
 
-    # Reconstruct the build command for livereload
-    cmd_parts = ["rsm", "build", args.src]
-    if args.string:
-        cmd_parts.append("-c")
-    if args.output:
-        cmd_parts.extend(["-o", args.output])
-    if args.standalone:
-        cmd_parts.append("--standalone")
-    if args.css:
-        cmd_parts.extend(["--css", args.css])
-    if args.verbose:
-        cmd_parts.append("-" + "v" * args.verbose)
-    if not args.log_time:
-        cmd_parts.append("--log-no-timestamps")
-    if not args.log_lineno:
-        cmd_parts.append("--log-no-lineno")
-    if args.log_format != "rsm":
-        cmd_parts.extend(["--log-format", args.log_format])
+    # Mode 1: Build from source if provided
+    if args.src:
+        # Reconstruct the build command for livereload
+        cmd_parts = ["rsm", "build", args.src]
+        if args.string:
+            cmd_parts.append("-c")
+        if args.output:
+            cmd_parts.extend(["-o", args.output])
+        if args.standalone:
+            cmd_parts.append("--standalone")
+        if args.css:
+            cmd_parts.extend(["--css", args.css])
+        if args.verbose:
+            cmd_parts.append("-" + "v" * args.verbose)
+        if not args.log_time:
+            cmd_parts.append("--log-no-timestamps")
+        if not args.log_lineno:
+            cmd_parts.append("--log-no-lineno")
+        if args.log_format != "rsm":
+            cmd_parts.extend(["--log-format", args.log_format])
 
-    cmd = " ".join(cmd_parts)
+        cmd = " ".join(cmd_parts)
 
-    # Initial build
-    kwargs = {
-        "handrails": args.handrails,
-        "loglevel": app.RSMApp.default_log_level - args.verbose * 10,
-        "log_format": args.log_format,
-        "log_time": args.log_time,
-        "log_lineno": args.log_lineno,
-        "write_output": True,
-        "standalone": args.standalone,
-        "output_dir": output_dir,
-        "output_filename": output_filename,
-        "custom_css": args.css,
-    }
-    if args.string:
-        kwargs["source"] = args.src
+        # Initial build
+        kwargs = {
+            "handrails": args.handrails,
+            "loglevel": app.RSMApp.default_log_level - args.verbose * 10,
+            "log_format": args.log_format,
+            "log_time": args.log_time,
+            "log_lineno": args.log_lineno,
+            "write_output": True,
+            "standalone": args.standalone,
+            "output_dir": str(output_dir),
+            "output_filename": output_filename,
+            "custom_css": args.css,
+        }
+        if args.string:
+            kwargs["source"] = args.src
+        else:
+            kwargs["path"] = args.src
+
+        output = app.build(**kwargs)
+        if args.print_output and output:
+            print(output)
+
+        # Watch source and CSS files for changes
+        server = livereload.Server()
+        server.watch(args.src, livereload.shell(cmd))
+        if args.css:
+            server.watch(args.css, livereload.shell(cmd))
+
+    # Mode 2: Serve and watch all .rsm files in directory
     else:
-        kwargs["path"] = args.src
+        server = livereload.Server()
 
-    output = app.build(**kwargs)
-    if args.print_output and output:
-        print(output)
+        # Find all .rsm files in current directory
+        rsm_files = list(output_dir.glob("*.rsm"))
 
-    # Start livereload server
-    server = livereload.Server()
-    server.watch(args.src, livereload.shell(cmd))
-    if args.css:
-        server.watch(args.css, livereload.shell(cmd))
-    server.serve(root=".")
+        if rsm_files:
+            print(f"Watching {len(rsm_files)} RSM file(s) for changes...")
+            for rsm_file in rsm_files:
+                print(f"  - {rsm_file.name}")
+                # Create build command for this specific file
+                output_name = rsm_file.stem  # filename without extension
+                build_cmd = f"rsm build {rsm_file} -o {output_name}"
+                if args.css:
+                    build_cmd += f" --css {args.css}"
+                if args.standalone:
+                    build_cmd += " --standalone"
+
+                # Add a callback to regenerate index after build
+                def rebuild_callback(rsm_path=rsm_file, cmd=build_cmd):
+                    # Rebuild the specific file
+                    livereload.shell(cmd)()
+                    # Regenerate the index page to include any new HTML files
+                    html_files = _find_html_files(str(output_dir))
+                    if len(html_files) > 1:
+                        index_content = _generate_index_page(html_files)
+                        index_path = output_dir / ".rsm-index.html"
+                        index_path.write_text(index_content)
+                    elif len(html_files) == 1:
+                        # Remove index if it exists (we're back to single file)
+                        index_path = output_dir / ".rsm-index.html"
+                        if index_path.exists():
+                            index_path.unlink()
+
+                server.watch(str(rsm_file), rebuild_callback)
+        else:
+            print("No RSM files found in directory")
+            print("Watching HTML files for changes (reload only, no rebuild)...")
+            # Watch HTML files for reload only
+            html_files = _find_html_files(str(output_dir))
+            for html_file in html_files:
+                server.watch(str(html_file))
+
+        # Also watch CSS if provided
+        if args.css:
+            # When CSS changes, rebuild all RSM files
+            if rsm_files:
+                def css_rebuild_callback():
+                    # Rebuild all RSM files
+                    for rsm_file in rsm_files:
+                        output_name = rsm_file.stem
+                        cmd = f"rsm build {rsm_file} -o {output_name}"
+                        if args.css:
+                            cmd += f" --css {args.css}"
+                        if args.standalone:
+                            cmd += " --standalone"
+                        livereload.shell(cmd)()
+                    # Regenerate index
+                    html_files = _find_html_files(str(output_dir))
+                    if len(html_files) > 1:
+                        index_content = _generate_index_page(html_files)
+                        index_path = output_dir / ".rsm-index.html"
+                        index_path.write_text(index_content)
+                    elif len(html_files) == 1:
+                        # Remove index if it exists
+                        index_path = output_dir / ".rsm-index.html"
+                        if index_path.exists():
+                            index_path.unlink()
+
+                server.watch(args.css, css_rebuild_callback)
+
+    # Determine what file to serve based on HTML files in output directory
+    html_files = _find_html_files(str(output_dir))
+    default_file = "index.html"
+
+    if len(html_files) == 0:
+        # No HTML files found
+        if args.src:
+            # We just built something, serve it
+            default_file = output_filename
+        else:
+            # Nothing to serve
+            print("Warning: No HTML files found in current directory")
+            default_file = "index.html"
+    elif len(html_files) == 1:
+        # Single HTML file, serve it directly
+        default_file = html_files[0].name
+    else:
+        # Multiple HTML files, generate an index page
+        index_content = _generate_index_page(html_files)
+        index_path = output_dir / ".rsm-index.html"
+        index_path.write_text(index_content)
+        default_file = ".rsm-index.html"
+
+    # Start serving
+    server.serve(root=str(output_dir), default_filename=default_file, open_url=True)
     return 0
 
 
@@ -279,28 +499,87 @@ def main() -> int:
     # Serve subcommand
     serve_parser = subparsers.add_parser(
         "serve",
-        help="build and serve with auto-reload",
+        help="serve HTML files from directory with auto-reload",
     )
-    _add_common_args(serve_parser)
+
+    # Optional src argument
     serve_parser.add_argument(
+        "src",
+        nargs="?",
+        help="RSM source file to build before serving (optional)",
+    )
+
+    # Input control
+    input_opts = serve_parser.add_argument_group("input control")
+    input_opts.add_argument(
+        "-c",
+        "--string",
+        help="interpret src as a source string, not a path",
+        action="store_true",
+    )
+
+    # Output control
+    output_opts = serve_parser.add_argument_group("output control")
+    output_opts.add_argument(
+        "-r",
+        "--handrails",
+        help="output handrails",
+        action="store_true",
+    )
+    output_opts.add_argument(
+        "--css",
+        help="path to custom CSS file",
+        type=str,
+        default=None,
+    )
+    output_opts.add_argument(
         "--standalone",
         help="output single self-contained HTML file",
         action="store_true",
     )
-    serve_parser.add_argument(
+    output_opts.add_argument(
         "-o",
         "--output",
-        help="output path and/or filename",
+        help="output path and/or filename (for build)",
         type=str,
         default=None,
     )
-    serve_parser.add_argument(
+    output_opts.add_argument(
         "-p",
         "--print",
         help="print HTML to stdout on each rebuild",
         action="store_true",
         dest="print_output",
     )
+
+    # Logging control
+    log_opts = serve_parser.add_argument_group("logging control")
+    log_opts.add_argument(
+        "-v",
+        "--verbose",
+        help="verbosity",
+        action="count",
+        default=0,
+    )
+    log_opts.add_argument(
+        "--log-no-timestamps",
+        dest="log_time",
+        help="exclude timestamp in logs",
+        action="store_false",
+    )
+    log_opts.add_argument(
+        "--log-no-lineno",
+        dest="log_lineno",
+        help="exclude line numbers in logs",
+        action="store_false",
+    )
+    log_opts.add_argument(
+        "--log-format",
+        help="format for logs",
+        choices=["plain", "rsm", "json", "lint"],
+        default="rsm",
+    )
+
     serve_parser.set_defaults(handrails=True, func=_cmd_serve)
 
     args = parser.parse_args()
