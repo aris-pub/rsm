@@ -30,12 +30,12 @@ class TestMakeCLIFileOutput:
             check=True,
         )
 
-        # Should create index.html
-        index_html = tmp_path / "index.html"
-        assert index_html.exists(), "rsm build should create index.html"
-        assert index_html.read_text().strip() != "", "index.html should not be empty"
-        assert "<html>" in index_html.read_text()
-        assert "Hello world" in index_html.read_text()
+        # Should create test.html (derived from test.rsm)
+        output_html = tmp_path / "test.html"
+        assert output_html.exists(), "rsm build should create test.html from test.rsm"
+        assert output_html.read_text().strip() != "", "test.html should not be empty"
+        assert "<html>" in output_html.read_text()
+        assert "Hello world" in output_html.read_text()
 
     @pytest.mark.slow
     def test_make_cli_creates_static_folder(self, tmp_path):
@@ -103,10 +103,10 @@ class TestMakeCLIFileOutput:
         clean_stdout = "\n".join(lines).strip()
         assert clean_stdout == "", "Default mode should produce no output to stdout"
 
-        # But should still create files
-        index_html = tmp_path / "index.html"
-        assert index_html.exists()
-        assert "Default mode" in index_html.read_text()
+        # But should still create files (test.html from test.rsm)
+        output_html = tmp_path / "test.html"
+        assert output_html.exists()
+        assert "Default mode" in output_html.read_text()
 
     @pytest.mark.slow
     def test_make_cli_output_flag_filename(self, tmp_path):
@@ -144,10 +144,10 @@ class TestMakeCLIFileOutput:
             check=True,
         )
 
-        # Should create build/index.html
+        # Should create build/test.html (derived from test.rsm)
         build_dir = tmp_path / "build"
         assert build_dir.exists() and build_dir.is_dir()
-        output_html = build_dir / "index.html"
+        output_html = build_dir / "test.html"
         assert output_html.exists()
         assert "Custom directory" in output_html.read_text()
 
@@ -193,10 +193,10 @@ class TestMakeCLIFileOutput:
         assert "<html>" in stdout
         assert "Print flag" in stdout
 
-        # Should also create files
-        index_html = tmp_path / "index.html"
-        assert index_html.exists()
-        assert "Print flag" in index_html.read_text()
+        # Should also create files (test.html from test.rsm)
+        output_html = tmp_path / "test.html"
+        assert output_html.exists()
+        assert "Print flag" in output_html.read_text()
 
     @pytest.mark.slow
     def test_make_cli_standalone_flag(self, tmp_path):
@@ -213,17 +213,17 @@ class TestMakeCLIFileOutput:
             check=True,
         )
 
-        # Should create index.html
-        index_html = tmp_path / "index.html"
-        assert index_html.exists()
-        assert "Standalone" in index_html.read_text()
+        # Should create test.html
+        output_html = tmp_path / "test.html"
+        assert output_html.exists()
+        assert "Standalone" in output_html.read_text()
 
         # Should NOT create static/ folder
         static_dir = tmp_path / "static"
         assert not static_dir.exists()
 
         # Should use CDN URLs
-        html_content = index_html.read_text()
+        html_content = output_html.read_text()
         assert "cdn.jsdelivr.net" in html_content
 
     @pytest.mark.slow
@@ -253,8 +253,8 @@ class TestMakeCLIFileOutput:
         assert custom_css in custom_css_in_static.read_text()
 
         # Should add link tag in HTML
-        index_html = tmp_path / "index.html"
-        html_content = index_html.read_text()
+        output_html = tmp_path / "test.html"
+        html_content = output_html.read_text()
         assert '<link rel="stylesheet" type="text/css" href="/static/custom.css"' in html_content
 
         # Custom CSS link should come after rsm.css
@@ -316,8 +316,8 @@ class TestMakeCLIFileOutput:
         assert not static_dir.exists(), "--standalone should not create static/ folder"
 
         # Should inline custom CSS in <style> tag
-        index_html = tmp_path / "index.html"
-        html_content = index_html.read_text()
+        output_html = tmp_path / "test.html"
+        html_content = output_html.read_text()
         assert "<style>" in html_content
         assert custom_css in html_content
 
@@ -345,9 +345,9 @@ class TestMakeCLIFileOutput:
         stderr = result.stderr.decode("utf-8")
         assert "nonexistent.css" in stderr or "not found" in stderr.lower()
 
-        # Should still create index.html
-        index_html = tmp_path / "index.html"
-        assert index_html.exists()
+        # Should still create test.html
+        output_html = tmp_path / "test.html"
+        assert output_html.exists()
 
 
 class TestMakePythonAPINoFileOutput:

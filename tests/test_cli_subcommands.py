@@ -26,10 +26,10 @@ class TestCLISubcommands:
             check=True,
         )
 
-        # Should create index.html
-        index_html = tmp_path / "index.html"
-        assert index_html.exists(), "rsm build should create index.html"
-        assert "Build subcommand" in index_html.read_text()
+        # Should create test.html (derived from test.rsm)
+        output_html = tmp_path / "test.html"
+        assert output_html.exists(), "rsm build should create test.html"
+        assert "Build subcommand" in output_html.read_text()
 
     @pytest.mark.slow
     def test_rsm_render_subcommand(self, tmp_path):
@@ -177,7 +177,7 @@ class TestCLISubcommands:
             check=True,
         )
 
-        # Should create index.html without static/ folder
-        index_html = tmp_path / "index.html"
-        assert index_html.exists()
+        # Should create test.html without static/ folder
+        output_html = tmp_path / "test.html"
+        assert output_html.exists()
         assert not (tmp_path / "static").exists()

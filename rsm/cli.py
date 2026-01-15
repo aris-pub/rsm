@@ -107,24 +107,46 @@ def _parse_output_flag(value: str) -> tuple[str, str]:
 
     Cases:
     - "myfile" -> (".", "myfile.html")
-    - "build/" -> ("build", "index.html")
+    - "myfile.html" -> (".", "myfile.html")
+    - "build/" -> ("build", None)  # None means derive from input
     - "build/myfile" -> ("build", "myfile.html")
     """
     if "/" not in value:
-        return (".", f"{value}.html")
+        # Just a filename
+        if not value.endswith(".html"):
+            return (".", f"{value}.html")
+        else:
+            return (".", value)
     elif value.endswith("/"):
-        return (value.rstrip("/"), "index.html")
+        # Just a directory, filename should be derived from input
+        return (value.rstrip("/"), None)
     else:
+        # Directory and filename
         parts = value.rsplit("/", 1)
-        return (parts[0], f"{parts[1]}.html")
+        filename = parts[1]
+        if not filename.endswith(".html"):
+            filename = f"{filename}.html"
+        return (parts[0], filename)
 
 
 def _cmd_build(args: Namespace) -> int:
     """Handle 'rsm build' subcommand."""
     output_dir = "."
-    output_filename = "index.html"
+    output_filename = None
+
     if args.output:
         output_dir, output_filename = _parse_output_flag(args.output)
+
+    # Derive output filename from input if not specified
+    if output_filename is None:
+        if args.string:
+            # For string input, default to index.html
+            output_filename = "index.html"
+        else:
+            # For file input, use input filename with .html extension
+            from pathlib import Path
+            input_path = Path(args.src)
+            output_filename = f"{input_path.stem}.html"
 
     kwargs = {
         "handrails": args.handrails,
@@ -271,13 +293,21 @@ def _cmd_serve(args: Namespace) -> int:
     # Get the actual working directory (where the user ran the command from)
     # This works even with uv run --project because we capture it immediately
     output_dir = Path.cwd()
-    output_filename = "index.html"
+    output_filename = None
+
     if args.output:
         output_dir_str, output_filename = _parse_output_flag(args.output)
         output_dir = Path(output_dir_str)
 
     # Mode 1: Build from source if provided
     if args.src:
+        # Derive output filename from input if not specified
+        if output_filename is None:
+            if args.string:
+                output_filename = "index.html"
+            else:
+                input_path = Path(args.src)
+                output_filename = f"{input_path.stem}.html"
         # Reconstruct the build command for livereload
         cmd_parts = ["rsm", "build", args.src]
         if args.string:
