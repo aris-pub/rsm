@@ -281,6 +281,174 @@ def _generate_index_page(html_files: list) -> str:
 
 
 
+def _cmd_init(args: Namespace) -> int:
+    """Handle 'rsm init' subcommand - scaffold a new RSM project."""
+    import sys
+    from pathlib import Path
+
+    # Get current directory
+    project_dir = Path.cwd()
+
+    # Check if directory already has RSM files
+    existing_rsm = list(project_dir.glob("*.rsm"))
+    if existing_rsm and not args.force:
+        print(f"Error: Directory already contains RSM files: {', '.join(f.name for f in existing_rsm)}")
+        print("Use --force to initialize anyway")
+        return 1
+
+    # Interactive prompts
+    print("Initializing new RSM project...\n")
+
+    # Ask for filename
+    default_filename = "document"
+    filename_input = input(f"Main RSM filename [{default_filename}]: ").strip()
+    filename = filename_input if filename_input else default_filename
+
+    # Ask for author
+    author_input = input("Author name(s): ").strip()
+    author = author_input if author_input else "Author Name"
+
+    # Create assets directory
+    assets_dir = project_dir / "assets"
+    assets_dir.mkdir(exist_ok=True)
+    print(f"✓ Created {assets_dir}/")
+
+    # Create custom.css if requested
+    if args.css:
+        css_file = project_dir / "custom.css"
+        css_content = """\
+/* Custom CSS for your RSM document */
+
+/* Example: Style a custom paragraph type */
+/* .my-custom-type {
+    background-color: #f0f0f0;
+    padding: 1em;
+    border-left: 4px solid #333;
+} */
+"""
+        css_file.write_text(css_content)
+        print(f"✓ Created {css_file.name}")
+
+    # Create main RSM file
+    rsm_file = project_dir / f"{filename}.rsm"
+    rsm_content = f"""\
+---
+:title: {filename.replace('_', ' ').replace('-', ' ').title()}
+:author: {author}
+---
+
+# Introduction
+
+This is your RSM document. Write your content using RSM syntax.
+
+## Basic Formatting
+
+Regular paragraphs are separated by blank lines. You can use *emphasis* and **strong** text.
+
+## Figures
+
+To include a figure:
+
+:figure: {{:path: assets/example.png}}
+:caption: This is a figure caption.
+::
+
+## Math
+
+Inline math: $x^2 + y^2 = z^2$
+
+Display math:
+
+$$
+\\int_0^\\infty e^{{-x^2}} dx = \\frac{{\\sqrt{{\\pi}}}}{{2}}
+$$
+
+## Citations
+
+To cite a reference: :cite: {{:key: smith2023}}
+
+## Custom Paragraphs
+
+:paragraph: {{:types: note}}
+This is a custom paragraph with a type annotation.
+::
+
+# Conclusion
+
+Your conclusions go here.
+
+## References
+
+:reference: {{:key: smith2023}}
+:author: Smith, J.
+:title: Example Paper Title
+:journal: Example Journal
+:year: 2023
+::
+"""
+    rsm_file.write_text(rsm_content)
+    print(f"✓ Created {rsm_file.name}")
+
+    # Create README
+    readme_file = project_dir / "README.md"
+    readme_content = f"""\
+# {filename.replace('_', ' ').replace('-', ' ').title()}
+
+RSM project initialized by `rsm init`.
+
+## Project Structure
+
+```
+.
+├── {rsm_file.name}     # Main RSM document
+├── assets/           # Place images and other assets here
+{"├── custom.css       # Custom CSS styles" if args.css else ""}
+└── README.md         # This file
+```
+
+## Common Commands
+
+Build the document:
+```bash
+rsm build {rsm_file.name}
+```
+
+Serve with live reload:
+```bash
+rsm serve {rsm_file.name}
+```
+
+Check for errors:
+```bash
+rsm check {rsm_file.name}
+```
+
+Build standalone HTML (no external dependencies):
+```bash
+rsm build {rsm_file.name} --standalone
+```
+
+{"Build with custom CSS:" if args.css else ""}
+{"```bash" if args.css else ""}
+{f"rsm build {rsm_file.name} --css custom.css" if args.css else ""}
+{"```" if args.css else ""}
+
+## Learn More
+
+- RSM Documentation: https://github.com/leotrs/rsm
+- RSM Syntax Guide: https://rsm.readthedocs.io
+"""
+    readme_file.write_text(readme_content)
+    print(f"✓ Created {readme_file.name}")
+
+    print(f"\n✓ RSM project initialized successfully!")
+    print(f"\nNext steps:")
+    print(f"  1. Edit {rsm_file.name}")
+    print(f"  2. Run: rsm serve {rsm_file.name}")
+
+    return 0
+
+
 def _cmd_serve(args: Namespace) -> int:
     """Handle 'rsm serve' subcommand.
 
@@ -476,6 +644,23 @@ def main() -> int:
         help="available subcommands",
         required=True,
     )
+
+    # Init subcommand
+    init_parser = subparsers.add_parser(
+        "init",
+        help="initialize a new RSM project",
+    )
+    init_parser.add_argument(
+        "--css",
+        help="create a custom.css file",
+        action="store_true",
+    )
+    init_parser.add_argument(
+        "--force",
+        help="initialize even if RSM files already exist",
+        action="store_true",
+    )
+    init_parser.set_defaults(func=_cmd_init)
 
     # Build subcommand
     build_parser = subparsers.add_parser(
