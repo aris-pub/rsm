@@ -456,7 +456,9 @@ def _cmd_serve(args: Namespace) -> int:
     1. With src: Build the source file first, then serve with auto-rebuild
     2. Without src: Just serve existing HTML files in current directory
     """
-    import os
+    import threading
+    import time
+    import webbrowser
 
     # Get the actual working directory (where the user ran the command from)
     # This works even with uv run --project because we capture it immediately
@@ -621,7 +623,25 @@ def _cmd_serve(args: Namespace) -> int:
         default_file = ".rsm-index.html"
 
     # Start serving
-    server.serve(root=str(output_dir), default_filename=default_file, open_url=True)
+    # Don't use livereload's open_url - we'll open browser with specific URL
+    port = 5500  # livereload default port
+
+    # Determine the URL to open
+    if len(html_files) == 1:
+        # Single file - navigate directly to it
+        url = f"http://127.0.0.1:{port}/{default_file}"
+    else:
+        # Multiple files or no files - show index or root
+        url = f"http://127.0.0.1:{port}/{default_file}" if default_file != "index.html" else f"http://127.0.0.1:{port}/"
+
+    # Open default browser in a background thread after a short delay
+    def open_browser():
+        time.sleep(1.5)  # Wait for server to start
+        webbrowser.open(url)
+
+    threading.Thread(target=open_browser, daemon=True).start()
+
+    server.serve(root=str(output_dir), default_filename=default_file, open_url=False)
     return 0
 
 
