@@ -161,3 +161,115 @@ def test_cite_to_unknown_label(caplog):
         """,
     )
     assert "Reference to nonexistent label" in caplog.text
+
+
+def test_bibitem_without_doi(caplog):
+    """Bibitem without DOI renders correctly"""
+    compare_have_want(
+        have="""\
+        Text citing :cite: smith2024 ::.
+
+        :references:
+        @article{smith2024,
+          title = {My Paper},
+          author = {Jane Smith},
+          year = {2024},
+          journal = {Nature}
+        }
+        ::
+        """,
+        want="""\
+        <body>
+
+        <div class="manuscriptwrapper">
+
+        <div class="manuscript" data-nodeid="0">
+
+        <section class="level-1">
+
+        <div class="paragraph" data-nodeid="1">
+
+        <p>Text citing [<a id="cite-0" class="reference cite" href="#smith2024">1</a>].</p>
+
+        </div>
+
+        <section class="level-2">
+
+        <h2>References</h2>
+
+        <ol class="bibliography" data-nodeid="5">
+
+        <li id="smith2024" class="bibitem" data-nodeid="6">
+        1. Jane Smith. "My Paper". Nature. 2024.<br />[<a class="reference backlink" href="#cite-0">↖1</a>]
+        </li>
+
+        </ol>
+
+        </section>
+
+        </section>
+
+        </div>
+
+        </div>
+
+        </body>
+        """,
+    )
+    assert "Bibitem smith2024 has no DOI" in caplog.text
+
+
+def test_bibitem_with_doi():
+    """Bibitem with DOI renders correctly with link"""
+    compare_have_want(
+        have="""\
+        Text citing :cite: smith2024 ::.
+
+        :references:
+        @article{smith2024,
+          title = {My Paper},
+          author = {Jane Smith},
+          year = {2024},
+          journal = {Nature},
+          doi = {10.1234/example}
+        }
+        ::
+        """,
+        want="""\
+        <body>
+
+        <div class="manuscriptwrapper">
+
+        <div class="manuscript" data-nodeid="0">
+
+        <section class="level-1">
+
+        <div class="paragraph" data-nodeid="1">
+
+        <p>Text citing [<a id="cite-0" class="reference cite" href="#smith2024">1</a>].</p>
+
+        </div>
+
+        <section class="level-2">
+
+        <h2>References</h2>
+
+        <ol class="bibliography" data-nodeid="5">
+
+        <li id="smith2024" class="bibitem" data-nodeid="6">
+        1. Jane Smith. "My Paper". Nature. 2024. <a id="smith2024-doi" class="bibitem-doi" href="https://doi.org/10.1234/example" target="_blank">[link]</a><br />[<a class="reference backlink" href="#cite-0">↖1</a>]
+        </li>
+
+        </ol>
+
+        </section>
+
+        </section>
+
+        </div>
+
+        </div>
+
+        </body>
+        """,
+    )

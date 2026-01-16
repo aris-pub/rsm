@@ -2310,7 +2310,7 @@ class HandrailsTranslator(Translator):
             batch,
             include_content=False,
             classes=["hr-hidden"],
-            icon="ext",
+            icon="ext" if node.doi else None,
             collapse_in_hr=False,
             link=False,
         )

@@ -51,7 +51,7 @@ EMPTY_MANUSCRIPT_LOGS_V = [
     },
 ]
 
-WRONG_MANUSCRIPT = ":"
+WRONG_MANUSCRIPT = "::"
 WRONG_MANUSCRIPT_LOGS = [
     {
         "name": "RSM.parse",
