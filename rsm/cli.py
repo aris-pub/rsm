@@ -318,10 +318,19 @@ def _cmd_init(args: Namespace) -> int:
     author_input = input("Author name(s): ").strip()
     author = author_input if author_input else "Author Name"
 
-    # Create assets directory
+    # Create assets directory and copy Aris logo
     assets_dir = project_dir / "assets"
     assets_dir.mkdir(exist_ok=True)
-    print(f"✓ Created {assets_dir}/")
+
+    # Copy Aris logo to assets
+    import shutil
+    logo_source = Path(__file__).parent.parent / "brand" / "logos" / "aris" / "aris-logo-64.svg"
+    logo_dest = assets_dir / "aris-logo.svg"
+    if logo_source.exists():
+        shutil.copy(logo_source, logo_dest)
+        print(f"✓ Created {assets_dir}/ with Aris logo")
+    else:
+        print(f"✓ Created {assets_dir}/")
 
     # Create custom.css if requested
     if args.css:
@@ -332,7 +341,7 @@ def _cmd_init(args: Namespace) -> int:
 /* Example: Style a custom paragraph type */
 /* .my-custom-type {
     background-color: #f0f0f0;
-    padding: 1em;
+
     border-left: 4px solid #333;
 } */
 """
@@ -342,30 +351,37 @@ def _cmd_init(args: Namespace) -> int:
     # Create main RSM file
     rsm_file = project_dir / f"{filename}.rsm"
     rsm_content = f"""\
----
-:title: {filename.replace('_', ' ').replace('-', ' ').title()}
-:author: {author}
----
+# {filename.replace('_', ' ').replace('-', ' ').title()}
 
-# Introduction
+:author:{{
+  :name: {author}
+}} ::
+
+
+## Introduction
 
 This is your RSM document. Write your content using RSM syntax.
+
 
 ## Basic Formatting
 
 Regular paragraphs are separated by blank lines. You can use *emphasis* and **strong** text.
 
+
 ## Figures
 
 To include a figure:
 
-:figure: {{:path: assets/example.png}}
-:caption: This is a figure caption.
+:figure: {{
+  :path: assets/aris-logo.svg
+}}
+  :caption: Aris logo example.
 ::
+
 
 ## Math
 
-Inline math: $x^2 + y^2 = z^2$
+Inline math: ${{:label: eqn}} x^2 + y^2 = z^2$
 
 Display math:
 
@@ -373,27 +389,25 @@ $$
 \\int_0^\\infty e^{{-x^2}} dx = \\frac{{\\sqrt{{\\pi}}}}{{2}}
 $$
 
-## Citations
 
-To cite a reference: :cite: {{:key: smith2023}}
+## Cross-References
+
+To reference from the current file: :ref:eqn::. To cite from the bibliography: :cite:smith2023::.
+
 
 ## Custom Paragraphs
 
-:paragraph: {{:types: note}}
-This is a custom paragraph with a type annotation.
-::
+:paragraph: {{:types: note}} This is a custom paragraph with `types` meta key.
 
-# Conclusion
 
-Your conclusions go here.
-
-## References
-
-:reference: {{:key: smith2023}}
-:author: Smith, J.
-:title: Example Paper Title
-:journal: Example Journal
-:year: 2023
+:references:
+@article{{smith2023,
+  title={{Example Paper Title}},
+  author={{Smith, J.}},
+  year={{2026}},
+  publisher={{Example Journal}},
+  doi={{https://doi.org/10.1201/9780429493638}},
+}}
 ::
 """
     rsm_file.write_text(rsm_content)
@@ -445,7 +459,7 @@ rsm build {rsm_file.name} --standalone
 
 ## Learn More
 
-- RSM Documentation: https://github.com/leotrs/rsm
+- RSM Documentation: https://github.com/aris-pub/rsm
 - RSM Syntax Guide: https://rsm.readthedocs.io
 """
     readme_file.write_text(readme_content)
@@ -619,9 +633,12 @@ def _cmd_serve(args: Namespace) -> int:
             # We just built something, serve it
             default_file = output_filename
         else:
-            # Nothing to serve
+            # Nothing to serve, generate empty index page
             print("Warning: No HTML files found in current directory")
-            default_file = "index.html"
+            index_content = _generate_index_page(html_files)
+            index_path = output_dir / ".rsm-index.html"
+            index_path.write_text(index_content)
+            default_file = ".rsm-index.html"
     elif len(html_files) == 1:
         # Single HTML file, serve it directly
         default_file = html_files[0].name
@@ -634,7 +651,7 @@ def _cmd_serve(args: Namespace) -> int:
 
     # Start serving
     # Don't use livereload's open_url - we'll open browser with specific URL
-    port = 5500  # livereload default port
+    port = args.port
 
     # Determine the URL to open
     if len(html_files) == 1:
@@ -645,13 +662,23 @@ def _cmd_serve(args: Namespace) -> int:
         url = f"http://127.0.0.1:{port}/{default_file}" if default_file != "index.html" else f"http://127.0.0.1:{port}/"
 
     # Open default browser in a background thread after a short delay
-    def open_browser():
-        time.sleep(1.5)  # Wait for server to start
-        webbrowser.open(url)
+    if not args.no_browser:
+        def open_browser():
+            time.sleep(1.5)  # Wait for server to start
+            webbrowser.open(url)
 
-    threading.Thread(target=open_browser, daemon=True).start()
+        threading.Thread(target=open_browser, daemon=True).start()
 
-    server.serve(root=str(output_dir), default_filename=default_file, open_url=False)
+    try:
+        server.serve(root=str(output_dir), default_filename=default_file, open_url=False, port=port)
+    except OSError as e:
+        if "Address already in use" in str(e):
+            print(f"\nError: Port {port} is already in use.")
+            print(f"Please choose a different port using the --port flag:")
+            print(f"  rsm serve --port <PORT_NUMBER>")
+            print(f"\nFor example: rsm serve --port {port + 1}")
+            return 1
+        raise
     return 0
 
 
@@ -795,6 +822,17 @@ def main() -> int:
         help="print HTML to stdout on each rebuild",
         action="store_true",
         dest="print_output",
+    )
+    output_opts.add_argument(
+        "--port",
+        help="port number for the development server (default: 5500)",
+        type=int,
+        default=5500,
+    )
+    output_opts.add_argument(
+        "--no-browser",
+        help="do not automatically open browser",
+        action="store_true",
     )
 
     # Logging control

@@ -23,6 +23,7 @@ def test_init_creates_basic_structure(tmp_path, monkeypatch):
     # Check created files and directories
     assert (tmp_path / "test-doc.rsm").exists()
     assert (tmp_path / "assets").is_dir()
+    assert (tmp_path / "assets" / "aris-logo.svg").exists()
     assert (tmp_path / "README.md").exists()
     assert not (tmp_path / "custom.css").exists()  # Not created without --css
 
@@ -43,15 +44,16 @@ def test_init_rsm_file_content(tmp_path, monkeypatch):
     rsm_file = tmp_path / "my-paper.rsm"
     content = rsm_file.read_text()
 
-    # Check for author and title
-    assert ":title: My Paper" in content
-    assert ":author: John Doe" in content
+    # Check for author and title (new format)
+    assert "# My Paper" in content
+    assert ":name: John Doe" in content
 
     # Check for syntax examples
-    assert "# Introduction" in content
+    assert "## Introduction" in content
     assert ":figure:" in content
+    assert "assets/aris-logo.svg" in content
     assert ":cite:" in content
-    assert ":reference:" in content
+    assert ":references:" in content
 
 
 def test_init_with_css_flag(tmp_path, monkeypatch):
@@ -175,8 +177,8 @@ def test_init_default_filename(tmp_path, monkeypatch):
     assert (tmp_path / "document.rsm").exists()  # Default name
 
     content = (tmp_path / "document.rsm").read_text()
-    assert ":title: Document" in content
-    assert ":author: Default Author" in content
+    assert "# Document" in content
+    assert ":name: Default Author" in content
 
 
 def test_init_filename_with_underscores(tmp_path, monkeypatch):
@@ -193,7 +195,7 @@ def test_init_filename_with_underscores(tmp_path, monkeypatch):
     )
 
     content = (tmp_path / "my_research_paper.rsm").read_text()
-    assert ":title: My Research Paper" in content
+    assert "# My Research Paper" in content
 
 
 def test_init_filename_with_dashes(tmp_path, monkeypatch):
@@ -210,4 +212,4 @@ def test_init_filename_with_dashes(tmp_path, monkeypatch):
     )
 
     content = (tmp_path / "my-research-paper.rsm").read_text()
-    assert ":title: My Research Paper" in content
+    assert "# My Research Paper" in content
