@@ -15,7 +15,7 @@ install:
 # Install with local tree-sitter-rsm for grammar development
 install-local:
     uv sync --all-extras
-    cd tree-sitter-rsm && uv pip install -e .
+    uv pip install -e tree-sitter-rsm --no-build-isolation
 
 # Run fast tests (skip slow tests)
 test:
@@ -84,7 +84,7 @@ rebuild-grammar:
     make
     echo "Reinstalling tree-sitter-rsm package..."
     cd ..
-    uv pip install -e tree-sitter-rsm --force-reinstall --no-deps
+    uv pip install -e tree-sitter-rsm --force-reinstall --no-deps --no-build-isolation
     echo "Ensuring dev dependencies are still installed..."
     uv sync --extra dev
     echo "Done! tree-sitter-rsm rebuilt and dev dependencies preserved"
