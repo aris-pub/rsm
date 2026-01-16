@@ -85,9 +85,7 @@ rebuild-grammar:
     echo "Reinstalling tree-sitter-rsm package..."
     cd ..
     uv pip install -e tree-sitter-rsm --force-reinstall --no-deps --no-build-isolation
-    echo "Ensuring dev dependencies are still installed..."
-    uv sync --extra dev
-    echo "Done! tree-sitter-rsm rebuilt and dev dependencies preserved"
+    echo "Done! tree-sitter-rsm rebuilt successfully"
 
 # Build distribution packages
 build:
