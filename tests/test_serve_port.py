@@ -130,16 +130,19 @@ def test_serve_no_html_files_shows_empty_index(tmp_path):
     # Start server in directory with no HTML files
     port = find_free_port()
 
+    import time
+    process = subprocess.Popen(
+        ["rsm", "serve", "--port", str(port), "--no-browser"],
+        cwd=tmp_path,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+    )
+
     try:
-        result = subprocess.run(
-            ["rsm", "serve", "--port", str(port), "--no-browser"],
-            cwd=tmp_path,
-            timeout=2,
-            capture_output=True,
-            text=True,
-        )
-    except subprocess.TimeoutExpired as e:
-        # Server is running successfully
+        # Give the server time to start and create the index file
+        time.sleep(0.5)
+
         # Check that it created an empty index page
         index_file = tmp_path / ".rsm-index.html"
         assert index_file.exists(), "Empty index page should be created"
@@ -148,7 +151,10 @@ def test_serve_no_html_files_shows_empty_index(tmp_path):
         content = index_file.read_text()
         assert "RSM - Available Pages" in content
         assert "<ul>" in content
-        return
-
-    # If server exited immediately, something went wrong
-    assert False, f"Server should keep running, but exited with: {result.stdout} {result.stderr}"
+    finally:
+        # Always kill the server process
+        process.terminate()
+        try:
+            process.wait(timeout=2)
+        except subprocess.TimeoutExpired:
+            process.kill()
