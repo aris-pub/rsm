@@ -318,16 +318,24 @@ def _cmd_init(args: Namespace) -> int:
     author_input = input("Author name(s): ").strip()
     author = author_input if author_input else "Author Name"
 
-    # Create assets directory and copy Aris logo
+    # Create assets directory and fetch/copy Aris logo
     assets_dir = project_dir / "assets"
     assets_dir.mkdir(exist_ok=True)
 
-    # Copy Aris logo to assets
+    # Try to fetch latest Aris logo, fall back to committed version
+    from rsm.brand_assets import fetch_aris_logo_if_online
     import shutil
-    logo_source = Path(__file__).parent.parent / "brand" / "logos" / "aris" / "aris-logo-64.svg"
+
     logo_dest = assets_dir / "aris-logo.svg"
-    if logo_source.exists():
-        shutil.copy(logo_source, logo_dest)
+    fetched = fetch_aris_logo_if_online(logo_dest)
+
+    if not fetched:
+        # Fetch failed, use committed version
+        logo_source = Path(__file__).parent / "assets" / "aris-logo-64.svg"
+        if logo_source.exists():
+            shutil.copy(logo_source, logo_dest)
+
+    if logo_dest.exists():
         print(f"✓ Created {assets_dir}/ with Aris logo")
     else:
         print(f"✓ Created {assets_dir}/")

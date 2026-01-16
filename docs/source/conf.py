@@ -6,6 +6,19 @@ Sphinx configuration.
 
 """
 
+from pathlib import Path
+
+#################
+# Brand assets
+#################
+# Update brand assets from GitHub (falls back to committed versions if offline)
+import sys
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+from rsm.brand_assets import update_brand_assets_if_online
+
+static_dir = Path(__file__).parent / "_static"
+update_brand_assets_if_online(static_dir)
+
 #################
 # General options
 #################
@@ -17,8 +30,8 @@ author = "leotrs"
 # options for HTML output
 html_theme = "pydata_sphinx_theme"
 html_static_path = ["_static"]
-html_logo = "_static/rsm-brand/logo.svg"
-html_favicon = "_static/rsm-brand/favicon.ico"
+html_logo = "_static/logo.svg"
+html_favicon = "_static/favicon.ico"
 html_css_files = ["custom.css"]
 
 # templates
