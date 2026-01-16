@@ -1,3 +1,6 @@
 [submodule "tree-sitter-rsm"]
 	path = tree-sitter-rsm
 	url = https://github.com/leotrs/tree-sitter-rsm.git
+[submodule "brand"]
+	path = brand
+	url = https://github.com/leotrs/brand.git

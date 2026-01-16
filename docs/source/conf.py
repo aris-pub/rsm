@@ -17,8 +17,8 @@ author = "leotrs"
 # options for HTML output
 html_theme = "pydata_sphinx_theme"
 html_static_path = ["_static"]
-html_logo = "_static/logo.svg"
-html_favicon = "_static/favicon.ico"
+html_logo = "_static/rsm-brand/logo.svg"
+html_favicon = "_static/rsm-brand/favicon.ico"
 html_css_files = ["custom.css"]
 
 # templates

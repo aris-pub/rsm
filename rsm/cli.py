@@ -148,6 +148,16 @@ def _cmd_build(args: Namespace) -> int:
             input_path = Path(args.src)
             output_filename = f"{input_path.stem}.html"
 
+    # Auto-detect CSS file if not specified via --css flag
+    custom_css = args.css
+    if custom_css is None and not args.string:
+        # Look for a CSS file with the same name as the input file
+        from pathlib import Path
+        input_path = Path(args.src)
+        auto_css_path = input_path.with_suffix('.css')
+        if auto_css_path.exists():
+            custom_css = str(auto_css_path)
+
     kwargs = {
         "handrails": args.handrails,
         "loglevel": app.RSMApp.default_log_level - args.verbose * 10,
@@ -158,7 +168,7 @@ def _cmd_build(args: Namespace) -> int:
         "standalone": args.standalone,
         "output_dir": output_dir,
         "output_filename": output_filename,
-        "custom_css": args.css,
+        "custom_css": custom_css,
     }
     if args.string:
         kwargs["source"] = args.src
