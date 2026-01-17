@@ -1,4 +1,4 @@
-﻿FullBuildApp
+FullBuildApp
 ============
 
 Qualified name: ``rsm.app.FullBuildApp``

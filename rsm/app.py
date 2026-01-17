@@ -19,8 +19,8 @@ appropriate class manually.  For example:
 .. code-block:: python
 
    This
-   >>> src = ":rsm: Hello, RSM! ::"
-   >>> html = rsm.make(source=src)
+   >>> src = "Hello, RSM!"
+   >>> html = rsm.build(source=src)
 
    Is essentially equivalent to the following.
 

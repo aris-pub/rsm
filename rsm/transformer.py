@@ -58,10 +58,8 @@ class Transformer:
     Consider the following manuscript.
 
     >>> src = \"\"\"
-    ... :rsm:
     ... Here comes a :span:{:label:lbl} word :: with a label,
     ... and a reference to the :ref:lbl,word::.
-    ... ::
     ... \"\"\"
 
     The transform step comes after the parsing step.  After parsing, the manuscript

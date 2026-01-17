@@ -39,8 +39,8 @@
    .. rubric:: Functions
 
    
+   .. autofunction:: build
    .. autofunction:: lint
-   .. autofunction:: make
    .. autofunction:: render
    
    

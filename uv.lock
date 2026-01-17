@@ -644,7 +644,7 @@ wheels = [
 
 [[package]]
 name = "rsm-markup"
-version = "0.4.3"
+version = "0.4.4"
 source = { editable = "." }
 dependencies = [
     { name = "fs" },
@@ -1033,7 +1033,7 @@ wheels = [
 
 [[package]]
 name = "tree-sitter-rsm"
-version = "0.6.0"
+version = "0.6.1"
 source = { editable = "tree-sitter-rsm" }
 
 [package.metadata]
