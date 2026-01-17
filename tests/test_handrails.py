@@ -40,12 +40,6 @@ def test_codeblock_handrails():
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon tree">
-            </span>
-            <span class="hr-menu-item-text">Tree</span>
-          </div>
-
-          <div class="hr-menu-item">
             <span class="icon code">
             </span>
             <span class="hr-menu-item-text">Source</span>
@@ -133,12 +127,6 @@ def test_codeblock_with_lang_handrails():
             <span class="icon link">
             </span>
             <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <span class="icon tree">
-            </span>
-            <span class="hr-menu-item-text">Tree</span>
           </div>
 
           <div class="hr-menu-item">
@@ -238,12 +226,6 @@ def test_manuscript():
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon tree">
-            </span>
-            <span class="hr-menu-item-text">Tree</span>
-          </div>
-
-          <div class="hr-menu-item">
             <span class="icon code">
             </span>
             <span class="hr-menu-item-text">Source</span>
@@ -300,12 +282,6 @@ def test_manuscript():
             <span class="icon link">
             </span>
             <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <span class="icon tree">
-            </span>
-            <span class="hr-menu-item-text">Tree</span>
           </div>
 
           <div class="hr-menu-item">
@@ -402,12 +378,6 @@ def test_section():
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon tree">
-            </span>
-            <span class="hr-menu-item-text">Tree</span>
-          </div>
-
-          <div class="hr-menu-item">
             <span class="icon code">
             </span>
             <span class="hr-menu-item-text">Source</span>
@@ -474,12 +444,6 @@ def test_section():
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon tree">
-            </span>
-            <span class="hr-menu-item-text">Tree</span>
-          </div>
-
-          <div class="hr-menu-item">
             <span class="icon code">
             </span>
             <span class="hr-menu-item-text">Source</span>
@@ -536,12 +500,6 @@ def test_section():
             <span class="icon link">
             </span>
             <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <span class="icon tree">
-            </span>
-            <span class="hr-menu-item-text">Tree</span>
           </div>
 
           <div class="hr-menu-item">
@@ -640,12 +598,6 @@ def test_abstract():
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon tree">
-            </span>
-            <span class="hr-menu-item-text">Tree</span>
-          </div>
-
-          <div class="hr-menu-item">
             <span class="icon code">
             </span>
             <span class="hr-menu-item-text">Source</span>
@@ -712,12 +664,6 @@ def test_abstract():
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon tree">
-            </span>
-            <span class="hr-menu-item-text">Tree</span>
-          </div>
-
-          <div class="hr-menu-item">
             <span class="icon code">
             </span>
             <span class="hr-menu-item-text">Source</span>
@@ -774,12 +720,6 @@ def test_abstract():
             <span class="icon link">
             </span>
             <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <span class="icon tree">
-            </span>
-            <span class="hr-menu-item-text">Tree</span>
           </div>
 
           <div class="hr-menu-item">
@@ -878,12 +818,6 @@ def test_theorem():
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon tree">
-            </span>
-            <span class="hr-menu-item-text">Tree</span>
-          </div>
-
-          <div class="hr-menu-item">
             <span class="icon code">
             </span>
             <span class="hr-menu-item-text">Source</span>
@@ -936,12 +870,6 @@ def test_theorem():
             <span class="icon link">
             </span>
             <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <span class="icon tree">
-            </span>
-            <span class="hr-menu-item-text">Tree</span>
           </div>
 
           <div class="hr-menu-item">
@@ -1050,12 +978,6 @@ def test_author():
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon tree">
-            </span>
-            <span class="hr-menu-item-text">Tree</span>
-          </div>
-
-          <div class="hr-menu-item">
             <span class="icon code">
             </span>
             <span class="hr-menu-item-text">Source</span>
@@ -1114,12 +1036,6 @@ def test_author():
             <span class="icon link">
             </span>
             <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <span class="icon tree">
-            </span>
-            <span class="hr-menu-item-text">Tree</span>
           </div>
 
           <div class="hr-menu-item">
@@ -1221,12 +1137,6 @@ def test_bibliography():
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon tree">
-            </span>
-            <span class="hr-menu-item-text">Tree</span>
-          </div>
-
-          <div class="hr-menu-item">
             <span class="icon code">
             </span>
             <span class="hr-menu-item-text">Source</span>
@@ -1293,12 +1203,6 @@ def test_bibliography():
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon tree">
-            </span>
-            <span class="hr-menu-item-text">Tree</span>
-          </div>
-
-          <div class="hr-menu-item">
             <span class="icon code">
             </span>
             <span class="hr-menu-item-text">Source</span>
@@ -1348,12 +1252,6 @@ def test_bibliography():
         <div class="hr-menu-zone">
 
         <div class="hr-menu">
-
-          <div class="hr-menu-item">
-            <span class="icon tree">
-            </span>
-            <span class="hr-menu-item-text">Tree</span>
-          </div>
 
           <div class="hr-menu-item">
             <span class="icon code">
@@ -1459,12 +1357,6 @@ def test_inline_math_followed_by_dot():
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon tree">
-            </span>
-            <span class="hr-menu-item-text">Tree</span>
-          </div>
-
-          <div class="hr-menu-item">
             <span class="icon code">
             </span>
             <span class="hr-menu-item-text">Source</span>
@@ -1521,12 +1413,6 @@ def test_inline_math_followed_by_dot():
             <span class="icon link">
             </span>
             <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <span class="icon tree">
-            </span>
-            <span class="hr-menu-item-text">Tree</span>
           </div>
 
           <div class="hr-menu-item">
@@ -1590,12 +1476,6 @@ def test_inline_math_followed_by_dot():
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon tree">
-            </span>
-            <span class="hr-menu-item-text">Tree</span>
-          </div>
-
-          <div class="hr-menu-item">
             <span class="icon code">
             </span>
             <span class="hr-menu-item-text">Source</span>
@@ -1652,12 +1532,6 @@ def test_inline_math_followed_by_dot():
             <span class="icon link">
             </span>
             <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <span class="icon tree">
-            </span>
-            <span class="hr-menu-item-text">Tree</span>
           </div>
 
           <div class="hr-menu-item">
@@ -1755,12 +1629,6 @@ def test_mathblock_nonum():
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon tree">
-            </span>
-            <span class="hr-menu-item-text">Tree</span>
-          </div>
-
-          <div class="hr-menu-item">
             <span class="icon code">
             </span>
             <span class="hr-menu-item-text">Source</span>
@@ -1808,12 +1676,6 @@ def test_mathblock_nonum():
             <span class="icon link">
             </span>
             <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <span class="icon tree">
-            </span>
-            <span class="hr-menu-item-text">Tree</span>
           </div>
 
           <div class="hr-menu-item">
@@ -1884,12 +1746,6 @@ def test_mathblock_nonum():
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon tree">
-            </span>
-            <span class="hr-menu-item-text">Tree</span>
-          </div>
-
-          <div class="hr-menu-item">
             <span class="icon code">
             </span>
             <span class="hr-menu-item-text">Source</span>
@@ -1937,12 +1793,6 @@ def test_mathblock_nonum():
             <span class="icon link">
             </span>
             <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <span class="icon tree">
-            </span>
-            <span class="hr-menu-item-text">Tree</span>
           </div>
 
           <div class="hr-menu-item">
@@ -2084,12 +1934,6 @@ def test_toc_no_labels():
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon tree">
-            </span>
-            <span class="hr-menu-item-text">Tree</span>
-          </div>
-
-          <div class="hr-menu-item">
             <span class="icon code">
             </span>
             <span class="hr-menu-item-text">Source</span>
@@ -2156,12 +2000,6 @@ def test_toc_no_labels():
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon tree">
-            </span>
-            <span class="hr-menu-item-text">Tree</span>
-          </div>
-
-          <div class="hr-menu-item">
             <span class="icon code">
             </span>
             <span class="hr-menu-item-text">Source</span>
@@ -2218,12 +2056,6 @@ def test_toc_no_labels():
             <span class="icon link">
             </span>
             <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <span class="icon tree">
-            </span>
-            <span class="hr-menu-item-text">Tree</span>
           </div>
 
           <div class="hr-menu-item">
@@ -2292,12 +2124,6 @@ def test_toc_no_labels():
             <span class="icon link">
             </span>
             <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <span class="icon tree">
-            </span>
-            <span class="hr-menu-item-text">Tree</span>
           </div>
 
           <div class="hr-menu-item">
@@ -2422,12 +2248,6 @@ def test_toc_no_labels():
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon tree">
-            </span>
-            <span class="hr-menu-item-text">Tree</span>
-          </div>
-
-          <div class="hr-menu-item">
             <span class="icon code">
             </span>
             <span class="hr-menu-item-text">Source</span>
@@ -2496,12 +2316,6 @@ def test_toc_no_labels():
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon tree">
-            </span>
-            <span class="hr-menu-item-text">Tree</span>
-          </div>
-
-          <div class="hr-menu-item">
             <span class="icon code">
             </span>
             <span class="hr-menu-item-text">Source</span>
@@ -2565,12 +2379,6 @@ def test_toc_no_labels():
             <span class="icon link">
             </span>
             <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <span class="icon tree">
-            </span>
-            <span class="hr-menu-item-text">Tree</span>
           </div>
 
           <div class="hr-menu-item">
@@ -2711,12 +2519,6 @@ def test_toc_with_labels():
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon tree">
-            </span>
-            <span class="hr-menu-item-text">Tree</span>
-          </div>
-
-          <div class="hr-menu-item">
             <span class="icon code">
             </span>
             <span class="hr-menu-item-text">Source</span>
@@ -2783,12 +2585,6 @@ def test_toc_with_labels():
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon tree">
-            </span>
-            <span class="hr-menu-item-text">Tree</span>
-          </div>
-
-          <div class="hr-menu-item">
             <span class="icon code">
             </span>
             <span class="hr-menu-item-text">Source</span>
@@ -2845,12 +2641,6 @@ def test_toc_with_labels():
             <span class="icon link">
             </span>
             <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <span class="icon tree">
-            </span>
-            <span class="hr-menu-item-text">Tree</span>
           </div>
 
           <div class="hr-menu-item">
@@ -2919,12 +2709,6 @@ def test_toc_with_labels():
             <span class="icon link">
             </span>
             <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <span class="icon tree">
-            </span>
-            <span class="hr-menu-item-text">Tree</span>
           </div>
 
           <div class="hr-menu-item">
@@ -3049,12 +2833,6 @@ def test_toc_with_labels():
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon tree">
-            </span>
-            <span class="hr-menu-item-text">Tree</span>
-          </div>
-
-          <div class="hr-menu-item">
             <span class="icon code">
             </span>
             <span class="hr-menu-item-text">Source</span>
@@ -3123,12 +2901,6 @@ def test_toc_with_labels():
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon tree">
-            </span>
-            <span class="hr-menu-item-text">Tree</span>
-          </div>
-
-          <div class="hr-menu-item">
             <span class="icon code">
             </span>
             <span class="hr-menu-item-text">Source</span>
@@ -3192,12 +2964,6 @@ def test_toc_with_labels():
             <span class="icon link">
             </span>
             <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <span class="icon tree">
-            </span>
-            <span class="hr-menu-item-text">Tree</span>
           </div>
 
           <div class="hr-menu-item">

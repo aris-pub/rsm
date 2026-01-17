@@ -140,6 +140,9 @@ var RSM = (() => {
     document.querySelectorAll(".hr > .hr-menu-zone > .hr-menu > .hr-menu-item.link:not(.disabled)").forEach((btn) => {
       btn.addEventListener("click", (ev) => copyLink(ev.target));
     });
+    document.querySelectorAll(".hr > .hr-menu-zone > .hr-menu > .hr-menu-item:has(.icon.code):not(.disabled)").forEach((btn) => {
+      btn.addEventListener("click", (ev) => showSource(ev.target));
+    });
     document.querySelectorAll(".hr > .hr-collapse-zone > .hr-collapse").forEach((btn) => {
       btn.addEventListener("click", (ev) => toggleHandrail(ev.target));
     });
@@ -357,6 +360,65 @@ var RSM = (() => {
     setTimeout(() => {
       toast.remove();
     }, 5e3);
+  }
+  function showSource(target) {
+    const hr = target.closest(".hr");
+    const source = hr.getAttribute("data-rsm-source");
+    if (!source) {
+      launchToast("No source available for this element.", "error");
+      return;
+    }
+    const modal = document.createElement("div");
+    modal.className = "rsm-source-modal";
+    modal.innerHTML = `
+    <div class="rsm-source-modal-content">
+      <div class="rsm-source-modal-actions">
+        <button class="rsm-source-modal-icon-button copy-source" title="Copy">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
+            <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
+          </svg>
+        </button>
+        <button class="rsm-source-modal-icon-button close-modal" title="Close">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 6 6 18"/>
+            <path d="m6 6 12 12"/>
+          </svg>
+        </button>
+      </div>
+      <div class="rsm-source-modal-body">
+        <pre>${source.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</pre>
+      </div>
+    </div>
+  `;
+    document.body.appendChild(modal);
+    modal.style.display = "block";
+    const closeBtn = modal.querySelector(".close-modal");
+    const copyBtn = modal.querySelector(".copy-source");
+    const closeModal = () => {
+      modal.remove();
+    };
+    closeBtn.addEventListener("click", closeModal);
+    modal.addEventListener("click", (ev) => {
+      if (ev.target === modal) {
+        closeModal();
+      }
+    });
+    const escHandler = (ev) => {
+      if (ev.key === "Escape") {
+        closeModal();
+        document.removeEventListener("keydown", escHandler);
+      }
+    };
+    document.addEventListener("keydown", escHandler);
+    copyBtn.addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(source);
+        launchToast("Source copied to clipboard.", "success");
+      } catch (error) {
+        launchToast("Could not copy source.", "error");
+      }
+    });
   }
 
   // rsm/static/keyboard.js

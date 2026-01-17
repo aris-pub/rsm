@@ -24,6 +24,11 @@ export function setup() {
     btn.addEventListener("click", ev => copyLink(ev.target));
   });
 
+  // Handrail menu: source button
+  document.querySelectorAll(".hr > .hr-menu-zone > .hr-menu > .hr-menu-item:has(.icon.code):not(.disabled)").forEach(btn => {
+    btn.addEventListener("click", ev => showSource(ev.target));
+  });
+
   // Handrail menu: collapse and collapse-all buttons
   document.querySelectorAll(".hr > .hr-collapse-zone > .hr-collapse").forEach(btn => {
     btn.addEventListener("click", ev => toggleHandrail(ev.target));
@@ -161,7 +166,19 @@ export function collapseAll(target, withinSubproof = true) {
 };
 
 async function copyLink(target) {
-  const url = document.location.href.split('#')[0];
+  let url;
+  try {
+    // If we're in an iframe and same-origin, use parent URL
+    if (window.self !== window.parent) {
+      url = window.parent.location.href.split('#')[0];
+    } else {
+      url = document.location.href.split('#')[0];
+    }
+  } catch (error) {
+    // Cross-origin iframe, fall back to iframe URL
+    url = document.location.href.split('#')[0];
+  }
+
   const hr = target.closest(".hr")
   let needs_anchor = true;
   let anchor = "";
@@ -247,4 +264,79 @@ function launchToast(text, style = "information") {
   const toast = makeToast(text, style);
   document.querySelector(".manuscriptwrapper").appendChild(toast);
   setTimeout(() => { toast.remove(); }, 5000);
+};
+
+
+function showSource(target) {
+  const hr = target.closest(".hr");
+  const source = hr.getAttribute("data-rsm-source");
+
+  if (!source) {
+    launchToast("No source available for this element.", "error");
+    return;
+  }
+
+  // Create modal
+  const modal = document.createElement("div");
+  modal.className = "rsm-source-modal";
+  modal.innerHTML = `
+    <div class="rsm-source-modal-content">
+      <div class="rsm-source-modal-actions">
+        <button class="rsm-source-modal-icon-button copy-source" title="Copy">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
+            <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
+          </svg>
+        </button>
+        <button class="rsm-source-modal-icon-button close-modal" title="Close">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 6 6 18"/>
+            <path d="m6 6 12 12"/>
+          </svg>
+        </button>
+      </div>
+      <div class="rsm-source-modal-body">
+        <pre>${source.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+  modal.style.display = "block";
+
+  // Close button handlers
+  const closeBtn = modal.querySelector(".close-modal");
+  const copyBtn = modal.querySelector(".copy-source");
+
+  const closeModal = () => {
+    modal.remove();
+  };
+
+  closeBtn.addEventListener("click", closeModal);
+
+  // Close on click outside
+  modal.addEventListener("click", (ev) => {
+    if (ev.target === modal) {
+      closeModal();
+    }
+  });
+
+  // Close on ESC key
+  const escHandler = (ev) => {
+    if (ev.key === "Escape") {
+      closeModal();
+      document.removeEventListener("keydown", escHandler);
+    }
+  };
+  document.addEventListener("keydown", escHandler);
+
+  // Copy button
+  copyBtn.addEventListener("click", async () => {
+    try {
+      await navigator.clipboard.writeText(source);
+      launchToast("Source copied to clipboard.", "success");
+    } catch (error) {
+      launchToast("Could not copy source.", "error");
+    }
+  });
 };

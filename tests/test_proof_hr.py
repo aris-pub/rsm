@@ -51,12 +51,6 @@ def test_two_steps():
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon tree">
-            </span>
-            <span class="hr-menu-item-text">Tree</span>
-          </div>
-
-          <div class="hr-menu-item">
             <span class="icon code">
             </span>
             <span class="hr-menu-item-text">Source</span>
@@ -129,12 +123,6 @@ def test_two_steps():
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon tree">
-            </span>
-            <span class="hr-menu-item-text">Tree</span>
-          </div>
-
-          <div class="hr-menu-item">
             <span class="icon code">
             </span>
             <span class="hr-menu-item-text">Source</span>
@@ -204,12 +192,6 @@ def test_two_steps():
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon tree">
-            </span>
-            <span class="hr-menu-item-text">Tree</span>
-          </div>
-
-          <div class="hr-menu-item">
             <span class="icon code">
             </span>
             <span class="hr-menu-item-text">Source</span>
@@ -258,12 +240,6 @@ def test_two_steps():
             <span class="icon link">
             </span>
             <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <span class="icon tree">
-            </span>
-            <span class="hr-menu-item-text">Tree</span>
           </div>
 
           <div class="hr-menu-item">
@@ -350,12 +326,6 @@ def test_two_steps():
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon tree">
-            </span>
-            <span class="hr-menu-item-text">Tree</span>
-          </div>
-
-          <div class="hr-menu-item">
             <span class="icon code">
             </span>
             <span class="hr-menu-item-text">Source</span>
@@ -404,12 +374,6 @@ def test_two_steps():
             <span class="icon link">
             </span>
             <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <span class="icon tree">
-            </span>
-            <span class="hr-menu-item-text">Tree</span>
           </div>
 
           <div class="hr-menu-item">
@@ -533,12 +497,6 @@ def test_sub_step():
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon tree">
-            </span>
-            <span class="hr-menu-item-text">Tree</span>
-          </div>
-
-          <div class="hr-menu-item">
             <span class="icon code">
             </span>
             <span class="hr-menu-item-text">Source</span>
@@ -611,12 +569,6 @@ def test_sub_step():
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon tree">
-            </span>
-            <span class="hr-menu-item-text">Tree</span>
-          </div>
-
-          <div class="hr-menu-item">
             <span class="icon code">
             </span>
             <span class="hr-menu-item-text">Source</span>
@@ -686,12 +638,6 @@ def test_sub_step():
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon tree">
-            </span>
-            <span class="hr-menu-item-text">Tree</span>
-          </div>
-
-          <div class="hr-menu-item">
             <span class="icon code">
             </span>
             <span class="hr-menu-item-text">Source</span>
@@ -740,12 +686,6 @@ def test_sub_step():
             <span class="icon link">
             </span>
             <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <span class="icon tree">
-            </span>
-            <span class="hr-menu-item-text">Tree</span>
           </div>
 
           <div class="hr-menu-item">
@@ -844,12 +784,6 @@ def test_sub_step():
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon tree">
-            </span>
-            <span class="hr-menu-item-text">Tree</span>
-          </div>
-
-          <div class="hr-menu-item">
             <span class="icon code">
             </span>
             <span class="hr-menu-item-text">Source</span>
@@ -898,12 +832,6 @@ def test_sub_step():
             <span class="icon link">
             </span>
             <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <span class="icon tree">
-            </span>
-            <span class="hr-menu-item-text">Tree</span>
           </div>
 
           <div class="hr-menu-item">
@@ -985,12 +913,6 @@ def test_sub_step():
             <span class="icon link">
             </span>
             <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <span class="icon tree">
-            </span>
-            <span class="hr-menu-item-text">Tree</span>
           </div>
 
           <div class="hr-menu-item">
@@ -1127,12 +1049,6 @@ def test_theorem():
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon tree">
-            </span>
-            <span class="hr-menu-item-text">Tree</span>
-          </div>
-
-          <div class="hr-menu-item">
             <span class="icon code">
             </span>
             <span class="hr-menu-item-text">Source</span>
@@ -1185,12 +1101,6 @@ def test_theorem():
             <span class="icon link">
             </span>
             <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <span class="icon tree">
-            </span>
-            <span class="hr-menu-item-text">Tree</span>
           </div>
 
           <div class="hr-menu-item">
@@ -1297,12 +1207,6 @@ def test_proof():
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon tree">
-            </span>
-            <span class="hr-menu-item-text">Tree</span>
-          </div>
-
-          <div class="hr-menu-item">
             <span class="icon code">
             </span>
             <span class="hr-menu-item-text">Source</span>
@@ -1375,12 +1279,6 @@ def test_proof():
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon tree">
-            </span>
-            <span class="hr-menu-item-text">Tree</span>
-          </div>
-
-          <div class="hr-menu-item">
             <span class="icon code">
             </span>
             <span class="hr-menu-item-text">Source</span>
@@ -1450,12 +1348,6 @@ def test_proof():
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon tree">
-            </span>
-            <span class="hr-menu-item-text">Tree</span>
-          </div>
-
-          <div class="hr-menu-item">
             <span class="icon code">
             </span>
             <span class="hr-menu-item-text">Source</span>
@@ -1504,12 +1396,6 @@ def test_proof():
             <span class="icon link">
             </span>
             <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <span class="icon tree">
-            </span>
-            <span class="hr-menu-item-text">Tree</span>
           </div>
 
           <div class="hr-menu-item">
@@ -1628,12 +1514,6 @@ def test_proof_with_sketch():
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon tree">
-            </span>
-            <span class="hr-menu-item-text">Tree</span>
-          </div>
-
-          <div class="hr-menu-item">
             <span class="icon code">
             </span>
             <span class="hr-menu-item-text">Source</span>
@@ -1698,12 +1578,6 @@ def test_proof_with_sketch():
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon tree">
-            </span>
-            <span class="hr-menu-item-text">Tree</span>
-          </div>
-
-          <div class="hr-menu-item">
             <span class="icon code">
             </span>
             <span class="hr-menu-item-text">Source</span>
@@ -1756,12 +1630,6 @@ def test_proof_with_sketch():
             <span class="icon link">
             </span>
             <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <span class="icon tree">
-            </span>
-            <span class="hr-menu-item-text">Tree</span>
           </div>
 
           <div class="hr-menu-item">
@@ -1845,12 +1713,6 @@ def test_proof_with_sketch():
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon tree">
-            </span>
-            <span class="hr-menu-item-text">Tree</span>
-          </div>
-
-          <div class="hr-menu-item">
             <span class="icon code">
             </span>
             <span class="hr-menu-item-text">Source</span>
@@ -1920,12 +1782,6 @@ def test_proof_with_sketch():
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon tree">
-            </span>
-            <span class="hr-menu-item-text">Tree</span>
-          </div>
-
-          <div class="hr-menu-item">
             <span class="icon code">
             </span>
             <span class="hr-menu-item-text">Source</span>
@@ -1974,12 +1830,6 @@ def test_proof_with_sketch():
             <span class="icon link">
             </span>
             <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <span class="icon tree">
-            </span>
-            <span class="hr-menu-item-text">Tree</span>
           </div>
 
           <div class="hr-menu-item">

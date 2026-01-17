@@ -416,7 +416,7 @@ class AppendOpenTagManualClose(AppendText):
         outer = "\n" if self.newline_outer else ""
         inner = "\n" if self.newline_inner else ""
         tag = _make_tag(
-            self.tag, self.id, self.classes, self.is_selectable, *self.custom_attrs
+            self.tag, self.id, self.classes, self.is_selectable, **self.custom_attrs
         )
         return outer + tag + inner + self.content
 
@@ -481,10 +481,36 @@ class AppendNodeTag(AppendOpenTag):
         newline_inner: bool = True,
         newline_outer: bool = True,
         is_selectable: bool = False,
+        include_source: bool = False,
+        manuscript_source: str = "",
     ):
         self.node = node
         classes = [node.__class__.__name__.lower()] + [str(t) for t in node.types]
         classes = list(dict.fromkeys(classes + (additional_classes or [])))
+
+        # Extract node source if requested
+        kwargs = {"nodeid": node.nodeid}
+        if include_source and manuscript_source and hasattr(node.start_point, 'row'):
+            # Extract source using row and column from Point objects
+            source_lines = manuscript_source.split('\n')
+            start_row = node.start_point.row
+            start_col = node.start_point.column
+            end_row = node.end_point.row
+            end_col = node.end_point.column
+
+            if start_row < len(source_lines) and end_row < len(source_lines):
+                if start_row == end_row:
+                    node_source = source_lines[start_row][start_col:end_col]
+                else:
+                    lines = [source_lines[start_row][start_col:]]
+                    lines.extend(source_lines[start_row + 1:end_row])
+                    lines.append(source_lines[end_row][:end_col])
+                    node_source = '\n'.join(lines)
+
+                # HTML escape for attribute
+                import html
+                kwargs["data-rsm-source"] = html.escape(node_source)
+
         super().__init__(
             tag=tag,
             id=node.label,
@@ -492,7 +518,7 @@ class AppendNodeTag(AppendOpenTag):
             newline_inner=newline_inner,
             newline_outer=newline_outer,
             is_selectable=is_selectable,
-            nodeid=node.nodeid,
+            **kwargs,
         )
 
     def __repr__(self) -> str:
@@ -1566,13 +1592,36 @@ class HandrailsTranslator(Translator):
         include_content: bool,
         depth: int,
         classes: list[str] | None = None,
+        node: nodes.Node | None = None,
     ) -> EditCommand:
         classes = (classes or []) + ["hr"] + (["hr-offset"] if depth > 0 else [])
         classes = list(dict.fromkeys(classes))  # deletes duplicates AND preserves order
+
+        # Add source data if node is provided
+        kwargs = {}
+        if self.add_source and node and self.tree and self.tree.src and hasattr(node.start_point, 'row'):
+            source_lines = self.tree.src.split('\n')
+            start_row = node.start_point.row
+            start_col = node.start_point.column
+            end_row = node.end_point.row
+            end_col = node.end_point.column
+
+            if start_row < len(source_lines) and end_row < len(source_lines):
+                if start_row == end_row:
+                    node_source = source_lines[start_row][start_col:end_col]
+                else:
+                    lines = [source_lines[start_row][start_col:]]
+                    lines.extend(source_lines[start_row + 1:end_row])
+                    lines.append(source_lines[end_row][:end_col])
+                    node_source = '\n'.join(lines)
+
+                import html
+                kwargs["data-rsm-source"] = html.escape(node_source)
+
         return (
-            AppendOpenTag(classes=classes, is_selectable=True)
+            AppendOpenTag(classes=classes, is_selectable=True, **kwargs)
             if include_content
-            else AppendOpenTagManualClose(classes=classes, is_selectable=True)
+            else AppendOpenTagManualClose(classes=classes, is_selectable=True, **kwargs)
         )
 
     def _hr_collapse_zone(self, collapsible: bool) -> AppendOpenCloseTag:
@@ -1624,11 +1673,6 @@ class HandrailsTranslator(Translator):
         classes = ["link"] + (["disabled"] if disabled else [])
         return self._make_menu_item(classes=classes, icon="link", text="Copy link")
 
-    def _hr_menu_item_tree(self, disabled: bool = False) -> str:
-        return self._make_menu_item(
-            classes=(["disabled"] if disabled else []), icon="tree", text="Tree"
-        )
-
     def _hr_menu_item_code(self, disabled: bool = False) -> str:
         return self._make_menu_item(
             classes=(["disabled"] if disabled else []), icon="code", text="Source"
@@ -1640,7 +1684,6 @@ class HandrailsTranslator(Translator):
         collapse: bool | Literal["disabled"] = False,
         collapse_all: bool | Literal["disabled"] = False,
         link: bool | Literal["disabled"] = True,
-        tree: bool | Literal["disabled"] = True,
         code: bool | Literal["disabled"] = True,
     ) -> AppendOpenCloseTag:
         start, end = '\n<div class="hr-menu">', "\n</div>\n"
@@ -1664,10 +1707,6 @@ class HandrailsTranslator(Translator):
         if link:
             middle = (
                 middle + "\n" + self._hr_menu_item_link(disabled=link == "disabled")
-            )
-        if tree:
-            middle = (
-                middle + "\n" + self._hr_menu_item_tree(disabled=tree == "disabled")
             )
         if code:
             middle = (
@@ -1766,7 +1805,11 @@ class HandrailsTranslator(Translator):
         )
         classes = list(dict.fromkeys(classes))  # deletes duplicates AND preserves order
         return AppendNodeTag(
-            node, additional_classes=classes, is_selectable=is_selectable
+            node,
+            additional_classes=classes,
+            is_selectable=is_selectable,
+            include_source=self.add_source,
+            manuscript_source=self.tree.src if self.tree else "",
         )
 
     def _replace_node_with_handrails(
@@ -1848,8 +1891,9 @@ class HandrailsTranslator(Translator):
         depth: int = 0,
         menu_label: str = "",
         link: bool | Literal["disabled"] = True,
+        node: nodes.Node | None = None,
     ):
-        handrail = self._hr(include_content, depth, classes)
+        handrail = self._hr(include_content, depth, classes, node=node)
         hr_content_zone = self._hr_content_zone(include_content)
 
         newitems = [
@@ -1888,6 +1932,7 @@ class HandrailsTranslator(Translator):
         classes: list[str] | None = None,
         menu_label: str = "",
         link: bool | Literal["disabled"] = True,
+        node: nodes.Node | None = None,
     ):
         return self._wrap_item_with_handrails(
             index,
@@ -1900,6 +1945,7 @@ class HandrailsTranslator(Translator):
             depth=depth,
             menu_label=menu_label,
             link=link,
+            node=node,
         )
 
     def _wrap_cmd_with_handrails(
@@ -1982,7 +2028,7 @@ class HandrailsTranslator(Translator):
         batch = super().visit_manuscript(node)
         if node.title:
             batch = self._wrap_batch_item_with_handrails(
-                4, batch, classes=["heading"], menu_label="Title", link=True
+                4, batch, classes=["heading"], menu_label="Title", link=True, node=node
             )
         if self.add_source:
             batch.items.insert(2, self._make_source_div())
@@ -2033,6 +2079,7 @@ class HandrailsTranslator(Translator):
             classes=["heading"],
             menu_label=node.reftext,
             link=True if node.label else "disabled",
+            node=node,
         )
 
     def visit_abstract(self, node: nodes.Abstract) -> EditCommand:
@@ -2043,6 +2090,7 @@ class HandrailsTranslator(Translator):
             classes=["heading"],
             menu_label=node.reftext,
             link=True if node.label else "disabled",
+            node=node,
         )
 
     def visit_contents(self, node: nodes.Contents) -> EditCommand:
@@ -2053,6 +2101,7 @@ class HandrailsTranslator(Translator):
             classes=["heading"],
             menu_label=node.reftext,
             link=True if node.label else "disabled",
+            node=node,
         )
         batch.items = (
             batch.items[:-1]
@@ -2070,6 +2119,7 @@ class HandrailsTranslator(Translator):
             classes=["heading"],
             menu_label=node.reftext,
             link=True if node.label else "disabled",
+            node=node,
         )
 
     def visit_paragraph(self, node: nodes.Paragraph) -> EditCommand:
@@ -2313,6 +2363,7 @@ class HandrailsTranslator(Translator):
             icon="ext" if node.doi else None,
             collapse_in_hr=False,
             link=False,
+            node=node,
         )
 
         # get the <a> tag already there...

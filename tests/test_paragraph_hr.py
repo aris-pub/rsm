@@ -42,12 +42,6 @@ def test_paragraph_with_mathblock_ending_with_text():
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon tree">
-            </span>
-            <span class="hr-menu-item-text">Tree</span>
-          </div>
-
-          <div class="hr-menu-item">
             <span class="icon code">
             </span>
             <span class="hr-menu-item-text">Source</span>
@@ -95,12 +89,6 @@ def test_paragraph_with_mathblock_ending_with_text():
             <span class="icon link">
             </span>
             <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <span class="icon tree">
-            </span>
-            <span class="hr-menu-item-text">Tree</span>
           </div>
 
           <div class="hr-menu-item">
@@ -199,12 +187,6 @@ def test_paragraph_ending_with_mathblock():
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon tree">
-            </span>
-            <span class="hr-menu-item-text">Tree</span>
-          </div>
-
-          <div class="hr-menu-item">
             <span class="icon code">
             </span>
             <span class="hr-menu-item-text">Source</span>
@@ -252,12 +234,6 @@ def test_paragraph_ending_with_mathblock():
             <span class="icon link">
             </span>
             <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <span class="icon tree">
-            </span>
-            <span class="hr-menu-item-text">Tree</span>
           </div>
 
           <div class="hr-menu-item">
@@ -359,12 +335,6 @@ def test_paragraph_with_icon_ending_with_mathblock():
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon tree">
-            </span>
-            <span class="hr-menu-item-text">Tree</span>
-          </div>
-
-          <div class="hr-menu-item">
             <span class="icon code">
             </span>
             <span class="hr-menu-item-text">Source</span>
@@ -412,12 +382,6 @@ def test_paragraph_with_icon_ending_with_mathblock():
             <span class="icon link">
             </span>
             <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <span class="icon tree">
-            </span>
-            <span class="hr-menu-item-text">Tree</span>
           </div>
 
           <div class="hr-menu-item">
@@ -524,12 +488,6 @@ def test_paragraph_with_icon_with_mathblock_ending_with_text():
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon tree">
-            </span>
-            <span class="hr-menu-item-text">Tree</span>
-          </div>
-
-          <div class="hr-menu-item">
             <span class="icon code">
             </span>
             <span class="hr-menu-item-text">Source</span>
@@ -577,12 +535,6 @@ def test_paragraph_with_icon_with_mathblock_ending_with_text():
             <span class="icon link">
             </span>
             <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <span class="icon tree">
-            </span>
-            <span class="hr-menu-item-text">Tree</span>
           </div>
 
           <div class="hr-menu-item">
@@ -694,12 +646,6 @@ def test_two_paragraphs_with_icon():
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon tree">
-            </span>
-            <span class="hr-menu-item-text">Tree</span>
-          </div>
-
-          <div class="hr-menu-item">
             <span class="icon code">
             </span>
             <span class="hr-menu-item-text">Source</span>
@@ -747,12 +693,6 @@ def test_two_paragraphs_with_icon():
             <span class="icon link">
             </span>
             <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <span class="icon tree">
-            </span>
-            <span class="hr-menu-item-text">Tree</span>
           </div>
 
           <div class="hr-menu-item">
@@ -824,12 +764,6 @@ def test_two_paragraphs_with_icon():
             <span class="icon link">
             </span>
             <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <span class="icon tree">
-            </span>
-            <span class="hr-menu-item-text">Tree</span>
           </div>
 
           <div class="hr-menu-item">
@@ -927,12 +861,6 @@ def test_two_paragraphs_with_icon_no_mathblock():
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon tree">
-            </span>
-            <span class="hr-menu-item-text">Tree</span>
-          </div>
-
-          <div class="hr-menu-item">
             <span class="icon code">
             </span>
             <span class="hr-menu-item-text">Source</span>
@@ -992,12 +920,6 @@ def test_two_paragraphs_with_icon_no_mathblock():
             <span class="icon link">
             </span>
             <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <span class="icon tree">
-            </span>
-            <span class="hr-menu-item-text">Tree</span>
           </div>
 
           <div class="hr-menu-item">

@@ -1441,4 +1441,88 @@ a.reference.external:hover::after {
   }
 }
 
+/* RSM Source Modal */
+.rsm-source-modal {
+  display: none;
+  position: fixed;
+  z-index: 2000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.4);
+}
+
+.rsm-source-modal-content {
+  background-color: var(--surface-primary);
+  margin: 10% auto;
+  padding: 16px;
+  border: 1px solid var(--border-primary);
+  border-radius: 16px;
+  width: 80%;
+  max-width: 800px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  position: relative;
+}
+
+.rsm-source-modal-actions {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  display: flex;
+  gap: 8px;
+}
+
+.rsm-source-modal-icon-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  border-radius: 4px;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.rsm-source-modal-icon-button:hover {
+  color: var(--text-primary);
+  background-color: var(--gray-200);
+}
+
+.dark-theme .rsm-source-modal-icon-button:hover {
+  background-color: var(--gray-800);
+}
+
+.rsm-source-modal-icon-button svg {
+  width: 20px;
+  height: 20px;
+  stroke: currentColor;
+}
+
+.rsm-source-modal-body {
+  max-height: 60vh;
+  overflow-y: auto;
+  background: var(--gray-100);
+  border-radius: 4px;
+}
+
+.dark-theme .rsm-source-modal-body {
+  background: var(--gray-900);
+}
+
+.rsm-source-modal-body pre {
+  background-color: transparent;
+  padding: 15px;
+  border: none;
+  overflow-x: auto;
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.toast {
+  z-index: 2100;
+}
+
 }

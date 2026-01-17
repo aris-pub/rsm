@@ -45,12 +45,6 @@ def test_single_author_with_handrails():
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon tree">
-            </span>
-            <span class="hr-menu-item-text">Tree</span>
-          </div>
-
-          <div class="hr-menu-item">
             <span class="icon code">
             </span>
             <span class="hr-menu-item-text">Source</span>
@@ -168,12 +162,6 @@ def test_six_authors_collapsed_with_handrails():
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon tree">
-            </span>
-            <span class="hr-menu-item-text">Tree</span>
-          </div>
-
-          <div class="hr-menu-item">
             <span class="icon code">
             </span>
             <span class="hr-menu-item-text">Source</span>
@@ -232,12 +220,6 @@ def test_six_authors_collapsed_with_handrails():
             <span class="icon link">
             </span>
             <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <span class="icon tree">
-            </span>
-            <span class="hr-menu-item-text">Tree</span>
           </div>
 
           <div class="hr-menu-item">
@@ -302,12 +284,6 @@ def test_six_authors_collapsed_with_handrails():
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon tree">
-            </span>
-            <span class="hr-menu-item-text">Tree</span>
-          </div>
-
-          <div class="hr-menu-item">
             <span class="icon code">
             </span>
             <span class="hr-menu-item-text">Source</span>
@@ -366,12 +342,6 @@ def test_six_authors_collapsed_with_handrails():
             <span class="icon link">
             </span>
             <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <span class="icon tree">
-            </span>
-            <span class="hr-menu-item-text">Tree</span>
           </div>
 
           <div class="hr-menu-item">
@@ -438,12 +408,6 @@ def test_six_authors_collapsed_with_handrails():
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon tree">
-            </span>
-            <span class="hr-menu-item-text">Tree</span>
-          </div>
-
-          <div class="hr-menu-item">
             <span class="icon code">
             </span>
             <span class="hr-menu-item-text">Source</span>
@@ -502,12 +466,6 @@ def test_six_authors_collapsed_with_handrails():
             <span class="icon link">
             </span>
             <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <span class="icon tree">
-            </span>
-            <span class="hr-menu-item-text">Tree</span>
           </div>
 
           <div class="hr-menu-item">
