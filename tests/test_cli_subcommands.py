@@ -123,7 +123,7 @@ class TestCLISubcommands:
         # Should succeed and show version
         assert result.returncode == 0
         stdout = result.stdout.decode("utf-8")
-        assert "rsm-markup" in stdout
+        assert "rsm-lang" in stdout
 
     @pytest.mark.slow
     def test_rsm_help_shows_subcommands(self, tmp_path):

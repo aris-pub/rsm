@@ -82,4 +82,4 @@ def test_render_version():
         "rsm --version", stdout=subprocess.PIPE, check=True, shell=True
     )
     output = result.stdout.decode("utf-8").strip()
-    assert output == f"rsm-markup v{version('rsm-markup')}"
+    assert output == f"rsm-lang v{version('rsm-lang')}"
