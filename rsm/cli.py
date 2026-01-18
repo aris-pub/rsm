@@ -699,9 +699,9 @@ def main() -> int:
     parser.add_argument(
         "-V",
         "--version",
-        help="show rsm-markup version",
+        help="show rsm-lang version",
         action="version",
-        version=f"rsm-markup v{version('rsm-markup')}",
+        version=f"rsm-lang v{version('rsm-lang')}",
     )
 
     subparsers = parser.add_subparsers(

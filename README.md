@@ -1,7 +1,7 @@
 # Readable Science Markup (RSM)
 
 [![tests](https://github.com/leotrs/rsm/actions/workflows/test.yml/badge.svg)](https://github.com/leotrs/rsm/actions/workflows/test.yml)
-[![docs](https://readthedocs.org/projects/rsm-markup/badge/?version=latest)](https://rsm-markup.readthedocs.io/en/latest/?badge=latest)
+[![docs](https://readthedocs.org/projects/rsm-lang/badge/?version=latest)](https://rsm-lang.readthedocs.io/en/latest/?badge=latest)
 
 The web-first authoring software for scientific manuscripts.
 
@@ -75,7 +75,7 @@ cargo install just
 scoop install just
 ```
 
-#### Clone and install rsm-markup
+#### Clone and install rsm-lang
 ```bash
 git clone --recurse-submodules https://github.com/leotrs/rsm.git
 cd rsm
@@ -83,7 +83,7 @@ just install
 ```
 
 This installs:
-- `rsm-markup` in editable mode (you can modify the code)
+- `rsm-lang` in editable mode (you can modify the code)
 - `tree-sitter-rsm` from PyPI as a pre-built wheel (compiled grammar)
 - All development and documentation dependencies
 
@@ -117,7 +117,7 @@ The difference between `just install` and `just install-local`:
 
 | Command | `tree-sitter-rsm` source | Editable? | Use when |
 |---------|--------------------------|-----------|----------|
-| `just install` | PyPI wheel | No | Developing rsm-markup code (most common) |
+| `just install` | PyPI wheel | No | Developing rsm-lang code (most common) |
 | `just install-local` | Local submodule | Yes | Modifying the grammar itself |
 
 ## Publishing

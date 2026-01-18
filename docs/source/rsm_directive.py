@@ -32,6 +32,7 @@ class RSMDirective(Directive):
         n1 = nodes.literal_block(content, content)
         n1["language"] = "text"
         n1["classes"].append("rsm-example-code")
+        print(f"\n{'='*60}\nRSM DIRECTIVE RENDERING:\n{repr(content)}\n{'='*60}\n")
         n2 = rsm_body(rsm.render(content, handrails=True))
         rsm_node = rsm_example()
         rsm_node.append(n1)

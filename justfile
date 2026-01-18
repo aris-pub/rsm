@@ -1,4 +1,4 @@
-# justfile for rsm-markup development
+# justfile for rsm-lang development
 # Install just: https://just.systems/man/en/
 
 # Set shell for all recipes

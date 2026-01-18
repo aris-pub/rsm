@@ -1060,14 +1060,11 @@ class Author(Node):
     --------
     .. rsm::
 
-       :rsm:
-
-          :author:
-            :name: Melvin J. Noir
-            :affiliation: ACME University
-            :email: mel@acme.edu
-          ::
-
+       :author: {
+         :name: Melvin J. Noir
+         :affiliation: ACME University
+         :email: mel@acme.edu
+       }
        ::
 
     """
@@ -1120,14 +1117,11 @@ class Abstract(NodeWithChildren):
     --------
     .. rsm::
 
-       :rsm:
-
-       :abstract:
+       :abstract: {
          :keywords: {cosmology, general relativity, black holes}
+       }
 
-         Black holes emit radiation.
-
-       ::
+       Black holes emit radiation.
 
        ::
 
@@ -1289,8 +1283,6 @@ class Algorithm(NodeWithChildren):
     --------
     .. rsm::
 
-       :rsm:
-
        :algorithm:
          \begin{algorithm}
          \caption{Quicksort}
@@ -1317,8 +1309,6 @@ class Algorithm(NodeWithChildren):
          \end{algorithmic}
          \end{algorithm}
        ::
-
-       ::
     """
 
     autonumber = True
@@ -1342,25 +1332,15 @@ class Appendix(Node):
 
     .. code-block:: text
 
-       :rsm:
-
        # Before Appendix
-       ::
 
        # Before Appendix
 
        ## Subsec
-       ::
-
-       ::
 
        :appendix:
 
        # After Appendix
-       ::
-
-       ::
-
 
     The above source is parsed into a Manuscript tree equivalent to the following.
 

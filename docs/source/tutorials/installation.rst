@@ -3,18 +3,18 @@
 Installation
 ============
 
-The package name is :code:`rsm-markup` and is available via pypi,
+The package name is :code:`rsm-lang` and is available via pypi,
 
 .. code-block:: bash
 
-   $ pip install rsm-markup
+   $ pip install rsm-lang
 
 
 Or, if you are using uv and already have a :code:`pyproject.toml` file:
 
 .. code-block:: bash
 
-   $ uv add rsm-markup
+   $ uv add rsm-lang
 
 
 

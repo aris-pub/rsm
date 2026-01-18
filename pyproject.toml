@@ -1,9 +1,9 @@
 # Project metadata
 
 [project]
-name = "rsm-markup"
-version = "0.4.4"
-description = "ReStructured Manuscripts (RSM) markup language"
+name = "rsm-lang"
+version = "0.5.0"
+description = "Readable Science Markup (RSM) - A language for semantic research publishing"
 readme = "README.md"
 authors = [{ name = "Leo Torres", email = "leo@leotrs.com" }]
 license = { file = "LICENSE.md" }

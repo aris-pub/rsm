@@ -3,44 +3,25 @@
 RSM markup
 ==========
 
-At the core of ReStructured Manuscripts is the RSM markup language. Inspired by popular
-languages such as Markdown, ReST, and LaTeX, RSM strives for simplicity, flexibility,
-and functionality.
-
-Every RSM manuscript starts with the string ``:rsm:`` and ends with a double
-colon ``::``.  The entire contents of the manuscript are placed within these delimiters.
+Readable Science Markup (RSM) was inspired by popular languages such as Markdown, ReST,
+and LaTeX. RSM strives for simplicity, flexibility, and functionality.
 
 .. rsm::
+   Hello, **RSM**!
 
-   :rsm:
-
-   Hello, RSM!
-
-   ::
-
-Strings such as ``:rsm:`` are called *tags*.  In RSM, tags are used to annotate
-regions of text, for example to delimit sections and other parts of a manuscript.  The
-tag functions as open delimiter, and the empty tag ``::``, a.k.a. *Halmos*, is the
-closing delimiter.
+The main syntax feature of RSM are *tags*. Strings such as ``:rsm:`` are called *tags*.
+In RSM, tags are used to annotate regions of text, for example to delimit sections and
+other parts of a manuscript. The tag functions as open delimiter, and the empty tag
+``::``, a.k.a. *Halmos*, is the closing delimiter.
 
 .. rsm::
-
-   :rsm:
 
    :abstract:
-
-     This is the manuscript's abstract.
-
+   This is the manuscript's abstract.
    ::
 
-   :section:
-     :title: First Section
-
-     And this is the contents of a section.
-
-   ::
-
-   ::
+   ## First Section
+   And this is the contents of a section.
 
 Some tags are used to add meta-data to the annotated regions.  For example, the
 ``:section:`` tag in the previous example introduces a new region of the manuscript,
@@ -53,13 +34,9 @@ In contrast, the following example illustrates the ``:span:`` tag.
 
 .. rsm::
 
-   :rsm:
-
    Span tags do not introduce new parts, but
    :span: {:strong:} live within:: their
    parents.
-
-   ::
 
 The ``:span:`` tag does not introduce a separate block, but a region of text that lives
 within its enclosing parent, in this case a paragraph.  Tags such as this are called
@@ -75,44 +52,31 @@ be used as shorthand to introduce a section with a title.
 
 .. rsm::
 
-   :rsm:
-
-   # Awesome section
+   ## Awesome section
 
    Span tags do not introduce new parts, but
    *live within* their parents.
-
-   ::
-
-   ::
 
 Here is a complete example using all the basic features of RSM markup.
 
 .. rsm::
 
-   :rsm:
-     :title: RSM Markup
+   # RSM Markup
 
-   :author:
+   :author: {
      :name: Melvin J. Blanc
      :affiliation: ACME University
      :email: mel@acme.edu
-   ::
+   } ::
 
    :abstract:
-
-     Web-first scientific manuscripts.
-
+   Web-first scientific manuscripts.
    ::
 
-   # Awesome Section
+   ## Awesome Section
 
    Simple markup for :span:{:strong:, :emphas:}
    web native:: scientific publications.
-
-   ::
-
-   ::
 
 The features illustrated on this page cover 90% of what can be done with RSM.
 
