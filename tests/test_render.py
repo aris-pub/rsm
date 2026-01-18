@@ -77,6 +77,7 @@ def test_invalid_rsm():
 
 
 @pytest.mark.slow
+@pytest.mark.slow
 def test_render_version():
     result = subprocess.run(
         "rsm --version", stdout=subprocess.PIPE, check=True, shell=True

@@ -1,9 +1,11 @@
 """Test that multiple RSM files in the same directory handle assets correctly."""
 
 import subprocess
+import pytest
 from pathlib import Path
 
 
+@pytest.mark.slow
 def test_multiple_files_with_different_images(tmp_path):
     """Test that multiple RSM files can reference different images.
 
@@ -73,6 +75,7 @@ def test_multiple_files_with_different_images(tmp_path):
     assert (static_dir / "rsm.css").exists(), "Both should share RSM CSS in static/"
 
 
+@pytest.mark.slow
 def test_multiple_files_share_static_assets(tmp_path):
     """Test that multiple RSM files share the same static/ directory.
 

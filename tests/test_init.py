@@ -1,9 +1,11 @@
 """Tests for rsm init command."""
 
 import subprocess
+import pytest
 from pathlib import Path
 
 
+@pytest.mark.slow
 def test_init_creates_basic_structure(tmp_path, monkeypatch):
     """Test that rsm init creates the basic project structure."""
     monkeypatch.chdir(tmp_path)
@@ -28,6 +30,7 @@ def test_init_creates_basic_structure(tmp_path, monkeypatch):
     assert not (tmp_path / "custom.css").exists()  # Not created without --css
 
 
+@pytest.mark.slow
 def test_init_rsm_file_content(tmp_path, monkeypatch):
     """Test that generated RSM file has correct content."""
     monkeypatch.chdir(tmp_path)
@@ -56,6 +59,7 @@ def test_init_rsm_file_content(tmp_path, monkeypatch):
     assert ":references:" in content
 
 
+@pytest.mark.slow
 def test_init_with_css_flag(tmp_path, monkeypatch):
     """Test that --css flag creates custom.css."""
     monkeypatch.chdir(tmp_path)
@@ -76,6 +80,7 @@ def test_init_with_css_flag(tmp_path, monkeypatch):
     assert "Custom CSS for your RSM document" in css_content
 
 
+@pytest.mark.slow
 def test_init_readme_content(tmp_path, monkeypatch):
     """Test that README has correct content."""
     monkeypatch.chdir(tmp_path)
@@ -99,6 +104,7 @@ def test_init_readme_content(tmp_path, monkeypatch):
     assert "rsm check document.rsm" in content
 
 
+@pytest.mark.slow
 def test_init_readme_with_css(tmp_path, monkeypatch):
     """Test that README includes CSS info when --css is used."""
     monkeypatch.chdir(tmp_path)
@@ -120,6 +126,7 @@ def test_init_readme_with_css(tmp_path, monkeypatch):
     assert "--css custom.css" in content
 
 
+@pytest.mark.slow
 def test_init_fails_with_existing_rsm_files(tmp_path, monkeypatch):
     """Test that init fails if RSM files already exist."""
     monkeypatch.chdir(tmp_path)
@@ -140,6 +147,7 @@ def test_init_fails_with_existing_rsm_files(tmp_path, monkeypatch):
     assert "Use --force" in result.stdout
 
 
+@pytest.mark.slow
 def test_init_force_flag(tmp_path, monkeypatch):
     """Test that --force allows init in directory with existing RSM files."""
     monkeypatch.chdir(tmp_path)
@@ -160,6 +168,7 @@ def test_init_force_flag(tmp_path, monkeypatch):
     assert (tmp_path / "existing.rsm").exists()  # Original still there
 
 
+@pytest.mark.slow
 def test_init_default_filename(tmp_path, monkeypatch):
     """Test that pressing enter uses default filename."""
     monkeypatch.chdir(tmp_path)
@@ -181,6 +190,7 @@ def test_init_default_filename(tmp_path, monkeypatch):
     assert ":name: Default Author" in content
 
 
+@pytest.mark.slow
 def test_init_filename_with_underscores(tmp_path, monkeypatch):
     """Test that filename with underscores creates nice title."""
     monkeypatch.chdir(tmp_path)
@@ -198,6 +208,7 @@ def test_init_filename_with_underscores(tmp_path, monkeypatch):
     assert "# My Research Paper" in content
 
 
+@pytest.mark.slow
 def test_init_filename_with_dashes(tmp_path, monkeypatch):
     """Test that filename with dashes creates nice title."""
     monkeypatch.chdir(tmp_path)

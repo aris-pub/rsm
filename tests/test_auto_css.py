@@ -2,8 +2,10 @@
 
 import subprocess
 from pathlib import Path
+import pytest
 
 
+@pytest.mark.slow
 def test_auto_detects_matching_css_file(tmp_path):
     """Test that building file.rsm automatically includes file.css if it exists."""
     # Create RSM file
@@ -34,6 +36,7 @@ def test_auto_detects_matching_css_file(tmp_path):
     assert '<link rel="stylesheet" type="text/css" href="/static/document.css"' in html_content
 
 
+@pytest.mark.slow
 def test_no_css_when_matching_file_not_present(tmp_path):
     """Test that building works normally when no matching CSS file exists."""
     rsm_file = tmp_path / "document.rsm"
@@ -57,6 +60,7 @@ def test_no_css_when_matching_file_not_present(tmp_path):
     assert not (static_dir / "document.css").exists()
 
 
+@pytest.mark.slow
 def test_css_flag_overrides_auto_detection(tmp_path):
     """Test that --css flag overrides auto-detected matching CSS file."""
     # Create RSM file
@@ -90,6 +94,7 @@ def test_css_flag_overrides_auto_detection(tmp_path):
     assert "/static/document.css" not in html_content
 
 
+@pytest.mark.slow
 def test_css_flag_works_without_auto_css(tmp_path):
     """Test that --css flag works as before when no auto-detected CSS exists."""
     rsm_file = tmp_path / "document.rsm"
@@ -111,6 +116,7 @@ def test_css_flag_works_without_auto_css(tmp_path):
     assert "/static/styles.css" in html_content
 
 
+@pytest.mark.slow
 def test_auto_css_with_string_input_not_applied(tmp_path):
     """Test that auto CSS detection doesn't apply to string input (-c flag)."""
     # Create a CSS file that could match
@@ -134,6 +140,7 @@ def test_auto_css_with_string_input_not_applied(tmp_path):
     assert "anything.css" not in html_content
 
 
+@pytest.mark.slow
 def test_auto_css_with_different_directory(tmp_path):
     """Test auto CSS detection when RSM file is in a subdirectory."""
     # Create subdirectory
@@ -162,6 +169,7 @@ def test_auto_css_with_different_directory(tmp_path):
     assert "/static/article.css" in html_content
 
 
+@pytest.mark.slow
 def test_auto_css_with_output_flag(tmp_path):
     """Test that auto CSS detection works with -o flag."""
     rsm_file = tmp_path / "paper.rsm"

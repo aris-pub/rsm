@@ -5,6 +5,7 @@ import socket
 import time
 from pathlib import Path
 from contextlib import closing
+import pytest
 
 
 def find_free_port():
@@ -15,6 +16,7 @@ def find_free_port():
         return s.getsockname()[1]
 
 
+@pytest.mark.slow
 def test_serve_with_custom_port(tmp_path):
     """Test that --port flag uses the specified port."""
     rsm_file = tmp_path / "test.rsm"
@@ -50,6 +52,7 @@ def test_serve_with_custom_port(tmp_path):
     assert result.returncode != 0
 
 
+@pytest.mark.slow
 def test_serve_port_in_use_error_message(tmp_path):
     """Test that port conflict shows helpful error message instead of traceback."""
     rsm_file = tmp_path / "test.rsm"
@@ -92,6 +95,7 @@ def test_serve_port_in_use_error_message(tmp_path):
         sock.close()
 
 
+@pytest.mark.slow
 def test_serve_default_port_5500(tmp_path):
     """Test that default port is 5500 when not specified."""
     rsm_file = tmp_path / "test.rsm"
@@ -125,6 +129,7 @@ def test_serve_default_port_5500(tmp_path):
     assert result.returncode != 0 or "http://127.0.0.1:5500" in result.stderr
 
 
+@pytest.mark.slow
 def test_serve_no_html_files_shows_empty_index(tmp_path):
     """Test that serving with no HTML files generates an empty index page instead of 404."""
     # Start server in directory with no HTML files

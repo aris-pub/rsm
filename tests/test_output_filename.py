@@ -1,9 +1,11 @@
 """Test output filename derivation and .html suffix handling."""
 
 import subprocess
+import pytest
 from pathlib import Path
 
 
+@pytest.mark.slow
 def test_default_output_derives_from_input(tmp_path):
     """Test that foo.rsm creates foo.html by default."""
     rsm_file = tmp_path / "myfile.rsm"
@@ -21,6 +23,7 @@ def test_default_output_derives_from_input(tmp_path):
     assert output_file.exists(), "Should create myfile.html from myfile.rsm"
 
 
+@pytest.mark.slow
 def test_output_flag_strips_html_suffix(tmp_path):
     """Test that -o foo.html doesn't create foo.html.html."""
     rsm_file = tmp_path / "test.rsm"
@@ -41,6 +44,7 @@ def test_output_flag_strips_html_suffix(tmp_path):
     assert not bad_file.exists(), "Should NOT create output.html.html"
 
 
+@pytest.mark.slow
 def test_output_flag_without_suffix_adds_html(tmp_path):
     """Test that -o foo creates foo.html."""
     rsm_file = tmp_path / "test.rsm"
@@ -58,6 +62,7 @@ def test_output_flag_without_suffix_adds_html(tmp_path):
     assert output_file.exists(), "Should create myoutput.html from -o myoutput"
 
 
+@pytest.mark.slow
 def test_output_directory_only_derives_from_input(tmp_path):
     """Test that -o build/ creates build/foo.html from foo.rsm."""
     rsm_file = tmp_path / "document.rsm"
@@ -78,6 +83,7 @@ def test_output_directory_only_derives_from_input(tmp_path):
     assert output_file.exists(), "Should create build/document.html from document.rsm"
 
 
+@pytest.mark.slow
 def test_output_directory_and_filename(tmp_path):
     """Test that -o build/custom.html works correctly."""
     rsm_file = tmp_path / "test.rsm"
@@ -98,6 +104,7 @@ def test_output_directory_and_filename(tmp_path):
     assert output_file.exists(), "Should create build/custom.html"
 
 
+@pytest.mark.slow
 def test_string_input_defaults_to_index(tmp_path):
     """Test that string input (-c) still creates index.html by default."""
     result = subprocess.run(
@@ -112,6 +119,7 @@ def test_string_input_defaults_to_index(tmp_path):
     assert output_file.exists(), "String input should create index.html by default"
 
 
+@pytest.mark.slow
 def test_multiple_files_same_directory(tmp_path):
     """Test building multiple RSM files to the same directory."""
     # Create multiple RSM files
