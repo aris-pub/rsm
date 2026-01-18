@@ -23,6 +23,44 @@ be opened natively by any web browser on any device.
 + Get started with the [docs](https://docs.write-rsm.org).
 
 
+## Installation
+
+### Recommended: pipx (Isolated Global Install)
+
+Install RSM globally without polluting your system Python:
+
+```bash
+pipx install rsm-lang
+rsm --version
+```
+
+**Why pipx?**
+- Installs `rsm` command globally
+- Isolated environment (no dependency conflicts)
+- Works on macOS, Linux, and Windows
+
+### Alternative: uvx (Zero Install, Run on Demand)
+
+Run RSM without installing anything:
+
+```bash
+uvx --from rsm-lang rsm build paper.rsm
+```
+
+**Why uvx?**
+- No installation required
+- Always uses latest version
+- Automatically manages dependencies
+
+### Traditional: pip (System Python)
+
+```bash
+pip install rsm-lang
+```
+
+**Note:** Use the above tools or a virtual environment for a cleaner setup.
+
+
 ## Contributing
 
 This project is under constant development and contributions are *very much* welcome!
