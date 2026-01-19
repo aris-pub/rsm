@@ -30,7 +30,7 @@ Checking your install
 
    .. code-block:: bash
 
-      $ rsm-render manuscript.rsm
+      $ rsm render manuscript.rsm
 
    is essentially equivalent to the following code
 
@@ -49,7 +49,7 @@ Checking your install
 
       .. code-block:: bash
 
-         $ rsm-render --version
+         $ rsm render --version
 
       If you want to use RSM from a python script, you may import the library with
 

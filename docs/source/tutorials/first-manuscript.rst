@@ -18,7 +18,7 @@ is stored and execute
 
 .. code-block:: bash
 
-   $ rsm-build manuscript.rsm
+   $ rsm build manuscript.rsm
 
 This will create a new file called :code:`index.html` in the same directory.  Open this
 file with your web browser to see the web manuscript created by RSM.
@@ -28,7 +28,7 @@ the linter suggests.
 
 .. code-block:: bash
 
-   $ rsm-lint manuscript.rsm
+   $ rsm check manuscript.rsm
    src:1:12: LINT: Manuscript with no title
 
 Here, the linter is telling us that our manuscript is missing a title.  We can rectify
@@ -43,6 +43,6 @@ that by editing :code:`manuscript.rsm` as follows
 
    ::
 
-Run again the ``rsm-lint`` command, and the warning should have disappeared.  You can
-now run ``rsm-build`` again and refresh your browser to see now the title of your
+Run again the ``rsm check`` command, and the warning should have disappeared. You can
+now run ``rsm build`` again and refresh your browser to see now the title of your
 manuscript displayed.

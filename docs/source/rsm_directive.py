@@ -81,7 +81,7 @@ def add_rsm_static_files(app):
     app.add_js_file("tooltipster.bundle.js")
 
     # open in live editor button
-    app.add_js_file("openlive.js")
+    # app.add_js_file("openlive.js")
 
     # this adds a <script type="module">...</script> tag to each page
     app.add_js_file(

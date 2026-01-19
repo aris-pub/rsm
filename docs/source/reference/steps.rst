@@ -4,8 +4,9 @@ RSM file processing steps
 =========================
 
 This guide explains the processing pipeline that occurs when executing
-``rsm.make(source)`` (or calling ``rsm-build`` from the command line).  Assume there
-exists a file called ``src.rst`` in the current directory and a user executes ``rsm.make(src)``.
+``rsm.build(source)`` (or calling ``rsm build`` from the command line). Assume there
+exists a file called ``src.rst`` in the current directory and a user executes
+``rsm.build(src)``.
 
 Steps
 *****
@@ -74,9 +75,9 @@ certain adornments that are necessary in the output manuscript but not manually 
 the user, such as adding a turnstile ``⊢`` to mathematical claims.
 
 After the transform step, the abstract manuscript tree is considered finalized and
-should not be modified again by any later processing.  Some tools that only need an
-in-memory representation of the manuscript may end their processing here.  For example,
-the CLI utility ``rsm-lint`` does not carry out any of the remaining steps in the
+should not be modified again by any later processing. Some tools that only need an
+in-memory representation of the manuscript may end their processing here. For example,
+the CLI utility ``rsm check`` does not carry out any of the remaining steps in the
 standard processing pipeline (with the exception of the linting step itself, which is
 optional).
 
@@ -90,9 +91,9 @@ Lint
 ----
 
 This is an optional step that only takes place when running a linter, for example with
-``rsm-lint``.  The linter takes the finalized abstract manuscript tree and runs routines
-that check it for consistency and soundness.  If it encounters any problems, they are
-flagged to the user.  The linter does not modify the tree or the file it came from.
+``rsm check``. The linter takes the finalized abstract manuscript tree and runs routines
+that check it for consistency and soundness. If it encounters any problems, they are
+flagged to the user. The linter does not modify the tree or the file it came from.
 
 - Input: abstract manuscript tree.
 - Output: errors, warnings, and suggestions shown to the user.
@@ -112,7 +113,7 @@ There are currently two kinds of translator: a basic translator that generates
 human-readable HTML and a more advanced translator that adds web components such as
 handrails, additional CSS classes, and other features necessary for the manuscript to
 display correctly in a browser.  The basic translator is useful during automatic
-testing, and is the one used by the CLI utility ``rsm-render``, which takes the HTML
+testing, and is the one used by the CLI utility ``rsm render``, which takes the HTML
 body and simply returns it to the user.
 
 This step generates only the *body* of the final HTML document.  Adding headers,
@@ -141,8 +142,8 @@ manuscript.
 Writer
 ------
 
-Finally, the output folder is generated in disk.  This is the final step of the CLI
-utility ``rsm-build``.
+Finally, the output folder is generated in disk. This is the final step of the CLI
+utility ``rsm build``.
 
 - Input: in-memory representation of the final output folder.
 - Output: write final folder to disk.
