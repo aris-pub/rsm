@@ -48,7 +48,7 @@ docs:
 
 # Clean documentation build artifacts
 docs-clean:
-    cd docs && make clean
+    cd docs && uv run make clean
 
 # Serve documentation with live reload
 docs-serve:
