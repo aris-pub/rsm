@@ -7,7 +7,27 @@ Readable Science Markup (RSM) was inspired by popular languages such as Markdown
 and LaTeX. RSM strives for simplicity, flexibility, and functionality.
 
 .. rsm::
-   Hello, **RSM**!
+
+    # Getting Started with RSM
+
+     :author: {
+       :name: Sherlock Holmes
+       :affiliation: Forensic Investigation Instititute
+     } ::
+
+     :abstract:
+     RSM is a markup language for writing
+     web-first scientific manuscripts.
+     It combines the simplicity of Markdown
+     with the power of semantic tagging.
+     ::
+
+     ## Introduction
+
+     RSM uses *tags* to annotate your
+     manuscript. Tags are semantic: they
+     describe whatcontent *is*, not how
+     it should look.
 
 The main syntax feature of RSM are *tags*. Strings such as ``:rsm:`` are called *tags*.
 In RSM, tags are used to annotate regions of text, for example to delimit sections and

@@ -3,9 +3,19 @@
 Tutorials
 =========
 
-The easiest way to try out RSM and all its features is to use the `online live editor
-<https://lets.write-rsm.org>`_.  In it, you will be able to use a complete
-implementation of RSM, including all of the features showcased in the feature tour.
+The easiest way to try out RSM and all its features is to use `RSM Studio
+<https://rsm.studio>`_. Studio is the real-time collaborative editor for the RSM
+language. If you prefer to work locally, you can use the CLI tools, see the
+:ref:`installation` tutorial.
+
+.. tip::
+
+   RSM Studio uses the same CLI tools that are publicly available, with some additional
+   bells and whistles, so there will never be any major difference between using Studio
+   or the CLI.
+
+Regardless of how you choose to author your first RSM document, be sure to check out the
+feature tour.
 
 .. card::
 
@@ -20,8 +30,8 @@ implementation of RSM, including all of the features showcased in the feature to
      tutorials/bibliography
 
 
-Once you are ready to use RSM for your manuscript, we recommend following the in-depth
-guides, as well as installing RSM locally on your machine.
+Once you are acquainted with the syntax and main features of RSM, we recommend following
+these in-depth guides.
 
 .. grid::  1 2 2 2
 
