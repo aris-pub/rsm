@@ -17,12 +17,13 @@ logger = logging.getLogger("RSM").getChild("build")
 class BaseBuilder(ABC):
     """Use HTML body as a string and create a WebManuscript."""
 
-    def __init__(self, asset_resolver=None, outname: str = "index.html", custom_css: str | None = None) -> None:
+    def __init__(self, asset_resolver=None, outname: str = "index.html", custom_css: str | None = None, theme_toggle: bool = True) -> None:
         self.body: str | None = None
         self.html: str | None = None
         self.web: WebManuscript | None = None
         self.outname: str = outname
         self.custom_css: str | None = custom_css
+        self.theme_toggle: bool = theme_toggle
         # Default to disk-based asset resolver if none provided
         if asset_resolver is None:
             from .asset_resolver import AssetResolverFromDisk
@@ -65,11 +66,15 @@ class HTMLBuilder(BaseBuilder):
     web: WebManuscript
 
     def make_main_file(self) -> None:
+        body = self.body.strip()
+        if self.theme_toggle:
+            body = self._inject_dark_mode_button(body)
+
         html = str(
             "<html>\n\n"
             + self.make_html_header()
             + "\n"
-            + self._inject_dark_mode_button(self.body.strip())
+            + body
             + "\n\n"
             + self.make_html_footer()
             + "</html>\n"
@@ -107,6 +112,29 @@ class HTMLBuilder(BaseBuilder):
             custom_css_filename = Path(self.custom_css).name
             custom_css_link = f'  <link rel="stylesheet" type="text/css" href="/static/{custom_css_filename}" />\n'
 
+        dark_mode_script = ""
+        if self.theme_toggle:
+            dark_mode_script = dedent("""\
+
+          <script>
+            // Dark mode toggle with localStorage and system preference detection
+            (function() {
+              const savedTheme = localStorage.getItem('rsm-theme');
+              const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+              const isDark = savedTheme === 'dark' || (!savedTheme && prefersDark);
+
+              if (isDark) {
+                document.documentElement.classList.add('dark-theme');
+              }
+            })();
+
+            function toggleDarkMode() {
+              const isDark = document.documentElement.classList.toggle('dark-theme');
+              localStorage.setItem('rsm-theme', isDark ? 'dark' : 'light');
+            }
+          </script>
+        """)
+
         header = dedent(
             f"""\
         <head>
@@ -123,25 +151,7 @@ class HTMLBuilder(BaseBuilder):
           <script type="module">
             import {{ onload }} from '/static/onload.js';
             window.addEventListener('load', (ev) => {{window.lsp_ws = onload();}});
-          </script>
-
-          <script>
-            // Dark mode toggle with localStorage and system preference detection
-            (function() {{
-              const savedTheme = localStorage.getItem('rsm-theme');
-              const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-              const isDark = savedTheme === 'dark' || (!savedTheme && prefersDark);
-
-              if (isDark) {{
-                document.documentElement.classList.add('dark-theme');
-              }}
-            }})();
-
-            function toggleDarkMode() {{
-              const isDark = document.documentElement.classList.toggle('dark-theme');
-              localStorage.setItem('rsm-theme', isDark ? 'dark' : 'light');
-            }}
-          </script>
+          </script>{dark_mode_script}
 
           <title>__TITLE_PLACEHOLDER__</title>
         </head>
@@ -200,6 +210,29 @@ class StandaloneBuilder(HTMLBuilder):
     def make_html_header(self) -> str:
         inline_js = self._get_inline_js()
         custom_css_inline = self._get_custom_css_inline()
+
+        dark_mode_script = ""
+        if self.theme_toggle:
+            dark_mode_script = """
+  <script>
+    // Dark mode toggle with localStorage and system preference detection
+    (function() {
+      const savedTheme = localStorage.getItem('rsm-theme');
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const isDark = savedTheme === 'dark' || (!savedTheme && prefersDark);
+
+      if (isDark) {
+        document.documentElement.classList.add('dark-theme');
+      }
+    })();
+
+    function toggleDarkMode() {
+      const isDark = document.documentElement.classList.toggle('dark-theme');
+      localStorage.setItem('rsm-theme', isDark ? 'dark' : 'light');
+    }
+  </script>
+"""
+
         header = f"""\
 <head>
   <meta charset="utf-8" />
@@ -217,25 +250,7 @@ class StandaloneBuilder(HTMLBuilder):
   </script>
   <script>
     window.addEventListener('load', function() {{ RSM.onload(null, {{keys: false}}); }});
-  </script>
-
-  <script>
-    // Dark mode toggle with localStorage and system preference detection
-    (function() {{
-      const savedTheme = localStorage.getItem('rsm-theme');
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      const isDark = savedTheme === 'dark' || (!savedTheme && prefersDark);
-
-      if (isDark) {{
-        document.documentElement.classList.add('dark-theme');
-      }}
-    }})();
-
-    function toggleDarkMode() {{
-      const isDark = document.documentElement.classList.toggle('dark-theme');
-      localStorage.setItem('rsm-theme', isDark ? 'dark' : 'light');
-    }}
-  </script>
+  </script>{dark_mode_script}
 
   <title>__TITLE_PLACEHOLDER__</title>
 </head>

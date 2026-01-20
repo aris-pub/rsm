@@ -332,6 +332,7 @@ class FullBuildApp(ProcessorApp):
         output_dir: str = ".",
         output_filename: str = "index.html",
         custom_css: str | None = None,
+        theme_toggle: bool = True,
     ):
         super().__init__(
             srcpath,
@@ -347,9 +348,9 @@ class FullBuildApp(ProcessorApp):
         )
         self.write_output = write_output
         if standalone:
-            b = builder.StandaloneBuilder(asset_resolver=asset_resolver, outname=output_filename, custom_css=custom_css)
+            b = builder.StandaloneBuilder(asset_resolver=asset_resolver, outname=output_filename, custom_css=custom_css, theme_toggle=theme_toggle)
         else:
-            b = builder.FolderBuilder(asset_resolver=asset_resolver, outname=output_filename, custom_css=custom_css)
+            b = builder.FolderBuilder(asset_resolver=asset_resolver, outname=output_filename, custom_css=custom_css, theme_toggle=theme_toggle)
         self.add_task(Task("builder", b, b.build))
         self.add_task(Task("writer", w := writer.Writer(dstpath=Path(output_dir)), w.write))
 
@@ -462,6 +463,7 @@ def build(
     output_dir: str = ".",
     output_filename: str = "index.html",
     custom_css: str | None = None,
+    theme_toggle: bool = True,
 ) -> str | dict:
     """Process RSM source and optionally write output files.
 
@@ -497,6 +499,8 @@ def build(
         Directory where output files should be written (default: ".")
     output_filename : str
         Name of the main HTML file (default: "index.html")
+    theme_toggle : bool
+        Include dark mode toggle button and localStorage script (default: True)
 
     Returns
     -------
@@ -517,6 +521,7 @@ def build(
         output_dir=output_dir,
         output_filename=output_filename,
         custom_css=custom_css,
+        theme_toggle=theme_toggle,
     ).run()
 
     if not structured:
