@@ -571,11 +571,11 @@ body {
 
   /* Margins around sections in embedded mode */
   &.embedded section {
-    .level-1 {margin-block: calc(var(--h1-size) * 0.75);}
-    .level-2 {margin-block: calc(var(--h2-size) * 0.75);}
-    .level-3 {margin-block: calc(var(--h3-size) * 0.75);}
-    .level-4 {margin-block: calc(var(--h4-size) * 0.75);}
-    .level-5 {margin-block: calc(var(--h5-size) * 0.75);}
+    &.level-1 {margin-block: calc(var(--h1-size) * 0.75);}
+    &.level-2 {margin-block: calc(var(--h2-size) * 0.75);}
+    &.level-3 {margin-block: calc(var(--h3-size) * 0.75);}
+    &.level-4 {margin-block: calc(var(--h4-size) * 0.75);}
+    &.level-5 {margin-block: calc(var(--h5-size) * 0.75);}
   }
 
   /* Margins between the heading and the first paragraph */
