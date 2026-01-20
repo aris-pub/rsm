@@ -1,49 +1,38 @@
 # Brand Asset Management
 
-This document explains how RSM manages brand assets (logos, favicons) and the rationale behind the current approach.
+This document explains how RSM manages brand assets (logos, favicons) and the rationale
+behind the current approach.
 
 ## The Problem
 
-RSM uses brand assets from a centralized [brand repository](https://github.com/leotrs/brand) shared across the Aris ecosystem. We need to balance two competing requirements:
+RSM uses brand assets from a centralized [brand
+repository](https://github.com/leotrs/brand) shared across the Aris ecosystem. We need
+to balance two competing requirements:
 
-1. **Always up-to-date**: When brand assets change in the central repository, RSM should automatically use the latest versions without manual intervention
-2. **Reliable offline builds**: Documentation builds and CLI commands should work reliably without internet connectivity
+1. **Always up-to-date**: When brand assets change in the central repository, RSM should
+   automatically use the latest versions without manual intervention
+2. **Reliable offline builds**: Documentation builds and CLI commands should work
+   reliably without internet connectivity
 
 ## Rejected Approaches
 
 ### Git Submodules
-**What we tried**: Adding the brand repository as a git submodule and using symlinks to reference assets.
-
-**Why it didn't work**:
-- Requires `git clone --recursive` or manual submodule initialization
-- Symlinks break on Windows without admin privileges
-- Easy to forget to update the submodule when pulling changes
-- Adds complexity for contributors and CI/CD pipelines
-- Manual coordination required to update assets across multiple repositories
+**Why we rejected it**: Requires `git clone --recursive` or manual submodule
+initialization. Requires symlink for sphinx to work, adds complexity.
 
 ### Package Distribution (npm/PyPI)
-**Why we rejected it**:
-- npm package would require Node.js for Python documentation builds
-- Creates ecosystem mismatch (Python project depending on Node tooling)
-- Still requires manual package updates to get latest assets
-- More overhead than the value provided for a few static SVG files
+**Why we rejected it**: npm package would require Node.js for Python documentation
+builds
 
 ### Always-Fetch from GitHub
-**Why we rejected it**:
-- Breaks offline work (planes, trains, poor connections)
-- Documentation builds fail if GitHub is unavailable
-- Slower build times from network requests
-- Makes historical builds non-reproducible
+**Why we rejected it**: Breaks offline work (planes, trains, poor connections)
 
 ### Manual Update Scripts
-**Why we rejected it**:
-- Requires developers to remember to run update commands
-- Most manual approach of all options considered
-- Easy to forget, leading to stale assets
+**Why we rejected it**: Requires developers to remember to run update commands
 
 ## Current Solution: Fetch-with-Fallback
-
-We commit baseline brand assets to this repository and attempt to update them from GitHub on every build, falling back silently if the fetch fails.
+We commit baseline brand assets to this repository and attempt to update them from
+GitHub on every build, falling back silently if the fetch fails.
 
 ### How It Works
 
@@ -76,21 +65,6 @@ When creating a new project:
 2. If successful, copy the fetched version to `assets/`
 3. If fetch fails, copy the committed version from `rsm/assets/`
 
-### Benefits
-
-✅ **Zero developer mental overhead**: No special commands to remember, no submodule updates
-✅ **Always up-to-date when online**: Automatically fetches latest assets from GitHub
-✅ **Reliable offline builds**: Falls back to committed versions without errors
-✅ **Transparent**: Developers don't need to know this system exists
-✅ **No symlinks**: Works on all platforms without special permissions
-✅ **No submodules**: Standard git workflow, no `--recursive` needed
-
-### Tradeoffs
-
-⚠️ **Network dependency for latest assets**: Must be online to get updates (acceptable for non-critical assets)
-⚠️ **Slight build overhead**: Two HTTP requests per doc build when online
-⚠️ **Asset duplication**: Committed copies in this repo + central brand repo (acceptable for 3 small SVG files)
-
 ## Asset Locations
 
 **Committed baseline assets**:
@@ -120,8 +94,11 @@ git add docs/source/_static/*.{svg,ico} rsm/assets/aris-logo-64.svg
 git commit -m "Update baseline brand assets"
 ```
 
-You only need to do this if you want to update the fallback versions that are used when offline.
+You only need to do this if you want to update the fallback versions that are used when
+offline.
 
 ## Future Considerations
 
-If brand assets start changing frequently or become large binary files, we may want to revisit this approach. For now, the simplicity and transparency of fetch-with-fallback outweighs the minor network dependency.
+If brand assets start changing frequently or become large binary files, we may want to
+revisit this approach. For now, the simplicity and transparency of fetch-with-fallback
+outweighs the minor network dependency.
