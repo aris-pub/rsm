@@ -44,6 +44,15 @@ html[data-theme="dark"] {
   margin-bottom: 1em;
 }
 
+.rsm-example-iframe {
+  width: 49%;
+  min-height: 200px;
+  border: 1px solid var(--pst-color-border);
+  border-radius: 0.25rem;
+  background: white;
+  overflow: hidden;
+}
+
 .bd-sidebar-primary {
   max-width: 20%;
 }

@@ -6,6 +6,7 @@ Highlight and render RSM code blocks.
 
 """
 
+import html
 from pathlib import Path
 
 from docutils import nodes
@@ -33,7 +34,12 @@ class RSMDirective(Directive):
         n1["language"] = "text"
         n1["classes"].append("rsm-example-code")
         print(f"\n{'='*60}\nRSM DIRECTIVE RENDERING:\n{repr(content)}\n{'='*60}\n")
-        n2 = rsm_body(rsm.render(content, handrails=True))
+        # Use standalone=True to get a complete self-contained HTML document for the iframe
+        # Use theme_toggle=False to disable the dark mode toggle (Sphinx will control theme)
+        html_output = rsm.build(source=content, handrails=True, standalone=True, theme_toggle=False)
+        # Add .embedded class to reduce margins in the iframe
+        html_output = html_output.replace('class="manuscriptwrapper"', 'class="manuscriptwrapper embedded"')
+        n2 = rsm_body(html_output)
         rsm_node = rsm_example()
         rsm_node.append(n1)
         rsm_node.append(n2)
@@ -41,14 +47,21 @@ class RSMDirective(Directive):
 
 
 def visit_rsm_body_node(self, node):
-    # strip the enclosing <body> tag
-    from_idx = node.body.index(startstr := "<body>") + len(startstr)
-    upto_idx = node.body.rindex(finalstr := "</body>")
-    body = node.body[from_idx:upto_idx]
-    body = body.replace(
-        'class="manuscriptwrapper"', 'class="manuscriptwrapper embedded"'
-    )
-    self.body.append(body)
+    # Use the full HTML document in an iframe for complete isolation
+    # Escape HTML for srcdoc attribute
+    escaped_html = html.escape(node.body, quote=True)
+
+    # Create iframe with auto-resize script
+    iframe_html = f'''
+    <iframe class="rsm-example-iframe"
+            srcdoc="{escaped_html}"
+            sandbox="allow-scripts allow-same-origin"
+            onload="this.style.height = (this.contentWindow.document.documentElement.scrollHeight + 20) + 'px';"
+            style="width: 100%; border: 1px solid var(--pst-color-border); border-radius: 4px; background: white;">
+    </iframe>
+    '''
+
+    self.body.append(iframe_html)
 
 
 def depart_rsm_body_node(self, node):
@@ -73,26 +86,8 @@ def add_rsm_static_files(app):
     cfg.html_static_path.append(str(doc_static_dir.absolute()))
     cfg.html_static_path.append(str(rsm_static_dir.absolute()))
 
-    # main styles are applied to the manuscripts rendered by the .. rsm:: directive
-    app.add_css_file("rsm.css")
-
-    # make sure tooltipster is available
-    app.add_css_file("tooltipster.bundle.css")
-    app.add_js_file("tooltipster.bundle.js")
-
-    # open in live editor button
-    # app.add_js_file("openlive.js")
-
-    # this adds a <script type="module">...</script> tag to each page
-    app.add_js_file(
-        None,
-        type="module",
-        body="""\
-        import { onload } from '../_static/onload.js';
-        window.addEventListener('load', (ev)=>{onload('"""
-        + (cfg.rsm_static_path_prod if cfg.rsm_build_prod else cfg.rsm_static_path_dev)
-        + "')});\n",
-    )
+    # No longer needed - each iframe contains its own complete HTML with all assets
+    # The rsm.render() output includes all CSS/JS needed for the manuscript
 
 
 def strip_object_from_bases(app, name, obj, options, bases):

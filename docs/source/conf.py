@@ -17,7 +17,8 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 from rsm.brand_assets import update_brand_assets_if_online
 
 static_dir = Path(__file__).parent / "_static"
-update_brand_assets_if_online(static_dir)
+# Temporarily disabled: GitHub CDN still serving old logos (will clear in ~5-10 min)
+# update_brand_assets_if_online(static_dir)
 
 #################
 # General options
@@ -33,6 +34,7 @@ html_static_path = ["_static"]
 html_logo = "_static/logo.svg"
 html_favicon = "_static/favicon.ico"
 html_css_files = ["custom.css"]
+html_js_files = ["theme-sync.js"]
 
 # templates
 templates_path = ["_templates"]
