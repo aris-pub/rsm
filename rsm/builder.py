@@ -71,7 +71,7 @@ class HTMLBuilder(BaseBuilder):
             body = self._inject_dark_mode_button(body)
 
         html = str(
-            "<html>\n\n"
+            "<!DOCTYPE html>\n<html>\n\n"
             + self.make_html_header()
             + "\n"
             + body
