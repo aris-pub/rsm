@@ -44,6 +44,11 @@ def _add_common_args(parser: ArgumentParser) -> None:
         type=str,
         default=None,
     )
+    output_opts.add_argument(
+        "--menu-right",
+        help="position handrail context menus to the right instead of left",
+        action="store_true",
+    )
 
     log_opts = parser.add_argument_group("logging control")
     log_opts.add_argument(
@@ -71,6 +76,11 @@ def _add_common_args(parser: ArgumentParser) -> None:
         choices=["plain", "rsm", "json", "lint"],
         default="rsm",
     )
+    log_opts.add_argument(
+        "--strict",
+        help="raise exception on CST errors (halt build on syntax errors)",
+        action="store_true",
+    )
 
 
 def _run_app(func: Callable, args: Namespace, print_output: bool = True) -> int:
@@ -81,6 +91,7 @@ def _run_app(func: Callable, args: Namespace, print_output: bool = True) -> int:
         "log_format": args.log_format,
         "log_time": args.log_time,
         "log_lineno": args.log_lineno,
+        "strict": args.strict,
     }
     if args.string:
         kwargs["source"] = args.src
@@ -169,6 +180,8 @@ def _cmd_build(args: Namespace) -> int:
         "output_dir": output_dir,
         "output_filename": output_filename,
         "custom_css": custom_css,
+        "menu_position": "right" if args.menu_right else "left",
+        "strict": args.strict,
     }
     if args.string:
         kwargs["source"] = args.src
@@ -520,6 +533,10 @@ def _cmd_serve(args: Namespace) -> int:
             cmd_parts.append("--standalone")
         if args.css:
             cmd_parts.extend(["--css", args.css])
+        if args.menu_right:
+            cmd_parts.append("--menu-right")
+        if args.strict:
+            cmd_parts.append("--strict")
         if args.verbose:
             cmd_parts.append("-" + "v" * args.verbose)
         if not args.log_time:
@@ -543,6 +560,8 @@ def _cmd_serve(args: Namespace) -> int:
             "output_dir": str(output_dir),
             "output_filename": output_filename,
             "custom_css": args.css,
+            "menu_position": "right" if args.menu_right else "left",
+            "strict": args.strict,
         }
         if args.string:
             kwargs["source"] = args.src
@@ -575,6 +594,10 @@ def _cmd_serve(args: Namespace) -> int:
                 build_cmd = f"rsm build {rsm_file} -o {output_name}"
                 if args.css:
                     build_cmd += f" --css {args.css}"
+                if args.menu_right:
+                    build_cmd += " --menu-right"
+                if args.strict:
+                    build_cmd += " --strict"
                 if args.standalone:
                     build_cmd += " --standalone"
 
@@ -614,6 +637,10 @@ def _cmd_serve(args: Namespace) -> int:
                         cmd = f"rsm build {rsm_file} -o {output_name}"
                         if args.css:
                             cmd += f" --css {args.css}"
+                        if args.menu_right:
+                            cmd += " --menu-right"
+                        if args.strict:
+                            cmd += " --strict"
                         if args.standalone:
                             cmd += " --standalone"
                         livereload.shell(cmd)()
@@ -813,6 +840,11 @@ def main() -> int:
         default=None,
     )
     output_opts.add_argument(
+        "--menu-right",
+        help="position handrail context menus to the right instead of left",
+        action="store_true",
+    )
+    output_opts.add_argument(
         "--standalone",
         help="output single self-contained HTML file",
         action="store_true",
@@ -869,6 +901,11 @@ def main() -> int:
         help="format for logs",
         choices=["plain", "rsm", "json", "lint"],
         default="rsm",
+    )
+    log_opts.add_argument(
+        "--strict",
+        help="raise exception on CST errors (halt build on syntax errors)",
+        action="store_true",
     )
 
     serve_parser.set_defaults(handrails=True, func=_cmd_serve)

@@ -246,6 +246,7 @@ class ParserApp(RSMApp):
         log_format: str = "rsm",
         log_time: bool = True,
         log_lineno: bool = True,
+        strict: bool = False,
     ):
         self._validate_srcpath_and_plain(srcpath, plain)
 
@@ -257,7 +258,7 @@ class ParserApp(RSMApp):
 
         tasks += [
             Task("parser", p := tsparser.TSParser(), p.parse),
-            Task("transformer", t := transformer.Transformer(), t.transform),
+            Task("transformer", t := transformer.Transformer(strict=strict), t.transform),
         ]
         super().__init__(tasks, loglevel, log_format, log_time, log_lineno)
 
@@ -297,8 +298,9 @@ class ProcessorApp(ParserApp):
         add_source: bool = True,
         run_linter: bool = False,
         asset_resolver=None,
+        strict: bool = False,
     ):
-        super().__init__(srcpath, plain, loglevel, log_format, log_time, log_lineno)
+        super().__init__(srcpath, plain, loglevel, log_format, log_time, log_lineno, strict)
         self.asset_resolver = asset_resolver
         if run_linter:
             self.add_task(
@@ -333,6 +335,8 @@ class FullBuildApp(ProcessorApp):
         output_filename: str = "index.html",
         custom_css: str | None = None,
         theme_toggle: bool = True,
+        menu_position: str = "left",
+        strict: bool = False,
     ):
         super().__init__(
             srcpath,
@@ -345,12 +349,13 @@ class FullBuildApp(ProcessorApp):
             add_source,
             run_linter,
             asset_resolver,
+            strict,
         )
         self.write_output = write_output
         if standalone:
-            b = builder.StandaloneBuilder(asset_resolver=asset_resolver, outname=output_filename, custom_css=custom_css, theme_toggle=theme_toggle)
+            b = builder.StandaloneBuilder(asset_resolver=asset_resolver, outname=output_filename, custom_css=custom_css, theme_toggle=theme_toggle, menu_position=menu_position)
         else:
-            b = builder.FolderBuilder(asset_resolver=asset_resolver, outname=output_filename, custom_css=custom_css, theme_toggle=theme_toggle)
+            b = builder.FolderBuilder(asset_resolver=asset_resolver, outname=output_filename, custom_css=custom_css, theme_toggle=theme_toggle, menu_position=menu_position)
         self.add_task(Task("builder", b, b.build))
         self.add_task(Task("writer", w := writer.Writer(dstpath=Path(output_dir)), w.write))
 
@@ -414,6 +419,7 @@ def render(
     log_time: bool = True,
     log_lineno: bool = True,
     asset_resolver=None,
+    strict: bool = False,
 ) -> str:
     return ProcessorApp(
         srcpath=path,
@@ -425,6 +431,7 @@ def render(
         log_time=log_time,
         log_lineno=log_lineno,
         asset_resolver=asset_resolver,
+        strict=strict,
     ).run()
 
 
@@ -464,6 +471,8 @@ def build(
     output_filename: str = "index.html",
     custom_css: str | None = None,
     theme_toggle: bool = True,
+    menu_position: str = "left",
+    strict: bool = False,
 ) -> str | dict:
     """Process RSM source and optionally write output files.
 
@@ -501,6 +510,10 @@ def build(
         Name of the main HTML file (default: "index.html")
     theme_toggle : bool
         Include dark mode toggle button and localStorage script (default: True)
+    menu_position : str
+        Position of handrail context menus: "left" or "right" (default: "left")
+    strict : bool
+        Raise exception if CST errors are detected after transformation (default: False)
 
     Returns
     -------
@@ -522,6 +535,8 @@ def build(
         output_filename=output_filename,
         custom_css=custom_css,
         theme_toggle=theme_toggle,
+        menu_position=menu_position,
+        strict=strict,
     ).run()
 
     if not structured:
