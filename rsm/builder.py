@@ -17,13 +17,14 @@ logger = logging.getLogger("RSM").getChild("build")
 class BaseBuilder(ABC):
     """Use HTML body as a string and create a WebManuscript."""
 
-    def __init__(self, asset_resolver=None, outname: str = "index.html", custom_css: str | None = None, theme_toggle: bool = True) -> None:
+    def __init__(self, asset_resolver=None, outname: str = "index.html", custom_css: str | None = None, theme_toggle: bool = True, menu_position: str = "left") -> None:
         self.body: str | None = None
         self.html: str | None = None
         self.web: WebManuscript | None = None
         self.outname: str = outname
         self.custom_css: str | None = custom_css
         self.theme_toggle: bool = theme_toggle
+        self.menu_position: str = menu_position
         # Default to disk-based asset resolver if none provided
         if asset_resolver is None:
             from .asset_resolver import AssetResolverFromDisk
@@ -112,6 +113,20 @@ class HTMLBuilder(BaseBuilder):
             custom_css_filename = Path(self.custom_css).name
             custom_css_link = f'  <link rel="stylesheet" type="text/css" href="/static/{custom_css_filename}" />\n'
 
+        menu_position_style = ""
+        if self.menu_position == "right":
+            menu_position_style = dedent("""\
+
+          <style>
+            .manuscriptwrapper .hr .hr-menu-zone .hr-menu {
+              left: 32px !important;
+            }
+            .manuscriptwrapper .hr.hr-offset .hr-menu-zone .hr-menu {
+              left: 16px !important;
+            }
+          </style>
+        """)
+
         dark_mode_script = ""
         if self.theme_toggle:
             dark_mode_script = dedent("""\
@@ -145,7 +160,7 @@ class HTMLBuilder(BaseBuilder):
           <link rel="stylesheet" type="text/css" href="/static/rsm.css" />
           <link rel="stylesheet" type="text/css" href="/static/tooltipster.bundle.css" />
           <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pseudocode@latest/build/pseudocode.min.css">
-{custom_css_link}
+{custom_css_link}{menu_position_style}
           <script src="/static/jquery-3.6.0.js"></script>
           <script src="/static/tooltipster.bundle.js"></script>
           <script type="module">
@@ -211,6 +226,19 @@ class StandaloneBuilder(HTMLBuilder):
         inline_js = self._get_inline_js()
         custom_css_inline = self._get_custom_css_inline()
 
+        menu_position_style = ""
+        if self.menu_position == "right":
+            menu_position_style = """
+  <style>
+    .manuscriptwrapper .hr .hr-menu-zone .hr-menu {
+      left: 32px !important;
+    }
+    .manuscriptwrapper .hr.hr-offset .hr-menu-zone .hr-menu {
+      left: 16px !important;
+    }
+  </style>
+"""
+
         dark_mode_script = ""
         if self.theme_toggle:
             dark_mode_script = """
@@ -242,7 +270,7 @@ class StandaloneBuilder(HTMLBuilder):
   <link rel="stylesheet" type="text/css" href="{self.CDN_RSM_CSS}" />
   <link rel="stylesheet" type="text/css" href="{self.CDN_TOOLTIPSTER_CSS}" />
   <link rel="stylesheet" href="{self.CDN_PSEUDOCODE_CSS}">
-  {custom_css_inline}
+  {custom_css_inline}{menu_position_style}
   <script src="{self.CDN_JQUERY}"></script>
   <script src="{self.CDN_TOOLTIPSTER_JS}"></script>
   <script>
