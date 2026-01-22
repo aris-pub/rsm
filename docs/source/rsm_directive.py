@@ -6,6 +6,7 @@ Highlight and render RSM code blocks.
 
 """
 
+import hashlib
 import html
 from pathlib import Path
 
@@ -25,21 +26,76 @@ class rsm_body(nodes.Element):
         self.body = body
 
 
+class rsm_file_ref(nodes.Element):
+    def __init__(self, path):
+        super().__init__()
+        self.path = path
+
+
 class RSMDirective(Directive):
     has_content = True
 
     def run(self):
         content = "\n".join(self.content)
+        env = self.state.document.settings.env
+        app = env.app
+
         n1 = nodes.literal_block(content, content)
         n1["language"] = "text"
         n1["classes"].append("rsm-example-code")
         print(f"\n{'='*60}\nRSM DIRECTIVE RENDERING:\n{repr(content)}\n{'='*60}\n")
-        # Use standalone=True to get a complete self-contained HTML document for the iframe
-        # Use theme_toggle=False to disable the dark mode toggle (Sphinx will control theme)
-        html_output = rsm.build(source=content, handrails=True, standalone=True, theme_toggle=False)
-        # Add .embedded class to reduce margins in the iframe
-        html_output = html_output.replace('class="manuscriptwrapper"', 'class="manuscriptwrapper embedded"')
-        n2 = rsm_body(html_output)
+
+        if app.config.rsm_build_prod:
+            # Production: Use StandaloneBuilder with CDN (no cache issues, works offline)
+            html_output = rsm.build(source=content, handrails=True, standalone=True, theme_toggle=False, menu_position="right")
+            html_output = html_output.replace('class="manuscriptwrapper"', 'class="manuscriptwrapper embedded"')
+            n2 = rsm_body(html_output)
+        else:
+            # Development: Use FolderBuilder with local /_static/ files (instant CSS updates)
+            html_output = rsm.build(source=content, handrails=True, standalone=False, theme_toggle=False, menu_position="right")
+
+            # Fix all static paths for Sphinx (/static/ -> /_static/)
+            html_output = html_output.replace('"/static/', '"/_static/')
+            html_output = html_output.replace("'/static/", "'/_static/")
+            html_output = html_output.replace('class="manuscriptwrapper"', 'class="manuscriptwrapper embedded"')
+
+            # Inject script to signal parent after content stabilizes
+            resize_script = """
+            <script>
+              window.addEventListener('load', function() {
+                let lastHeight = 0;
+                let stableCount = 0;
+
+                function checkHeight() {
+                  const currentHeight = document.documentElement.scrollHeight;
+                  if (currentHeight === lastHeight) {
+                    stableCount++;
+                    if (stableCount >= 3) {
+                      window.parent.postMessage({type: 'rsm-resize', height: currentHeight + 8}, '*');
+                      return;
+                    }
+                  } else {
+                    stableCount = 0;
+                    lastHeight = currentHeight;
+                  }
+                  setTimeout(checkHeight, 100);
+                }
+
+                setTimeout(checkHeight, 100);
+              });
+            </script>
+            """
+            html_output = html_output.replace('</body>', resize_script + '</body>')
+
+            # Save to file with content-based hash for caching
+            content_hash = hashlib.md5(content.encode()).hexdigest()[:8]
+            example_dir = Path(app.outdir) / "_examples"
+            example_dir.mkdir(parents=True, exist_ok=True)
+            (example_dir / f"{content_hash}.html").write_text(html_output)
+
+            # Create iframe pointing to the file
+            n2 = rsm_file_ref(f"/_examples/{content_hash}.html")
+
         rsm_node = rsm_example()
         rsm_node.append(n1)
         rsm_node.append(n2)
@@ -56,7 +112,7 @@ def visit_rsm_body_node(self, node):
     <iframe class="rsm-example-iframe"
             srcdoc="{escaped_html}"
             sandbox="allow-scripts allow-same-origin"
-            onload="this.style.height = (this.contentWindow.document.documentElement.scrollHeight + 20) + 'px';"
+            onload="this.style.height = (this.contentWindow.document.documentElement.scrollHeight + 8) + 'px';"
             style="width: 100%; border: 1px solid var(--pst-color-border); border-radius: 4px; background: white;">
     </iframe>
     '''
@@ -65,6 +121,23 @@ def visit_rsm_body_node(self, node):
 
 
 def depart_rsm_body_node(self, node):
+    pass
+
+
+def visit_rsm_file_ref_node(self, node):
+    # File-based iframe for development mode
+    # Height is set via postMessage from iframe after RSM onload completes
+    iframe_html = f'''
+    <iframe class="rsm-example-iframe"
+            src="{node.path}"
+            sandbox="allow-scripts allow-same-origin"
+            style="width: 100%; border: 1px solid var(--pst-color-border); border-radius: 4px; background: white;">
+    </iframe>
+    '''
+    self.body.append(iframe_html)
+
+
+def depart_rsm_file_ref_node(self, node):
     pass
 
 
@@ -106,3 +179,4 @@ def setup(app):
     app.add_directive("rsm", RSMDirective)
     app.add_node(rsm_example, html=(visit_rsm_example_node, depart_rsm_example_node))
     app.add_node(rsm_body, html=(visit_rsm_body_node, depart_rsm_body_node))
+    app.add_node(rsm_file_ref, html=(visit_rsm_file_ref_node, depart_rsm_file_ref_node))

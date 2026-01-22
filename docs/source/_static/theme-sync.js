@@ -43,3 +43,16 @@ observer.observe(document.documentElement, {
   attributes: true,
   attributeFilter: ['data-theme']
 });
+
+// Listen for resize messages from RSM example iframes
+window.addEventListener('message', function(event) {
+  if (event.data.type === 'rsm-resize') {
+    // Find the iframe that sent the message
+    const iframes = document.querySelectorAll('.rsm-example-iframe');
+    iframes.forEach(iframe => {
+      if (iframe.contentWindow === event.source) {
+        iframe.style.height = event.data.height + 'px';
+      }
+    });
+  }
+});

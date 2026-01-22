@@ -46,7 +46,6 @@ html[data-theme="dark"] {
 
 .rsm-example-iframe {
   width: 49%;
-  min-height: 200px;
   border: 1px solid var(--pst-color-border);
   border-radius: 0.25rem;
   background: white;
