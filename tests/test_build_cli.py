@@ -398,3 +398,54 @@ class TestMakePythonAPINoFileOutput:
         # Should NOT create index.html or static/ in tmp_path
         assert not (tmp_path / "index.html").exists()
         assert not (tmp_path / "static").exists()
+
+    @pytest.mark.slow
+    def test_make_cli_menu_right_flag(self, tmp_path):
+        """Test rsm build --menu-right injects CSS override."""
+        src = "# Test\n\nMenu right.\n"
+        src_file = tmp_path / "test.rsm"
+        src_file.write_text(src)
+
+        subprocess.run(
+            f"rsm build {src_file} --menu-right",
+            cwd=tmp_path,
+            shell=True,
+            capture_output=True,
+            check=True,
+        )
+
+        # Should create test.html
+        output_html = tmp_path / "test.html"
+        assert output_html.exists()
+
+        # Should contain right-position CSS override
+        html_content = output_html.read_text()
+        assert "left: 32px !important" in html_content
+        assert "left: 16px !important" in html_content
+
+    @pytest.mark.slow
+    def test_make_cli_menu_right_with_standalone(self, tmp_path):
+        """Test rsm build --menu-right --standalone works together."""
+        src = "# Test\n\nMenu right standalone.\n"
+        src_file = tmp_path / "test.rsm"
+        src_file.write_text(src)
+
+        subprocess.run(
+            f"rsm build {src_file} --menu-right --standalone",
+            cwd=tmp_path,
+            shell=True,
+            capture_output=True,
+            check=True,
+        )
+
+        # Should create test.html
+        output_html = tmp_path / "test.html"
+        assert output_html.exists()
+
+        html_content = output_html.read_text()
+
+        # Should contain right-position CSS override
+        assert "left: 32px !important" in html_content
+
+        # Should be standalone (CDN URLs)
+        assert "cdn.jsdelivr.net" in html_content
