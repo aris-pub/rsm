@@ -28,12 +28,12 @@ class TestBrandAssetFetching:
             # Check URLs
             urls = [call[0] for call in calls]
             assert any("logo.svg" in url for url in urls)
-            assert any("favicon.ico" in url for url in urls)
+            assert any("favicon.svg" in url for url in urls)
 
             # Check destinations
             dests = [call[1] for call in calls]
             assert any(str(dest).endswith("logo.svg") for dest in dests)
-            assert any(str(dest).endswith("favicon.ico") for dest in dests)
+            assert any(str(dest).endswith("favicon.svg") for dest in dests)
 
     def test_fetch_brand_assets_network_failure(self, tmp_path):
         """Test fallback when network fetch fails."""
@@ -42,7 +42,7 @@ class TestBrandAssetFetching:
 
         # Create committed fallback files
         (static_dir / "logo.svg").write_text("<svg>logo</svg>")
-        (static_dir / "favicon.ico").write_bytes(b"fake-ico")
+        (static_dir / "favicon.svg").write_bytes(b"fake-ico")
 
         # Mock network failure
         with patch(
@@ -55,7 +55,7 @@ class TestBrandAssetFetching:
 
             # Committed files should still exist
             assert (static_dir / "logo.svg").exists()
-            assert (static_dir / "favicon.ico").exists()
+            assert (static_dir / "favicon.svg").exists()
             assert (static_dir / "logo.svg").read_text() == "<svg>logo</svg>"
 
     def test_fetch_brand_assets_partial_failure(self, tmp_path):
@@ -65,7 +65,7 @@ class TestBrandAssetFetching:
 
         # Create committed fallback files
         (static_dir / "logo.svg").write_text("<svg>old-logo</svg>")
-        (static_dir / "favicon.ico").write_bytes(b"old-ico")
+        (static_dir / "favicon.svg").write_bytes(b"old-ico")
 
         # Mock partial failure - logo succeeds, favicon fails
         def mock_retrieve(url, dest):
@@ -82,7 +82,7 @@ class TestBrandAssetFetching:
             # Logo should be updated
             assert (static_dir / "logo.svg").read_text() == "<svg>new-logo</svg>"
             # Favicon should keep old version
-            assert (static_dir / "favicon.ico").read_bytes() == b"old-ico"
+            assert (static_dir / "favicon.svg").read_bytes() == b"old-ico"
 
 
 class TestCLIBrandAssetFetching:
@@ -146,4 +146,4 @@ class TestBrandAssetIntegration:
         assert hasattr(conf, "html_logo")
         assert hasattr(conf, "html_favicon")
         assert "logo.svg" in conf.html_logo
-        assert "favicon.ico" in conf.html_favicon
+        assert "favicon.svg" in conf.html_favicon

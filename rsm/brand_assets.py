@@ -26,7 +26,7 @@ def update_brand_assets_if_online(static_dir: Path) -> None:
     """
     assets = {
         "logo.svg": f"{BRAND_BASE_URL}/rsm/logo.svg",
-        "favicon.ico": f"{BRAND_BASE_URL}/rsm/favicon.ico",
+        "favicon.svg": f"{BRAND_BASE_URL}/rsm/favicon.svg",
     }
 
     for filename, url in assets.items():

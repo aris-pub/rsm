@@ -38,12 +38,12 @@ lint:
     uv run ruff format rsm/ tests/
     uv run ruff check --fix rsm/ tests/
 
-# Run quality checks then tests
-check: lint test
-
 # Run type checking
 typecheck:
     uv run mypy rsm/
+
+# Run quality checks then tests
+check: lint test typecheck
 
 # Build documentation
 docs:
@@ -57,27 +57,8 @@ docs-clean:
 docs-serve:
     uv run sphinx-autobuild docs/source/ docs/build/ --port 7001 --watch rsm/
 
-# Build the tree-sitter grammar (for grammar development)
-build-grammar:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    cd tree-sitter-rsm
-    echo "Installing npm dependencies..."
-    npm install
-    echo "Generating parser..."
-    node ./node_modules/.bin/tree-sitter generate
-    echo "Building shared library..."
-    if [[ "$OSTYPE" == "win32" || "$OSTYPE" == "msys" ]]; then
-        node ./node_modules/.bin/tree-sitter build -o build/rsm.dll
-        cp build/rsm.dll ../rsm/
-    else
-        node ./node_modules/.bin/tree-sitter build -o build/rsm.so
-        cp build/rsm.so ../rsm/
-    fi
-    echo "Grammar built successfully!"
-
-# Rebuild and reinstall tree-sitter-rsm after C code changes
-rebuild-grammar:
+# Rebuild and reinstall tree-sitter-rsm grammar
+grammar:
     #!/usr/bin/env bash
     set -euo pipefail
     cd tree-sitter-rsm
@@ -89,33 +70,6 @@ rebuild-grammar:
     cd ..
     uv pip install -e tree-sitter-rsm --force-reinstall --no-deps --no-build-isolation
     echo "Done! tree-sitter-rsm rebuilt successfully"
-
-# Build distribution packages
-build:
-    uv build
-
-# Publish to PyPI
-publish:
-    uv publish
-
-# Publish to TestPyPI
-publish-test:
-    uv publish --publish-url https://test.pypi.org/legacy/
-
-# Clean build artifacts
-clean:
-    rm -rf build/ dist/ *.egg-info
-    find . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true
-    find . -type f -name '*.pyc' -delete
-    find . -type f -name '*.pyo' -delete
-
-# Update dependencies
-update:
-    uv lock --upgrade
-
-# Show dependency tree
-deps:
-    uv tree
 
 # Rebuild the standalone JS bundle for RSM
 rebuild-js-bundle:
