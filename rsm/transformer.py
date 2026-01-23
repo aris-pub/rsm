@@ -402,7 +402,7 @@ class Transformer:
         self.tree.total_unique_affiliations = len(affiliation_map)
 
     def assign_author_note_symbols(self) -> None:
-        """Assign symbols (*, †, ‡, §, ¶, ‖, **, ††, ...) to author notes.
+        r"""Assign symbols (\*, †, ‡, §, ¶, ‖, \*\*, ††, ...) to author notes.
 
         This transform iterates through all Author nodes and:
         1. Collects unique note texts in order of first appearance
@@ -410,7 +410,7 @@ class Transformer:
         3. Sets the note_symbol attribute on each Author node
         4. Stores the total count of unique notes on the Manuscript node
 
-        Symbol progression: *, †, ‡, §, ¶, ‖, **, ††, ‡‡, §§, ¶¶, ‖‖, ***, †††, ...
+        Symbol progression: \*, †, ‡, §, ¶, ‖, \*\*, ††, ‡‡, §§, ¶¶, ‖‖, \*\*\*, †††, ...
 
         Authors with the same note text get the same symbol.
         Authors without a note get note_symbol = "".
