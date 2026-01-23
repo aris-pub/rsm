@@ -21,9 +21,12 @@ install-local:
 test:
     uv run pytest -vv -k 'not slow'
 
+# Run only slow tests
+test-slow:
+    uv run pytest -vv -k 'slow'
+
 # Run all tests including slow ones
-test-all:
-    uv run pytest -vv
+test-all: test test-slow test-docs
 
 # Run tests with doctests in source and docs
 test-docs:

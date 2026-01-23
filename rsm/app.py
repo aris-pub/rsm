@@ -14,20 +14,23 @@ The functions :func:`make`, :func:`render`, and :func:`lint` can be called direc
 ``rsm.make()``, ``rsm.render()``, and ``rsm.lint()``.  They each receive RSM source
 (either a string or a path to a file), run the application, and return the result.  For
 more control over the execution, or post-execution inspection, instantiate the
-appropriate class manually.  For example:
+appropriate class manually.  For example, this:
 
 .. code-block:: python
 
-   This
    >>> src = "Hello, RSM!"
    >>> html = rsm.build(source=src)
 
-   Is essentially equivalent to the following.
+Is essentially equivalent to the following:
+
+.. code-block:: python
 
    >>> app = FullBuildApp(plain=src)
    >>> html = app.run()
 
-   Except that now, ``app`` can be inspected.
+Except that now, ``app`` can be inspected:
+
+.. code-block:: python
 
    >>> print(app.parser.ast.sexp())
    (Manuscript
@@ -443,6 +446,7 @@ def lint(
     log_format: str = "rsm",
     log_time: bool = True,
     log_lineno: bool = True,
+    strict: bool = False,
 ):
     return LinterApp(
         srcpath=path,

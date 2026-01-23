@@ -131,7 +131,12 @@ def test_serve_default_port_5500(tmp_path):
 
 @pytest.mark.slow
 def test_serve_no_html_files_shows_empty_index(tmp_path):
-    """Test that serving with no HTML files generates an empty index page instead of 404."""
+    """Test that serving with no HTML files generates an empty index page instead of 404.
+
+    NOTE: This test has a race condition - it waits for the subprocess to create
+    the .rsm-index.html file. The sleep duration is set conservatively to reduce
+    flakiness on slow/busy systems.
+    """
     # Start server in directory with no HTML files
     port = find_free_port()
 
@@ -146,7 +151,7 @@ def test_serve_no_html_files_shows_empty_index(tmp_path):
 
     try:
         # Give the server time to start and create the index file
-        time.sleep(0.5)
+        time.sleep(2.0)
 
         # Check that it created an empty index page
         index_file = tmp_path / ".rsm-index.html"
