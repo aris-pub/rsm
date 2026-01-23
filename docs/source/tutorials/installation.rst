@@ -26,7 +26,7 @@ To test whether the installation was successful you may execute
 
 .. code-block:: bash
 
-   $ rsm render --version
+   $ rsm --version
 
 If you want to use RSM from a python script, you may import the library with
 

@@ -59,7 +59,7 @@ Build errors
 
 **"Command not found: rsm"**
 
-- Solution: Make sure RSM is installed: ``pip install rsm-markup``
+- Solution: Make sure RSM is installed: ``pip install rsm-lang``
 - Check installation: ``rsm --version``
 - If using a virtual environment, ensure it's activated
 
