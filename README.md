@@ -18,10 +18,6 @@ allow the user to write a plain text file (in a special `.rsm` format) and conve
 file into a web page (i.e. a set of .html, .css, and .js files).  These files can then
 be opened natively by any web browser on any device.
 
-+ Learn more in the [official website](https://www.write-rsm.org).
-+ Try it out in the [online editor](https://lets.write-rsm.org).
-+ Get started with the [docs](https://docs.write-rsm.org).
-
 
 ## Installation
 
@@ -157,15 +153,3 @@ The difference between `just install` and `just install-local`:
 |---------|--------------------------|-----------|----------|
 | `just install` | PyPI wheel | No | Developing rsm-lang code (most common) |
 | `just install-local` | Local submodule | Yes | Modifying the grammar itself |
-
-## Publishing
-
-This project uses `uv` for dependency management and `just` for task automation.
-
-To release a new version to PyPI:
-
-1. Update version in `pyproject.toml`
-2. Create a git tag: `git tag v0.3.3 && git push origin v0.3.3`
-3. Publish: `just publish`
-
-Or use the GitHub Actions workflow by creating a release on GitHub.
