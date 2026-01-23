@@ -1,4 +1,4 @@
-Corollary
+﻿Corollary
 =========
 
 Qualified name: ``rsm.nodes.Corollary``
@@ -23,7 +23,7 @@ Qualified name: ``rsm.nodes.Corollary``
      
      ~Corollary.nodeid
      ~Corollary.label
-     ~Corollary.types
+     ~Corollary.classes
      ~Corollary.handrail_depth
      ~Corollary.number
      ~Corollary.nonum

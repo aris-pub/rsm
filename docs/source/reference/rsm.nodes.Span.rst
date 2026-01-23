@@ -1,4 +1,4 @@
-Span
+﻿Span
 ====
 
 Qualified name: ``rsm.nodes.Span``
@@ -25,7 +25,7 @@ Qualified name: ``rsm.nodes.Span``
      ~Span.newmetakeys
      ~Span.nodeid
      ~Span.label
-     ~Span.types
+     ~Span.classes
      ~Span.handrail_depth
      ~Span.number
      ~Span.nonum

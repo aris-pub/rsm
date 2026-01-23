@@ -7,7 +7,7 @@ def test_display_alone():
         Some math
         :mathblock: {
           :label: eqn-plus
-          :types: smallequation
+          :class: smallequation
         }
           2 + 2 = 4
         ::
@@ -76,7 +76,7 @@ def test_inline_no_meta():
 def test_inline_with_meta():
     compare_have_want(
         have="""\
-        This paragraph contains inline math :math: {:label: bar, :types: smallequation} 2 + 2
+        This paragraph contains inline math :math: {:label: bar, :class: smallequation} 2 + 2
         = 4::.
         """,
         want=r"""        <body>

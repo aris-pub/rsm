@@ -1,4 +1,4 @@
-Note
+﻿Note
 ====
 
 Qualified name: ``rsm.nodes.Note``
@@ -23,7 +23,7 @@ Qualified name: ``rsm.nodes.Note``
      
      ~Note.nodeid
      ~Note.label
-     ~Note.types
+     ~Note.classes
      ~Note.handrail_depth
      ~Note.number
      ~Note.nonum

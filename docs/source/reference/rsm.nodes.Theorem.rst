@@ -1,4 +1,4 @@
-Theorem
+﻿Theorem
 =======
 
 Qualified name: ``rsm.nodes.Theorem``
@@ -27,7 +27,7 @@ Qualified name: ``rsm.nodes.Theorem``
      ~Theorem.title
      ~Theorem.nodeid
      ~Theorem.label
-     ~Theorem.types
+     ~Theorem.classes
      ~Theorem.handrail_depth
      ~Theorem.number
      ~Theorem.nonum

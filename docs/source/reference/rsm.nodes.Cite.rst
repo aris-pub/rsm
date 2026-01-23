@@ -1,4 +1,4 @@
-Cite
+﻿Cite
 ====
 
 Qualified name: ``rsm.nodes.Cite``
@@ -23,7 +23,7 @@ Qualified name: ``rsm.nodes.Cite``
      
      ~Cite.nodeid
      ~Cite.label
-     ~Cite.types
+     ~Cite.classes
      ~Cite.handrail_depth
      ~Cite.number
      ~Cite.nonum

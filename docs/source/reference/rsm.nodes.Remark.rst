@@ -1,4 +1,4 @@
-Remark
+﻿Remark
 ======
 
 Qualified name: ``rsm.nodes.Remark``
@@ -23,7 +23,7 @@ Qualified name: ``rsm.nodes.Remark``
      
      ~Remark.nodeid
      ~Remark.label
-     ~Remark.types
+     ~Remark.classes
      ~Remark.handrail_depth
      ~Remark.number
      ~Remark.nonum

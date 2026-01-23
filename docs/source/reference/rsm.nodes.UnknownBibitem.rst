@@ -1,4 +1,4 @@
-UnknownBibitem
+﻿UnknownBibitem
 ==============
 
 Qualified name: ``rsm.nodes.UnknownBibitem``
@@ -23,7 +23,7 @@ Qualified name: ``rsm.nodes.UnknownBibitem``
      
      ~UnknownBibitem.nodeid
      ~UnknownBibitem.label
-     ~UnknownBibitem.types
+     ~UnknownBibitem.classes
      ~UnknownBibitem.handrail_depth
      ~UnknownBibitem.number
      ~UnknownBibitem.nonum

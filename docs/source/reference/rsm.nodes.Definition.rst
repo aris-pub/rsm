@@ -1,4 +1,4 @@
-Definition
+﻿Definition
 ==========
 
 Qualified name: ``rsm.nodes.Definition``
@@ -23,7 +23,7 @@ Qualified name: ``rsm.nodes.Definition``
      
      ~Definition.nodeid
      ~Definition.label
-     ~Definition.types
+     ~Definition.classes
      ~Definition.handrail_depth
      ~Definition.number
      ~Definition.nonum

@@ -1,4 +1,4 @@
-Porism
+﻿Porism
 ======
 
 Qualified name: ``rsm.nodes.Porism``
@@ -23,7 +23,7 @@ Qualified name: ``rsm.nodes.Porism``
      
      ~Porism.nodeid
      ~Porism.label
-     ~Porism.types
+     ~Porism.classes
      ~Porism.handrail_depth
      ~Porism.number
      ~Porism.nonum

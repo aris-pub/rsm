@@ -1,4 +1,4 @@
-Video
+﻿Video
 =====
 
 Qualified name: ``rsm.nodes.Video``
@@ -24,7 +24,7 @@ Qualified name: ``rsm.nodes.Video``
      ~Video.classreftext
      ~Video.nodeid
      ~Video.label
-     ~Video.types
+     ~Video.classes
      ~Video.handrail_depth
      ~Video.number
      ~Video.nonum

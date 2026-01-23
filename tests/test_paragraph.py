@@ -36,7 +36,7 @@ def test_succeeding_blankline():
 def test_succeeding_blankline_with_tag():
     compare_have_want(
         have="""\
-        :paragraph: {:types: foo}This is a paragraph.
+        :paragraph: {:class: foo}This is a paragraph.
         """,
         want="""
         <body>
@@ -167,7 +167,7 @@ def test_simple():
 
         ## Introduction {
           :label: sec-introduction
-          :types: {t1, t2}
+          :class: {t1, t2}
         }
 
         Lorem ipsum.
@@ -182,7 +182,7 @@ def test_simple():
         of text. It has several lines of text. It has several lines of text. It has several
         lines of text.
 
-        :paragraph: {:label: par3, :types: {a, b, c}} This is a paragraph with meta data. It
+        :paragraph: {:label: par3, :class: {a, b, c}} This is a paragraph with meta data. It
         has several lines of text. It has several lines of text. It has several lines of
         text. It has several lines of text. It has several lines of text.
         """,

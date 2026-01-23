@@ -608,9 +608,9 @@ class Transformer:
         for construct in self.tree.traverse(nodeclass=nodes.Construct):
             kind = construct.kind
             assert kind
-            construct.types.append(kind)
+            construct.classes.append(kind)
             if kind not in {"then", "suffices", "claim", "claimblock", "qed", "prove"}:
-                construct.types.append("assumption")
+                construct.classes.append("assumption")
 
     def add_handrail_depth(self) -> None:
         for nc in nodes.all_node_subtypes():

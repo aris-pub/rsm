@@ -1,4 +1,4 @@
-Subsection
+﻿Subsection
 ==========
 
 Qualified name: ``rsm.nodes.Subsection``
@@ -25,7 +25,7 @@ Qualified name: ``rsm.nodes.Subsection``
      ~Subsection.level
      ~Subsection.nodeid
      ~Subsection.label
-     ~Subsection.types
+     ~Subsection.classes
      ~Subsection.handrail_depth
      ~Subsection.number
      ~Subsection.nonum

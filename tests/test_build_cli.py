@@ -229,7 +229,7 @@ class TestMakeCLIFileOutput:
     @pytest.mark.slow
     def test_make_cli_custom_css_flag(self, tmp_path):
         """Test rsm build --css copies custom CSS to static/ folder."""
-        src = "# Test\n\n:paragraph: {:types: mytype} Custom styled text\n"
+        src = "# Test\n\n:paragraph: {:class: mytype} Custom styled text\n"
         src_file = tmp_path / "test.rsm"
         src_file.write_text(src)
 
@@ -294,7 +294,7 @@ class TestMakeCLIFileOutput:
     @pytest.mark.slow
     def test_make_cli_custom_css_standalone(self, tmp_path):
         """Test rsm build --css --standalone inlines custom CSS."""
-        src = "# Test\n\n:paragraph: {:types: mytype} Custom styled text\n"
+        src = "# Test\n\n:paragraph: {:class: mytype} Custom styled text\n"
         src_file = tmp_path / "test.rsm"
         src_file.write_text(src)
 

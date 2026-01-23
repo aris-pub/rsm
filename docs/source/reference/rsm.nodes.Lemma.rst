@@ -1,4 +1,4 @@
-Lemma
+﻿Lemma
 =====
 
 Qualified name: ``rsm.nodes.Lemma``
@@ -23,7 +23,7 @@ Qualified name: ``rsm.nodes.Lemma``
      
      ~Lemma.nodeid
      ~Lemma.label
-     ~Lemma.types
+     ~Lemma.classes
      ~Lemma.handrail_depth
      ~Lemma.number
      ~Lemma.nonum

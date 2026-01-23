@@ -418,7 +418,7 @@ To reference from the current file: :ref:eqn::. To cite from the bibliography: :
 
 ## Custom Paragraphs
 
-:paragraph: {{:types: note}} This is a custom paragraph with `types` meta key.
+:paragraph: {{:class: note}} This is a custom paragraph with CSS classes.
 
 
 :references:

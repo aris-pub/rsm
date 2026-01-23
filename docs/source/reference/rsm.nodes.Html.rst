@@ -1,4 +1,4 @@
-Html
+﻿Html
 ====
 
 Qualified name: ``rsm.nodes.Html``
@@ -24,7 +24,7 @@ Qualified name: ``rsm.nodes.Html``
      ~Html.classreftext
      ~Html.nodeid
      ~Html.label
-     ~Html.types
+     ~Html.classes
      ~Html.handrail_depth
      ~Html.number
      ~Html.nonum

@@ -1,4 +1,4 @@
-Item
+﻿Item
 ====
 
 Qualified name: ``rsm.nodes.Item``
@@ -24,7 +24,7 @@ Qualified name: ``rsm.nodes.Item``
      ~Item.possible_parents
      ~Item.nodeid
      ~Item.label
-     ~Item.types
+     ~Item.classes
      ~Item.handrail_depth
      ~Item.number
      ~Item.nonum

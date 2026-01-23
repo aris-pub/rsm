@@ -1,4 +1,4 @@
-Subproof
+﻿Subproof
 ========
 
 Qualified name: ``rsm.nodes.Subproof``
@@ -23,7 +23,7 @@ Qualified name: ``rsm.nodes.Subproof``
      
      ~Subproof.nodeid
      ~Subproof.label
-     ~Subproof.types
+     ~Subproof.classes
      ~Subproof.handrail_depth
      ~Subproof.number
      ~Subproof.nonum

@@ -31,7 +31,7 @@ Qualified name: ``rsm.nodes.Author``
      ~Author.note_symbol
      ~Author.nodeid
      ~Author.label
-     ~Author.types
+     ~Author.classes
      ~Author.handrail_depth
      ~Author.number
      ~Author.nonum

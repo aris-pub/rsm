@@ -1,4 +1,4 @@
-Itemize
+﻿Itemize
 =======
 
 Qualified name: ``rsm.nodes.Itemize``
@@ -23,7 +23,7 @@ Qualified name: ``rsm.nodes.Itemize``
      
      ~Itemize.nodeid
      ~Itemize.label
-     ~Itemize.types
+     ~Itemize.classes
      ~Itemize.handrail_depth
      ~Itemize.number
      ~Itemize.nonum

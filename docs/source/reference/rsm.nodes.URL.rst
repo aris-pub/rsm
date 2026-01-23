@@ -1,4 +1,4 @@
-URL
+﻿URL
 ===
 
 Qualified name: ``rsm.nodes.URL``
@@ -23,7 +23,7 @@ Qualified name: ``rsm.nodes.URL``
      
      ~URL.nodeid
      ~URL.label
-     ~URL.types
+     ~URL.classes
      ~URL.handrail_depth
      ~URL.number
      ~URL.nonum

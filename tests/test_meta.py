@@ -6,7 +6,7 @@ def test_list_with_only_one_element():
         have="""\
         # My Title
 
-        :paragraph: {:types: mytype} This paragraph has only one type
+        :paragraph: {:class: mytype} This paragraph has only one type
         """,
         want="""
         <body>
@@ -41,7 +41,7 @@ def test_list_with_one_element_before_key():
         have="""\
         # My Title
 
-        :paragraph: {:types: mytype, :label: lbl} This paragraph has only one type,
+        :paragraph: {:class: mytype, :label: lbl} This paragraph has only one type,
         that appears before another key.
         """,
         want="""
@@ -77,7 +77,7 @@ def test_list_no_braces():
         have="""\
         # My Title
 
-        :paragraph: {:types: t1, t2} This paragraph has only one type
+        :paragraph: {:class: t1, t2} This paragraph has only one type
         """,
         want="""
         <body>
@@ -150,7 +150,7 @@ def test_inline_no_meta_start_with_tag():
 def test_list_within_inline():
     compare_have_want(
         have="""\
-        Foo :span: {:types: {t1, t2}} bar :: baz.
+        Foo :span: {:class: {t1, t2}} bar :: baz.
         """,
         want="""\
         <body>

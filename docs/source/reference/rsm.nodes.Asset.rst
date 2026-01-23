@@ -1,4 +1,4 @@
-Asset
+﻿Asset
 =====
 
 Qualified name: ``rsm.nodes.Asset``
@@ -25,7 +25,7 @@ Qualified name: ``rsm.nodes.Asset``
      ~Asset.newmetakeys
      ~Asset.nodeid
      ~Asset.label
-     ~Asset.types
+     ~Asset.classes
      ~Asset.handrail_depth
      ~Asset.number
      ~Asset.nonum

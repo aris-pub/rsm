@@ -51,15 +51,15 @@ def test_with_meta():
     have = tree.sexp(meta=True).strip()
     want = """
     (Manuscript { :reftext: Manuscript, :title: My Title }
-      (Section { :reftext: Section 1, :title: My Section, :types: ['level-2'] }
+      (Section { :class: ['level-2'], :reftext: Section 1, :title: My Section }
         (Paragraph { :reftext: Paragraph }
           (Text { :reftext: Text })
-          (Cite { :label: cite-0, :reftext: Cite, :types: ['reference'] })
+          (Cite { :class: ['reference'], :label: cite-0, :reftext: Cite })
           (Text { :reftext: Text }))
-        (Subsection { :reftext: Section 1.1, :title: My Subsection, :types: ['level-3'] }
+        (Subsection { :class: ['level-3'], :reftext: Section 1.1, :title: My Subsection }
           (Paragraph { :reftext: Paragraph }
             (Text { :reftext: Text }))))
-      (Section { :nonum: True, :reftext: Section None, :title: Another section, :types: ['level-2'] }
+      (Section { :class: ['level-2'], :nonum: True, :reftext: Section None, :title: Another section }
         (Paragraph { :reftext: Paragraph }
           (Math { :reftext: Math }
             (Text { :reftext: Text })))))
@@ -75,15 +75,15 @@ def test_with_meta_ignore_reftext():
     have = tree.sexp(meta=True, ignore_meta_keys=["reftext"]).strip()
     want = """
     (Manuscript { :title: My Title }
-      (Section { :title: My Section, :types: ['level-2'] }
+      (Section { :class: ['level-2'], :title: My Section }
         (Paragraph {  }
           (Text {  })
-          (Cite { :label: cite-0, :types: ['reference'] })
+          (Cite { :class: ['reference'], :label: cite-0 })
           (Text {  }))
-        (Subsection { :title: My Subsection, :types: ['level-3'] }
+        (Subsection { :class: ['level-3'], :title: My Subsection }
           (Paragraph {  }
             (Text {  }))))
-      (Section { :nonum: True, :title: Another section, :types: ['level-2'] }
+      (Section { :class: ['level-2'], :nonum: True, :title: Another section }
         (Paragraph {  }
           (Math {  }
             (Text {  })))))

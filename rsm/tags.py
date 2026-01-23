@@ -150,8 +150,8 @@ strong = MetaTagInfo(None, bool)
 """Whether span is strong."""
 title = MetaTagInfo(None, str)
 """Manuscript or section title."""
-types = MetaTagInfo(None, list)
-"""Tag types."""
+class_ = MetaTagInfo(None, list)
+"""CSS classes for this tag."""
 
 
 ###########

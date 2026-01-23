@@ -1,4 +1,4 @@
-Table
+﻿Table
 =====
 
 Qualified name: ``rsm.nodes.Table``
@@ -24,7 +24,7 @@ Qualified name: ``rsm.nodes.Table``
      ~Table.autonumber
      ~Table.nodeid
      ~Table.label
-     ~Table.types
+     ~Table.classes
      ~Table.handrail_depth
      ~Table.number
      ~Table.nonum

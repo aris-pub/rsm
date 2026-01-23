@@ -10,49 +10,49 @@ There exist pre-determined types that can be added to any tag to change font siz
 
 .. rsm::
 
-   :paragraph: {:types: tiny} Lorem ipsum.
+   :paragraph: {:class: tiny} Lorem ipsum.
 
-   :paragraph: {:types: smallest} Lorem ipsum.
+   :paragraph: {:class: smallest} Lorem ipsum.
 
-   :paragraph: {:types: smaller} Lorem ipsum.
+   :paragraph: {:class: smaller} Lorem ipsum.
 
-   :paragraph: {:types: small} Lorem ipsum.
+   :paragraph: {:class: small} Lorem ipsum.
 
-   :paragraph: {:types: normal} Lorem ipsum.
+   :paragraph: {:class: normal} Lorem ipsum.
 
-   :paragraph: {:types: large} Lorem ipsum.
+   :paragraph: {:class: large} Lorem ipsum.
 
-   :paragraph: {:types: larger} Lorem ipsum.
+   :paragraph: {:class: larger} Lorem ipsum.
 
-   :paragraph: {:types: largest} Lorem ipsum.
+   :paragraph: {:class: largest} Lorem ipsum.
 
-   :paragraph: {:types: huge} Lorem ipsum.
+   :paragraph: {:class: huge} Lorem ipsum.
 
-   :paragraph: {:types: huger} Lorem ipsum.
+   :paragraph: {:class: huger} Lorem ipsum.
 
 These work on blocks, inlines, paragraphs, or even math blocks.
 
 .. rsm::
 
-   $ {:types: tiny} 2 + 2 = 4$
+   $ {:class: tiny} 2 + 2 = 4$
 
-   $ {:types: smallest} 2 + 2 = 4$
+   $ {:class: smallest} 2 + 2 = 4$
 
-   $ {:types: smaller} 2 + 2 = 4$
+   $ {:class: smaller} 2 + 2 = 4$
 
-   $ {:types: small} 2 + 2 = 4$
+   $ {:class: small} 2 + 2 = 4$
 
-   $ {:types: normal} 2 + 2 = 4$
+   $ {:class: normal} 2 + 2 = 4$
 
-   $ {:types: large} 2 + 2 = 4$
+   $ {:class: large} 2 + 2 = 4$
 
-   $ {:types: larger} 2 + 2 = 4$
+   $ {:class: larger} 2 + 2 = 4$
 
-   $ {:types: largest} 2 + 2 = 4$
+   $ {:class: largest} 2 + 2 = 4$
 
-   $ {:types: huge} 2 + 2 = 4$
+   $ {:class: huge} 2 + 2 = 4$
 
-   $ {:types: huger} 2 + 2 = 4$
+   $ {:class: huger} 2 + 2 = 4$
 
 
 Prevent automatic numbering

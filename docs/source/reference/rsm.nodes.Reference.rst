@@ -1,4 +1,4 @@
-Reference
+﻿Reference
 =========
 
 Qualified name: ``rsm.nodes.Reference``
@@ -23,7 +23,7 @@ Qualified name: ``rsm.nodes.Reference``
      
      ~Reference.nodeid
      ~Reference.label
-     ~Reference.types
+     ~Reference.classes
      ~Reference.handrail_depth
      ~Reference.number
      ~Reference.nonum

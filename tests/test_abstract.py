@@ -32,7 +32,7 @@ def test_simple():
         ## Introduction {
           :title:
           :label: sec-introduction
-          :types: {t1, t2}
+          :class: {t1, t2}
         }
 
         Lorem ipsum.

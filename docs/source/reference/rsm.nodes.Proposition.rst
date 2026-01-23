@@ -1,4 +1,4 @@
-Proposition
+﻿Proposition
 ===========
 
 Qualified name: ``rsm.nodes.Proposition``
@@ -23,7 +23,7 @@ Qualified name: ``rsm.nodes.Proposition``
      
      ~Proposition.nodeid
      ~Proposition.label
-     ~Proposition.types
+     ~Proposition.classes
      ~Proposition.handrail_depth
      ~Proposition.number
      ~Proposition.nonum

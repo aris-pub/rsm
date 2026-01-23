@@ -1,4 +1,4 @@
-Keyword
+﻿Keyword
 =======
 
 Qualified name: ``rsm.nodes.Keyword``
@@ -23,7 +23,7 @@ Qualified name: ``rsm.nodes.Keyword``
      
      ~Keyword.nodeid
      ~Keyword.label
-     ~Keyword.types
+     ~Keyword.classes
      ~Keyword.handrail_depth
      ~Keyword.number
      ~Keyword.nonum

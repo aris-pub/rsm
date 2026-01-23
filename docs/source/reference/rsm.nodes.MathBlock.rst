@@ -1,4 +1,4 @@
-MathBlock
+﻿MathBlock
 =========
 
 Qualified name: ``rsm.nodes.MathBlock``
@@ -27,7 +27,7 @@ Qualified name: ``rsm.nodes.MathBlock``
      ~MathBlock.newmetakeys
      ~MathBlock.nodeid
      ~MathBlock.label
-     ~MathBlock.types
+     ~MathBlock.classes
      ~MathBlock.handrail_depth
      ~MathBlock.number
      ~MathBlock.nonum

@@ -1,4 +1,4 @@
-PendingReference
+﻿PendingReference
 ================
 
 Qualified name: ``rsm.nodes.PendingReference``
@@ -25,7 +25,7 @@ Qualified name: ``rsm.nodes.PendingReference``
      ~PendingReference.target_label
      ~PendingReference.nodeid
      ~PendingReference.label
-     ~PendingReference.types
+     ~PendingReference.classes
      ~PendingReference.handrail_depth
      ~PendingReference.number
      ~PendingReference.nonum

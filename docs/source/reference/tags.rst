@@ -85,7 +85,7 @@ List of all tags
 .. autoclass:: scale
 .. autoclass:: strong
 .. autoclass:: title
-.. autoclass:: types
+.. autoclass:: class_
 
 
 .. rubric:: Math Tags

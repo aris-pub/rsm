@@ -1,4 +1,4 @@
-SourceCode
+﻿SourceCode
 ==========
 
 Qualified name: ``rsm.nodes.SourceCode``
@@ -23,7 +23,7 @@ Qualified name: ``rsm.nodes.SourceCode``
      
      ~SourceCode.nodeid
      ~SourceCode.label
-     ~SourceCode.types
+     ~SourceCode.classes
      ~SourceCode.handrail_depth
      ~SourceCode.number
      ~SourceCode.nonum

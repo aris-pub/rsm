@@ -34,6 +34,10 @@ def extract_documented_tags():
             | rsm.tags.TableTagInfo,
         )
     }
+    # Special case: class_ in Python -> class in grammar
+    if "class_" in tags:
+        tags.remove("class_")
+        tags.add("class")
     return tags
 
 

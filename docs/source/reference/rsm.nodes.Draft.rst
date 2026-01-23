@@ -1,4 +1,4 @@
-Draft
+﻿Draft
 =====
 
 Qualified name: ``rsm.nodes.Draft``
@@ -23,7 +23,7 @@ Qualified name: ``rsm.nodes.Draft``
      
      ~Draft.nodeid
      ~Draft.label
-     ~Draft.types
+     ~Draft.classes
      ~Draft.handrail_depth
      ~Draft.number
      ~Draft.nonum

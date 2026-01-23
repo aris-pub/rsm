@@ -1,4 +1,4 @@
-Paragraph
+﻿Paragraph
 =========
 
 Qualified name: ``rsm.nodes.Paragraph``
@@ -23,7 +23,7 @@ Qualified name: ``rsm.nodes.Paragraph``
      
      ~Paragraph.nodeid
      ~Paragraph.label
-     ~Paragraph.types
+     ~Paragraph.classes
      ~Paragraph.handrail_depth
      ~Paragraph.number
      ~Paragraph.nonum

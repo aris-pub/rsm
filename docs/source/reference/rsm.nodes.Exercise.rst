@@ -1,4 +1,4 @@
-Exercise
+﻿Exercise
 ========
 
 Qualified name: ``rsm.nodes.Exercise``
@@ -23,7 +23,7 @@ Qualified name: ``rsm.nodes.Exercise``
      
      ~Exercise.nodeid
      ~Exercise.label
-     ~Exercise.types
+     ~Exercise.classes
      ~Exercise.handrail_depth
      ~Exercise.number
      ~Exercise.nonum

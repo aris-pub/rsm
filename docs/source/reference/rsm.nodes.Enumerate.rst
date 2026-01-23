@@ -1,4 +1,4 @@
-Enumerate
+﻿Enumerate
 =========
 
 Qualified name: ``rsm.nodes.Enumerate``
@@ -23,7 +23,7 @@ Qualified name: ``rsm.nodes.Enumerate``
      
      ~Enumerate.nodeid
      ~Enumerate.label
-     ~Enumerate.types
+     ~Enumerate.classes
      ~Enumerate.handrail_depth
      ~Enumerate.number
      ~Enumerate.nonum

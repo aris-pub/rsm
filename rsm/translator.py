@@ -485,7 +485,7 @@ class AppendNodeTag(AppendOpenTag):
         manuscript_source: str = "",
     ):
         self.node = node
-        classes = [node.__class__.__name__.lower()] + [str(t) for t in node.types]
+        classes = [node.__class__.__name__.lower()] + [str(t) for t in node.classes]
         classes = list(dict.fromkeys(classes + (additional_classes or [])))
 
         # Extract node source if requested
@@ -992,7 +992,7 @@ class Translator:
         return AppendNodeTag(node)
 
     def visit_section(self, node: nodes.Section) -> EditCommand:
-        node.types.insert(0, f"level-{node.level}")
+        node.classes.insert(0, f"level-{node.level}")
         heading = (
             f"{node.full_number}. {node.title}" if not node.nonum else f"{node.title}"
         )
@@ -1179,7 +1179,7 @@ class Translator:
             reftext = node.overwrite_reftext
         else:
             reftext = getattr(tgt, "reftext", tgt)
-        classes = node.types
+        classes = node.classes
         if not isinstance(node, nodes.URL) and "reference" not in classes:
             classes.insert(0, "reference")
         tag = (
@@ -1202,8 +1202,8 @@ class Translator:
             href = f"{html_path}#{node.target.label}"
 
             # Add 'external' to types
-            if "external" not in node.types:
-                node.types.append("external")
+            if "external" not in node.classes:
+                node.classes.append("external")
 
             return AppendText(self._make_ahref_tag_text(node, node.target, href))
         else:
@@ -1221,17 +1221,17 @@ class Translator:
         return AppendNodeTag(node)
 
     def _make_title_node(
-        self, label: str, desc: str = "", types: list = None
+        self, label: str, desc: str = "", classes: list = None
     ) -> nodes.Node:
-        if types is None:
-            types = ["hr-label"]
-        para = nodes.Paragraph(types=types)
+        if classes is None:
+            classes = ["hr-label"]
+        para = nodes.Paragraph(classes=classes)
         if label:
-            span = nodes.Span(types=["label"])
+            span = nodes.Span(classes=["label"])
             span.append(nodes.Text(text=label))
             para.append(span)
         if desc:
-            span = nodes.Span(types=["desc"])
+            span = nodes.Span(classes=["desc"])
             span.append(nodes.Text(text=desc))
             para.append(span)
         return para
@@ -1270,7 +1270,7 @@ class Translator:
     def visit_proof(self, node: nodes.Proof) -> EditCommandBatch:
         last = node.last_of_type(nodes.Step)
         if last:
-            last.types.append("last")
+            last.classes.append("last")
 
         classname = node.__class__.__name__.lower()
         title = self._make_title_node(label=f"{classname.capitalize()}.")
@@ -1797,7 +1797,7 @@ class HandrailsTranslator(Translator):
         is_selectable: bool = True,
     ):
         classes = (
-            (node.types or [])
+            (node.classes or [])
             + ["hr"]
             + (["hr-hidden"] if node.handrail_depth == 2 else [])
             + (["hr-offset"] if node.handrail_depth > 0 else [])

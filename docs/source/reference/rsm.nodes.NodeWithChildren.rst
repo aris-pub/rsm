@@ -1,4 +1,4 @@
-NodeWithChildren
+﻿NodeWithChildren
 ================
 
 Qualified name: ``rsm.nodes.NodeWithChildren``
@@ -28,7 +28,7 @@ Qualified name: ``rsm.nodes.NodeWithChildren``
      ~NodeWithChildren.children
      ~NodeWithChildren.nodeid
      ~NodeWithChildren.label
-     ~NodeWithChildren.types
+     ~NodeWithChildren.classes
      ~NodeWithChildren.handrail_depth
      ~NodeWithChildren.number
      ~NodeWithChildren.nonum

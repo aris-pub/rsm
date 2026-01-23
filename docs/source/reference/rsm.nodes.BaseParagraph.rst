@@ -1,4 +1,4 @@
-BaseParagraph
+﻿BaseParagraph
 =============
 
 Qualified name: ``rsm.nodes.BaseParagraph``
@@ -23,7 +23,7 @@ Qualified name: ``rsm.nodes.BaseParagraph``
      
      ~BaseParagraph.nodeid
      ~BaseParagraph.label
-     ~BaseParagraph.types
+     ~BaseParagraph.classes
      ~BaseParagraph.handrail_depth
      ~BaseParagraph.number
      ~BaseParagraph.nonum

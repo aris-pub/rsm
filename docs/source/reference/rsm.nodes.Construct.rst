@@ -1,4 +1,4 @@
-Construct
+﻿Construct
 =========
 
 Qualified name: ``rsm.nodes.Construct``
@@ -25,7 +25,7 @@ Qualified name: ``rsm.nodes.Construct``
      ~Construct.kind_to_keyword
      ~Construct.nodeid
      ~Construct.label
-     ~Construct.types
+     ~Construct.classes
      ~Construct.handrail_depth
      ~Construct.number
      ~Construct.nonum

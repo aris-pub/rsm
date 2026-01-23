@@ -1,6 +1,6 @@
 # Long equation
 
-:paragraph: {:types: hide} preamble
+:paragraph: {:class: hide} preamble
 $$ {:nonum:}
 \newcommand{\into}[2]{{\vec{\mathbf{#1}}}^{{#2}}}
 \newcommand{\from}[2]{{{}}^{{#2}}{\vec{\mathbf{#1}}}}

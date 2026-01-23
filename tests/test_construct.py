@@ -13,7 +13,7 @@ def test_real_life_example():
         :theorem: {
           :label: thm-main
           :goal: eqn-thm
-          :types: {important, main}
+          :class: {important, main}
         }
 
           We have

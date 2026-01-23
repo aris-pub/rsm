@@ -1,4 +1,4 @@
-CodeBlock
+﻿CodeBlock
 =========
 
 Qualified name: ``rsm.nodes.CodeBlock``
@@ -25,7 +25,7 @@ Qualified name: ``rsm.nodes.CodeBlock``
      ~CodeBlock.newmetakeys
      ~CodeBlock.nodeid
      ~CodeBlock.label
-     ~CodeBlock.types
+     ~CodeBlock.classes
      ~CodeBlock.handrail_depth
      ~CodeBlock.number
      ~CodeBlock.nonum

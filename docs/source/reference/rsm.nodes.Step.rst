@@ -1,4 +1,4 @@
-Step
+﻿Step
 ====
 
 Qualified name: ``rsm.nodes.Step``
@@ -27,7 +27,7 @@ Qualified name: ``rsm.nodes.Step``
      ~Step.possible_parents
      ~Step.nodeid
      ~Step.label
-     ~Step.types
+     ~Step.classes
      ~Step.handrail_depth
      ~Step.number
      ~Step.nonum

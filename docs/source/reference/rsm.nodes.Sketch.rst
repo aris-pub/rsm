@@ -1,4 +1,4 @@
-Sketch
+﻿Sketch
 ======
 
 Qualified name: ``rsm.nodes.Sketch``
@@ -24,7 +24,7 @@ Qualified name: ``rsm.nodes.Sketch``
      ~Sketch.has_handrail
      ~Sketch.nodeid
      ~Sketch.label
-     ~Sketch.types
+     ~Sketch.classes
      ~Sketch.handrail_depth
      ~Sketch.number
      ~Sketch.nonum

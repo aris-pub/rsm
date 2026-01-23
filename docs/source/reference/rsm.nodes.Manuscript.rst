@@ -1,4 +1,4 @@
-Manuscript
+﻿Manuscript
 ==========
 
 Qualified name: ``rsm.nodes.Manuscript``
@@ -26,7 +26,7 @@ Qualified name: ``rsm.nodes.Manuscript``
      ~Manuscript.nonum
      ~Manuscript.nodeid
      ~Manuscript.label
-     ~Manuscript.types
+     ~Manuscript.classes
      ~Manuscript.handrail_depth
      ~Manuscript.number
      ~Manuscript.reftext_template

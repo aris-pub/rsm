@@ -1,4 +1,4 @@
-Abstract
+﻿Abstract
 ========
 
 Qualified name: ``rsm.nodes.Abstract``
@@ -26,7 +26,7 @@ Qualified name: ``rsm.nodes.Abstract``
      ~Abstract.msc
      ~Abstract.nodeid
      ~Abstract.label
-     ~Abstract.types
+     ~Abstract.classes
      ~Abstract.handrail_depth
      ~Abstract.number
      ~Abstract.nonum

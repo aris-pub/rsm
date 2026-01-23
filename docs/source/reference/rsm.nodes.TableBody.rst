@@ -1,4 +1,4 @@
-TableBody
+﻿TableBody
 =========
 
 Qualified name: ``rsm.nodes.TableBody``
@@ -23,7 +23,7 @@ Qualified name: ``rsm.nodes.TableBody``
      
      ~TableBody.nodeid
      ~TableBody.label
-     ~TableBody.types
+     ~TableBody.classes
      ~TableBody.handrail_depth
      ~TableBody.number
      ~TableBody.nonum

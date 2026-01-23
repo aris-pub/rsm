@@ -44,8 +44,8 @@ class Node:
     ----------
     label
         Unique identifier for this node.
-    types
-        Types of this node.
+    classes
+        CSS classes for this node.
     number
         Node number.
     nonum
@@ -124,7 +124,7 @@ class Node:
     _number_as: ClassVar[type["Node"] | None] = None
     # see property number_as for documentation
 
-    newmetakeys: ClassVar[set] = {"label", "types", "nonum", "reftext"}
+    newmetakeys: ClassVar[set] = {"label", "classes", "nonum", "reftext"}
     """Meta keys to add to those of the parent class.
 
     .. important::
@@ -161,7 +161,7 @@ class Node:
     def __init__(
         self,
         label: str = "",
-        types: list[str] | None = None,
+        classes: list[str] | None = None,
         number: int | None = None,
         nonum: bool = False,
         reftext_template: str = "",
@@ -172,8 +172,8 @@ class Node:
         """Node id - always exists (unlike label), automatically assigned, unique within the tree."""
         self.label: str = label
         """Unique identifier."""
-        self.types: list[str] = types or []
-        """Types of this node."""
+        self.classes: list[str] = classes or []
+        """CSS classes for this node."""
         self.handrail_depth = 0
         """The number of ancestors of this node that have a handrail."""
         self.number: int | None = number
@@ -189,7 +189,7 @@ class Node:
         self._parent: NodeWithChildren | None = None
 
     def _attrs_for_repr_and_eq(self) -> list[str]:
-        return ["label", "types", "nonum", "number", "parent"]
+        return ["label", "classes", "nonum", "number", "parent"]
 
     def __repr__(self) -> str:
         cls = self.__class__.__name__
@@ -340,7 +340,7 @@ class Node:
                     "{ "
                     + ", ".join(
                         [
-                            f":{key}: {val}"
+                            f":{('class' if key == 'classes' else key)}: {val}"
                             for key in sorted(node.metakeys())
                             if key not in ignore_meta_keys
                             and (val := getattr(node, key))
@@ -364,7 +364,7 @@ class Node:
 
         Examples
         --------
-        >>> all_nodes_meta = {"label", "types", "nonum", "reftext"}
+        >>> all_nodes_meta = {"label", "classes", "nonum", "reftext"}
         >>> nodes.Node.metakeys() == all_nodes_meta
         True
         >>> nodes.Span.metakeys() - all_nodes_meta == {"strong", "emphas", "little", "insert", "delete"}
@@ -844,6 +844,9 @@ class Node:
         if "reftext" in meta:
             meta["reftext_template"] = meta["reftext"]
             del meta["reftext"]
+        if "class" in meta:
+            meta["classes"] = meta["class"]
+            del meta["class"]
         for key, value in meta.items():
             setattr(self, str(key), value)
 

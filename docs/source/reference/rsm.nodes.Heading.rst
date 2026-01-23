@@ -1,4 +1,4 @@
-Heading
+﻿Heading
 =======
 
 Qualified name: ``rsm.nodes.Heading``
@@ -24,7 +24,7 @@ Qualified name: ``rsm.nodes.Heading``
      ~Heading.newmetakeys
      ~Heading.nodeid
      ~Heading.label
-     ~Heading.types
+     ~Heading.classes
      ~Heading.handrail_depth
      ~Heading.number
      ~Heading.nonum

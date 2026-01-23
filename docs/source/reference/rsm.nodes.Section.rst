@@ -1,4 +1,4 @@
-Section
+﻿Section
 =======
 
 Qualified name: ``rsm.nodes.Section``
@@ -25,7 +25,7 @@ Qualified name: ``rsm.nodes.Section``
      ~Section.level
      ~Section.nodeid
      ~Section.label
-     ~Section.types
+     ~Section.classes
      ~Section.handrail_depth
      ~Section.number
      ~Section.nonum

@@ -4,13 +4,13 @@ Styling with CSS
 =================
 
 RSM manuscripts are rendered as HTML, which means you can apply CSS classes to any tag
-using the ``:types:`` meta tag. This allows you to customize the appearance of your
+using the ``:class:`` meta tag. This allows you to customize the appearance of your
 manuscript without writing custom HTML.
 
-How :types: works
+How :class: works
 *****************
 
-The ``:types:`` meta tag accepts one or more CSS class names (separated by spaces) and
+The ``:class:`` meta tag accepts one or more CSS class names (separated by spaces) and
 applies them to the rendered HTML element. RSM includes built-in CSS classes for common
 styling needs, and you can also use custom CSS classes if you provide your own stylesheet.
 
@@ -19,14 +19,14 @@ Basic syntax
 
 .. code-block:: text
 
-   :tag: {:types: class-name} content ::
+   :tag: {:class: class-name} content ::
 
 Or for block tags:
 
 .. code-block:: text
 
    :tag: {
-     :types: class-name another-class
+     :class: class-name another-class
    }
 
    Content here.
@@ -45,25 +45,25 @@ RSM includes pre-defined font size classes:
 
 .. rsm::
 
-   :paragraph: {:types: tiny} Tiny text (0.6rem)
+   :paragraph: {:class: tiny} Tiny text (0.6rem)
 
-   :paragraph: {:types: smallest} Smallest text (0.7rem)
+   :paragraph: {:class: smallest} Smallest text (0.7rem)
 
-   :paragraph: {:types: smaller} Smaller text (0.8rem)
+   :paragraph: {:class: smaller} Smaller text (0.8rem)
 
-   :paragraph: {:types: small} Small text (0.9rem)
+   :paragraph: {:class: small} Small text (0.9rem)
 
-   :paragraph: {:types: normal} Normal text (1rem)
+   :paragraph: {:class: normal} Normal text (1rem)
 
-   :paragraph: {:types: large} Large text (1.2rem)
+   :paragraph: {:class: large} Large text (1.2rem)
 
-   :paragraph: {:types: larger} Larger text (1.4rem)
+   :paragraph: {:class: larger} Larger text (1.4rem)
 
-   :paragraph: {:types: largest} Largest text (1.6rem)
+   :paragraph: {:class: largest} Largest text (1.6rem)
 
-   :paragraph: {:types: huge} Huge text (2rem)
+   :paragraph: {:class: huge} Huge text (2rem)
 
-   :paragraph: {:types: huger} Huger text (2.5rem)
+   :paragraph: {:class: huger} Huger text (2.5rem)
 
 These font size classes work on any tag—blocks, inlines, paragraphs, or even math:
 
@@ -71,9 +71,9 @@ These font size classes work on any tag—blocks, inlines, paragraphs, or even m
 
    Normal equation: $E = mc^2$
 
-   Large equation: $ {:types: large} E = mc^2 $
+   Large equation: $ {:class: large} E = mc^2 $
 
-   Huge equation: $ {:types: huge} E = mc^2 $
+   Huge equation: $ {:class: huge} E = mc^2 $
 
 Practical examples
 ******************
@@ -81,13 +81,13 @@ Practical examples
 Emphasizing important theorems
 -------------------------------
 
-Combine ``:types:`` with multiple classes for custom styling:
+Combine ``:class:`` with multiple classes for custom styling:
 
 .. rsm::
 
    :theorem: {
      :title: Main Result
-     :types: large
+     :class: large
    }
 
    This is our central theorem, displayed
@@ -104,7 +104,7 @@ Use smaller font sizes for footnotes or side comments:
 
    The main argument proceeds as follows...
 
-   :paragraph: {:types: small} Note: This
+   :paragraph: {:class: small} Note: This
    proof technique was first used by Euler
    in 1750.
 
@@ -116,10 +116,10 @@ You can apply multiple CSS classes by using braces and separating them with comm
 
 .. code-block:: text
 
-   :span: {:types: {type1, type2}} Styled text ::
+   :span: {:class: {type1, type2}} Styled text ::
 
    :block-tag: {
-     :types: {type1, type2}
+     :class: {type1, type2}
    }
    Styled text
    ::
@@ -146,7 +146,7 @@ Then in your RSM manuscript, reference your custom classes:
 
 .. code-block:: text
 
-   :paragraph: {:types: my-custom-class} Styled content ::
+   :paragraph: {:class: my-custom-class} Styled content ::
 
 Your CSS file should define the class:
 
@@ -166,23 +166,15 @@ Here's a full example showing custom CSS in action:
 .. rsm::
    :custom-css: _static/custom-example.css
 
-   # Research Notes
+   ## RSM Styling
 
-
-   ## Background
-
-   This section contains standard text.
-
-   :span:{:types: highlight-box} This
+   :span:{:class: highlight-box} This
    phrase:: has a custom highlight style
    with a colored border and background.
 
-
-   ## Important Result
-
    :theorem: {
      :title: Main Theorem
-     :types: emphasis-theorem
+     :class: emphasis-theorem
    }
    This theorem uses custom styling to
    stand out from regular theorems.
@@ -217,17 +209,17 @@ Best practices
 
 .. warning::
 
-   **Keep styling semantic**: Use ``:types:`` for presentation only, not content structure or
+   **Keep styling semantic**: Use ``:class:`` for presentation only, not content structure or
    document layout.
 
-   Don't use ``:types:`` to fake structural elements like headings, sections, or theorems.
+   Don't use ``:class:`` to fake structural elements like headings, sections, or theorems.
    If you need a theorem, use ``:theorem:``. If you need a section, use ``##``. Don't
    create a paragraph with custom styling to look like a theorem—that breaks semantic
    meaning and accessibility.
 
-   The ``:types:`` meta tag is for *how something looks*, not *what it is*.
+   The ``:class:`` meta tag is for *how something looks*, not *what it is*.
 
-   **If you find yourself using** ``:types:`` **to override RSM's default behavior for semantic
+   **If you find yourself using** ``:class:`` **to override RSM's default behavior for semantic
    tags**, please `open an issue <https://github.com/aris-pub/rsm/issues>`_ or contribute to
    the language. The defaults should work for most cases—if they don't for you, we want to know.
 
@@ -238,10 +230,10 @@ Best practices
    and dark themes.
 
 3. **Avoid inline styles**: RSM doesn't support inlined HTML/CSS. Always use CSS classes
-   via ``:types:``.
+   via ``:class:``.
 
 See also
 ********
 
 - :ref:`recipes` for more styling examples
-- :ref:`syntax` for complete ``:types:`` meta tag syntax
+- :ref:`syntax` for complete ``:class:`` meta tag syntax

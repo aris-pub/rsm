@@ -1,4 +1,4 @@
-Problem
+﻿Problem
 =======
 
 Qualified name: ``rsm.nodes.Problem``
@@ -23,7 +23,7 @@ Qualified name: ``rsm.nodes.Problem``
      
      ~Problem.nodeid
      ~Problem.label
-     ~Problem.types
+     ~Problem.classes
      ~Problem.handrail_depth
      ~Problem.number
      ~Problem.nonum
