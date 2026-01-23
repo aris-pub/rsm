@@ -29,7 +29,8 @@ Choose your path to learning RSM.
       2. :ref:`handrail` - Interactive UI (3 min)
       3. :ref:`tooltips` - Cross-references (5 min)
       4. :ref:`special` - Shortcuts (5 min)
-      5. :ref:`bibliography` - Citations (5 min)
+      5. :ref:`styling` - CSS styling (5 min)
+      6. :ref:`bibliography` - Citations (5 min)
 
       **Next**: :ref:`syntax` for complete reference
 
@@ -71,6 +72,7 @@ All Tutorials
    tutorials/handrail
    tutorials/tooltips
    tutorials/special
+   tutorials/styling
    tutorials/bibliography
    tutorials/proofs
 

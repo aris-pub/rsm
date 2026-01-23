@@ -48,7 +48,8 @@ class rsm_iframe(nodes.Element):
 class RSMDirective(Directive):
     has_content = True
     option_spec = {
-        'layout': lambda x: x.strip().lower() if x else 'horizontal'
+        'layout': lambda x: x.strip().lower() if x else 'horizontal',
+        'custom-css': lambda x: x.strip() if x else None
     }
 
     def run(self):
@@ -56,6 +57,7 @@ class RSMDirective(Directive):
         env = self.state.document.settings.env
         app = env.app
         layout = self.options.get('layout', 'horizontal')
+        custom_css = self.options.get('custom-css', None)
 
         n1 = nodes.literal_block(content, content)
         n1["language"] = "text"
@@ -65,7 +67,22 @@ class RSMDirective(Directive):
         # Use custom asset resolver to resolve paths relative to source directory
         source_dir = Path(__file__).parent
         asset_resolver = SourceDirAssetResolver(source_dir)
-        html_output = rsm.build(source=content, asset_resolver=asset_resolver, handrails=True, standalone=True, theme_toggle=False, menu_position="right")
+
+        # Build with optional custom CSS
+        build_kwargs = {
+            'source': content,
+            'asset_resolver': asset_resolver,
+            'handrails': True,
+            'standalone': True,
+            'theme_toggle': False,
+            'menu_position': 'right'
+        }
+        if custom_css:
+            custom_css_path = source_dir / custom_css
+            if custom_css_path.exists():
+                build_kwargs['custom_css'] = str(custom_css_path)
+
+        html_output = rsm.build(**build_kwargs)
         html_output = html_output.replace('class="manuscriptwrapper"', 'class="manuscriptwrapper embedded"')
 
         # Fix relative paths to _static to be absolute from root

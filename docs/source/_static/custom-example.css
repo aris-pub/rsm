@@ -1,0 +1,13 @@
+.highlight-box {
+  background-color: #fff3cd;
+  border-left: 4px solid #ffc107;
+  padding: 1em;
+  margin: 1em 0;
+}
+
+.emphasis-theorem {
+  background-color: #e7f3ff;
+  border: 2px solid #0066cc;
+  padding: 1.5em;
+  border-radius: 8px;
+}
