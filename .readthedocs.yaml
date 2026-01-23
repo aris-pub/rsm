@@ -3,6 +3,9 @@ version: 2
 submodules:
   include: all
 
+sphinx:
+  configuration: docs/source/conf.py
+
 build:
   os: "ubuntu-22.04"
   tools:
