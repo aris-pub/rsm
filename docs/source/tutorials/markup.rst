@@ -1,38 +1,30 @@
 .. _markup:
 
-RSM markup
-==========
+Readable Science Markup
+=======================
 
-Readable Science Markup (RSM) was inspired by popular languages such as Markdown, ReST,
-and LaTeX. RSM strives for simplicity, flexibility, and functionality.
+Readable Science Markup (RSM) is a markup language for writing web-first scientific
+manuscripts. It combines the simplicity of Markdown with the power of semantic tagging.
 
 .. rsm::
 
     # Getting Started with RSM
 
-     :author: {
-       :name: Sherlock Holmes
-       :affiliation: Forensic Investigation Instititute
-     } ::
+    :author: {
+      :name: RSM Team
+      :affiliation: The Aris Program
+    } ::
 
-     :abstract:
-     RSM is a markup language for writing
-     web-first scientific manuscripts.
-     It combines the simplicity of Markdown
-     with the power of semantic tagging.
-     ::
+    ## Introduction
+    RSM was inspired by popular languages such
+    as Markdown, ReST, and LaTeX. RSM strives
+    for simplicity, flexibility, and
+    functionality.
 
-     ## Introduction
-
-     RSM uses *tags* to annotate your
-     manuscript. Tags are semantic: they
-     describe whatcontent *is*, not how
-     it should look.
-
-The main syntax feature of RSM are *tags*. Strings such as ``:rsm:`` are called *tags*.
-In RSM, tags are used to annotate regions of text, for example to delimit sections and
-other parts of a manuscript. The tag functions as open delimiter, and the empty tag
-``::``, a.k.a. *Halmos*, is the closing delimiter.
+The main syntax feature of RSM are *tags*. Strings such as ``:author:`` and ``:name:``
+are called *tags*. In RSM, tags are are both a syntactic element, i.e. they act as
+delimiters for regions of text, and a semantic element, i.e. they annotate text based on
+meaning, not just structure.
 
 .. rsm::
 
@@ -40,17 +32,15 @@ other parts of a manuscript. The tag functions as open delimiter, and the empty 
    This is the manuscript's abstract.
    ::
 
-   ## First Section
-   And this is the contents of a section.
+The ``:abstract:`` tag is a *block* tag that introduces a clearly separated part of the
+manuscript. Some tags can also have meta-data attached. For example, the ``:author:``
+tag in the first example uses ``:name:`` and ``:affiliation:`` tags to specify author
+details. Tags like ``:name:`` and ``:affiliation:`` are called *meta* tags—they modify
+their parent tag.
 
-Some tags are used to add meta-data to the annotated regions.  For example, the
-``:section:`` tag in the previous example introduces a new region of the manuscript,
-while the ``:title:`` tag directly below it modifies the parent ``:section:`` tag by
-specifying its title.  Tags such as this are called *meta* tags.
-
-Tags such as ``:rsm:``, ``:abstract:``, and ``:section:`` introduce parts of the
-manuscript that are clearly separated from other parts.  These are called *block* tags.
-In contrast, the following example illustrates the ``:span:`` tag.
+Tags such as ``:author:`` and ``:abstract:`` introduce parts of the manuscript that are
+clearly separated from other parts. These are called *block* tags. In contrast, the
+following example illustrates the ``:span:`` tag.
 
 .. rsm::
 
@@ -67,15 +57,14 @@ i.e. ``:strong:`` is a meta tag of ``:span:``.  Note the use of braces to introd
 ``:strong:`` tag and the use of the Halmos ``::`` as closing delimiter of ``:span:``.
 
 The notation ``:span: {:strong:} text ::`` to introduce bold text allows an alternative
-*shorthand* notation using asterisks (``*``).  Similarly, the hashtag (``#``) symbol can
-be used as shorthand to introduce a section with a title.
+*shorthand* notation using asterisks (``*``).
 
 .. rsm::
 
    ## Awesome section
 
    Span tags do not introduce new parts, but
-   *live within* their parents.
+   **live within** their parents.
 
 Here is a complete example using all the basic features of RSM markup.
 
@@ -98,8 +87,6 @@ Here is a complete example using all the basic features of RSM markup.
    Simple markup for :span:{:strong:, :emphas:}
    web native:: scientific publications.
 
-The features illustrated on this page cover 90% of what can be done with RSM.
-
 .. admonition:: Summary
 
    The base language is comprised of *tags*, which delimit or modify text.  Some tags
@@ -110,16 +97,6 @@ The features illustrated on this page cover 90% of what can be done with RSM.
    asterisks ``*`` to introduce bold text.  Tags can be nested within the contents of
    other tags.
 
-.. grid:: 1 1 1 2
-
-   .. grid-item::
-
-      .. tip::
-         Whitespace is ignored essentially everywhere in RSM.  It is recommended to leave
-         generous whitespace where desired to improve readability.
-
-   .. grid-item::
-
-      .. tip::
-         Each code block on this site has a button on the bottom right corner that opens
-         the code snippet in the online editor.
+.. tip::
+   Whitespace is ignored essentially everywhere in RSM.  It is recommended to leave
+   generous whitespace where desired to improve readability.

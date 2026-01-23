@@ -22,6 +22,7 @@ Qualified name: ``rsm.transformer.Transformer``
       ~Transformer.assign_author_note_symbols
       ~Transformer.assign_node_ids
       ~Transformer.autonumber_nodes
+      ~Transformer.check_for_cst_errors
       ~Transformer.collect_labels
       ~Transformer.make_toc
       ~Transformer.mark_author_visibility

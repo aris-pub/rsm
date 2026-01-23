@@ -10,8 +10,6 @@ There exist pre-determined types that can be added to any tag to change font siz
 
 .. rsm::
 
-   :rsm:
-
    :paragraph: {:types: tiny} Lorem ipsum.
 
    :paragraph: {:types: smallest} Lorem ipsum.
@@ -32,14 +30,9 @@ There exist pre-determined types that can be added to any tag to change font siz
 
    :paragraph: {:types: huger} Lorem ipsum.
 
-   ::
-
-
 These work on blocks, inlines, paragraphs, or even math blocks.
 
 .. rsm::
-
-   :rsm:
 
    $ {:types: tiny} 2 + 2 = 4$
 
@@ -61,8 +54,6 @@ These work on blocks, inlines, paragraphs, or even math blocks.
 
    $ {:types: huger} 2 + 2 = 4$
 
-   ::
-
 
 Prevent automatic numbering
 ***************************
@@ -72,32 +63,22 @@ by using ``:nonum:``.
 
 .. rsm::
 
-   :rsm:
+   ## First
 
-   # First
-   ::
+   ## Unnumbered
+   {:nonum:}
 
-   # Unnumbered
-   :nonum:
-   ::
-
-   # Second
-   ::
-
-   ::
+   ## Second
 
 Other numbered blocks such as math blocks also accept ``:nonum:``.
 
 .. rsm::
 
-   :rsm:
-
    $$
    2 + 2 = 4
    $$
 
-   $$
-   :nonum:
+   $$ {:nonum:}
    3 + 3 = 6
    $$
 
@@ -105,36 +86,98 @@ Other numbered blocks such as math blocks also accept ``:nonum:``.
    4 + 4 = 8
    $$
 
-   ::
 
+Add figures
+***********
 
-
-LaTeX preamble
-**************
-
-In LaTeX, the preamble is a section of the document that contains, among other things,
-definitions of commands that are local to the document.  This can be achieved in RSM by
-defining new commands inside a hidden math block with no number.
+Include images in your manuscript:
 
 .. rsm::
 
-   :rsm:
+   :figure: {
+     :label: fig-example
+     :caption: A simple diagram showing the concept.
+     :path: images/diagram.png
+   } ::
 
-   This is not valid math: $\tr(X)$.
+Reference the figure with ``:ref:fig-example::``.
+
+
+Add inline math
+***************
+
+Use dollar signs for inline equations:
+
+.. rsm::
+
+   The quadratic formula is $x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}$.
+
+
+Add display math
+****************
+
+Use double dollar signs for display equations:
+
+.. rsm::
 
    $$
-   :types: hide
-   :nonum:
-     \DeclareMathOperator{\tr}{Tr}
+   E = mc^2
    $$
 
-   After the hidden block: $\tr(X)$.
+
+Add cross-references
+********************
+
+Label any block and reference it later:
+
+.. rsm::
+
+   ## Introduction {
+     :label: intro
+   }
+
+   Some content here.
+
+   ## Methods
+
+   As discussed in :ref:intro::, we proceed by...
+
+
+Add code blocks
+***************
+
+Include syntax-highlighted code:
+
+.. rsm::
+
+   :codeblock: {:lang: python}
+
+   def fibonacci(n):
+       if n <= 1:
+           return n
+       return fibonacci(n-1) + fibonacci(n-2)
 
    ::
 
-By adding ``hide`` to ``:types:``, we tell RSM to not show the entire block.
 
-Make sure to use ``:nonum:`` since otherwise the numbering of subsequent math blocks
-will be shifted.
+Add theorems and proofs
+***********************
 
-The LaTeX commands available to RSM are limited by MathJax.
+Structure mathematical arguments:
+
+.. rsm::
+
+   :theorem: {
+     :label: thm-main
+     :title: Fundamental Result
+   }
+
+   Every even integer greater than 2 can be expressed as the sum of two primes.
+
+   ::
+
+   :proof:
+
+   The proof is left as an exercise.
+
+   ::

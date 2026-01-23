@@ -7,12 +7,8 @@ In the following example, hover (or tap, on mobile) on the manuscript title.
 
 .. rsm::
 
-   :rsm:
-     :title: Hover me!
-
+   # Hover me!
    Introducing the handrail.
-
-   ::
 
 You will see a context menu appearing to the left of the manuscript title.  This area is
 called the `handrail`.  It is an area that allows for interaction with individual parts
@@ -21,19 +17,13 @@ the manuscript, such as sections and remarks.
 
 .. rsm::
 
-   :rsm:
-     :title: Handrails
+   # Handrails
 
-   # Sections have handrails
+   ## Sections have handrails
 
    :remark:
-
-     Other special parts have handrails too.
-
-   ::
-
-   ::
-
+   Other special parts have
+   handrails too, and so do paragraphs.
    ::
 
 In general, any part of the manuscript that shows a gray border to the left admits

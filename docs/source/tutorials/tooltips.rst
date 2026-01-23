@@ -8,19 +8,14 @@ the ``:ref:`` tag to refer to it.
 
 .. rsm::
 
-   :rsm:
-
-   :remark:
+   :remark: {
      :label: lbl1
-
+   }
    This remark can be referenced by using
    its label.
-
    ::
 
    Refer to :ref:lbl1:: above.
-
-   ::
 
 Hovering over the link text will display a tooltip showing the referenced region.
 
@@ -30,20 +25,15 @@ can override this behavior when using the ``:reftext:`` tag.
 
 .. rsm::
 
-   :rsm:
-
-   :remark:
+   :remark: {
      :label: lbl2
      :reftext: Awesome Remark
-
+   }
    This remark can be referenced by using
    its label.
-
    ::
 
    Refer to :ref:lbl2:: above.
-
-   ::
 
 The ``:reftext:`` tag is used at the same place where the ``:label:`` tag is defined,
 and it changes the default text displayed whenever the annotated region is referenced.
@@ -52,20 +42,15 @@ notation.
 
 .. rsm::
 
-   :rsm:
-
-   :remark:
+   :remark: {
      :label: lbl3
-
+   }
    This remark can be referenced by using
    its label.
-
    ::
 
    Refer to :ref:lbl3:: above, or call
    it :ref:lbl3, Awesome Remark::.
-
-   ::
 
 .. admonition:: Summary
 

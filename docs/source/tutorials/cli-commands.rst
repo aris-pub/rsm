@@ -3,11 +3,11 @@
 CLI Commands
 ============
 
-RSM provides three command line utilities when installed locally:
+RSM provides three command a few utilities when installed locally:
 
 1. ``rsm build`` Takes a file containing RSM source and outputs a fully functioning
-   website.2
-. ``rsm render`` Takes a file containing RSM source and translates it to HTML.  It does
+   website.
+2. ``rsm render`` Takes a file containing RSM source and translates it to HTML.  It does
    not make a working website, it only computes the HTML body and prints it to screen.
 3. ``rsm check`` Takes a file containing RSM source and runs consistency and sanity
    checks.  It outputs a set of warnings and suggestions to screen.  It does not write

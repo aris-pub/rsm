@@ -45,55 +45,41 @@ class RSMDirective(Directive):
         n1["classes"].append("rsm-example-code")
         print(f"\n{'='*60}\nRSM DIRECTIVE RENDERING:\n{repr(content)}\n{'='*60}\n")
 
+        # Use standalone mode but we need to inline RSM CSS since CDN @import doesn't work in iframes
+        html_output = rsm.build(source=content, handrails=True, standalone=True, theme_toggle=False, menu_position="right")
+        html_output = html_output.replace('class="manuscriptwrapper"', 'class="manuscriptwrapper embedded"')
+
+        # Replace CDN CSS links with inlined CSS to ensure Pygments works
+        rsm_css_path = Path(__file__).parent.parent.parent / "rsm" / "static" / "rsm.css"
+        pygments_css_path = Path(__file__).parent.parent.parent / "rsm" / "static" / "pygments.css"
+
+        if rsm_css_path.exists() and pygments_css_path.exists():
+            rsm_css = rsm_css_path.read_text()
+            pygments_css = pygments_css_path.read_text()
+
+            # Remove the @import for pygments since we're inlining it directly
+            rsm_css = rsm_css.replace("@import url('pygments.css') layer(base);", "")
+
+            inlined_css = f"""<style>
+{pygments_css}
+{rsm_css}
+</style>"""
+
+            # Replace the CDN link with inlined CSS
+            html_output = html_output.replace(
+                '<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/aris-pub/rsm@main/rsm/static/rsm.css" />',
+                inlined_css
+            )
+
         if app.config.rsm_build_prod:
-            # Production: Use StandaloneBuilder with CDN (no cache issues, works offline)
-            html_output = rsm.build(source=content, handrails=True, standalone=True, theme_toggle=False, menu_position="right")
-            html_output = html_output.replace('class="manuscriptwrapper"', 'class="manuscriptwrapper embedded"')
+            # Production: Inline via srcdoc for complete isolation
             n2 = rsm_body(html_output)
         else:
-            # Development: Use FolderBuilder with local /_static/ files (instant CSS updates)
-            html_output = rsm.build(source=content, handrails=True, standalone=False, theme_toggle=False, menu_position="right")
-
-            # Fix all static paths for Sphinx (/static/ -> /_static/)
-            html_output = html_output.replace('"/static/', '"/_static/')
-            html_output = html_output.replace("'/static/", "'/_static/")
-            html_output = html_output.replace('class="manuscriptwrapper"', 'class="manuscriptwrapper embedded"')
-
-            # Inject script to signal parent after content stabilizes
-            resize_script = """
-            <script>
-              window.addEventListener('load', function() {
-                let lastHeight = 0;
-                let stableCount = 0;
-
-                function checkHeight() {
-                  const currentHeight = document.documentElement.scrollHeight;
-                  if (currentHeight === lastHeight) {
-                    stableCount++;
-                    if (stableCount >= 3) {
-                      window.parent.postMessage({type: 'rsm-resize', height: currentHeight + 8}, '*');
-                      return;
-                    }
-                  } else {
-                    stableCount = 0;
-                    lastHeight = currentHeight;
-                  }
-                  setTimeout(checkHeight, 100);
-                }
-
-                setTimeout(checkHeight, 100);
-              });
-            </script>
-            """
-            html_output = html_output.replace('</body>', resize_script + '</body>')
-
-            # Save to file with content-based hash for caching
+            # Development: Save to file for easier debugging
             content_hash = hashlib.md5(content.encode()).hexdigest()[:8]
             example_dir = Path(app.outdir) / "_examples"
             example_dir.mkdir(parents=True, exist_ok=True)
             (example_dir / f"{content_hash}.html").write_text(html_output)
-
-            # Create iframe pointing to the file
             n2 = rsm_file_ref(f"/_examples/{content_hash}.html")
 
         rsm_node = rsm_example()

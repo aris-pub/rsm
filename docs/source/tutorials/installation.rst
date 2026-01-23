@@ -22,9 +22,19 @@ Or, if you are using uv and already have a :code:`pyproject.toml` file:
 
 Checking your install
 ---------------------
+To test whether the installation was successful you may execute
+
+.. code-block:: bash
+
+   $ rsm render --version
+
+If you want to use RSM from a python script, you may import the library with
+
+.. code-block:: python
+
+   import rsm
 
 .. tip::
-   :class: sidebar
 
    The command
 
@@ -40,19 +50,3 @@ Checking your install
       with open("manuscript.rsm") as f:
           src = f.read()
       print(rsm.render(src))
-
-.. grid:: 1 1 1 1
-
-   .. grid-item::
-
-      To test whether the installation was successful you may execute
-
-      .. code-block:: bash
-
-         $ rsm render --version
-
-      If you want to use RSM from a python script, you may import the library with
-
-      .. code-block:: python
-
-         import rsm

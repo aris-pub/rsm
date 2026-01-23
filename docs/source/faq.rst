@@ -3,6 +3,117 @@
 Frequently asked questions
 ==========================
 
+Quick Comparison
+****************
+
+RSM compared to popular alternatives:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 15 17 17 17 17 17
+
+   * - Feature
+     - RSM
+     - LaTeX + PDF
+     - Markdown
+     - ReStructuredText
+     - Quarto
+   * - **Output format**
+     - HTML
+     - PDF
+     - HTML (via converter)
+     - HTML (via Sphinx)
+     - HTML, PDF, etc.
+   * - **Responsive design**
+     - Yes (automatic)
+     - No (fixed layout)
+     - Yes (depends on theme)
+     - Yes (Sphinx themes)
+     - Yes (with Quarto)
+   * - **Mathematical proofs**
+     - Yes (first-class)
+     - Yes (amsthm)
+     - No (requires extensions)
+     - No (requires extensions)
+     - Via LaTeX blocks
+   * - **Interactive tooltips**
+     - Yes (automatic)
+     - No
+     - No
+     - No
+     - Limited
+   * - **Cross-references**
+     - Yes (with tooltips)
+     - Yes (hyperref)
+     - Limited
+     - Yes
+     - Yes
+   * - **Citations**
+     - BibTeX (native)
+     - BibTeX (native)
+     - Via Pandoc
+     - Via sphinxcontrib-bibtex
+     - BibTeX (native)
+   * - **Syntax complexity**
+     - Medium
+     - High (steep learning curve)
+     - Low (very simple)
+     - Medium
+     - Medium
+   * - **Semantic tags**
+     - Yes (core feature)
+     - No (presentational)
+     - No
+     - Partial
+     - Partial
+   * - **Learning curve**
+     - 1-2 hours
+     - Weeks to months
+     - 30 minutes
+     - 1-2 hours
+     - 2-3 hours
+   * - **Best for**
+     - Web-first research
+     - Traditional publishing
+     - Simple docs
+     - Documentation sites
+     - Reproducible research
+
+.. admonition:: When to choose RSM
+
+   **Use RSM if**:
+
+   - You want web-native output (not PDF)
+   - Your readers use mobile devices or tablets
+   - You value interactive references and tooltips
+   - You're writing formal mathematics with structured proofs
+   - You want semantic markup (content over presentation)
+
+   **Stick with LaTeX if**:
+
+   - Your field requires PDF submissions
+   - You already have a LaTeX workflow that works
+   - You need journal-specific LaTeX templates
+   - You prefer print-oriented layout
+
+   **Consider Quarto if**:
+
+   - You need computational notebooks (R, Python, Julia)
+   - You want multiple output formats (HTML, PDF, Word)
+   - Your work involves heavy data science
+
+   **Consider Markdown if**:
+
+   - Your documents are simple (no math, no proofs)
+   - You want minimal syntax
+   - You're writing blogs or READMEs, not research papers
+
+
+Detailed Comparisons
+********************
+
+The following sections explain the design choices behind RSM in detail.
+
 
 .. _whats-wrong-with-latex-pdf:
 
