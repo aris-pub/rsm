@@ -15,18 +15,22 @@ List of all tags
 .. autoclass:: algorithm
 .. autoclass:: appendix
 .. autoclass:: author
-.. autoclass:: bibliography
-.. autoclass:: bibtex
 .. autoclass:: codeblock
+.. autoclass:: corollary
 .. autoclass:: definition
 .. autoclass:: enumerate
+.. autoclass:: example
+.. autoclass:: exercise
 .. autoclass:: figure
+.. autoclass:: html
 .. autoclass:: itemize
 .. autoclass:: lemma
-.. autoclass:: rsm
 .. autoclass:: mathblock
+.. autoclass:: porism
+.. autoclass:: problem
 .. autoclass:: proof
 .. autoclass:: proposition
+.. autoclass:: references
 .. autoclass:: remark
 .. autoclass:: section
 .. autoclass:: sketch
@@ -34,6 +38,7 @@ List of all tags
 .. autoclass:: subsubsection
 .. autoclass:: theorem
 .. autoclass:: toc
+.. autoclass:: video
 
 
 .. rubric:: Paragraph Tags
@@ -59,10 +64,14 @@ List of all tags
 .. rubric:: Meta Tags
 
 .. autoclass:: affiliation
+.. autoclass:: author_display_first
+.. autoclass:: author_display_last
+.. autoclass:: author_note
 .. autoclass:: date
 .. autoclass:: email
 .. autoclass:: emphas
 .. autoclass:: goal
+.. autoclass:: icon
 .. autoclass:: isclaim
 .. autoclass:: keywords
 .. autoclass:: label
@@ -70,6 +79,7 @@ List of all tags
 .. autoclass:: msc
 .. autoclass:: name
 .. autoclass:: nonum
+.. autoclass:: orcid
 .. autoclass:: path
 .. autoclass:: reftext
 .. autoclass:: scale
@@ -93,6 +103,7 @@ List of all tags
 .. autoclass:: previous
 .. autoclass:: prove
 .. autoclass:: qed
+.. autoclass:: st
 .. autoclass:: step
 .. autoclass:: suffices
 .. autoclass:: suppose

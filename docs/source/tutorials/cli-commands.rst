@@ -47,7 +47,7 @@ also provide RSM source directly at the terminal via the ``-c`` flag:
 
 .. code-block:: bash
 
-   $ rsm build ":rsm: Hello. ::" -c
+   $ rsm build "# Hello\n\nThis is a minimal manuscript." -c
 
 
 Automatic builds

@@ -83,7 +83,6 @@ Linter warnings
 
 - Not an error, but good practice to add a title
 - Add at the top of your file: ``# Your Title Here``
-- Or use explicit syntax: ``:rsm: :title: Your Title Here``
 
 **"LINT: Missing closing Halmos"**
 

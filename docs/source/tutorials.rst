@@ -72,6 +72,7 @@ All Tutorials
    tutorials/tooltips
    tutorials/special
    tutorials/bibliography
+   tutorials/proofs
 
 .. toctree::
    :maxdepth: 1

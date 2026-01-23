@@ -3,7 +3,8 @@
 Syntax guide
 ============
 
-This guide covers the complete RSM syntax. For a quick introduction, see :ref:`markup`. For practical examples, see :ref:`recipes`.
+This guide covers the complete RSM syntax. For a quick introduction, see :ref:`markup`.
+For practical examples, see :ref:`recipes`.
 
 Base language
 *************
@@ -17,10 +18,8 @@ Tags
 ----
 
 One of the main goals of RSM is to separate your manuscript's content from the look and
-feel.  Accordingly, RSM provides *semantic tags* that annotate the contents of your
-manuscript.  A tag has the form ``:tag-name: <contents> ::``.  As mentioned above, every
-RSM manuscript starts with the ``:rsm:`` tag and ends with the Halmos ``::``.
-The entire contents of your manuscript are the contents of the ``:rsm:`` tag.
+feel. Accordingly, RSM provides *semantic tags* that annotate the contents of your
+manuscript. A tag has the form ``:tag-name: <contents> ::``.
 
 Tags being semantic means that a tag determines what its contents *are*, not what they
 should look like.  Two parts of your manuscript may be annotated with the same tag but
@@ -42,50 +41,27 @@ enclosing tag.  Consider this example
 
 .. code-block:: text
 
-   :rsm:
-:title: Three types of tags.
+   :theorem: {
+     :title: Fermat's Last Theorem
+     :label: thm-fermat
+   }
 
-   Hello, RSM!
+   For integer $n > 2$, the equation $x^n + y^n = z^n$ has no positive integer solutions.
 
    ::
 
-Here the role of the ``:title:`` tag is to associate the title ``Three types of tags``
-to the enclosing ``:rsm:`` tag.  This tells RSM that the given title is a
-property of the contents of the ``:rsm:`` tag, i.e. a property of the entire
-manuscript.  We say the ``:title:`` is a *meta key* for the enclosing ``:rsm:``
-tag, while the title ``Three types of tags`` is the *meta value* of said key.  Meta tags
-always come in key-values pairs.
+Here we have a ``:theorem:`` block tag with two meta tags: ``:title:`` and ``:label:``.
+The ``:title:`` meta tag associates the title "Fermat's Last Theorem" to the theorem,
+and ``:label:`` provides a unique identifier ``thm-fermat`` that we can use to reference
+this theorem later. Meta tags always come in key-value pairs inside braces ``{}``.
 
 In the previous example, the ``:title:`` meta tag had a visible effect on the output
-manuscript, namely it made the main title appear in the output.  Some meta tags do not
-have a visible output.  For example,
+(the theorem title appears), while ``:label:`` has no visible effect but allows us to
+reference the theorem elsewhere:
 
 .. code-block:: text
 
-   # Three types of tags.
-
-   ## First section {
-     :label: first-sec
-   }
-   This section has a label.
-
-We have added a section within the manuscript, using the block tag ``:section:``. This
-tag has two meta tags: ``:title:``, which works in much the same way as the manuscript's
-title, and a new meta tag ``:label:``, whose value is ``first-sec``. This tag has no
-visible effect on the output, but it has huge importance to the internal structure of
-the manuscript. In particular, the label of a tag is a unique identifier that allows you
-to refer to it later on. For example,
-
-.. code-block:: text
-
-   # Three types of tags.
-
-   ## First section {
-     :label: first-sec
-   }
-   This section has a label.
-
-   We can now refer back to the :ref:first-sec::.
+   As we proved in :ref:thm-fermat::, the equation has no solutions.
 
 Syntax rules
 ------------
@@ -99,11 +75,12 @@ the syntax used to introduce them:
 
      .. code-block:: text
 
-        :tag-name:
+        :tag: {
           :key: val
           ...
+        }
 
-        <contents>
+        <content>
 
         ::
 
@@ -112,13 +89,30 @@ the syntax used to introduce them:
 
      .. code-block:: text
 
-        :tag-name: {:key: val, ...}
-        <contents> ::
+        :tag: {:key: val, ...} <content> ::
 
 Here the ellipsis denote an arbitrary number of additional key-value pairs.  In general,
 blocks introduce a part of the manuscript that should be regarded as completely separate
 from all other parts, while inlines denote a region of text that is part of the
-enclosing part.
+enclosing block.
 
 The third type of tag is *meta* tags.  They are the tags used above to modify their
-parent tags via key-value pairs.
+parent tags via key-value pairs. Meta tags appear inside braces ``{}`` and provide
+metadata about the enclosing tag. For example:
+
+.. code-block:: text
+
+   :theorem: {
+     :title: Pythagorean Theorem
+     :label: pythag
+   }
+
+   For a right triangle, $a^2 + b^2 = c^2$.
+
+   ::
+
+Here ``:title:`` and ``:label:`` are meta tags that modify the ``:theorem:`` block tag.
+The ``:title:`` meta tag determines what title is displayed, while ``:label:`` provides
+an identifier for cross-referencing. Some meta tags like ``:label:`` and ``:nonum:``
+work with many different tags, while others like ``:path:`` (for figures) are specific
+to certain tags.
