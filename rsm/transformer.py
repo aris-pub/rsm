@@ -107,13 +107,14 @@ class Transformer:
     """
 
     def __init__(
-        self, root_dir: Path | None = None, src_file: Path | None = None
+        self, root_dir: Path | None = None, src_file: Path | None = None, strict: bool = False
     ) -> None:
         self.tree: nodes.Manuscript | None = None
         self.labels_to_nodes: dict[str, nodes.Node] = {}
         self.root_dir = root_dir
         self.src_file = src_file
         self.external_manuscripts: dict[str, tuple[nodes.Manuscript, dict]] = {}
+        self.strict = strict
 
     def transform(self, tree: nodes.Manuscript) -> nodes.Manuscript:
         """Transform a manuscript tree.
@@ -149,6 +150,7 @@ class Transformer:
         self.add_keywords_to_constructs()
         self.add_handrail_depth()
         self.assign_node_ids()
+        self.check_for_cst_errors()
         return tree
 
     def _load_external_manuscript(
@@ -203,6 +205,43 @@ class Transformer:
         self.external_manuscripts[filepath] = result
 
         return result
+
+    def check_for_cst_errors(self) -> None:
+        """Check for CST errors in the transformed tree.
+
+        If strict mode is enabled and Error nodes are found in the tree, raise an
+        exception. This transform runs last to ensure all other transformations have
+        completed.
+
+        Raises
+        ------
+        RSMTransformerError
+            If strict mode is enabled and Error nodes are present in the tree.
+
+        Notes
+        -----
+        This transform does not modify the tree. It only checks for errors and
+        optionally raises an exception.
+
+        """
+        if not self.strict:
+            return
+
+        error_nodes = list(self.tree.traverse(condition=lambda n: isinstance(n, nodes.Error)))
+
+        if error_nodes:
+            error_messages = []
+            for error_node in error_nodes:
+                start = error_node.start_point
+                end = error_node.end_point
+                error_messages.append(
+                    f"  - ({start[0]}, {start[1]}) - ({end[0]}, {end[1]}): {error_node.children[0].text if error_node.children else 'unknown error'}"
+                )
+
+            error_summary = "\n".join(error_messages)
+            raise RSMTransformerError(
+                f"Strict mode enabled: CST errors detected in manuscript:\n{error_summary}"
+            )
 
     def collect_labels(self) -> None:
         """Find all nodes with labels.
