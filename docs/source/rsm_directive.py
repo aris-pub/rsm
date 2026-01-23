@@ -85,16 +85,16 @@ class RSMDirective(Directive):
         html_output = rsm.build(**build_kwargs)
         html_output = html_output.replace('class="manuscriptwrapper"', 'class="manuscriptwrapper embedded"')
 
-        # Fix relative paths to _static to be absolute from root
-        # From _examples/ directory, relative _static paths need to be absolute
-        html_output = html_output.replace('src="_static/', 'src="/_static/')
+        # Fix relative paths to _static to work from _examples/ directory
+        # Go up one level from _examples/ to reach _static/
+        html_output = html_output.replace('src="_static/', 'src="../_static/')
 
         # Save to file and reference via iframe src
         content_hash = hashlib.md5(content.encode()).hexdigest()[:8]
         example_dir = Path(app.outdir) / "_examples"
         example_dir.mkdir(parents=True, exist_ok=True)
         (example_dir / f"{content_hash}.html").write_text(html_output)
-        n2 = rsm_iframe(f"/_examples/{content_hash}.html")
+        n2 = rsm_iframe(f"../_examples/{content_hash}.html")
 
         rsm_node = rsm_example()
         rsm_node['classes'] = []
