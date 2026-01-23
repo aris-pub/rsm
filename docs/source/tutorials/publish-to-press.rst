@@ -3,27 +3,27 @@
 Publishing to Scroll Press
 ===========================
 
-`Scroll Press <https://scroll.press>`_ is a web-native preprint archive for RSM manuscripts. This tutorial shows you how to publish your RSM work to Press and get a permanent URL (DOI support coming soon).
+`Scroll Press <https://scroll.press>`_ is a web-native preprint archive for HTML manuscripts. Press accepts any manuscript that renders to HTML—RSM, Quarto, Jupyter notebooks (via nbconvert), Pandoc, and more. This tutorial shows you how to publish your RSM work to Press and get a permanent URL and DOI.
 
 What is Scroll Press?
 *********************
 
-Scroll Press is like arXiv, but designed for **web-first research** in 2026:
+Scroll Press is a preprint server, like arXiv, but designed for modern **web-first research**:
 
 - **HTML-native**: No PDFs—readers get responsive, interactive manuscripts
-- **Permanent URLs**: Every paper gets a stable, citable link
+- **Permanent URLs and DOIs**: Every paper gets a stable, citable link
 - **Open access**: Free to publish, free to read
 - **No gatekeeping**: Publish immediately (moderation is post-publication)
-
-Currently in **closed beta**—sign up at `scroll.press <https://scroll.press>`_ for early access.
 
 Prerequisites
 *************
 
-Before publishing to Press, you need:
+This tutorial focuses on publishing **RSM manuscripts** to Press. If you're using Quarto, Jupyter notebooks, or other HTML-generating tools, the workflow is similar—just skip to Step 4 (Create Account) with your HTML file ready.
+
+Before publishing an RSM manuscript to Press, you need:
 
 1. An RSM manuscript (a ``.rsm`` file)
-2. RSM installed locally (``pip install rsm-markup``)
+2. RSM installed locally (``pip install rsm-lang``)
 3. A built HTML version of your manuscript
 
 If you don't have a manuscript yet, see :ref:`first-manuscript` or :ref:`example` for templates.
@@ -53,17 +53,7 @@ Make sure your manuscript has complete metadata:
 
    Your content here...
 
-**Required fields**:
-
-- Title (using ``#`` or ``:title:``)
-- At least one author with name
-- Abstract
-
-**Recommended fields**:
-
-- Author affiliation and email
-- Keywords (helps with discovery)
-- Date (defaults to today if omitted)
+**Required fields**: Title, at least one author with name, abstract. **Recommended fields**: Author affiliation and email, abstract keywords, date.
 
 Step 2: Build Your Manuscript
 ******************************
@@ -84,7 +74,7 @@ This creates a single ``manuscript.html`` file with all assets inlined (CSS, Jav
 
 .. code-block:: bash
 
-   $ rsm serve manuscript.rsm
+   $ rsm serve
 
 Open ``http://127.0.0.1:5500`` in your browser. Verify:
 
@@ -96,65 +86,21 @@ Open ``http://127.0.0.1:5500`` in your browser. Verify:
 Step 3: Create a Scroll Press Account
 **************************************
 
-Visit `scroll.press <https://scroll.press>`_ and sign up.
-
-.. note::
-
-   **Beta Status**: Press is currently in closed beta. Request access at the website. You'll receive an invite email within 1-2 weeks.
-
-After signing up, verify your email and log in.
+Visit `scroll.press <https://scroll.press>`_ and sign up. After signing up, verify your
+email and log in. You cannot upload a file before verifying your email.
 
 Step 4: Upload Your Manuscript
 *******************************
 
 On your Press dashboard:
 
-1. Click **"Publish New Paper"**
+1. Click **"Publish New Scroll"**
 2. Upload your standalone HTML file (``manuscript.html``)
-3. Press auto-extracts metadata from your RSM manuscript
+3. Press auto-extracts metadata from your HTML manuscript
 4. Review the preview
 5. Click **"Publish"**
 
 Your paper is now live!
-
-.. note::
-
-   During beta, Press only accepts single HTML files. Make sure you built with ``--standalone`` flag.
-
-Step 5: Share Your Paper
-************************
-
-After publishing, you get:
-
-- **Permanent URL**: ``https://scroll.press/papers/[unique-id]``
-- **Shareable link**: Copy and paste anywhere
-- **Citation format**: BibTeX, APA, MLA (auto-generated)
-- **DOI**: Coming soon (in beta, you get permanent URLs but not yet DOIs)
-
-Example citation:
-
-.. code-block:: bibtex
-
-   @article{torres2026webfirst,
-     title={Why Web-First Scientific Publishing Matters},
-     author={Torres, Leo},
-     year={2026},
-     journal={Scroll Press},
-     url={https://scroll.press/papers/abc123def456}
-   }
-
-Updating Your Paper
-*******************
-
-Press supports **versioning**. To publish an update:
-
-1. Edit your ``manuscript.rsm`` file
-2. Rebuild with standalone flag: ``rsm build manuscript.rsm --standalone``
-3. Go to your paper's page on Press
-4. Click **"Upload New Version"**
-5. Upload the updated HTML file
-
-Each version gets a unique URL (e.g., ``/papers/abc123def456/v2``), and the main URL always points to the latest version.
 
 Troubleshooting
 ***************
@@ -162,7 +108,8 @@ Troubleshooting
 **"Upload failed: Missing required metadata"**
 
 - Make sure your manuscript has title, author (with name), and abstract
-- Run ``rsm check manuscript.rsm`` to validate
+- For RSM: Run ``rsm check manuscript.rsm`` to validate
+- For other formats: Check your HTML has proper metadata tags
 
 **"Upload failed: File too large"**
 
@@ -228,7 +175,7 @@ Comparison: Press vs. Other Archives
      - Free
      - Hosting costs
    * - Community
-     - RSM-focused
+     - Web-first research
      - Broad academic
      - Broad academic
      - None
@@ -238,7 +185,7 @@ Comparison: Press vs. Other Archives
 - You value web-first reading experience
 - Your paper has interactive visualizations or code
 - You want responsive design (mobile-friendly)
-- You're publishing in RSM format
+- You're publishing in HTML format (RSM, Quarto, Jupyter, etc.)
 
 **When to use arXiv**:
 
@@ -249,29 +196,3 @@ Comparison: Press vs. Other Archives
 **Why not both?**
 
 You can publish on both Press (HTML version) and arXiv (PDF version). Many authors do this to reach both audiences.
-
-Next Steps
-**********
-
-After publishing to Press:
-
-- Share your paper on social media (Twitter, Mastodon, LinkedIn)
-- Add it to your CV and personal website
-- Submit to conferences or journals (Press papers are citable)
-- Engage with readers (Press supports comments—coming soon)
-
-.. tip::
-
-   **Dogfooding**: If you're developing tools for RSM or Press, publish your documentation and blog posts as Press papers. It's great dogfooding and helps build the community.
-
-Resources
-*********
-
-- `Scroll Press Documentation <https://scroll.press/docs>`_
-- `Press GitHub Repository <https://github.com/leotrs/press>`_ (open source)
-- `RSM to Press Workflow Video <https://www.youtube.com/watch?v=...>`_ (coming soon)
-- Community forum: https://rsm.studio/community (coming soon)
-
-.. admonition:: Feedback Welcome
-
-   Press is in beta. If you encounter bugs or have feature requests, please open an issue on `GitHub <https://github.com/leotrs/press/issues>`_.

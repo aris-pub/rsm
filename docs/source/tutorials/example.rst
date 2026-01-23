@@ -190,10 +190,16 @@ A paper with code, data, and visualizations (conceptual—RSM doesn't execute co
 
    ## Results
 
-   The results are shown in the figure below (note: this example uses a placeholder
-   since we don't have an actual image file).
+   :figure: {
+     :path: _static/images/performance-plot.svg
+     :label: fig-results
+   }
+   :caption: Model performance across dataset sizes. Linear regression
+   (blue) outperforms neural networks (red) for $n < 500$.
+   ::
 
-   Linear regression achieves the best performance on datasets with fewer than 500 samples.
+   As shown in :ref:fig-results::, linear regression achieves the best performance
+   on datasets with fewer than 500 samples.
 
    ## Conclusion
 
@@ -213,10 +219,76 @@ A paper with code, data, and visualizations (conceptual—RSM doesn't execute co
    ::
 
 
+Interactive Visualization Example
+**********************************
+
+A physics paper with interactive web-based visualizations.
+
+.. rsm::
+
+   # Damped Harmonic Oscillators
+
+   :author: {
+     :name: Dr. Physics Researcher
+     :affiliation: Institute of Classical Mechanics
+   } ::
+
+   :abstract:
+   We explore the three regimes of damped harmonic motion and provide interactive
+   visualizations showing the qualitative differences between underdamped, critically
+   damped, and overdamped oscillators.
+   ::
+
+   ## The Damped Oscillator Equation
+
+   A damped harmonic oscillator is governed by the differential equation:
+
+   $$
+   m\frac{d^2x}{dt^2} + \gamma\frac{dx}{dt} + kx = 0
+   $$
+
+   where $m$ is mass, $\gamma$ is the damping coefficient, and $k$ is the spring constant.
+
+   ## Three Damping Regimes
+
+   The behavior depends on the discriminant $\Delta = \gamma^2 - 4mk$\:
+
+   :definition: {:label: def-underdamped}
+   **Underdamped** ($\Delta < 0$): The system oscillates with exponentially decaying amplitude.
+   ::
+
+   :definition: {:label: def-critical}
+   **Critically damped** ($\Delta = 0$): The system returns to equilibrium in minimum time
+   without oscillating.
+   ::
+
+   :definition: {:label: def-overdamped}
+   **Overdamped** ($\Delta > 0$): The system returns to equilibrium slowly without oscillating.
+   ::
+
+   ## Interactive Visualization
+
+   The widget below allows you to explore all three regimes by adjusting the damping
+   parameter. Notice how the phase space trajectories change qualitatively between regimes.
+
+   :html: {
+     :path: _static/widgets/damped_oscillator_widget.html
+   }
+   :caption: Interactive damped oscillator simulation showing position vs. time and phase
+   space trajectories for all three damping regimes.
+   ::
+
+   ## Conclusion
+
+   Interactive visualizations like this are **only possible in web-first publications**.
+   Traditional PDFs cannot embed dynamic content, making it harder to build intuition
+   for parameter-dependent phenomena.
+
+
 Try These Examples
 ******************
 
-All three examples are valid RSM syntax. Try them:
+All four examples are valid RSM syntax. Try them:
 
 1. Copy any example to a file (e.g., ``example.rsm``)
 2. Run: ``rsm build example.rsm``

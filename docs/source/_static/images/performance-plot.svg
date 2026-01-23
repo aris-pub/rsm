@@ -1,0 +1,100 @@
+<svg width="600" height="400" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="600" height="400" fill="white"/>
+
+  <!-- Title -->
+  <text x="300" y="30" font-size="18" font-weight="bold" text-anchor="middle" font-family="sans-serif">
+    Model Performance Across Dataset Sizes
+  </text>
+
+  <!-- Axes -->
+  <line x1="80" y1="50" x2="80" y2="320" stroke="black" stroke-width="2"/>
+  <line x1="80" y1="320" x2="550" y2="320" stroke="black" stroke-width="2"/>
+
+  <!-- Y-axis labels -->
+  <text x="70" y="70" text-anchor="end" font-size="12" font-family="sans-serif">0.9</text>
+  <text x="70" y="120" text-anchor="end" font-size="12" font-family="sans-serif">0.8</text>
+  <text x="70" y="170" text-anchor="end" font-size="12" font-family="sans-serif">0.7</text>
+  <text x="70" y="220" text-anchor="end" font-size="12" font-family="sans-serif">0.6</text>
+  <text x="70" y="270" text-anchor="end" font-size="12" font-family="sans-serif">0.5</text>
+  <text x="70" y="320" text-anchor="end" font-size="12" font-family="sans-serif">0.4</text>
+
+  <!-- X-axis labels -->
+  <text x="127" y="340" text-anchor="middle" font-size="12" font-family="sans-serif">200</text>
+  <text x="221" y="340" text-anchor="middle" font-size="12" font-family="sans-serif">400</text>
+  <text x="315" y="340" text-anchor="middle" font-size="12" font-family="sans-serif">600</text>
+  <text x="409" y="340" text-anchor="middle" font-size="12" font-family="sans-serif">800</text>
+  <text x="503" y="340" text-anchor="middle" font-size="12" font-family="sans-serif">1000</text>
+
+  <!-- Axis titles -->
+  <text x="30" y="185" font-size="14" font-family="sans-serif" transform="rotate(-90 30 185)">R² Score</text>
+  <text x="315" y="370" font-size="14" font-family="sans-serif" text-anchor="middle">Dataset Size (n)</text>
+
+  <!-- Grid lines -->
+  <line x1="80" y1="70" x2="550" y2="70" stroke="#e0e0e0" stroke-width="1"/>
+  <line x1="80" y1="120" x2="550" y2="120" stroke="#e0e0e0" stroke-width="1"/>
+  <line x1="80" y1="170" x2="550" y2="170" stroke="#e0e0e0" stroke-width="1"/>
+  <line x1="80" y1="220" x2="550" y2="220" stroke="#e0e0e0" stroke-width="1"/>
+  <line x1="80" y1="270" x2="550" y2="270" stroke="#e0e0e0" stroke-width="1"/>
+
+  <!-- Vertical line at n=500 -->
+  <line x1="315" y1="50" x2="315" y2="320" stroke="#999" stroke-width="1" stroke-dasharray="5,5"/>
+  <text x="325" y="280" font-size="11" fill="#666" font-family="sans-serif">n &lt; 500</text>
+
+  <!-- Linear Regression (blue) - starts high, stays relatively flat, slight decline -->
+  <polyline points="80,130 127,120 174,115 221,110 268,115 315,120 362,125 409,130 456,135 503,140"
+            fill="none" stroke="#2E86AB" stroke-width="3"/>
+  <circle cx="80" cy="130" r="4" fill="#2E86AB"/>
+  <circle cx="127" cy="120" r="4" fill="#2E86AB"/>
+  <circle cx="174" cy="115" r="4" fill="#2E86AB"/>
+  <circle cx="221" cy="110" r="4" fill="#2E86AB"/>
+  <circle cx="268" cy="115" r="4" fill="#2E86AB"/>
+  <circle cx="315" cy="120" r="4" fill="#2E86AB"/>
+  <circle cx="362" cy="125" r="4" fill="#2E86AB"/>
+  <circle cx="409" cy="130" r="4" fill="#2E86AB"/>
+  <circle cx="456" cy="135" r="4" fill="#2E86AB"/>
+  <circle cx="503" cy="140" r="4" fill="#2E86AB"/>
+
+  <!-- Random Forest (purple) - starts medium, curves up -->
+  <polyline points="80,245 127,205 174,175 221,150 268,135 315,125 362,118 409,113 456,110 503,110"
+            fill="none" stroke="#A23B72" stroke-width="3"/>
+  <rect x="76" y="241" width="8" height="8" fill="#A23B72"/>
+  <rect x="123" y="201" width="8" height="8" fill="#A23B72"/>
+  <rect x="170" y="171" width="8" height="8" fill="#A23B72"/>
+  <rect x="217" y="146" width="8" height="8" fill="#A23B72"/>
+  <rect x="264" y="131" width="8" height="8" fill="#A23B72"/>
+  <rect x="311" y="121" width="8" height="8" fill="#A23B72"/>
+  <rect x="358" y="114" width="8" height="8" fill="#A23B72"/>
+  <rect x="405" y="109" width="8" height="8" fill="#A23B72"/>
+  <rect x="452" y="106" width="8" height="8" fill="#A23B72"/>
+  <rect x="499" y="106" width="8" height="8" fill="#A23B72"/>
+
+  <!-- Neural Network (orange) - starts low, curves up sharply -->
+  <polyline points="80,295 127,245 174,200 221,165 268,140 315,120 362,115 409,113 456,110 503,108"
+            fill="none" stroke="#F18F01" stroke-width="3"/>
+  <polygon points="80,290 84,300 76,300" fill="#F18F01"/>
+  <polygon points="127,240 131,250 123,250" fill="#F18F01"/>
+  <polygon points="174,195 178,205 170,205" fill="#F18F01"/>
+  <polygon points="221,160 225,170 217,170" fill="#F18F01"/>
+  <polygon points="268,135 272,145 264,145" fill="#F18F01"/>
+  <polygon points="315,115 319,125 311,125" fill="#F18F01"/>
+  <polygon points="362,110 366,120 358,120" fill="#F18F01"/>
+  <polygon points="409,108 413,118 405,118" fill="#F18F01"/>
+  <polygon points="456,105 460,115 452,115" fill="#F18F01"/>
+  <polygon points="503,103 507,113 499,113" fill="#F18F01"/>
+
+  <!-- Legend -->
+  <rect x="400" y="250" width="140" height="60" fill="white" stroke="#ccc" stroke-width="1"/>
+
+  <line x1="410" y1="265" x2="440" y2="265" stroke="#2E86AB" stroke-width="3"/>
+  <circle cx="425" cy="265" r="4" fill="#2E86AB"/>
+  <text x="445" y="270" font-size="12" font-family="sans-serif">Linear Regression</text>
+
+  <line x1="410" y1="283" x2="440" y2="283" stroke="#A23B72" stroke-width="3"/>
+  <rect x="421" y="279" width="8" height="8" fill="#A23B72"/>
+  <text x="445" y="288" font-size="12" font-family="sans-serif">Random Forest</text>
+
+  <line x1="410" y1="301" x2="440" y2="301" stroke="#F18F01" stroke-width="3"/>
+  <polygon points="425,296 429,306 421,306" fill="#F18F01"/>
+  <text x="445" y="306" font-size="12" font-family="sans-serif">Neural Network</text>
+</svg>

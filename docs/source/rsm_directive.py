@@ -16,6 +16,25 @@ from docutils.parsers.rst import Directive
 import rsm
 
 
+class SourceDirAssetResolver:
+    """Asset resolver that resolves paths relative to the source directory."""
+
+    def __init__(self, base_dir: Path):
+        self.base_dir = base_dir
+
+    def resolve_asset(self, path: str) -> str | None:
+        """Resolve asset paths relative to source directory."""
+        asset_path = self.base_dir / path
+        try:
+            return asset_path.read_text(encoding="utf-8")
+        except FileNotFoundError:
+            print(f"Asset file not found: {asset_path}")
+            return None
+        except (OSError, UnicodeDecodeError) as e:
+            print(f"Error reading asset file {asset_path}: {e}")
+            return None
+
+
 class rsm_example(nodes.Element):
     pass
 
@@ -45,31 +64,12 @@ class RSMDirective(Directive):
         n1["classes"].append("rsm-example-code")
         print(f"\n{'='*60}\nRSM DIRECTIVE RENDERING:\n{repr(content)}\n{'='*60}\n")
 
-        # Use standalone mode but we need to inline RSM CSS since CDN @import doesn't work in iframes
-        html_output = rsm.build(source=content, handrails=True, standalone=True, theme_toggle=False, menu_position="right")
+        # Use standalone mode - it uses CDN for CSS and inlines JavaScript
+        # Use custom asset resolver to resolve paths relative to source directory
+        source_dir = Path(__file__).parent
+        asset_resolver = SourceDirAssetResolver(source_dir)
+        html_output = rsm.build(source=content, asset_resolver=asset_resolver, handrails=True, standalone=True, theme_toggle=False, menu_position="right")
         html_output = html_output.replace('class="manuscriptwrapper"', 'class="manuscriptwrapper embedded"')
-
-        # Replace CDN CSS links with inlined CSS to ensure Pygments works
-        rsm_css_path = Path(__file__).parent.parent.parent / "rsm" / "static" / "rsm.css"
-        pygments_css_path = Path(__file__).parent.parent.parent / "rsm" / "static" / "pygments.css"
-
-        if rsm_css_path.exists() and pygments_css_path.exists():
-            rsm_css = rsm_css_path.read_text()
-            pygments_css = pygments_css_path.read_text()
-
-            # Remove the @import for pygments since we're inlining it directly
-            rsm_css = rsm_css.replace("@import url('pygments.css') layer(base);", "")
-
-            inlined_css = f"""<style>
-{pygments_css}
-{rsm_css}
-</style>"""
-
-            # Replace the CDN link with inlined CSS
-            html_output = html_output.replace(
-                '<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/aris-pub/rsm@main/rsm/static/rsm.css" />',
-                inlined_css
-            )
 
         if app.config.rsm_build_prod:
             # Production: Inline via srcdoc for complete isolation

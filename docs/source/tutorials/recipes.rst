@@ -96,9 +96,10 @@ Include images in your manuscript:
 
    :figure: {
      :label: fig-example
-     :caption: A simple diagram showing the concept.
-     :path: images/diagram.png
-   } ::
+     :path: _static/images/diagram.svg
+   }
+   :caption: A simple diagram showing the concept.
+   ::
 
 Reference the figure with ``:ref:fig-example::``.
 
