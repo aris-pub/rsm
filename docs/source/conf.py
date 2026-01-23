@@ -149,6 +149,3 @@ def linkcode_resolve(domain, info):
 ###############
 # RSM directive
 ###############
-# rsm_static_path_dev = ""
-# rsm_static_path_prod = ""
-rsm_build_prod = False

@@ -23,9 +23,18 @@ html[data-theme="dark"] {
   gap: 2%;
 }
 
+.rsm-example.vertical {
+  flex-direction: column;
+  gap: 1rem;
+}
+
 .rsm-example-code {
   width: 49% !important;
   margin-top: 0 !important;
+}
+
+.rsm-example.vertical .rsm-example-code {
+  width: 100% !important;
 }
 
 .rsm-example-code .highlight {
@@ -44,12 +53,20 @@ html[data-theme="dark"] {
   margin-bottom: 1em;
 }
 
+.rsm-example.vertical .manuscriptwrapper.embedded {
+  width: 100%;
+}
+
 .rsm-example-iframe {
   width: 49%;
   border: 1px solid var(--pst-color-border);
   border-radius: 0.25rem;
   background: white;
   overflow: hidden;
+}
+
+.rsm-example.vertical .rsm-example-iframe {
+  width: 100%;
 }
 
 .bd-sidebar-primary {
