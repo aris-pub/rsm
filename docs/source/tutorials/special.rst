@@ -56,10 +56,13 @@ Code allows shorthand notation using one backtick ````` for inline or three ````
 .. rsm::
 
    Either
+
    :codeblock:
    var = "value"
    ::
+
    or
+
    ```
    2 + 2 = 4.
    ```

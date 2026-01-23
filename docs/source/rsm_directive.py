@@ -75,14 +75,19 @@ class RSMDirective(Directive):
             'handrails': True,
             'standalone': True,
             'theme_toggle': False,
-            'menu_position': 'right'
+            'menu_position': 'right',
+            'strict': True
         }
         if custom_css:
             custom_css_path = source_dir / custom_css
             if custom_css_path.exists():
                 build_kwargs['custom_css'] = str(custom_css_path)
 
-        html_output = rsm.build(**build_kwargs)
+        try:
+            html_output = rsm.build(**build_kwargs)
+        except Exception as e:
+            source_file = self.state.document.current_source
+            raise type(e)(f"Error in {source_file}:\n{e}") from e
         html_output = html_output.replace('class="manuscriptwrapper"', 'class="manuscriptwrapper embedded"')
 
         # Fix relative paths to _static to work from _examples/ directory
