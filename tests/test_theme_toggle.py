@@ -16,7 +16,8 @@ class TestThemeToggleParameter:
         result = rsm.build(source, handrails=False, lint=False, theme_toggle=True)
 
         assert 'class="dark-mode-toggle"' in result
-        assert 'onclick="toggleDarkMode()"' in result
+        assert "addEventListener('click'" in result
+        assert 'onclick=' not in result
 
     def test_theme_toggle_false_excludes_button(self):
         """Test that theme_toggle=False excludes dark mode toggle button."""
@@ -24,7 +25,7 @@ class TestThemeToggleParameter:
         result = rsm.build(source, handrails=False, lint=False, theme_toggle=False)
 
         assert 'class="dark-mode-toggle"' not in result
-        assert 'onclick="toggleDarkMode()"' not in result
+        assert "addEventListener('click'" not in result
 
     def test_theme_toggle_true_includes_localstorage_script(self):
         """Test that theme_toggle=True includes localStorage script."""
@@ -33,14 +34,14 @@ class TestThemeToggleParameter:
 
         assert 'localStorage.getItem' in result
         assert 'rsm-theme' in result
-        assert 'function toggleDarkMode()' in result
+        assert "addEventListener('click'" in result
 
     def test_theme_toggle_false_excludes_localstorage_script(self):
         """Test that theme_toggle=False excludes localStorage script."""
         source = ":rsm:\n\nHello world.\n\n::"
         result = rsm.build(source, handrails=False, lint=False, theme_toggle=False)
 
-        assert 'function toggleDarkMode()' not in result
+        assert "addEventListener('click'" not in result
 
     def test_theme_toggle_default_is_true(self):
         """Test that theme_toggle defaults to True for backwards compatibility."""
@@ -48,7 +49,7 @@ class TestThemeToggleParameter:
         result = rsm.build(source, handrails=False, lint=False)
 
         assert 'class="dark-mode-toggle"' in result
-        assert 'function toggleDarkMode()' in result
+        assert "addEventListener('click'" in result
 
     def test_theme_toggle_works_with_standalone(self):
         """Test that theme_toggle works with standalone=True."""
@@ -58,7 +59,7 @@ class TestThemeToggleParameter:
         )
 
         assert 'class="dark-mode-toggle"' not in result
-        assert 'function toggleDarkMode()' not in result
+        assert "addEventListener('click'" not in result
         # Should still be valid standalone HTML
         assert "cdn.jsdelivr.net" in result
 
@@ -76,7 +77,7 @@ class TestThemeToggleBuilder:
 
         html = web.readtext("index.html")
         assert 'class="dark-mode-toggle"' not in html
-        assert 'function toggleDarkMode()' not in html
+        assert "addEventListener('click'" not in html
 
     def test_standalone_builder_with_theme_toggle_false(self, tmp_path):
         """Test StandaloneBuilder respects theme_toggle=False."""
@@ -88,7 +89,7 @@ class TestThemeToggleBuilder:
 
         html = web.readtext("index.html")
         assert 'class="dark-mode-toggle"' not in html
-        assert 'function toggleDarkMode()' not in html
+        assert "addEventListener('click'" not in html
 
     def test_builder_theme_toggle_default_is_true(self, tmp_path):
         """Test that builder theme_toggle defaults to True."""
@@ -100,4 +101,4 @@ class TestThemeToggleBuilder:
 
         html = web.readtext("index.html")
         assert 'class="dark-mode-toggle"' in html
-        assert 'function toggleDarkMode()' in html
+        assert "addEventListener('click'" in html
