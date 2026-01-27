@@ -15,7 +15,7 @@ class TestThemeToggleParameter:
         source = ":rsm:\n\nHello world.\n\n::"
         result = rsm.build(source, handrails=False, lint=False, theme_toggle=True)
 
-        assert 'class="dark-mode-toggle"' in result
+        assert 'class="rsm-theme-toggle"' in result
         assert "addEventListener('click'" in result
         assert 'onclick=' not in result
 
@@ -24,7 +24,7 @@ class TestThemeToggleParameter:
         source = ":rsm:\n\nHello world.\n\n::"
         result = rsm.build(source, handrails=False, lint=False, theme_toggle=False)
 
-        assert 'class="dark-mode-toggle"' not in result
+        assert 'class="rsm-theme-toggle"' not in result
         assert "addEventListener('click'" not in result
 
     def test_theme_toggle_true_includes_localstorage_script(self):
@@ -48,7 +48,7 @@ class TestThemeToggleParameter:
         source = ":rsm:\n\nHello world.\n\n::"
         result = rsm.build(source, handrails=False, lint=False)
 
-        assert 'class="dark-mode-toggle"' in result
+        assert 'class="rsm-theme-toggle"' in result
         assert "addEventListener('click'" in result
 
     def test_theme_toggle_works_with_standalone(self):
@@ -58,7 +58,7 @@ class TestThemeToggleParameter:
             source, handrails=False, lint=False, standalone=True, theme_toggle=False
         )
 
-        assert 'class="dark-mode-toggle"' not in result
+        assert 'class="rsm-theme-toggle"' not in result
         assert "addEventListener('click'" not in result
         # Should still be valid standalone HTML
         assert "cdn.jsdelivr.net" in result
@@ -76,7 +76,7 @@ class TestThemeToggleBuilder:
         web = builder.build(body, src=tmp_path / "test.rsm")
 
         html = web.readtext("index.html")
-        assert 'class="dark-mode-toggle"' not in html
+        assert 'class="rsm-theme-toggle"' not in html
         assert "addEventListener('click'" not in html
 
     def test_standalone_builder_with_theme_toggle_false(self, tmp_path):
@@ -88,7 +88,7 @@ class TestThemeToggleBuilder:
         web = builder.build(body, src=tmp_path / "test.rsm")
 
         html = web.readtext("index.html")
-        assert 'class="dark-mode-toggle"' not in html
+        assert 'class="rsm-theme-toggle"' not in html
         assert "addEventListener('click'" not in html
 
     def test_builder_theme_toggle_default_is_true(self, tmp_path):
@@ -100,5 +100,5 @@ class TestThemeToggleBuilder:
         web = builder.build(body, src=tmp_path / "test.rsm")
 
         html = web.readtext("index.html")
-        assert 'class="dark-mode-toggle"' in html
+        assert 'class="rsm-theme-toggle"' in html
         assert "addEventListener('click'" in html

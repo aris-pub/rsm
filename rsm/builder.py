@@ -86,7 +86,7 @@ class HTMLBuilder(BaseBuilder):
     def _inject_dark_mode_button(self, body: str) -> str:
         """Inject dark mode toggle button right after <body> tag."""
         button_html = dedent("""\
-            <button class="dark-mode-toggle" aria-label="Toggle dark mode">
+            <button class="rsm-theme-toggle" aria-label="Toggle dark mode">
               <svg class="light-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="12" r="4"></circle>
                 <path d="M12 2v2"></path>
@@ -143,7 +143,7 @@ class HTMLBuilder(BaseBuilder):
               }
 
               document.addEventListener('DOMContentLoaded', function() {
-                const toggleButton = document.querySelector('.dark-mode-toggle');
+                const toggleButton = document.querySelector('.rsm-theme-toggle');
                 if (toggleButton) {
                   toggleButton.addEventListener('click', function() {
                     const isDark = document.documentElement.classList.toggle('dark-theme');

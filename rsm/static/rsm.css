@@ -1376,7 +1376,7 @@ a.reference.external:hover::after {
 }
 
 /* Dark mode toggle button */
-.dark-mode-toggle {
+.rsm-theme-toggle {
   position: fixed;
   top: 1rem;
   right: 1rem;
@@ -1395,37 +1395,37 @@ a.reference.external:hover::after {
   padding: 0;
 }
 
-.dark-mode-toggle:hover {
+.rsm-theme-toggle:hover {
   transform: scale(1.1);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
   background-color: var(--surface-hover);
 }
 
-.dark-mode-toggle:active {
+.rsm-theme-toggle:active {
   transform: scale(0.95);
 }
 
-.dark-mode-toggle:focus-visible {
+.rsm-theme-toggle:focus-visible {
   outline: 2px solid var(--border-action);
   outline-offset: 2px;
 }
 
-.dark-mode-toggle svg {
+.rsm-theme-toggle svg {
   width: 1.25rem;
   height: 1.25rem;
   stroke: var(--extra-dark);
 }
 
 /* Show/hide icons based on theme */
-.dark-mode-toggle .dark-icon {
+.rsm-theme-toggle .dark-icon {
   display: none;
 }
 
-.dark-theme .dark-mode-toggle .dark-icon {
+.dark-theme .rsm-theme-toggle .dark-icon {
   display: block;
 }
 
-.dark-theme .dark-mode-toggle .light-icon {
+.dark-theme .rsm-theme-toggle .light-icon {
   display: none;
 }
 
