@@ -257,12 +257,17 @@ class StandaloneBuilder(HTMLBuilder):
       if (isDark) {
         document.documentElement.classList.add('dark-theme');
       }
-    })();
 
-    function toggleDarkMode() {
-      const isDark = document.documentElement.classList.toggle('dark-theme');
-      localStorage.setItem('rsm-theme', isDark ? 'dark' : 'light');
-    }
+      document.addEventListener('DOMContentLoaded', function() {
+        const toggleButton = document.querySelector('.rsm-theme-toggle');
+        if (toggleButton) {
+          toggleButton.addEventListener('click', function() {
+            const isDark = document.documentElement.classList.toggle('dark-theme');
+            localStorage.setItem('rsm-theme', isDark ? 'dark' : 'light');
+          });
+        }
+      });
+    })();
   </script>
 """
 
