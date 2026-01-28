@@ -113,6 +113,34 @@ def _cmd_check(args: Namespace) -> int:
     return _run_app(app.lint, args, print_output=False)
 
 
+def _cmd_parse(args: Namespace) -> int:
+    """Handle 'rsm parse' subcommand - output AST as JSON."""
+    import json
+
+    kwargs = {
+        "loglevel": app.RSMApp.default_log_level - args.verbose * 10,
+        "log_format": args.log_format,
+        "log_time": args.log_time,
+        "log_lineno": args.log_lineno,
+        "strict": args.strict,
+    }
+    if args.string:
+        kwargs["plain"] = args.src
+    else:
+        kwargs["srcpath"] = Path(args.src)
+
+    # Parse the document
+    parser = app.ParserApp(**kwargs)
+    manuscript = parser.run()
+
+    # Serialize to JSON
+    ast_dict = manuscript.to_dict()
+    json_output = json.dumps(ast_dict, indent=2 if args.pretty else None)
+
+    print(json_output)
+    return 0
+
+
 def _parse_output_flag(value: str) -> tuple[str, str]:
     """Parse -o flag into (output_dir, output_filename).
 
@@ -802,6 +830,19 @@ def main() -> int:
     )
     _add_common_args(check_parser)
     check_parser.set_defaults(log_format="lint", func=_cmd_check)
+
+    # Parse subcommand
+    parse_parser = subparsers.add_parser(
+        "parse",
+        help="parse RSM source and output AST as JSON",
+    )
+    _add_common_args(parse_parser)
+    parse_parser.add_argument(
+        "--pretty",
+        help="pretty-print JSON output with indentation",
+        action="store_true",
+    )
+    parse_parser.set_defaults(func=_cmd_parse)
 
     # Serve subcommand
     serve_parser = subparsers.add_parser(
