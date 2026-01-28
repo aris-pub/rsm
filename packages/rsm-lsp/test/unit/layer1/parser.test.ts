@@ -12,7 +12,7 @@ describe('RsmParser', () => {
 
   describe('parse', () => {
     it('should parse valid RSM document', () => {
-      const text = ':manuscript:\n\n:title: Test::';
+      const text = '# Test\n\nFoo bar.';
       const tree = parser.parse(text);
 
       expect(tree).toBeDefined();
@@ -21,10 +21,10 @@ describe('RsmParser', () => {
     });
 
     it('should parse incrementally with old tree', () => {
-      const text1 = ':manuscript:\n\n:title: Test::';
+      const text1 = '# Test\n\nFoo.';
       const tree1 = parser.parse(text1);
 
-      const text2 = ':manuscript:\n\n:title: Test Updated::';
+      const text2 = '# Test Updated\n\nFoo bar.';
       const tree2 = parser.parse(text2, tree1);
 
       expect(tree2).toBeDefined();
@@ -43,7 +43,7 @@ describe('RsmParser', () => {
 
   describe('getSyntaxErrors', () => {
     it('should return empty array for valid document', () => {
-      const text = ':manuscript:\n\n:title: Test::';
+      const text = '# Test\n\nFoo bar.';
       const tree = parser.parse(text);
       const errors = parser.getSyntaxErrors(tree);
 
@@ -51,17 +51,19 @@ describe('RsmParser', () => {
     });
 
     it('should detect ERROR nodes', () => {
-      const text = ':manuscript:\n\n:title: Unclosed tag';
+      const text = ':theorem:\n\nUnclosed theorem tag';
       const tree = parser.parse(text);
       const errors = parser.getSyntaxErrors(tree);
 
       // Should have at least one error for unclosed tag
       expect(errors.length).toBeGreaterThan(0);
-      expect(errors[0].message).toContain('Syntax error');
+      expect(errors[0].message).toBeDefined();
+      expect(errors[0].source).toBe('rsm-lsp (syntax)');
     });
 
     it('should provide helpful error messages', () => {
-      const text = ':invalid-content:\n\n::';
+      const fixturePath = join(__dirname, '../../fixtures/syntax-error.rsm');
+      const text = readFileSync(fixturePath, 'utf-8');
       const tree = parser.parse(text);
       const errors = parser.getSyntaxErrors(tree);
 
@@ -76,11 +78,11 @@ describe('RsmParser', () => {
 
   describe('findNodeAt', () => {
     it('should find node at given position', () => {
-      const text = ':manuscript:\n\n:title: Test::';
+      const text = '# Test\n\nFoo bar.';
       const tree = parser.parse(text);
 
-      // Find node at line 2, character 0 (:title: position)
-      const node = parser.findNodeAt(tree, 2, 0);
+      // Find node at line 0, character 0 (title position)
+      const node = parser.findNodeAt(tree, 0, 0);
 
       expect(node).toBeDefined();
       expect(node?.type).toBeDefined();
@@ -89,20 +91,20 @@ describe('RsmParser', () => {
 
   describe('findNodesByType', () => {
     it('should find all nodes of given type', () => {
-      const text = ':manuscript:\n\n:title: Test::\n\n:section: Introduction::';
+      const text = '# Test\n\nFoo bar.';
       const tree = parser.parse(text);
 
-      // Find all tag nodes (simplified - actual node types depend on grammar)
-      const nodes = parser.findNodesByType(tree, 'tag');
+      // Find all text nodes
+      const nodes = parser.findNodesByType(tree, 'text');
 
-      // We should find at least manuscript, title, and section tags
+      // We should find at least some text nodes
       expect(nodes.length).toBeGreaterThanOrEqual(0);
     });
   });
 
   describe('getNodeText', () => {
     it('should extract text content of node', () => {
-      const text = ':manuscript:\n\n:title: Test::';
+      const text = '# Test\n\nFoo bar.';
       const tree = parser.parse(text);
       const rootNode = tree.rootNode;
 

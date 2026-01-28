@@ -17,7 +17,7 @@ export class RsmParser {
   constructor() {
     this.parser = new Parser();
     try {
-      this.parser.setLanguage(TreeSitterRSM.language);
+      this.parser.setLanguage(TreeSitterRSM);
       logger.debug('RSM parser initialized successfully');
     } catch (error) {
       logger.error('Failed to initialize RSM parser:', error);
