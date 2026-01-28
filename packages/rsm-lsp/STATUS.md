@@ -35,47 +35,34 @@
    - README.md with installation and usage instructions
    - Configuration reference for Emacs (eglot/lsp-mode)
 
-### ⚠️ Blocking Issue: tree-sitter Version Mismatch
+### ✅ Resolved: tree-sitter Integration
 
-**Problem**: tree-sitter CLI (0.25.3) and runtime (0.22.4) are incompatible.
+**Issue**: tree-sitter version compatibility and parser initialization
+- Pinned tree-sitter CLI to 0.22.4 (exact version)
+- Pinned tree-sitter runtime to 0.22.4 (exact version)
+- Regenerated parser with matching CLI version
+- Fixed parser.ts to use `TreeSitterRSM` directly (not `.language` property)
 
-**Error**: `Cannot read properties of undefined (reading 'length')` at `initializeLanguageNodeClasses`
+**Test Results**: All 27 tests passing ✅
+- Parser tests: 13/13 passing
+- Completion tests: 14/14 passing
 
-**Root Cause**: The parser was generated with CLI v0.25.3, which produces output incompatible with runtime v0.22.4.
+**Coverage** (core logic):
+- completion.ts: 100%
+- parser.ts: 93.15%
+- Overall: 50.34% (gaps in server.ts and navigation.ts)
 
-**References**:
-- [tree-sitter issue #4234](https://github.com/tree-sitter/tree-sitter/issues/4234) - Known issue with version mismatches
-- [tree-sitter Node bindings](https://github.com/tree-sitter/node-tree-sitter) - Official documentation
+Note: server.ts (0% coverage) requires LSP protocol integration tests, which will be added in Phase 4.
 
-**Solutions to Try**:
-1. **Option A**: Upgrade tree-sitter runtime to 0.25.x (requires successful native build)
-2. **Option B**: Downgrade tree-sitter CLI to 0.22.6 and regenerate parser
-3. **Option C**: Use tree-sitter 0.23.x as a middle ground (not tested)
+### 🔄 Remaining Phase 0 Tasks
 
-**Current State**:
-- Native tree-sitter-rsm bindings built successfully (`build/Release/tree_sitter_rsm_binding.node`)
-- Module loads correctly with `name`, `language`, and `nodeTypeInfo` properties
-- Parser fails when calling `setLanguage()` due to version mismatch
+1. **Manual Emacs integration testing**:
+   - Install LSP globally: `npm install -g .`
+   - Configure Emacs (eglot or lsp-mode)
+   - Test syntax errors, completion, incremental parsing
+   - Document setup in README.md
 
-### Next Steps
-
-1. **Resolve tree-sitter version compatibility**:
-   - Try rebuilding tree-sitter runtime 0.25.x with latest Node.js
-   - Or regenerate parser with tree-sitter CLI 0.22.6
-   - Test parser functionality after resolution
-
-2. **Run full test suite**:
-   ```bash
-   cd packages/rsm-lsp
-   npm test
-   ```
-
-3. **Manual testing**:
-   - Test LSP server in Emacs with eglot
-   - Verify syntax errors appear in real-time
-   - Test tag completion
-
-4. **Continue to Phase 1**: Python AST integration
+2. **Ready for Phase 1**: Python AST integration
 
 ## File Structure
 
@@ -109,8 +96,10 @@ packages/rsm-lsp/
 ## Testing Status
 
 - **Completion tests**: ✅ 14/14 passing
-- **Parser tests**: ⚠️ 13/13 failing (due to tree-sitter version issue)
-- **Coverage target**: >80% (not yet measured due to blocking issue)
+- **Parser tests**: ✅ 13/13 passing
+- **Total**: ✅ 27/27 tests passing
+- **Core coverage**: completion.ts (100%), parser.ts (93.15%)
+- **Overall coverage**: 50.34% (server.ts needs integration tests in Phase 4)
 
 ## Build Commands
 
