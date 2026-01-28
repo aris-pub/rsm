@@ -12,11 +12,11 @@ import {
 } from 'vscode-languageserver/node';
 
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import { Diagnostic } from 'vscode-languageserver';
 import { RsmParser, ParseTreeCache } from './layer1/parser';
 import { getTagCompletions, getPartialTag } from './layer1/completion';
 import { parseWithPython } from './layer2/python';
 import { ASTCache, Debouncer } from './layer2';
+import { runSemanticDiagnostics } from './diagnostics/engine';
 import { logger } from './utils/logger';
 
 // Create LSP connection
@@ -97,16 +97,18 @@ async function validateSemantics(document: TextDocument): Promise<void> {
 
     logger.info(`Python parse completed in ${elapsed}ms for ${uri}`);
 
-    // TODO: Extract semantic diagnostics from AST
-    // For now, just combine with existing Layer 1 diagnostics
+    // Run semantic diagnostics on AST
+    const layer2 = runSemanticDiagnostics(ast);
+
+    // Get Layer 1 (syntax) diagnostics
     const layer1 = parser.getSyntaxErrors(parseCache.get(uri)?.tree!);
 
     // Merge Layer 1 and Layer 2 diagnostics
-    const allDiagnostics = [...layer1];
+    const allDiagnostics = [...layer1, ...layer2];
 
     connection.sendDiagnostics({ uri, diagnostics: allDiagnostics });
 
-    logger.debug(`Sent ${allDiagnostics.length} total diagnostics for ${uri}`);
+    logger.debug(`Sent ${allDiagnostics.length} total diagnostics (${layer1.length} syntax + ${layer2.length} semantic) for ${uri}`);
   } catch (error) {
     logger.error(`Python parse failed for ${uri}:`, error);
 
