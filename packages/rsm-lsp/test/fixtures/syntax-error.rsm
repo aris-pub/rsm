@@ -1,0 +1,9 @@
+# Document with Errors
+
+:theorem:
+
+This theorem tag is not closed properly.
+
+## Valid Section
+
+But this one is fine.

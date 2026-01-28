@@ -157,3 +157,4 @@ wheelhouse/
 rsm-examples/*.html
 rsm-examples/static
 rsm/static/plotly-chart.html
+.claude/skills
