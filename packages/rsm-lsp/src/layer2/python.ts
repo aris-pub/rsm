@@ -5,6 +5,9 @@
 
 import { exec } from 'child_process';
 import { promisify } from 'util';
+import { writeFile, unlink } from 'fs/promises';
+import { tmpdir } from 'os';
+import { join } from 'path';
 import { ASTNode } from './ast';
 import { logger } from '../utils/logger';
 
@@ -31,17 +34,19 @@ export async function parseWithPython(
   timeout = 5000
 ): Promise<ParseResult> {
   const startTime = Date.now();
+  let tempFile: string | null = null;
 
   try {
-    // Escape text for shell
-    const escapedText = text.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\$/g, '\\$');
+    // Write text to temporary file
+    tempFile = join(tmpdir(), `rsm-lsp-${Date.now()}-${Math.random().toString(36).slice(2)}.rsm`);
+    await writeFile(tempFile, text, 'utf-8');
 
-    // Call rsm parse -c with the document text
-    const command = `uv run rsm parse -c "${escapedText}" --log-format json --log-no-timestamps --log-no-lineno`;
+    // Call rsm parse with temp file
+    const command = `uv run rsm parse "${tempFile}" --log-format json --log-no-timestamps --log-no-lineno`;
 
-    logger.debug(`Calling Python: ${command.substring(0, 100)}...`);
+    logger.debug(`Calling Python with temp file: ${tempFile}`);
 
-    const { stdout, stderr } = await execAsync(command, {
+    const { stdout } = await execAsync(command, {
       timeout,
       maxBuffer: 10 * 1024 * 1024, // 10MB buffer
       cwd: process.cwd(),
@@ -70,7 +75,7 @@ export async function parseWithPython(
         throw new Error(`Failed to parse Python output: ${error.message}`);
       }
 
-      // Otherwise, it's likely a subprocess error
+      // Otherwise, it's a subprocess error
       const stderr = (error as any).stderr || '';
       throw {
         message: error.message,
@@ -79,6 +84,16 @@ export async function parseWithPython(
     }
 
     throw error;
+  } finally {
+    // Clean up temp file
+    if (tempFile) {
+      try {
+        await unlink(tempFile);
+        logger.debug(`Cleaned up temp file: ${tempFile}`);
+      } catch {
+        // Ignore cleanup errors
+      }
+    }
   }
 }
 
