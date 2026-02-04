@@ -1,0 +1,29 @@
+# Test Document {
+  :label: main
+}
+
+## Introduction
+{
+  :label: intro
+}
+
+This is a simple test document.
+
+:theorem: {
+  :label: thm1
+  :title: Main Result
+}
+
+  The following holds: $x + y = y + x$.
+
+::
+
+:proof:
+
+  :step: Commutativity holds. ::
+
+::
+
+## Conclusion
+
+We refer to :ref:thm1:: in the :ref:intro::.

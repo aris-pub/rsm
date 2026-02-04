@@ -26,6 +26,7 @@ Qualified name: ``rsm.nodes.Node``
       ~Node.remove_self
       ~Node.replace_self
       ~Node.sexp
+      ~Node.to_dict
       ~Node.traverse
 
    

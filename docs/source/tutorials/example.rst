@@ -307,4 +307,4 @@ More examples available at:
 
 - `RSM Studio Gallery <https://rsm.studio/gallery>`_ (when available)
 - `Scroll Press <https://scroll.press>`_ (real published papers)
-- `/rsm-examples/ <https://github.com/leotrs/rsm/tree/main/rsm-examples>`_ folder in GitHub repo
+- `/examples-rsm/ <https://github.com/leotrs/rsm/tree/main/examples-rsm>`_ folder in GitHub repo

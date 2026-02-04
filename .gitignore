@@ -50,6 +50,7 @@ coverage.xml
 .hypothesis/
 .pytest_cache/
 cover/
+coverage/
 tests/outputs/
 
 # Translations
@@ -154,6 +155,7 @@ wheelhouse/
 .DS_Store
 
 # don't commit compiled examples
-rsm-examples/*.html
-rsm-examples/static
+examples-rsm/*.html
+examples-rsm/static
 rsm/static/plotly-chart.html
+.claude/skills

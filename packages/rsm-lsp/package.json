@@ -1,0 +1,46 @@
+{
+  "name": "rsm-lsp",
+  "version": "0.1.0",
+  "description": "Language Server Protocol implementation for RSM (Rigorous Scientific Manuscripts)",
+  "main": "dist/server.js",
+  "bin": {
+    "rsm-lsp": "dist/server.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch",
+    "test": "vitest",
+    "test:coverage": "vitest --coverage",
+    "lint": "eslint src --ext .ts",
+    "format": "prettier --write 'src/**/*.ts'"
+  },
+  "keywords": [
+    "rsm",
+    "language-server",
+    "lsp",
+    "scientific-writing",
+    "markup",
+    "latex-alternative"
+  ],
+  "author": "RSM Contributors",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "tree-sitter": "0.22.4",
+    "tree-sitter-rsm": "file:../../tree-sitter-rsm",
+    "vscode-languageserver": "^9.0.1",
+    "vscode-languageserver-textdocument": "^1.0.11"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@typescript-eslint/eslint-plugin": "^6.13.0",
+    "@typescript-eslint/parser": "^6.13.0",
+    "@vitest/coverage-v8": "^1.0.4",
+    "eslint": "^8.54.0",
+    "prettier": "^3.1.0",
+    "typescript": "^5.3.3",
+    "vitest": "^1.0.4"
+  }
+}

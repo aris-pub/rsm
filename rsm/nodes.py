@@ -354,6 +354,65 @@ class Node:
                 stack += [(indent + tab_width, c) for c in reversed(node.children)]
         return exp[1:]  # get rid of an extra newline at the start
 
+    def to_dict(self) -> dict:
+        """Serialize this node and its descendants to a JSON-compatible dictionary.
+
+        Returns
+        -------
+        A dictionary representation of the Node and its descendants, suitable for JSON serialization.
+
+        The dictionary includes:
+        - nodeclass: The class name of the node
+        - start_point: (row, column) tuple for CST start position
+        - end_point: (row, column) tuple for CST end position
+        - label: Unique identifier (if present)
+        - number: Node number (if assigned)
+        - children: List of child node dictionaries (for NodeWithChildren)
+        - text: Text content (for Text nodes)
+        - All metadata keys defined in metakeys()
+
+        Examples
+        --------
+        >>> p = nodes.Paragraph().append(nodes.Text(text="Hello"))
+        >>> p.to_dict()['nodeclass']
+        'Paragraph'
+        >>> p.to_dict()['children'][0]['text']
+        'Hello'
+
+        """
+        result = {
+            'nodeclass': self.__class__.__name__,
+            'start_point': self.start_point,
+            'end_point': self.end_point,
+        }
+
+        # Add all metadata
+        for key in self.metakeys():
+            value = getattr(self, key, None)
+            if value:
+                # Convert lists and complex types to serializable forms
+                if isinstance(value, list):
+                    result[key] = value
+                elif isinstance(value, (str, int, bool, float)):
+                    result[key] = value
+                elif value is not None:
+                    # For other types, use string representation
+                    result[key] = str(value)
+
+        # Add children (if this is a NodeWithChildren)
+        if self.children:
+            result['children'] = [child.to_dict() for child in self.children]
+
+        # Add text content for Text nodes
+        if hasattr(self, 'text') and isinstance(getattr(self, 'text'), str):
+            result['text'] = self.text
+
+        # Add nodeid if present
+        if self.nodeid is not None:
+            result['nodeid'] = self.nodeid
+
+        return result
+
     @classmethod
     def metakeys(cls: type["Node"]) -> set[str]:
         """The valid meta keys of the given class.

@@ -1,5 +1,6 @@
-# Indefinite Linear Algebra of the NBM
-  {:date: 2024-04-13}
+# Indefinite Linear Algebra of the NBM {
+  :date: 2024-04-13
+}
 
 :author: {
   :name: Leo Torres
@@ -22,9 +23,7 @@ $$
 
 ::
 
-
 :toc:
-
 
 ## Introduction
   {:label: sec-intro}
@@ -147,7 +146,7 @@ Since every invertible Hermitian matrix defines an indefinite inner product,
 $\mb{P}$ defines one too.  For two vectors $\mb{x}, \mb{y} \in
 \mathbb{C}^{2m}$, we have
 $$
-[\mb{x}, \mb{y}]_\mb{P} := \mb{x}^{\top} \mb{P} \overline{\mb{y}} = \sum_{i \to j} \mb{x}_{i \to j} \, \overline{\mb{y}_{j \to i}}.
+  [\mb{x}, \mb{y}]_\mb{P} := \mb{x}^{\top} \mb{P} \overline{\mb{y}} = \sum_{i \to j} \mb{x}_{i \to j} \, \overline{\mb{y}_{j \to i}}.
 $$
 
 When rows and columns are ordered in the usual way, we equivalently have
@@ -187,7 +186,7 @@ had ordered the oriented edges in a different way.  Specifically, after fixing t
 orientation of the edges of $G$ and placing them as the first $m$ components, if we
 place the next $m$ components *in the reverse order*, then $\mb{P}$ would equal
 $\mb{S}_{2m}$.  Since the order of the oriented edges is arbitrary, all properties
-of the sip matrix are shared by the flip, both as operators or as matrices.  With this
+of the sip matrix are shared by the flip, both as operators or as matrices. With this
 in mind, we will continue to use $\mb{P}$ and the oriented edge order defined above.
 
 
@@ -734,7 +733,6 @@ book. ::
       $$ :: ::
 
 ::
-
 
 :proposition:
 
