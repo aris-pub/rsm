@@ -8,7 +8,6 @@ for the full rationale.
 import urllib.request
 from pathlib import Path
 
-
 BRAND_BASE_URL = "https://raw.githubusercontent.com/leotrs/brand/main/logos"
 
 

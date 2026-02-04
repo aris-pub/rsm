@@ -16,7 +16,10 @@ class TestMenuPositionParameter:
         result = rsm.build(source, handrails=True, lint=False)
 
         # Should not contain the right-position CSS override
-        assert ".hr-menu-zone .hr-menu" not in result or "left: 32px !important" not in result
+        assert (
+            ".hr-menu-zone .hr-menu" not in result
+            or "left: 32px !important" not in result
+        )
 
     def test_menu_position_left_no_override(self):
         """Test that menu_position='left' does not inject CSS override."""
@@ -54,9 +57,7 @@ class TestMenuPositionParameter:
     def test_menu_position_works_without_handrails(self):
         """Test that menu_position doesn't break when handrails=False."""
         source = ":rsm:\n\nHello world.\n\n::"
-        result = rsm.build(
-            source, handrails=False, lint=False, menu_position="right"
-        )
+        result = rsm.build(source, handrails=False, lint=False, menu_position="right")
 
         # Should still inject the CSS (even though no menus will be present)
         assert "left: 32px !important" in result

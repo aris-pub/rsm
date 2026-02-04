@@ -1,4 +1,4 @@
-from conftest import EMPTY_WANT, compare_have_want
+from conftest import compare_have_want
 
 
 def test_no_manuscript_title():

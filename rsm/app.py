@@ -261,7 +261,9 @@ class ParserApp(RSMApp):
 
         tasks += [
             Task("parser", p := tsparser.TSParser(), p.parse),
-            Task("transformer", t := transformer.Transformer(strict=strict), t.transform),
+            Task(
+                "transformer", t := transformer.Transformer(strict=strict), t.transform
+            ),
         ]
         super().__init__(tasks, loglevel, log_format, log_time, log_lineno)
 
@@ -303,7 +305,9 @@ class ProcessorApp(ParserApp):
         asset_resolver=None,
         strict: bool = False,
     ):
-        super().__init__(srcpath, plain, loglevel, log_format, log_time, log_lineno, strict)
+        super().__init__(
+            srcpath, plain, loglevel, log_format, log_time, log_lineno, strict
+        )
         self.asset_resolver = asset_resolver
         if run_linter:
             self.add_task(
@@ -356,11 +360,25 @@ class FullBuildApp(ProcessorApp):
         )
         self.write_output = write_output
         if standalone:
-            b = builder.StandaloneBuilder(asset_resolver=asset_resolver, outname=output_filename, custom_css=custom_css, theme_toggle=theme_toggle, menu_position=menu_position)
+            b = builder.StandaloneBuilder(
+                asset_resolver=asset_resolver,
+                outname=output_filename,
+                custom_css=custom_css,
+                theme_toggle=theme_toggle,
+                menu_position=menu_position,
+            )
         else:
-            b = builder.FolderBuilder(asset_resolver=asset_resolver, outname=output_filename, custom_css=custom_css, theme_toggle=theme_toggle, menu_position=menu_position)
+            b = builder.FolderBuilder(
+                asset_resolver=asset_resolver,
+                outname=output_filename,
+                custom_css=custom_css,
+                theme_toggle=theme_toggle,
+                menu_position=menu_position,
+            )
         self.add_task(Task("builder", b, b.build))
-        self.add_task(Task("writer", w := writer.Writer(dstpath=Path(output_dir)), w.write))
+        self.add_task(
+            Task("writer", w := writer.Writer(dstpath=Path(output_dir)), w.write)
+        )
 
     def run(self, initial_args=None) -> str:
         """Run the build pipeline, optionally writing files to disk.

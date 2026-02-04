@@ -1,7 +1,7 @@
 """Tests for automatic CSS file detection based on input filename."""
 
 import subprocess
-from pathlib import Path
+
 import pytest
 
 
@@ -27,13 +27,18 @@ def test_auto_detects_matching_css_file(tmp_path):
 
     # Check that CSS was copied to static/
     static_css = tmp_path / "static" / "document.css"
-    assert static_css.exists(), "Matching CSS should be auto-detected and copied to static/"
+    assert static_css.exists(), (
+        "Matching CSS should be auto-detected and copied to static/"
+    )
     assert css_content in static_css.read_text()
 
     # Check that HTML links to it
     html_file = tmp_path / "document.html"
     html_content = html_file.read_text()
-    assert '<link rel="stylesheet" type="text/css" href="/static/document.css"' in html_content
+    assert (
+        '<link rel="stylesheet" type="text/css" href="/static/document.css"'
+        in html_content
+    )
 
 
 @pytest.mark.slow
@@ -124,7 +129,7 @@ def test_auto_css_with_string_input_not_applied(tmp_path):
     css_file.write_text(".test { color: blue; }")
 
     # Build with string input
-    result = subprocess.run(
+    subprocess.run(
         ["rsm", "build", "# Test\n\nString input.", "-c"],
         cwd=tmp_path,
         check=True,

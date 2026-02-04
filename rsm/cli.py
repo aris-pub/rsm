@@ -5,7 +5,6 @@ utilities.
 
 """
 
-import sys
 from argparse import ArgumentParser, Namespace
 from collections.abc import Callable
 from importlib.metadata import version
@@ -184,6 +183,7 @@ def _cmd_build(args: Namespace) -> int:
         else:
             # For file input, use input filename with .html extension
             from pathlib import Path
+
             input_path = Path(args.src)
             output_filename = f"{input_path.stem}.html"
 
@@ -192,8 +192,9 @@ def _cmd_build(args: Namespace) -> int:
     if custom_css is None and not args.string:
         # Look for a CSS file with the same name as the input file
         from pathlib import Path
+
         input_path = Path(args.src)
-        auto_css_path = input_path.with_suffix('.css')
+        auto_css_path = input_path.with_suffix(".css")
         if auto_css_path.exists():
             custom_css = str(auto_css_path)
 
@@ -330,11 +331,8 @@ def _generate_index_page(html_files: list) -> str:
     return html
 
 
-
-
 def _cmd_init(args: Namespace) -> int:
     """Handle 'rsm init' subcommand - scaffold a new RSM project."""
-    import sys
     from pathlib import Path
 
     # Get current directory
@@ -343,7 +341,9 @@ def _cmd_init(args: Namespace) -> int:
     # Check if directory already has RSM files
     existing_rsm = list(project_dir.glob("*.rsm"))
     if existing_rsm and not args.force:
-        print(f"Error: Directory already contains RSM files: {', '.join(f.name for f in existing_rsm)}")
+        print(
+            f"Error: Directory already contains RSM files: {', '.join(f.name for f in existing_rsm)}"
+        )
         print("Use --force to initialize anyway")
         return 1
 
@@ -364,8 +364,9 @@ def _cmd_init(args: Namespace) -> int:
     assets_dir.mkdir(exist_ok=True)
 
     # Try to fetch latest Aris logo, fall back to committed version
-    from rsm.brand_assets import fetch_aris_logo_if_online
     import shutil
+
+    from rsm.brand_assets import fetch_aris_logo_if_online
 
     logo_dest = assets_dir / "aris-logo.svg"
     fetched = fetch_aris_logo_if_online(logo_dest)
@@ -400,7 +401,7 @@ def _cmd_init(args: Namespace) -> int:
     # Create main RSM file
     rsm_file = project_dir / f"{filename}.rsm"
     rsm_content = f"""\
-# {filename.replace('_', ' ').replace('-', ' ').title()}
+# {filename.replace("_", " ").replace("-", " ").title()}
 
 :author:{{
   :name: {author}
@@ -465,7 +466,7 @@ To reference from the current file: :ref:eqn::. To cite from the bibliography: :
     # Create README
     readme_file = project_dir / "README.md"
     readme_content = f"""\
-# {filename.replace('_', ' ').replace('-', ' ').title()}
+# {filename.replace("_", " ").replace("-", " ").title()}
 
 RSM project initialized by `rsm init`.
 
@@ -514,8 +515,8 @@ rsm build {rsm_file.name} --standalone
     readme_file.write_text(readme_content)
     print(f"✓ Created {readme_file.name}")
 
-    print(f"\n✓ RSM project initialized successfully!")
-    print(f"\nNext steps:")
+    print("\n✓ RSM project initialized successfully!")
+    print("\nNext steps:")
     print(f"  1. Edit {rsm_file.name}")
     print(f"  2. Run: rsm serve {rsm_file.name}")
 
@@ -658,6 +659,7 @@ def _cmd_serve(args: Namespace) -> int:
         if args.css:
             # When CSS changes, rebuild all RSM files
             if rsm_files:
+
                 def css_rebuild_callback():
                     # Rebuild all RSM files
                     for rsm_file in rsm_files:
@@ -722,10 +724,15 @@ def _cmd_serve(args: Namespace) -> int:
         url = f"http://127.0.0.1:{port}/{default_file}"
     else:
         # Multiple files or no files - show index or root
-        url = f"http://127.0.0.1:{port}/{default_file}" if default_file != "index.html" else f"http://127.0.0.1:{port}/"
+        url = (
+            f"http://127.0.0.1:{port}/{default_file}"
+            if default_file != "index.html"
+            else f"http://127.0.0.1:{port}/"
+        )
 
     # Open default browser in a background thread after a short delay
     if not args.no_browser:
+
         def open_browser():
             time.sleep(1.5)  # Wait for server to start
             webbrowser.open(url)
@@ -733,12 +740,17 @@ def _cmd_serve(args: Namespace) -> int:
         threading.Thread(target=open_browser, daemon=True).start()
 
     try:
-        server.serve(root=str(output_dir), default_filename=default_file, open_url=False, port=port)
+        server.serve(
+            root=str(output_dir),
+            default_filename=default_file,
+            open_url=False,
+            port=port,
+        )
     except OSError as e:
         if "Address already in use" in str(e):
             print(f"\nError: Port {port} is already in use.")
-            print(f"Please choose a different port using the --port flag:")
-            print(f"  rsm serve --port <PORT_NUMBER>")
+            print("Please choose a different port using the --port flag:")
+            print("  rsm serve --port <PORT_NUMBER>")
             print(f"\nFor example: rsm serve --port {port + 1}")
             return 1
         raise

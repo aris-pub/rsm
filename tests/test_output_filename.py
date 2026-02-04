@@ -1,8 +1,8 @@
 """Test output filename derivation and .html suffix handling."""
 
 import subprocess
+
 import pytest
-from pathlib import Path
 
 
 @pytest.mark.slow

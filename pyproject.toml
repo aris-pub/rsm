@@ -95,6 +95,10 @@ ignore = [
 
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F401"]  # unused imports in __init__.py
+"conftest.py" = ["E402"]  # import after setup code
+"docs/source/conf.py" = ["E402"]  # import after sys.path manipulation
+"rsm/__init__.py" = ["E402"]  # import after warnings filter
+"tests/test_serve_closure_bug.py" = ["B023"]  # intentionally testing closure bugs
 
 [tool.mypy]
 disallow_untyped_defs = true

@@ -15,8 +15,7 @@ def test_source_attribute_on_paragraph():
 
     # Extract the paragraph handrail div
     match = re.search(
-        r'<div class="paragraph hr hr-hidden"[^>]*data-rsm-source="([^"]*)"',
-        html
+        r'<div class="paragraph hr hr-hidden"[^>]*data-rsm-source="([^"]*)"', html
     )
     assert match, "Paragraph should have data-rsm-source attribute"
     source = match.group(1)
@@ -33,10 +32,7 @@ def test_source_attribute_on_heading():
     html = rsm.render(dedent(src).lstrip(), handrails=True, add_source=True)
 
     # Extract the heading handrail div
-    match = re.search(
-        r'<div class="heading hr"[^>]*data-rsm-source="([^"]*)"',
-        html
-    )
+    match = re.search(r'<div class="heading hr"[^>]*data-rsm-source="([^"]*)"', html)
     assert match, "Heading should have data-rsm-source attribute"
     source = match.group(1)
     assert "# Test Heading" in source
@@ -52,10 +48,7 @@ def test_source_attribute_on_section():
     html = rsm.render(dedent(src).lstrip(), handrails=True, add_source=True)
 
     # Extract the section heading handrail div
-    match = re.search(
-        r'<div class="heading hr"[^>]*data-rsm-source="([^"]*)"',
-        html
-    )
+    match = re.search(r'<div class="heading hr"[^>]*data-rsm-source="([^"]*)"', html)
     assert match, "Section should have data-rsm-source attribute"
     source = match.group(1)
     assert "## Section Title" in source
@@ -95,8 +88,7 @@ def test_source_attribute_multiline():
     html = rsm.render(dedent(src).lstrip(), handrails=True, add_source=True)
 
     match = re.search(
-        r'<div class="paragraph hr hr-hidden"[^>]*data-rsm-source="([^"]*)"',
-        html
+        r'<div class="paragraph hr hr-hidden"[^>]*data-rsm-source="([^"]*)"', html
     )
     assert match, "Paragraph should have data-rsm-source attribute"
     source = match.group(1)
@@ -114,8 +106,7 @@ def test_source_attribute_escapes_html():
     html = rsm.render(dedent(src).lstrip(), handrails=True, add_source=True)
 
     match = re.search(
-        r'<div class="paragraph hr hr-hidden"[^>]*data-rsm-source="([^"]*)"',
-        html
+        r'<div class="paragraph hr hr-hidden"[^>]*data-rsm-source="([^"]*)"', html
     )
     assert match, "Paragraph should have data-rsm-source attribute"
     source = match.group(1)
@@ -159,4 +150,4 @@ def test_source_not_on_special_nodes():
 
     # Bibliography heading won't have source because it's a synthetic node
     # But the page should still render
-    assert '<h2>References</h2>' in html or 'References' in html
+    assert "<h2>References</h2>" in html or "References" in html

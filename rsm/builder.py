@@ -17,7 +17,14 @@ logger = logging.getLogger("RSM").getChild("build")
 class BaseBuilder(ABC):
     """Use HTML body as a string and create a WebManuscript."""
 
-    def __init__(self, asset_resolver=None, outname: str = "index.html", custom_css: str | None = None, theme_toggle: bool = True, menu_position: str = "left") -> None:
+    def __init__(
+        self,
+        asset_resolver=None,
+        outname: str = "index.html",
+        custom_css: str | None = None,
+        theme_toggle: bool = True,
+        menu_position: str = "left",
+    ) -> None:
         self.body: str | None = None
         self.html: str | None = None
         self.web: WebManuscript | None = None
@@ -105,7 +112,6 @@ class HTMLBuilder(BaseBuilder):
         """)
         # Insert button right after <body> tag
         return body.replace("<body>", f"<body>\n\n{button_html}")
-
 
     def make_html_header(self) -> str:
         custom_css_link = ""
@@ -326,8 +332,7 @@ class FolderBuilder(HTMLBuilder):
             custom_css_path = Path(self.custom_css)
             if custom_css_path.exists():
                 self.web.writetext(
-                    f"static/{custom_css_path.name}",
-                    custom_css_path.read_text()
+                    f"static/{custom_css_path.name}", custom_css_path.read_text()
                 )
             else:
                 logger.warning(f"Custom CSS file not found: {self.custom_css}")

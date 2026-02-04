@@ -7,7 +7,6 @@ Highlight and render RSM code blocks.
 """
 
 import hashlib
-import html
 from pathlib import Path
 
 from docutils import nodes

@@ -17,7 +17,7 @@ class TestThemeToggleParameter:
 
         assert 'class="rsm-theme-toggle"' in result
         assert "addEventListener('click'" in result
-        assert 'onclick=' not in result
+        assert "onclick=" not in result
 
     def test_theme_toggle_false_excludes_button(self):
         """Test that theme_toggle=False excludes dark mode toggle button."""
@@ -32,8 +32,8 @@ class TestThemeToggleParameter:
         source = ":rsm:\n\nHello world.\n\n::"
         result = rsm.build(source, handrails=False, lint=False, theme_toggle=True)
 
-        assert 'localStorage.getItem' in result
-        assert 'rsm-theme' in result
+        assert "localStorage.getItem" in result
+        assert "rsm-theme" in result
         assert "addEventListener('click'" in result
 
     def test_theme_toggle_false_excludes_localstorage_script(self):

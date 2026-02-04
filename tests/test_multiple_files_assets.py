@@ -1,8 +1,8 @@
 """Test that multiple RSM files in the same directory handle assets correctly."""
 
 import subprocess
+
 import pytest
-from pathlib import Path
 
 
 @pytest.mark.slow
@@ -42,8 +42,12 @@ def test_multiple_files_with_different_images(tmp_path):
 """)
 
     # Build both documents
-    subprocess.run(["rsm", "build", "doc1.rsm"], cwd=tmp_path, check=True, capture_output=True)
-    subprocess.run(["rsm", "build", "doc2.rsm"], cwd=tmp_path, check=True, capture_output=True)
+    subprocess.run(
+        ["rsm", "build", "doc1.rsm"], cwd=tmp_path, check=True, capture_output=True
+    )
+    subprocess.run(
+        ["rsm", "build", "doc2.rsm"], cwd=tmp_path, check=True, capture_output=True
+    )
 
     # Check outputs exist
     html1 = tmp_path / "doc1.html"
@@ -56,16 +60,22 @@ def test_multiple_files_with_different_images(tmp_path):
     content2 = html2.read_text()
 
     # Check that image paths are in the HTML (checking for presence, not exact format)
-    assert 'images/pic1.png' in content1, "doc1.html should reference pic1.png"
-    assert 'images/pic2.png' in content2, "doc2.html should reference pic2.png"
-    assert '<img src=' in content1, "doc1.html should have an img tag"
-    assert '<img src=' in content2, "doc2.html should have an img tag"
+    assert "images/pic1.png" in content1, "doc1.html should reference pic1.png"
+    assert "images/pic2.png" in content2, "doc2.html should reference pic2.png"
+    assert "<img src=" in content1, "doc1.html should have an img tag"
+    assert "<img src=" in content2, "doc2.html should have an img tag"
 
     # Images should NOT be copied to static/
     static_dir = tmp_path / "static"
-    assert not (static_dir / "pic1.png").exists(), "Images should NOT be copied to static/"
-    assert not (static_dir / "pic2.png").exists(), "Images should NOT be copied to static/"
-    assert not (static_dir / "images").exists(), "Images directory should NOT be in static/"
+    assert not (static_dir / "pic1.png").exists(), (
+        "Images should NOT be copied to static/"
+    )
+    assert not (static_dir / "pic2.png").exists(), (
+        "Images should NOT be copied to static/"
+    )
+    assert not (static_dir / "images").exists(), (
+        "Images directory should NOT be in static/"
+    )
 
     # Images should remain in their original location
     assert (images_dir / "pic1.png").exists(), "Original images should remain in place"
@@ -86,7 +96,12 @@ def test_multiple_files_share_static_assets(tmp_path):
     for i in range(1, 4):
         rsm_file = tmp_path / f"doc{i}.rsm"
         rsm_file.write_text(f"# Document {i}\n\nContent {i}.")
-        subprocess.run(["rsm", "build", f"doc{i}.rsm"], cwd=tmp_path, check=True, capture_output=True)
+        subprocess.run(
+            ["rsm", "build", f"doc{i}.rsm"],
+            cwd=tmp_path,
+            check=True,
+            capture_output=True,
+        )
 
     # All three should create HTML files
     assert (tmp_path / "doc1.html").exists()
@@ -101,7 +116,9 @@ def test_multiple_files_share_static_assets(tmp_path):
     for i in range(1, 4):
         html_file = tmp_path / f"doc{i}.html"
         content = html_file.read_text()
-        assert '/static/rsm.css' in content, f"doc{i}.html should reference shared static/rsm.css"
+        assert "/static/rsm.css" in content, (
+            f"doc{i}.html should reference shared static/rsm.css"
+        )
 
     # The static files are the same for all documents, so sharing is safe
     rsm_css = (static_dir / "rsm.css").read_text()

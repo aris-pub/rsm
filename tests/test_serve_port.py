@@ -1,17 +1,17 @@
 """Tests for rsm serve --port flag and port conflict handling."""
 
-import subprocess
 import socket
+import subprocess
 import time
-from pathlib import Path
 from contextlib import closing
+
 import pytest
 
 
 def find_free_port():
     """Find a free port on localhost."""
     with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as s:
-        s.bind(('', 0))
+        s.bind(("", 0))
         s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         return s.getsockname()[1]
 
@@ -44,7 +44,13 @@ def test_serve_with_custom_port(tmp_path):
         )
     except subprocess.TimeoutExpired as e:
         # Server is running successfully - check that it started on the custom port
-        stderr_output = e.stderr.decode() if isinstance(e.stderr, bytes) else str(e.stderr) if e.stderr else ""
+        stderr_output = (
+            e.stderr.decode()
+            if isinstance(e.stderr, bytes)
+            else str(e.stderr)
+            if e.stderr
+            else ""
+        )
         assert f"http://127.0.0.1:{port}" in stderr_output
         return
 
@@ -72,7 +78,7 @@ def test_serve_port_in_use_error_message(tmp_path):
     # Create a socket that holds the port
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    sock.bind(('127.0.0.1', port))
+    sock.bind(("127.0.0.1", port))
     sock.listen(1)
 
     try:
@@ -120,7 +126,13 @@ def test_serve_default_port_5500(tmp_path):
         )
     except subprocess.TimeoutExpired as e:
         # Server is running successfully - check that it uses default port 5500
-        stderr_output = e.stderr.decode() if isinstance(e.stderr, bytes) else str(e.stderr) if e.stderr else ""
+        stderr_output = (
+            e.stderr.decode()
+            if isinstance(e.stderr, bytes)
+            else str(e.stderr)
+            if e.stderr
+            else ""
+        )
         assert "http://127.0.0.1:5500" in stderr_output
         return
 
@@ -140,7 +152,6 @@ def test_serve_no_html_files_shows_empty_index(tmp_path):
     # Start server in directory with no HTML files
     port = find_free_port()
 
-    import time
     process = subprocess.Popen(
         ["rsm", "serve", "--port", str(port), "--no-browser"],
         cwd=tmp_path,

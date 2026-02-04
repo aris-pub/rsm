@@ -255,11 +255,14 @@ class TestMakeCLIFileOutput:
         # Should add link tag in HTML
         output_html = tmp_path / "test.html"
         html_content = output_html.read_text()
-        assert '<link rel="stylesheet" type="text/css" href="/static/custom.css"' in html_content
+        assert (
+            '<link rel="stylesheet" type="text/css" href="/static/custom.css"'
+            in html_content
+        )
 
         # Custom CSS link should come after rsm.css
-        rsm_css_pos = html_content.find('/static/rsm.css')
-        custom_css_pos = html_content.find('/static/custom.css')
+        rsm_css_pos = html_content.find("/static/rsm.css")
+        custom_css_pos = html_content.find("/static/custom.css")
         assert rsm_css_pos < custom_css_pos, "Custom CSS should load after rsm.css"
 
     @pytest.mark.slow
@@ -322,9 +325,11 @@ class TestMakeCLIFileOutput:
         assert custom_css in html_content
 
         # <style> tag should come after CDN rsm.css link
-        cdn_css_pos = html_content.find('cdn.jsdelivr.net')
-        style_tag_pos = html_content.find('<style>')
-        assert cdn_css_pos < style_tag_pos, "Inline custom CSS should come after CDN rsm.css"
+        cdn_css_pos = html_content.find("cdn.jsdelivr.net")
+        style_tag_pos = html_content.find("<style>")
+        assert cdn_css_pos < style_tag_pos, (
+            "Inline custom CSS should come after CDN rsm.css"
+        )
 
     @pytest.mark.slow
     def test_make_cli_custom_css_nonexistent_file(self, tmp_path):

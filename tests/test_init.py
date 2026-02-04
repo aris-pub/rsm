@@ -1,8 +1,8 @@
 """Tests for rsm init command."""
 
 import subprocess
+
 import pytest
-from pathlib import Path
 
 
 @pytest.mark.slow

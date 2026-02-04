@@ -107,7 +107,10 @@ class Transformer:
     """
 
     def __init__(
-        self, root_dir: Path | None = None, src_file: Path | None = None, strict: bool = False
+        self,
+        root_dir: Path | None = None,
+        src_file: Path | None = None,
+        strict: bool = False,
     ) -> None:
         self.tree: nodes.Manuscript | None = None
         self.labels_to_nodes: dict[str, nodes.Node] = {}
@@ -227,7 +230,9 @@ class Transformer:
         if not self.strict:
             return
 
-        error_nodes = list(self.tree.traverse(condition=lambda n: isinstance(n, nodes.Error)))
+        error_nodes = list(
+            self.tree.traverse(condition=lambda n: isinstance(n, nodes.Error))
+        )
 
         if error_nodes:
             error_messages = []

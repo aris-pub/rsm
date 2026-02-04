@@ -490,9 +490,9 @@ class AppendNodeTag(AppendOpenTag):
 
         # Extract node source if requested
         kwargs = {"nodeid": node.nodeid}
-        if include_source and manuscript_source and hasattr(node.start_point, 'row'):
+        if include_source and manuscript_source and hasattr(node.start_point, "row"):
             # Extract source using row and column from Point objects
-            source_lines = manuscript_source.split('\n')
+            source_lines = manuscript_source.split("\n")
             start_row = node.start_point.row
             start_col = node.start_point.column
             end_row = node.end_point.row
@@ -503,12 +503,13 @@ class AppendNodeTag(AppendOpenTag):
                     node_source = source_lines[start_row][start_col:end_col]
                 else:
                     lines = [source_lines[start_row][start_col:]]
-                    lines.extend(source_lines[start_row + 1:end_row])
+                    lines.extend(source_lines[start_row + 1 : end_row])
                     lines.append(source_lines[end_row][:end_col])
-                    node_source = '\n'.join(lines)
+                    node_source = "\n".join(lines)
 
                 # HTML escape for attribute
                 import html
+
                 kwargs["data-rsm-source"] = html.escape(node_source)
 
         super().__init__(
@@ -1052,7 +1053,9 @@ class Translator:
 
     def visit_mathblock(self, node: nodes.MathBlock) -> EditCommand:
         if not isinstance(node.parent, nodes.Paragraph):
-            raise RSMTranslatorError(f"Found mathblock with parent {node.parent}, must be Paragraph.")
+            raise RSMTranslatorError(
+                f"Found mathblock with parent {node.parent}, must be Paragraph."
+            )
         return AppendBatchAndDefer(
             [
                 # A paragraph that contains a mathblock cannot _start_ with a mathblock,
@@ -1599,8 +1602,14 @@ class HandrailsTranslator(Translator):
 
         # Add source data if node is provided
         kwargs = {}
-        if self.add_source and node and self.tree and self.tree.src and hasattr(node.start_point, 'row'):
-            source_lines = self.tree.src.split('\n')
+        if (
+            self.add_source
+            and node
+            and self.tree
+            and self.tree.src
+            and hasattr(node.start_point, "row")
+        ):
+            source_lines = self.tree.src.split("\n")
             start_row = node.start_point.row
             start_col = node.start_point.column
             end_row = node.end_point.row
@@ -1611,11 +1620,12 @@ class HandrailsTranslator(Translator):
                     node_source = source_lines[start_row][start_col:end_col]
                 else:
                     lines = [source_lines[start_row][start_col:]]
-                    lines.extend(source_lines[start_row + 1:end_row])
+                    lines.extend(source_lines[start_row + 1 : end_row])
                     lines.append(source_lines[end_row][:end_col])
-                    node_source = '\n'.join(lines)
+                    node_source = "\n".join(lines)
 
                 import html
+
                 kwargs["data-rsm-source"] = html.escape(node_source)
 
         return (

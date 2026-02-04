@@ -381,9 +381,9 @@ class Node:
 
         """
         result = {
-            'nodeclass': self.__class__.__name__,
-            'start_point': self.start_point,
-            'end_point': self.end_point,
+            "nodeclass": self.__class__.__name__,
+            "start_point": self.start_point,
+            "end_point": self.end_point,
         }
 
         # Add all metadata
@@ -401,15 +401,15 @@ class Node:
 
         # Add children (if this is a NodeWithChildren)
         if self.children:
-            result['children'] = [child.to_dict() for child in self.children]
+            result["children"] = [child.to_dict() for child in self.children]
 
         # Add text content for Text nodes
-        if hasattr(self, 'text') and isinstance(getattr(self, 'text'), str):
-            result['text'] = self.text
+        if hasattr(self, "text") and isinstance(self.text, str):
+            result["text"] = self.text
 
         # Add nodeid if present
         if self.nodeid is not None:
-            result['nodeid'] = self.nodeid
+            result["nodeid"] = self.nodeid
 
         return result
 

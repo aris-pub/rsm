@@ -6,15 +6,14 @@ Sphinx configuration.
 
 """
 
-from pathlib import Path
-
 #################
 # Brand assets
 #################
 # Update brand assets from GitHub (falls back to committed versions if offline)
 import sys
+from pathlib import Path
+
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
-from rsm.brand_assets import update_brand_assets_if_online
 
 static_dir = Path(__file__).parent / "_static"
 # Temporarily disabled: GitHub CDN still serving old logos (will clear in ~5-10 min)
@@ -72,7 +71,6 @@ from rsm import nodes
 import sys
 
 sys.path.append(".")
-import doctest_setup
 
 #########
 # autodoc

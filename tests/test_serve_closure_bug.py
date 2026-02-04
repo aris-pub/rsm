@@ -23,9 +23,11 @@ def test_closure_bug_demonstration():
     callbacks_buggy = []
     for i in range(3):
         build_cmd = f"command_{i}"
+
         # BUG: build_cmd is captured by reference, not value
         def callback():
             return build_cmd
+
         callbacks_buggy.append(callback)
 
     # All callbacks return the SAME value (from last iteration)
@@ -37,9 +39,11 @@ def test_closure_bug_demonstration():
     callbacks_fixed = []
     for i in range(3):
         build_cmd = f"command_{i}"
+
         # FIX: build_cmd is captured by value as a default argument
         def callback(cmd=build_cmd):
             return cmd
+
         callbacks_fixed.append(callback)
 
     # Each callback returns its OWN value
@@ -60,9 +64,11 @@ def test_rsm_serve_specific_scenario():
     for rsm_file in rsm_files:
         output_name = rsm_file.stem
         build_cmd = f"rsm build {rsm_file} -o {output_name}"
+
         # BUG: build_cmd not captured as default arg
         def rebuild_callback(rsm_path=rsm_file):
             return build_cmd
+
         callbacks_buggy[rsm_file.name] = rebuild_callback
 
     # All callbacks return the same command (the last one)!
@@ -75,9 +81,11 @@ def test_rsm_serve_specific_scenario():
     for rsm_file in rsm_files:
         output_name = rsm_file.stem
         build_cmd = f"rsm build {rsm_file} -o {output_name}"
+
         # FIX: build_cmd captured as default arg
         def rebuild_callback(rsm_path=rsm_file, cmd=build_cmd):
             return cmd
+
         callbacks_fixed[rsm_file.name] = rebuild_callback
 
     # Each callback returns the correct command!

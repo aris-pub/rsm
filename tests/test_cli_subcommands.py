@@ -18,7 +18,7 @@ class TestCLISubcommands:
         src_file = tmp_path / "test.rsm"
         src_file.write_text(src)
 
-        result = subprocess.run(
+        subprocess.run(
             f"rsm build {src_file}",
             cwd=tmp_path,
             shell=True,

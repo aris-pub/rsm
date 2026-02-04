@@ -2,7 +2,7 @@
 
 import urllib.request
 from pathlib import Path
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
 import pytest
 
@@ -46,7 +46,8 @@ class TestBrandAssetFetching:
 
         # Mock network failure
         with patch(
-            "urllib.request.urlretrieve", side_effect=urllib.error.URLError("No internet")
+            "urllib.request.urlretrieve",
+            side_effect=urllib.error.URLError("No internet"),
         ):
             from rsm.brand_assets import update_brand_assets_if_online
 
@@ -113,7 +114,8 @@ class TestCLIBrandAssetFetching:
 
         # Mock network failure
         with patch(
-            "urllib.request.urlretrieve", side_effect=urllib.error.URLError("No internet")
+            "urllib.request.urlretrieve",
+            side_effect=urllib.error.URLError("No internet"),
         ):
             result = fetch_aris_logo_if_online(dest)
 
@@ -130,7 +132,6 @@ class TestBrandAssetIntegration:
 
         # Should be able to import conf without errors
         # (This will trigger the fetch-with-fallback logic)
-        import sys
         import importlib.util
 
         spec = importlib.util.spec_from_file_location("conf", conf_path)
