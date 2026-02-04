@@ -70,7 +70,8 @@ from rsm import nodes
 # the contents of this module are specific to doctest, not sphinx
 import sys
 
-sys.path.append(".")
+sys.path.insert(0, str(Path(__file__).parent))
+import doctest_setup  # noqa: F401
 
 #########
 # autodoc
