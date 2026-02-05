@@ -125,3 +125,33 @@ the paragraph contents.
 
    And now we refer to the entire previous
    :ref:my-para,paragraph::.
+
+
+Configuration
+*************
+
+The ``:config:`` block sets document-level configuration. It accepts metadata but has no
+content and does not appear in the rendered output.
+
+.. rsm::
+
+   # My Manuscript
+
+   :config: {
+     :override-date: 2024-01-15
+     :numbering: section
+   }
+   ::
+
+   ## Introduction
+   Content here.
+
+The ``:override-date:`` key sets the manuscript date (format: YYYY-MM-DD). The
+``:numbering:`` key controls how theorems and similar blocks are numbered:
+
+- ``section`` - Numbers reset per section (Theorem 1.1, 1.2, 2.1, ...)
+- ``document`` - Numbers increment across the entire document (Theorem 1, 2, 3, ...)
+- ``none`` - No automatic numbering
+
+The config block can appear anywhere in the document (typically at the top) and only one
+config block is allowed per manuscript.
