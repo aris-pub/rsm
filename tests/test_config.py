@@ -28,7 +28,7 @@ def test_config_simple():
 
         <h1>My Document</h1>
 
-        <div class="paragraph" data-nodeid="2">
+        <div class="paragraph" data-nodeid="1">
 
         <p>This is content.</p>
 
@@ -69,7 +69,7 @@ def test_config_toc_depth_only():
 
         <h1>Title</h1>
 
-        <div class="paragraph" data-nodeid="2">
+        <div class="paragraph" data-nodeid="1">
 
         <p>Content here.</p>
 
@@ -100,10 +100,12 @@ def test_config_numbering_document():
         ## Section One
 
         :theorem: Theorem content.
+        ::
 
         ## Section Two
 
         :theorem: Another theorem.
+        ::
         """,
         want="""\
         <body>
@@ -114,13 +116,23 @@ def test_config_numbering_document():
 
         <section class="level-1">
 
-        <h1>Section One</h1>
+        <h1>Title</h1>
+
+        <section class="section level-2" data-nodeid="1">
+
+        <h2>1. Section One</h2>
 
         <div class="theorem" data-nodeid="2">
 
-        <div class="paragraph">
+        <div class="paragraph hr-label">
 
-        <p><span class="label">Theorem 1. </span>Theorem content.</p>
+        <p><span class="span label">Theorem 1.</span></p>
+
+        </div>
+
+        <div class="paragraph" data-nodeid="3">
+
+        <p>Theorem content.</p>
 
         </div>
 
@@ -128,19 +140,27 @@ def test_config_numbering_document():
 
         </section>
 
-        <section class="level-2">
+        <section class="section level-2" data-nodeid="5">
 
-        <h2>Section Two</h2>
+        <h2>2. Section Two</h2>
 
-        <div class="theorem" data-nodeid="4">
+        <div class="theorem" data-nodeid="6">
 
-        <div class="paragraph">
+        <div class="paragraph hr-label">
 
-        <p><span class="label">Theorem 2. </span>Another theorem.</p>
+        <p><span class="span label">Theorem 2.</span></p>
+
+        </div>
+
+        <div class="paragraph" data-nodeid="7">
+
+        <p>Another theorem.</p>
 
         </div>
 
         </div>
+
+        </section>
 
         </section>
 
@@ -167,10 +187,12 @@ def test_config_numbering_section():
         ## Section One
 
         :theorem: Theorem content.
+        ::
 
         ## Section Two
 
         :theorem: Another theorem.
+        ::
         """,
         want="""\
         <body>
@@ -181,13 +203,23 @@ def test_config_numbering_section():
 
         <section class="level-1">
 
-        <h1>Section One</h1>
+        <h1>Title</h1>
+
+        <section class="section level-2" data-nodeid="1">
+
+        <h2>1. Section One</h2>
 
         <div class="theorem" data-nodeid="2">
 
-        <div class="paragraph">
+        <div class="paragraph hr-label">
 
-        <p><span class="label">Theorem 1.1. </span>Theorem content.</p>
+        <p><span class="span label">Theorem 1.1.</span></p>
+
+        </div>
+
+        <div class="paragraph" data-nodeid="3">
+
+        <p>Theorem content.</p>
 
         </div>
 
@@ -195,19 +227,27 @@ def test_config_numbering_section():
 
         </section>
 
-        <section class="level-1">
+        <section class="section level-2" data-nodeid="5">
 
-        <h1>Section Two</h1>
+        <h2>2. Section Two</h2>
 
-        <div class="theorem" data-nodeid="4">
+        <div class="theorem" data-nodeid="6">
 
-        <div class="paragraph">
+        <div class="paragraph hr-label">
 
-        <p><span class="label">Theorem 2.1. </span>Another theorem.</p>
+        <p><span class="span label">Theorem 2.1.</span></p>
+
+        </div>
+
+        <div class="paragraph" data-nodeid="7">
+
+        <p>Another theorem.</p>
 
         </div>
 
         </div>
+
+        </section>
 
         </section>
 
@@ -234,6 +274,7 @@ def test_config_numbering_none():
         ## Section
 
         :theorem: Theorem content.
+        ::
         """,
         want="""\
         <body>
@@ -244,17 +285,29 @@ def test_config_numbering_none():
 
         <section class="level-1">
 
-        <h1>Section</h1>
+        <h1>Title</h1>
+
+        <section class="section level-2" data-nodeid="1">
+
+        <h2>Section</h2>
 
         <div class="theorem" data-nodeid="2">
 
-        <div class="paragraph">
+        <div class="paragraph hr-label">
 
-        <p><span class="label">Theorem. </span>Theorem content.</p>
+        <p><span class="span label">Theorem.</span></p>
+
+        </div>
+
+        <div class="paragraph" data-nodeid="3">
+
+        <p>Theorem content.</p>
 
         </div>
 
         </div>
+
+        </section>
 
         </section>
 
@@ -318,13 +371,10 @@ def test_config_anywhere_in_document():
 
 def test_config_multiple_blocks_error():
     """Test that multiple config blocks raise an error."""
-    # This test expects an exception to be raised
-    # We'll need to adjust based on how RSM handles errors
-    with pytest.raises(Exception):  # Replace with specific exception type
-        from rsm import app
+    from rsm.tsparser import TSParser, RSMParserError
 
-        app.render(
-            source="""\
+    with pytest.raises(RSMParserError, match="Multiple config blocks"):
+        TSParser().parse("""\
         # Title
 
         :config: {
@@ -338,17 +388,15 @@ def test_config_multiple_blocks_error():
           :numbering: document
         }
         ::
-        """
-        )
+        """)
 
 
 def test_config_invalid_numbering_value():
     """Test that invalid numbering value raises an error."""
-    with pytest.raises(Exception):  # Replace with specific exception type
-        from rsm import app
+    from rsm.tsparser import TSParser, RSMParserError
 
-        app.render(
-            source="""\
+    with pytest.raises(RSMParserError, match="Invalid numbering value"):
+        TSParser().parse("""\
         # Title
 
         :config: {
@@ -357,5 +405,4 @@ def test_config_invalid_numbering_value():
         ::
 
         ## Content
-        """
-        )
+        """)

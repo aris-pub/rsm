@@ -291,7 +291,7 @@ class Node:
         Output meta for even more debugging information.
 
         >>> print(msc.sexp(meta=True))
-        (Manuscript { :reftext: Manuscript }
+        (Manuscript { :numbering: section, :reftext: Manuscript }
           (Section { :reftext: Section }
             (Paragraph { :reftext: Paragraph }
               (Text { :reftext: Text })))
@@ -309,7 +309,7 @@ class Node:
         Use `ignore_meta_keys` for a less verbose output.
 
         >>> print(msc.sexp(meta=True, ignore_meta_keys={"reftext"}))
-        (Manuscript {  }
+        (Manuscript { :numbering: section }
           (Section {  }
             (Paragraph {  }
               (Text {  })))
@@ -462,7 +462,8 @@ class Node:
 
     @property
     def number_within(self) -> type["Node"]:
-        return self.__class__._number_within or Manuscript
+        # Check instance attribute first (for config overrides), then class attribute
+        return getattr(self, '_number_within_override', None) or self.__class__._number_within or Manuscript
 
     @property
     def number_as(self) -> type["Node"]:
@@ -1096,15 +1097,19 @@ class Heading(NodeWithChildren):
 
 
 class Manuscript(Heading):
-    newmetakeys: ClassVar[set] = {"date"}
+    newmetakeys: ClassVar[set] = {
+        "date",
+        "numbering",
+    }
     nonum = True
 
     def __init__(
-        self, src: str = "", date: datetime | None = None, **kwargs: Any
+        self, src: str = "", date: datetime | None = None, numbering: str = "section", **kwargs: Any
     ) -> None:
         super().__init__(**kwargs)
         self.src = src
         self.date = date
+        self.numbering = numbering
 
     @property
     def full_number(self) -> str:

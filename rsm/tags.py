@@ -21,6 +21,8 @@ references = BlockTagInfo(None)
 """List of bibliography items."""
 codeblock = BlockTagInfo(None)
 """Code listing."""
+config = BlockTagInfo(None)
+"""Document configuration."""
 corollary = BlockTagInfo(None)
 """Corollary."""
 definition = BlockTagInfo(None)
@@ -114,8 +116,6 @@ author_display_last = MetaTagInfo(None, int)
 """Number of authors to display at end when >5 authors."""
 author_note = MetaTagInfo(None, str)
 """Author note (e.g., 'Equal contribution')."""
-date = MetaTagInfo(None, datetime)
-"""Manuscript date."""
 email = MetaTagInfo(None, str)
 """Author email."""
 emphas = MetaTagInfo(None, bool)
@@ -138,8 +138,12 @@ name = MetaTagInfo(None, str)
 """Author name."""
 nonum = MetaTagInfo(None, bool)
 """Whether to number the tag."""
+numbering = MetaTagInfo(None, str)
+"""Numbering mode for theorems and sections (document, section, or none)."""
 orcid = MetaTagInfo(None, str)
 """Author ORCID identifier."""
+override_date = MetaTagInfo(None, datetime)
+"""Override manuscript date via config block."""
 path = MetaTagInfo(None, Path)
 """Figure path."""
 reftext = MetaTagInfo(None, str)
@@ -148,8 +152,12 @@ scale = MetaTagInfo(None, str)
 """Figure scale."""
 strong = MetaTagInfo(None, bool)
 """Whether span is strong."""
+theme = MetaTagInfo(None, str)
+"""Manuscript theme."""
 title = MetaTagInfo(None, str)
 """Manuscript or section title."""
+toc_depth = MetaTagInfo(None, int)
+"""Table of contents depth."""
 class_ = MetaTagInfo(None, list)
 """CSS classes for this tag."""
 

@@ -16,6 +16,7 @@ List of all tags
 .. autoclass:: appendix
 .. autoclass:: author
 .. autoclass:: codeblock
+.. autoclass:: config
 .. autoclass:: corollary
 .. autoclass:: definition
 .. autoclass:: enumerate
@@ -67,7 +68,6 @@ List of all tags
 .. autoclass:: author_display_first
 .. autoclass:: author_display_last
 .. autoclass:: author_note
-.. autoclass:: date
 .. autoclass:: email
 .. autoclass:: emphas
 .. autoclass:: goal
@@ -79,12 +79,16 @@ List of all tags
 .. autoclass:: msc
 .. autoclass:: name
 .. autoclass:: nonum
+.. autoclass:: numbering
 .. autoclass:: orcid
+.. autoclass:: override_date
 .. autoclass:: path
 .. autoclass:: reftext
 .. autoclass:: scale
 .. autoclass:: strong
+.. autoclass:: theme
 .. autoclass:: title
+.. autoclass:: toc_depth
 .. autoclass:: class_
 
 

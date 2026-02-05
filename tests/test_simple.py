@@ -100,8 +100,12 @@ def test_manuscript_meta():
         # My Title {
           :label: mylbl
           :title: My Title
-          :date: 2022-03-29
         }
+
+        :config: {
+          :override-date: 2022-03-29
+        }
+        ::
         """,
         want="""\
         <body>

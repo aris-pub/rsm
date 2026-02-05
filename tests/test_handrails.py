@@ -931,9 +931,12 @@ def test_theorem():
 def test_author():
     compare_have_want_handrails(
         have=r"""
-        # Indefinite Linear Algebra of the NBM {
-          :date: 2024-04-13
+        # Indefinite Linear Algebra of the NBM
+
+        :config: {
+          :override-date: 2024-04-13
         }
+        ::
 
         :author: {
           :name: Leo Torres

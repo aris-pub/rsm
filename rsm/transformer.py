@@ -542,6 +542,10 @@ class Transformer:
             lambda: defaultdict(lambda: count(start=1))
         )
         within_appendix = False
+
+        # Check manuscript numbering config
+        numbering_mode = getattr(self.tree, 'numbering', 'section')  # default to 'section'
+
         for node in self.tree.traverse():
             if isinstance(node, nodes.Appendix):
                 counts[nodes.Manuscript] = defaultdict(lambda: iter(ascii_uppercase))
@@ -554,8 +558,24 @@ class Transformer:
                 continue
 
             if node.autonumber and not node.nonum:
+                # Apply numbering mode from config
+                if numbering_mode == 'none':
+                    # Don't assign numbers when numbering is none
+                    node.nonum = True
+                    continue
+                elif numbering_mode == 'document':
+                    # Number within manuscript (1, 2, 3...)
+                    number_within = nodes.Manuscript
+                else:
+                    # Default to section numbering (1.1, 1.2, 2.1...)
+                    number_within = node.number_within
+
+                # Override node's number_within for full_number property
+                if numbering_mode == 'document':
+                    node._number_within_override = nodes.Manuscript
+
                 counts[type(node)] = defaultdict(lambda: count(start=1))
-                num = next(counts[node.number_within][node.number_as])
+                num = next(counts[number_within][node.number_as])
                 node.number = num
                 if within_appendix and isinstance(node, nodes.Section):
                     node.reftext_template = node.reftext_template.replace(

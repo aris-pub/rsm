@@ -434,6 +434,7 @@ def _normalize_text(root: TSNode) -> str:
 def _abstractify(cst: TSTree) -> nodes.Manuscript:
     ast_root_node = None
     bibliography_node = None
+    seen_config = False  # Track if we've seen a config block
     stack = [(None, cst.root_node)]
     while stack:
         parent, cst_node = stack.pop()
@@ -541,6 +542,37 @@ def _abstractify(cst: TSTree) -> nodes.Manuscript:
             tag = cst_node.child_by_field_name("tag")
             ast_node_type = tag.type
             skip_these_ids.add(tag.id)
+
+            # Special handling for config block - inject metadata into Manuscript
+            if ast_node_type == "config":
+                # Check for multiple config blocks
+                if seen_config:
+                    raise RSMParserError(
+                        msg="Multiple config blocks found. Only one config block is allowed per document."
+                    )
+                seen_config = True
+
+                meta = cst_node.child_by_field_name("meta")
+                if meta:
+                    config_dict = _parse_meta_into_dict(meta)
+
+                    # Validate numbering value
+                    if "numbering" in config_dict:
+                        valid_numbering = ["document", "section", "none"]
+                        if config_dict["numbering"] not in valid_numbering:
+                            raise RSMParserError(
+                                msg=f"Invalid numbering value: {config_dict['numbering']}. "
+                                    f"Must be one of: {', '.join(valid_numbering)}"
+                            )
+
+                    # Handle override_date -> date mapping
+                    if "override_date" in config_dict:
+                        config_dict["date"] = config_dict.pop("override_date")
+                    # Inject config into manuscript node
+                    if ast_root_node:
+                        ast_root_node.ingest_dict_as_meta(config_dict)
+                # Don't create a node, skip this block entirely
+                continue
 
         else:
             ast_node_type = cst_node.type

@@ -50,7 +50,7 @@ def test_with_meta():
     tree = app.transformer.tree
     have = tree.sexp(meta=True).strip()
     want = """
-    (Manuscript { :reftext: Manuscript, :title: My Title }
+    (Manuscript { :numbering: section, :reftext: Manuscript, :title: My Title }
       (Section { :class: ['level-2'], :reftext: Section 1, :title: My Section }
         (Paragraph { :reftext: Paragraph }
           (Text { :reftext: Text })
@@ -74,7 +74,7 @@ def test_with_meta_ignore_reftext():
     tree = app.transformer.tree
     have = tree.sexp(meta=True, ignore_meta_keys=["reftext"]).strip()
     want = """
-    (Manuscript { :title: My Title }
+    (Manuscript { :numbering: section, :title: My Title }
       (Section { :class: ['level-2'], :title: My Section }
         (Paragraph {  }
           (Text {  })

@@ -6,8 +6,12 @@ def test_simple():
         have="""\
         # The Perron non-backtracking eigenvalue after node addition {
           :label: mylbl
-          :date: 2022-03-29
         }
+
+        :config: {
+          :override-date: 2022-03-29
+        }
+        ::
 
         :author: {
           :name: Leo Torres
