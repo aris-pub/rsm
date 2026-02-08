@@ -34,8 +34,8 @@ Available meta keys
 *******************
 
 
-:accent:
---------
+accent
+------
 
 Sets the accent color used throughout the document for links, interactive elements,
 and highlights.
@@ -56,8 +56,8 @@ All accent colors meet WCAG 2.1 Level AA accessibility requirements for color co
 in both light and dark themes.
 
 
-:typography:
-------------
+typography
+----------
 
 Sets the typeface style for the document.
 
@@ -76,8 +76,8 @@ Sets the typeface style for the document.
    ::
 
 
-:lang:
-------
+lang
+----
 
 Sets the document language. This affects screen reader pronunciation and appears in the
 HTML ``lang`` attribute.
@@ -104,8 +104,8 @@ HTML ``lang`` attribute.
    ::
 
 
-:numbering:
------------
+numbering
+---------
 
 Controls how theorems, lemmas, and other numbered environments are numbered.
 
@@ -125,8 +125,8 @@ Controls how theorems, lemmas, and other numbered environments are numbered.
    ::
 
 
-:toc-depth:
------------
+toc-depth
+---------
 
 Sets how many heading levels appear in the table of contents.
 
@@ -144,8 +144,8 @@ Sets how many heading levels appear in the table of contents.
 This will include h1, h2, and h3 headings in the table of contents.
 
 
-:override-date:
----------------
+override-date
+-------------
 
 Overrides the document's publication date. Accepts dates in ISO 8601 format.
 
