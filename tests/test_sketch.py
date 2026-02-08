@@ -13,9 +13,9 @@ def test_simple_no_handrails():
         ::
         """,
         want="""
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -67,7 +67,7 @@ def test_simple_no_handrails():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,

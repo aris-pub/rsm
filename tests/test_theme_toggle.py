@@ -12,7 +12,7 @@ class TestThemeToggleParameter:
 
     def test_theme_toggle_true_includes_button(self):
         """Test that theme_toggle=True includes dark mode toggle button."""
-        source = ":rsm:\n\nHello world.\n\n::"
+        source = "Hello world.\n\n"
         result = rsm.build(source, handrails=False, lint=False, theme_toggle=True)
 
         assert 'class="rsm-theme-toggle"' in result
@@ -21,7 +21,7 @@ class TestThemeToggleParameter:
 
     def test_theme_toggle_false_excludes_button(self):
         """Test that theme_toggle=False excludes dark mode toggle button."""
-        source = ":rsm:\n\nHello world.\n\n::"
+        source = "nHello world.\n\n"
         result = rsm.build(source, handrails=False, lint=False, theme_toggle=False)
 
         assert 'class="rsm-theme-toggle"' not in result
@@ -29,7 +29,7 @@ class TestThemeToggleParameter:
 
     def test_theme_toggle_true_includes_localstorage_script(self):
         """Test that theme_toggle=True includes localStorage script."""
-        source = ":rsm:\n\nHello world.\n\n::"
+        source = "Hello world.\n\n"
         result = rsm.build(source, handrails=False, lint=False, theme_toggle=True)
 
         assert "localStorage.getItem" in result
@@ -38,14 +38,14 @@ class TestThemeToggleParameter:
 
     def test_theme_toggle_false_excludes_localstorage_script(self):
         """Test that theme_toggle=False excludes localStorage script."""
-        source = ":rsm:\n\nHello world.\n\n::"
+        source = "Hello world.\n\n"
         result = rsm.build(source, handrails=False, lint=False, theme_toggle=False)
 
         assert "addEventListener('click'" not in result
 
     def test_theme_toggle_default_is_true(self):
         """Test that theme_toggle defaults to True for backwards compatibility."""
-        source = ":rsm:\n\nHello world.\n\n::"
+        source = "Hello world.\n\n"
         result = rsm.build(source, handrails=False, lint=False)
 
         assert 'class="rsm-theme-toggle"' in result
@@ -53,7 +53,7 @@ class TestThemeToggleParameter:
 
     def test_theme_toggle_works_with_standalone(self):
         """Test that theme_toggle works with standalone=True."""
-        source = ":rsm:\n\nHello world.\n\n::"
+        source = "Hello world.\n\n"
         result = rsm.build(
             source, handrails=False, lint=False, standalone=True, theme_toggle=False
         )
@@ -72,7 +72,7 @@ class TestThemeToggleBuilder:
         from rsm.builder import FolderBuilder
 
         builder = FolderBuilder(theme_toggle=False)
-        body = '<body><div class="manuscript">Test</div></body>'
+        body = '<body><div class="manuscript">Test</main></body>'
         web = builder.build(body, src=tmp_path / "test.rsm")
 
         html = web.readtext("index.html")
@@ -84,7 +84,7 @@ class TestThemeToggleBuilder:
         from rsm.builder import StandaloneBuilder
 
         builder = StandaloneBuilder(theme_toggle=False)
-        body = '<body><div class="manuscript">Test</div></body>'
+        body = '<body><div class="manuscript">Test</main></body>'
         web = builder.build(body, src=tmp_path / "test.rsm")
 
         html = web.readtext("index.html")
@@ -96,7 +96,7 @@ class TestThemeToggleBuilder:
         from rsm.builder import FolderBuilder
 
         builder = FolderBuilder()
-        body = '<body><div class="manuscript">Test</div></body>'
+        body = '<body><div class="manuscript">Test</main></body>'
         web = builder.build(body, src=tmp_path / "test.rsm")
 
         html = web.readtext("index.html")

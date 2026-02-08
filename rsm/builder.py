@@ -78,8 +78,15 @@ class HTMLBuilder(BaseBuilder):
         if self.theme_toggle:
             body = self._inject_dark_mode_button(body)
 
+        # Extract data-accent and data-lang from body tag and move to html tag
+        accent_match = re.search(r'<body[^>]*data-accent="([^"]*)"', body)
+        accent_attr = f' data-accent="{accent_match.group(1)}"' if accent_match else ''
+
+        lang_match = re.search(r'<body[^>]*data-lang="([^"]*)"', body)
+        lang_value = lang_match.group(1) if lang_match else 'en'
+
         html = str(
-            "<!DOCTYPE html>\n<html>\n\n"
+            f"<!DOCTYPE html>\n<html lang=\"{lang_value}\"{accent_attr}>\n\n"
             + self.make_html_header()
             + "\n"
             + body
@@ -110,8 +117,8 @@ class HTMLBuilder(BaseBuilder):
               </svg>
             </button>
         """)
-        # Insert button right after <body> tag
-        return body.replace("<body>", f"<body>\n\n{button_html}")
+        # Insert button right after <body> tag (using regex to handle attributes)
+        return re.sub(r'(<body[^>]*>)', rf'\1\n\n{button_html}', body)
 
     def make_html_header(self) -> str:
         custom_css_link = ""
@@ -168,7 +175,7 @@ class HTMLBuilder(BaseBuilder):
           <meta name="viewport" content="width=device-width, initial-scale=1.0" />
           <meta name="generator" content="RSM 0.0.1 https://github.com/leotrs/rsm" />
 
-          <link rel="stylesheet" type="text/css" href="/static/rsm.css" />
+          <link rel="stylesheet" type="text/css" href="/static/braiid.css" />
           <link rel="stylesheet" type="text/css" href="/static/tooltipster.bundle.css" />
           <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pseudocode@latest/build/pseudocode.min.css">
 {custom_css_link}{menu_position_style}
@@ -213,7 +220,7 @@ class StandaloneBuilder(HTMLBuilder):
     CDN_PSEUDOCODE_CSS = (
         "https://cdn.jsdelivr.net/npm/pseudocode@2.4.1/build/pseudocode.min.css"
     )
-    CDN_RSM_CSS = "https://cdn.jsdelivr.net/gh/aris-pub/rsm@main/rsm/static/rsm.css"
+    CDN_RSM_CSS = "https://cdn.jsdelivr.net/gh/aris-pub/rsm@main/braiid/braiid.css"
 
     def _get_inline_js(self) -> str:
         """Read the bundled RSM JavaScript for inlining."""
@@ -326,6 +333,13 @@ class FolderBuilder(HTMLBuilder):
             fn for fn in source.listdir(".") if Path(fn).suffix in {".js", ".css"}
         ]:
             copy_file(source, fn, self.web, f"static/{fn}")
+
+        # Copy BRAIID CSS from braiid/ directory
+        braiid_css_path = working_path.parent / "braiid" / "braiid.css"
+        if braiid_css_path.exists():
+            self.web.writetext("static/braiid.css", braiid_css_path.read_text())
+        else:
+            logger.warning(f"BRAIID CSS not found at: {braiid_css_path}")
 
         # Copy custom CSS if provided
         if self.custom_css:

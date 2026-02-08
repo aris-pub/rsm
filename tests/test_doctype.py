@@ -50,7 +50,7 @@ class TestDOCTYPEDeclaration:
         from rsm.builder import FolderBuilder
 
         builder = FolderBuilder()
-        body = '<body><div class="manuscriptwrapper">Test content</div></body>'
+        body = '<body><main class="manuscriptwrapper">Test content</main></body>'
         web = builder.build(body, src=tmp_path / "test.rsm")
 
         html = web.readtext("index.html")
@@ -63,7 +63,7 @@ class TestDOCTYPEDeclaration:
         from rsm.builder import StandaloneBuilder
 
         builder = StandaloneBuilder()
-        body = '<body><div class="manuscriptwrapper">Test content</div></body>'
+        body = '<body><main class="manuscriptwrapper">Test content</main></body>'
         web = builder.build(body, src=tmp_path / "test.rsm")
 
         html = web.readtext("index.html")

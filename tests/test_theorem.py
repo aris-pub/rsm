@@ -11,9 +11,9 @@ def test_simple():
         ::
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -39,7 +39,7 @@ def test_simple():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -68,9 +68,9 @@ def test_multiple():
         ::
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -128,7 +128,7 @@ def test_multiple():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,

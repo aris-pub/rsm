@@ -39,7 +39,7 @@ jobs:
 
     - name: Install rsm-lang
       run: |
-        uv sync --extra dev --extra doc
+        uv sync
         uv pip list
 
     - name: Run unit tests

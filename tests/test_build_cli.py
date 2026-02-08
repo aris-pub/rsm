@@ -34,7 +34,7 @@ class TestMakeCLIFileOutput:
         output_html = tmp_path / "test.html"
         assert output_html.exists(), "rsm build should create test.html from test.rsm"
         assert output_html.read_text().strip() != "", "test.html should not be empty"
-        assert "<html>" in output_html.read_text()
+        assert "<html" in output_html.read_text()
         assert "Hello world" in output_html.read_text()
 
     @pytest.mark.slow
@@ -58,7 +58,7 @@ class TestMakeCLIFileOutput:
         assert static_dir.is_dir()
 
         # Should contain CSS and JS files
-        assert (static_dir / "rsm.css").exists()
+        assert (static_dir / "braiid.css").exists()
         assert (static_dir / "jquery-3.6.0.js").exists()
         assert (static_dir / "tooltipster.bundle.js").exists()
 
@@ -190,7 +190,7 @@ class TestMakeCLIFileOutput:
 
         # Should print HTML to stdout
         stdout = result.stdout.decode("utf-8")
-        assert "<html>" in stdout
+        assert "<html" in stdout
         assert "Print flag" in stdout
 
         # Should also create files (test.html from test.rsm)
@@ -260,14 +260,14 @@ class TestMakeCLIFileOutput:
             in html_content
         )
 
-        # Custom CSS link should come after rsm.css
-        rsm_css_pos = html_content.find("/static/rsm.css")
+        # Custom CSS link should come after braiid.css
+        rsm_css_pos = html_content.find("/static/braiid.css")
         custom_css_pos = html_content.find("/static/custom.css")
-        assert rsm_css_pos < custom_css_pos, "Custom CSS should load after rsm.css"
+        assert rsm_css_pos < custom_css_pos, "Custom CSS should load after braiid.css"
 
     @pytest.mark.slow
     def test_custom_css_overrides_rsm_css(self, tmp_path):
-        """Test that rsm.css is wrapped in @layer base to allow custom CSS to override."""
+        """Test that braiid.css is wrapped in @layer base to allow custom CSS to override."""
         src = "# Test\n\nA simple paragraph.\n"
         src_file = tmp_path / "test.rsm"
         src_file.write_text(src)
@@ -289,10 +289,10 @@ class TestMakeCLIFileOutput:
         custom_css_in_static = tmp_path / "static" / "custom.css"
         assert custom_css in custom_css_in_static.read_text()
 
-        # Verify rsm.css is wrapped in @layer base
-        rsm_css_in_static = tmp_path / "static" / "rsm.css"
+        # Verify braiid.css is wrapped in @layer base
+        rsm_css_in_static = tmp_path / "static" / "braiid.css"
         rsm_css_content = rsm_css_in_static.read_text()
-        assert "@layer base" in rsm_css_content, "rsm.css should use @layer base"
+        assert "@layer base" in rsm_css_content, "braiid.css should use @layer base"
 
     @pytest.mark.slow
     def test_make_cli_custom_css_standalone(self, tmp_path):
@@ -324,11 +324,11 @@ class TestMakeCLIFileOutput:
         assert "<style>" in html_content
         assert custom_css in html_content
 
-        # <style> tag should come after CDN rsm.css link
+        # <style> tag should come after CDN braiid.css link
         cdn_css_pos = html_content.find("cdn.jsdelivr.net")
         style_tag_pos = html_content.find("<style>")
         assert cdn_css_pos < style_tag_pos, (
-            "Inline custom CSS should come after CDN rsm.css"
+            "Inline custom CSS should come after CDN braiid.css"
         )
 
     @pytest.mark.slow
@@ -364,7 +364,7 @@ class TestMakePythonAPINoFileOutput:
         result = rsm.build(src)
 
         assert isinstance(result, str)
-        assert "<html>" in result
+        assert "<html" in result
         assert "API call" in result
 
     def test_make_api_does_not_write_files(self, tmp_path):

@@ -38,9 +38,9 @@ def test_simple():
         ::
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -84,7 +84,7 @@ def test_simple():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -117,9 +117,9 @@ def test_item_with_wrong_parent():
         Lorem ipsum - Foo bar.
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -141,7 +141,7 @@ def test_item_with_wrong_parent():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,

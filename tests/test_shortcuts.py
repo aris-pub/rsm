@@ -9,9 +9,9 @@ def test_one_strong():
         This paragraph has a **shortcut** for strong span.
         """,
         want="""
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -29,7 +29,7 @@ def test_one_strong():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -44,9 +44,9 @@ def test_two_strong():
         This paragraph has two **shortcuts** for strong **spans**.
         """,
         want="""
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -64,7 +64,7 @@ def test_two_strong():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -79,9 +79,9 @@ def test_one_emphas():
         This paragraph has a *shortcut* for emphasis span.
         """,
         want="""
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -99,7 +99,7 @@ def test_one_emphas():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -113,9 +113,9 @@ def test_one_math():
 
         This paragraph has some $2+2=4$ awesome math.
         """,
-        want=r"""        <body>
+        want=r"""        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -133,7 +133,7 @@ def test_one_math():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -148,9 +148,9 @@ def test_two_math():
         This paragraph has some $2+2=4$ awesome math and also some math that $2 + 2 + 2
         + 2 + 2 = 10$ is broken down.
         """,
-        want=r"""        <body>
+        want=r"""        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -169,7 +169,7 @@ def test_two_math():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -183,9 +183,9 @@ def test_mathblock():
         $$2 + 2 = 4.$$
         """,
         want="""
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -206,7 +206,7 @@ def test_mathblock():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -221,9 +221,9 @@ def test_section_shortcut():
         This section contains a shortcut
         """,
         want="""
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -245,7 +245,7 @@ def test_section_shortcut():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -269,9 +269,9 @@ def test_subsubsection_shortcut():
 
         """,
         want="""
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -317,7 +317,7 @@ def test_subsubsection_shortcut():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -331,9 +331,9 @@ def test_claim_shortcut():
         multiple lines::.
         """,
         want="""
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -349,7 +349,7 @@ def test_claim_shortcut():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -379,9 +379,9 @@ def test_prev_shortcut():
 
         ::
         """,
-        want=r"""        <body>
+        want=r"""        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -457,7 +457,7 @@ def test_prev_shortcut():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -493,9 +493,9 @@ def test_prev2_shortcut():
 
         ::
         """,
-        want=r"""        <body>
+        want=r"""        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -585,7 +585,7 @@ def test_prev2_shortcut():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -621,9 +621,9 @@ def test_prev_and_prev2_shortcut():
 
         ::
         """,
-        want=r"""        <body>
+        want=r"""        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -713,7 +713,7 @@ def test_prev_and_prev2_shortcut():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -726,9 +726,9 @@ def test_code_shortcut():
         This is inline code`comp = [abs(x) for x in range(10)]`.
         """,
         want="""
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -744,7 +744,7 @@ def test_code_shortcut():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -759,9 +759,9 @@ def test_codeblock_shortcut():
         ```
         """,
         want="""
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -779,7 +779,7 @@ def test_codeblock_shortcut():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -794,9 +794,9 @@ def test_hashtag_not_at_the_start_of_line():
         And \# this is not!
         """,
         want="""
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -818,7 +818,7 @@ def test_hashtag_not_at_the_start_of_line():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -831,9 +831,9 @@ def test_escaped_colon_behind_halmos():
         Shortcut right beside an escaped colon :span: {:emphas:} foo\:::
         """,
         want="""
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -849,7 +849,7 @@ def test_escaped_colon_behind_halmos():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -862,9 +862,9 @@ def test_escaped_colon_behind_halmos_after_shortcut():
         Shortcut right beside an escaped colon **foo\:**
         """,
         want="""
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -880,7 +880,7 @@ def test_escaped_colon_behind_halmos_after_shortcut():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -893,9 +893,9 @@ def test_math_after_turnstile():
         This paragraph has math inside a claim :⊢: $2+2=4$::.
         """,
         want=r"""
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -911,7 +911,7 @@ def test_math_after_turnstile():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -931,9 +931,9 @@ def test_turnstile_and_math_within_list():
 
         ::
         """,
-        want=r"""        <body>
+        want=r"""        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -961,7 +961,7 @@ def test_turnstile_and_math_within_list():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -973,9 +973,9 @@ def test_asterisk_inside_math():
         have="""\
         $2*2 = 4*1$
         """,
-        want=r"""        <body>
+        want=r"""        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -991,7 +991,7 @@ def test_asterisk_inside_math():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -1003,9 +1003,9 @@ def test_asterisk_inside_code():
         have="""\
         `[x**2 for x in range(10)]`
         """,
-        want=r"""        <body>
+        want=r"""        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -1021,7 +1021,7 @@ def test_asterisk_inside_code():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -1036,9 +1036,9 @@ def test_asterisk_inside_mathblock():
         2*2 = 4*1
         $$
         """,
-        want=r"""        <body>
+        want=r"""        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -1059,7 +1059,7 @@ def test_asterisk_inside_mathblock():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -1073,9 +1073,9 @@ def test_asterisk_inside_codeblock():
         2*2 = 4*1
         ```
         """,
-        want=r"""        <body>
+        want=r"""        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -1093,7 +1093,7 @@ def test_asterisk_inside_codeblock():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,

@@ -8,9 +8,9 @@ def test_no_reftext():
 
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -26,7 +26,7 @@ def test_no_reftext():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -39,9 +39,9 @@ def test_custom_reftext():
         This is a link to :url:https://www.apache.com, Apache::.
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -57,7 +57,7 @@ def test_custom_reftext():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -70,9 +70,9 @@ def test_no_target():
         This is a malformed url :url:::.
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -88,7 +88,7 @@ def test_no_target():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -99,9 +99,9 @@ def test_no_target():
         This is a malformed url with a space :url: ::.
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -117,7 +117,7 @@ def test_no_target():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,

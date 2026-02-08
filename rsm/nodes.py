@@ -291,7 +291,7 @@ class Node:
         Output meta for even more debugging information.
 
         >>> print(msc.sexp(meta=True))
-        (Manuscript { :numbering: section, :reftext: Manuscript }
+        (Manuscript { :accent: blue, :lang: en, :numbering: section, :reftext: Manuscript, :typography: sans-serif }
           (Section { :reftext: Section }
             (Paragraph { :reftext: Paragraph }
               (Text { :reftext: Text })))
@@ -309,7 +309,7 @@ class Node:
         Use `ignore_meta_keys` for a less verbose output.
 
         >>> print(msc.sexp(meta=True, ignore_meta_keys={"reftext"}))
-        (Manuscript { :numbering: section }
+        (Manuscript { :accent: blue, :lang: en, :numbering: section, :typography: sans-serif }
           (Section {  }
             (Paragraph {  }
               (Text {  })))
@@ -1098,18 +1098,24 @@ class Heading(NodeWithChildren):
 
 class Manuscript(Heading):
     newmetakeys: ClassVar[set] = {
+        "accent",
         "date",
+        "lang",
         "numbering",
+        "typography",
     }
     nonum = True
 
     def __init__(
-        self, src: str = "", date: datetime | None = None, numbering: str = "section", **kwargs: Any
+        self, src: str = "", date: datetime | None = None, numbering: str = "section", accent: str = "blue", lang: str = "en", typography: str = "sans-serif", **kwargs: Any
     ) -> None:
         super().__init__(**kwargs)
         self.src = src
         self.date = date
         self.numbering = numbering
+        self.accent = accent
+        self.lang = lang
+        self.typography = typography
 
     @property
     def full_number(self) -> str:

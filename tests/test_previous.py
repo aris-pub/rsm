@@ -19,9 +19,9 @@ def test_works_with_no_reftext_and_label():
         ::
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -71,7 +71,7 @@ def test_works_with_no_reftext_and_label():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -90,9 +90,9 @@ def test_works_with_no_reftext_and_no_label():
         ::
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -142,7 +142,7 @@ def test_works_with_no_reftext_and_no_label():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -163,9 +163,9 @@ def test_works_with_reftext_and_label():
         ::
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -215,7 +215,7 @@ def test_works_with_reftext_and_label():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -234,9 +234,9 @@ def test_works_with_reftext_and_no_label(caplog):
         ::
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -286,7 +286,7 @@ def test_works_with_reftext_and_no_label(caplog):
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,

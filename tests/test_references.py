@@ -13,9 +13,9 @@ def test_reftext():
         This is a paragraph that refers to :ref:sec-lbl::.
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -43,7 +43,7 @@ def test_reftext():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -62,9 +62,9 @@ def test_overwrite_reftext():
         This is a paragraph that refers to :ref:sec-lbl,The Section::.
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -92,7 +92,7 @@ def test_overwrite_reftext():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -105,9 +105,9 @@ def test_ref_to_unknown_label(caplog):
         this doesn't exist :ref:foo::
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -123,7 +123,7 @@ def test_ref_to_unknown_label(caplog):
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -137,9 +137,9 @@ def test_cite_to_unknown_label(caplog):
         This is an unknown cite :cite:foobar::.
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -155,7 +155,7 @@ def test_cite_to_unknown_label(caplog):
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -179,9 +179,9 @@ def test_bibitem_without_doi(caplog):
         ::
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -211,7 +211,7 @@ def test_bibitem_without_doi(caplog):
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -236,9 +236,9 @@ def test_bibitem_with_doi():
         ::
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -268,7 +268,7 @@ def test_bibitem_with_doi():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,

@@ -9,9 +9,9 @@ def test_list_with_only_one_element():
         :paragraph: {:class: mytype} This paragraph has only one type
         """,
         want="""
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -29,7 +29,7 @@ def test_list_with_only_one_element():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -45,9 +45,9 @@ def test_list_with_one_element_before_key():
         that appears before another key.
         """,
         want="""
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -65,7 +65,7 @@ def test_list_with_one_element_before_key():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -80,9 +80,9 @@ def test_list_no_braces():
         :paragraph: {:class: t1, t2} This paragraph has only one type
         """,
         want="""
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -100,7 +100,7 @@ def test_list_no_braces():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -116,9 +116,9 @@ def test_inline_no_meta_start_with_tag():
         it starts with a ref::.
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -140,7 +140,7 @@ def test_inline_no_meta_start_with_tag():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -153,9 +153,9 @@ def test_list_within_inline():
         Foo :span: {:class: {t1, t2}} bar :: baz.
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -171,7 +171,7 @@ def test_list_within_inline():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -183,9 +183,9 @@ def test_inline_start_with_brace():
         have=r"""
         This span starts with a brace :span: \{ ::.
         """,
-        want=r"""        <body>
+        want=r"""        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -201,7 +201,7 @@ def test_inline_start_with_brace():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -214,9 +214,9 @@ def test_inline_meta_with_no_space():
         Foo :span: {:strong:} bar ::.
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -232,7 +232,7 @@ def test_inline_meta_with_no_space():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -245,9 +245,9 @@ def test_inline_meta_with_space_in_between_braces():
         Foo :span: { :strong: } bar ::.
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -263,7 +263,7 @@ def test_inline_meta_with_space_in_between_braces():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,

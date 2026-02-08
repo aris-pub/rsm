@@ -7,9 +7,9 @@ def test_code():
         :code: comp = [abs(x) for x in range(10)] ::
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -25,7 +25,7 @@ def test_code():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -38,9 +38,9 @@ def test_code_with_shorthand():
         `comp = [abs(x) for x in range(10)]`
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -56,7 +56,7 @@ def test_code_with_shorthand():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -71,9 +71,9 @@ def test_code_with_lang():
         ::
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -90,7 +90,7 @@ def test_code_with_lang():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -103,9 +103,9 @@ def test_code_with_shorthand_and_lang():
         `{:lang: python} comp = [abs(x) for x in range(10)]`
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -122,7 +122,7 @@ def test_code_with_shorthand_and_lang():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -139,9 +139,9 @@ def test_codeblock():
         ::
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -159,7 +159,7 @@ def test_codeblock():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -176,9 +176,9 @@ def test_codeblock_with_lang():
         ::
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -197,7 +197,7 @@ def test_codeblock_with_lang():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -212,9 +212,9 @@ def test_codeblock_with_shorthand():
         ```
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -232,7 +232,7 @@ def test_codeblock_with_shorthand():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -249,9 +249,9 @@ def test_codeblock_with_shorthand_and_lang():
         ```
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -270,7 +270,7 @@ def test_codeblock_with_shorthand_and_lang():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -296,9 +296,9 @@ def test_meta():
         ```
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -336,7 +336,7 @@ def test_meta():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -365,9 +365,9 @@ def test_meta_and_lang():
         ```
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -409,7 +409,7 @@ def test_meta_and_lang():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -427,9 +427,9 @@ def test_multiline_codeblock():
         ::
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -448,7 +448,7 @@ def test_multiline_codeblock():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -466,9 +466,9 @@ def test_multiline_codeblock_with_lang():
         ::
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -488,7 +488,7 @@ def test_multiline_codeblock_with_lang():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -504,9 +504,9 @@ def test_multiline_codeblock_with_shorthand():
         ```
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -525,7 +525,7 @@ def test_multiline_codeblock_with_shorthand():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -544,9 +544,9 @@ def test_multiline_codeblock_with_shorthand_and_lang():
         ```
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -566,7 +566,7 @@ def test_multiline_codeblock_with_shorthand_and_lang():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -588,9 +588,9 @@ def test_multiline_meta():
         ```
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -618,7 +618,7 @@ def test_multiline_meta():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -651,9 +651,9 @@ def test_multiline_meta_and_lang():
         ```
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -689,7 +689,7 @@ def test_multiline_meta_and_lang():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,

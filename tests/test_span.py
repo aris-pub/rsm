@@ -7,9 +7,9 @@ def test_one_span():
         This is a :span: {:strong:} boring :: paragraph.
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -25,7 +25,7 @@ def test_one_span():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -39,9 +39,9 @@ def test_two_spans():
         {:emphas:} spans :: so it's less boring.
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -57,7 +57,7 @@ def test_two_spans():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -72,9 +72,9 @@ def test_nested():
         line!
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -90,7 +90,7 @@ def test_nested():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -106,9 +106,9 @@ def test_span_with_multiline_meta():
         span :: and it is multi line.
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -124,7 +124,7 @@ def test_span_with_multiline_meta():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -137,9 +137,9 @@ def test_span_with_label():
         This is a :span: {:label: myspn, :strong:} boring :: paragraph.
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -155,7 +155,7 @@ def test_span_with_label():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -168,9 +168,9 @@ def test_span_part_of_word():
         This word is half bold :span: {:strong:} bo::ring.
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -186,7 +186,7 @@ def test_span_part_of_word():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -199,9 +199,9 @@ def test_span_part_of_word_with_shortcut():
         This word is half bold **bo**ring.
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -217,7 +217,7 @@ def test_span_part_of_word_with_shortcut():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,

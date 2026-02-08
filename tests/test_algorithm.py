@@ -31,9 +31,9 @@ def test_real_life_example():
         \end{algorithm}
         ::
         """,
-        want=r"""        <body>
+        want=r"""        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -74,7 +74,7 @@ def test_real_life_example():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -94,9 +94,9 @@ def test_label():
         \end{algorithm}
         ::
         """,
-        want=r"""        <body>
+        want=r"""        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -119,7 +119,7 @@ def test_label():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,

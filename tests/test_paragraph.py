@@ -8,9 +8,9 @@ def test_succeeding_blankline():
 
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -26,7 +26,7 @@ def test_succeeding_blankline():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -39,9 +39,9 @@ def test_succeeding_blankline_with_tag():
         :paragraph: {:class: foo}This is a paragraph.
         """,
         want="""
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -57,7 +57,7 @@ def test_succeeding_blankline_with_tag():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -70,9 +70,9 @@ def test_tag_no_meta():
         :paragraph: This is a paragraph.
         """,
         want="""
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -88,7 +88,7 @@ def test_tag_no_meta():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -101,9 +101,9 @@ def test_start_with_tag():
         :span: {:strong:} this tag :: starts the paragraph.
         """,
         want="""
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -119,7 +119,7 @@ def test_start_with_tag():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -132,9 +132,9 @@ def test_start_with_shortcut():
         :|-: A claim::.
         """,
         want="""
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -150,7 +150,7 @@ def test_start_with_shortcut():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -191,9 +191,9 @@ def test_simple():
         text. It has several lines of text. It has several lines of text.
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div id="mylbl" class="manuscript" data-nodeid="0">
 
@@ -237,7 +237,7 @@ def test_simple():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -256,9 +256,9 @@ def test_mathblock_inside_paragraph():
         should be part of the same paragraph still.
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -281,7 +281,7 @@ def test_mathblock_inside_paragraph():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -299,9 +299,9 @@ def test_mathblock_ending_paragraph():
         $$
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -324,7 +324,7 @@ def test_mathblock_ending_paragraph():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,

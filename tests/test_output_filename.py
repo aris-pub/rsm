@@ -147,4 +147,4 @@ def test_multiple_files_same_directory(tmp_path):
     assert static_dir.exists(), "Should create static/ directory"
 
     # Check that static files are there (they should be shared across all builds)
-    assert (static_dir / "rsm.css").exists(), "Should have rsm.css"
+    assert (static_dir / "braiid.css").exists(), "Should have braiid.css"

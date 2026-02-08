@@ -1,0 +1,77 @@
+# Interactive States
+
+This document tests handrail visibility, hover, focus, and collapse states.
+
+This is a regular paragraph. Its handrail should be hidden by default.
+
+## Visible Handrails
+
+:theorem:
+
+  This theorem has a visible handrail.
+
+::
+
+:definition:
+
+  Visible handrails are not hidden by default.
+
+::
+
+## Collapsible Content
+
+:theorem:
+
+  This theorem contains a collapsible proof.
+
+::
+
+:proof:
+
+  This proof can be collapsed and expanded using the collapse button.
+
+  It contains multiple paragraphs to make the collapse behavior more visible.
+
+  When collapsed, the content should be hidden and the collapse indicator should show.
+
+::
+
+## Nested Collapsible
+
+:proof:
+
+  This is a proof with nested steps.
+
+  :step:
+
+    Step 1
+
+    This step contains substeps.
+
+    :step:
+
+      Substep 1.1
+
+      This can be collapsed independently.
+
+    ::
+
+    :step:
+
+      Substep 1.2
+
+      This can also be collapsed.
+
+    ::
+
+  ::
+
+  :step:
+
+    Step 2
+
+    Final step.
+
+  ::
+
+::

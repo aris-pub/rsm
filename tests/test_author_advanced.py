@@ -22,9 +22,9 @@ def test_two_authors_same_affiliation():
         ::
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -56,7 +56,7 @@ def test_two_authors_same_affiliation():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -82,9 +82,9 @@ def test_two_authors_different_affiliations():
         ::
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -116,7 +116,7 @@ def test_two_authors_different_affiliations():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -148,9 +148,9 @@ def test_three_authors_mixed_affiliations():
         ::
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -192,7 +192,7 @@ def test_three_authors_mixed_affiliations():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -211,9 +211,9 @@ def test_author_with_no_affiliation():
         ::
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -233,7 +233,7 @@ def test_author_with_no_affiliation():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -259,9 +259,9 @@ def test_two_authors_same_note():
         ::
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -293,7 +293,7 @@ def test_two_authors_same_note():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -319,9 +319,9 @@ def test_two_authors_different_notes():
         ::
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -353,7 +353,7 @@ def test_two_authors_different_notes():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -374,9 +374,9 @@ def test_author_with_affiliation_and_note():
         ::
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -400,7 +400,7 @@ def test_author_with_affiliation_and_note():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -462,9 +462,9 @@ def test_many_notes_symbol_progression():
         ::
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -562,7 +562,7 @@ def test_many_notes_symbol_progression():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -598,9 +598,9 @@ def test_complex_author_combination():
         ::
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -650,7 +650,7 @@ def test_complex_author_combination():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,

@@ -1,0 +1,43 @@
+## Handrails and Borders {
+  :label: sec
+}
+
+This section tests handrail colors (dots and borders).
+
+:theorem:
+
+  A theorem to show handrail colors. The handrail dots and borders should use the accent color.
+
+::
+
+Here is a :url:https://example.com, link:: that should use the accent color.
+
+Internal reference to the upcoming :ref:thm1:: should also use accent color.
+
+:itemize:
+
+:-: First item
+
+:-: Second item
+
+::
+
+:theorem: {
+  :label: thm1
+}
+
+Another theorem for reference testing.
+$$
+E = mc^2
+$$
+
+::
+
+:proof:
+  The proof uses the accent color for its handrails.
+
+  :step: First step. ::
+
+  :step: Second step. ::
+
+::

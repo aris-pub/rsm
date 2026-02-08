@@ -10,9 +10,9 @@ def test_period_after():
 
         Period after claim :claim:foo::.
         """,
-        want=r"""        <body>
+        want=r"""        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -40,7 +40,7 @@ def test_period_after():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -56,9 +56,9 @@ def test_period_after_with_shortcut():
 
         Period after claim :|-:foo::.
         """,
-        want=r"""        <body>
+        want=r"""        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -86,7 +86,7 @@ def test_period_after_with_shortcut():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -101,9 +101,9 @@ def test_separate_words():
         Separate :span:{:strong:}words::.
         """,
         want="""
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -125,7 +125,7 @@ def test_separate_words():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -140,9 +140,9 @@ def test_separate_words_with_shortcut():
         Separate **words**.
         """,
         want="""
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -164,7 +164,7 @@ def test_separate_words_with_shortcut():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -179,9 +179,9 @@ def test_span_multiline_content_middle_of_line():
         span :: that takes multiple lines
         """,
         want="""
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -197,7 +197,7 @@ def test_span_multiline_content_middle_of_line():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -212,9 +212,9 @@ def test_span_multiline_content_beginning_of_line():
         span :: that takes multiple lines
         """,
         want="""
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -230,7 +230,7 @@ def test_span_multiline_content_beginning_of_line():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -245,9 +245,9 @@ def test_span_multiline_content_beginning_of_line_with_shortcut():
         span ** that takes multiple lines
         """,
         want="""
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -263,7 +263,7 @@ def test_span_multiline_content_beginning_of_line_with_shortcut():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -278,9 +278,9 @@ def test_span_multiline_content_middle_of_line_with_shortcut():
         span ** that takes multiple lines
         """,
         want="""
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -296,7 +296,7 @@ def test_span_multiline_content_middle_of_line_with_shortcut():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -309,9 +309,9 @@ def test_math_start_of_line():
         This is a paragraph with
         :math:2+2=4:: at the start of a line.
         """,
-        want=r"""        <body>
+        want=r"""        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -327,7 +327,7 @@ def test_math_start_of_line():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -340,9 +340,9 @@ def test_math_start_of_line_with_shortcut():
         This is a paragraph with
         $2+2=4$ at the start of a line.
         """,
-        want=r"""        <body>
+        want=r"""        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -358,7 +358,7 @@ def test_math_start_of_line_with_shortcut():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -379,9 +379,9 @@ def test_table_tr():
         ::
         """,
         want="""
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -411,7 +411,7 @@ def test_table_tr():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -432,9 +432,9 @@ def test_table_trshort():
         ::
         """,
         want="""
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -464,7 +464,7 @@ def test_table_trshort():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -483,9 +483,9 @@ def test_ignore_space_within_inline():
         Ignore space :claim:   within   :: inline.
         """,
         want="""
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -519,7 +519,7 @@ def test_ignore_space_within_inline():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -538,9 +538,9 @@ def test_ignore_space_within_inline_with_shortcut():
         Ignore space :|-:   within   ::. inline.
         """,
         want="""
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -574,7 +574,7 @@ def test_ignore_space_within_inline_with_shortcut():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -603,9 +603,9 @@ def test_consecutive_lines_should_be_joined_by_spaces():
         joined by spaces.
         """,
         want="""
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -651,7 +651,7 @@ def test_consecutive_lines_should_be_joined_by_spaces():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -664,9 +664,9 @@ def test_span_span():
         :span: foo :: :span: bar ::
         """,
         want="""
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -682,7 +682,7 @@ def test_span_span():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -695,9 +695,9 @@ def test_span_construct():
         :span: foo :: :prove: bar ::
         """,
         want="""
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -713,7 +713,7 @@ def test_span_construct():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -726,9 +726,9 @@ def test_construct_construct():
         :pick:foo :: :st: bar ::
         """,
         want="""
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -744,7 +744,7 @@ def test_construct_construct():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -757,9 +757,9 @@ def test_math_math():
         $2$ $2$
         """,
         want=r"""
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -775,7 +775,7 @@ def test_math_math():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,

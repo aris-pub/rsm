@@ -71,7 +71,7 @@ class TestMenuPositionBuilder:
         from rsm.builder import FolderBuilder
 
         builder = FolderBuilder(menu_position="right")
-        body = '<body><div class="manuscript">Test</div></body>'
+        body = '<body><div class="manuscript">Test</main></body>'
         web = builder.build(body, src=tmp_path / "test.rsm")
 
         html = web.readtext("index.html")
@@ -83,7 +83,7 @@ class TestMenuPositionBuilder:
         from rsm.builder import StandaloneBuilder
 
         builder = StandaloneBuilder(menu_position="right")
-        body = '<body><div class="manuscript">Test</div></body>'
+        body = '<body><div class="manuscript">Test</main></body>'
         web = builder.build(body, src=tmp_path / "test.rsm")
 
         html = web.readtext("index.html")
@@ -95,7 +95,7 @@ class TestMenuPositionBuilder:
         from rsm.builder import FolderBuilder
 
         builder = FolderBuilder()
-        body = '<body><div class="manuscript">Test</div></body>'
+        body = '<body><div class="manuscript">Test</main></body>'
         web = builder.build(body, src=tmp_path / "test.rsm")
 
         html = web.readtext("index.html")
@@ -107,7 +107,7 @@ class TestMenuPositionBuilder:
         from rsm.builder import StandaloneBuilder
 
         builder = StandaloneBuilder()
-        body = '<body><div class="manuscript">Test</div></body>'
+        body = '<body><div class="manuscript">Test</main></body>'
         web = builder.build(body, src=tmp_path / "test.rsm")
 
         html = web.readtext("index.html")

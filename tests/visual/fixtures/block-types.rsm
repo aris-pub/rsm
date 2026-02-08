@@ -1,0 +1,137 @@
+# Visual Regression Test: Block Types
+
+This document exercises all major block types in RSM for visual regression testing.
+
+## Text Blocks
+
+This is a standard paragraph with *italic text*, **bold text**, and `inline code`. It contains enough text to wrap across multiple lines so we can test text rendering behavior.
+
+## Theorem-like Blocks
+
+:theorem:
+
+  If $x$ and $y$ are real numbers, then $x + y = y + x$.
+
+::
+
+:lemma:
+
+  Every finite group has a unique identity element.
+
+::
+
+:corollary:
+
+  The sum of two even numbers is even.
+
+::
+
+:definition:
+
+  A **prime number** is a natural number greater than 1 that has no positive divisors other than 1 and itself.
+
+::
+
+:example:
+
+  The numbers 2, 3, 5, 7, and 11 are the first five prime numbers.
+
+::
+
+:proposition:
+
+  The empty set is a subset of every set.
+
+::
+
+:remark:
+
+  This construction generalizes to higher dimensions.
+
+::
+
+## Proofs
+
+:theorem:
+
+  The square root of 2 is irrational.
+
+::
+
+:proof:
+
+  Suppose $\sqrt{2}$ is rational. Then we can write:
+  $$
+  \sqrt{2} = \frac{p}{q}
+  $$
+  where $p$ and $q$ are integers with no common factors.
+
+  Squaring both sides gives $2q^2 = p^2$. This means $p^2$ is even, so $p$ must be even.
+
+  Write $p = 2k$ for some integer $k$. Then:
+  $$
+  2q^2 = (2k)^2 = 4k^2
+  $$
+
+  Therefore $q^2 = 2k^2$, which means $q$ is also even. This contradicts our assumption that $p$ and $q$ have no common factors.
+
+::
+
+:proof:
+  {:label: sketch-example}
+
+  :sketch:
+
+    The key idea is to show that both $p$ and $q$ must be even, contradicting the assumption that they have no common factors.
+
+  ::
+
+::
+
+## Code
+
+Inline code: `let x = 42;`
+
+```python
+def fibonacci(n):
+    if n <= 1:
+        return n
+    return fibonacci(n - 1) + fibonacci(n - 2)
+
+# Calculate the 10th Fibonacci number
+result = fibonacci(10)
+print(f"The 10th Fibonacci number is {result}")
+```
+
+## Math
+
+Inline math: The quadratic formula is $x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}$.
+
+Display math:
+$$
+\int_{-\infty}^{\infty} e^{-x^2} dx = \sqrt{\pi}
+$$
+
+Numbered equation:
+$$ {:label: euler}
+e^{i\pi} + 1 = 0
+$$
+
+## Lists
+
+Unordered list:
+- First item
+- Second item with *emphasis*
+- Third item with `inline code`
+
+Ordered list:
+1. First step
+2. Second step
+3. Third step
+
+Nested list:
+- Outer item 1
+  - Inner item 1.1
+  - Inner item 1.2
+- Outer item 2
+  - Inner item 2.1

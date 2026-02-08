@@ -80,6 +80,7 @@ All Tutorials
    :caption: Reference & Examples
 
    tutorials/syntax
+   tutorials/configuration
    tutorials/recipes
    tutorials/example
 

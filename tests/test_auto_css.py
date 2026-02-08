@@ -59,9 +59,9 @@ def test_no_css_when_matching_file_not_present(tmp_path):
     html_file = tmp_path / "document.html"
     assert html_file.exists()
 
-    # Static dir should have rsm.css but not document.css
+    # Static dir should have braiid.css but not document.css
     static_dir = tmp_path / "static"
-    assert (static_dir / "rsm.css").exists()
+    assert (static_dir / "braiid.css").exists()
     assert not (static_dir / "document.css").exists()
 
 

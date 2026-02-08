@@ -18,9 +18,9 @@ sys.setrecursionlimit(100)
 
 # Several tests use an empty manuscript.
 EMPTY_WANT = """\
-<body>
+<body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-<div class="manuscriptwrapper">
+<main class="manuscriptwrapper">
 
 <div class="manuscript" data-nodeid="0">
 
@@ -30,7 +30,7 @@ EMPTY_WANT = """\
 
 </div>
 
-</div>
+</main>
 
 </body>
 """

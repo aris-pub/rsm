@@ -40,9 +40,9 @@ def test_five_authors_no_collapse():
         ::
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -104,7 +104,7 @@ def test_five_authors_no_collapse():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -154,9 +154,9 @@ def test_six_authors_collapsed():
         ::
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -234,7 +234,7 @@ def test_six_authors_collapsed():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -278,9 +278,9 @@ def test_ten_authors_collapsed():
         ::
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -378,7 +378,7 @@ def test_ten_authors_collapsed():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,

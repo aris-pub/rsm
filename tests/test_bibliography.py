@@ -18,9 +18,9 @@ def test_single():
         ::
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -52,7 +52,7 @@ def test_single():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -76,9 +76,9 @@ def test_with_shortcuts():
         ::
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -110,7 +110,7 @@ def test_with_shortcuts():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -143,9 +143,9 @@ def test_many():
         ::
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -181,7 +181,7 @@ def test_many():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -214,9 +214,9 @@ def test_order():
         ::
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -252,7 +252,7 @@ def test_order():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,

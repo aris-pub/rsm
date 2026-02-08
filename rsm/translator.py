@@ -779,10 +779,13 @@ class Translator:
             ) from ex
 
     def visit_manuscript(self, node: nodes.Manuscript) -> EditCommand:
+        accent = getattr(node, 'accent', 'blue')
+        lang = getattr(node, 'lang', 'en')
+        typography = getattr(node, 'typography', 'sans-serif')
         batch = AppendBatchAndDefer(
             [
-                AppendOpenTag("body"),
-                AppendOpenTag(classes=["manuscriptwrapper"]),
+                AppendOpenTag("body", **{"data-accent": accent, "data-lang": lang, "data-typography": typography}),
+                AppendOpenTag("main", classes=["manuscriptwrapper"]),
                 AppendNodeTag(node),
                 AppendOpenTag("section", classes=["level-1"]),
             ]

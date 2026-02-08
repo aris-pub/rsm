@@ -108,6 +108,12 @@ url = InlineTagInfo(None)
 
 MetaTagInfo = namedtuple("MetaTagInfo", ["parent", "type"])
 
+accent = MetaTagInfo(None, str)
+"""Accent color for the manuscript (blue, red, green, orange, yellow, purple, pink, gray)."""
+lang = MetaTagInfo(None, str)
+"""Language code for the manuscript (e.g., en, es, fr, de, en-US)."""
+typography = MetaTagInfo(None, str)
+"""Typography style for the manuscript (sans-serif, serif)."""
 affiliation = MetaTagInfo(None, datetime)
 """Author institutional affiliation."""
 author_display_first = MetaTagInfo(None, int)

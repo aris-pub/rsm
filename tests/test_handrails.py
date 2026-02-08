@@ -9,9 +9,9 @@ def test_codeblock_handrails():
         ```
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -82,7 +82,7 @@ def test_codeblock_handrails():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -99,9 +99,9 @@ def test_codeblock_with_lang_handrails():
         ```
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -174,7 +174,7 @@ def test_codeblock_with_lang_handrails():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -190,9 +190,9 @@ def test_manuscript():
 
         """,
         want="""
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -325,7 +325,7 @@ def test_manuscript():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -342,9 +342,9 @@ def test_section():
 
         """,
         want="""
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -545,7 +545,7 @@ def test_section():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -562,9 +562,9 @@ def test_abstract():
         ::
         """,
         want="""
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -765,7 +765,7 @@ def test_abstract():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -782,9 +782,9 @@ def test_theorem():
         ::
         """,
         want="""
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -921,7 +921,7 @@ def test_theorem():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -945,9 +945,9 @@ def test_author():
         ::
         """,
         want=r"""
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -1084,7 +1084,7 @@ def test_author():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -1109,9 +1109,9 @@ def test_bibliography():
         ::
         """,
         want="""
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -1305,7 +1305,7 @@ def test_bibliography():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -1324,9 +1324,9 @@ def test_inline_math_followed_by_dot():
         three $2+2=4$. Another sentence.
         """,
         want=r"""
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -1579,7 +1579,7 @@ def test_inline_math_followed_by_dot():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -1601,9 +1601,9 @@ def test_mathblock_nonum():
         $$
         """,
         want="""
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -1847,7 +1847,7 @@ def test_mathblock_nonum():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -1872,9 +1872,9 @@ def test_toc_no_labels():
         ### Sub-section
         """,
         want="""
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
         <div class="float-minimap-wrapper">
@@ -2429,7 +2429,7 @@ def test_toc_no_labels():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -2457,9 +2457,9 @@ def test_toc_with_labels():
           {:label: sub-sec}
         """,
         want="""
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
         <div class="float-minimap-wrapper">
@@ -3014,7 +3014,7 @@ def test_toc_with_labels():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,

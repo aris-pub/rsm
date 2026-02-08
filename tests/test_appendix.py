@@ -11,9 +11,9 @@ def test_simple():
         ## Bar
         """,
         want="""
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -35,7 +35,7 @@ def test_simple():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -54,9 +54,9 @@ def test_subsection():
         ### Sub Bar
         """,
         want="""
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -90,7 +90,7 @@ def test_subsection():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -113,9 +113,9 @@ def test_theorem():
         :theorem: ::
         """,
         want="""
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -169,7 +169,7 @@ def test_theorem():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -186,9 +186,9 @@ def test_section_reftext():
         ## Foo bar {:label: app}
         """,
         want="""
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -210,7 +210,7 @@ def test_section_reftext():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,

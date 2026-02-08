@@ -26,9 +26,9 @@ def test_escape_comment_delimiter():
         \% This is not a comment.
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -44,7 +44,7 @@ def test_escape_comment_delimiter():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -58,9 +58,9 @@ def test_end_of_line_comment():
 
         """,
         want="""
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -76,7 +76,7 @@ def test_end_of_line_comment():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -88,9 +88,9 @@ def test_percent_within_math_is_not_a_comment():
         have=r"""
         $10\%$ this is not a comment
         """,
-        want=r"""        <body>
+        want=r"""        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -106,7 +106,7 @@ def test_percent_within_math_is_not_a_comment():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -121,9 +121,9 @@ def test_broken_paragraph():
         in the middle
         """,
         want="""
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -139,7 +139,7 @@ def test_broken_paragraph():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,

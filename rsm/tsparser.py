@@ -565,6 +565,34 @@ def _abstractify(cst: TSTree) -> nodes.Manuscript:
                                     f"Must be one of: {', '.join(valid_numbering)}"
                             )
 
+                    # Validate accent value
+                    if "accent" in config_dict:
+                        valid_accents = ["blue", "red", "green", "orange", "yellow", "purple", "pink", "gray"]
+                        if config_dict["accent"] not in valid_accents:
+                            raise RSMParserError(
+                                msg=f"Invalid accent value: {config_dict['accent']}. "
+                                    f"Must be one of: {', '.join(valid_accents)}"
+                            )
+
+                    # Validate typography value
+                    if "typography" in config_dict:
+                        valid_typography = ["sans-serif", "serif"]
+                        if config_dict["typography"] not in valid_typography:
+                            raise RSMParserError(
+                                msg=f"Invalid typography value: {config_dict['typography']}. "
+                                    f"Must be one of: {', '.join(valid_typography)}"
+                            )
+
+                    # Validate lang value (basic format check for language codes)
+                    if "lang" in config_dict:
+                        import re
+                        # Allow formats like: en, es, fr, en-US, zh-CN
+                        if not re.match(r'^[a-z]{2,3}(-[A-Z]{2})?$', config_dict["lang"]):
+                            raise RSMParserError(
+                                msg=f"Invalid lang value: {config_dict['lang']}. "
+                                    f"Must be a valid language code (e.g., en, es, fr, en-US, zh-CN)"
+                            )
+
                     # Handle override_date -> date mapping
                     if "override_date" in config_dict:
                         config_dict["date"] = config_dict.pop("override_date")

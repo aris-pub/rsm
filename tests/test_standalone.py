@@ -24,7 +24,7 @@ class TestStandaloneMode:
         source = ":rsm:\n\nHello world.\n\n::"
         result = rsm.build(source, handrails=False, lint=False, standalone=False)
 
-        assert 'href="/static/rsm.css"' in result
+        assert 'href="/static/braiid.css"' in result
         assert 'href="/static/tooltipster.bundle.css"' in result
         assert 'src="/static/jquery-3.6.0.js"' in result
         assert 'src="/static/tooltipster.bundle.js"' in result
@@ -57,9 +57,9 @@ class TestStandaloneMode:
 
         # RSM CSS should point to Studio backend (or be inlined)
         # The exact URL format will be determined by implementation
-        assert 'href="/static/rsm.css"' not in result
-        # Should have some form of rsm.css reference (either CDN or inline)
-        assert "rsm.css" in result or "<style" in result
+        assert 'href="/static/braiid.css"' not in result
+        # Should have some form of braiid.css reference (either CDN or inline)
+        assert "braiid.css" in result or "<style" in result
 
     def test_standalone_true_uses_cdn_for_mathjax(self):
         """Test that standalone=True preserves MathJax CDN URL."""
@@ -96,7 +96,7 @@ class TestStandaloneMode:
         result = rsm.build(source, handrails=False, lint=False)
 
         # Default behavior should use /static/ paths
-        assert 'href="/static/rsm.css"' in result
+        assert 'href="/static/braiid.css"' in result
 
 
 class TestStandaloneBuilder:
@@ -119,7 +119,7 @@ class TestStandaloneBuilder:
         from rsm.builder import StandaloneBuilder
 
         standalone_builder = StandaloneBuilder()
-        body = '<body><div class="manuscript">Test</div></body>'
+        body = '<body><div class="manuscript">Test</main></body>'
         web = standalone_builder.build(body)
 
         # Should only create index.html, no static directory
@@ -162,7 +162,7 @@ class TestCustomCSS:
 
         # Create builder with custom_css
         builder = FolderBuilder(custom_css=str(custom_css_file))
-        body = '<body><div class="manuscript">Test</div></body>'
+        body = '<body><div class="manuscript">Test</main></body>'
         web = builder.build(body, src=tmp_path / "test.rsm")
 
         # Should copy custom.css to static/ folder
@@ -187,7 +187,7 @@ class TestCustomCSS:
 
         # Create builder with custom_css
         builder = StandaloneBuilder(custom_css=str(custom_css_file))
-        body = '<body><div class="manuscript">Test</div></body>'
+        body = '<body><div class="manuscript">Test</main></body>'
         web = builder.build(body, src=tmp_path / "test.rsm")
 
         # Should inline custom CSS in <style> tag
@@ -205,7 +205,7 @@ class TestCustomCSS:
 
         # Create builder WITHOUT custom_css
         builder = FolderBuilder()
-        body = '<body><div class="manuscript">Test</div></body>'
+        body = '<body><div class="manuscript">Test</main></body>'
         web = builder.build(body, src=tmp_path / "test.rsm")
 
         # Should work normally
@@ -222,7 +222,7 @@ class TestCustomCSS:
 
         # Create builder with nonexistent CSS file
         builder = FolderBuilder(custom_css="nonexistent.css")
-        body = '<body><div class="manuscript">Test</div></body>'
+        body = '<body><div class="manuscript">Test</main></body>'
         web = builder.build(body, src=tmp_path / "test.rsm")
 
         # Should still build successfully

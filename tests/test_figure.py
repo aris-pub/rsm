@@ -1,9 +1,9 @@
 from conftest import compare_have_want
 
 SIMPLE_WANT = """\
-<body>
+<body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-<div class="manuscriptwrapper">
+<main class="manuscriptwrapper">
 
 <div class="manuscript" data-nodeid="0">
 
@@ -21,7 +21,7 @@ SIMPLE_WANT = """\
 
 </div>
 
-</div>
+</main>
 
 </body>
 """
@@ -85,9 +85,9 @@ def test_caption_with_inline_tags():
         ::
         """,
         want="""
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -105,7 +105,7 @@ def test_caption_with_inline_tags():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -123,9 +123,9 @@ def test_video_mp4():
         ::
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -143,7 +143,7 @@ def test_video_mp4():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -160,9 +160,9 @@ def test_video_youtube():
         ::
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -180,7 +180,7 @@ def test_video_youtube():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -198,9 +198,9 @@ def test_html_asset():
         ::
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -225,7 +225,7 @@ def test_html_asset():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -261,9 +261,9 @@ def test_mixed_asset_numbering():
         ::
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -307,7 +307,7 @@ def test_mixed_asset_numbering():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,

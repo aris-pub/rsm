@@ -82,7 +82,7 @@ def test_multiple_files_with_different_images(tmp_path):
     assert (images_dir / "pic2.png").exists(), "Original images should remain in place"
 
     # Both documents share the same static/ folder for RSM framework files
-    assert (static_dir / "rsm.css").exists(), "Both should share RSM CSS in static/"
+    assert (static_dir / "braiid.css").exists(), "Both should share RSM CSS in static/"
 
 
 @pytest.mark.slow
@@ -116,10 +116,10 @@ def test_multiple_files_share_static_assets(tmp_path):
     for i in range(1, 4):
         html_file = tmp_path / f"doc{i}.html"
         content = html_file.read_text()
-        assert "/static/rsm.css" in content, (
-            f"doc{i}.html should reference shared static/rsm.css"
+        assert "/static/braiid.css" in content, (
+            f"doc{i}.html should reference shared static/braiid.css"
         )
 
     # The static files are the same for all documents, so sharing is safe
-    rsm_css = (static_dir / "rsm.css").read_text()
+    rsm_css = (static_dir / "braiid.css").read_text()
     assert len(rsm_css) > 0, "Static CSS should exist and be non-empty"

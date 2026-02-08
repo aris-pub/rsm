@@ -42,9 +42,9 @@ def test_simple():
         Lorem ipsum.
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div id="mylbl" class="manuscript" data-nodeid="0">
 
@@ -104,7 +104,7 @@ def test_simple():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,

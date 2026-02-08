@@ -1,0 +1,39 @@
+This document tests WCAG 2.1 AA color contrast for links with various accent colors.
+
+## Regular Paragraphs
+
+Links should have sufficient contrast against their background. Here is a :url:https://example.com, regular link:: in a paragraph. Another :url:https://example.org, link here:: for testing.
+
+## Within Theorems
+
+:theorem:
+
+  A theorem containing a :url:https://theorem-link.com, link:: to external content. The link should maintain sufficient contrast.
+
+::
+
+## Within Lists
+
+:itemize:
+
+:-: First item with a :url:https://list-link.com, link::
+
+:-: Second item with :url:https://another-link.com, another link::
+
+::
+
+## Internal References
+
+:theorem: {
+  :label: thm1
+}
+
+A labeled theorem for reference testing.
+
+::
+
+Here is an internal :ref:thm1:: that should also maintain contrast.
+
+## Draft Comments
+
+:draft: This is a draft comment that uses accent color and must maintain sufficient contrast. ::

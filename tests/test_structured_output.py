@@ -19,9 +19,9 @@ def test_make_structured_false_returns_string():
     result = rsm.build(source, structured=False)
 
     assert isinstance(result, str)
-    assert "<html>" in result
+    assert "<html" in result
     assert "<head>" in result
-    assert "<body>" in result
+    assert "<body" in result
 
 
 def test_make_default_structured_returns_string():
@@ -30,7 +30,7 @@ def test_make_default_structured_returns_string():
     result = rsm.build(source)
 
     assert isinstance(result, str)
-    assert "<html>" in result
+    assert "<html" in result
 
 
 def test_structured_head_contains_dependencies():
@@ -42,7 +42,7 @@ def test_structured_head_contains_dependencies():
     assert "jquery-3.6.0.js" in head
     assert "tooltipster.bundle.js" in head
     assert "tooltipster.bundle.css" in head
-    assert "rsm.css" in head
+    assert "braiid.css" in head
 
 
 def test_structured_body_contains_content():

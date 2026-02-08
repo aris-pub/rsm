@@ -1,0 +1,89 @@
+# Proof Depth Shifting
+
+This document tests the 96px width reduction per nesting level in proof steps.
+
+## Depth 0: Base Proof
+
+:theorem:
+
+  A deeply nested proof structure demonstrates width reduction at each level.
+
+::
+
+:proof:
+
+  This is depth 0 (base proof level).
+
+  :step:
+
+    This is a step at depth 1.
+
+    First paragraph in the depth-1 step.
+
+    :step:
+
+      This is a nested step at depth 2.
+
+      Content at depth 2 should be narrower.
+
+      :step:
+
+        And this is depth 3.
+
+        Content at depth 3 should be even narrower still.
+
+      ::
+
+    ::
+
+    Second paragraph at depth 1.
+
+  ::
+
+::
+
+## Another Nested Structure
+
+:theorem:
+
+  Testing multiple nested subproofs.
+
+::
+
+:proof:
+
+  Base level proof.
+
+  :step:
+
+    Step 1 at depth 1.
+
+    Some reasoning here.
+
+    :step:
+
+      Substep 1.1 at depth 2.
+
+      More detailed reasoning.
+
+      :step:
+
+        Substep 1.1.1 at depth 3.
+
+        Very detailed reasoning at maximum depth.
+
+      ::
+
+    ::
+
+  ::
+
+  :step:
+
+    Step 2 at depth 1.
+
+    Back to depth 1.
+
+  ::
+
+::

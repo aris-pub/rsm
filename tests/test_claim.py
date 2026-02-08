@@ -9,9 +9,9 @@ def test_simple():
           This paragraph contains a claim :claim: {:label: clm-lbl}all $X$ are $Y$ ::.
         """,
         want=r"""
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -33,7 +33,7 @@ def test_simple():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -46,9 +46,9 @@ def test_with_math():
         This paragraph has math inside a claim :claim: :math:2+2=4:: ::.
         """,
         want=r"""
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -64,7 +64,7 @@ def test_with_math():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -84,9 +84,9 @@ def test_claim_within_list():
 
         ::
         """,
-        want=r"""        <body>
+        want=r"""        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -114,7 +114,7 @@ def test_claim_within_list():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,

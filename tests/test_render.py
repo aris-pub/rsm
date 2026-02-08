@@ -14,9 +14,9 @@ def cmd(src):
 def test_render(tmp_path):
     want = dedent(
         """
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -44,7 +44,7 @@ def test_render(tmp_path):
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """
@@ -63,7 +63,7 @@ def test_render(tmp_path):
     )
 
     # get rid of any logs appearing before the html body, and decode
-    output = result.stdout[result.stdout.find(b"<body>") :].decode("utf-8")
+    output = result.stdout[result.stdout.find(b"<body data-accent=") :].decode("utf-8")
     if sys.platform == "win32":
         output = output.replace("\r", "")
     assert output.strip() == want.strip()

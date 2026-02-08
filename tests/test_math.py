@@ -13,9 +13,9 @@ def test_display_alone():
         ::
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -36,7 +36,7 @@ def test_display_alone():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -48,9 +48,9 @@ def test_inline_no_meta():
         have="""\
         This paragraph contains inline math :math: 2 + 2 = 4::.
         """,
-        want=r"""        <body>
+        want=r"""        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -66,7 +66,7 @@ def test_inline_no_meta():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -79,9 +79,9 @@ def test_inline_with_meta():
         This paragraph contains inline math :math: {:label: bar, :class: smallequation} 2 + 2
         = 4::.
         """,
-        want=r"""        <body>
+        want=r"""        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -98,7 +98,7 @@ def test_inline_with_meta():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -113,9 +113,9 @@ def test_math_with_shortcuts():
         When $a \ne 0$, there are two solutions to $ax^2 + bx + c = 0$ and they are
         $$x = {-b \pm \sqrt{b^2-4ac} \over 2a}.$$
         """,
-        want=r"""        <body>
+        want=r"""        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -142,7 +142,7 @@ def test_math_with_shortcuts():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -161,9 +161,9 @@ def test_math_ref():
         ::
         And now we refer to :ref:eqn-foo::.
         """,
-        want=r"""        <body>
+        want=r"""        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -190,7 +190,7 @@ def test_math_ref():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -206,9 +206,9 @@ def test_mathblock_nonum():
           2+2=4
         ::
         """,
-        want=r"""        <body>
+        want=r"""        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -229,7 +229,7 @@ def test_mathblock_nonum():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -244,9 +244,9 @@ def test_mathblock_nonum_with_shortcut():
           2+2=4
         $$
         """,
-        want=r"""        <body>
+        want=r"""        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -267,7 +267,7 @@ def test_mathblock_nonum_with_shortcut():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -279,9 +279,9 @@ def test_unclosed_dollar_sign():
         have=r"""
         There are three dollar signs here $2+2 $= 0$.
         """,
-        want=r"""        <body>
+        want=r"""        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -297,7 +297,7 @@ def test_unclosed_dollar_sign():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,

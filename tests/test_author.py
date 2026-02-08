@@ -21,9 +21,9 @@ def test_simple():
         ::
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div id="mylbl" class="manuscript" data-nodeid="0">
 
@@ -49,7 +49,7 @@ def test_simple():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -73,9 +73,9 @@ def test_empty_author():
         Lorem ipsum.
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div id="mylbl" class="manuscript" data-nodeid="0">
 
@@ -99,7 +99,7 @@ def test_empty_author():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -119,9 +119,9 @@ def test_author_with_orcid():
         ::
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -145,7 +145,7 @@ def test_author_with_orcid():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -164,9 +164,9 @@ def test_author_with_note():
         ::
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -188,7 +188,7 @@ def test_author_with_note():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -209,9 +209,9 @@ def test_author_multiline_affiliation():
         ::
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -233,7 +233,7 @@ def test_author_multiline_affiliation():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,

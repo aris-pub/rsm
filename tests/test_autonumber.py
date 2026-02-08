@@ -13,9 +13,9 @@ def test_numbered_sections():
         Content of second.
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -49,7 +49,7 @@ def test_numbered_sections():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -74,9 +74,9 @@ def test_nonum():
         Content of third.
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -122,7 +122,7 @@ def test_nonum():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,

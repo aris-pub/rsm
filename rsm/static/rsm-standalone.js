@@ -283,7 +283,16 @@ var RSM = (() => {
     }
   }
   async function copyLink(target) {
-    const url = document.location.href.split("#")[0];
+    let url;
+    try {
+      if (window.self !== window.parent) {
+        url = window.parent.location.href.split("#")[0];
+      } else {
+        url = document.location.href.split("#")[0];
+      }
+    } catch (error) {
+      url = document.location.href.split("#")[0];
+    }
     const hr = target.closest(".hr");
     let needs_anchor = true;
     let anchor = "";
@@ -825,7 +834,7 @@ var RSM = (() => {
 
   // rsm/static/tooltips.js
   function createTooltips() {
-    $(".manuscriptwrapper a.reference:not(.tooltipstered)").tooltipster({
+    $(".manuscriptwrapper a.reference:not(.external):not(.tooltipstered)").tooltipster({
       theme: ["tooltipster-shadow", "tooltipster-shadow-rsm"],
       minWidth: 100,
       maxWidth: 500,
@@ -923,6 +932,19 @@ var RSM = (() => {
   }
 
   // rsm/static/onload.js
+  function setupAuthorToggle() {
+    const toggleButtons = document.querySelectorAll(".toggle-authors");
+    toggleButtons.forEach((button) => {
+      button.addEventListener("click", function() {
+        const container = this.closest(".authors-container");
+        if (!container) return;
+        const toggleableAuthors = container.querySelectorAll(".author-toggleable");
+        toggleableAuthors.forEach((author) => {
+          author.classList.toggle("author-hidden");
+        });
+      });
+    });
+  }
   async function onload(root2 = null, { keys = true } = {}) {
     if (!root2) root2 = document;
     if (window.__rsmInitialized) {
@@ -955,6 +977,11 @@ var RSM = (() => {
         setup3();
       } catch (err) {
         console.error("Loading minimap.js FAILED!", err);
+      }
+      try {
+        setupAuthorToggle();
+      } catch (err) {
+        console.error("Loading author toggle FAILED!", err);
       }
       window.__rsmInitialized = true;
       await onrender(root2);

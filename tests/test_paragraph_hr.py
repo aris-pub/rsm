@@ -11,9 +11,9 @@ def test_paragraph_with_mathblock_ending_with_text():
         and it ends with text.
         """,
         want="""
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -140,7 +140,7 @@ def test_paragraph_with_mathblock_ending_with_text():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -156,9 +156,9 @@ def test_paragraph_ending_with_mathblock():
         $$
         """,
         want="""
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -285,7 +285,7 @@ def test_paragraph_ending_with_mathblock():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -304,9 +304,9 @@ def test_paragraph_with_icon_ending_with_mathblock():
         $$
         """,
         want=r"""
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -437,7 +437,7 @@ def test_paragraph_with_icon_ending_with_mathblock():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -457,9 +457,9 @@ def test_paragraph_with_icon_with_mathblock_ending_with_text():
         Lorem ipsum.
         """,
         want=r"""
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -590,7 +590,7 @@ def test_paragraph_with_icon_with_mathblock_ending_with_text():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -615,9 +615,9 @@ def test_two_paragraphs_with_icon():
         consequat.
         """,
         want=r"""
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -810,7 +810,7 @@ def test_two_paragraphs_with_icon():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -830,9 +830,9 @@ def test_two_paragraphs_with_icon_no_mathblock():
         consequat.
         """,
         want=r"""
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -966,7 +966,7 @@ def test_two_paragraphs_with_icon_no_mathblock():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,

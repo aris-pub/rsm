@@ -14,9 +14,9 @@ def test_single_author_with_handrails():
         ::
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -87,7 +87,7 @@ def test_single_author_with_handrails():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -129,9 +129,9 @@ def test_six_authors_collapsed_with_handrails():
         ::
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -513,7 +513,7 @@ def test_six_authors_collapsed_with_handrails():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,

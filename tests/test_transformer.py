@@ -13,9 +13,9 @@ def test_duplicate_label_warning(caplog):
         same :: label in this paragraph.
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -33,7 +33,7 @@ def test_duplicate_label_warning(caplog):
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -60,9 +60,9 @@ def test_duplicate_bibtex_item_warning(caplog):
         }
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -90,7 +90,7 @@ def test_duplicate_bibtex_item_warning(caplog):
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -108,9 +108,9 @@ def test_theorem_within_section():
         ::
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -136,7 +136,7 @@ def test_theorem_within_section():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -157,9 +157,9 @@ def test_two_theorems_same_section():
         ::
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -195,7 +195,7 @@ def test_two_theorems_same_section():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -218,9 +218,9 @@ def test_two_theorems_different_sections():
         ::
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -262,7 +262,7 @@ def test_two_theorems_different_sections():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -284,9 +284,9 @@ def test_two_theorems_same_section_nonum():
         ::
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -322,7 +322,7 @@ def test_two_theorems_same_section_nonum():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -340,9 +340,9 @@ def test_theorem_inside_section_with_nonum():
         ::
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -368,7 +368,7 @@ def test_theorem_inside_section_with_nonum():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -387,9 +387,9 @@ def test_theorem_inside_subsection():
         ::
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -421,7 +421,7 @@ def test_theorem_inside_subsection():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,

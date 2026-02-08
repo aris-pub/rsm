@@ -7,9 +7,9 @@ def test_no_manuscript_title():
         Lorem ipsum.
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -25,7 +25,7 @@ def test_no_manuscript_title():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -40,9 +40,9 @@ def test_manuscript_title():
         Lorem ipsum.
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -60,7 +60,7 @@ def test_manuscript_title():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -73,9 +73,9 @@ def test_manuscript_with_shortcut_title():
         # Title
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -87,7 +87,7 @@ def test_manuscript_with_shortcut_title():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -108,9 +108,9 @@ def test_manuscript_meta():
         ::
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div id="mylbl" class="manuscript" data-nodeid="0">
 
@@ -124,7 +124,7 @@ def test_manuscript_meta():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -141,9 +141,9 @@ def test_section_header():
         Lorem ipsum.
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -171,7 +171,7 @@ def test_section_header():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,

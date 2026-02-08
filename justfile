@@ -10,23 +10,31 @@ default:
 
 # Install dependencies for development
 install:
-    uv sync --all-extras
+    uv sync
 
 # Install with local tree-sitter-rsm for grammar development
 install-local:
-    uv sync --all-extras
+    uv sync
     uv pip install -e tree-sitter-rsm --no-build-isolation
 
-# Run fast tests (skip slow tests)
+# Run fast tests (skip slow, visual, and accessibility tests)
 test:
-    uv run pytest -vv -k 'not slow'
+    uv run pytest -vv -m 'not visual and not accessibility' -k 'not slow'
 
 # Run only slow tests
 test-slow:
     uv run pytest -vv -k 'slow'
 
-# Run all tests including slow ones
-test-all: test test-slow test-docs
+# Run visual regression tests (in parallel)
+test-visual:
+    uv run pytest -vv -m visual -n auto
+
+# Run accessibility tests (WCAG compliance)
+test-a11y:
+    uv run pytest -vv -m accessibility -n auto
+
+# Run all tests
+test-all: test test-slow test-docs test-visual test-a11y
 
 # Run tests with doctests in source and docs
 test-docs:
@@ -68,7 +76,7 @@ grammar:
     make
     echo "Reinstalling tree-sitter-rsm package..."
     cd ..
-    uv pip install -e tree-sitter-rsm --force-reinstall --no-deps --no-build-isolation
+    uv pip install -e tree-sitter-rsm --reinstall-package tree-sitter-rsm
     echo "Done! tree-sitter-rsm rebuilt successfully"
 
 # Rebuild the standalone JS bundle for RSM

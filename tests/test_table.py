@@ -9,9 +9,9 @@ def test_empty_table():
         ::
         """,
         want="""
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -29,7 +29,7 @@ def test_empty_table():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -50,9 +50,9 @@ def test_one_row_no_header():
         ::
         """,
         want="""
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -82,7 +82,7 @@ def test_one_row_no_header():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -105,9 +105,9 @@ def test_two_rows_no_header():
         ::
         """,
         want="""
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -145,7 +145,7 @@ def test_two_rows_no_header():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -174,9 +174,9 @@ def test_with_header():
         ::
         """,
         want="""
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -226,7 +226,7 @@ def test_with_header():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -246,9 +246,9 @@ def test_math_in_header():
 
         ::
         """,
-        want=r"""        <body>
+        want=r"""        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -280,7 +280,7 @@ def test_math_in_header():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -301,9 +301,9 @@ def test_shortcuts_in_header():
         ::
         """,
         want="""
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -333,7 +333,7 @@ def test_shortcuts_in_header():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -357,9 +357,9 @@ def test_simple_caption():
         ::
         """,
         want="""
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -393,7 +393,7 @@ def test_simple_caption():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -416,9 +416,9 @@ def test_simple_caption_with_shortcuts():
 
         ::
         """,
-        want=r"""        <body>
+        want=r"""        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -452,7 +452,7 @@ def test_simple_caption_with_shortcuts():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -475,9 +475,9 @@ def test_reference_to_table():
         This :ref:lbl:: refers to the table.
         """,
         want="""
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -513,7 +513,7 @@ def test_reference_to_table():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -536,9 +536,9 @@ def test_reference_to_table_with_reftext():
         This :ref:lbl,refers:: to the table.
         """,
         want="""
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -574,7 +574,7 @@ def test_reference_to_table_with_reftext():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -598,9 +598,9 @@ def test_extra_space_within_tr():
         ::
         """,
         want="""
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -630,7 +630,7 @@ def test_extra_space_within_tr():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -656,9 +656,9 @@ def test_real_life_example():
 
         ::
         """,
-        want=r"""        <body>
+        want=r"""        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -718,7 +718,7 @@ def test_real_life_example():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -754,9 +754,9 @@ def test_real_life_example_different_spacing():
 
         ::
         """,
-        want=r"""        <body>
+        want=r"""        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -816,7 +816,7 @@ def test_real_life_example_different_spacing():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -839,9 +839,9 @@ def test_tr_shortcut():
         ::
         """,
         want="""
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -897,7 +897,7 @@ def test_tr_shortcut():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -919,9 +919,9 @@ def test_tr_shortcut_with_math():
 
         ::
         """,
-        want=r"""        <body>
+        want=r"""        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -977,7 +977,7 @@ def test_tr_shortcut_with_math():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -1005,9 +1005,9 @@ def test_tr_shortcut_with_newlines():
 
         ::
         """,
-        want="""        <body>
+        want="""        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -1063,7 +1063,7 @@ def test_tr_shortcut_with_newlines():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -1086,9 +1086,9 @@ def test_tr_shortcut_with_escaped_colon():
         ::
         """,
         want="""
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -1144,7 +1144,7 @@ def test_tr_shortcut_with_escaped_colon():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,

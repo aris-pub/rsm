@@ -48,7 +48,7 @@ class TestCLISubcommands:
 
         # Should print HTML body to stdout (not full document)
         stdout = result.stdout.decode("utf-8")
-        assert "<body>" in stdout
+        assert "<body data-accent=" in stdout
         assert "Render subcommand" in stdout
 
         # Should NOT create files

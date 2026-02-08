@@ -159,3 +159,7 @@ examples-rsm/*.html
 examples-rsm/static
 rsm/static/plotly-chart.html
 .claude/skills
+
+# Visual regression test diffs (baselines are committed)
+tests/visual/screenshots-diff/
+tests/visual/snapshot_tests_failures/

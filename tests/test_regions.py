@@ -9,9 +9,9 @@ def test_inline_cannot_contain_block():
         This is a paragraph :span: with an inline :section: with a block. :: ::
         """,
         want="""
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -23,7 +23,7 @@ def test_inline_cannot_contain_block():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -39,9 +39,9 @@ def test_paragraph_ends_at_block():
         is inside the section. ::
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -71,7 +71,7 @@ def test_paragraph_ends_at_block():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,

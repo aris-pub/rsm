@@ -108,9 +108,9 @@ def test_real_life_example():
         ::
         """,
         want=r"""
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -419,7 +419,7 @@ def test_real_life_example():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -436,9 +436,9 @@ def test_construct_at_line_start():
         More text here.
         """,
         want=r"""
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -460,7 +460,7 @@ def test_construct_at_line_start():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,

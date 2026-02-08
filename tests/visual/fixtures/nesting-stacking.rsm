@@ -1,0 +1,45 @@
+# Nesting and Stacking
+
+This document tests vertical alignment of borders when blocks are nested at the same depth.
+
+## Aligned Borders Test
+
+:theorem:
+
+  This theorem contains multiple nested blocks at the same depth level.
+
+  First paragraph inside the theorem.
+
+  :proof:
+
+    This proof is inside the theorem and contains multiple paragraphs.
+
+    Second paragraph inside the proof.
+
+    Third paragraph inside the proof to test vertical border alignment.
+
+  ::
+
+  Final paragraph in the theorem after the proof.
+
+::
+
+## Multiple Blocks at Same Depth
+
+:definition:
+
+  A **topological space** consists of a set $X$ together with a collection of subsets called open sets.
+
+::
+
+:remark:
+
+  The definition above is quite abstract and becomes clearer with examples.
+
+::
+
+:example:
+
+  The real line $\mathbb{R}$ with the standard topology is a topological space.
+
+::

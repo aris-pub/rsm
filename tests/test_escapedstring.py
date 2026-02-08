@@ -13,9 +13,9 @@ def test_simple():
         Warning\: this is a warning.
         """,
         want="""
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -31,7 +31,7 @@ def test_simple():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -44,9 +44,9 @@ def test_colon_inside_bold():
         :span: {:strong:} Warning: :: this is a warning.
         """,
         want="""
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -62,7 +62,7 @@ def test_colon_inside_bold():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -75,9 +75,9 @@ def test_colon_inside_bold_no_space():
         :span: {:strong:} Warning: :: this is a warning.
         """,
         want="""
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -93,7 +93,7 @@ def test_colon_inside_bold_no_space():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -106,9 +106,9 @@ def test_colon_inside_bold_with_shortcut():
         **Warning: **this is a warning.
         """,
         want="""
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -124,7 +124,7 @@ def test_colon_inside_bold_with_shortcut():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -136,9 +136,9 @@ def test_backslash_brace_within_math():
         have=r"""
         $[k]:= \{1,\ldots,k\}$
         """,
-        want=r"""        <body>
+        want=r"""        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -154,7 +154,7 @@ def test_backslash_brace_within_math():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -166,9 +166,9 @@ def test_colon_inside_manuscript_title():
         have=r"""
         # foo: bar
         """,
-        want=r"""        <body>
+        want=r"""        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -180,7 +180,7 @@ def test_colon_inside_manuscript_title():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,

@@ -16,9 +16,9 @@ def test_simple():
 
         ::
         """,
-        want=r"""        <body>
+        want=r"""        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -70,7 +70,7 @@ def test_simple():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -91,9 +91,9 @@ def test_empty_proof():
         ::
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -131,7 +131,7 @@ def test_empty_proof():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -155,9 +155,9 @@ def test_sub_step():
         ::
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -221,7 +221,7 @@ def test_sub_step():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
@@ -240,9 +240,9 @@ def test_two_steps():
         ::
         """,
         want="""\
-        <body>
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
 
-        <div class="manuscriptwrapper">
+        <main class="manuscriptwrapper">
 
         <div class="manuscript" data-nodeid="0">
 
@@ -292,7 +292,7 @@ def test_two_steps():
 
         </div>
 
-        </div>
+        </main>
 
         </body>
         """,
