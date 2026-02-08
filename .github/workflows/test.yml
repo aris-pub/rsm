@@ -42,6 +42,10 @@ jobs:
         uv sync
         uv pip list
 
+    - name: Install Playwright browsers
+      run: |
+        uv run playwright install --with-deps chromium
+
     - name: Run unit tests
       run: |
         uv run pytest -vv
