@@ -33,6 +33,7 @@ near the top, after the title.
 Available meta keys
 *******************
 
+
 :accent:
 --------
 
@@ -54,6 +55,7 @@ and highlights.
 All accent colors meet WCAG 2.1 Level AA accessibility requirements for color contrast
 in both light and dark themes.
 
+
 :typography:
 ------------
 
@@ -72,6 +74,7 @@ Sets the typeface style for the document.
      :typography: serif
    }
    ::
+
 
 :lang:
 ------
@@ -100,6 +103,7 @@ HTML ``lang`` attribute.
    }
    ::
 
+
 :numbering:
 -----------
 
@@ -120,6 +124,7 @@ Controls how theorems, lemmas, and other numbered environments are numbered.
    }
    ::
 
+
 :toc-depth:
 -----------
 
@@ -137,6 +142,7 @@ Sets how many heading levels appear in the table of contents.
    ::
 
 This will include h1, h2, and h3 headings in the table of contents.
+
 
 :override-date:
 ---------------
