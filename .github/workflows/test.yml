@@ -50,7 +50,7 @@ jobs:
     - name: Run unit tests
       run: |
         if [ "${{ matrix.os }}" = "ubuntu" ]; then
-          uv run pytest -vv -m "not visual"
+          uv run pytest -vv -m "not visual and not accessibility"
         else
           uv run pytest -vv
         fi
