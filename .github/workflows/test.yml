@@ -122,4 +122,4 @@ jobs:
 
     - name: Run accessibility tests
       run: |
-        uv run pytest -vv -m accessibility
+        uv run pytest -vv -m accessibility --timeout=120
