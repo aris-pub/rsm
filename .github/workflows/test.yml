@@ -43,12 +43,17 @@ jobs:
         uv pip list
 
     - name: Install Playwright browsers
+      if: matrix.os == 'macos'
       run: |
         uv run playwright install --with-deps chromium
 
     - name: Run unit tests
       run: |
-        uv run pytest -vv
+        if [ "${{ matrix.os }}" = "ubuntu" ]; then
+          uv run pytest -vv -m "not visual"
+        else
+          uv run pytest -vv
+        fi
 
     - name: Run doctests in source files
       run: |
