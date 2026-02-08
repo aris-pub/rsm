@@ -87,7 +87,7 @@ jobs:
 
     - name: Run visual tests
       run: |
-        uv run pytest -vv -m visual -n auto --timeout=60
+        uv run pytest -vv -m visual -n 2 --timeout=60
 
   accessibility-tests:
     runs-on: macos-latest
@@ -122,4 +122,4 @@ jobs:
 
     - name: Run accessibility tests
       run: |
-        uv run pytest -vv -m accessibility -n auto --timeout=180
+        uv run pytest -vv -m accessibility -n 2 --timeout=180
