@@ -33,8 +33,8 @@ test-visual:
 test-a11y:
     uv run pytest -vv -m accessibility -n auto
 
-# Run all tests
-test-all: test test-slow test-docs test-visual test-a11y
+# Run all tests (excluding visual and accessibility tests)
+test-all: test test-slow test-docs
 
 # Run tests with doctests in source and docs
 test-docs:
