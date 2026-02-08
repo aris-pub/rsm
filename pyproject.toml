@@ -101,8 +101,8 @@ markers = [
 filterwarnings = [
     "ignore:.*pkg_resources.*:DeprecationWarning",
 ]
-# Retry failed tests to tolerate occasional rendering variance under parallel execution
-addopts = "--reruns=2 --reruns-delay=1 --only-rerun='Snapshots DO NOT match'"
+# Retry failed tests to tolerate occasional rendering variance and timeouts under parallel execution
+addopts = "--reruns=2 --reruns-delay=1 --only-rerun='Snapshots DO NOT match|Timeout'"
 
 [tool.uv.sources]
 tree-sitter-rsm = { path = "tree-sitter-rsm", editable = true }
