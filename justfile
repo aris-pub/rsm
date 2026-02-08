@@ -18,7 +18,7 @@ install-local:
     uv pip install -e tree-sitter-rsm --no-build-isolation
 
 # Run fast tests (skip slow, visual, and accessibility tests)
-test:
+test-fast:
     uv run pytest -vv -m 'not visual and not accessibility' -k 'not slow'
 
 # Run only slow tests
@@ -33,13 +33,13 @@ test-visual:
 test-a11y:
     uv run pytest -vv -m accessibility -n auto
 
-# Run all tests (excluding visual and accessibility tests)
-test-all: test test-slow test-docs
-
 # Run tests with doctests in source and docs
 test-docs:
     cd docs && uv run make doctest
     uv run pytest -vv --doctest-modules rsm/
+
+# Run all tests (excluding visual and accessibility tests)
+test: test-fast test-slow test-docs
 
 # Format code and run linter
 lint:
