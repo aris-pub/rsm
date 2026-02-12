@@ -209,6 +209,7 @@ def _cmd_build(args: Namespace) -> int:
         "output_dir": output_dir,
         "output_filename": output_filename,
         "custom_css": custom_css,
+        "theme_toggle": not args.no_theme_toggle,
         "menu_position": "right" if args.menu_right else "left",
         "strict": args.strict,
     }
@@ -564,6 +565,8 @@ def _cmd_serve(args: Namespace) -> int:
             cmd_parts.extend(["--css", args.css])
         if args.menu_right:
             cmd_parts.append("--menu-right")
+        if args.no_theme_toggle:
+            cmd_parts.append("--no-theme-toggle")
         if args.strict:
             cmd_parts.append("--strict")
         if args.verbose:
@@ -589,6 +592,7 @@ def _cmd_serve(args: Namespace) -> int:
             "output_dir": str(output_dir),
             "output_filename": output_filename,
             "custom_css": args.css,
+            "theme_toggle": not args.no_theme_toggle,
             "menu_position": "right" if args.menu_right else "left",
             "strict": args.strict,
         }
@@ -625,6 +629,8 @@ def _cmd_serve(args: Namespace) -> int:
                     build_cmd += f" --css {args.css}"
                 if args.menu_right:
                     build_cmd += " --menu-right"
+                if args.no_theme_toggle:
+                    build_cmd += " --no-theme-toggle"
                 if args.strict:
                     build_cmd += " --strict"
                 if args.standalone:
@@ -669,6 +675,8 @@ def _cmd_serve(args: Namespace) -> int:
                             cmd += f" --css {args.css}"
                         if args.menu_right:
                             cmd += " --menu-right"
+                        if args.no_theme_toggle:
+                            cmd += " --no-theme-toggle"
                         if args.strict:
                             cmd += " --strict"
                         if args.standalone:
@@ -819,6 +827,11 @@ def main() -> int:
         action="store_true",
         dest="print_output",
     )
+    build_parser.add_argument(
+        "--no-theme-toggle",
+        help="disable dark mode toggle button",
+        action="store_true",
+    )
     build_parser.set_defaults(handrails=True, func=_cmd_build)
 
     # Render subcommand
@@ -925,6 +938,11 @@ def main() -> int:
     output_opts.add_argument(
         "--no-browser",
         help="do not automatically open browser",
+        action="store_true",
+    )
+    output_opts.add_argument(
+        "--no-theme-toggle",
+        help="disable dark mode toggle button",
         action="store_true",
     )
 

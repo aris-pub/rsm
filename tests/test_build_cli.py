@@ -454,3 +454,85 @@ class TestMakePythonAPINoFileOutput:
 
         # Should be standalone (CDN URLs)
         assert "cdn.jsdelivr.net" in html_content
+
+    @pytest.mark.slow
+    def test_make_cli_no_theme_toggle_flag(self, tmp_path):
+        """Test rsm build --no-theme-toggle disables dark mode toggle."""
+        src = "# Test\n\nNo theme toggle.\n"
+        src_file = tmp_path / "test.rsm"
+        src_file.write_text(src)
+
+        subprocess.run(
+            f"rsm build {src_file} --no-theme-toggle",
+            cwd=tmp_path,
+            shell=True,
+            capture_output=True,
+            check=True,
+        )
+
+        # Should create test.html
+        output_html = tmp_path / "test.html"
+        assert output_html.exists()
+
+        html_content = output_html.read_text()
+
+        # Should NOT contain theme toggle button
+        assert 'class="rsm-theme-toggle"' not in html_content
+
+        # Should NOT contain localStorage script
+        assert "localStorage.getItem" not in html_content
+        assert "rsm-theme" not in html_content
+
+    @pytest.mark.slow
+    def test_make_cli_default_includes_theme_toggle(self, tmp_path):
+        """Test that rsm build default behavior includes theme toggle."""
+        src = "# Test\n\nDefault theme toggle.\n"
+        src_file = tmp_path / "test.rsm"
+        src_file.write_text(src)
+
+        subprocess.run(
+            f"rsm build {src_file}",
+            cwd=tmp_path,
+            shell=True,
+            capture_output=True,
+            check=True,
+        )
+
+        # Should create test.html
+        output_html = tmp_path / "test.html"
+        assert output_html.exists()
+
+        html_content = output_html.read_text()
+
+        # Should contain theme toggle button by default
+        assert 'class="rsm-theme-toggle"' in html_content
+
+        # Should contain localStorage script
+        assert "localStorage.getItem" in html_content
+
+    @pytest.mark.slow
+    def test_make_cli_no_theme_toggle_with_standalone(self, tmp_path):
+        """Test rsm build --no-theme-toggle --standalone works together."""
+        src = "# Test\n\nNo theme toggle standalone.\n"
+        src_file = tmp_path / "test.rsm"
+        src_file.write_text(src)
+
+        subprocess.run(
+            f"rsm build {src_file} --no-theme-toggle --standalone",
+            cwd=tmp_path,
+            shell=True,
+            capture_output=True,
+            check=True,
+        )
+
+        # Should create test.html
+        output_html = tmp_path / "test.html"
+        assert output_html.exists()
+
+        html_content = output_html.read_text()
+
+        # Should NOT contain theme toggle
+        assert 'class="rsm-theme-toggle"' not in html_content
+
+        # Should be standalone (CDN URLs)
+        assert "cdn.jsdelivr.net" in html_content
