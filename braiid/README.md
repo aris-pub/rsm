@@ -49,12 +49,14 @@ BRAIID is an acronym defining the core qualities of RSM document presentation:
 
 ## Relationship to Aris Foundations
 
-BRAIID inherits from the Aris Program's Four Foundational Principles:
+BRAIID inherits from the Aris Program's Four Foundational Pillars:
 
 - **Universal** → Responsive + Accessible
 - **Transparent** → Durable (complete, exportable artifacts)
 - **Interactive** → Interactive (obvious)
-- **Inviting** → Beautiful + Inviting
+- **Humane** → Beautiful + Inviting
+
+**Note on "Inviting" in BRAIID:** The fourth pillar is now "Humane" (respect researcher time and humanity). BRAIID uses "Inviting" as the reader-focused reification of this pillar—making manuscripts inviting to read, not dry or adversarial. The broader Humane pillar also encompasses other stakeholder experiences (authors, reviewers) in ways beyond BRAIID's scope as a document design system.
 
 ---
 
