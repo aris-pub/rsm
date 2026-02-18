@@ -150,12 +150,18 @@ orcid = MetaTagInfo(None, str)
 """Author ORCID identifier."""
 override_date = MetaTagInfo(None, datetime)
 """Override manuscript date via config block."""
+alt = MetaTagInfo(None, str)
+"""Alt text for figure images."""
+dark = MetaTagInfo(None, Path)
+"""Path to alternate figure image rendered in dark mode."""
 path = MetaTagInfo(None, Path)
 """Figure path."""
 reftext = MetaTagInfo(None, str)
 """Label reftext."""
 scale = MetaTagInfo(None, str)
 """Figure scale."""
+static = MetaTagInfo(None, Path)
+"""Path to alternate figure for static/PDF export."""
 strong = MetaTagInfo(None, bool)
 """Whether span is strong."""
 theme = MetaTagInfo(None, str)

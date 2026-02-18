@@ -1657,14 +1657,23 @@ class UnknownBibitem(Bibitem):
 class Asset(NodeWithChildren):
     autonumber = True
     _number_within = Section
-    newmetakeys: ClassVar[set] = {"path", "scale"}
+    newmetakeys: ClassVar[set] = {"path", "scale", "alt", "dark", "static"}
 
     def __init__(
-        self, path: Path | str = "", scale: float = 1.0, **kwargs: Any
+        self,
+        path: Path | str = "",
+        scale: float = 1.0,
+        alt: str = "",
+        dark: Path | str = "",
+        static: Path | str = "",
+        **kwargs: Any,
     ) -> None:
         super().__init__(**kwargs)
         self.path = Path(path)
         self.scale = scale
+        self.alt = alt
+        self.dark = Path(dark) if dark else None
+        self.static = Path(static) if static else None
 
 
 class Figure(Asset):
