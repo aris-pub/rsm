@@ -976,7 +976,7 @@ class Translator:
         #
         # A paragraph cannot start with a mathblock.
         items: list[EditCommand] = [AppendNodeTag(node, "div")]  #
-        if node.first_of_type(nodes.MathBlock):
+        if node.first_of_type(nodes.MathBlock) or node.first_of_type(nodes.CodeBlock):
             items.append(AppendOpenTagManualClose(tag="p", newline_inner=False))
         else:
             items.append(AppendOpenTag(tag="p", newline_inner=False))
@@ -1125,12 +1125,24 @@ class Translator:
         return AppendNodeTag(node, tag="span", newline_inner=False, newline_outer=False)
 
     def visit_codeblock(self, node: nodes.CodeBlock) -> EditCommand:
-        return AppendBatchAndDefer(
-            [
-                AppendNodeTag(node, "div", newline_inner=True, newline_outer=True),
-                AppendOpenTag("pre"),
-            ]
-        )
+        items = []
+        if isinstance(node.parent, nodes.BaseParagraph):
+            items.append(AppendText("</p>"))
+        items += [
+            AppendNodeTag(node, "div", newline_inner=True, newline_outer=True),
+            AppendOpenTag("pre"),
+        ]
+        return AppendBatchAndDefer(items)
+
+    def leave_codeblock(self, node: nodes.CodeBlock) -> EditCommand:
+        batch = self.leave_node(node)
+        if not isinstance(node.parent, nodes.BaseParagraph):
+            return batch
+        if not node.next_sibling():
+            return batch
+        node.parent._must_close_p_tag = True
+        batch.items.append(AppendText("<p>"))
+        return AppendBatch(batch.items)
 
     def visit_algorithm(self, node: nodes.Algorithm) -> EditCommand:
         return AppendBatchAndDefer(

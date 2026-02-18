@@ -69,6 +69,7 @@ PUSH_THESE_TYPES = {
     "references",
     "block",
     "caption",
+    "codeblock",
     "construct",
     "inline",
     "keyword",

@@ -694,3 +694,169 @@ def test_multiline_meta_and_lang():
         </body>
         """,
     )
+
+
+def test_codeblock_in_paragraph_keyword_end():
+    compare_have_want(
+        have="""\
+        Some code.
+        :codeblock:
+          x = 1
+        ::
+        """,
+        want="""\
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
+
+        <main class="manuscriptwrapper">
+
+        <div class="manuscript" data-nodeid="0">
+
+        <section class="level-1">
+
+        <div class="paragraph" data-nodeid="1">
+
+        <p>Some code. </p>
+        <div class="codeblock" data-nodeid="3">
+
+        <pre>
+        <code>x = 1</code>
+        </pre>
+
+        </div>
+
+        </div>
+
+        </section>
+
+        </div>
+
+        </main>
+
+        </body>
+        """,
+    )
+
+
+def test_codeblock_in_paragraph_fence_end():
+    compare_have_want(
+        have="""\
+        Some code.
+        ```
+        x = 1
+        ```
+        """,
+        want="""\
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
+
+        <main class="manuscriptwrapper">
+
+        <div class="manuscript" data-nodeid="0">
+
+        <section class="level-1">
+
+        <div class="paragraph" data-nodeid="1">
+
+        <p>Some code. </p>
+        <div class="codeblock" data-nodeid="3">
+
+        <pre>
+        <code>x = 1</code>
+        </pre>
+
+        </div>
+
+        </div>
+
+        </section>
+
+        </div>
+
+        </main>
+
+        </body>
+        """,
+    )
+
+
+def test_codeblock_in_paragraph_keyword_middle():
+    compare_have_want(
+        have="""\
+        Some code.
+        :codeblock:
+          x = 1
+        ::
+        bar.
+        """,
+        want="""\
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
+
+        <main class="manuscriptwrapper">
+
+        <div class="manuscript" data-nodeid="0">
+
+        <section class="level-1">
+
+        <div class="paragraph" data-nodeid="1">
+
+        <p>Some code. </p>
+        <div class="codeblock" data-nodeid="3">
+
+        <pre>
+        <code>x = 1</code>
+        </pre>
+
+        </div>
+        <p> bar.</p>
+        </div>
+
+        </section>
+
+        </div>
+
+        </main>
+
+        </body>
+        """,
+    )
+
+
+def test_codeblock_in_paragraph_fence_middle():
+    compare_have_want(
+        have="""\
+        Some code.
+        ```
+        x = 1
+        ```
+        bar.
+        """,
+        want="""\
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
+
+        <main class="manuscriptwrapper">
+
+        <div class="manuscript" data-nodeid="0">
+
+        <section class="level-1">
+
+        <div class="paragraph" data-nodeid="1">
+
+        <p>Some code. </p>
+        <div class="codeblock" data-nodeid="3">
+
+        <pre>
+        <code>x = 1</code>
+        </pre>
+
+        </div>
+        <p> bar.</p>
+        </div>
+
+        </section>
+
+        </div>
+
+        </main>
+
+        </body>
+        """,
+    )
