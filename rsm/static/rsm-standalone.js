@@ -6,7 +6,7 @@ function loadTemml() {
   if (temmlLoadPromise) return temmlLoadPromise;
   const link = document.createElement("link");
   link.rel = "stylesheet";
-  link.href = "https://cdn.jsdelivr.net/npm/temml/dist/Temml-Local.css";
+  link.href = "https://cdn.jsdelivr.net/npm/temml/dist/Temml.css";
   document.head.appendChild(link);
   const script = document.createElement("script");
   script.src = "https://cdn.jsdelivr.net/npm/temml/dist/temml.min.js";

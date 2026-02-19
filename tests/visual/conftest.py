@@ -159,11 +159,12 @@ def serve_rsm_html(page: Any, tmp_path: Path) -> Callable[[str, bool], Any]:
             # Wait for RSM JavaScript initialization to complete
             page.wait_for_function("() => window.__rsmInitialized === true", timeout=10000)
 
-            # Wait for fonts to load
-            page.evaluate("() => document.fonts.ready")
+            # document.fonts.ready is a one-shot promise that stays resolved even when new
+            # @font-face rules are injected later (e.g. by loadTemml()). Use the live
+            # .status property instead so we wait for dynamically-loaded math fonts too.
+            page.wait_for_function("() => document.fonts.status === 'loaded'", timeout=15000)
 
-            # Wait for rendering (MathJax typesetting ~300-800ms + CSS transitions 300ms)
-            # Desktop tests now run with limited concurrency to reduce CPU contention
+            # Wait for rendering (temml/MathJax typesetting + CSS transitions)
             page.wait_for_timeout(1500)
 
             # Return the body element for clean screenshots
