@@ -9,14 +9,18 @@ import {
   InitializeResult,
   CompletionParams,
   CompletionItem,
+  DefinitionParams,
+  Location,
 } from 'vscode-languageserver/node';
 
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { RsmParser, ParseTreeCache } from './layer1/parser';
 import { getTagCompletions, getPartialTag } from './layer1/completion';
+import { extractLabels, extractReferences } from './layer1/navigation';
 import { parseWithPython } from './layer2/python';
 import { ASTCache, Debouncer } from './layer2';
 import { runSemanticDiagnostics } from './diagnostics/engine';
+import { isPositionInRange } from './utils/location';
 import { logger } from './utils/logger';
 
 // Create LSP connection
@@ -43,6 +47,7 @@ connection.onInitialize((_params: InitializeParams) => {
       completionProvider: {
         triggerCharacters: [':'],
       },
+      definitionProvider: true,
     },
   };
 
@@ -172,6 +177,32 @@ connection.onCompletion((params: CompletionParams): CompletionItem[] => {
   }
 
   return [];
+});
+
+/**
+ * Go-to-definition handler
+ */
+connection.onDefinition((params: DefinitionParams): Location | null => {
+  const document = documents.get(params.textDocument.uri);
+  if (!document) return null;
+
+  const cached = parseCache.get(params.textDocument.uri);
+  if (!cached) return null;
+
+  const text = document.getText();
+  const position = params.position;
+
+  // Find which reference (if any) the cursor is on
+  const refs = extractReferences(cached.tree, text);
+  const ref = refs.find((r) => isPositionInRange(position, r.range));
+  if (!ref) return null;
+
+  // Find the label definition for the reference target
+  const labels = extractLabels(cached.tree, text);
+  const label = labels.find((l) => l.name === ref.target);
+  if (!label) return null;
+
+  return Location.create(params.textDocument.uri, label.range);
 });
 
 // Make the text document manager listen on the connection

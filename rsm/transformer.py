@@ -326,7 +326,7 @@ class Transformer:
                     self._label_to_node(label, default=nodes.UnknownBibitem)
                     for label in pending.targetlabels
                 ]
-                cite = nodes.Cite(targets=targets)
+                cite = nodes.Cite(targets=targets, targetlabels=list(pending.targetlabels))
                 cite.label = f"cite-{next(counter)}"
                 pending.replace_self(cite)
                 for tgt in targets:

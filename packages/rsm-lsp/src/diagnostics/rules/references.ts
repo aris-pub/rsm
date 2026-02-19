@@ -46,33 +46,30 @@ export function checkUndefinedReferences(ast: ASTNode): Diagnostic[] {
 }
 
 /**
- * Check for undefined citations
+ * Check for undefined citations.
+ *
+ * The Python transformer records which bibtex keys failed to resolve as
+ * unknownTargetlabels on each Cite node. We surface those as warnings.
+ *
+ * Note: Cite nodes currently carry start_point [-1, -1] because they are
+ * synthetic nodes created after tree transformation rather than directly from
+ * the parse tree. Diagnostics for such nodes are skipped until the serializer
+ * provides real positions.
  */
 export function checkUndefinedCitations(ast: ASTNode): Diagnostic[] {
   const diagnostics: Diagnostic[] = [];
 
-  // Find all Cite nodes
-  const citations = findNodesByType(ast, 'Cite');
+  for (const cite of findNodesByType(ast, 'Cite')) {
+    const unknownLabels = cite.unknownTargetlabels as string[] | undefined;
+    if (!unknownLabels || unknownLabels.length === 0) continue;
 
-  // Find the References section (bibliography)
-  const referencesNodes = findNodesByType(ast, 'References');
-  const bibEntries = new Set<string>();
+    if (cite.start_point[0] === -1) continue;
 
-  // Extract bibliography entries from References node
-  if (referencesNodes.length > 0) {
-    // TODO: Extract actual bib entries from the References node
-    // For now, we'll skip this check until we understand the structure better
-    return diagnostics;
-  }
-
-  // Check each citation
-  for (const cite of citations) {
-    const target = cite.target as string;
-    if (target && !bibEntries.has(target)) {
+    for (const label of unknownLabels) {
       diagnostics.push({
         severity: DiagnosticSeverity.Warning,
         range: tuplesToRange(cite.start_point, cite.end_point),
-        message: `Undefined citation: '${target}'`,
+        message: `Undefined citation: '${label}'`,
         source: 'rsm-lsp (semantic)',
       });
     }

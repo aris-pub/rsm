@@ -1513,9 +1513,27 @@ class PendingCite(Node):
 
 
 class Cite(Node):
-    def __init__(self, targets: list[Node] | None = None, **kwargs: Any) -> None:
+    def __init__(
+        self,
+        targets: list[Node] | None = None,
+        targetlabels: list[str] | None = None,
+        **kwargs: Any,
+    ) -> None:
         super().__init__(**kwargs)
         self.targets = targets or []
+        self.targetlabels = targetlabels or []
+
+    def to_dict(self) -> dict:
+        result = super().to_dict()
+        result["targetlabels"] = list(self.targetlabels)
+        unknown = [
+            label
+            for label, target in zip(self.targetlabels, self.targets)
+            if type(target).__name__ == "UnknownBibitem"
+        ]
+        if unknown:
+            result["unknownTargetlabels"] = unknown
+        return result
 
 
 class Statement(NodeWithChildren):

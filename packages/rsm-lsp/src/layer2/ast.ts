@@ -19,6 +19,8 @@ export interface ASTNode {
   email?: string; // Author nodes
   affiliation?: string; // Author nodes
   target?: string; // Reference nodes
+  targetlabels?: string[]; // Cite nodes: all bibtex keys
+  unknownTargetlabels?: string[]; // Cite nodes: keys that failed to resolve
   [key: string]: unknown; // Allow other properties
 }
 

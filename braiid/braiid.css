@@ -785,9 +785,16 @@ body {
   }
   .proof .hr.statement, .proof .hr.paragraph {margin-block-end: 0.5em;}
 
-  /* The last equation in a paragraph carries its own bottom margin; suppress the
-   paragraph's margin so it doesn't double up.  Targets both temml's native
-   <math display="block"> and MathJax's mjx-container as fallback. */
+  /* MathJax's runtime CSS provides `margin: 1em 0` on mjx-container[display="true"].
+   Temml's native <math display="block"> has no equivalent, so we set it explicitly
+   so both renderers produce the same internal block spacing. */
+  .mathblock math[display="block"] {
+    margin-block: 1em;
+  }
+
+  /* The last equation in a block carries its own bottom margin; suppress it so
+   it doesn't double up with the following element's spacing. Targets both
+   temml's native <math display="block"> and MathJax's mjx-container as fallback. */
   .mathblock:is(:last-child) math[display="block"],
   .mathblock:is(:last-child) mjx-container[jax="CHTML"][display="true"] {
     margin-block-end: 0;
