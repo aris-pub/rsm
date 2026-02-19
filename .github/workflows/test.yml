@@ -56,6 +56,7 @@ jobs:
 
   visual-tests:
     runs-on: macos-latest
+    timeout-minutes: 15
 
     env:
       PYTEST_ADDOPTS: "--color=yes"
@@ -91,6 +92,7 @@ jobs:
 
   accessibility-tests:
     runs-on: macos-latest
+    timeout-minutes: 15
 
     env:
       PYTEST_ADDOPTS: "--color=yes"
