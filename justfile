@@ -89,3 +89,126 @@ js-bundle:
 
 # Rebuild all compiled artifacts (JS bundle + tree-sitter grammar)
 build: js-bundle grammar
+
+# Release rsm-lang, and tree-sitter-rsm first if it has unreleased commits.
+# Bumps both packages by the same level following semantic versioning.
+# Usage:   just release <major|minor>
+release level:
+    #!/usr/bin/env bash
+    set -euo pipefail
+
+    LEVEL="{{level}}"
+    if [[ "$LEVEL" != "major" && "$LEVEL" != "minor" ]]; then
+        echo "Error: level must be 'major' or 'minor', got '$LEVEL'"
+        exit 1
+    fi
+
+    bump() {
+        local version=$1
+        local major minor patch
+        IFS='.' read -r major minor patch <<< "$version"
+        case "$LEVEL" in
+            major) echo "$((major + 1)).0.0" ;;
+            minor) echo "${major}.$((minor + 1)).0" ;;
+        esac
+    }
+
+    # Confirm major bumps to prevent accidental stable releases
+    if [[ "$LEVEL" == "major" ]]; then
+        RSM_CURRENT=$(grep '^version' pyproject.toml | head -1 | sed 's/version = "\(.*\)"/\1/')
+        RSM_NEXT=$(bump "$RSM_CURRENT")
+        echo "WARNING: major release will bump rsm-lang $RSM_CURRENT -> $RSM_NEXT"
+        read -r -p "Are you sure? [y/N] " confirm
+        if [[ "$confirm" != "y" && "$confirm" != "Y" ]]; then
+            echo "Aborted."
+            exit 1
+        fi
+    fi
+
+    # Resolve system tree-sitter before cd-ing into the submodule, where
+    # node_modules/.bin/tree-sitter (0.24.x) would shadow the system binary.
+    TREE_SITTER=$(which -a tree-sitter | grep -v node_modules | head -1)
+    if [[ -z "$TREE_SITTER" ]]; then
+        echo "Error: system tree-sitter not found. Install via: brew install tree-sitter"
+        exit 1
+    fi
+
+    # ── Step 1: Check whether tree-sitter-rsm needs a release ─────────────────
+    GRAMMAR_LAST_TAG=$(cd tree-sitter-rsm && git describe --tags --abbrev=0 2>/dev/null || echo "none")
+    if [[ "$GRAMMAR_LAST_TAG" == "none" ]]; then
+        GRAMMAR_COMMITS=1
+    else
+        GRAMMAR_COMMITS=$(cd tree-sitter-rsm && git log --oneline "${GRAMMAR_LAST_TAG}..HEAD" | wc -l | tr -d ' ')
+    fi
+
+    if [[ "$GRAMMAR_COMMITS" -gt 0 ]]; then
+        GRAMMAR_CURRENT=$(grep '^version' tree-sitter-rsm/pyproject.toml | head -1 | sed 's/version = "\(.*\)"/\1/')
+        GRAMMAR_VERSION=$(bump "$GRAMMAR_CURRENT")
+
+        echo "==> Releasing tree-sitter-rsm $GRAMMAR_CURRENT -> v$GRAMMAR_VERSION ($GRAMMAR_COMMITS new commits)"
+        cd tree-sitter-rsm
+        "$TREE_SITTER" version "$GRAMMAR_VERSION"
+        git commit -am "Release $GRAMMAR_VERSION"
+        git tag -- "v$GRAMMAR_VERSION"
+        git push origin main
+        git push origin "v$GRAMMAR_VERSION"
+        cd ..
+
+        echo "==> Waiting for tree-sitter-rsm publish action to start..."
+        sleep 15
+        GRAMMAR_RUN_ID=$(gh run list \
+            --repo aris-pub/tree-sitter-rsm \
+            --workflow "Publish packages" \
+            --limit 1 \
+            --json databaseId \
+            --jq '.[0].databaseId')
+        echo "==> Watching run $GRAMMAR_RUN_ID (this takes ~10 minutes for all wheels)..."
+        gh run watch "$GRAMMAR_RUN_ID" --repo aris-pub/tree-sitter-rsm --exit-status
+        echo "==> tree-sitter-rsm v$GRAMMAR_VERSION published."
+
+        # Update the submodule pointer to the newly tagged commit
+        git submodule update --init --remote tree-sitter-rsm
+        git add tree-sitter-rsm
+    else
+        echo "==> tree-sitter-rsm is up to date, skipping grammar release."
+        GRAMMAR_VERSION=""
+    fi
+
+    # ── Step 2: Release rsm-lang ───────────────────────────────────────────────
+    RSM_CURRENT=$(grep '^version' pyproject.toml | head -1 | sed 's/version = "\(.*\)"/\1/')
+    RSM_VERSION=$(bump "$RSM_CURRENT")
+
+    echo "==> Releasing rsm-lang $RSM_CURRENT -> v$RSM_VERSION"
+
+    sed -i.bak "s/^version = \"[0-9.]*\"/version = \"$RSM_VERSION\"/" pyproject.toml
+    rm -f pyproject.toml.bak
+
+    # Update grammar dependency floor if we just released a new grammar version
+    if [[ -n "$GRAMMAR_VERSION" ]]; then
+        sed -i.bak "s/tree-sitter-rsm>=[0-9.]*/tree-sitter-rsm>=$GRAMMAR_VERSION/" pyproject.toml
+        rm -f pyproject.toml.bak
+    fi
+
+    git add pyproject.toml
+    git commit -m "Release v$RSM_VERSION"
+    git tag "v$RSM_VERSION"
+    git push origin main
+    git push origin "v$RSM_VERSION"
+
+    echo "==> Waiting for rsm-lang publish action to start..."
+    sleep 15
+    RSM_RUN_ID=$(gh run list \
+        --repo aris-pub/rsm \
+        --workflow "Publish to PyPI" \
+        --limit 1 \
+        --json databaseId \
+        --jq '.[0].databaseId')
+    echo "==> Watching run $RSM_RUN_ID..."
+    gh run watch "$RSM_RUN_ID" --repo aris-pub/rsm --exit-status
+
+    echo ""
+    echo "Released:"
+    if [[ -n "$GRAMMAR_VERSION" ]]; then
+        echo "  tree-sitter-rsm v$GRAMMAR_VERSION"
+    fi
+    echo "  rsm-lang v$RSM_VERSION"
