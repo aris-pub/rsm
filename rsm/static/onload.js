@@ -39,15 +39,18 @@ export async function onload(root = null, { keys = true } = {}) {
   }
 
   try {
-    // Load temml (primary math renderer); fall back to MathJax if unavailable
-    try {
-      await libs.loadTemml();
-    } catch (err) {
-      console.warn("temml failed to load, falling back to MathJax:", err);
+    // Load math renderer only when the page actually contains math.
+    // Avoids injecting a CDN font on math-free pages.
+    if (document.querySelector('span.math, div.mathblock')) {
       try {
-        await libs.loadMathJax();
-      } catch (err2) {
-        console.error("MathJax fallback also FAILED!", err2);
+        await libs.loadTemml();
+      } catch (err) {
+        console.warn("temml failed to load, falling back to MathJax:", err);
+        try {
+          await libs.loadMathJax();
+        } catch (err2) {
+          console.error("MathJax fallback also FAILED!", err2);
+        }
       }
     }
 
