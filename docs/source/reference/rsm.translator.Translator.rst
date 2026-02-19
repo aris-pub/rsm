@@ -17,6 +17,7 @@ Qualified name: ``rsm.translator.Translator``
       
       ~Translator.get_action_method
       ~Translator.leave_abstract
+      ~Translator.leave_codeblock
       ~Translator.leave_manuscript
       ~Translator.leave_mathblock
       ~Translator.leave_node
