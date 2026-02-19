@@ -19,8 +19,8 @@ export function extractLabels(tree: Tree, text: string): Label[] {
   const labels: Label[] = [];
 
   function visit(node: SyntaxNode) {
-    // Look for metadata nodes that contain labels
-    if (node.type === 'metadata') {
+    // Look for blockmeta nodes that contain labels
+    if (node.type === 'blockmeta') {
       const labelNode = findLabelInMetadata(node, text);
       if (labelNode) {
         labels.push({
@@ -52,15 +52,15 @@ function findLabelInMetadata(metadataNode: SyntaxNode, text: string): { name: st
     const child = metadataNode.child(i);
     if (!child) continue;
 
-    // Look for metadata_pair with key 'label'
-    if (child.type === 'metadata_pair') {
-      const key = child.childForFieldName('key');
-      const value = child.childForFieldName('value');
+    // Look for pair nodes with key ':label:'
+    if (child.type === 'pair') {
+      const keyNode = child.child(0); // metakey_text, e.g. ':label:'
+      const valNode = child.child(1); // metaval_text, e.g. ' thm1'
 
-      if (key && value) {
-        const keyText = text.substring(key.startIndex, key.endIndex);
-        if (keyText === 'label') {
-          const labelName = text.substring(value.startIndex, value.endIndex).trim();
+      if (keyNode && valNode) {
+        const keyText = text.substring(keyNode.startIndex, keyNode.endIndex);
+        if (keyText === ':label:') {
+          const labelName = text.substring(valNode.startIndex, valNode.endIndex).trim();
           return { name: labelName };
         }
       }
@@ -78,15 +78,18 @@ export function extractReferences(tree: Tree, text: string): Array<{ target: str
   const references: Array<{ target: string; range: Range }> = [];
 
   function visit(node: SyntaxNode) {
-    // Look for reference nodes
-    if (node.type === 'reference' || node.type === 'citation') {
-      const targetNode = node.childForFieldName('target');
-      if (targetNode) {
-        const target = text.substring(targetNode.startIndex, targetNode.endIndex);
-        references.push({
-          target,
-          range: pointsToRange(node.startPosition, node.endPosition),
-        });
+    // specialinline covers both :ref:target:: and :cite:target::
+    if (node.type === 'specialinline') {
+      const firstChild = node.child(0);
+      if (firstChild && (firstChild.type === 'ref' || firstChild.type === 'cite')) {
+        const targetNode = node.childForFieldName('target');
+        if (targetNode) {
+          const target = text.substring(targetNode.startIndex, targetNode.endIndex);
+          references.push({
+            target,
+            range: pointsToRange(node.startPosition, node.endPosition),
+          });
+        }
       }
     }
 
