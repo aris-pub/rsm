@@ -44,7 +44,7 @@ jobs:
 
     - name: Run unit tests
       run: |
-        uv run pytest -vv -m "not visual and not accessibility"
+        uv run pytest -vv -m "not visual and not accessibility and not interactive"
 
     - name: Run doctests in source files
       run: |
@@ -120,6 +120,38 @@ jobs:
     - name: Run visual tests
       run: |
         uv run pytest -vv -m visual -n 2 --timeout=60
+
+  interactive-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    env:
+      PYTEST_ADDOPTS: "--color=yes"
+
+    steps:
+    - name: Checkout the repository and submodules
+      uses: actions/checkout@v3
+      with:
+        submodules: true
+
+    - name: Set up Python 3.12
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+
+    - name: Install uv
+      run: |
+        curl -LsSf https://astral.sh/uv/install.sh | sh
+        echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+
+    - name: Install rsm-lang
+      run: uv sync
+
+    - name: Install Playwright browsers
+      run: uv run playwright install --with-deps chromium
+
+    - name: Run interactive tests
+      run: uv run pytest tests/interactive/ -vv --browser chromium --timeout=60
 
   accessibility-tests:
     runs-on: macos-latest

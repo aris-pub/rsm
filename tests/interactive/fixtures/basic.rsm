@@ -1,0 +1,22 @@
+# Basic Interactive
+
+A paragraph with a handrail. Hovering reveals the menu with a copy-link action.
+
+## Section One
+
+:theorem:
+
+  Every bounded monotone sequence converges.
+
+::
+
+:proof:
+
+  The proof follows from the completeness axiom.
+
+::
+
+## Section Two
+
+Another paragraph for additional handrail interaction surface.
+

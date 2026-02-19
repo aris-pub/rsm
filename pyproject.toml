@@ -97,6 +97,7 @@ markers = [
     "serial",
     'visual: marks tests as visual regression tests',
     'accessibility: marks tests as WCAG compliance tests',
+    'interactive: marks tests as interactive browser behavior tests',
 ]
 filterwarnings = [
     "ignore:.*pkg_resources.*:DeprecationWarning",

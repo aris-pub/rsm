@@ -33,6 +33,10 @@ test-visual:
 test-a11y:
     uv run pytest -vv -m accessibility -n auto
 
+# Run interactive browser behavior tests (toasts, tooltips, clipboard, iframe contexts)
+test-interactive:
+    uv run pytest tests/interactive/ -vv --browser chromium
+
 # Run tests with doctests in source and docs
 test-docs:
     cd docs && uv run make doctest
