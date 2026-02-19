@@ -39,11 +39,16 @@ export async function onload(root = null, { keys = true } = {}) {
   }
 
   try {
-    // Load MathJax (idempotent)
+    // Load temml (primary math renderer); fall back to MathJax if unavailable
     try {
-      await libs.loadMathJax();
+      await libs.loadTemml();
     } catch (err) {
-      console.error("Loading MathJax FAILED!", err);
+      console.warn("temml failed to load, falling back to MathJax:", err);
+      try {
+        await libs.loadMathJax();
+      } catch (err2) {
+        console.error("MathJax fallback also FAILED!", err2);
+      }
     }
 
     // Load Pseudocode (idempotent)
@@ -115,7 +120,7 @@ export async function onrender(root = null) {
     try {
       await libs.typesetMath(root);
     } catch (err) {
-      console.error("MathJax typeset FAILED!", err);
+      console.error("Math typeset FAILED!", err);
     }
 
     // Render pseudocode elements that haven't been rendered yet

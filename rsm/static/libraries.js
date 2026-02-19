@@ -3,10 +3,35 @@
 // Load external libraries dynamically
 //
 
+let temmlLoaded = false;
+let temmlLoadPromise = null;
+
+// Load temml (primary math renderer) - idempotent, only loads once
+export function loadTemml() {
+  if (temmlLoaded) return Promise.resolve();
+  if (temmlLoadPromise) return temmlLoadPromise;
+
+  const link = document.createElement('link');
+  link.rel = 'stylesheet';
+  link.href = 'https://cdn.jsdelivr.net/npm/temml/dist/Temml-Local.css';
+  document.head.appendChild(link);
+
+  const script = document.createElement('script');
+  script.src = 'https://cdn.jsdelivr.net/npm/temml/dist/temml.min.js';
+  document.head.appendChild(script);
+
+  temmlLoadPromise = new Promise((res, rej) => {
+    script.onload = () => { temmlLoaded = true; res(); };
+    script.onerror = rej;
+  });
+
+  return temmlLoadPromise;
+}
+
 let mathJaxLoaded = false;
 let mathJaxLoadPromise = null;
 
-// Load MathJax - idempotent, only loads once
+// Load MathJax - fallback if temml is unavailable, idempotent
 export function loadMathJax() {
   if (mathJaxLoaded) {
     return Promise.resolve();
@@ -15,12 +40,10 @@ export function loadMathJax() {
     return mathJaxLoadPromise;
   }
 
-  // Configure MathJax BEFORE loading the script
-  // All settings must be in one object - MathJax reads this on load
   const config = document.createElement('script');
   config.innerHTML = `window.MathJax = {
       startup: {
-        typeset: false  // Disable auto-typeset - we call typesetPromise explicitly
+        typeset: false
       },
       tex: {
         inlineMath: [['$', '$'], ['\\\\(', '\\\\)']],
@@ -46,8 +69,6 @@ export function loadMathJax() {
 
   mathJaxLoadPromise = new Promise((res, rej) => {
     script.onload = async () => {
-      // Wait for MathJax to fully initialize (not just script load)
-      // MathJax.startup.promise might not exist immediately, so poll for it
       const waitForStartup = () => {
         if (window.MathJax?.startup?.promise) {
           window.MathJax.startup.promise.then(() => {
@@ -66,29 +87,55 @@ export function loadMathJax() {
   return mathJaxLoadPromise;
 }
 
-// Re-typeset math after HTML content changes
+// Re-typeset math after HTML content changes.
+// Uses temml (sync, native MathML) when available; falls back to MathJax.
+// Idempotent: already-rendered elements are skipped (their content is no
+// longer the raw \(...\) / $$...$$ delimiter strings).
 export async function typesetMath(root = document) {
-  if (!window.MathJax?.typesetPromise) {
-    console.warn("MathJax not ready for typesetting");
+  const element = root === document ? document.body : root;
+
+  if (window.temml) {
+    // Inline math: <span class="math">\(...\)</span>
+    element.querySelectorAll('span.math').forEach(el => {
+      const src = el.textContent;
+      if (!src.startsWith('\\(') || !src.endsWith('\\)')) return;
+      try {
+        temml.render(src.slice(2, -2), el, { throwOnError: false });
+      } catch (err) {
+        console.error('temml inline error:', err);
+      }
+    });
+
+    // Display math: <div class="mathblock">$$\n...\n$$</div>
+    // In handrails mode the LaTeX lives inside .hr-content-zone.
+    element.querySelectorAll('div.mathblock').forEach(el => {
+      const contentEl = el.querySelector('.hr-content-zone') || el;
+      const src = contentEl.textContent.trim();
+      if (!src.startsWith('$$') || !src.endsWith('$$')) return;
+      try {
+        temml.render(src.slice(2, -2).trim(), contentEl, { displayMode: true, throwOnError: false });
+      } catch (err) {
+        console.error('temml display error:', err);
+      }
+    });
+
     return;
   }
 
-  // MathJax needs actual DOM elements, not the document object
-  const element = root === document ? document.body : root;
-
-  // Remove any existing mjx-containers to prevent duplication on re-render
-  const existingContainers = element.querySelectorAll("mjx-container");
-  if (existingContainers.length > 0) {
-    existingContainers.forEach(el => el.remove());
+  // MathJax fallback
+  if (!window.MathJax?.typesetPromise) {
+    console.warn('Neither temml nor MathJax ready for typesetting');
+    return;
   }
 
+  const existingContainers = element.querySelectorAll('mjx-container');
+  existingContainers.forEach(el => el.remove());
+
   try {
-    if (MathJax.typesetClear) {
-      MathJax.typesetClear([element]);
-    }
+    if (MathJax.typesetClear) MathJax.typesetClear([element]);
     await MathJax.typesetPromise([element]);
   } catch (err) {
-    console.error("MathJax typeset error:", err);
+    console.error('MathJax typeset error:', err);
   }
 }
 

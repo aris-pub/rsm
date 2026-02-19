@@ -785,8 +785,10 @@ body {
   }
   .proof .hr.statement, .proof .hr.paragraph {margin-block-end: 0.5em;}
 
-  /* Since MathJax containers already have a bottom margin of 1.0em, the paragraphs whose
-   last element is an equation do not need margin */
+  /* The last equation in a paragraph carries its own bottom margin; suppress the
+   paragraph's margin so it doesn't double up.  Targets both temml's native
+   <math display="block"> and MathJax's mjx-container as fallback. */
+  .mathblock:is(:last-child) math[display="block"],
   .mathblock:is(:last-child) mjx-container[jax="CHTML"][display="true"] {
     margin-block-end: 0;
   }

@@ -1046,7 +1046,7 @@ class Translator:
         )
 
     def visit_math(self, node: nodes.Math) -> EditCommand:
-        # the strings r'\(' and r'\)' are MathJax's delimiters for inline math
+        # \( ... \) are the standard TeX inline-math delimiters read by the client renderer
         return AppendBatchAndDefer(
             [
                 AppendNodeTag(node, "span", newline_inner=False, newline_outer=False),
@@ -1067,8 +1067,7 @@ class Translator:
                 AppendText("</p>"),
                 # This is the actual tag corresponding to the mathblock.
                 AppendNodeTag(node, "div"),
-                # The contents of a mathblock must be enclosed in '$$' and '$$' due to
-                # how MathJax works.
+                # $$ ... $$ are the standard TeX display-math delimiters read by the client renderer.
                 AppendTextAndDefer("$$\n", "\n$$"),
             ]
         )

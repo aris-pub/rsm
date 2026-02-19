@@ -25,6 +25,27 @@ var RSM = (() => {
   });
 
   // rsm/static/libraries.js
+  var temmlLoaded = false;
+  var temmlLoadPromise = null;
+  function loadTemml() {
+    if (temmlLoaded) return Promise.resolve();
+    if (temmlLoadPromise) return temmlLoadPromise;
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = "https://cdn.jsdelivr.net/npm/temml/dist/Temml-Local.css";
+    document.head.appendChild(link);
+    const script = document.createElement("script");
+    script.src = "https://cdn.jsdelivr.net/npm/temml/dist/temml.min.js";
+    document.head.appendChild(script);
+    temmlLoadPromise = new Promise((res, rej) => {
+      script.onload = () => {
+        temmlLoaded = true;
+        res();
+      };
+      script.onerror = rej;
+    });
+    return temmlLoadPromise;
+  }
   var mathJaxLoaded = false;
   var mathJaxLoadPromise = null;
   function loadMathJax() {
@@ -37,7 +58,7 @@ var RSM = (() => {
     const config = document.createElement("script");
     config.innerHTML = `window.MathJax = {
       startup: {
-        typeset: false  // Disable auto-typeset - we call typesetPromise explicitly
+        typeset: false
       },
       tex: {
         inlineMath: [['$', '$'], ['\\\\(', '\\\\)']],
@@ -78,19 +99,37 @@ var RSM = (() => {
     return mathJaxLoadPromise;
   }
   async function typesetMath(root2 = document) {
-    if (!window.MathJax?.typesetPromise) {
-      console.warn("MathJax not ready for typesetting");
+    const element = root2 === document ? document.body : root2;
+    if (window.temml) {
+      element.querySelectorAll("span.math").forEach((el) => {
+        const src = el.textContent;
+        if (!src.startsWith("\\(") || !src.endsWith("\\)")) return;
+        try {
+          temml.render(src.slice(2, -2), el, { throwOnError: false });
+        } catch (err) {
+          console.error("temml inline error:", err);
+        }
+      });
+      element.querySelectorAll("div.mathblock").forEach((el) => {
+        const contentEl = el.querySelector(".hr-content-zone") || el;
+        const src = contentEl.textContent.trim();
+        if (!src.startsWith("$$") || !src.endsWith("$$")) return;
+        try {
+          temml.render(src.slice(2, -2).trim(), contentEl, { displayMode: true, throwOnError: false });
+        } catch (err) {
+          console.error("temml display error:", err);
+        }
+      });
       return;
     }
-    const element = root2 === document ? document.body : root2;
-    const existingContainers = element.querySelectorAll("mjx-container");
-    if (existingContainers.length > 0) {
-      existingContainers.forEach((el) => el.remove());
+    if (!window.MathJax?.typesetPromise) {
+      console.warn("Neither temml nor MathJax ready for typesetting");
+      return;
     }
+    const existingContainers = element.querySelectorAll("mjx-container");
+    existingContainers.forEach((el) => el.remove());
     try {
-      if (MathJax.typesetClear) {
-        MathJax.typesetClear([element]);
-      }
+      if (MathJax.typesetClear) MathJax.typesetClear([element]);
       await MathJax.typesetPromise([element]);
     } catch (err) {
       console.error("MathJax typeset error:", err);
@@ -952,9 +991,14 @@ var RSM = (() => {
     }
     try {
       try {
-        await loadMathJax();
+        await loadTemml();
       } catch (err) {
-        console.error("Loading MathJax FAILED!", err);
+        console.warn("temml failed to load, falling back to MathJax:", err);
+        try {
+          await loadMathJax();
+        } catch (err2) {
+          console.error("MathJax fallback also FAILED!", err2);
+        }
       }
       try {
         await loadPseudocode();
@@ -1005,7 +1049,7 @@ var RSM = (() => {
       try {
         await typesetMath(root2);
       } catch (err) {
-        console.error("MathJax typeset FAILED!", err);
+        console.error("Math typeset FAILED!", err);
       }
       try {
         const elements = root2.querySelectorAll("pre.pseudocode:not(.rendered)");

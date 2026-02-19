@@ -61,14 +61,13 @@ class TestStandaloneMode:
         # Should have some form of braiid.css reference (either CDN or inline)
         assert "braiid.css" in result or "<style" in result
 
-    def test_standalone_true_uses_cdn_for_mathjax(self):
-        """Test that standalone=True preserves MathJax CDN URL."""
+    def test_standalone_true_uses_cdn_for_math(self):
+        """Test that standalone=True includes CDN URLs for math rendering."""
         source = ":rsm:\n\nHello world.\n\n::"
         result = rsm.build(source, handrails=False, lint=False, standalone=True)
 
-        # MathJax should still use CDN (it already does)
-        # This test ensures we don't accidentally break it
-        assert "mathjax" in result.lower() or "cdn.jsdelivr.net" in result
+        # temml is the primary renderer; MathJax is the fallback — both are CDN-loaded
+        assert "temml" in result.lower() or "mathjax" in result.lower()
 
     def test_standalone_true_uses_cdn_for_pseudocode(self):
         """Test that standalone=True preserves pseudocode.js CDN URL."""
