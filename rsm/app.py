@@ -55,9 +55,13 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Any, NamedTuple
 
+import json
+import subprocess
+
 from rsm import (
     builder,
     linter,
+    pandoc as pandoc_module,
     reader,
     rsmlogger,
     transformer,
@@ -566,3 +570,155 @@ def build(
 
     # Parse HTML into structured components
     return _parse_html_to_structured(html_result)
+
+
+# ─── Pandoc export ────────────────────────────────────────────────────────────
+
+
+class _PandocRunner:
+    """Pipe a pandoc JSON AST dict to the pandoc subprocess and return the result."""
+
+    def __init__(self, to_format: str, output: str | None = None) -> None:
+        self.to_format = to_format
+        self.output = output
+
+    def run(self, pandoc_ast: dict) -> str:
+        json_str = json.dumps(pandoc_ast)
+        cmd = ["pandoc", "--from=json", f"--to={self.to_format}"]
+        if self.output:
+            cmd += ["-o", self.output]
+        try:
+            proc = subprocess.run(
+                cmd, input=json_str, capture_output=True, text=True, check=True
+            )
+        except FileNotFoundError:
+            raise RSMApplicationError(
+                "pandoc executable not found; install pandoc from https://pandoc.org"
+            )
+        except subprocess.CalledProcessError as e:
+            raise RSMApplicationError(f"pandoc failed: {e.stderr}")
+        return proc.stdout
+
+
+class PandocExportApp(ParserApp):
+    """RSM source → pandoc JSON AST → pandoc subprocess → output string."""
+
+    def __init__(
+        self,
+        srcpath: Path | None = None,
+        plain: str = "",
+        to_format: str = "latex",
+        output: str | None = None,
+        loglevel: int = RSMApp.default_log_level,
+        log_format: str = "rsm",
+        log_time: bool = True,
+        log_lineno: bool = True,
+        strict: bool = False,
+    ) -> None:
+        super().__init__(srcpath, plain, loglevel, log_format, log_time, log_lineno, strict)
+        self._to_format = to_format
+        self._output = output
+
+    def run(self, initial_args=None) -> str:
+        # The pipeline's dict-unpacking (`call(**res)`) breaks on pandoc JSON AST
+        # dicts because they contain hyphen keys (e.g. "pandoc-api-version") that
+        # aren't valid Python identifiers. Run the parent pipeline up through the
+        # transformer, then call the pandoc steps explicitly.
+        manuscript = super().run(initial_args)
+        pandoc_ast = pandoc_module.PandocTranslator().translate(manuscript)
+        return _PandocRunner(self._to_format, self._output).run(pandoc_ast)
+
+
+def pandoc_export(
+    source: str = "",
+    path: str = "",
+    to_format: str = "latex",
+    output: str | None = None,
+    loglevel: int = RSMApp.default_log_level,
+    log_format: str = "rsm",
+    log_time: bool = True,
+    log_lineno: bool = True,
+    strict: bool = False,
+) -> str:
+    return PandocExportApp(
+        srcpath=path,
+        plain=source,
+        to_format=to_format,
+        output=output,
+        loglevel=loglevel,
+        log_format=log_format,
+        log_time=log_time,
+        log_lineno=log_lineno,
+        strict=strict,
+    ).run()
+
+
+# ─── Pandoc import ────────────────────────────────────────────────────────────
+
+
+class PandocImportApp(RSMApp):
+    """Any pandoc-supported format → pandoc JSON AST → RSM source text."""
+
+    def __init__(
+        self,
+        source: str = "",
+        path: str = "",
+        from_format: str = "markdown",
+        loglevel: int = RSMApp.default_log_level,
+        log_format: str = "rsm",
+        log_time: bool = True,
+        log_lineno: bool = True,
+    ) -> None:
+        if (not source and not path) or (source and path):
+            raise RSMApplicationError("Must specify exactly one of source, path")
+        super().__init__(tasks=[], loglevel=loglevel, log_format=log_format,
+                         log_time=log_time, log_lineno=log_lineno)
+        self._source = source
+        self._path = path
+        self._from_format = from_format
+
+    def run(self, initial_args: Any = None) -> str:
+        if self._path:
+            cmd = ["pandoc", f"--from={self._from_format}", "--to=json", self._path]
+            try:
+                proc = subprocess.run(cmd, capture_output=True, text=True, check=True)
+            except FileNotFoundError:
+                raise RSMApplicationError(
+                    "pandoc executable not found; install pandoc from https://pandoc.org"
+                )
+            except subprocess.CalledProcessError as e:
+                raise RSMApplicationError(f"pandoc failed: {e.stderr}")
+        else:
+            cmd = ["pandoc", f"--from={self._from_format}", "--to=json"]
+            try:
+                proc = subprocess.run(
+                    cmd, input=self._source, capture_output=True, text=True, check=True
+                )
+            except FileNotFoundError:
+                raise RSMApplicationError(
+                    "pandoc executable not found; install pandoc from https://pandoc.org"
+                )
+            except subprocess.CalledProcessError as e:
+                raise RSMApplicationError(f"pandoc failed: {e.stderr}")
+        pandoc_ast = json.loads(proc.stdout)
+        return pandoc_module.PandocImporter().from_json(pandoc_ast)
+
+
+def pandoc_import(
+    source: str = "",
+    path: str = "",
+    from_format: str = "markdown",
+    loglevel: int = RSMApp.default_log_level,
+    log_format: str = "rsm",
+    log_time: bool = True,
+    log_lineno: bool = True,
+) -> str:
+    return PandocImportApp(
+        source=source,
+        path=path,
+        from_format=from_format,
+        loglevel=loglevel,
+        log_format=log_format,
+        log_time=log_time,
+        log_lineno=log_lineno,
+    ).run()

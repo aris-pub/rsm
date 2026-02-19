@@ -102,6 +102,50 @@ def _run_app(func: Callable, args: Namespace, print_output: bool = True) -> int:
     return 0
 
 
+def _cmd_export(args: Namespace) -> int:
+    """Handle 'rsm export' subcommand."""
+    kwargs = {
+        "to_format": args.to,
+        "loglevel": app.RSMApp.default_log_level - args.verbose * 10,
+        "log_format": args.log_format,
+        "log_time": args.log_time,
+        "log_lineno": args.log_lineno,
+        "strict": args.strict,
+    }
+    if args.output:
+        kwargs["output"] = args.output
+    if args.string:
+        kwargs["source"] = args.src
+    else:
+        kwargs["path"] = args.src
+    result = app.pandoc_export(**kwargs)
+    if result and not args.output:
+        print(result)
+    return 0
+
+
+def _cmd_import(args: Namespace) -> int:
+    """Handle 'rsm import' subcommand."""
+    kwargs = {
+        "from_format": args.frm,
+        "loglevel": app.RSMApp.default_log_level - args.verbose * 10,
+        "log_format": args.log_format,
+        "log_time": args.log_time,
+        "log_lineno": args.log_lineno,
+    }
+    if args.string:
+        kwargs["source"] = args.src
+    else:
+        kwargs["path"] = args.src
+    result = app.pandoc_import(**kwargs)
+    if result:
+        if args.output:
+            Path(args.output).write_text(result)
+        else:
+            print(result)
+    return 0
+
+
 def _cmd_render(args: Namespace) -> int:
     """Handle 'rsm render' subcommand."""
     return _run_app(app.render, args, print_output=not args.silent)
@@ -868,6 +912,69 @@ def main() -> int:
         action="store_true",
     )
     parse_parser.set_defaults(func=_cmd_parse)
+
+    # Export subcommand
+    export_parser = subparsers.add_parser(
+        "export",
+        help="export RSM source to any pandoc-supported format (LaTeX, PDF, EPUB, DOCX, …)",
+    )
+    _add_common_args(export_parser)
+    export_parser.add_argument(
+        "--to",
+        help="output format (e.g. latex, pdf, epub, docx)",
+        default="latex",
+        metavar="FORMAT",
+    )
+    export_parser.add_argument(
+        "-o",
+        "--output",
+        help="output file path (omit to write to stdout)",
+        type=str,
+        default=None,
+    )
+    export_parser.set_defaults(func=_cmd_export)
+
+    # Import subcommand
+    import_parser = subparsers.add_parser(
+        "import",
+        help="import a pandoc-supported file and convert it to RSM source",
+    )
+    import_parser.add_argument(
+        "src",
+        help="input file path (or source string with -c)",
+    )
+    import_group = import_parser.add_argument_group("input control")
+    import_group.add_argument(
+        "-c",
+        "--string",
+        help="interpret src as a source string, not a path",
+        action="store_true",
+    )
+    import_group.add_argument(
+        "--from",
+        dest="frm",
+        help="input format (e.g. markdown, latex, docx)",
+        default="markdown",
+        metavar="FORMAT",
+    )
+    import_out = import_parser.add_argument_group("output control")
+    import_out.add_argument(
+        "-o",
+        "--output",
+        help="output .rsm file path (omit to write to stdout)",
+        type=str,
+        default=None,
+    )
+    import_log = import_parser.add_argument_group("logging control")
+    import_log.add_argument("-v", "--verbose", action="count", default=0)
+    import_log.add_argument("--log-no-timestamps", dest="log_time", action="store_false")
+    import_log.add_argument("--log-no-lineno", dest="log_lineno", action="store_false")
+    import_log.add_argument(
+        "--log-format",
+        choices=["plain", "rsm", "json", "lint"],
+        default="rsm",
+    )
+    import_parser.set_defaults(func=_cmd_import)
 
     # Serve subcommand
     serve_parser = subparsers.add_parser(
