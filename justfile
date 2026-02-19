@@ -83,6 +83,9 @@ grammar:
     uv pip install -e tree-sitter-rsm --reinstall-package tree-sitter-rsm
     echo "Done! tree-sitter-rsm rebuilt successfully"
 
-# Rebuild the standalone JS bundle for RSM
-rebuild-js-bundle:
+# Rebuild the standalone JS bundle (IIFE with window.RSM global)
+js-bundle:
     npx esbuild rsm/static/onload.js --bundle --format=iife --global-name=RSM --outfile=rsm/static/rsm-standalone.js
+
+# Rebuild all compiled artifacts (JS bundle + tree-sitter grammar)
+build: js-bundle grammar

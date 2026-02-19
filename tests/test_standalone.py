@@ -6,7 +6,11 @@ opened directly in a browser without requiring a web server. This is achieved by
 2. Using absolute URLs to the Studio backend for RSM-specific assets
 """
 
+from pathlib import Path
+
 import rsm
+
+BUNDLE = Path(__file__).parent.parent / "rsm" / "static" / "rsm-standalone.js"
 
 
 class TestStandaloneMode:
@@ -229,3 +233,33 @@ class TestCustomCSS:
 
         # Should NOT have custom.css in static/
         assert not web.exists("static/nonexistent.css")
+
+
+class TestJSBundle:
+    """Regression tests for rsm-standalone.js bundle format.
+
+    The bundle must be an IIFE that assigns to window.RSM. If it is accidentally
+    regenerated as an ES module (e.g. with --format=esm), standalone mode breaks
+    silently because RSM.onload() is called in the template but the global is never set.
+    """
+
+    def test_bundle_is_iife(self):
+        src = BUNDLE.read_text()
+        assert src.startswith("var RSM = (() => {"), (
+            "rsm-standalone.js must be an IIFE (var RSM = (() => { ... })()). "
+            "Run `just js-bundle` to rebuild with the correct format."
+        )
+
+    def test_bundle_is_not_esm(self):
+        src = BUNDLE.read_text()
+        assert "export {" not in src, (
+            "rsm-standalone.js must not use ES module exports. "
+            "Run `just js-bundle` to rebuild with --format=iife --global-name=RSM."
+        )
+
+    def test_bundle_exposes_rsm_global(self):
+        src = BUNDLE.read_text()
+        assert "return __toCommonJS(onload_exports);" in src, (
+            "rsm-standalone.js does not look like a valid IIFE bundle. "
+            "Run `just js-bundle` to rebuild."
+        )
