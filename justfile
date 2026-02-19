@@ -90,6 +90,20 @@ js-bundle:
 # Rebuild all compiled artifacts (JS bundle + tree-sitter grammar)
 build: js-bundle grammar
 
+# Generate a CHANGELOG entry for the given version and prepend to CHANGELOG.md.
+# If no version is given, uses "Unreleased".
+changelog version="Unreleased":
+    #!/usr/bin/env bash
+    set -euo pipefail
+    VERSION="{{version}}"
+    LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+    if [ -z "$LAST_TAG" ]; then COMMITS=$(git log --oneline --no-merges); else COMMITS=$(git log --oneline --no-merges "${LAST_TAG}..HEAD"); fi
+    DATE=$(date +%Y-%m-%d)
+    PROMPT="Generate a CHANGELOG entry for version $VERSION (date: $DATE). Commits since last tag: $COMMITS. Rules: Skip ci/test/chore/docs commits and submodule updates. Group into Keep-a-Changelog sections: Added (feat:), Fixed (fix:), Changed (other). Rewrite as user-friendly prose. Omit empty sections. If no user-visible changes output: _No user-visible changes._ Output only raw markdown (no preamble, no code fences): ## [$VERSION] - $DATE, then ### Added, ### Fixed, ### Changed sections as needed."
+    entry=$(claude --print "$PROMPT")
+    if [ -f CHANGELOG.md ]; then { head -1 CHANGELOG.md; printf "\n%s\n" "$entry"; tail -n +2 CHANGELOG.md; } > CHANGELOG.tmp && mv CHANGELOG.tmp CHANGELOG.md; else printf "# Changelog\n\n%s\n" "$entry" > CHANGELOG.md; fi
+    echo "==> CHANGELOG.md updated for $VERSION"
+
 # Release rsm-lang, and tree-sitter-rsm first if it has unreleased commits.
 # Bumps both packages by the same level following semantic versioning.
 # Usage:   just release <major|minor>
@@ -190,6 +204,8 @@ release level:
     fi
 
     git add pyproject.toml
+    just changelog "$RSM_VERSION"
+    git add CHANGELOG.md
     git commit -m "Release v$RSM_VERSION"
     git tag "v$RSM_VERSION"
     git push origin main
