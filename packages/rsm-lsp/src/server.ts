@@ -106,7 +106,8 @@ async function validateSemantics(document: TextDocument): Promise<void> {
     const layer2 = runSemanticDiagnostics(ast);
 
     // Get Layer 1 (syntax) diagnostics
-    const layer1 = parser.getSyntaxErrors(parseCache.get(uri)?.tree!);
+    const cachedTree = parseCache.get(uri)?.tree;
+    const layer1 = cachedTree ? parser.getSyntaxErrors(cachedTree) : [];
 
     // Merge Layer 1 and Layer 2 diagnostics
     const allDiagnostics = [...layer1, ...layer2];
@@ -118,7 +119,8 @@ async function validateSemantics(document: TextDocument): Promise<void> {
     logger.error(`Python parse failed for ${uri}:`, error);
 
     // Fall back to Layer 1 diagnostics only
-    const layer1 = parser.getSyntaxErrors(parseCache.get(uri)?.tree!);
+    const cachedTree = parseCache.get(uri)?.tree;
+    const layer1 = cachedTree ? parser.getSyntaxErrors(cachedTree) : [];
     connection.sendDiagnostics({ uri, diagnostics: layer1 });
   }
 }
