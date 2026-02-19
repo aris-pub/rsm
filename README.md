@@ -18,6 +18,8 @@ allow the user to write a plain text file (in a special `.rsm` format) and conve
 file into a web page (i.e. a set of .html, .css, and .js files).  These files can then
 be opened natively by any web browser on any device.
 
+> Distill showed what web-native scholarship could be. RSM makes it accessible to everyone.
+
 
 ## Installation
 

@@ -976,7 +976,7 @@ class Translator:
         #
         # A paragraph cannot start with a mathblock.
         items: list[EditCommand] = [AppendNodeTag(node, "div")]  #
-        if node.first_of_type(nodes.MathBlock):
+        if node.first_of_type(nodes.MathBlock) or node.first_of_type(nodes.CodeBlock):
             items.append(AppendOpenTagManualClose(tag="p", newline_inner=False))
         else:
             items.append(AppendOpenTag(tag="p", newline_inner=False))
@@ -1125,12 +1125,24 @@ class Translator:
         return AppendNodeTag(node, tag="span", newline_inner=False, newline_outer=False)
 
     def visit_codeblock(self, node: nodes.CodeBlock) -> EditCommand:
-        return AppendBatchAndDefer(
-            [
-                AppendNodeTag(node, "div", newline_inner=True, newline_outer=True),
-                AppendOpenTag("pre"),
-            ]
-        )
+        items = []
+        if isinstance(node.parent, nodes.BaseParagraph):
+            items.append(AppendText("</p>"))
+        items += [
+            AppendNodeTag(node, "div", newline_inner=True, newline_outer=True),
+            AppendOpenTag("pre"),
+        ]
+        return AppendBatchAndDefer(items)
+
+    def leave_codeblock(self, node: nodes.CodeBlock) -> EditCommand:
+        batch = self.leave_node(node)
+        if not isinstance(node.parent, nodes.BaseParagraph):
+            return batch
+        if not node.next_sibling():
+            return batch
+        node.parent._must_close_p_tag = True
+        batch.items.append(AppendText("<p>"))
+        return AppendBatch(batch.items)
 
     def visit_algorithm(self, node: nodes.Algorithm) -> EditCommand:
         return AppendBatchAndDefer(
@@ -1382,6 +1394,21 @@ class Translator:
             [AppendNodeTag(node, "span"), AppendTextAndDefer("[ ", " ]")]
         )
 
+    def _render_image(self, node: nodes.Asset) -> str:
+        alt_text = node.alt if node.alt else f"{node.__class__.__name__} {node.full_number}."
+        img = _make_tag(
+            "img",
+            id_=node.label,
+            classes=[],
+            src=node.path,
+            alt=alt_text,
+            onload="" if node.scale == 1.0 else f"this.width*={node.scale};",
+        )
+        if node.dark:
+            source = f'<source media="(prefers-color-scheme: dark)" srcset="{node.dark}">'
+            return f"<picture>\n{source}\n{img}\n</picture>"
+        return img
+
     def _detect_content_type_and_render(self, node: nodes.Asset) -> str:
         """Detect content type from path and return appropriate HTML."""
         path_str = str(node.path).lower()
@@ -1390,14 +1417,7 @@ class Translator:
         if any(
             path_str.endswith(ext) for ext in [".png", ".jpg", ".jpeg", ".gif", ".svg"]
         ):
-            return _make_tag(
-                "img",
-                id_=node.label,
-                classes=[],
-                src=node.path,
-                alt=f"{node.__class__.__name__} {node.full_number}.",
-                onload="" if node.scale == 1.0 else f"this.width*={node.scale};",
-            )
+            return self._render_image(node)
 
         # Video files
         elif any(path_str.endswith(ext) for ext in [".mp4", ".webm", ".avi", ".mov"]):
@@ -1447,14 +1467,7 @@ class Translator:
 
         # Default to image behavior
         else:
-            return _make_tag(
-                "img",
-                id_=node.label,
-                classes=[],
-                src=node.path,
-                alt=f"{node.__class__.__name__} {node.full_number}.",
-                onload="" if node.scale == 1.0 else f"this.width*={node.scale};",
-            )
+            return self._render_image(node)
 
     def visit_figure(self, node: nodes.Figure) -> EditCommand:
         return AppendBatchAndDefer(

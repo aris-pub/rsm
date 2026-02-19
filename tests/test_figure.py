@@ -312,3 +312,144 @@ def test_mixed_asset_numbering():
         </body>
         """,
     )
+
+
+def test_figure_alt_text():
+    compare_have_want(
+        have="""\
+        :figure: {
+          :path: assets/example.png
+          :alt: A scatter plot showing the correlation between X and Y.
+        }
+        ::
+        """,
+        want="""\
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
+
+        <main class="manuscriptwrapper">
+
+        <div class="manuscript" data-nodeid="0">
+
+        <section class="level-1">
+
+        <figure class="figure" data-nodeid="1">
+        <img src="assets/example.png" alt="A scatter plot showing the correlation between X and Y.">
+        </figure>
+
+        </section>
+
+        </div>
+
+        </main>
+
+        </body>
+        """,
+    )
+
+
+def test_figure_dark_mode():
+    compare_have_want(
+        have="""\
+        :figure: {
+          :path: assets/chart-light.png
+          :dark: assets/chart-dark.png
+        }
+        ::
+        """,
+        want="""\
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
+
+        <main class="manuscriptwrapper">
+
+        <div class="manuscript" data-nodeid="0">
+
+        <section class="level-1">
+
+        <figure class="figure" data-nodeid="1">
+        <picture>
+        <source media="(prefers-color-scheme: dark)" srcset="assets/chart-dark.png">
+        <img src="assets/chart-light.png" alt="Figure 1.">
+        </picture>
+        </figure>
+
+        </section>
+
+        </div>
+
+        </main>
+
+        </body>
+        """,
+    )
+
+
+def test_figure_static_path():
+    """The :static: path is stored on the node for use by export formats; no HTML change."""
+    compare_have_want(
+        have="""\
+        :figure: {
+          :path: assets/interactive.svg
+          :static: assets/interactive-static.png
+        }
+        ::
+        """,
+        want="""\
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
+
+        <main class="manuscriptwrapper">
+
+        <div class="manuscript" data-nodeid="0">
+
+        <section class="level-1">
+
+        <figure class="figure" data-nodeid="1">
+        <img src="assets/interactive.svg" alt="Figure 1.">
+        </figure>
+
+        </section>
+
+        </div>
+
+        </main>
+
+        </body>
+        """,
+    )
+
+
+def test_figure_all_new_options():
+    compare_have_want(
+        have="""\
+        :figure: {
+          :path: assets/plot-light.png
+          :alt: A density plot.
+          :dark: assets/plot-dark.png
+          :static: assets/plot-static.png
+        }
+        ::
+        """,
+        want="""\
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
+
+        <main class="manuscriptwrapper">
+
+        <div class="manuscript" data-nodeid="0">
+
+        <section class="level-1">
+
+        <figure class="figure" data-nodeid="1">
+        <picture>
+        <source media="(prefers-color-scheme: dark)" srcset="assets/plot-dark.png">
+        <img src="assets/plot-light.png" alt="A density plot.">
+        </picture>
+        </figure>
+
+        </section>
+
+        </div>
+
+        </main>
+
+        </body>
+        """,
+    )

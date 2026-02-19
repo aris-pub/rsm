@@ -1,0 +1,18 @@
+# Visual Regression Test: Figures
+
+This document exercises :figure: options added in rsm-ayn: :alt:, :dark:, and :static:.
+
+## Basic figure
+
+:figure: {:path: figure-light.png}
+::
+
+## Figure with alt text
+
+:figure: {:path: figure-light.png :alt: A blue rectangle labelled LIGHT}
+::
+
+## Figure with dark mode variant
+
+:figure: {:path: figure-light.png :dark: figure-dark.png :alt: Colour diagram}
+::
