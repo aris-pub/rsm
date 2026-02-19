@@ -103,6 +103,18 @@ result = fibonacci(10)
 print(f"The 10th Fibonacci number is {result}")
 ```
 
+Codeblock at end of paragraph: the following snippet computes a sum.
+```
+total = sum(range(10))
+```
+
+Codeblock in the middle of a paragraph: consider the helper
+```
+def double(x):
+    return x * 2
+```
+then call it as `double(21)` to get 42.
+
 ## Math
 
 Inline math: The quadratic formula is $x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}$.

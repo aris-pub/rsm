@@ -777,7 +777,7 @@ body {
 
   /* Margins between most elements */
   .hr {margin-block-end: 1em;}
-  .hr.mathblock {margin-block-end: 0em;}
+  .hr.mathblock, .hr.codeblock {margin-block-end: 0em;}
   .hr > .hr-content-zone > ol.enumerate,
   .hr > .hr-content-zone > ul.itemize {
     margin-block-end: 0;
