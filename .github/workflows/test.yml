@@ -13,10 +13,6 @@ jobs:
   lsp-tests:
     runs-on: ubuntu-latest
 
-    defaults:
-      run:
-        working-directory: packages/rsm-lsp
-
     steps:
     - name: Checkout the repository and submodules
       uses: actions/checkout@v3
@@ -27,16 +23,23 @@ jobs:
       uses: actions/setup-node@v3
       with:
         node-version: '18'
-        cache: 'npm'
-        cache-dependency-path: packages/rsm-lsp/package-lock.json
 
-    - name: Install dependencies
+    - name: Build tree-sitter-rsm
+      working-directory: tree-sitter-rsm
+      run: |
+        npm install
+        npm run prebuildify
+
+    - name: Install LSP dependencies
+      working-directory: packages/rsm-lsp
       run: npm ci
 
     - name: Build LSP server
+      working-directory: packages/rsm-lsp
       run: npm run build
 
     - name: Run LSP tests
+      working-directory: packages/rsm-lsp
       run: npm test -- --run
 
   pytest:
