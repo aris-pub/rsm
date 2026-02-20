@@ -11,12 +11,23 @@ import {
   CompletionItem,
   DefinitionParams,
   Location,
+  SemanticTokensParams,
+  SemanticTokens,
+  SemanticTokensLegend,
+  DocumentSymbolParams,
+  DocumentSymbol,
 } from 'vscode-languageserver/node';
 
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { RsmParser, ParseTreeCache } from './layer1/parser';
 import { getTagCompletions, getPartialTag } from './layer1/completion';
 import { extractLabels, extractReferences } from './layer1/navigation';
+import {
+  SemanticTokensProvider,
+  TOKEN_TYPES,
+  TOKEN_MODIFIERS,
+} from './layer1/semanticTokens';
+import { extractDocumentSymbols } from './layer1/documentSymbols';
 import { parseWithPython } from './layer2/python';
 import { ASTCache, Debouncer } from './layer2';
 import { runSemanticDiagnostics } from './diagnostics/engine';
@@ -32,6 +43,7 @@ const documents = new TextDocuments(TextDocument);
 // Layer 1: Tree-sitter parser and cache
 const parser = new RsmParser();
 const parseCache = new ParseTreeCache();
+const semanticTokensProvider = new SemanticTokensProvider();
 
 // Layer 2: Python AST cache and debouncer
 const astCache = new ASTCache();
@@ -41,6 +53,12 @@ const debouncer = new Debouncer(500); // 500ms debounce
 connection.onInitialize((_params: InitializeParams) => {
   logger.info('Initializing RSM Language Server');
 
+  // Define semantic tokens legend
+  const legend: SemanticTokensLegend = {
+    tokenTypes: [...TOKEN_TYPES],
+    tokenModifiers: [...TOKEN_MODIFIERS],
+  };
+
   const result: InitializeResult = {
     capabilities: {
       textDocumentSync: TextDocumentSyncKind.Incremental,
@@ -48,6 +66,12 @@ connection.onInitialize((_params: InitializeParams) => {
         triggerCharacters: [':'],
       },
       definitionProvider: true,
+      semanticTokensProvider: {
+        legend,
+        full: true,
+        range: false,
+      },
+      documentSymbolProvider: true,
     },
   };
 
@@ -205,6 +229,49 @@ connection.onDefinition((params: DefinitionParams): Location | null => {
   if (!label) return null;
 
   return Location.create(params.textDocument.uri, label.range);
+});
+
+/**
+ * Semantic tokens handler (syntax highlighting)
+ */
+connection.languages.semanticTokens.on((params: SemanticTokensParams): SemanticTokens => {
+  const cached = parseCache.get(params.textDocument.uri);
+  if (!cached) {
+    logger.warn(`No cached tree for semantic tokens: ${params.textDocument.uri}`);
+    return { data: [] };
+  }
+
+  logger.debug(`Providing semantic tokens for ${params.textDocument.uri}`);
+
+  // Use tree-sitter highlight query to generate tokens
+  const builder = semanticTokensProvider.provideSemanticTokens(cached.tree);
+  return builder.build();
+});
+
+/**
+ * Document symbols handler (outline/table of contents)
+ */
+connection.onDocumentSymbol((params: DocumentSymbolParams): DocumentSymbol[] => {
+  const document = documents.get(params.textDocument.uri);
+  if (!document) {
+    logger.warn(`No document found for symbols: ${params.textDocument.uri}`);
+    return [];
+  }
+
+  const cached = parseCache.get(params.textDocument.uri);
+  if (!cached) {
+    logger.warn(`No cached tree for document symbols: ${params.textDocument.uri}`);
+    return [];
+  }
+
+  logger.debug(`Extracting document symbols for ${params.textDocument.uri}`);
+
+  const text = document.getText();
+  const symbols = extractDocumentSymbols(cached.tree, text);
+
+  logger.debug(`Returning ${symbols.length} top-level symbols`);
+
+  return symbols;
 });
 
 // Make the text document manager listen on the connection
