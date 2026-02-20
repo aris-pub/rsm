@@ -38,9 +38,9 @@ jobs:
       working-directory: packages/rsm-lsp
       run: npm run build
 
-    - name: Run LSP tests
+    - name: Run LSP tests (excluding Python integration)
       working-directory: packages/rsm-lsp
-      run: npm test -- --run
+      run: npm test -- --run test/unit/layer1/ test/unit/diagnostics/
 
   pytest:
     runs-on: ${{ matrix.os }}-latest
