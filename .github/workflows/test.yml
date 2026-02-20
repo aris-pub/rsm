@@ -10,6 +10,35 @@ on:
 
 jobs:
 
+  lsp-tests:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: packages/rsm-lsp
+
+    steps:
+    - name: Checkout the repository and submodules
+      uses: actions/checkout@v3
+      with:
+        submodules: true
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: packages/rsm-lsp/package-lock.json
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Build LSP server
+      run: npm run build
+
+    - name: Run LSP tests
+      run: npm test -- --run
+
   pytest:
     runs-on: ${{ matrix.os }}-latest
 
