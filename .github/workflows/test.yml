@@ -24,6 +24,19 @@ jobs:
       with:
         node-version: '18'
 
+    - name: Set up Python 3.12
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+
+    - name: Install uv
+      run: |
+        curl -LsSf https://astral.sh/uv/install.sh | sh
+        echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+
+    - name: Install rsm-lang
+      run: uv sync
+
     - name: Build tree-sitter-rsm
       working-directory: tree-sitter-rsm
       run: |
@@ -38,9 +51,9 @@ jobs:
       working-directory: packages/rsm-lsp
       run: npm run build
 
-    - name: Run LSP tests (excluding Python integration)
+    - name: Run all LSP tests
       working-directory: packages/rsm-lsp
-      run: npm test -- --run test/unit/layer1/ test/unit/diagnostics/
+      run: npm test -- --run
 
   pytest:
     runs-on: ${{ matrix.os }}-latest
