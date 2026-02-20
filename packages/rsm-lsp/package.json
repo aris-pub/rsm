@@ -28,7 +28,7 @@
     "node": ">=18.0.0"
   },
   "dependencies": {
-    "tree-sitter": "^0.25.0",
+    "tree-sitter": "0.22.4",
     "tree-sitter-rsm": "file:../../tree-sitter-rsm",
     "vscode-languageserver": "^9.0.1",
     "vscode-languageserver-textdocument": "^1.0.11"
