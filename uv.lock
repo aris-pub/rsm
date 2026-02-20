@@ -955,7 +955,7 @@ wheels = [
 
 [[package]]
 name = "rsm-lang"
-version = "0.6.0"
+version = "1.0.0"
 source = { editable = "." }
 dependencies = [
     { name = "fs" },
@@ -1370,7 +1370,7 @@ wheels = [
 
 [[package]]
 name = "tree-sitter-rsm"
-version = "0.8.0"
+version = "1.0.0"
 source = { editable = "tree-sitter-rsm" }
 
 [package.metadata]

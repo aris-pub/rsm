@@ -68,12 +68,9 @@ echo '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}' | node dist/se
 Tree-sitter grammar not installed. Mode still works with basic regexp highlighting. To install tree-sitter grammar:
 
 ```bash
-# Install tree-sitter CLI
-npm install -g tree-sitter-cli
-
 # Build and install grammar for Emacs
 cd /Users/leo.torres/aris/rsm/tree-sitter-rsm
-tree-sitter generate
+npx tree-sitter generate
 # Then compile as dynamic library for Emacs (platform-specific)
 ```
 

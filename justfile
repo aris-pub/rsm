@@ -75,7 +75,7 @@ grammar:
     set -euo pipefail
     cd tree-sitter-rsm
     echo "Regenerating parser from grammar.js..."
-    tree-sitter generate
+    npx tree-sitter generate
     echo "Rebuilding C extension..."
     make
     echo "Reinstalling tree-sitter-rsm package..."
@@ -139,14 +139,6 @@ release level:
         fi
     fi
 
-    # Resolve system tree-sitter before cd-ing into the submodule, where
-    # node_modules/.bin/tree-sitter (0.24.x) would shadow the system binary.
-    TREE_SITTER=$(which -a tree-sitter | grep -v node_modules | head -1)
-    if [[ -z "$TREE_SITTER" ]]; then
-        echo "Error: system tree-sitter not found. Install via: brew install tree-sitter"
-        exit 1
-    fi
-
     # ── Step 1: Check whether tree-sitter-rsm needs a release ─────────────────
     GRAMMAR_LAST_TAG=$(cd tree-sitter-rsm && git describe --tags --abbrev=0 2>/dev/null || echo "none")
     if [[ "$GRAMMAR_LAST_TAG" == "none" ]]; then
@@ -161,7 +153,7 @@ release level:
 
         echo "==> Releasing tree-sitter-rsm $GRAMMAR_CURRENT -> v$GRAMMAR_VERSION ($GRAMMAR_COMMITS new commits)"
         cd tree-sitter-rsm
-        "$TREE_SITTER" version "$GRAMMAR_VERSION"
+        npx tree-sitter version "$GRAMMAR_VERSION"
         git commit -am "Release $GRAMMAR_VERSION"
         git tag -- "v$GRAMMAR_VERSION"
         git push origin main
