@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.0.1] - 2026-02-21
+
+### Added
+
+- Semantic tokens and document symbols support in the LSP server.
+- Automated CHANGELOG generation and GitHub release notes.
+
+### Fixed
+
+- LSP runtime error caused by outdated tree-sitter dependency (upgraded to 0.25.0).
+- Support for patch-level version bumps in the release recipe.
+- Tree-sitter-rsm now builds before LSP tests run in CI.
+
 ## [1.0.0] - 2026-02-19
 
 ### Added
