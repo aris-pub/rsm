@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.0.5] - 2026-02-21
+
+### Fixed
+
+- Include braiid directory in rsm-lang package distribution. Previously braiid assets (CSS, MD files) were missing from PyPI package, causing production deployments to fail.
+
 ## [1.0.4] - 2026-02-21
 
 ### Fixed
