@@ -2,7 +2,7 @@
 
 [project]
 name = "rsm-lang"
-version = "1.0.1"
+version = "1.0.2"
 description = "Readable Science Markup (RSM) - A language for semantic research publishing"
 readme = "README.md"
 authors = [{ name = "Leo Torres", email = "leo@leotrs.com" }]

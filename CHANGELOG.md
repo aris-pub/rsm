@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.0.2] - 2026-02-21
+
+_No user-visible changes._
+
 ## [1.0.1] - 2026-02-21
 
 ### Added
