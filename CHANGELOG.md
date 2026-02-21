@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.0.4] - 2026-02-21
+
+### Fixed
+
+- Require tree-sitter-rsm>=1.0.3 to pick up fix for version-specific wheel tagging (resolves Python 3.13 compatibility in production).
+
 ## [1.0.3] - 2026-02-21
 
 _No user-visible changes._
