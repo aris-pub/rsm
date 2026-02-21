@@ -154,7 +154,9 @@ release level:
 
         echo "==> Releasing tree-sitter-rsm $GRAMMAR_CURRENT -> v$GRAMMAR_VERSION ($GRAMMAR_COMMITS new commits)"
         cd tree-sitter-rsm
-        npx tree-sitter version "$GRAMMAR_VERSION"
+        sed -i.bak "s/\"version\": \"[0-9.]*\"/\"version\": \"$GRAMMAR_VERSION\"/" package.json
+        sed -i.bak "s/^version = \"[0-9.]*\"/version = \"$GRAMMAR_VERSION\"/" Cargo.toml pyproject.toml
+        rm -f package.json.bak Cargo.toml.bak pyproject.toml.bak
         git commit -am "Release $GRAMMAR_VERSION"
         git tag -- "v$GRAMMAR_VERSION"
         git push origin main
