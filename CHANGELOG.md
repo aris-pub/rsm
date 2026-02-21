@@ -2,6 +2,12 @@
 
 ## [1.0.2] - 2026-02-21
 
+### Fixed
+
+- Replace `npx tree-sitter` version detection with `sed` in the release recipe, fixing releases in environments without `npx` available.
+
+## [1.0.2] - 2026-02-21
+
 _No user-visible changes._
 
 ## [1.0.1] - 2026-02-21
