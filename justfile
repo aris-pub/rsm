@@ -106,14 +106,14 @@ changelog version="Unreleased":
 
 # Release rsm-lang, and tree-sitter-rsm first if it has unreleased commits.
 # Bumps both packages by the same level following semantic versioning.
-# Usage:   just release <major|minor>
+# Usage:   just release <major|minor|patch>
 release level:
     #!/usr/bin/env bash
     set -euo pipefail
 
     LEVEL="{{level}}"
-    if [[ "$LEVEL" != "major" && "$LEVEL" != "minor" ]]; then
-        echo "Error: level must be 'major' or 'minor', got '$LEVEL'"
+    if [[ "$LEVEL" != "major" && "$LEVEL" != "minor" && "$LEVEL" != "patch" ]]; then
+        echo "Error: level must be 'major', 'minor', or 'patch', got '$LEVEL'"
         exit 1
     fi
 
@@ -124,6 +124,7 @@ release level:
         case "$LEVEL" in
             major) echo "$((major + 1)).0.0" ;;
             minor) echo "${major}.$((minor + 1)).0" ;;
+            patch) echo "${major}.${minor}.$((patch + 1))" ;;
         esac
     }
 
