@@ -164,7 +164,7 @@ jobs:
 
     - name: Run visual tests
       run: |
-        uv run pytest -vv -m visual -n 2 --timeout=60
+        uv run pytest -vv -m visual -n 2 --timeout=60 --max-worker-restart=2
 
   interactive-tests:
     runs-on: ubuntu-latest

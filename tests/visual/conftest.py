@@ -159,12 +159,19 @@ def serve_rsm_html(page: Any, tmp_path: Path) -> Callable[[str, bool], Any]:
             # Wait for RSM JavaScript initialization to complete
             page.wait_for_function("() => window.__rsmInitialized === true", timeout=10000)
 
-            # document.fonts.ready is a one-shot promise that stays resolved even when new
-            # @font-face rules are injected later (e.g. by loadTemml()). Use the live
-            # .status property instead so we wait for dynamically-loaded math fonts too.
-            page.wait_for_function("() => document.fonts.status === 'loaded'", timeout=15000)
+            # Wait for fonts to fully load, including dynamically-injected @font-face
+            # rules (e.g. Temml.css). A single document.fonts.ready check is unreliable
+            # here: if the CSS hasn't been parsed yet, status is trivially 'loaded'
+            # because no font loads are pending. The double-ready pattern gives the
+            # browser a tick to discover newly-injected @font-face rules.
+            page.wait_for_function("""async () => {
+                await document.fonts.ready;
+                await new Promise(r => setTimeout(r, 100));
+                await document.fonts.ready;
+                return document.fonts.status === 'loaded';
+            }""", timeout=15000)
 
-            # Wait for rendering (temml/MathJax typesetting + CSS transitions)
+            # Wait for rendering (CSS transitions, layout reflow after font swap)
             page.wait_for_timeout(1500)
 
             # Return the body element for clean screenshots
