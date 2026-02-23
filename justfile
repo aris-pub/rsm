@@ -17,9 +17,9 @@ install-local:
     uv sync
     uv pip install -e tree-sitter-rsm --no-build-isolation
 
-# Run fast tests (skip slow, visual, and accessibility tests)
+# Run fast tests (skip slow, visual, accessibility, and interactive tests)
 test-fast:
-    uv run pytest -vv -m 'not visual and not accessibility' -k 'not slow'
+    uv run pytest -vv -m 'not visual and not accessibility' -k 'not slow' --ignore=tests/interactive
 
 # Run only slow tests
 test-slow:

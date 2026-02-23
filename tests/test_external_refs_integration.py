@@ -11,7 +11,7 @@ def test_external_ref_html_generation():
 
     src = """# Main Document
 
-This document references :ref:definitions/def.rsm#test-def::.
+This document references :ref:definitions/def/test-def::.
 """
 
     # Parse
@@ -74,7 +74,7 @@ def test_external_ref_missing_file():
 
     src = """# Document
 
-This references :ref:nonexistent/file.rsm#label::.
+This references :ref:nonexistent/file/label::.
 """
 
     # Parse
