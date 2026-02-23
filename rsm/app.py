@@ -254,6 +254,7 @@ class ParserApp(RSMApp):
         log_time: bool = True,
         log_lineno: bool = True,
         strict: bool = False,
+        root_dir: Path | None = None,
     ):
         self._validate_srcpath_and_plain(srcpath, plain)
 
@@ -266,7 +267,9 @@ class ParserApp(RSMApp):
         tasks += [
             Task("parser", p := tsparser.TSParser(), p.parse),
             Task(
-                "transformer", t := transformer.Transformer(strict=strict), t.transform
+                "transformer",
+                t := transformer.Transformer(root_dir=root_dir, strict=strict),
+                t.transform,
             ),
         ]
         super().__init__(tasks, loglevel, log_format, log_time, log_lineno)
@@ -308,9 +311,10 @@ class ProcessorApp(ParserApp):
         run_linter: bool = False,
         asset_resolver=None,
         strict: bool = False,
+        root_dir: Path | None = None,
     ):
         super().__init__(
-            srcpath, plain, loglevel, log_format, log_time, log_lineno, strict
+            srcpath, plain, loglevel, log_format, log_time, log_lineno, strict, root_dir
         )
         self.asset_resolver = asset_resolver
         if run_linter:
@@ -348,6 +352,7 @@ class FullBuildApp(ProcessorApp):
         theme_toggle: bool = True,
         menu_position: str = "left",
         strict: bool = False,
+        root_dir: Path | None = None,
     ):
         super().__init__(
             srcpath,
@@ -361,6 +366,7 @@ class FullBuildApp(ProcessorApp):
             run_linter,
             asset_resolver,
             strict,
+            root_dir,
         )
         self.write_output = write_output
         if standalone:
@@ -445,6 +451,7 @@ def render(
     log_lineno: bool = True,
     asset_resolver=None,
     strict: bool = False,
+    root_dir: Path | None = None,
 ) -> str:
     return ProcessorApp(
         srcpath=path,
@@ -457,6 +464,7 @@ def render(
         log_lineno=log_lineno,
         asset_resolver=asset_resolver,
         strict=strict,
+        root_dir=root_dir,
     ).run()
 
 
@@ -499,6 +507,7 @@ def build(
     theme_toggle: bool = True,
     menu_position: str = "left",
     strict: bool = False,
+    root_dir: Path | None = None,
 ) -> str | dict:
     """Process RSM source and optionally write output files.
 
@@ -563,6 +572,7 @@ def build(
         theme_toggle=theme_toggle,
         menu_position=menu_position,
         strict=strict,
+        root_dir=root_dir,
     ).run()
 
     if not structured:

@@ -1473,15 +1473,18 @@ class PendingReference(BaseReference):
     @property
     def external_file(self) -> str | None:
         """Extract external file path from target, or None if internal reference."""
-        if "#" in str(self.target):
-            return str(self.target).split("#", 1)[0]
+        if "/" in str(self.target):
+            file_part = str(self.target).rsplit("/", 1)[0]
+            if not file_part.endswith(".rsm"):
+                file_part += ".rsm"
+            return file_part
         return None
 
     @property
     def target_label(self) -> str:
         """Extract label from target."""
-        if "#" in str(self.target):
-            return str(self.target).split("#", 1)[1]
+        if "/" in str(self.target):
+            return str(self.target).rsplit("/", 1)[1]
         return str(self.target)
 
 

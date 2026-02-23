@@ -129,23 +129,37 @@ def test_pending_reference_internal():
 
 def test_pending_reference_external():
     """External reference should parse file path and label."""
-    pending = PendingReference(target="definitions/def.rsm#my-label")
+    pending = PendingReference(target="definitions/def/my-label")
+    assert pending.external_file == "definitions/def.rsm"
+    assert pending.target_label == "my-label"
+
+
+def test_pending_reference_external_explicit_rsm():
+    """External reference with explicit .rsm extension."""
+    pending = PendingReference(target="definitions/def.rsm/my-label")
     assert pending.external_file == "definitions/def.rsm"
     assert pending.target_label == "my-label"
 
 
 def test_pending_reference_external_relative_path():
     """External reference with relative path."""
-    pending = PendingReference(target="../theorems/thm.rsm#theorem-label")
+    pending = PendingReference(target="../theorems/thm/theorem-label")
     assert pending.external_file == "../theorems/thm.rsm"
     assert pending.target_label == "theorem-label"
 
 
 def test_pending_reference_external_nested_path():
-    """External reference with nested directory path."""
-    pending = PendingReference(target="math/algebra/groups.rsm#group-def")
+    """External reference with nested directory path — last / splits file from label."""
+    pending = PendingReference(target="math/algebra/groups/group-def")
     assert pending.external_file == "math/algebra/groups.rsm"
     assert pending.target_label == "group-def"
+
+
+def test_pending_reference_external_empty_label():
+    """External reference with empty label (whole-document ref)."""
+    pending = PendingReference(target="nb-matrix/")
+    assert pending.external_file == "nb-matrix.rsm"
+    assert pending.target_label == ""
 
 
 def test_pending_reference_backward_compat():

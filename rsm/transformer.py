@@ -280,6 +280,8 @@ class Transformer:
         if external_file:
             try:
                 manuscript, labels_map = self._load_external_manuscript(external_file)
+                if not label:
+                    return manuscript
                 try:
                     return labels_map[label]
                 except KeyError:

@@ -633,7 +633,7 @@ def test_resolve_pending_references_external():
     # Parse the main.rsm file which contains an external reference
     src = """# Main Document
 
-This document references :ref:definitions/def.rsm#test-def::.
+This document references :ref:definitions/def/test-def::.
 """
     parser = rsm.tsparser.TSParser()
     tree = parser.parse(src)
@@ -654,3 +654,51 @@ This document references :ref:definitions/def.rsm#test-def::.
     assert ref.external_file == "definitions/def.rsm"
     assert ref.target.label == "test-def"
     assert ref.target.__class__.__name__ == "Section"
+
+
+def test_label_to_node_external_empty_label():
+    """Empty label should resolve to the external manuscript itself."""
+    from pathlib import Path
+
+    from rsm.transformer import Transformer
+
+    root_dir = Path(__file__).parent / "fixtures/crossref"
+    t = Transformer(root_dir=root_dir)
+
+    src = ""
+    parser = rsm.tsparser.TSParser()
+    tree = parser.parse(src)
+    t.transform(tree)
+
+    node = t._label_to_node("", external_file="definitions/def.rsm")
+    assert node.__class__.__name__ == "Manuscript"
+
+
+def test_resolve_pending_references_external_empty_label():
+    """Whole-document ref (:ref:file/::) should resolve to external manuscript."""
+    from pathlib import Path
+
+    from rsm.transformer import Transformer
+
+    root_dir = Path(__file__).parent / "fixtures/crossref"
+
+    src = """# Main Document
+
+This document references :ref:definitions/def/::.
+"""
+    parser = rsm.tsparser.TSParser()
+    tree = parser.parse(src)
+
+    t = Transformer(root_dir=root_dir)
+    transformed = t.transform(tree)
+
+    refs = [
+        node
+        for node in transformed.traverse()
+        if node.__class__.__name__ == "Reference"
+    ]
+    assert len(refs) == 1
+
+    ref = refs[0]
+    assert ref.external_file == "definitions/def.rsm"
+    assert ref.target.__class__.__name__ == "Manuscript"
