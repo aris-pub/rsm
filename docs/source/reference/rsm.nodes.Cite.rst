@@ -15,6 +15,7 @@ Qualified name: ``rsm.nodes.Cite``
    .. autosummary::
       :nosignatures:
       
+      ~Cite.to_dict
 
    
    .. rubric:: Attributes

@@ -21,6 +21,10 @@
       
         LinterApp
       
+        PandocExportApp
+      
+        PandocImportApp
+      
         ParserApp
       
         Pipeline
@@ -41,6 +45,8 @@
    
    .. autofunction:: build
    .. autofunction:: lint
+   .. autofunction:: pandoc_export
+   .. autofunction:: pandoc_import
    .. autofunction:: render
    
    
