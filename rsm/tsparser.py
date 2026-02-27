@@ -668,14 +668,18 @@ def _abstractify(cst: TSTree) -> nodes.Manuscript:
                 ast_node.kind = tag.type
 
         if ast_node_type in ["ref", "previous", "url"]:
-            target_node = cst_node.named_children[1]
+            target_node = cst_node.child_by_field_name("target")
             ast_node.target = target_node.text.decode("utf-8")
             skip_these_ids.add(target_node.id)
 
-            if len(cst_node.named_children) > 2:
-                reftext_node = cst_node.named_children[2]
+            reftext_node = cst_node.child_by_field_name("reftext")
+            if reftext_node:
                 ast_node.overwrite_reftext = reftext_node.text.decode("utf-8")
                 skip_these_ids.add(reftext_node.id)
+
+            meta = cst_node.child_by_field_name("meta")
+            if meta:
+                ast_node.ingest_dict_as_meta(_parse_meta_into_dict(meta))
 
         if ast_node_type.startswith("prev") and ast_node_type != "previous":
             if ast_node_type == "prev":

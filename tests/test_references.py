@@ -1,3 +1,4 @@
+import rsm
 from conftest import compare_have_want
 
 
@@ -217,6 +218,45 @@ def test_bibitem_without_doi(caplog):
         """,
     )
     assert "Bibitem smith2024 has no DOI" in caplog.text
+
+
+def test_ref_with_class_meta():
+    """Ref with {:class: ...} meta parses into a PendingReference with classes."""
+    src = "Text :ref:{:class: depends_on}some-slug:: end."
+    parser = rsm.tsparser.TSParser()
+    tree = parser.parse(src)
+
+    refs = [n for n in tree.traverse() if isinstance(n, rsm.nodes.PendingReference)]
+    assert len(refs) == 1
+    ref = refs[0]
+    assert ref.target == "some-slug"
+    assert ref.classes == ["depends_on"]
+
+
+def test_ref_with_class_meta_and_reftext():
+    """Ref with {:class:} and display text."""
+    src = "See :ref:{:class: generalizes}thm-42, Main Result:: for details."
+    parser = rsm.tsparser.TSParser()
+    tree = parser.parse(src)
+
+    refs = [n for n in tree.traverse() if isinstance(n, rsm.nodes.PendingReference)]
+    assert len(refs) == 1
+    ref = refs[0]
+    assert ref.target == "thm-42"
+    assert ref.classes == ["generalizes"]
+    assert ref.overwrite_reftext.strip() == "Main Result"
+
+
+def test_ref_without_class_meta_still_works():
+    """Plain :ref:slug:: without meta still works after grammar change."""
+    src = "See :ref:some-ref:: here."
+    parser = rsm.tsparser.TSParser()
+    tree = parser.parse(src)
+
+    refs = [n for n in tree.traverse() if isinstance(n, rsm.nodes.PendingReference)]
+    assert len(refs) == 1
+    assert refs[0].target == "some-ref"
+    assert refs[0].classes == []
 
 
 def test_bibitem_with_doi():
