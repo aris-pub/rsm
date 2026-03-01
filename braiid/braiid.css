@@ -977,7 +977,7 @@ body {
 
 /* Handrail active */
 .manuscriptwrapper .hr.active,
-.manuscriptwrapper .hr:focus {
+.manuscriptwrapper:not([data-selecting]) .hr:focus {
   /* reset the default behavior */
   outline: none;
 
