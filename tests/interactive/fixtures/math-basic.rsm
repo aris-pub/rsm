@@ -1,0 +1,7 @@
+# Math Rendering
+
+A paragraph with inline math $2 + 2 = 4$ and display math:
+
+$$
+x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}
+$$

@@ -94,6 +94,20 @@ export function loadMathJax() {
 export async function typesetMath(root = document) {
   const element = root === document ? document.body : root;
 
+  // Load Temml on-demand if math elements exist but no renderer is loaded.
+  // This handles the case where the initial render had no math (so onload
+  // skipped Temml), then a subsequent compile introduces math.
+  if (!window.temml && !window.MathJax?.typesetPromise) {
+    const hasMath = element.querySelector('span.math, div.mathblock');
+    if (hasMath) {
+      try {
+        await loadTemml();
+      } catch {
+        try { await loadMathJax(); } catch { /* both failed */ }
+      }
+    }
+  }
+
   if (window.temml) {
     // Inline math: <span class="math">\(...\)</span>
     element.querySelectorAll('span.math').forEach(el => {
