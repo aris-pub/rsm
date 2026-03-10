@@ -1,0 +1,18 @@
+# Algorithm with pseudocode
+
+A paragraph with inline math $x + y$ to trigger Temml loading.
+
+:algorithm:
+\begin{algorithm}
+\caption{Euclid's GCD}
+\begin{algorithmic}
+\PROCEDURE{Euclid}{$a, b$}
+    \IF{$b = 0$}
+        \RETURN $a$
+    \ELSE
+        \RETURN \CALL{Euclid}{$b, a \bmod b$}
+    \ENDIF
+\ENDPROCEDURE
+\end{algorithmic}
+\end{algorithm}
+::

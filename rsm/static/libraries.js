@@ -21,7 +21,15 @@ export function loadTemml() {
   document.head.appendChild(script);
 
   temmlLoadPromise = new Promise((res, rej) => {
-    script.onload = () => { temmlLoaded = true; res(); };
+    script.onload = () => {
+      temmlLoaded = true;
+      // Alias temml as katex so pseudocode.js (which checks for window.katex) can use it.
+      // temml exposes the same renderToString API that pseudocode.js expects.
+      if (window.temml && !window.katex) {
+        window.katex = window.temml;
+      }
+      res();
+    };
     script.onerror = rej;
   });
 
@@ -113,8 +121,10 @@ export async function typesetMath(root = document) {
     element.querySelectorAll('span.math').forEach(el => {
       const src = el.textContent;
       if (!src.startsWith('\\(') || !src.endsWith('\\)')) return;
+      const latex = src.slice(2, -2);
+      el.dataset.latex = latex;
       try {
-        temml.render(src.slice(2, -2), el, { throwOnError: false });
+        temml.render(latex, el, { throwOnError: false });
       } catch (err) {
         console.error('temml inline error:', err);
       }
@@ -126,8 +136,10 @@ export async function typesetMath(root = document) {
       const contentEl = el.querySelector('.hr-content-zone') || el;
       const src = contentEl.textContent.trim();
       if (!src.startsWith('$$') || !src.endsWith('$$')) return;
+      const latex = src.slice(2, -2).trim();
+      el.dataset.latex = latex;
       try {
-        temml.render(src.slice(2, -2).trim(), contentEl, { displayMode: true, throwOnError: false });
+        temml.render(latex, contentEl, { displayMode: true, throwOnError: false });
       } catch (err) {
         console.error('temml display error:', err);
       }
