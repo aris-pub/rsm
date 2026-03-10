@@ -1385,6 +1385,7 @@ class Algorithm(NodeWithChildren):
     """
 
     autonumber = True
+    has_handrail = True
 
 
 class Appendix(Node):

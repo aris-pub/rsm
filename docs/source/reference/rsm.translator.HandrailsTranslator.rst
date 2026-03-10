@@ -15,6 +15,7 @@ Qualified name: ``rsm.translator.HandrailsTranslator``
    .. autosummary::
       :nosignatures:
       
+      ~HandrailsTranslator.leave_algorithm
       ~HandrailsTranslator.leave_author
       ~HandrailsTranslator.leave_caption
       ~HandrailsTranslator.leave_codeblock
@@ -29,6 +30,7 @@ Qualified name: ``rsm.translator.HandrailsTranslator``
       ~HandrailsTranslator.leave_subproof
       ~HandrailsTranslator.leave_theorem
       ~HandrailsTranslator.visit_abstract
+      ~HandrailsTranslator.visit_algorithm
       ~HandrailsTranslator.visit_author
       ~HandrailsTranslator.visit_bibitem
       ~HandrailsTranslator.visit_bibliography

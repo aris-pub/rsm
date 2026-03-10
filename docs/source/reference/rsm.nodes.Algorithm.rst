@@ -22,6 +22,7 @@ Qualified name: ``rsm.nodes.Algorithm``
    .. autosummary::
      
      ~Algorithm.autonumber
+     ~Algorithm.has_handrail
      ~Algorithm.nodeid
      ~Algorithm.label
      ~Algorithm.classes

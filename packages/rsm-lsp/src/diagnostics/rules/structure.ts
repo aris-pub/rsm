@@ -37,9 +37,10 @@ export function checkSectionsWithoutLabels(ast: ASTNode): Diagnostic[] {
   for (const section of sections) {
     if (!section.label) {
       const title = section.title || 'Untitled Section';
+      const headingEnd: [number, number] = [section.start_point[0] + 1, 0];
       diagnostics.push({
         severity: DiagnosticSeverity.Information,
-        range: tuplesToRange(section.start_point, section.end_point),
+        range: tuplesToRange(section.start_point, headingEnd),
         message: `Section "${title}" has no label`,
         source: 'rsm-lsp (semantic)',
       });
@@ -62,9 +63,10 @@ export function checkTheoremsWithoutLabels(ast: ASTNode): Diagnostic[] {
 
     for (const node of nodes) {
       if (!node.label) {
+        const headingEnd: [number, number] = [node.start_point[0] + 1, 0];
         diagnostics.push({
           severity: DiagnosticSeverity.Information,
-          range: tuplesToRange(node.start_point, node.end_point),
+          range: tuplesToRange(node.start_point, headingEnd),
           message: `${type} has no label (recommended for cross-referencing)`,
           source: 'rsm-lsp (semantic)',
         });
@@ -86,9 +88,10 @@ export function checkEmptySections(ast: ASTNode): Diagnostic[] {
   for (const section of sections) {
     if (!section.children || section.children.length === 0) {
       const title = section.title || 'Untitled Section';
+      const headingEnd: [number, number] = [section.start_point[0] + 1, 0];
       diagnostics.push({
         severity: DiagnosticSeverity.Warning,
-        range: tuplesToRange(section.start_point, section.end_point),
+        range: tuplesToRange(section.start_point, headingEnd),
         message: `Section "${title}" is empty`,
         source: 'rsm-lsp (semantic)',
       });
