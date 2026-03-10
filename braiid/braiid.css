@@ -1331,15 +1331,12 @@ body {
 
 /* Tables */
 .manuscriptwrapper .table-wrapper {
-  margin-inline-start: var(--chunk);
   margin-block: 1em;
-  display: flex;
-  flex-direction: column; }
-.manuscriptwrapper .table-wrapper > table {
   overflow-x: auto;
-  display: block; }
+  text-align: center; }
+.manuscriptwrapper .table-wrapper > table {
+  display: inline-table; }
 .manuscriptwrapper table.table {
-  text-align: center;
   border-collapse: collapse; }
 .manuscriptwrapper tbody td.tabledatum {
   padding-inline: 1rem;
@@ -1356,14 +1353,10 @@ body {
   border-top: var(--border-thin) solid var(--gray-600); }
 .manuscriptwrapper tbody tr:last-child td.tabledatum {
   border-bottom: var(--border-thin) solid var(--gray-600); }
-.manuscriptwrapper table caption {
-  caption-side: bottom;
-  display: table-caption;
+.manuscriptwrapper .table-wrapper > figcaption {
   margin-block: 0.5rem;
   text-align: center; }
-.manuscriptwrapper table caption.hr {
-  min-width: max-content; }
-.manuscriptwrapper table caption.hr .hr-content-zone {
+.manuscriptwrapper .table-wrapper > figcaption.hr .hr-content-zone {
   text-align: center;
   padding-inline: 1rem;
   padding-block: 0.5rem; }

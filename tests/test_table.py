@@ -381,11 +381,11 @@ def test_simple_caption():
 
         </tbody>
 
-        <caption>
-        <span class="label">Table 1. </span>This is a caption.
-        </caption>
-
         </table>
+
+        <figcaption>
+        <span class="label">Table 1. </span>This is a caption.
+        </figcaption>
 
         </div>
 
@@ -440,11 +440,11 @@ def test_simple_caption_with_shortcuts():
 
         </tbody>
 
-        <caption>
-        <span class="label">Table 1. </span>This is a <span class="span" data-nodeid="10"><em>caption</em></span> with shortcuts <span class="math" data-nodeid="13">\(2+2\)</span>.
-        </caption>
-
         </table>
+
+        <figcaption>
+        <span class="label">Table 1. </span>This is a <span class="span" data-nodeid="10"><em>caption</em></span> with shortcuts <span class="math" data-nodeid="13">\(2+2\)</span>.
+        </figcaption>
 
         </div>
 
@@ -706,11 +706,11 @@ def test_real_life_example():
 
         </tbody>
 
-        <caption>
-        <span class="label">Table 1. </span>Values of <span class="math" data-nodeid="36">\(\epsilon\)</span> and <span class="math" data-nodeid="39">\(\delta\)</span> for select subgraphs of Gr-Qc.
-        </caption>
-
         </table>
+
+        <figcaption>
+        <span class="label">Table 1. </span>Values of <span class="math" data-nodeid="36">\(\epsilon\)</span> and <span class="math" data-nodeid="39">\(\delta\)</span> for select subgraphs of Gr-Qc.
+        </figcaption>
 
         </div>
 
@@ -804,11 +804,11 @@ def test_real_life_example_different_spacing():
 
         </tbody>
 
-        <caption>
-        <span class="label">Table 1. </span>Values of <span class="math" data-nodeid="36">\(\epsilon\)</span> and <span class="math" data-nodeid="39">\(\delta\)</span> for select subgraphs of Gr-Qc.
-        </caption>
-
         </table>
+
+        <figcaption>
+        <span class="label">Table 1. </span>Values of <span class="math" data-nodeid="36">\(\epsilon\)</span> and <span class="math" data-nodeid="39">\(\delta\)</span> for select subgraphs of Gr-Qc.
+        </figcaption>
 
         </div>
 

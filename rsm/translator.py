@@ -1501,14 +1501,19 @@ class Translator:
             newline_inner=False,
             newline_outer=False,
         )
-        return AppendBatchAndDefer(
+        # Tables use figcaption outside <table> (inside table-wrapper) so the caption
+        # doesn't participate in the table's intrinsic width calculation.
+        use_figcaption = isinstance(parent, (nodes.Asset, nodes.Table))
+        items = []
+        if isinstance(parent, nodes.Table):
+            items.append(AppendText("\n</table>\n"))
+        items.extend(
             [
-                AppendOpenTag(
-                    "figcaption" if isinstance(parent, nodes.Asset) else "caption"
-                ),
+                AppendOpenTag("figcaption" if use_figcaption else "caption"),
                 caption,
             ]
         )
+        return AppendBatchAndDefer(items)
 
     def visit_appendix(self, node: nodes.Appendix) -> EditCommand:
         # Appendix nodes are used during the transform phase, but do not apear in the
@@ -1516,15 +1521,26 @@ class Translator:
         return AppendText("")
 
     def visit_table(self, node: nodes.Table) -> EditCommand:
+        table_tag = AppendNodeTag(node, "table")
+        manual_table = AppendOpenTagManualClose(
+            tag="table",
+            id=table_tag.id,
+            classes=table_tag.classes,
+            **{k: v for k, v in table_tag.custom_attrs.items()},
+        )
         return AppendBatchAndDefer(
             [
                 AppendOpenTag("div", classes=["table-wrapper"]),
-                AppendNodeTag(node, "table"),
+                manual_table,
             ]
         )
 
     def leave_table(self, node: nodes.Table) -> EditCommand:
-        return self.leave_node(node)
+        has_caption = any(isinstance(c, nodes.Caption) for c in node.children)
+        batch = self.leave_node(node)
+        if not has_caption:
+            batch.items.insert(0, AppendText("\n</table>\n"))
+        return batch
 
     def visit_tablehead(self, node: nodes.TableHead) -> EditCommand:
         return AppendNodeTag(node, "thead")
@@ -2222,10 +2238,14 @@ class HandrailsTranslator(Translator):
         )
         figcaption_classes.extend(additional_classes)
 
-        return AppendBatchAndDefer(
+        use_figcaption = isinstance(parent, (nodes.Asset, nodes.Table))
+        items = []
+        if isinstance(parent, nodes.Table):
+            items.append(AppendText("\n</table>\n"))
+        items.extend(
             [
                 AppendOpenTag(
-                    "figcaption" if isinstance(parent, nodes.Asset) else "caption",
+                    "figcaption" if use_figcaption else "caption",
                     classes=figcaption_classes,
                     is_selectable=True,
                     tabindex=0,
@@ -2241,6 +2261,7 @@ class HandrailsTranslator(Translator):
                 caption_label,
             ]
         )
+        return AppendBatchAndDefer(items)
 
     def leave_caption(self, node: nodes.Caption) -> EditCommand:
         batch = self.leave_node(node)
