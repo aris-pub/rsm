@@ -1739,7 +1739,7 @@ class Video(Asset):
 
 
 class Html(Asset):
-    classreftext = "Html {number}"
+    classreftext = "Widget {number}"
 
 
 class Draft(NodeWithChildren):

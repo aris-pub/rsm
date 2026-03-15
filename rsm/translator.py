@@ -1504,7 +1504,7 @@ class Translator:
         parent = node.parent
         caption = AppendOpenCloseTag(
             tag="span",
-            content=f"{parent.__class__.__name__} {parent.full_number}. ",
+            content=f"{parent.classreftext.format(nodeclass=parent.__class__.__name__, number=parent.full_number)}. ",
             classes=["label"],
             newline_inner=False,
             newline_outer=False,
@@ -2225,7 +2225,7 @@ class HandrailsTranslator(Translator):
         parent = node.parent
         caption_label = AppendOpenCloseTag(
             tag="span",
-            content=f"{parent.__class__.__name__} {parent.full_number}. ",
+            content=f"{parent.classreftext.format(nodeclass=parent.__class__.__name__, number=parent.full_number)}. ",
             classes=["label"],
             newline_inner=False,
             newline_outer=False,
