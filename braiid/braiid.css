@@ -282,6 +282,7 @@ body {
   --weight-light: 300;
   --font-heading: 'Montserrat', sans-serif;
   --font-body: 'Source Sans 3', sans-serif;
+  --font-mono: 'Source Code Pro', monospace;
 
   /* Borders */
   --border-thick: 6px;
@@ -1745,4 +1746,46 @@ a.reference.external:hover::after {
   z-index: 2100;
 }
 
+}
+
+/* pseudocode.js overrides -- outside @layer to beat inline styles.
+   pseudocode.js injects KaTeX_Main via inline style attributes;
+   !important is required to override them. */
+
+.ps-root {
+  font-family: var(--font-body) !important;
+  color: var(--text-body) !important;
+}
+
+.ps-keyword {
+  font-family: var(--font-body) !important;
+  font-weight: var(--weight-bold) !important;
+}
+
+.ps-funcname {
+  font-family: var(--font-body) !important;
+  font-variant: small-caps;
+}
+
+.ps-comment {
+  font-family: var(--font-body) !important;
+  color: var(--text-subtle) !important;
+}
+
+.ps-line {
+  font-family: var(--font-body) !important;
+}
+
+.ps-linenum {
+  font-family: var(--font-mono) !important;
+  color: var(--text-subtle) !important;
+  font-size: 0.85em;
+}
+
+.ps-algorithm {
+  border-color: var(--gray-300) !important;
+}
+
+.ps-algorithm > .ps-line:first-child {
+  border-top-color: var(--gray-300) !important;
 }
