@@ -17,6 +17,10 @@ logger = logging.getLogger("RSM").getChild("build")
 class BaseBuilder(ABC):
     """Use HTML body as a string and create a WebManuscript."""
 
+    _SCRIPT_SRC_RE = re.compile(
+        r'<script\b[^>]*\bsrc=["\']([^"\']+)["\'][^>]*>\s*</script>'
+    )
+
     def __init__(
         self,
         asset_resolver=None,
@@ -39,11 +43,24 @@ class BaseBuilder(ABC):
             asset_resolver = AssetResolverFromDisk()
         self.asset_resolver = asset_resolver
 
+    def deduplicate_scripts(self, body: str) -> str:
+        """Remove duplicate <script src="..."> tags, keeping the first occurrence of each URL."""
+        seen = set()
+
+        def _replace(match):
+            url = match.group(1)
+            if url in seen:
+                return ""
+            seen.add(url)
+            return match.group(0)
+
+        return self._SCRIPT_SRC_RE.sub(_replace, body)
+
     def build(self, body: str, src: Path = None) -> WebManuscript:
         logger.info("Building...")
-        self.body = body
+        self.body = self.deduplicate_scripts(body)
         self.web = WebManuscript(src)
-        self.web.body = body
+        self.web.body = self.body
 
         logger.debug("Searching required static assets...")
         self.required_assets: list[Path] = []
