@@ -1019,21 +1019,21 @@ def test_author():
 
         <p class="manuscript-date">April 13, 2024</p>
 
-        <div class="author hr hr-hidden" tabindex=0 data-nodeid="1">
+        <div class="author-block">
+        <div class="heading hr-hidden hr" tabindex=0>
 
         <div class="hr-collapse-zone">
-        <div class="hr-spacer"></div>
+
+                    <div class="hr-collapse">
+                      <div class="icon collapse">
+                      </div>
+                    </div>
+
         </div>
 
         <div class="hr-menu-zone">
 
         <div class="hr-menu">
-
-          <div class="hr-menu-label">
-            <span class="hr-menu-item-text">Author</span>
-          </div>
-
-          <div class="hr-menu-separator"></div>
 
           <div class="hr-menu-item link disabled">
             <span class="icon link">
@@ -1068,9 +1068,11 @@ def test_author():
 
         <div class="hr-content-zone">
 
-        <p>Leo Torres</p>
-
-        <p><a href="mailto:leo@leotrs.com">leo@leotrs.com</a></p>
+        <p class="author-names">Leo Torres</p>
+        <details class="author-details">
+        <summary><span class="icon chevron-down"></span>Affiliations</summary>
+        <p class="author-correspondence">Correspondence: <a href="mailto:leo@leotrs.com">leo@leotrs.com</a></p>
+        </details>
 
         </div>
 
@@ -1078,6 +1080,7 @@ def test_author():
         <div class="hr-info"></div>
         </div>
 
+        </div>
         </div>
 
         </section>

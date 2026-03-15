@@ -1,10 +1,10 @@
-"""Tests for collapsed author display mode (>5 authors)."""
+"""Tests for author display with many authors (previously collapsed mode)."""
 
 from conftest import compare_have_want
 
 
 def test_five_authors_no_collapse():
-    """With exactly 5 authors, show all (no collapse)."""
+    """With exactly 5 authors, all names shown inline."""
     compare_have_want(
         have="""\
         # Test
@@ -50,54 +50,18 @@ def test_five_authors_no_collapse():
 
         <h1>Test</h1>
 
-        <div class="author" data-nodeid="1">
-
-        <div class="paragraph">
-
-        <p>Author 1<sup>1</sup></p>
-
-        <p><sup>1</sup>MIT</p>
-        </div>
-        </div>
-
-        <div class="author" data-nodeid="2">
-
-        <div class="paragraph">
-
-        <p>Author 2<sup>2</sup></p>
-
-        <p><sup>2</sup>Harvard</p>
-        </div>
-        </div>
-
-        <div class="author" data-nodeid="3">
-
-        <div class="paragraph">
-
-        <p>Author 3<sup>3</sup></p>
-
-        <p><sup>3</sup>Stanford</p>
-        </div>
-        </div>
-
-        <div class="author" data-nodeid="4">
-
-        <div class="paragraph">
-
-        <p>Author 4<sup>4</sup></p>
-
-        <p><sup>4</sup>Berkeley</p>
-        </div>
-        </div>
-
-        <div class="author" data-nodeid="5">
-
-        <div class="paragraph">
-
-        <p>Author 5<sup>5</sup></p>
-
-        <p><sup>5</sup>Yale</p>
-        </div>
+        <div class="author-block">
+        <p class="author-names">Author 1<sup data-tooltip="MIT">1</sup>, Author 2<sup data-tooltip="Harvard">2</sup>, Author 3<sup data-tooltip="Stanford">3</sup>, Author 4<sup data-tooltip="Berkeley">4</sup>, Author 5<sup data-tooltip="Yale">5</sup></p>
+        <details class="author-details">
+        <summary><span class="icon chevron-down"></span>Affiliations</summary>
+        <ol class="author-affiliations">
+        <li value="1"><sup>1</sup>MIT</li>
+        <li value="2"><sup>2</sup>Harvard</li>
+        <li value="3"><sup>3</sup>Stanford</li>
+        <li value="4"><sup>4</sup>Berkeley</li>
+        <li value="5"><sup>5</sup>Yale</li>
+        </ol>
+        </details>
         </div>
 
         </section>
@@ -111,8 +75,8 @@ def test_five_authors_no_collapse():
     )
 
 
-def test_six_authors_collapsed():
-    """With 6 authors, show first 3 and last 2, with expand button."""
+def test_six_authors():
+    """With 6 authors, all names shown inline with collapsible details."""
     compare_have_want(
         have="""\
         # Test
@@ -164,70 +128,19 @@ def test_six_authors_collapsed():
 
         <h1>Test</h1>
 
-        <div class="authors-container">
-
-        <div class="author" data-nodeid="1">
-
-        <div class="paragraph">
-
-        <p>Author 1<sup>1</sup></p>
-
-        <p><sup>1</sup>MIT</p>
-        </div>
-        </div>
-
-        <div class="author" data-nodeid="2">
-
-        <div class="paragraph">
-
-        <p>Author 2<sup>2</sup></p>
-
-        <p><sup>2</sup>Harvard</p>
-        </div>
-        </div>
-
-        <div class="author" data-nodeid="3">
-
-        <div class="paragraph">
-
-        <p>Author 3<sup>3</sup></p>
-
-        <p><sup>3</sup>Stanford</p>
-        </div>
-        </div>
-
-        <div class="author author-hidden author-toggleable" data-nodeid="4">
-
-        <div class="paragraph">
-
-        <p>Author 4<sup>4</sup></p>
-
-        <p><sup>4</sup>Berkeley</p>
-        </div>
-        </div>
-
-        <button class="toggle-authors">Show/hide full author information</button>
-
-        <div class="author" data-nodeid="5">
-
-        <div class="paragraph">
-
-        <p>Author 5<sup>5</sup></p>
-
-        <p><sup>5</sup>Yale</p>
-        </div>
-        </div>
-
-        <div class="author" data-nodeid="6">
-
-        <div class="paragraph">
-
-        <p>Author 6<sup>6</sup></p>
-
-        <p><sup>6</sup>Princeton</p>
-        </div>
-        </div>
-
+        <div class="author-block">
+        <p class="author-names">Author 1<sup data-tooltip="MIT">1</sup>, Author 2<sup data-tooltip="Harvard">2</sup>, Author 3<sup data-tooltip="Stanford">3</sup>, Author 4<sup data-tooltip="Berkeley">4</sup>, Author 5<sup data-tooltip="Yale">5</sup>, Author 6<sup data-tooltip="Princeton">6</sup></p>
+        <details class="author-details">
+        <summary><span class="icon chevron-down"></span>Affiliations</summary>
+        <ol class="author-affiliations">
+        <li value="1"><sup>1</sup>MIT</li>
+        <li value="2"><sup>2</sup>Harvard</li>
+        <li value="3"><sup>3</sup>Stanford</li>
+        <li value="4"><sup>4</sup>Berkeley</li>
+        <li value="5"><sup>5</sup>Yale</li>
+        <li value="6"><sup>6</sup>Princeton</li>
+        </ol>
+        </details>
         </div>
 
         </section>
@@ -241,8 +154,8 @@ def test_six_authors_collapsed():
     )
 
 
-def test_ten_authors_collapsed():
-    """With 10 authors, show first 3 and last 2, hide middle 5."""
+def test_ten_authors():
+    """With 10 authors, all names shown inline."""
     compare_have_want(
         have="""\
         # Test
@@ -288,90 +201,8 @@ def test_ten_authors_collapsed():
 
         <h1>Test</h1>
 
-        <div class="authors-container">
-
-        <div class="author" data-nodeid="1">
-
-        <div class="paragraph">
-
-        <p>Author 1</p>
-        </div>
-        </div>
-
-        <div class="author" data-nodeid="2">
-
-        <div class="paragraph">
-
-        <p>Author 2</p>
-        </div>
-        </div>
-
-        <div class="author" data-nodeid="3">
-
-        <div class="paragraph">
-
-        <p>Author 3</p>
-        </div>
-        </div>
-
-        <div class="author author-hidden author-toggleable" data-nodeid="4">
-
-        <div class="paragraph">
-
-        <p>Author 4</p>
-        </div>
-        </div>
-
-        <div class="author author-hidden author-toggleable" data-nodeid="5">
-
-        <div class="paragraph">
-
-        <p>Author 5</p>
-        </div>
-        </div>
-
-        <div class="author author-hidden author-toggleable" data-nodeid="6">
-
-        <div class="paragraph">
-
-        <p>Author 6</p>
-        </div>
-        </div>
-
-        <div class="author author-hidden author-toggleable" data-nodeid="7">
-
-        <div class="paragraph">
-
-        <p>Author 7</p>
-        </div>
-        </div>
-
-        <div class="author author-hidden author-toggleable" data-nodeid="8">
-
-        <div class="paragraph">
-
-        <p>Author 8</p>
-        </div>
-        </div>
-
-        <button class="toggle-authors">Show/hide full author information</button>
-
-        <div class="author" data-nodeid="9">
-
-        <div class="paragraph">
-
-        <p>Author 9</p>
-        </div>
-        </div>
-
-        <div class="author" data-nodeid="10">
-
-        <div class="paragraph">
-
-        <p>Author 10</p>
-        </div>
-        </div>
-
+        <div class="author-block">
+        <p class="author-names">Author 1, Author 2, Author 3, Author 4, Author 5, Author 6, Author 7, Author 8, Author 9, Author 10</p>
         </div>
 
         </section>

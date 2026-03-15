@@ -146,7 +146,7 @@ class Transformer:
         self.resolve_pending_references()
         self.assign_author_affiliations()
         self.assign_author_note_symbols()
-        self.mark_author_visibility()
+        self.build_author_block()
         self.add_necessary_subproofs()
         self.autonumber_nodes()
         self.make_toc()
@@ -405,7 +405,6 @@ class Transformer:
                     next_num += 1
                 author.affiliation_number = affiliation_map[author.affiliation]
 
-        # Store total count on Manuscript node for translator
         self.tree.total_unique_affiliations = len(affiliation_map)
 
     def assign_author_note_symbols(self) -> None:
@@ -470,42 +469,48 @@ class Transformer:
             if author.author_note:
                 author.note_symbol = note_map[author.author_note]
 
-        # Store total count on Manuscript node for translator
         self.tree.total_unique_notes = len(note_map)
 
-    def mark_author_visibility(self) -> None:
-        """Mark which authors should be hidden in collapsed mode (>5 authors).
-
-        When there are >5 authors:
-        - Show first 3 authors
-        - Hide middle authors (positions 4 to N-2)
-        - Show last 2 authors
-        - Add container and toggle button
-        """
-        authors = list(
+    def build_author_block(self) -> None:
+        """Create an AuthorBlock node containing all Authors and an AuthorNotes child."""
+        all_authors = list(
             self.tree.traverse(condition=lambda n: isinstance(n, nodes.Author))
         )
-        total_authors = len(authors)
+        authors = [
+            a for a in all_authors
+            if a.name or a.affiliation or a.email or a.orcid or a.author_note
+        ]
+        if not authors:
+            return
 
-        if total_authors > 5:
-            # Mark that we need the container and button
-            self.tree.authors_collapsed = True
-            self.tree.total_authors = total_authors
+        affiliation_map: dict[str, int] = {}
+        for author in authors:
+            if author.affiliation and author.affiliation_number is not None:
+                affiliation_map[author.affiliation] = author.affiliation_number
 
-            # Mark middle authors as hidden and toggleable (indices 3 to total-3)
-            for i, author in enumerate(authors):
-                if 3 <= i < total_authors - 2:
-                    author.is_hidden = True
-                    author.is_toggleable = True
-                else:
-                    author.is_hidden = False
-                    author.is_toggleable = False
+        note_map: dict[str, str] = {}
+        for author in authors:
+            if author.author_note and author.note_symbol:
+                note_map[author.author_note] = author.note_symbol
 
-                # Mark the first of the "last 2" authors - button goes before this one
-                if i == total_authors - 2:
-                    author.insert_button_before = True
-        else:
-            self.tree.authors_collapsed = False
+        emails = [(a.name, a.email) for a in authors if a.email]
+        orcids = [(a.name, a.orcid) for a in authors if a.orcid]
+
+        block = nodes.AuthorBlock()
+
+        for author in authors:
+            author.parent.remove(author)
+            block.append(author)
+
+        notes = nodes.AuthorNotes(
+            affiliation_map=affiliation_map,
+            note_map=note_map,
+            emails=emails,
+            orcids=orcids,
+        )
+        block.append(notes)
+
+        self.tree.prepend(block)
 
     def add_necessary_subproofs(self) -> None:
         for step in self.tree.traverse(nodeclass=nodes.Step):
@@ -654,5 +659,7 @@ class Transformer:
     def assign_node_ids(self) -> None:
         nodeid = 0
         for node in self.tree.traverse():
+            if isinstance(node, (nodes.AuthorBlock, nodes.AuthorNotes)):
+                continue
             node.nodeid = nodeid
             nodeid += 1

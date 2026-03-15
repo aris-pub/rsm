@@ -163,3 +163,6 @@ rsm/static/plotly-chart.html
 # Visual regression test diffs (baselines are committed)
 tests/visual/screenshots-diff/
 tests/visual/snapshot_tests_failures/
+
+# Handrails output
+*.hns

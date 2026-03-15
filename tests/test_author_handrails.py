@@ -4,7 +4,7 @@ from conftest import compare_have_want_handrails
 
 
 def test_single_author_with_handrails():
-    """Single author should have handrails wrapper."""
+    """Single author should render author block with handrail wrapping all content."""
     compare_have_want_handrails(
         have="""\
         :author:{
@@ -22,21 +22,21 @@ def test_single_author_with_handrails():
 
         <section class="level-1">
 
-        <div class="author hr hr-hidden" tabindex=0 data-nodeid="1">
+        <div class="author-block">
+        <div class="heading hr-hidden hr" tabindex=0>
 
         <div class="hr-collapse-zone">
-        <div class="hr-spacer"></div>
+
+                    <div class="hr-collapse">
+                      <div class="icon collapse">
+                      </div>
+                    </div>
+
         </div>
 
         <div class="hr-menu-zone">
 
         <div class="hr-menu">
-
-          <div class="hr-menu-label">
-            <span class="hr-menu-item-text">Author</span>
-          </div>
-
-          <div class="hr-menu-separator"></div>
 
           <div class="hr-menu-item link disabled">
             <span class="icon link">
@@ -71,9 +71,13 @@ def test_single_author_with_handrails():
 
         <div class="hr-content-zone">
 
-        <p>Alice</p>
-
-        <p>MIT</p>
+        <p class="author-names">Alice</p>
+        <details class="author-details">
+        <summary><span class="icon chevron-down"></span>Affiliations</summary>
+        <ol class="author-affiliations">
+        <li>MIT</li>
+        </ol>
+        </details>
 
         </div>
 
@@ -81,6 +85,7 @@ def test_single_author_with_handrails():
         <div class="hr-info"></div>
         </div>
 
+        </div>
         </div>
 
         </section>
@@ -94,8 +99,8 @@ def test_single_author_with_handrails():
     )
 
 
-def test_six_authors_collapsed_with_handrails():
-    """With 6 authors and handrails, should have collapsed mode with handrails wrapper."""
+def test_six_authors_with_handrails():
+    """With 6 authors and handrails, all names shown inline with collapsible details."""
     compare_have_want_handrails(
         have="""\
         :author:{
@@ -137,23 +142,21 @@ def test_six_authors_collapsed_with_handrails():
 
         <section class="level-1">
 
-        <div class="authors-container">
-
-        <div class="author hr hr-hidden" tabindex=0 data-nodeid="1">
+        <div class="author-block">
+        <div class="heading hr-hidden hr" tabindex=0>
 
         <div class="hr-collapse-zone">
-        <div class="hr-spacer"></div>
+
+                    <div class="hr-collapse">
+                      <div class="icon collapse">
+                      </div>
+                    </div>
+
         </div>
 
         <div class="hr-menu-zone">
 
         <div class="hr-menu">
-
-          <div class="hr-menu-label">
-            <span class="hr-menu-item-text">Author</span>
-          </div>
-
-          <div class="hr-menu-separator"></div>
 
           <div class="hr-menu-item link disabled">
             <span class="icon link">
@@ -188,70 +191,18 @@ def test_six_authors_collapsed_with_handrails():
 
         <div class="hr-content-zone">
 
-        <p>Author 1<sup>1</sup></p>
-
-        <p><sup>1</sup>MIT</p>
-
-        </div>
-
-        <div class="hr-info-zone">
-        <div class="hr-info"></div>
-        </div>
-
-        </div>
-
-        <div class="author hr hr-hidden" tabindex=0 data-nodeid="2">
-
-        <div class="hr-collapse-zone">
-        <div class="hr-spacer"></div>
-        </div>
-
-        <div class="hr-menu-zone">
-
-        <div class="hr-menu">
-
-          <div class="hr-menu-label">
-            <span class="hr-menu-item-text">Author</span>
-          </div>
-
-          <div class="hr-menu-separator"></div>
-
-          <div class="hr-menu-item link disabled">
-            <span class="icon link">
-            </span>
-            <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <span class="icon code">
-            </span>
-            <span class="hr-menu-item-text">Source</span>
-          </div>
-
-        </div>
-
-        </div>
-
-        <div class="hr-border-zone">
-
-                        <div class="hr-border-dots">
-                          <div class="icon dots">
-                          </div>
-                        </div>
-                        <div class="hr-border-rect">
-                        </div>
-
-        </div>
-
-        <div class="hr-spacer-zone">
-        <div class="hr-spacer"></div>
-        </div>
-
-        <div class="hr-content-zone">
-
-        <p>Author 2<sup>2</sup></p>
-
-        <p><sup>2</sup>Harvard</p>
+        <p class="author-names">Author 1<sup data-tooltip="MIT">1</sup>, Author 2<sup data-tooltip="Harvard">2</sup>, Author 3<sup data-tooltip="Stanford">3</sup>, Author 4<sup data-tooltip="Berkeley">4</sup>, Author 5<sup data-tooltip="Yale">5</sup>, Author 6<sup data-tooltip="Princeton">6</sup></p>
+        <details class="author-details">
+        <summary><span class="icon chevron-down"></span>Affiliations</summary>
+        <ol class="author-affiliations">
+        <li value="1"><sup>1</sup>MIT</li>
+        <li value="2"><sup>2</sup>Harvard</li>
+        <li value="3"><sup>3</sup>Stanford</li>
+        <li value="4"><sup>4</sup>Berkeley</li>
+        <li value="5"><sup>5</sup>Yale</li>
+        <li value="6"><sup>6</sup>Princeton</li>
+        </ol>
+        </details>
 
         </div>
 
@@ -260,253 +211,6 @@ def test_six_authors_collapsed_with_handrails():
         </div>
 
         </div>
-
-        <div class="author hr hr-hidden" tabindex=0 data-nodeid="3">
-
-        <div class="hr-collapse-zone">
-        <div class="hr-spacer"></div>
-        </div>
-
-        <div class="hr-menu-zone">
-
-        <div class="hr-menu">
-
-          <div class="hr-menu-label">
-            <span class="hr-menu-item-text">Author</span>
-          </div>
-
-          <div class="hr-menu-separator"></div>
-
-          <div class="hr-menu-item link disabled">
-            <span class="icon link">
-            </span>
-            <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <span class="icon code">
-            </span>
-            <span class="hr-menu-item-text">Source</span>
-          </div>
-
-        </div>
-
-        </div>
-
-        <div class="hr-border-zone">
-
-                        <div class="hr-border-dots">
-                          <div class="icon dots">
-                          </div>
-                        </div>
-                        <div class="hr-border-rect">
-                        </div>
-
-        </div>
-
-        <div class="hr-spacer-zone">
-        <div class="hr-spacer"></div>
-        </div>
-
-        <div class="hr-content-zone">
-
-        <p>Author 3<sup>3</sup></p>
-
-        <p><sup>3</sup>Stanford</p>
-
-        </div>
-
-        <div class="hr-info-zone">
-        <div class="hr-info"></div>
-        </div>
-
-        </div>
-
-        <div class="author hr hr-hidden author-hidden author-toggleable" tabindex=0 data-nodeid="4">
-
-        <div class="hr-collapse-zone">
-        <div class="hr-spacer"></div>
-        </div>
-
-        <div class="hr-menu-zone">
-
-        <div class="hr-menu">
-
-          <div class="hr-menu-label">
-            <span class="hr-menu-item-text">Author</span>
-          </div>
-
-          <div class="hr-menu-separator"></div>
-
-          <div class="hr-menu-item link disabled">
-            <span class="icon link">
-            </span>
-            <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <span class="icon code">
-            </span>
-            <span class="hr-menu-item-text">Source</span>
-          </div>
-
-        </div>
-
-        </div>
-
-        <div class="hr-border-zone">
-
-                        <div class="hr-border-dots">
-                          <div class="icon dots">
-                          </div>
-                        </div>
-                        <div class="hr-border-rect">
-                        </div>
-
-        </div>
-
-        <div class="hr-spacer-zone">
-        <div class="hr-spacer"></div>
-        </div>
-
-        <div class="hr-content-zone">
-
-        <p>Author 4<sup>4</sup></p>
-
-        <p><sup>4</sup>Berkeley</p>
-
-        </div>
-
-        <div class="hr-info-zone">
-        <div class="hr-info"></div>
-        </div>
-
-        </div>
-
-        <button class="toggle-authors">Show/hide full author information</button>
-
-        <div class="author hr hr-hidden" tabindex=0 data-nodeid="5">
-
-        <div class="hr-collapse-zone">
-        <div class="hr-spacer"></div>
-        </div>
-
-        <div class="hr-menu-zone">
-
-        <div class="hr-menu">
-
-          <div class="hr-menu-label">
-            <span class="hr-menu-item-text">Author</span>
-          </div>
-
-          <div class="hr-menu-separator"></div>
-
-          <div class="hr-menu-item link disabled">
-            <span class="icon link">
-            </span>
-            <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <span class="icon code">
-            </span>
-            <span class="hr-menu-item-text">Source</span>
-          </div>
-
-        </div>
-
-        </div>
-
-        <div class="hr-border-zone">
-
-                        <div class="hr-border-dots">
-                          <div class="icon dots">
-                          </div>
-                        </div>
-                        <div class="hr-border-rect">
-                        </div>
-
-        </div>
-
-        <div class="hr-spacer-zone">
-        <div class="hr-spacer"></div>
-        </div>
-
-        <div class="hr-content-zone">
-
-        <p>Author 5<sup>5</sup></p>
-
-        <p><sup>5</sup>Yale</p>
-
-        </div>
-
-        <div class="hr-info-zone">
-        <div class="hr-info"></div>
-        </div>
-
-        </div>
-
-        <div class="author hr hr-hidden" tabindex=0 data-nodeid="6">
-
-        <div class="hr-collapse-zone">
-        <div class="hr-spacer"></div>
-        </div>
-
-        <div class="hr-menu-zone">
-
-        <div class="hr-menu">
-
-          <div class="hr-menu-label">
-            <span class="hr-menu-item-text">Author</span>
-          </div>
-
-          <div class="hr-menu-separator"></div>
-
-          <div class="hr-menu-item link disabled">
-            <span class="icon link">
-            </span>
-            <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <span class="icon code">
-            </span>
-            <span class="hr-menu-item-text">Source</span>
-          </div>
-
-        </div>
-
-        </div>
-
-        <div class="hr-border-zone">
-
-                        <div class="hr-border-dots">
-                          <div class="icon dots">
-                          </div>
-                        </div>
-                        <div class="hr-border-rect">
-                        </div>
-
-        </div>
-
-        <div class="hr-spacer-zone">
-        <div class="hr-spacer"></div>
-        </div>
-
-        <div class="hr-content-zone">
-
-        <p>Author 6<sup>6</sup></p>
-
-        <p><sup>6</sup>Princeton</p>
-
-        </div>
-
-        <div class="hr-info-zone">
-        <div class="hr-info"></div>
-        </div>
-
-        </div>
-
         </div>
 
         </section>

@@ -40,6 +40,9 @@ var RSM = (() => {
     temmlLoadPromise = new Promise((res, rej) => {
       script.onload = () => {
         temmlLoaded = true;
+        if (window.temml && !window.katex) {
+          window.katex = window.temml;
+        }
         res();
       };
       script.onerror = rej;
@@ -100,12 +103,27 @@ var RSM = (() => {
   }
   async function typesetMath(root2 = document) {
     const element = root2 === document ? document.body : root2;
+    if (!window.temml && !window.MathJax?.typesetPromise) {
+      const hasMath = element.querySelector("span.math, div.mathblock");
+      if (hasMath) {
+        try {
+          await loadTemml();
+        } catch {
+          try {
+            await loadMathJax();
+          } catch {
+          }
+        }
+      }
+    }
     if (window.temml) {
       element.querySelectorAll("span.math").forEach((el) => {
         const src = el.textContent;
         if (!src.startsWith("\\(") || !src.endsWith("\\)")) return;
+        const latex = src.slice(2, -2);
+        el.dataset.latex = latex;
         try {
-          temml.render(src.slice(2, -2), el, { throwOnError: false });
+          temml.render(latex, el, { throwOnError: false });
         } catch (err) {
           console.error("temml inline error:", err);
         }
@@ -114,8 +132,10 @@ var RSM = (() => {
         const contentEl = el.querySelector(".hr-content-zone") || el;
         const src = contentEl.textContent.trim();
         if (!src.startsWith("$$") || !src.endsWith("$$")) return;
+        const latex = src.slice(2, -2).trim();
+        el.dataset.latex = latex;
         try {
-          temml.render(src.slice(2, -2).trim(), contentEl, { displayMode: true, throwOnError: false });
+          temml.render(latex, contentEl, { displayMode: true, throwOnError: false });
         } catch (err) {
           console.error("temml display error:", err);
         }
@@ -861,6 +881,9 @@ var RSM = (() => {
 </svg>`,
     "code": `<svg width="18" height="16" viewBox="0 0 18 16" fill="none" stroke="#3C4952" xmlns="http://www.w3.org/2000/svg">
 <path d="M4.55556 4.5L1 8L4.55556 11.5M13.4444 4.5L17 8L13.4444 11.5M10.7778 1L7.22222 15" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>`,
+    "chevron-down": `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+<path d="M6 9l6 6l6 -6" />
 </svg>`
   };
   function setup4(root2) {
@@ -957,6 +980,26 @@ var RSM = (() => {
         setTooltipContent(instance, content);
       }
     });
+    $(".manuscriptwrapper .author-names sup[data-tooltip]:not(.tooltipstered)").tooltipster({
+      theme: ["tooltipster-shadow", "tooltipster-shadow-rsm"],
+      minWidth: 100,
+      maxWidth: 500,
+      trigger: "custom",
+      triggerOpen: {
+        mouseenter: true,
+        touchstart: true
+      },
+      triggerClose: {
+        click: true,
+        mouseleave: true,
+        originClick: true,
+        touchleave: true
+      },
+      functionInit: function(instance, helper) {
+        let text = $(helper.origin).attr("data-tooltip");
+        setTooltipContent(instance, text);
+      }
+    });
   }
   function stripHandrail(hr) {
     hr.find(".hr-collapse-zone").remove();
@@ -971,19 +1014,6 @@ var RSM = (() => {
   }
 
   // rsm/static/onload.js
-  function setupAuthorToggle() {
-    const toggleButtons = document.querySelectorAll(".toggle-authors");
-    toggleButtons.forEach((button) => {
-      button.addEventListener("click", function() {
-        const container = this.closest(".authors-container");
-        if (!container) return;
-        const toggleableAuthors = container.querySelectorAll(".author-toggleable");
-        toggleableAuthors.forEach((author) => {
-          author.classList.toggle("author-hidden");
-        });
-      });
-    });
-  }
   async function onload(root2 = null, { keys = true } = {}) {
     if (!root2) root2 = document;
     if (window.__rsmInitialized) {
@@ -1023,11 +1053,6 @@ var RSM = (() => {
         setup3();
       } catch (err) {
         console.error("Loading minimap.js FAILED!", err);
-      }
-      try {
-        setupAuthorToggle();
-      } catch (err) {
-        console.error("Loading author toggle FAILED!", err);
       }
       window.__rsmInitialized = true;
       await onrender(root2);

@@ -1177,6 +1177,38 @@ class Author(Node):
         """Note symbol assigned by transformer (*, †, ‡, §, ¶, ‖, **, ††, etc.)."""
 
 
+class AuthorBlock(NodeWithChildren):
+    """Container for all authors and their collective metadata.
+
+    Children are Author nodes followed by a single AuthorNotes node.
+    Created by the transformer from individual Author nodes.
+    """
+
+    pass
+
+
+class AuthorNotes(Node):
+    """Deduplicated author metadata: affiliations, notes, emails, ORCIDs.
+
+    This node is a child of AuthorBlock and holds the collective
+    information needed to render the affiliations/notes section.
+    """
+
+    def __init__(
+        self,
+        affiliation_map: dict[str, int] | None = None,
+        note_map: dict[str, str] | None = None,
+        emails: list[tuple[str, str]] | None = None,
+        orcids: list[tuple[str, str]] | None = None,
+        **kwargs: Any,
+    ) -> None:
+        super().__init__(**kwargs)
+        self.affiliation_map: dict[str, int] = affiliation_map or {}
+        self.note_map: dict[str, str] = note_map or {}
+        self.emails: list[tuple[str, str]] = emails or []
+        self.orcids: list[tuple[str, str]] = orcids or []
+
+
 class Abstract(NodeWithChildren):
     """Manuscript abstract.
 

@@ -795,9 +795,7 @@ class Translator:
 
         if node.date:
             from datetime import datetime
-
             if isinstance(node.date, str):
-                # Try multiple date formats
                 for fmt in ["%Y-%m-%d", "%d.%m.%Y", "%m/%d/%Y"]:
                     try:
                         date_obj = datetime.strptime(node.date, fmt)
@@ -806,117 +804,116 @@ class Translator:
                     except ValueError:
                         continue
                 else:
-                    # If no format worked, use the string as-is
                     date_str = node.date
             else:
                 date_str = node.date.strftime("%B %d, %Y")
             batch.items.append(AppendParagraph(date_str, classes=["manuscript-date"]))
 
-        # If we have >5 authors, add opening container
-        if getattr(node, "authors_collapsed", False):
-            batch.items.append(
-                AppendOpenTagManualClose("div", classes=["authors-container"])
-            )
-
         return batch
 
     def leave_manuscript(self, node: nodes.Manuscript) -> EditCommand:
-        batch = self.leave_node(node)
-
-        # If we have >5 authors, close the container
-        # Insert before </section> (which is at position 0 after reversal)
-        if getattr(node, "authors_collapsed", False):
-            batch.items.insert(0, AppendText("\n</div>\n"))
-
-        return batch
+        return self.leave_node(node)
 
     def visit_author(self, node: nodes.Author) -> EditCommand:
-        if any([node.name, node.affiliation, node.email, node.orcid, node.author_note]):
-            # Get unique counts from Manuscript node
-            total_affiliations = getattr(self.tree, "total_unique_affiliations", 0)
-            total_notes = getattr(self.tree, "total_unique_notes", 0)
+        return AppendText("")
 
-            # Build author name with superscripts (only if multiple unique items)
-            name_html = node.name if node.name else ""
-            if name_html:
-                superscripts = []
-                if node.affiliation_number and total_affiliations > 1:
-                    superscripts.append(str(node.affiliation_number))
-                if node.note_symbol and total_notes > 1:
-                    superscripts.append(node.note_symbol)
+    def leave_author(self, node: nodes.Author) -> EditCommand:
+        return AppendText("")
 
-                if superscripts:
-                    name_html += f"<sup>{','.join(superscripts)}</sup>"
+    def visit_authorblock(self, node: nodes.AuthorBlock) -> EditCommand:
+        authors = [c for c in node.children if isinstance(c, nodes.Author)]
+        total_affiliations = getattr(self.tree, 'total_unique_affiliations', 0)
+        total_notes = getattr(self.tree, 'total_unique_notes', 0)
 
-            if node.email:
-                email = (
-                    _make_tag("a", id_="", classes="", href=f"mailto:{node.email}")
-                    + node.email
-                    + "</a>"
+        # Build reverse maps for tooltips
+        notes_node = next(
+            (c for c in node.children if isinstance(c, nodes.AuthorNotes)), None
+        )
+        aff_by_num: dict[int, str] = {}
+        if notes_node:
+            aff_by_num = {v: k for k, v in notes_node.affiliation_map.items()}
+
+        name_parts = []
+        for author in authors:
+            if not author.name:
+                continue
+            name_html = author.name
+            sup_parts = []
+            if author.affiliation_number is not None and total_affiliations > 1:
+                tooltip = aff_by_num.get(author.affiliation_number, "")
+                sup_parts.append(
+                    f'<sup data-tooltip="{tooltip}">{author.affiliation_number}</sup>'
                 )
+            if author.note_symbol and total_notes > 1:
+                sup_parts.append(
+                    f'<sup data-tooltip="{author.author_note}">{author.note_symbol}</sup>'
+                )
+            name_html += ''.join(sup_parts)
+            name_parts.append(name_html)
+
+        names_line = ', '.join(name_parts) if name_parts else ''
+
+        # Build the full block content: names + details
+        html = f'\n<p class="author-names">{names_line}</p>\n' if names_line else ''
+        html += self._make_authornotes_html(notes_node)
+
+        return AppendBatchAndDefer([
+            AppendOpenTag("div", classes=["author-block"], newline_inner=False),
+            AppendText(html),
+        ])
+
+    def leave_authorblock(self, node: nodes.AuthorBlock) -> EditCommand:
+        return self.leave_node(node)
+
+    def visit_authornotes(self, node: nodes.AuthorNotes) -> EditCommand:
+        return AppendText('')
+
+    def leave_authornotes(self, node: nodes.AuthorNotes) -> EditCommand:
+        return AppendText('')
+
+    def _make_authornotes_html(self, node: nodes.AuthorNotes | None) -> str:
+        if not node:
+            return ''
+        has_content = node.affiliation_map or node.note_map or node.emails or node.orcids
+        if not has_content:
+            return ''
+
+        total_affiliations = len(node.affiliation_map)
+        total_notes = len(node.note_map)
+
+        html = '<details class="author-details">\n'
+        html += '<summary><span class="icon chevron-down"></span>Affiliations</summary>\n'
+
+        if node.affiliation_map:
+            html += '<ol class="author-affiliations">\n'
+            if total_affiliations > 1:
+                for aff_text, aff_num in node.affiliation_map.items():
+                    html += f'<li value="{aff_num}"><sup>{aff_num}</sup>{aff_text}</li>\n'
             else:
-                email = ""
+                for aff_text in node.affiliation_map:
+                    html += f'<li>{aff_text}</li>\n'
+            html += '</ol>\n'
 
-            # Build affiliation with label (only if multiple unique)
-            affiliation_html = ""
-            if node.affiliation:
-                if node.affiliation_number and total_affiliations > 1:
-                    affiliation_html = (
-                        f"<sup>{node.affiliation_number}</sup>{node.affiliation}"
-                    )
-                else:
-                    affiliation_html = node.affiliation
+        if node.note_map:
+            if total_notes > 1:
+                for note_text, note_sym in node.note_map.items():
+                    html += f'<p class="author-note"><sup>{note_sym}</sup>{note_text}</p>\n'
+            else:
+                for note_text in node.note_map:
+                    html += f'<p class="author-note">{note_text}</p>\n'
 
-            # Build note with label (only if multiple unique)
-            note_html = ""
-            if node.author_note:
-                if node.note_symbol and total_notes > 1:
-                    note_html = f"<sup>{node.note_symbol}</sup>{node.author_note}"
-                else:
-                    note_html = node.author_note
-
-            items = []
-            if name_html:
-                items.append(AppendParagraph(name_html))
-            if affiliation_html:
-                items.append(AppendParagraph(affiliation_html))
-            if email:
-                items.append(AppendParagraph(email))
-            if node.orcid:
-                items.append(AppendParagraph(node.orcid))
-            if note_html:
-                items.append(AppendParagraph(note_html))
-
-            # Add "author-hidden" class if this author should be hidden
-            # Add "author-toggleable" class if this author is toggleable
-            additional_classes = []
-            if getattr(node, "is_hidden", False):
-                additional_classes.append("author-hidden")
-            if getattr(node, "is_toggleable", False):
-                additional_classes.append("author-toggleable")
-
-            batch_items = []
-
-            # If this author should have the button before it, insert button first
-            if getattr(node, "insert_button_before", False):
-                batch_items.append(
-                    AppendText(
-                        '\n<button class="toggle-authors">Show/hide full author information</button>\n'
-                    )
-                )
-
-            batch_items.extend(
-                [
-                    AppendNodeTag(node, additional_classes=additional_classes),
-                    AppendOpenTagManualClose("div", classes=["paragraph"]),
-                    *items,
-                    AppendText("</div>"),
-                ]
+        if node.emails:
+            email_links = ', '.join(
+                f'<a href="mailto:{email}">{email}</a>' for _, email in node.emails
             )
+            html += f'<p class="author-correspondence">Correspondence: {email_links}</p>\n'
 
-            return AppendBatchAndDefer(batch_items)
-        else:
-            return AppendNodeTag(node)
+        if node.orcids:
+            for name, orcid in node.orcids:
+                html += f'<p class="author-orcid">{name}: {orcid}</p>\n'
+
+        html += '</details>\n'
+        return html
 
     def visit_abstract(self, node: nodes.Abstract) -> EditCommand:
         return AppendBatchAndDefer(
@@ -2084,32 +2081,24 @@ class HandrailsTranslator(Translator):
         return batch
 
     def visit_author(self, node: nodes.Author) -> EditCommand:
-        batch = super().visit_author(node)
-        additional_classes = ["hr-hidden"]
-        if getattr(node, "is_hidden", False):
-            additional_classes.append("author-hidden")
-        if getattr(node, "is_toggleable", False):
-            additional_classes.append("author-toggleable")
-
-        # Check if batch starts with a button (for collapsed mode)
-        has_button = getattr(node, "insert_button_before", False)
-        button_offset = 1 if has_button else 0
-
-        hr = self._replace_node_with_handrails(
-            node, additional_classes=additional_classes, collapse_in_hr=False
-        )
-        hr.items += batch.items[2 + button_offset : -1]
-
-        # If there's a button, prepend it before the handrails wrapper
-        if has_button:
-            return AppendBatchAndDefer([batch.items[0]] + hr.items)
-        else:
-            return hr
+        return super().visit_author(node)
 
     def leave_author(self, node: nodes.Author) -> EditCommand:
-        batch = super().leave_node(node)
-        batch.items.insert(-1, self._hr_info_zone_icon(getattr(node, "icon", None)))
+        return super().leave_author(node)
+
+    def visit_authorblock(self, node: nodes.AuthorBlock) -> EditCommand:
+        batch = super().visit_authorblock(node)
+        batch = self._wrap_batch_item_with_handrails(
+            1,
+            batch,
+            classes=["heading", "hr-hidden"],
+            link="disabled",
+            node=node,
+        )
         return batch
+
+    def leave_authorblock(self, node: nodes.AuthorBlock) -> EditCommand:
+        return super().leave_authorblock(node)
 
     def visit_section(self, node: nodes.Section) -> EditCommand:
         batch = super().visit_section(node)

@@ -33,16 +33,15 @@ def test_simple():
 
         <p class="manuscript-date">March 29, 2022</p>
 
-        <div class="author" data-nodeid="1">
-
-        <div class="paragraph">
-
-        <p>Leo Torres</p>
-
-        <p>Max Planck Institute for Mathematics in the Sciences</p>
-
-        <p><a href="mailto:leo@leotrs.com">leo@leotrs.com</a></p>
-        </div>
+        <div class="author-block">
+        <p class="author-names">Leo Torres</p>
+        <details class="author-details">
+        <summary><span class="icon chevron-down"></span>Affiliations</summary>
+        <ol class="author-affiliations">
+        <li>Max Planck Institute for Mathematics in the Sciences</li>
+        </ol>
+        <p class="author-correspondence">Correspondence: <a href="mailto:leo@leotrs.com">leo@leotrs.com</a></p>
+        </details>
         </div>
 
         </section>
@@ -85,10 +84,6 @@ def test_empty_author():
 
         <p class="manuscript-date">March 29, 2022</p>
 
-        <div class="author" data-nodeid="1">
-
-        </div>
-
         <div class="paragraph" data-nodeid="2">
 
         <p>Lorem ipsum.</p>
@@ -129,16 +124,15 @@ def test_author_with_orcid():
 
         <h1>My Title</h1>
 
-        <div class="author" data-nodeid="1">
-
-        <div class="paragraph">
-
-        <p>Leo Torres</p>
-
-        <p>Some University</p>
-
-        <p>0000-0001-2345-6789</p>
-        </div>
+        <div class="author-block">
+        <p class="author-names">Leo Torres</p>
+        <details class="author-details">
+        <summary><span class="icon chevron-down"></span>Affiliations</summary>
+        <ol class="author-affiliations">
+        <li>Some University</li>
+        </ol>
+        <p class="author-orcid">Leo Torres: 0000-0001-2345-6789</p>
+        </details>
         </div>
 
         </section>
@@ -174,14 +168,12 @@ def test_author_with_note():
 
         <h1>My Title</h1>
 
-        <div class="author" data-nodeid="1">
-
-        <div class="paragraph">
-
-        <p>Leo Torres</p>
-
-        <p>Equal contribution</p>
-        </div>
+        <div class="author-block">
+        <p class="author-names">Leo Torres</p>
+        <details class="author-details">
+        <summary><span class="icon chevron-down"></span>Affiliations</summary>
+        <p class="author-note">Equal contribution</p>
+        </details>
         </div>
 
         </section>
@@ -219,14 +211,14 @@ def test_author_multiline_affiliation():
 
         <h1>My Title</h1>
 
-        <div class="author" data-nodeid="1">
-
-        <div class="paragraph">
-
-        <p>Leo Torres</p>
-
-        <p>Department of Mathematics</p>
-        </div>
+        <div class="author-block">
+        <p class="author-names">Leo Torres</p>
+        <details class="author-details">
+        <summary><span class="icon chevron-down"></span>Affiliations</summary>
+        <ol class="author-affiliations">
+        <li>Department of Mathematics</li>
+        </ol>
+        </details>
         </div>
 
         </section>

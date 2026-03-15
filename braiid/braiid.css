@@ -1273,8 +1273,85 @@ body {
 .manuscriptwrapper .keyword {
   color: var(--text-keyword);
   font-weight: var(--weight-semi); }
-.manuscriptwrapper .author > p {
+/* Author block */
+.manuscriptwrapper .author-block {
+  margin-top: 1.5rem;
+  margin-bottom: 3rem; }
+
+.manuscriptwrapper .author-names {
+  font-size: 1.0625rem;
+  font-weight: var(--weight-medium);
+  color: var(--text-body);
+  line-height: var(--body-line-height);
   margin: 0; }
+
+.manuscriptwrapper .author-names sup {
+  font-weight: var(--weight-regular);
+  color: var(--text-subtle);
+  cursor: pointer; }
+
+.manuscriptwrapper .author-details {
+  margin-top: 0.75rem; }
+
+.manuscriptwrapper .author-details summary {
+  font-size: 0.875rem;
+  font-weight: var(--weight-regular);
+  color: var(--text-subtle);
+  cursor: pointer;
+  list-style: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25em; }
+
+.manuscriptwrapper .author-details summary::marker,
+.manuscriptwrapper .author-details summary::-webkit-details-marker {
+  display: none; }
+
+.manuscriptwrapper .author-details summary .icon {
+  display: inline-flex;
+  transition: transform 0.15s ease; }
+
+.manuscriptwrapper .author-details[open] summary .icon {
+  transform: rotate(180deg); }
+
+.manuscriptwrapper .author-details summary:hover {
+  color: var(--text-body); }
+
+.manuscriptwrapper .author-affiliations {
+  list-style: none;
+  padding-left: 0;
+  margin: 0.75rem 0 0 0; }
+
+.manuscriptwrapper .author-affiliations li {
+  font-size: 0.875rem;
+  font-weight: var(--weight-regular);
+  color: var(--text-subtle);
+  line-height: 1.4;
+  margin-bottom: 0.25rem; }
+
+.manuscriptwrapper .author-affiliations li sup {
+  margin-right: 0.25em; }
+
+.manuscriptwrapper .author-correspondence {
+  font-size: 0.875rem;
+  color: var(--text-subtle);
+  margin-top: 0.75rem; }
+
+.manuscriptwrapper .author-correspondence a {
+  color: var(--link-default); }
+
+.manuscriptwrapper .author-correspondence a:hover {
+  color: var(--link-hover); }
+
+.manuscriptwrapper .author-note {
+  font-size: 0.875rem;
+  color: var(--text-subtle);
+  margin: 0.25rem 0; }
+
+.manuscriptwrapper .author-orcid {
+  font-size: 0.875rem;
+  color: var(--text-subtle);
+  margin: 0.25rem 0; }
 
 /* Manuscript metadata */
 .manuscriptwrapper .manuscript-date {
@@ -1291,42 +1368,6 @@ body {
   color: var(--gray-700);
   margin-block: 0.75rem;
   margin-inline-start: var(--chunk); }
-
-/* Author collapsed mode */
-.manuscriptwrapper .authors-container {
-  position: relative; }
-
-.manuscriptwrapper .author-hidden {
-  display: none; }
-
-.manuscriptwrapper .toggle-authors {
-  display: block;
-  width: 100%;
-  margin: 1.5rem 0;
-  padding: 0;
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-family: var(--font-body);
-  font-size: 0.875rem;
-  font-weight: var(--weight-regular);
-  color: var(--gray-500);
-  text-align: center;
-  text-decoration: underline;
-  text-decoration-color: var(--gray-400);
-  text-underline-offset: var(--border-thin);
-  transition: color 0.15s ease-in-out; }
-
-.manuscriptwrapper .toggle-authors:hover {
-  color: var(--gray-700);
-  text-decoration-color: var(--gray-600); }
-
-.manuscriptwrapper .toggle-authors:active {
-  color: var(--gray-800); }
-
-.manuscriptwrapper .toggle-authors:focus {
-  outline: none;
-  color: var(--gray-700); }
 
 
 /* Tables */

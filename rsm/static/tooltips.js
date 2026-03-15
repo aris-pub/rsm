@@ -97,6 +97,28 @@ export function createTooltips() {
       setTooltipContent(instance, content);
     }
   });
+
+
+  $(".manuscriptwrapper .author-names sup[data-tooltip]:not(.tooltipstered)").tooltipster({
+    theme: ['tooltipster-shadow', 'tooltipster-shadow-rsm'],
+    minWidth: 100,
+    maxWidth: 500,
+    trigger: 'custom',
+    triggerOpen: {
+      mouseenter: true,
+      touchstart: true
+    },
+    triggerClose: {
+      click: true,
+      mouseleave: true,
+      originClick: true,
+      touchleave: true
+    },
+    functionInit: function (instance, helper) {
+      let text = $(helper.origin).attr("data-tooltip");
+      setTooltipContent(instance, text);
+    },
+  });
 }
 
 

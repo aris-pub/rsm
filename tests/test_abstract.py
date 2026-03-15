@@ -54,16 +54,15 @@ def test_simple():
 
         <p class="manuscript-date">March 29, 2022</p>
 
-        <div class="author" data-nodeid="1">
-
-        <div class="paragraph">
-
-        <p>Leo Torres</p>
-
-        <p>Max Planck Institute for Mathematics in the Sciences</p>
-
-        <p><a href="mailto:leo@leotrs.com">leo@leotrs.com</a></p>
-        </div>
+        <div class="author-block">
+        <p class="author-names">Leo Torres</p>
+        <details class="author-details">
+        <summary><span class="icon chevron-down"></span>Affiliations</summary>
+        <ol class="author-affiliations">
+        <li>Max Planck Institute for Mathematics in the Sciences</li>
+        </ol>
+        <p class="author-correspondence">Correspondence: <a href="mailto:leo@leotrs.com">leo@leotrs.com</a></p>
+        </details>
         </div>
 
         <div class="abstract" data-nodeid="2">
