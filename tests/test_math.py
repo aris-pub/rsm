@@ -121,7 +121,7 @@ def test_math_with_shortcuts():
 
         <section class="level-1">
 
-        <section class="section level-2" data-nodeid="1">
+        <section id="sec-1" class="section level-2" data-nodeid="1">
 
         <h2>1. My Section</h2>
 
@@ -169,7 +169,7 @@ def test_math_ref():
 
         <section class="level-1">
 
-        <section class="section level-2" data-nodeid="1">
+        <section id="sec-1" class="section level-2" data-nodeid="1">
 
         <h2>1. My Section</h2>
 

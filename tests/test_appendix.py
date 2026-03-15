@@ -19,13 +19,13 @@ def test_simple():
 
         <section class="level-1">
 
-        <section class="section level-2" data-nodeid="1">
+        <section id="sec-1" class="section level-2" data-nodeid="1">
 
         <h2>1. Foo</h2>
 
         </section>
 
-        <section class="section level-2" data-nodeid="3">
+        <section id="sec-A" class="section level-2" data-nodeid="3">
 
         <h2>A. Bar</h2>
 
@@ -62,11 +62,11 @@ def test_subsection():
 
         <section class="level-1">
 
-        <section class="section level-2" data-nodeid="1">
+        <section id="sec-1" class="section level-2" data-nodeid="1">
 
         <h2>1. Foo</h2>
 
-        <section class="subsection level-3" data-nodeid="2">
+        <section id="sec-1.1" class="subsection level-3" data-nodeid="2">
 
         <h3>1.1. Sub Foo</h3>
 
@@ -74,11 +74,11 @@ def test_subsection():
 
         </section>
 
-        <section class="section level-2" data-nodeid="4">
+        <section id="sec-A" class="section level-2" data-nodeid="4">
 
         <h2>A. Bar</h2>
 
-        <section class="subsection level-3" data-nodeid="5">
+        <section id="sec-A.1" class="subsection level-3" data-nodeid="5">
 
         <h3>A.1. Sub Bar</h3>
 
@@ -121,11 +121,11 @@ def test_theorem():
 
         <section class="level-1">
 
-        <section class="section level-2" data-nodeid="1">
+        <section id="sec-1" class="section level-2" data-nodeid="1">
 
         <h2>1. Foo</h2>
 
-        <section class="subsection level-3" data-nodeid="2">
+        <section id="sec-1.1" class="subsection level-3" data-nodeid="2">
 
         <h3>1.1. Sub Foo</h3>
 
@@ -143,11 +143,11 @@ def test_theorem():
 
         </section>
 
-        <section class="section level-2" data-nodeid="5">
+        <section id="sec-A" class="section level-2" data-nodeid="5">
 
         <h2>A. Bar</h2>
 
-        <section class="subsection level-3" data-nodeid="6">
+        <section id="sec-A.1" class="subsection level-3" data-nodeid="6">
 
         <h3>A.1. Sub Bar</h3>
 

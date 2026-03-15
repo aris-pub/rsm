@@ -512,9 +512,13 @@ class AppendNodeTag(AppendOpenTag):
 
                 kwargs["data-rsm-source"] = html.escape(node_source)
 
+        id_ = node.label
+        if not id_ and isinstance(node, nodes.Section) and node.full_number:
+            id_ = f"sec-{node.full_number}"
+
         super().__init__(
             tag=tag,
-            id=node.label,
+            id=id_,
             classes=classes,
             newline_inner=newline_inner,
             newline_outer=newline_outer,

@@ -55,7 +55,7 @@ def test_paragraph_ends_at_block():
 
         </div>
 
-        <section class="section level-2" data-nodeid="3">
+        <section id="sec-1" class="section level-2" data-nodeid="3">
 
         <h2>1. </h2>
 

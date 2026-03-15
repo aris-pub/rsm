@@ -414,7 +414,7 @@ def test_section():
 
         </div>
 
-        <section class="section level-2" data-nodeid="1">
+        <section id="sec-1" class="section level-2" data-nodeid="1">
 
         <div class="heading hr" tabindex=0>
 
@@ -2224,7 +2224,7 @@ def test_toc_no_labels():
 
         </div>
 
-        <section class="section level-2" data-nodeid="12">
+        <section id="sec-1" class="section level-2" data-nodeid="12">
 
         <div class="heading hr" tabindex=0>
 
@@ -2292,7 +2292,7 @@ def test_toc_no_labels():
 
         </section>
 
-        <section class="section level-2" data-nodeid="13">
+        <section id="sec-2" class="section level-2" data-nodeid="13">
 
         <div class="heading hr" tabindex=0>
 
@@ -2358,7 +2358,7 @@ def test_toc_no_labels():
 
         </div>
 
-        <section class="subsection level-3" data-nodeid="14">
+        <section id="sec-2.1" class="subsection level-3" data-nodeid="14">
 
         <div class="heading hr" tabindex=0>
 

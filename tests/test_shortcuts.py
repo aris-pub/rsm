@@ -277,7 +277,7 @@ def test_subsubsection_shortcut():
 
         <section class="level-1">
 
-        <section class="section level-2" data-nodeid="1">
+        <section id="sec-1" class="section level-2" data-nodeid="1">
 
         <h2>1. My Section</h2>
 
@@ -287,7 +287,7 @@ def test_subsubsection_shortcut():
 
         </div>
 
-        <section class="subsection level-3" data-nodeid="4">
+        <section id="sec-1.1" class="subsection level-3" data-nodeid="4">
 
         <h3>1.1. My Subsection</h3>
 
@@ -297,7 +297,7 @@ def test_subsubsection_shortcut():
 
         </div>
 
-        <section class="subsubsection level-4" data-nodeid="7">
+        <section id="sec-1.1.1" class="subsubsection level-4" data-nodeid="7">
 
         <h4>1.1.1. My Subsubsection</h4>
 
@@ -802,7 +802,7 @@ def test_hashtag_not_at_the_start_of_line():
 
         <section class="level-1">
 
-        <section class="section level-2" data-nodeid="1">
+        <section id="sec-1" class="section level-2" data-nodeid="1">
 
         <h2>1. This is a section title</h2>
 

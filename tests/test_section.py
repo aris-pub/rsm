@@ -17,7 +17,7 @@ def test_simple():
 
         <section class="level-1">
 
-        <section class="section level-2" data-nodeid="1">
+        <section id="sec-1" class="section level-2" data-nodeid="1">
 
         <h2>1. Section</h2>
 
@@ -65,7 +65,7 @@ def test_subsections():
 
         <section class="level-1">
 
-        <section class="section level-2" data-nodeid="1">
+        <section id="sec-1" class="section level-2" data-nodeid="1">
 
         <h2>1. Section</h2>
 
@@ -75,7 +75,7 @@ def test_subsections():
 
         </div>
 
-        <section class="subsection level-3" data-nodeid="4">
+        <section id="sec-1.1" class="subsection level-3" data-nodeid="4">
 
         <h3>1.1. Sub section</h3>
 
@@ -85,7 +85,7 @@ def test_subsections():
 
         </div>
 
-        <section class="subsubsection level-4" data-nodeid="7">
+        <section id="sec-1.1.1" class="subsubsection level-4" data-nodeid="7">
 
         <h4>1.1.1. Sub sub section</h4>
 

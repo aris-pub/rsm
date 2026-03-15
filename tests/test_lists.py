@@ -125,7 +125,7 @@ def test_item_with_wrong_parent():
 
         <section class="level-1">
 
-        <section class="section level-2" data-nodeid="1">
+        <section id="sec-1" class="section level-2" data-nodeid="1">
 
         <h2>1. Some section</h2>
 

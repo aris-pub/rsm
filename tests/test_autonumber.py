@@ -21,7 +21,7 @@ def test_numbered_sections():
 
         <section class="level-1">
 
-        <section class="section level-2" data-nodeid="1">
+        <section id="sec-1" class="section level-2" data-nodeid="1">
 
         <h2>1. First</h2>
 
@@ -33,7 +33,7 @@ def test_numbered_sections():
 
         </section>
 
-        <section class="section level-2" data-nodeid="4">
+        <section id="sec-2" class="section level-2" data-nodeid="4">
 
         <h2>2. Second</h2>
 
@@ -82,7 +82,7 @@ def test_nonum():
 
         <section class="level-1">
 
-        <section class="section level-2" data-nodeid="1">
+        <section id="sec-1" class="section level-2" data-nodeid="1">
 
         <h2>1. First</h2>
 
@@ -106,7 +106,7 @@ def test_nonum():
 
         </section>
 
-        <section class="section level-2" data-nodeid="7">
+        <section id="sec-2" class="section level-2" data-nodeid="7">
 
         <h2>2. Third</h2>
 

@@ -155,7 +155,7 @@ def test_section_header():
 
         </div>
 
-        <section class="section level-2" data-nodeid="3">
+        <section id="sec-1" class="section level-2" data-nodeid="3">
 
         <h2>1. section title</h2>
 

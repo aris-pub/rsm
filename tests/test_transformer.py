@@ -116,7 +116,7 @@ def test_theorem_within_section():
 
         <section class="level-1">
 
-        <section class="section level-2" data-nodeid="1">
+        <section id="sec-1" class="section level-2" data-nodeid="1">
 
         <h2>1. Section</h2>
 
@@ -165,7 +165,7 @@ def test_two_theorems_same_section():
 
         <section class="level-1">
 
-        <section class="section level-2" data-nodeid="1">
+        <section id="sec-1" class="section level-2" data-nodeid="1">
 
         <h2>1. Section</h2>
 
@@ -226,7 +226,7 @@ def test_two_theorems_different_sections():
 
         <section class="level-1">
 
-        <section class="section level-2" data-nodeid="1">
+        <section id="sec-1" class="section level-2" data-nodeid="1">
 
         <h2>1. Section 1</h2>
 
@@ -242,7 +242,7 @@ def test_two_theorems_different_sections():
 
         </section>
 
-        <section class="section level-2" data-nodeid="3">
+        <section id="sec-2" class="section level-2" data-nodeid="3">
 
         <h2>2. Section 2</h2>
 
@@ -292,7 +292,7 @@ def test_two_theorems_same_section_nonum():
 
         <section class="level-1">
 
-        <section class="section level-2" data-nodeid="1">
+        <section id="sec-1" class="section level-2" data-nodeid="1">
 
         <h2>1. Section</h2>
 
@@ -395,11 +395,11 @@ def test_theorem_inside_subsection():
 
         <section class="level-1">
 
-        <section class="section level-2" data-nodeid="1">
+        <section id="sec-1" class="section level-2" data-nodeid="1">
 
         <h2>1. Section</h2>
 
-        <section class="subsection level-3" data-nodeid="2">
+        <section id="sec-1.1" class="subsection level-3" data-nodeid="2">
 
         <h3>1.1. Subsection</h3>
 

@@ -118,7 +118,7 @@ def test_config_numbering_document():
 
         <h1>Title</h1>
 
-        <section class="section level-2" data-nodeid="1">
+        <section id="sec-1" class="section level-2" data-nodeid="1">
 
         <h2>1. Section One</h2>
 
@@ -140,7 +140,7 @@ def test_config_numbering_document():
 
         </section>
 
-        <section class="section level-2" data-nodeid="5">
+        <section id="sec-2" class="section level-2" data-nodeid="5">
 
         <h2>2. Section Two</h2>
 
@@ -205,7 +205,7 @@ def test_config_numbering_section():
 
         <h1>Title</h1>
 
-        <section class="section level-2" data-nodeid="1">
+        <section id="sec-1" class="section level-2" data-nodeid="1">
 
         <h2>1. Section One</h2>
 
@@ -227,7 +227,7 @@ def test_config_numbering_section():
 
         </section>
 
-        <section class="section level-2" data-nodeid="5">
+        <section id="sec-2" class="section level-2" data-nodeid="5">
 
         <h2>2. Section Two</h2>
 
@@ -513,7 +513,7 @@ def test_config_accent_with_numbering():
 
         <h1>Test Document</h1>
 
-        <section class="section level-2" data-nodeid="1">
+        <section id="sec-1" class="section level-2" data-nodeid="1">
 
         <h2>1. Section</h2>
 
