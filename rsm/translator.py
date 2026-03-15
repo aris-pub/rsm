@@ -1324,9 +1324,20 @@ class Translator:
                 )
                 for idx, t in enumerate(node.targets)
             ]
-            text = ", ".join(tags)
+            if len(tags) == 1:
+                text = tags[0]
+            else:
+                first = f'<span class="nowrap">[{tags[0]},</span>'
+                middle = ", ".join(tags[1:-1])
+                last = f'<span class="nowrap">{tags[-1]}]</span>'
+                if middle:
+                    text = f'{first} {middle}, {last}'
+                else:
+                    text = f'{first} {last}'
+                text = f'<span id="{node.label}">{text}</span>'
+                return AppendText(text)
             text = f'<span id="{node.label}">{text}</span>'
-        return AppendText(f"[{text}]")
+        return AppendText(f'<span class="nowrap">[{text}]</span>')
 
     def visit_bibliography(self, node: nodes.Bibliography) -> EditCommand:
         return AppendBatchAndDefer(

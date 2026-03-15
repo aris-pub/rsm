@@ -148,7 +148,7 @@ def test_cite_to_unknown_label(caplog):
 
         <div class="paragraph" data-nodeid="1">
 
-        <p>This is an unknown cite [<a id="cite-0" class="reference cite unknown" href="#">[unknown label "foobar"]</a>].</p>
+        <p>This is an unknown cite <span class="nowrap">[<a id="cite-0" class="reference cite unknown" href="#">[unknown label "foobar"]</a>]</span>.</p>
 
         </div>
 
@@ -190,7 +190,7 @@ def test_bibitem_without_doi(caplog):
 
         <div class="paragraph" data-nodeid="1">
 
-        <p>Text citing [<a id="cite-0" class="reference cite" href="#smith2024">1</a>].</p>
+        <p>Text citing <span class="nowrap">[<a id="cite-0" class="reference cite" href="#smith2024">1</a>]</span>.</p>
 
         </div>
 
@@ -286,7 +286,7 @@ def test_bibitem_with_doi():
 
         <div class="paragraph" data-nodeid="1">
 
-        <p>Text citing [<a id="cite-0" class="reference cite" href="#smith2024">1</a>].</p>
+        <p>Text citing <span class="nowrap">[<a id="cite-0" class="reference cite" href="#smith2024">1</a>]</span>.</p>
 
         </div>
 
