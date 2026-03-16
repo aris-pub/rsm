@@ -2425,11 +2425,13 @@ class HandrailsTranslator(Translator):
             collapse_in_hr=False,
             menu_label="Equation" if node.nonum else node.long_reftext,
         )
+        handrail_idx = 0
         if isinstance(node.parent, nodes.Paragraph):
             batch.items.insert(0, AppendText("</p>"))
+            handrail_idx = 1
         batch.items.append(AppendTextAndDefer("$$\n", "\n$$"))
         offset_class = ["hr-offset"] if isinstance(node.parent, nodes.Paragraph) else []
-        batch.items[1].classes += ["hr-hidden"] + offset_class
+        batch.items[handrail_idx].classes += ["hr-hidden"] + offset_class
         return batch
 
     def leave_mathblock(self, node: nodes.MathBlock) -> EditCommand:

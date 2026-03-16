@@ -567,3 +567,24 @@ class TestMakePythonAPINoFileOutput:
 
         # Should be standalone (CDN URLs)
         assert "cdn.jsdelivr.net" in html_content
+
+
+class TestFindRequiredAssets:
+    """Test that find_required_assets correctly filters asset paths."""
+
+    def test_external_urls_excluded_from_required_assets(self):
+        """External URLs (http/https) should not be treated as local assets."""
+        from rsm.builder import FolderBuilder
+
+        builder = FolderBuilder()
+        builder.body = '<script src="https://cdn.plot.ly/plotly-3.4.0.min.js"></script><script src="local.js"></script>'
+        builder.required_assets = []
+        builder.find_required_assets()
+
+        asset_strs = [str(a) for a in builder.required_assets]
+        assert not any("plotly" in a for a in asset_strs), (
+            f"External URL should not be in required_assets: {asset_strs}"
+        )
+        assert any("local.js" in a for a in asset_strs), (
+            "Local assets should still be included"
+        )

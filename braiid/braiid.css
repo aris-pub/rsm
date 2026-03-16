@@ -942,7 +942,7 @@ body {
 
     &:has(.eqn-number), &:has(.step-number) {justify-content: flex-start;}
 
-    &:has(.eqn-number) {position: relative; top: calc(100% - var(--chunk-third));}
+    &:has(.eqn-number) {}
 
   }
 
@@ -973,6 +973,16 @@ body {
 .manuscriptwrapper .paragraph.hr:focus > .hr-content-zone > .mathblock > .hr-info-zone p {
   color: var(--extra-dark);
   font-weight: var(--weight-semi);
+}
+.manuscriptwrapper .mathblock > .hr-info-zone {
+  display: flex;
+  align-items: center;
+}
+.manuscriptwrapper .mathblock.hr-offset > .hr-info-zone {
+  top: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
 }
 
 
@@ -1266,8 +1276,13 @@ body {
   margin-block: var(--h2-size);
   text-align: center; }
 .manuscriptwrapper figcaption {
-  text-align: center;
+  text-align: left;
   margin-block: var(--h4-size); }
+.manuscriptwrapper figcaption > .hr-content-zone {
+  background: var(--gray-100);
+  border: 1px solid var(--gray-200);
+  border-radius: 6px;
+  padding: 0.75em 1em; }
 
 
 /* Other */

@@ -77,6 +77,7 @@ class BaseBuilder(ABC):
     def find_required_assets(self) -> None:
         self.required_assets = [
             Path(x) for x in re.findall(r'src="(.*?)"', str(self.body))
+            if not x.startswith(("http://", "https://"))
         ]
 
 
