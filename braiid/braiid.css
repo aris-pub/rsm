@@ -1004,7 +1004,7 @@ body {
   & > .hr-spacer-zone,
   & > .hr-content-zone,
   & > .hr-info-zone {
-    background: var(--surface-hint);
+    background: var(--blue-100);
   }
 
   /* Most active areas include the info zone, except if the active area is a proof step statement */
