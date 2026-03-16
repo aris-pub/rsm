@@ -1359,6 +1359,26 @@ class Translator:
                 items.append(node.publisher)
             else:
                 logger.warning(f"Bibitem {node.label} has no publisher")
+        elif node.kind in ("inproceedings", "conference"):
+            if node.booktitle:
+                items.append(f"In {node.booktitle}")
+        elif node.kind == "incollection":
+            if node.booktitle:
+                items.append(f"In {node.booktitle}")
+            if node.publisher:
+                items.append(node.publisher)
+        elif node.kind in ("phdthesis", "mastersthesis"):
+            kind_label = "PhD thesis" if node.kind == "phdthesis" else "Master's thesis"
+            items.append(kind_label)
+            if node.school:
+                items.append(node.school)
+        elif node.kind == "techreport":
+            items.append("Technical report")
+            if node.institution:
+                items.append(node.institution)
+        elif node.kind == "misc":
+            if node.howpublished:
+                items.append(node.howpublished)
         if node.year:
             items.append(node.year)
         else:
@@ -1370,6 +1390,15 @@ class Translator:
                 id_=f"{node.label}-doi",
                 classes=["bibitem-doi"],
                 href=f"https://doi.org/{node.doi}",
+                target="_blank",
+            )
+            text = f"{text} {a_tag}[link]</a>"
+        elif node.url:
+            a_tag = _make_tag(
+                "a",
+                id_=f"{node.label}-url",
+                classes=["bibitem-url"],
+                href=node.url,
                 target="_blank",
             )
             text = f"{text} {a_tag}[link]</a>"
