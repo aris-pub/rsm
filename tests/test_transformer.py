@@ -739,3 +739,42 @@ def test_slash_in_text_is_not_delimiter():
         </body>
         """,
     )
+
+
+def test_bibtex_keys_do_not_leak_into_body_text():
+    """Regression: bibtex field names (number, title, author, etc.) were promoted to
+    global keywords by tree-sitter, causing parse errors when they appeared at the start
+    of a continuation line in body text."""
+    compare_have_want(
+        have="""\
+        # Title
+
+        Something something
+        number of paths.
+        """,
+        want="""\
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
+
+        <main class="manuscriptwrapper">
+
+        <div class="manuscript" data-nodeid="0">
+
+        <section class="level-1">
+
+        <h1>Title</h1>
+
+        <div class="paragraph" data-nodeid="1">
+
+        <p>Something something number of paths.</p>
+
+        </div>
+
+        </section>
+
+        </div>
+
+        </main>
+
+        </body>
+        """,
+    )

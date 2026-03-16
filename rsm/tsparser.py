@@ -466,7 +466,8 @@ def _abstractify(cst: TSTree) -> nodes.Manuscript:
             bib_node.label = cst_node.child_by_field_name("label").text.decode("utf-8")
             for pair in [c for c in cst_node.named_children if c.type == "bibitempair"]:
                 key, value = pair.named_children
-                key, value = key.text.decode("utf-8"), value.text.decode("utf-8")
+                key = key.text.decode("utf-8").split("=")[0].strip()
+                value = value.text.decode("utf-8")
                 setattr(bib_node, key, value)
 
             parent.append(bib_node)
