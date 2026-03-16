@@ -1056,22 +1056,15 @@ class Translator:
         )
 
     def visit_mathblock(self, node: nodes.MathBlock) -> EditCommand:
-        if not isinstance(node.parent, nodes.Paragraph):
-            raise RSMTranslatorError(
-                f"Found mathblock with parent {node.parent}, must be Paragraph."
-            )
-        return AppendBatchAndDefer(
-            [
-                # A paragraph that contains a mathblock cannot _start_ with a mathblock,
-                # so this mathblock must always contain some previous siblings that must
-                # be enclosed in <p> tags.  (See comment in visit_paragraph().)
-                AppendText("</p>"),
-                # This is the actual tag corresponding to the mathblock.
-                AppendNodeTag(node, "div"),
-                # $$ ... $$ are the standard TeX display-math delimiters read by the client renderer.
-                AppendTextAndDefer("$$\n", "\n$$"),
-            ]
-        )
+        commands = []
+        if isinstance(node.parent, nodes.Paragraph):
+            # A paragraph that contains a mathblock cannot _start_ with a mathblock,
+            # so this mathblock must always contain some previous siblings that must
+            # be enclosed in <p> tags.  (See comment in visit_paragraph().)
+            commands.append(AppendText("</p>"))
+        commands.append(AppendNodeTag(node, "div"))
+        commands.append(AppendTextAndDefer("$$\n", "\n$$"))
+        return AppendBatchAndDefer(commands)
 
     def leave_mathblock(self, node: nodes.MathBlock) -> EditCommand:
         # See also the comment in visit_paragraph().
@@ -1405,6 +1398,20 @@ class Translator:
             [AppendNodeTag(node, "span"), AppendTextAndDefer("[ ", " ]")]
         )
 
+    def _resolve_html_content(self, path) -> str:
+        """Resolve an HTML asset file and return processed content."""
+        content = self.asset_resolver.resolve_asset(str(path))
+        if content is None:
+            return f'<div class="html-error">Unable to load HTML asset: {path}</div>'
+
+        is_full_html_doc = content.strip().lower().startswith(
+            "<html"
+        ) or content.strip().lower().startswith("<!doctype")
+
+        if is_full_html_doc:
+            return _process_html_with_scripts(content)
+        return content
+
     def _render_image(self, node: nodes.Asset) -> str:
         alt_text = node.alt if node.alt else f"{node.__class__.__name__} {node.full_number}."
         img = _make_tag(
@@ -1458,23 +1465,7 @@ class Translator:
 
         # HTML files
         elif path_str.endswith(".html"):
-            content = self.asset_resolver.resolve_asset(str(node.path))
-            if content is None:
-                return f'<div class="html-error">Unable to load HTML asset: {node.path}</div>'
-
-            # Check if this is a full HTML document vs simple content
-            is_full_html_doc = content.strip().lower().startswith(
-                "<html"
-            ) or content.strip().lower().startswith("<!doctype")
-
-            if is_full_html_doc:
-                # Full HTML document - extract body content and process scripts
-                processed = _process_html_with_scripts(content)
-            else:
-                # Simple HTML content - use as-is (for existing RSM behavior)
-                processed = content
-
-            return processed
+            return self._resolve_html_content(node.path)
 
         # Default to image behavior
         else:

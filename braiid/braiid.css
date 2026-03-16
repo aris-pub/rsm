@@ -1748,6 +1748,7 @@ a.reference.external:hover::after {
 
 }
 
+
 /* pseudocode.js overrides -- outside @layer to beat inline styles.
    pseudocode.js injects KaTeX_Main via inline style attributes;
    !important is required to override them. */
