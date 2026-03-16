@@ -2252,7 +2252,7 @@ class HandrailsTranslator(Translator):
                 ),
                 self._hr_border_zone(),
                 self._hr_spacer_zone(),
-                AppendOpenTag("div", classes=["hr-content-zone"]),
+                AppendOpenTagManualClose("div", classes=["hr-content-zone"]),
                 caption_label,
             ]
         )
