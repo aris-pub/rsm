@@ -2396,9 +2396,9 @@ class HandrailsTranslator(Translator):
             collapse_in_hr=False,
             menu_label="Equation" if node.nonum else node.long_reftext,
         )
-        batch.items.insert(0, AppendText("</p>"))
+        if isinstance(node.parent, nodes.Paragraph):
+            batch.items.insert(0, AppendText("</p>"))
         batch.items.append(AppendTextAndDefer("$$\n", "\n$$"))
-        # Add hr-offset if mathblock is inside a paragraph (nested), but not if it's a direct child of a section
         offset_class = ["hr-offset"] if isinstance(node.parent, nodes.Paragraph) else []
         batch.items[1].classes += ["hr-hidden"] + offset_class
         return batch
