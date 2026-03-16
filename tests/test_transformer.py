@@ -702,3 +702,40 @@ This document references :ref:definitions/def/::.
     ref = refs[0]
     assert ref.external_file == "definitions/def.rsm"
     assert ref.target.__class__.__name__ == "Manuscript"
+
+
+def test_slash_in_text_is_not_delimiter():
+    """Regression: slash was treated as emphasis delimiter in the scanner, breaking
+    text containing URLs or DOIs like 10.1093/comnet/cnaa007."""
+    compare_have_want(
+        have="""\
+        # Title
+
+        Text with doi:10.1093/comnet/cnaa007 in it.
+        """,
+        want="""\
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
+
+        <main class="manuscriptwrapper">
+
+        <div class="manuscript" data-nodeid="0">
+
+        <section class="level-1">
+
+        <h1>Title</h1>
+
+        <div class="paragraph" data-nodeid="1">
+
+        <p>Text with doi:10.1093/comnet/cnaa007 in it.</p>
+
+        </div>
+
+        </section>
+
+        </div>
+
+        </main>
+
+        </body>
+        """,
+    )
