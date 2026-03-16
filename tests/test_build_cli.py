@@ -227,6 +227,37 @@ class TestMakeCLIFileOutput:
         assert "cdn.jsdelivr.net" in html_content
 
     @pytest.mark.slow
+    def test_make_cli_auto_detect_css(self, tmp_path):
+        """Test rsm build auto-detects same-name CSS file without --css flag."""
+        src = "# Test\n\n:paragraph: {:class: mytype} Auto CSS text\n"
+        src_file = tmp_path / "test.rsm"
+        src_file.write_text(src)
+
+        custom_css = ".mytype { color: blue; }"
+        css_file = tmp_path / "test.css"
+        css_file.write_text(custom_css)
+
+        subprocess.run(
+            f"rsm build {src_file}",
+            cwd=tmp_path,
+            shell=True,
+            capture_output=True,
+            check=True,
+        )
+
+        static_dir = tmp_path / "static"
+        css_in_static = static_dir / "test.css"
+        assert css_in_static.exists(), "Auto-detected CSS should be copied to static/"
+        assert custom_css in css_in_static.read_text()
+
+        output_html = tmp_path / "test.html"
+        html_content = output_html.read_text()
+        assert (
+            '<link rel="stylesheet" type="text/css" href="/static/test.css"'
+            in html_content
+        )
+
+    @pytest.mark.slow
     def test_make_cli_custom_css_flag(self, tmp_path):
         """Test rsm build --css copies custom CSS to static/ folder."""
         src = "# Test\n\n:paragraph: {:class: mytype} Custom styled text\n"

@@ -597,6 +597,14 @@ def _cmd_serve(args: Namespace) -> int:
             else:
                 input_path = Path(args.src)
                 output_filename = f"{input_path.stem}.html"
+
+        # Auto-detect CSS file if not specified via --css flag
+        custom_css = args.css
+        if custom_css is None and not args.string:
+            auto_css_path = Path(args.src).with_suffix(".css")
+            if auto_css_path.exists():
+                custom_css = str(auto_css_path)
+
         # Reconstruct the build command for livereload
         cmd_parts = ["rsm", "build", args.src]
         if args.string:
@@ -605,8 +613,8 @@ def _cmd_serve(args: Namespace) -> int:
             cmd_parts.extend(["-o", args.output])
         if args.standalone:
             cmd_parts.append("--standalone")
-        if args.css:
-            cmd_parts.extend(["--css", args.css])
+        if custom_css:
+            cmd_parts.extend(["--css", custom_css])
         if args.menu_right:
             cmd_parts.append("--menu-right")
         if args.no_theme_toggle:
@@ -635,7 +643,7 @@ def _cmd_serve(args: Namespace) -> int:
             "standalone": args.standalone,
             "output_dir": str(output_dir),
             "output_filename": output_filename,
-            "custom_css": args.css,
+            "custom_css": custom_css,
             "theme_toggle": not args.no_theme_toggle,
             "menu_position": "right" if args.menu_right else "left",
             "strict": args.strict,
@@ -652,8 +660,8 @@ def _cmd_serve(args: Namespace) -> int:
         # Watch source and CSS files for changes
         server = livereload.Server()
         server.watch(args.src, livereload.shell(cmd))
-        if args.css:
-            server.watch(args.css, livereload.shell(cmd))
+        if custom_css:
+            server.watch(custom_css, livereload.shell(cmd))
 
     # Mode 2: Serve and watch all .rsm files in directory
     else:
