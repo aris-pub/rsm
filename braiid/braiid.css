@@ -1282,7 +1282,8 @@ body {
   background: var(--gray-100);
   border: 1px solid var(--gray-200);
   border-radius: 6px;
-  padding: 0.75em 1em; }
+  padding: 0.75em 1em;
+  font-size: 0.9em; }
 
 
 /* Other */
@@ -1429,7 +1430,7 @@ body {
     inside an <a> tag to be 24px tall, we need to change its display */
     display: inline-block;
 
-    &.reference.backlink, &.reference.cite {padding-inline: 0.2em;}
+    &.reference.backlink, &.reference.cite {padding-inline: 0.05em;}
     &.reference.backlink {font-size: 0.875rem;}
     & > .icon.ext > svg {stroke: var(--link-default);}
 
@@ -1770,6 +1771,7 @@ a.reference.external:hover::after {
 
 .ps-root {
   font-family: var(--font-body) !important;
+  font-weight: 450 !important;
   color: var(--text-body) !important;
 }
 

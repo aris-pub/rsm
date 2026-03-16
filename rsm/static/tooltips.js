@@ -82,7 +82,7 @@ export function createTooltips() {
           case Array.from(classes).filter(cls => ["math", "algorithm"].includes(cls)).length > 0:
             content = $(target).html();
             break;
-          case Array.from(classes).filter(cls => ["paragraph", "mathblock", "theorem", "proposition", "remark", "bibitem"].includes(cls)).length > 0:
+          case Array.from(classes).filter(cls => ["paragraph", "mathblock", "theorem", "lemma", "corollary", "example", "exercise", "proposition", "problem", "porism", "remark", "definition", "bibitem"].includes(cls)).length > 0:
             clone = $(target).clone();
             stripHandrail(clone);
             content = $(clone).html();
