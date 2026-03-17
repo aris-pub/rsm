@@ -1,5 +1,41 @@
 # Changelog
 
+## [1.1.0] - 2026-03-17
+
+### Added
+
+- Auto-generate `id` attributes on unlabeled sections for deep linking
+- Handrails support for algorithm blocks
+- Temml-KaTeX alias for algorithm rendering
+- Meta keys to `:ref:` role
+- New BibTeX entry types, fields, and URL fallback in the BibTeX parser
+
+### Fixed
+
+- Tooltip handrails, bibitem URL icons, and appendix appearing before references
+- Tooltip whitelist, equation centering, and citation spacing
+- Caption styling, asset resolver, and mathblock handrail visibility
+- BibTeX keywords leaking into body text as global tokens
+- `rsm serve` CSS auto-detect and file watching
+- Slash character breaking text parsing
+- Missing tooltipster shadow theme in CSS bundle
+- Stray `</p>` tag for mathblocks with non-paragraph parents
+- Duplicate `</div>` in caption translator breaking section collapse
+- Mathblock rendering under Section nodes
+- Orphan brackets in inline citations
+- Table caption centering by moving caption outside `<table>`
+- On-demand Temml loading when no math renderer exists
+- Handrail focus highlight appearing during text selection
+- Duplicate `<script>` tags increasing page load time
+
+### Changed
+
+- Selected handrail background now uses `--blue-100`
+- Pseudocode.js fonts now inherit from document body font and design tokens
+- Html asset display label renamed to Widget in captions
+- Author rendering redesigned to compact inline format with AuthorBlock/AuthorNotes nodes
+- External reference syntax updated
+
 ## [1.0.5] - 2026-02-21
 
 ### Fixed
