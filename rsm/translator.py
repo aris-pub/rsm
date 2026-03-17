@@ -2447,7 +2447,7 @@ class HandrailsTranslator(Translator):
             batch,
             include_content=False,
             classes=["hr-hidden"],
-            icon="ext" if node.doi else None,
+            icon="ext" if (node.doi or node.url) else None,
             collapse_in_hr=False,
             link=False,
             node=node,
@@ -2455,7 +2455,7 @@ class HandrailsTranslator(Translator):
 
         # get the <a> tag already there...
         text = batch.items[1]._text
-        pat = r'(<a.*?class="bibitem-doi".*?>).*?</a>'
+        pat = r'(<a.*?class="bibitem-(?:doi|url)".*?>).*?</a>'
         mobj = re.search(pat, text)
         if mobj is None:
             logger.warning("Unable to extract link from {node}")

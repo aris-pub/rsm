@@ -1250,6 +1250,7 @@ body {
   list-style: none;
   counter-reset: item 1;
   padding-inline-start: var(--chunk);
+  font-size: 0.85em;
 
   li {margin-block: 0.75rem;}
 
@@ -1262,6 +1263,10 @@ body {
     display: inline-block;
   }
 
+}
+
+.manuscriptwrapper div.bibliography {
+  font-size: 0.92em;
 }
 
 

@@ -1,3 +1,5 @@
+import rsm
+
 from conftest import compare_have_want
 
 
@@ -54,6 +56,44 @@ def test_numbered_sections():
         </body>
         """,
     )
+
+
+def test_appendix_before_references():
+    """Regression: appendix before references must not crash autonumbering.
+
+    The appendix stamp resets section counters to A, B, C... but must not
+    affect bibitem counters. Previously, the entire counts[Manuscript] dict
+    was replaced, breaking numbering for bibitems that appear after the
+    appendix.
+    """
+    source = """\
+    ## Introduction
+    {:label: sec-intro}
+
+    Some text :cite:foo2020::.
+
+    :appendix:
+
+    ## Extra Details
+    {:label: sec-extra}
+
+    More content.
+
+    :references:
+
+    @article{foo2020,
+      title={A test paper},
+      author={Foo, B.},
+      year={2020},
+      journal={Journal of Testing},
+      doi={10.1234/test}
+    }
+
+    ::
+    """
+    result = rsm.render(source, handrails=False, add_source=False)
+    assert "A. Extra Details" in result
+    assert "foo2020" in result
 
 
 def test_nonum():

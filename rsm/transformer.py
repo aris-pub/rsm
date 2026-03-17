@@ -555,7 +555,7 @@ class Transformer:
 
         for node in self.tree.traverse():
             if isinstance(node, nodes.Appendix):
-                counts[nodes.Manuscript] = defaultdict(lambda: iter(ascii_uppercase))
+                counts[nodes.Manuscript][nodes.Section] = iter(ascii_uppercase)
                 within_appendix = True
                 continue
             if isinstance(node, nodes.Proof | nodes.Subproof):
