@@ -20,7 +20,7 @@ body {
   font-size: 12px;  /* Mobile default (< 640px) */
 
   /* General */
-  --side-padding: 6.5rem;  /* Use rem for consistent layout spacing */
+  --side-padding: 1rem;    /* Mobile-first, scaled up at breakpoints */
 
   /* Spacing - chunk system (1 chunk = 3rem: 36px mobile, 42px tablet, 48px desktop) */
   --chunk: 3rem;              /* base unit */
@@ -1673,6 +1673,7 @@ a.reference.external:hover::after {
   /* sm: Small tablets and up */
   :root {
     font-size: 14px;  /* 116.7% of mobile */
+    --side-padding: 3rem;
   }
 }
 
@@ -1680,6 +1681,7 @@ a.reference.external:hover::after {
   /* lg: Desktop and up */
   :root {
     font-size: 16px;  /* 133% of mobile, 114% of tablet */
+    --side-padding: 6.5rem;
   }
 }
 
