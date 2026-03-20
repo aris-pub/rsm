@@ -198,12 +198,24 @@ export class SemanticTokensProvider {
         continue;
       }
 
-      // Get node position
-      const { row: line, column: char } = node.startPosition;
-      const length = node.endIndex - node.startIndex;
+      const startLine = node.startPosition.row;
+      const endLine = node.endPosition.row;
 
-      // Add token (no modifiers for now, hence 0)
-      builder.push(line, char, length, tokenType, 0);
+      if (startLine === endLine) {
+        // Single-line token: use text length (not byte length) for accuracy
+        const len = node.text?.length ?? (node.endIndex - node.startIndex);
+        builder.push(startLine, node.startPosition.column, len, tokenType, 0);
+      } else {
+        // Multi-line token: LSP requires one token per line.
+        // Split using the node's text content.
+        const lines = (node.text ?? '').split('\n');
+        for (let i = 0; i < lines.length; i++) {
+          const lineText = lines[i];
+          if (!lineText.length) continue;
+          const col = i === 0 ? node.startPosition.column : 0;
+          builder.push(startLine + i, col, lineText.length, tokenType, 0);
+        }
+      }
     }
 
     return builder;
