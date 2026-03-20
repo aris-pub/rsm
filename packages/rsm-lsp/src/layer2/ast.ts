@@ -100,6 +100,56 @@ export function extractLabels(root: ASTNode): Map<string, ASTNode> {
 }
 
 /**
+ * Find a node by its nodeid
+ */
+export function findNodeById(root: ASTNode, nodeid: number): ASTNode | null {
+  function traverse(node: ASTNode): ASTNode | null {
+    if (node.nodeid === nodeid) {
+      return node;
+    }
+    if (node.children) {
+      for (const child of node.children) {
+        const result = traverse(child);
+        if (result) return result;
+      }
+    }
+    return null;
+  }
+
+  return traverse(root);
+}
+
+/**
+ * Find the deepest node containing a given source position
+ */
+export function findNodeAtPosition(root: ASTNode, line: number, col: number): ASTNode | null {
+  let best: ASTNode | null = null;
+
+  function traverse(node: ASTNode) {
+    if (node.nodeid == null) {
+      // Skip nodes without nodeids (Text, etc.)
+      if (node.children) {
+        for (const child of node.children) traverse(child);
+      }
+      return;
+    }
+    const [startLine, startCol] = node.start_point;
+    const [endLine, endCol] = node.end_point;
+    const afterStart = line > startLine || (line === startLine && col >= startCol);
+    const beforeEnd = line < endLine || (line === endLine && col <= endCol);
+    if (afterStart && beforeEnd) {
+      best = node;
+      if (node.children) {
+        for (const child of node.children) traverse(child);
+      }
+    }
+  }
+
+  traverse(root);
+  return best;
+}
+
+/**
  * Extract all reference targets from the AST
  */
 export function extractReferences(root: ASTNode): Array<{ node: ASTNode; target: string }> {

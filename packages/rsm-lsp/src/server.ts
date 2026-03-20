@@ -274,6 +274,30 @@ connection.onDocumentSymbol((params: DocumentSymbolParams): DocumentSymbol[] => 
   return symbols;
 });
 
+// Custom requests for source/preview navigation
+import { findNodeById, findNodeAtPosition } from './layer2/ast';
+
+connection.onRequest('rsm/nodePosition', (params: { textDocument: { uri: string }; nodeid: number }) => {
+  const cached = astCache.get(params.textDocument.uri);
+  if (!cached) return null;
+  const node = findNodeById(cached.ast, params.nodeid);
+  if (!node) return null;
+  return {
+    startLine: node.start_point[0],
+    startCol: node.start_point[1],
+    endLine: node.end_point[0],
+    endCol: node.end_point[1],
+  };
+});
+
+connection.onRequest('rsm/nodeAtPosition', (params: { textDocument: { uri: string }; line: number; character: number }) => {
+  const cached = astCache.get(params.textDocument.uri);
+  if (!cached) return null;
+  const node = findNodeAtPosition(cached.ast, params.line, params.character);
+  if (!node || node.nodeid == null) return null;
+  return { nodeid: node.nodeid, nodeclass: node.nodeclass };
+});
+
 // Make the text document manager listen on the connection
 documents.listen(connection);
 
