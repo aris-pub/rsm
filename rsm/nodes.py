@@ -1327,18 +1327,23 @@ class ClaimBlock(Construct):
 
 
 class Math(NodeWithChildren):
-    pass
+    newmetakeys: ClassVar[set] = {"preamble"}
+
+    def __init__(self, preamble: bool = False, **kwargs: Any) -> None:
+        super().__init__(**kwargs)
+        self.preamble = preamble
 
 
 class MathBlock(NodeWithChildren):
     autonumber = True
     _number_within = Section
     classreftext: ClassVar[str] = "({number})"
-    newmetakeys: ClassVar[set] = {"isclaim"}
+    newmetakeys: ClassVar[set] = {"isclaim", "preamble"}
 
-    def __init__(self, isclaim: bool = False, **kwargs: Any) -> None:
+    def __init__(self, isclaim: bool = False, preamble: bool = False, **kwargs: Any) -> None:
         super().__init__(**kwargs)
         self.isclaim = isclaim
+        self.preamble = preamble
 
     @property
     def long_reftext(self) -> str:

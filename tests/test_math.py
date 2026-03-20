@@ -302,3 +302,77 @@ def test_unclosed_dollar_sign():
         </body>
         """,
     )
+
+
+def test_preamble_mathblock():
+    """Preamble mathblock gets math-preamble class and no handrails."""
+    compare_have_want(
+        have="""\
+        :mathblock: {:preamble:}
+          \\newcommand{\\op}{\\operatorname}
+        ::
+
+        Some text.
+        """,
+        want="""\
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
+
+        <main class="manuscriptwrapper">
+
+        <div class="manuscript" data-nodeid="0">
+
+        <section class="level-1">
+
+        <div class="mathblock math-preamble" data-nodeid="1">
+        $$
+        \\newcommand{\\op}{\\operatorname}
+        $$
+        </div>
+
+        <div class="paragraph" data-nodeid="3">
+
+        <p>Some text.</p>
+
+        </div>
+
+        </section>
+
+        </div>
+
+        </main>
+
+        </body>
+        """,
+    )
+
+
+def test_preamble_math_inline():
+    """Preamble inline math gets math-preamble class."""
+    compare_have_want(
+        have="""\
+        :math: {:preamble:} \\newcommand{\\op}{\\operatorname}:: is hidden.
+        """,
+        want="""\
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
+
+        <main class="manuscriptwrapper">
+
+        <div class="manuscript" data-nodeid="0">
+
+        <section class="level-1">
+
+        <div class="paragraph" data-nodeid="1">
+
+        <p><span class="math math-preamble" data-nodeid="2">\\(\\newcommand{\\op}{\\operatorname}\\)</span> is hidden.</p>
+
+        </div>
+
+        </section>
+
+        </div>
+
+        </main>
+
+        </body>
+        """,
+    )

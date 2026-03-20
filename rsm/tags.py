@@ -132,6 +132,8 @@ icon = MetaTagInfo(None, list)
 """Icon assigned to the block."""
 isclaim = MetaTagInfo(None, bool)
 """Whether a math block is a claim."""
+preamble = MetaTagInfo(None, bool)
+"""Whether a math/mathblock contains LaTeX preamble (macro definitions)."""
 keywords = MetaTagInfo(None, list)
 """Abstract keywords."""
 label = MetaTagInfo(None, str)

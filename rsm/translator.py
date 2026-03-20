@@ -1048,6 +1048,8 @@ class Translator:
 
     def visit_math(self, node: nodes.Math) -> EditCommand:
         # \( ... \) are the standard TeX inline-math delimiters read by the client renderer
+        if node.preamble:
+            node.classes.append("math-preamble")
         return AppendBatchAndDefer(
             [
                 AppendNodeTag(node, "span", newline_inner=False, newline_outer=False),
@@ -1062,6 +1064,8 @@ class Translator:
             # so this mathblock must always contain some previous siblings that must
             # be enclosed in <p> tags.  (See comment in visit_paragraph().)
             commands.append(AppendText("</p>"))
+        if node.preamble:
+            node.classes.append("math-preamble")
         commands.append(AppendNodeTag(node, "div"))
         commands.append(AppendTextAndDefer("$$\n", "\n$$"))
         return AppendBatchAndDefer(commands)
@@ -2432,6 +2436,10 @@ class HandrailsTranslator(Translator):
         return batch
 
     def visit_mathblock(self, node: nodes.MathBlock) -> EditCommand:
+        # Preamble mathblocks are invisible — skip handrails, just emit hidden div
+        if node.preamble:
+            return super().visit_mathblock(node)
+
         batch = self._replace_node_with_handrails(
             node,
             collapse_in_hr=False,

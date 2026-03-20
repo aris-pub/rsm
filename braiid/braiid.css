@@ -1814,3 +1814,6 @@ a.reference.external:hover::after {
 .ps-algorithm > .ps-line:first-child {
   border-top-color: var(--gray-300) !important;
 }
+
+/* Preamble math nodes contain macro definitions and should be invisible */
+.math-preamble { display: none; }
