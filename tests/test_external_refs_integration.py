@@ -3,6 +3,7 @@
 from pathlib import Path
 
 import rsm
+from rsm.nodes import Manuscript
 
 
 def test_external_ref_html_generation():
@@ -97,3 +98,46 @@ This references :ref:nonexistent/file/label::.
         assert "nonexistent/file.rsm" in str(errors[0].children[0])
     # If no children, just verify an error was created
     assert errors[0].__class__.__name__ == "Error"
+
+
+def test_manuscript_reftext_uses_title():
+    """Manuscript.reftext should return the title, not 'Manuscript'."""
+    ms = Manuscript(title="Adjacency Matrix")
+    assert ms.reftext == "Adjacency Matrix"
+
+
+def test_manuscript_reftext_without_title():
+    """Manuscript.reftext should fall back to 'Manuscript' when no title is set."""
+    ms = Manuscript()
+    assert ms.reftext == "Manuscript"
+
+
+def test_external_whole_document_ref_shows_title():
+    """Whole-document ref :ref:file/:: should render the target manuscript's title."""
+    root_dir = Path(__file__).parent / "fixtures/crossref"
+
+    src = """# Main Document
+
+This references :ref:definitions/def/::.
+"""
+
+    html = rsm.render(source=src, handrails=False, root_dir=root_dir)
+
+    # The ref target is the Manuscript node of def.rsm which has "# Test Definition"
+    assert "Test Definition" in html
+    assert "Manuscript" not in html or "Manuscript" in "Main Document"  # only in our own title
+
+
+def test_external_labeled_ref_includes_manuscript_title():
+    """Ref :ref:file/label:: should render as 'Manuscript Title, Reftext'."""
+    root_dir = Path(__file__).parent / "fixtures/crossref"
+
+    src = """# Main Document
+
+This references :ref:definitions/def/test-def::.
+"""
+
+    html = rsm.render(source=src, handrails=False, root_dir=root_dir)
+
+    # Should show the manuscript title alongside the local reftext
+    assert "Test Definition" in html

@@ -316,10 +316,19 @@ class Transformer:
                 if isinstance(target, nodes.Error):
                     pending.replace_self(target)
                 else:
+                    ext_ms = None
+                    if pending.external_file and pending.target_label:
+                        try:
+                            ext_ms, _ = self._load_external_manuscript(
+                                pending.external_file
+                            )
+                        except Exception:
+                            pass
                     pending.replace_self(
                         nodes.Reference(
                             target=target,
                             external_file=pending.external_file,
+                            external_manuscript=ext_ms,
                             overwrite_reftext=pending.overwrite_reftext,
                         )
                     )

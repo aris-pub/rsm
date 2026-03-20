@@ -1216,6 +1216,18 @@ class Translator:
             if "external" not in node.classes:
                 node.classes.append("external")
 
+            # For labeled external refs, prefix reftext with manuscript title
+            if (
+                node.external_manuscript
+                and node.external_manuscript.title
+                and not node.overwrite_reftext
+                and not isinstance(node.target, nodes.Manuscript)
+            ):
+                local_reftext = getattr(node.target, "reftext", "")
+                node.overwrite_reftext = (
+                    f"{node.external_manuscript.title}, {local_reftext}"
+                )
+
             return AppendText(self._make_ahref_tag_text(node, node.target, href))
         else:
             # Internal reference (existing behavior)

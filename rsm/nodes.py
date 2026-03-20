@@ -1106,6 +1106,12 @@ class Manuscript(Heading):
     }
     nonum = True
 
+    @property
+    def reftext(self) -> str:
+        if self.title:
+            return self.title
+        return super().reftext
+
     def __init__(
         self, src: str = "", date: datetime | None = None, numbering: str = "section", accent: str = "blue", lang: str = "en", typography: str = "sans-serif", **kwargs: Any
     ) -> None:
@@ -1526,10 +1532,12 @@ class Reference(BaseReference):
         self,
         target: Node | None = None,
         external_file: str | None = None,
+        external_manuscript: "Manuscript | None" = None,
         **kwargs: Any,
     ) -> None:
         super().__init__(target, **kwargs)
         self.external_file = external_file
+        self.external_manuscript = external_manuscript
 
 
 class PendingPrev(BaseReference):
