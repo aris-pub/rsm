@@ -117,10 +117,14 @@ export async function typesetMath(root = document) {
   }
 
   if (window.temml) {
+    const BATCH = 30;
+
     // Inline math: <span class="math">\(...\)</span>
-    element.querySelectorAll('span.math').forEach(el => {
+    const inlines = element.querySelectorAll('span.math');
+    for (let i = 0; i < inlines.length; i++) {
+      const el = inlines[i];
       const src = el.textContent;
-      if (!src.startsWith('\\(') || !src.endsWith('\\)')) return;
+      if (!src.startsWith('\\(') || !src.endsWith('\\)')) continue;
       const latex = src.slice(2, -2);
       el.dataset.latex = latex;
       try {
@@ -128,14 +132,20 @@ export async function typesetMath(root = document) {
       } catch (err) {
         console.error('temml inline error:', err);
       }
-    });
+      // Yield to the browser every BATCH elements to prevent UI freeze
+      if ((i + 1) % BATCH === 0 && i + 1 < inlines.length) {
+        await new Promise(r => requestAnimationFrame(r));
+      }
+    }
 
     // Display math: <div class="mathblock">$$\n...\n$$</div>
     // In handrails mode the LaTeX lives inside .hr-content-zone.
-    element.querySelectorAll('div.mathblock').forEach(el => {
+    const displays = element.querySelectorAll('div.mathblock');
+    for (let i = 0; i < displays.length; i++) {
+      const el = displays[i];
       const contentEl = el.querySelector('.hr-content-zone') || el;
       const src = contentEl.textContent.trim();
-      if (!src.startsWith('$$') || !src.endsWith('$$')) return;
+      if (!src.startsWith('$$') || !src.endsWith('$$')) continue;
       const latex = src.slice(2, -2).trim();
       el.dataset.latex = latex;
       try {
@@ -143,7 +153,10 @@ export async function typesetMath(root = document) {
       } catch (err) {
         console.error('temml display error:', err);
       }
-    });
+      if ((i + 1) % BATCH === 0 && i + 1 < displays.length) {
+        await new Promise(r => requestAnimationFrame(r));
+      }
+    }
 
     return;
   }
