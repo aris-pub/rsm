@@ -732,6 +732,15 @@ Key properties of the operator:
 
 ::
 
+:html: {
+  :path: interactive_chart.html
+  :label: widget-chart
+}
+
+  :caption: Interactive visualization of the data.
+
+::
+
 :table: {:label: tbl-results}
 
   :thead:
