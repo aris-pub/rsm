@@ -283,14 +283,16 @@ connection.onRequest('rsm/nodePosition', (params: { textDocument: { uri: string 
   const node = findNodeById(cached.ast, params.nodeid);
   if (!node) return null;
   // contentStart: first child's position (after tag + meta region)
+  // Fall back to node start if child has invalid coordinates (e.g. Text nodes with [-1,-1])
   const firstChild = node.children?.find(c => c.nodeid != null || c.nodeclass === 'Text');
+  const hasValidChildPos = firstChild && firstChild.start_point[0] >= 0 && firstChild.start_point[1] >= 0;
   return {
     startLine: node.start_point[0],
     startCol: node.start_point[1],
     endLine: node.end_point[0],
     endCol: node.end_point[1],
-    contentStartLine: firstChild?.start_point[0] ?? node.start_point[0],
-    contentStartCol: firstChild?.start_point[1] ?? node.start_point[1],
+    contentStartLine: hasValidChildPos ? firstChild.start_point[0] : node.start_point[0],
+    contentStartCol: hasValidChildPos ? firstChild.start_point[1] : node.start_point[1],
   };
 });
 
