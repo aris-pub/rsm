@@ -241,7 +241,7 @@ class PandocTranslator:
         anchor = node.label or ""
         inner = self._walk_children_as_blocks(node)
         # Wrap in raw Typst block with left border for PDF styling
-        raw_open = {"t": "RawBlock", "c": ["typst", f'#block(stroke: (left: 1.5pt + rgb("#C2CCD3")), inset: (left: 10pt, top: 6pt, bottom: 6pt, right: 0pt), width: 100%)[']}
+        raw_open = {"t": "RawBlock", "c": ["typst", f'#block(stroke: (left: 1.5pt + rgb("#027AC7")), inset: (left: 10pt, top: 6pt, bottom: 6pt, right: 0pt), width: 100%)[']}
         raw_close = {"t": "RawBlock", "c": ["typst", "]"]}
         label_block = [{"t": "RawBlock", "c": ["typst", f'<{anchor}>']}] if anchor and " " not in anchor else []
         return label_block + [raw_open, label_para] + inner + [raw_close]
