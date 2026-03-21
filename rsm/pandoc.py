@@ -179,9 +179,14 @@ class PandocTranslator:
         if node.keywords:
             kw_text = "Keywords: " + ", ".join(node.keywords)
             result.append({"t": "Para", "c": [{"t": "Str", "c": kw_text}]})
-        # TOC after abstract — emit heading + outline with title suppressed
-        result.append({"t": "Header", "c": [3, ["contents", [], []], [{"t": "Str", "c": "Contents"}]]})
-        result.append({"t": "RawBlock", "c": ["typst", '#outline(indent: auto, depth: 3, title: none)\n#v(0.5em)']})
+        # TOC after abstract — match the Abstract label style (11pt semibold blue-900)
+        result.append({"t": "RawBlock", "c": ["typst",
+            '#v(0.2em)\n'
+            '#text(font: ("Montserrat", "Source Sans 3", "Source Sans Pro", "Noto Sans"), size: 11pt, weight: "semibold", fill: rgb("#0C456E"))[Contents]\n'
+            '#v(0.2em)\n'
+            '#outline(indent: auto, depth: 3, title: none)\n'
+            '#v(0.5em)'
+        ]})
         return result
 
     def _block_paragraph(self, node: nodes.Paragraph) -> list[dict]:
