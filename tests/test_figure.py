@@ -1,3 +1,7 @@
+import base64
+from textwrap import dedent
+
+import rsm
 from conftest import compare_have_want
 
 SIMPLE_WANT = """\
@@ -453,3 +457,67 @@ def test_figure_all_new_options():
         </body>
         """,
     )
+
+
+class MockAssetResolver:
+    """Asset resolver that returns predefined content for specific filenames."""
+
+    def __init__(self, assets):
+        self._assets = assets
+
+    def resolve_asset(self, path):
+        return self._assets.get(path)
+
+
+def test_svg_image_resolved_as_data_uri():
+    """SVG figures should be inlined as data URIs when the resolver provides content."""
+    svg_content = '<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><circle cx="50" cy="50" r="40" fill="red"/></svg>'
+    resolver = MockAssetResolver({"test.svg": svg_content})
+
+    src = dedent("""\
+        :figure: {
+          :path: test.svg
+        }
+        :caption: A red circle.
+        ::
+    """)
+    html = rsm.render(src, asset_resolver=resolver).lstrip()
+
+    expected_b64 = base64.b64encode(svg_content.encode("utf-8")).decode("ascii")
+    expected_src = f"data:image/svg+xml;base64,{expected_b64}"
+    assert expected_src in html
+    assert 'src="test.svg"' not in html
+
+
+def test_png_image_resolved_as_data_uri():
+    """PNG figures should be inlined as data URIs when the resolver provides content."""
+    # Simulate binary content returned as string (as the Studio resolver does)
+    fake_png = "fake-png-binary-content"
+    resolver = MockAssetResolver({"photo.png": fake_png})
+
+    src = dedent("""\
+        :figure: {
+          :path: photo.png
+        }
+        :caption: A photo.
+        ::
+    """)
+    html = rsm.render(src, asset_resolver=resolver).lstrip()
+
+    expected_b64 = base64.b64encode(fake_png.encode("utf-8")).decode("ascii")
+    assert f"data:image/png;base64,{expected_b64}" in html
+
+
+def test_image_falls_back_to_raw_path():
+    """When the resolver returns None, the raw path should be used as src."""
+    resolver = MockAssetResolver({})
+
+    src = dedent("""\
+        :figure: {
+          :path: missing.png
+        }
+        :caption: Missing image.
+        ::
+    """)
+    html = rsm.render(src, asset_resolver=resolver).lstrip()
+    assert 'src="missing.png"' in html

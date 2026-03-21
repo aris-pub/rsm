@@ -1457,18 +1457,40 @@ class Translator:
             return _process_html_with_scripts(content)
         return content
 
+    def _resolve_image_src(self, path) -> str:
+        """Resolve an image asset to a src attribute value.
+
+        Tries the asset resolver first and returns a data URI if the asset is
+        found.  Falls back to the raw path (works for disk-served static sites).
+        """
+        import base64
+        import mimetypes
+
+        content = self.asset_resolver.resolve_asset(str(path))
+        if content is None:
+            return str(path)
+
+        mime = mimetypes.guess_type(str(path))[0] or "image/png"
+        if isinstance(content, bytes):
+            encoded = base64.b64encode(content).decode("ascii")
+        else:
+            encoded = base64.b64encode(content.encode("utf-8")).decode("ascii")
+        return f"data:{mime};base64,{encoded}"
+
     def _render_image(self, node: nodes.Asset) -> str:
         alt_text = node.alt if node.alt else f"{node.__class__.__name__} {node.full_number}."
+        src = self._resolve_image_src(node.path)
         img = _make_tag(
             "img",
             id_=node.label,
             classes=[],
-            src=node.path,
+            src=src,
             alt=alt_text,
             onload="" if node.scale == 1.0 else f"this.width*={node.scale};",
         )
         if node.dark:
-            source = f'<source media="(prefers-color-scheme: dark)" srcset="{node.dark}">'
+            dark_src = self._resolve_image_src(node.dark)
+            source = f'<source media="(prefers-color-scheme: dark)" srcset="{dark_src}">'
             return f"<picture>\n{source}\n{img}\n</picture>"
         return img
 
