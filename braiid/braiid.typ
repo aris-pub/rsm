@@ -137,5 +137,9 @@
     v(1em)
   }
 
+  // Table of contents
+  outline(indent: auto, depth: 2)
+  v(1em)
+
   doc
 }
