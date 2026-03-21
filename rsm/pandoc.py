@@ -241,7 +241,7 @@ class PandocTranslator:
         anchor = node.label or ""
         inner = self._walk_children_as_blocks(node)
         # Wrap in raw Typst block with left border for PDF styling
-        raw_open = {"t": "RawBlock", "c": ["typst", f'#block(stroke: (left: 3pt + rgb("#C2CCD3")), inset: (left: 12pt, top: 6pt, bottom: 6pt, right: 0pt), width: 100%)[']}
+        raw_open = {"t": "RawBlock", "c": ["typst", f'#block(stroke: (left: 1.5pt + rgb("#C2CCD3")), inset: (left: 10pt, top: 6pt, bottom: 6pt, right: 0pt), width: 100%)[']}
         raw_close = {"t": "RawBlock", "c": ["typst", "]"]}
         label_block = [{"t": "RawBlock", "c": ["typst", f'<{anchor}>']}] if anchor and " " not in anchor else []
         return label_block + [raw_open, label_para] + inner + [raw_close]
@@ -254,7 +254,7 @@ class PandocTranslator:
         }
         inner = self._walk_children_as_blocks(node)
         # Proof: no border, just italic label + Halmos square at end
-        halmos = {"t": "RawBlock", "c": ["typst", '#align(right, box(width: 8pt, height: 8pt, fill: rgb("#0E9AE9")))']}
+        halmos = {"t": "RawBlock", "c": ["typst", '#align(right, box(width: 6pt, height: 6pt, fill: rgb("#027AC7")))']}
         return [label_para] + inner + [halmos]
 
     def _block_figure(self, node: nodes.Figure) -> list[dict]:
@@ -315,7 +315,17 @@ class PandocTranslator:
             parts.append(str(node.year))
         text = ". ".join(p.strip(".") for p in parts) + "." if parts else "?"
         anchor = f"ref-{node.label}" if node.label else ""
-        return {"t": "Div", "c": [[anchor, [], []], [{"t": "Para", "c": [{"t": "Str", "c": text}]}]]}
+        inlines: list[dict] = [{"t": "Str", "c": text}]
+        # Add DOI or URL as a clickable link
+        link_url = None
+        if getattr(node, "doi", None):
+            link_url = f"https://doi.org/{node.doi}" if not node.doi.startswith("http") else node.doi
+        elif getattr(node, "url", None):
+            link_url = str(node.url)
+        if link_url:
+            inlines.append({"t": "Space"})
+            inlines.append({"t": "Link", "c": [["", [], []], [{"t": "Str", "c": link_url}], [link_url, ""]]})
+        return {"t": "Div", "c": [[anchor, [], []], [{"t": "Para", "c": inlines}]]}
 
     def _block_table(self, node: nodes.Table) -> list[dict]:
         head = node.first_of_type(nodes.TableHead)

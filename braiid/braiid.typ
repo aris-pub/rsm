@@ -23,9 +23,16 @@
     paper: "a4",
     margin: (top: 30mm, bottom: 30mm, left: 25mm, right: 25mm),
     header: context {
-      if counter(page).get().first() > 1 {
+      let pg = counter(page).get().first()
+      if pg > 1 {
         set text(size: 9pt, fill: gray-800)
-        if title != none { title }
+        if calc.odd(pg) {
+          // Odd pages: title
+          if title != none { title }
+        } else {
+          // Even pages: author
+          if authors.len() > 0 { authors.join(", ") }
+        }
         h(1fr)
         counter(page).display()
       }

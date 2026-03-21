@@ -670,8 +670,10 @@ class PandocExportApp(ParserApp):
         pandoc_ast = pandoc_module.PandocTranslator().translate(manuscript)
         result = _PandocRunner(self._to_format, self._output).run(pandoc_ast)
 
-        # For Typst output, prepend the braiid template
+        # For Typst output, prepend the braiid template and clean up
         if self._to_format == "typst" and self._output is None:
+            # Remove escaped colons that Pandoc inserts
+            result = result.replace("\\:", ":")
             result = _inject_braiid_typst(result, manuscript)
 
         return result
