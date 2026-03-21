@@ -59,25 +59,25 @@
   // Headings: Montserrat, matching braiid.css scale
   // Section numbers come from the RSM AST (already in the heading text)
   show heading.where(level: 1): it => {
-    set text(font: ("Montserrat", "Source Sans 3", "Source Sans Pro", "Noto Sans"), size: 22pt, weight: "bold")
+    set text(font: ("Montserrat", "Source Sans 3", "Source Sans Pro", "Noto Sans"), size: 22pt, weight: "bold", fill: rgb("#075487"))
     v(1.5em)
     it.body
     v(0.5em)
   }
   show heading.where(level: 2): it => {
-    set text(font: ("Montserrat", "Source Sans 3", "Source Sans Pro", "Noto Sans"), size: 19.25pt, weight: "semibold")
+    set text(font: ("Montserrat", "Source Sans 3", "Source Sans Pro", "Noto Sans"), size: 19.25pt, weight: "semibold", fill: rgb("#075487"))
     v(1.2em)
     it.body
     v(0.4em)
   }
   show heading.where(level: 3): it => {
-    set text(font: ("Montserrat", "Source Sans 3", "Source Sans Pro", "Noto Sans"), size: 16.5pt, weight: "medium")
+    set text(font: ("Montserrat", "Source Sans 3", "Source Sans Pro", "Noto Sans"), size: 16.5pt, weight: "medium", fill: rgb("#075487"))
     v(1em)
     it.body
     v(0.3em)
   }
   show heading.where(level: 4): it => {
-    set text(font: ("Montserrat", "Source Sans 3", "Source Sans Pro", "Noto Sans"), size: 15.125pt, weight: "medium")
+    set text(font: ("Montserrat", "Source Sans 3", "Source Sans Pro", "Noto Sans"), size: 15.125pt, weight: "medium", fill: rgb("#075487"))
     v(0.8em)
     it.body
     v(0.3em)
@@ -138,7 +138,7 @@
   }
 
   // Table of contents
-  outline(indent: auto, depth: 2)
+  outline(indent: auto, depth: 3)
   v(1em)
 
   doc

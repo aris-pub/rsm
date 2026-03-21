@@ -201,6 +201,14 @@ class PandocTranslator:
 
     def _block_mathblock(self, node: nodes.MathBlock) -> list[dict]:
         src = self._extract_math_source(node)
+        num = node.full_number
+        if num and not node.nonum:
+            # Emit display math with equation number on the right
+            math = {"t": "Math", "c": [{"t": "DisplayMath"}, src]}
+            num_text = {"t": "Str", "c": f"({num})"}
+            return [{"t": "RawBlock", "c": ["typst", '#grid(columns: (1fr, auto), align: (center, right + horizon), [']},
+                    {"t": "Para", "c": [math]},
+                    {"t": "RawBlock", "c": ["typst", f'], [({num})])']}]
         return [{"t": "Para", "c": [{"t": "Math", "c": [{"t": "DisplayMath"}, src]}]}]
 
     def _block_codeblock(self, node: nodes.CodeBlock) -> list[dict]:
@@ -244,7 +252,7 @@ class PandocTranslator:
         anchor = node.label or ""
         inner = self._walk_children_as_blocks(node)
         # Wrap in raw Typst block with left border for PDF styling
-        raw_open = {"t": "RawBlock", "c": ["typst", f'#block(stroke: (left: 1.5pt + rgb("#075487")), inset: (top: 6pt, bottom: 6pt), outset: (left: 14pt), width: 100%)[']}
+        raw_open = {"t": "RawBlock", "c": ["typst", f'#block(stroke: (left: 1.5pt + rgb("#027AC7")), inset: (top: 6pt, bottom: 6pt), outset: (left: 14pt), width: 100%)[']}
         raw_close = {"t": "RawBlock", "c": ["typst", "]"]}
         label_block = [{"t": "RawBlock", "c": ["typst", f'<{anchor}>']}] if anchor and " " not in anchor else []
         return label_block + [raw_open, label_para] + inner + [raw_close]
