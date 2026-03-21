@@ -179,12 +179,17 @@ class PandocTranslator:
         if node.keywords:
             kw_text = "Keywords: " + ", ".join(node.keywords)
             result.append({"t": "Para", "c": [{"t": "Str", "c": kw_text}]})
-        # TOC after abstract — match the Abstract label style (11pt semibold blue-900)
+        # TOC after abstract — suppress default outline heading, emit custom label
         result.append({"t": "RawBlock", "c": ["typst",
-            '#v(0.2em)\n'
-            '#text(font: ("Montserrat", "Source Sans 3", "Source Sans Pro", "Noto Sans"), size: 11pt, weight: "semibold", fill: rgb("#0C456E"))[Contents]\n'
-            '#v(0.2em)\n'
-            '#outline(indent: auto, depth: 3, title: none)\n'
+            '#{\n'
+            '  show outline: it => {\n'
+            '    v(0.2em)\n'
+            '    text(font: ("Montserrat", "Source Sans 3", "Source Sans Pro", "Noto Sans"), size: 16.5pt, weight: "medium", fill: rgb("#0C456E"))[Contents]\n'
+            '    v(0.2em)\n'
+            '    it\n'
+            '  }\n'
+            '  outline(indent: auto, depth: 3, title: none)\n'
+            '}\n'
             '#v(0.5em)'
         ]})
         return result
