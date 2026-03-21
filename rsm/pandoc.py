@@ -212,12 +212,13 @@ class PandocTranslator:
         label = node.label or ""
         label_raw = [{"t": "RawBlock", "c": ["typst", f'<{label}>']}] if label and " " not in label else []
         if num and not node.nonum:
-            math = {"t": "Math", "c": [{"t": "DisplayMath"}, src]}
-            return label_raw + [
-                {"t": "RawBlock", "c": ["typst", '#grid(columns: (1fr, auto), align: (center, right + horizon), [']},
-                {"t": "Para", "c": [math]},
-                {"t": "RawBlock", "c": ["typst", f'], [#text(fill: rgb("#0361A1"))[({num})])\n']}
-            ]
+            # Use Pandoc DisplayMath for LaTeX→Typst conversion, then add
+            # the equation number as a right-aligned annotation after the math
+            math_block = {"t": "Para", "c": [{"t": "Math", "c": [{"t": "DisplayMath"}, src]}]}
+            num_block = {"t": "RawBlock", "c": ["typst",
+                f'#v(-2.2em)\n#align(right, text(fill: rgb("#0361A1"))[({num})])\n#v(0.5em)'
+            ]}
+            return label_raw + [math_block, num_block]
         return label_raw + [{"t": "Para", "c": [{"t": "Math", "c": [{"t": "DisplayMath"}, src]}]}]
 
     def _block_codeblock(self, node: nodes.CodeBlock) -> list[dict]:
