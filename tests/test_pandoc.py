@@ -260,7 +260,8 @@ def test_figure_static_path():
     assert image["c"][2][0] == "img/foo.pdf"
 
 
-def test_theorem_div():
+def test_theorem_has_border():
+    import json
     blocks = _blocks(
         """
         # Doc
@@ -272,13 +273,16 @@ def test_theorem_div():
         ::
         """
     )
-    divs = [b for b in blocks if b["t"] == "Div"]
-    assert divs
-    _, classes, _ = divs[0]["c"][0]
-    assert "theorem" in classes
+    full = json.dumps(blocks)
+    # Theorem should have a raw Typst block with left border styling
+    assert "RawBlock" in full
+    assert "stroke" in full or "7DCDFC" in full
+    # Bold title
+    assert "Theorem" in full
 
 
-def test_proof_div():
+def test_proof_has_halmos():
+    import json
     blocks = _blocks(
         """
         # Doc
@@ -290,10 +294,10 @@ def test_proof_div():
         ::
         """
     )
-    divs = [b for b in blocks if b["t"] == "Div"]
-    assert divs
-    _, classes, _ = divs[0]["c"][0]
-    assert "proof" in classes
+    full = json.dumps(blocks)
+    # Proof should have italic label and Halmos square
+    assert "Proof." in full
+    assert "3C4952" in full  # Halmos square color
 
 
 def test_bibliography_header():

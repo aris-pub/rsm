@@ -240,16 +240,22 @@ class PandocTranslator:
         }
         anchor = node.label or ""
         inner = self._walk_children_as_blocks(node)
-        return [{"t": "Div", "c": [[anchor, [classname, "theorem"], []], [label_para] + inner]}]
+        # Wrap in raw Typst block with left border for PDF styling
+        raw_open = {"t": "RawBlock", "c": ["typst", f'#block(stroke: (left: 3pt + rgb("#7DCDFC")), inset: (left: 12pt, top: 6pt, bottom: 6pt, right: 0pt), width: 100%)[']}
+        raw_close = {"t": "RawBlock", "c": ["typst", "]"]}
+        label_block = [{"t": "RawBlock", "c": ["typst", f'<{anchor}>']}] if anchor and " " not in anchor else []
+        return label_block + [raw_open, label_para] + inner + [raw_close]
 
     def _block_proof(self, node: nodes.Proof) -> list[dict]:
         label = "Proof sketch." if isinstance(node, nodes.Sketch) else "Proof."
         label_para = {
             "t": "Para",
-            "c": [{"t": "Emph", "c": [{"t": "Str", "c": label}]}],
+            "c": [{"t": "Emph", "c": [{"t": "Strong", "c": [{"t": "Str", "c": label}]}]}],
         }
         inner = self._walk_children_as_blocks(node)
-        return [{"t": "Div", "c": [["", ["proof"], []], [label_para] + inner]}]
+        # Proof: no border, just italic label + Halmos square at end
+        halmos = {"t": "RawBlock", "c": ["typst", '#align(right, box(width: 8pt, height: 8pt, fill: rgb("#3C4952")))']}
+        return [label_para] + inner + [halmos]
 
     def _block_figure(self, node: nodes.Figure) -> list[dict]:
         # Use :static: path for non-web export when available
