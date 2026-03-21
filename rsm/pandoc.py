@@ -216,7 +216,7 @@ class PandocTranslator:
             return label_raw + [
                 {"t": "RawBlock", "c": ["typst", '#grid(columns: (1fr, auto), align: (center, right + horizon), [']},
                 {"t": "Para", "c": [math]},
-                {"t": "RawBlock", "c": ["typst", f'], [({num})]\n)']}
+                {"t": "RawBlock", "c": ["typst", f'], [#text(fill: rgb("#0361A1"))[({num})])\n']}
             ]
         return label_raw + [{"t": "Para", "c": [{"t": "Math", "c": [{"t": "DisplayMath"}, src]}]}]
 
