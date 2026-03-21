@@ -56,6 +56,9 @@
     first-line-indent: 0pt,
   )
 
+  // Prevent orphaned headings at bottom of page
+  set block(sticky: true)
+
   // Headings: Montserrat, matching braiid.css scale
   // Section numbers come from the RSM AST (already in the heading text)
   show heading.where(level: 1): it => {
