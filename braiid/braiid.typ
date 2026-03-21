@@ -59,25 +59,25 @@
   // Headings: Montserrat, matching braiid.css scale
   // Section numbers come from the RSM AST (already in the heading text)
   show heading.where(level: 1): it => {
-    set text(font: ("Montserrat", "Source Sans 3", "Source Sans Pro", "Noto Sans"), size: 22pt, weight: "bold", fill: rgb("#075487"))
+    set text(font: ("Montserrat", "Source Sans 3", "Source Sans Pro", "Noto Sans"), size: 22pt, weight: "bold", fill: rgb("#0C456E"))
     v(1.5em)
     it.body
     v(0.5em)
   }
   show heading.where(level: 2): it => {
-    set text(font: ("Montserrat", "Source Sans 3", "Source Sans Pro", "Noto Sans"), size: 19.25pt, weight: "semibold", fill: rgb("#075487"))
+    set text(font: ("Montserrat", "Source Sans 3", "Source Sans Pro", "Noto Sans"), size: 19.25pt, weight: "semibold", fill: rgb("#0C456E"))
     v(1.2em)
     it.body
     v(0.4em)
   }
   show heading.where(level: 3): it => {
-    set text(font: ("Montserrat", "Source Sans 3", "Source Sans Pro", "Noto Sans"), size: 16.5pt, weight: "medium", fill: rgb("#075487"))
+    set text(font: ("Montserrat", "Source Sans 3", "Source Sans Pro", "Noto Sans"), size: 16.5pt, weight: "medium", fill: rgb("#0C456E"))
     v(1em)
     it.body
     v(0.3em)
   }
   show heading.where(level: 4): it => {
-    set text(font: ("Montserrat", "Source Sans 3", "Source Sans Pro", "Noto Sans"), size: 15.125pt, weight: "medium", fill: rgb("#075487"))
+    set text(font: ("Montserrat", "Source Sans 3", "Source Sans Pro", "Noto Sans"), size: 15.125pt, weight: "medium", fill: rgb("#0C456E"))
     v(0.8em)
     it.body
     v(0.3em)
@@ -111,8 +111,8 @@
   // Title block
   if title != none {
     set par(justify: false)
-    text(font: ("Montserrat", "Source Sans 3", "Source Sans Pro", "Noto Sans"), size: 24pt, weight: "bold", title)
-    v(0.8em)
+    text(font: ("Montserrat", "Source Sans 3", "Source Sans Pro", "Noto Sans"), size: 24pt, weight: "bold", fill: rgb("#0C456E"), title)
+    v(0.4em)
   }
 
   if authors.len() > 0 {
@@ -123,23 +123,22 @@
       }
       linebreak()
     }
-    v(0.5em)
+    v(0.3em)
   }
 
   if abstract != none {
-    v(0.5em)
-    text(font: ("Montserrat", "Source Sans 3", "Source Sans Pro", "Noto Sans"), size: 11pt, weight: "semibold", "Abstract")
-    v(0.3em)
+    text(font: ("Montserrat", "Source Sans 3", "Source Sans Pro", "Noto Sans"), size: 11pt, weight: "semibold", fill: rgb("#0C456E"), "Abstract")
+    v(0.2em)
     block(
       inset: (left: 16pt, right: 16pt),
       text(size: 10.5pt, abstract),
     )
-    v(1em)
+    v(0.5em)
   }
 
   // Table of contents
   outline(indent: auto, depth: 3)
-  v(1em)
+  v(0.5em)
 
   doc
 }
