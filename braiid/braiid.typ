@@ -14,6 +14,7 @@
 #let braiid(
   title: none,
   authors: (),
+  emails: (:),
   abstract: none,
   doc,
 ) = {
@@ -101,13 +102,17 @@
 
   // Title block
   if title != none {
+    set par(justify: false)
     text(font: ("Montserrat", "Source Sans 3", "Source Sans Pro", "Noto Sans"), size: 24pt, weight: "bold", title)
     v(0.8em)
   }
 
   if authors.len() > 0 {
     for author in authors {
-      text(size: 12pt, author)
+      text(size: 12pt, weight: "semibold", author)
+      if author in emails {
+        text(size: 10.5pt, fill: gray-800, [ — #link("mailto:" + emails.at(author))[#emails.at(author)]])
+      }
       linebreak()
     }
     v(0.5em)
