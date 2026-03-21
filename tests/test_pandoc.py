@@ -299,7 +299,7 @@ def test_proof_has_halmos():
     full = json.dumps(blocks)
     # Proof should have italic label and Halmos square
     assert "Proof." in full
-    assert "027AC7" in full  # Halmos square color (braiid blue-600)
+    assert "082C49" in full  # Halmos square color (braiid blue-950)
 
 
 def test_bibliography_header():
