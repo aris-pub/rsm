@@ -668,3 +668,67 @@ class TestMissingBlockHandlers:
         assert n.ClaimBlock in PandocTranslator._BLOCK_DISPATCH
         assert n.Construct in PandocTranslator._BLOCK_DISPATCH
         assert n.Statement in PandocTranslator._BLOCK_DISPATCH
+
+
+class TestClickableCitations:
+    """Citations should be clickable links to bibliography entries."""
+
+    def test_cite_emits_link_when_resolved(self):
+        """When cite resolves to a Bibitem with label, emit a Link."""
+        from rsm.pandoc import PandocTranslator
+        from rsm import nodes
+        # Simulate a resolved cite with a real Bibitem target
+        translator = PandocTranslator()
+        bibitem = nodes.Bibitem(label="smith2024")
+        bibitem.number = 1
+        cite = nodes.Cite()
+        cite.targets = [bibitem]
+        result = translator._inline_cite(cite)
+        import json
+        full = json.dumps(result)
+        assert '"t": "Link"' in full
+        assert "#ref-smith2024" in full
+        assert '"1"' in full  # display text is the number
+
+    def test_cite_no_cite_objects(self):
+        """Citations must not use Pandoc Cite objects."""
+        from rsm.pandoc import PandocTranslator
+        from rsm import nodes
+        translator = PandocTranslator()
+        bibitem = nodes.Bibitem(label="test")
+        bibitem.number = 1
+        cite = nodes.Cite()
+        cite.targets = [bibitem]
+        result = translator._inline_cite(cite)
+        import json
+        full = json.dumps(result)
+        assert '"t": "Cite"' not in full
+
+    def test_bibitem_has_anchor_id(self):
+        """Bibliography entries should have ref-{label} anchor IDs."""
+        from rsm.pandoc import PandocTranslator
+        from rsm import nodes
+        translator = PandocTranslator()
+        bibitem = nodes.Bibitem(label="smith2024")
+        bibitem.number = 1
+        bibitem.author = "Smith"
+        bibitem.title = "Test"
+        bibitem.year = 2024
+        result = translator._format_bibitem(bibitem)
+        import json
+        full = json.dumps(result)
+        assert "ref-smith2024" in full
+
+    def test_unresolved_cite_falls_back_to_text(self):
+        """Unresolved cites should render as plain text, not crash."""
+        from rsm.pandoc import PandocTranslator
+        from rsm import nodes
+        translator = PandocTranslator()
+        unknown = nodes.UnknownBibitem()
+        unknown.number = "?"
+        cite = nodes.Cite()
+        cite.targets = [unknown]
+        result = translator._inline_cite(cite)
+        import json
+        full = json.dumps(result)
+        assert "?" in full

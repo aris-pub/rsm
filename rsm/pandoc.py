@@ -308,7 +308,8 @@ class PandocTranslator:
         if node.year and node.year != -1:
             parts.append(str(node.year))
         text = ". ".join(p.strip(".") for p in parts) + "." if parts else "?"
-        return {"t": "Para", "c": [{"t": "Str", "c": text}]}
+        anchor = f"ref-{node.label}" if node.label else ""
+        return {"t": "Div", "c": [[anchor, [], []], [{"t": "Para", "c": [{"t": "Str", "c": text}]}]]}
 
     def _block_table(self, node: nodes.Table) -> list[dict]:
         head = node.first_of_type(nodes.TableHead)
@@ -426,19 +427,26 @@ class PandocTranslator:
     def _inline_cite(self, node: nodes.Cite) -> list[dict]:
         if not node.targets:
             return []
-        # Render as plain text [N] to match the numbered bibliography list.
-        # Pandoc Cite objects require a .bib file which Typst can't resolve
-        # from RSM's inline bibliography format.
-        numbers = []
-        for tgt in node.targets:
+        # Render as clickable links [N] pointing to bibliography entries.
+        result: list[dict] = [{"t": "Str", "c": "["}]
+        for i, tgt in enumerate(node.targets):
+            if i > 0:
+                result.append({"t": "Str", "c": ", "})
             num = getattr(tgt, "number", None)
-            if num is not None:
-                numbers.append(str(num))
+            label = tgt.label if hasattr(tgt, "label") and tgt.label else ""
+            if num is not None and not isinstance(num, str):
+                display = str(num)
+            elif label:
+                display = label
             else:
-                label = tgt.label if hasattr(tgt, "label") and tgt.label else str(tgt)
-                numbers.append(label)
-        text = "[" + ", ".join(numbers) + "]"
-        return [{"t": "Str", "c": text}]
+                display = "?"
+            if label:
+                anchor = f"#ref-{label}"
+                result.append({"t": "Link", "c": [["", [], []], [{"t": "Str", "c": display}], [anchor, ""]]})
+            else:
+                result.append({"t": "Str", "c": display})
+        result.append({"t": "Str", "c": "]"})
+        return result
 
     def _inline_note(self, node: nodes.Note) -> list[dict]:
         inlines = self._walk_children_as_inlines(node)
