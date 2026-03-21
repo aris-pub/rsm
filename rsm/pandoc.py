@@ -267,7 +267,7 @@ class PandocTranslator:
         anchor = node.label or ""
         inner = self._walk_children_as_blocks(node)
         # Wrap in raw Typst block with left border for PDF styling
-        raw_open = {"t": "RawBlock", "c": ["typst", f'#block(stroke: (left: 1.5pt + rgb("#0C456E")), inset: (top: 6pt, bottom: 6pt), outset: (left: 14pt), width: 100%)[']}
+        raw_open = {"t": "RawBlock", "c": ["typst", f'#block(stroke: (left: 1.5pt + rgb("#0361A1")), inset: (top: 6pt, bottom: 6pt), outset: (left: 14pt), width: 100%)[']}
         raw_close = {"t": "RawBlock", "c": ["typst", "]"]}
         label_block = [{"t": "RawBlock", "c": ["typst", f'<{anchor}>']}] if anchor and " " not in anchor else []
         return label_block + [raw_open, label_para] + inner + [raw_close]
@@ -280,7 +280,7 @@ class PandocTranslator:
         }
         inner = self._walk_children_as_blocks(node)
         # Proof: no border, just italic label + Halmos square at end
-        halmos = {"t": "RawBlock", "c": ["typst", '#v(-0.8em)\n#align(right, box(width: 6pt, height: 6pt, fill: rgb("#082C49")))']}
+        halmos = {"t": "RawBlock", "c": ["typst", '#v(-0.8em)\n#align(right, box(width: 6pt, height: 6pt, fill: rgb("#0361A1")))']}
         return [label_para] + inner + [halmos]
 
     def _block_figure(self, node: nodes.Figure) -> list[dict]:
