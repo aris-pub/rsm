@@ -56,35 +56,29 @@
     first-line-indent: 0pt,
   )
 
-  // Section numbering
-  set heading(numbering: "1.")
-
   // Headings: Montserrat, matching braiid.css scale
+  // Section numbers come from the RSM AST (already in the heading text)
   show heading.where(level: 1): it => {
     set text(font: ("Montserrat", "Source Sans 3", "Source Sans Pro", "Noto Sans"), size: 22pt, weight: "bold")
     v(1.5em)
-    if it.numbering != none { counter(heading).display(it.numbering) + [ ] }
     it.body
     v(0.5em)
   }
   show heading.where(level: 2): it => {
     set text(font: ("Montserrat", "Source Sans 3", "Source Sans Pro", "Noto Sans"), size: 19.25pt, weight: "semibold")
     v(1.2em)
-    if it.numbering != none { counter(heading).display(it.numbering) + [ ] }
     it.body
     v(0.4em)
   }
   show heading.where(level: 3): it => {
     set text(font: ("Montserrat", "Source Sans 3", "Source Sans Pro", "Noto Sans"), size: 16.5pt, weight: "medium")
     v(1em)
-    if it.numbering != none { counter(heading).display(it.numbering) + [ ] }
     it.body
     v(0.3em)
   }
   show heading.where(level: 4): it => {
     set text(font: ("Montserrat", "Source Sans 3", "Source Sans Pro", "Noto Sans"), size: 15.125pt, weight: "medium")
     v(0.8em)
-    if it.numbering != none { counter(heading).display(it.numbering) + [ ] }
     it.body
     v(0.3em)
   }
