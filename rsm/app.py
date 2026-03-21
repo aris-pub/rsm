@@ -610,6 +610,32 @@ class _PandocRunner:
         return proc.stdout
 
 
+def _inject_braiid_typst(typst_source: str, manuscript) -> str:
+    """Prepend braiid Typst template to pandoc-generated Typst source."""
+    template_path = Path(__file__).parent.parent / "braiid" / "braiid.typ"
+    if not template_path.exists():
+        return typst_source
+
+    template = template_path.read_text()
+
+    # Extract metadata for the template
+    title = getattr(manuscript, "title", "") or ""
+    authors = []
+    for child in manuscript.children:
+        if hasattr(child, "name") and child.__class__.__name__ == "Author":
+            authors.append(child.name or "")
+
+    # Build the preamble
+    authors_typst = ", ".join(f'"{a}"' for a in authors if a)
+    preamble = template + "\n\n"
+    preamble += f'#show: braiid.with(\n'
+    preamble += f'  title: [{title}],\n' if title else ''
+    preamble += f'  authors: ({authors_typst},),\n' if authors_typst else ''
+    preamble += f')\n\n'
+
+    return preamble + typst_source
+
+
 class PandocExportApp(ParserApp):
     """RSM source → pandoc JSON AST → pandoc subprocess → output string."""
 
@@ -636,7 +662,13 @@ class PandocExportApp(ParserApp):
         # transformer, then call the pandoc steps explicitly.
         manuscript = super().run(initial_args)
         pandoc_ast = pandoc_module.PandocTranslator().translate(manuscript)
-        return _PandocRunner(self._to_format, self._output).run(pandoc_ast)
+        result = _PandocRunner(self._to_format, self._output).run(pandoc_ast)
+
+        # For Typst output, prepend the braiid template
+        if self._to_format == "typst" and self._output is None:
+            result = _inject_braiid_typst(result, manuscript)
+
+        return result
 
 
 def pandoc_export(
