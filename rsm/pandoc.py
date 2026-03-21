@@ -353,7 +353,10 @@ class PandocTranslator:
         if link_url:
             inlines.append({"t": "Space"})
             inlines.append({"t": "Link", "c": [["", [], []], [{"t": "Str", "c": link_url}], [link_url, ""]]})
-        return {"t": "Div", "c": [[anchor, [], []], [{"t": "Para", "c": inlines}]]}
+        # Append label at end of text so it labels the paragraph, not the list
+        if anchor:
+            inlines.append({"t": "RawInline", "c": ["typst", f" <{anchor}>"]})
+        return {"t": "Para", "c": inlines}
 
     def _block_table(self, node: nodes.Table) -> list[dict]:
         head = node.first_of_type(nodes.TableHead)
