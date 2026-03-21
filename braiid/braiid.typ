@@ -60,27 +60,27 @@
   // Section numbers come from the RSM AST (already in the heading text)
   show heading.where(level: 1): it => {
     set text(font: ("Montserrat", "Source Sans 3", "Source Sans Pro", "Noto Sans"), size: 22pt, weight: "bold", fill: rgb("#0C456E"))
-    v(1.5em)
+    v(1.35em)
     it.body
-    v(0.5em)
+    v(0.45em)
   }
   show heading.where(level: 2): it => {
     set text(font: ("Montserrat", "Source Sans 3", "Source Sans Pro", "Noto Sans"), size: 19.25pt, weight: "semibold", fill: rgb("#0C456E"))
-    v(1.2em)
+    v(1.08em)
     it.body
-    v(0.4em)
+    v(0.36em)
   }
   show heading.where(level: 3): it => {
     set text(font: ("Montserrat", "Source Sans 3", "Source Sans Pro", "Noto Sans"), size: 16.5pt, weight: "medium", fill: rgb("#0C456E"))
-    v(1em)
+    v(0.9em)
     it.body
-    v(0.3em)
+    v(0.27em)
   }
   show heading.where(level: 4): it => {
     set text(font: ("Montserrat", "Source Sans 3", "Source Sans Pro", "Noto Sans"), size: 15.125pt, weight: "medium", fill: rgb("#0C456E"))
-    v(0.8em)
+    v(0.72em)
     it.body
-    v(0.3em)
+    v(0.27em)
   }
 
   // Code blocks
@@ -111,7 +111,7 @@
   // Title block
   if title != none {
     set par(justify: false)
-    text(font: ("Montserrat", "Source Sans 3", "Source Sans Pro", "Noto Sans"), size: 24pt, weight: "bold", fill: rgb("#0C456E"), title)
+    text(font: ("Montserrat", "Source Sans 3", "Source Sans Pro", "Noto Sans"), size: 21pt, weight: "bold", fill: rgb("#0C456E"), title)
     v(0.4em)
   }
 
@@ -123,7 +123,7 @@
       }
       linebreak()
     }
-    v(0.3em)
+    v(0.15em)
   }
 
   if abstract != none {
