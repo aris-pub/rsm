@@ -136,9 +136,5 @@
     v(0.5em)
   }
 
-  // Table of contents
-  outline(indent: auto, depth: 3)
-  v(0.5em)
-
   doc
 }
