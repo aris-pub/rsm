@@ -621,9 +621,9 @@ def _inject_braiid_typst(typst_source: str, manuscript) -> str:
     # Extract metadata for the template
     title = getattr(manuscript, "title", "") or ""
     authors = []
-    for child in manuscript.children:
-        if hasattr(child, "name") and child.__class__.__name__ == "Author":
-            authors.append(child.name or "")
+    for child in manuscript.traverse():
+        if child.__class__.__name__ == "Author" and getattr(child, "name", None):
+            authors.append(child.name)
 
     # Build the preamble
     authors_typst = ", ".join(f'"{a}"' for a in authors if a)
