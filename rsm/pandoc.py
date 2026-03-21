@@ -100,6 +100,7 @@ class PandocTranslator:
         nodes.Caption: None,    # consumed inside _block_figure / _block_table
         nodes.Draft: None,
         nodes.Algorithm: None,
+        nodes.Contents: "_block_toc",
         nodes.Html: "_block_asset_placeholder",
         nodes.Video: "_block_asset_placeholder",
         nodes.Subproof: "_block_proof",       # same as Proof — recurse into children
@@ -162,7 +163,9 @@ class PandocTranslator:
     def _block_section(self, node: nodes.Section) -> list[dict]:
         level = node.__class__.level
         anchor = node.label or ""
-        title_inlines = [{"t": "Str", "c": node.title}] if node.title else []
+        num = node.full_number
+        prefix = f"{num}. " if num and not node.nonum else ""
+        title_inlines = [{"t": "Str", "c": f"{prefix}{node.title}"}] if node.title else []
         header = {"t": "Header", "c": [level, [anchor, [], []], title_inlines]}
         return [header] + self._walk_children_as_blocks(node)
 
@@ -241,8 +244,8 @@ class PandocTranslator:
         anchor = node.label or ""
         inner = self._walk_children_as_blocks(node)
         # Wrap in raw Typst block with left border for PDF styling
-        raw_open = {"t": "RawBlock", "c": ["typst", f'#block(stroke: (left: 1.5pt + rgb("#027AC7")), inset: (left: 10pt, top: 6pt, bottom: 6pt, right: 0pt), width: 100%)[']}
-        raw_close = {"t": "RawBlock", "c": ["typst", "]"]}
+        raw_open = {"t": "RawBlock", "c": ["typst", f'#pad(left: 8pt)[#block(stroke: (left: 1.5pt + rgb("#027AC7")), inset: (left: 10pt, top: 6pt, bottom: 6pt, right: 0pt), width: 100%)[']}
+        raw_close = {"t": "RawBlock", "c": ["typst", "]]"]}
         label_block = [{"t": "RawBlock", "c": ["typst", f'<{anchor}>']}] if anchor and " " not in anchor else []
         return label_block + [raw_open, label_para] + inner + [raw_close]
 
@@ -275,6 +278,10 @@ class PandocTranslator:
             "t": "Figure",
             "c": [[anchor, ["figure"], []], caption, [{"t": "Plain", "c": [image]}]],
         }]
+
+    def _block_toc(self, node) -> list[dict]:
+        # Emit raw Typst outline instead of a bullet list
+        return [{"t": "RawBlock", "c": ["typst", "#outline(indent: auto)"]}]
 
     def _block_asset_placeholder(self, node: nodes.Node) -> list[dict]:
         kind = type(node).__name__

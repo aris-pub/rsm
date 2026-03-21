@@ -77,7 +77,9 @@ def test_section_header():
     # Section.level == 2, so pandoc Header level == 2
     assert headers[0]["c"][0] == 2
     title_inlines = headers[0]["c"][2]
-    assert {"t": "Str", "c": "Introduction"} in title_inlines
+    # Title includes section number from RSM AST
+    title_text = title_inlines[0]["c"] if title_inlines else ""
+    assert "Introduction" in title_text
 
 
 def test_subsection_level():
