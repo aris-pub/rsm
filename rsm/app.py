@@ -672,8 +672,23 @@ class PandocExportApp(ParserApp):
 
         # For Typst output, prepend the braiid template and clean up
         if self._to_format == "typst" and self._output is None:
-            # Remove escaped colons that Pandoc inserts
+            # Clean up Pandoc Typst output artifacts
+            import re as _re
             result = result.replace("\\:", ":")
+            result = _re.sub(r'(\d);([.,)\s])', r'\1\2', result)
+            result = _re.sub(r'(\d);$', r'\1', result, flags=_re.MULTILINE)
+            # Remove duplicate Typst labels (keep first occurrence)
+            seen_labels = set()
+            lines = result.split('\n')
+            deduped = []
+            for line in lines:
+                m = _re.match(r'^<([a-zA-Z0-9_-]+)>$', line.strip())
+                if m:
+                    if m.group(1) in seen_labels:
+                        continue
+                    seen_labels.add(m.group(1))
+                deduped.append(line)
+            result = '\n'.join(deduped)
             result = _inject_braiid_typst(result, manuscript)
 
         return result
