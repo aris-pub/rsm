@@ -305,6 +305,10 @@ class PandocTranslator:
         ]}]
 
     def _block_asset_placeholder(self, node: nodes.Node) -> list[dict]:
+        # If a :static: fallback image exists, render it as a figure
+        static = getattr(node, "static", None)
+        if static:
+            return self._block_figure(node)
         kind = type(node).__name__
         path = getattr(node, "path", "")
         text = f"[{kind} asset: {path} — see online version]" if path else f"[{kind} — see online version]"
