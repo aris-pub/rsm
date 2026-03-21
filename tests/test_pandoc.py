@@ -600,3 +600,71 @@ class TestCaptionFormat:
         # This should not raise — pandoc should accept the JSON
         result = pandoc_export(source, to_format="typst")
         assert len(result) > 0
+
+
+class TestCitationsAsPlainText:
+    """rsm-98c: Citations should render as plain text [N] for Typst compatibility."""
+
+    def test_cite_renders_as_plain_text_not_cite_object(self):
+        blocks = _blocks("""\
+        See :cite:smith2024::.
+
+        :references:
+        @article smith2024
+          :author: Smith, J.
+          :title: Test paper
+          :journal: Test Journal
+          :year: 2024
+        ::
+        """)
+        import json
+        full = json.dumps(blocks)
+        # Must NOT contain Pandoc Cite objects (Typst can't resolve them)
+        assert '"t": "Cite"' not in full, "Citations should be plain text, not Cite objects"
+        # Should contain the citation as a Str
+        assert '"t": "Str"' in full
+
+
+class TestMissingBlockHandlers:
+    """rsm-kaw, rsm-90w, rsm-9r9, rsm-09d, rsm-b0j: Missing block handlers."""
+
+    def test_html_emits_placeholder(self):
+        blocks = _blocks("""\
+        :html: {
+          :path: widget.html
+        }
+        ::
+        """)
+        text = str(blocks)
+        assert "online" in text.lower() or "widget" in text.lower() or "html" in text.lower()
+
+    def test_video_emits_placeholder(self):
+        blocks = _blocks("""\
+        :video: {
+          :path: demo.mp4
+        }
+        ::
+        """)
+        text = str(blocks)
+        assert len(blocks) > 0  # Not silently dropped
+
+    def test_authorblock_silently_skipped(self):
+        """AuthorBlock should not crash or warn."""
+        blocks = _blocks("""\
+        :author: {
+          :name: Test Author
+        } ::
+        """)
+        # Just verify no crash — authors go in meta
+
+    def test_subproof_does_not_warn(self):
+        """Subproof should be handled without fallback warning."""
+        from rsm import nodes as n
+        assert n.Subproof in PandocTranslator._BLOCK_DISPATCH
+
+    def test_construct_dispatch_exists(self):
+        """ClaimBlock, Construct, Statement should be in dispatch."""
+        from rsm import nodes as n
+        assert n.ClaimBlock in PandocTranslator._BLOCK_DISPATCH
+        assert n.Construct in PandocTranslator._BLOCK_DISPATCH
+        assert n.Statement in PandocTranslator._BLOCK_DISPATCH

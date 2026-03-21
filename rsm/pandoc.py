@@ -94,10 +94,18 @@ class PandocTranslator:
         nodes.Bibliography: "_block_bibliography",
         nodes.Abstract: "_block_abstract",
         nodes.Author: None,     # consumed by _build_meta
+        nodes.AuthorBlock: None, # consumed by _build_meta
+        nodes.AuthorNotes: None, # consumed by _build_meta
         nodes.Appendix: None,   # marker only, no output
         nodes.Caption: None,    # consumed inside _block_figure / _block_table
         nodes.Draft: None,
         nodes.Algorithm: None,
+        nodes.Html: "_block_asset_placeholder",
+        nodes.Video: "_block_asset_placeholder",
+        nodes.Subproof: "_block_proof",       # same as Proof — recurse into children
+        nodes.ClaimBlock: "_block_construct",
+        nodes.Construct: "_block_construct",
+        nodes.Statement: "_block_construct",
     }
 
     def _walk_block(self, node: nodes.Node) -> list[dict]:
@@ -262,6 +270,15 @@ class PandocTranslator:
             "c": [[anchor, ["figure"], []], caption, [{"t": "Plain", "c": [image]}]],
         }]
 
+    def _block_asset_placeholder(self, node: nodes.Node) -> list[dict]:
+        kind = type(node).__name__
+        path = getattr(node, "path", "")
+        text = f"[{kind} asset: {path} — see online version]" if path else f"[{kind} — see online version]"
+        return [{"t": "Para", "c": [{"t": "Emph", "c": [{"t": "Str", "c": text}]}]}]
+
+    def _block_construct(self, node: nodes.Node) -> list[dict]:
+        return self._walk_children_as_blocks(node)
+
     def _block_bibliography(self, node: nodes.Bibliography) -> list[dict]:
         header = {
             "t": "Header",
@@ -409,19 +426,19 @@ class PandocTranslator:
     def _inline_cite(self, node: nodes.Cite) -> list[dict]:
         if not node.targets:
             return []
-        citations = [
-            {
-                "citationId": tgt.label if (hasattr(tgt, "label") and tgt.label) else str(tgt),
-                "citationPrefix": [],
-                "citationSuffix": [],
-                "citationMode": {"t": "NormalCitation"},
-                "citationNoteNum": 0,
-                "citationHash": 0,
-            }
-            for tgt in node.targets
-        ]
-        fallback = "[" + ", ".join(c["citationId"] for c in citations) + "]"
-        return [{"t": "Cite", "c": [citations, [{"t": "Str", "c": fallback}]]}]
+        # Render as plain text [N] to match the numbered bibliography list.
+        # Pandoc Cite objects require a .bib file which Typst can't resolve
+        # from RSM's inline bibliography format.
+        numbers = []
+        for tgt in node.targets:
+            num = getattr(tgt, "number", None)
+            if num is not None:
+                numbers.append(str(num))
+            else:
+                label = tgt.label if hasattr(tgt, "label") and tgt.label else str(tgt)
+                numbers.append(label)
+        text = "[" + ", ".join(numbers) + "]"
+        return [{"t": "Str", "c": text}]
 
     def _inline_note(self, node: nodes.Note) -> list[dict]:
         inlines = self._walk_children_as_inlines(node)
