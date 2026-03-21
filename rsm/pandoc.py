@@ -181,19 +181,7 @@ class PandocTranslator:
         if node.keywords:
             kw_text = "Keywords: " + ", ".join(node.keywords)
             result.append({"t": "Para", "c": [{"t": "Str", "c": kw_text}]})
-        # TOC after abstract — suppress default outline heading, emit custom label
-        result.append({"t": "RawBlock", "c": ["typst",
-            '#{\n'
-            '  show outline: it => {\n'
-            '    v(0.2em)\n'
-            '    text(font: ("Montserrat", "Source Sans 3", "Source Sans Pro", "Noto Sans"), size: 16.5pt, weight: "medium", fill: rgb("#0C456E"))[Contents]\n'
-            '    v(0.2em)\n'
-            '    it\n'
-            '  }\n'
-            '  outline(indent: auto, depth: 3, title: none)\n'
-            '}\n'
-            '#v(0.5em)'
-        ]})
+        # TOC is handled by _block_toc when :toc: is in the source
         return result
 
     def _block_paragraph(self, node: nodes.Paragraph) -> list[dict]:
@@ -303,8 +291,18 @@ class PandocTranslator:
         }]
 
     def _block_toc(self, node) -> list[dict]:
-        # Emit raw Typst outline instead of a bullet list
-        return [{"t": "RawBlock", "c": ["typst", "#outline(indent: auto)"]}]
+        return [{"t": "RawBlock", "c": ["typst",
+            '#{\n'
+            '  show outline: it => {\n'
+            '    v(0.2em)\n'
+            '    text(font: ("Montserrat", "Source Sans 3", "Source Sans Pro", "Noto Sans"), size: 16.5pt, weight: "medium", fill: rgb("#0C456E"))[Contents]\n'
+            '    v(0.2em)\n'
+            '    it\n'
+            '  }\n'
+            '  outline(indent: auto, depth: 3, title: none)\n'
+            '}\n'
+            '#v(0.5em)'
+        ]}]
 
     def _block_asset_placeholder(self, node: nodes.Node) -> list[dict]:
         kind = type(node).__name__
