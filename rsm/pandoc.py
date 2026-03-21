@@ -252,9 +252,9 @@ class PandocTranslator:
         caption_node = node.first_of_type(nodes.Caption)
         if caption_node:
             cap_inlines = self._walk_children_as_inlines(caption_node)
-            caption = {"t": "Caption", "c": [None, [{"t": "Para", "c": cap_inlines}]]}
+            caption = [None, [{"t": "Para", "c": cap_inlines}]]
         else:
-            caption = {"t": "Caption", "c": [None, []]}
+            caption = [None, []]
 
         anchor = node.label or ""
         return [{
@@ -309,9 +309,9 @@ class PandocTranslator:
         caption_node = node.first_of_type(nodes.Caption)
         if caption_node:
             cap_inlines = self._walk_children_as_inlines(caption_node)
-            caption = {"t": "Caption", "c": [None, [{"t": "Para", "c": cap_inlines}]]}
+            caption = [None, [{"t": "Para", "c": cap_inlines}]]
         else:
-            caption = {"t": "Caption", "c": [None, []]}
+            caption = [None, []]
 
         return [{"t": "Table", "c": [
             ["", [], []],

@@ -551,3 +551,52 @@ def test_roundtrip_ordered_list():
     markdown_out = pandoc_export(source=rsm_text, to_format="markdown")
     assert "One" in markdown_out
     assert "Two" in markdown_out
+
+
+class TestCaptionFormat:
+    """Regression: Caption must be a bare array, not {"t": "Caption", "c": [...]}."""
+
+    def test_figure_caption_is_array(self):
+        blocks = _blocks("""\
+        :figure: {
+          :path: test.png
+          :label: fig-test
+        }
+          :caption: A test figure.
+        ::
+        """)
+        figures = [b for b in blocks if b["t"] == "Figure"]
+        assert len(figures) == 1
+        caption = figures[0]["c"][1]
+        # Caption must be a plain array [shortCaption, [blocks]], not {"t": "Caption", ...}
+        assert isinstance(caption, list), f"Caption should be list, got {type(caption).__name__}: {caption}"
+        assert len(caption) == 2
+
+    def test_table_caption_is_array(self):
+        blocks = _blocks("""\
+        :table:
+          :caption: A test table.
+
+          | a | b |
+          | 1 | 2 |
+        ::
+        """)
+        tables = [b for b in blocks if b["t"] == "Table"]
+        assert len(tables) == 1
+        caption = tables[0]["c"][1]
+        assert isinstance(caption, list), f"Caption should be list, got {type(caption).__name__}: {caption}"
+        assert len(caption) == 2
+
+    def test_figure_export_roundtrips_through_pandoc(self):
+        """The full export pipeline should not crash on figures with captions."""
+        source = dedent("""\
+        :figure: {
+          :path: test.png
+          :label: fig-test
+        }
+          :caption: A test figure.
+        ::
+        """).strip()
+        # This should not raise — pandoc should accept the JSON
+        result = pandoc_export(source, to_format="typst")
+        assert len(result) > 0
