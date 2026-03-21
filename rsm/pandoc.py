@@ -254,10 +254,7 @@ class PandocTranslator:
         num_str = f" {num}" if num else ""
         title_str = f": {node.title}" if node.title else "."
         label_text = f"{type(node).__name__}{num_str}{title_str}"
-        label_para = {
-            "t": "Para",
-            "c": [{"t": "Strong", "c": [{"t": "Str", "c": label_text}]}],
-        }
+        label_para = {"t": "RawBlock", "c": ["typst", f'#block(sticky: true)[#strong[{label_text}]]']}
         anchor = node.label or ""
         inner = self._walk_children_as_blocks(node)
         # Wrap in raw Typst block with left border for PDF styling
@@ -268,10 +265,7 @@ class PandocTranslator:
 
     def _block_proof(self, node: nodes.Proof) -> list[dict]:
         label = "Proof sketch." if isinstance(node, nodes.Sketch) else "Proof."
-        label_para = {
-            "t": "Para",
-            "c": [{"t": "Emph", "c": [{"t": "Strong", "c": [{"t": "Str", "c": label}]}]}],
-        }
+        label_para = {"t": "RawBlock", "c": ["typst", f'#block(sticky: true)[#emph[#strong[{label}]]]']}
         inner = self._walk_children_as_blocks(node)
         # Proof: no border, just italic label + Halmos square at end
         halmos = {"t": "RawBlock", "c": ["typst", '#v(-0.8em)\n#align(right, box(width: 6pt, height: 6pt, fill: rgb("#0361A1")))']}
