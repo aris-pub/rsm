@@ -490,6 +490,8 @@ class AppendNodeTag(AppendOpenTag):
 
         # Extract node source if requested
         kwargs = {"nodeid": node.nodeid}
+        if isinstance(node, nodes.Html) and node.static:
+            kwargs["data-static"] = str(node.static)
         if include_source and manuscript_source and hasattr(node.start_point, "row"):
             # Extract source using row and column from Point objects
             source_lines = manuscript_source.split("\n")
