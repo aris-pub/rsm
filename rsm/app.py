@@ -689,6 +689,34 @@ class PandocExportApp(ParserApp):
                     seen_labels.add(m.group(1))
                 deduped.append(line)
             result = '\n'.join(deduped)
+
+            # Inject RSM figure numbers: replace #figure( with
+            # #figure(supplement: "Figure X.Y", so braiid.typ can render
+            # section-relative numbering from the AST.
+            from .nodes import Figure as FigureNode, Html as HtmlNode
+            fig_numbers = []
+            for node in manuscript.traverse():
+                if isinstance(node, (FigureNode, HtmlNode)) and node.full_number:
+                    fig_numbers.append(node.full_number)
+            if fig_numbers:
+                fig_idx = 0
+                def _inject_supplement(m):
+                    nonlocal fig_idx
+                    if fig_idx < len(fig_numbers):
+                        num = fig_numbers[fig_idx]
+                        fig_idx += 1
+                        return f'#figure(supplement: "Figure {num}",'
+                    return m.group(0)
+                result = _re.sub(r'#figure\(', _inject_supplement, result)
+
+            # Attach labels to figures so they travel with the float.
+            # Pandoc emits: )\n<fig-label>  — move label onto the closing paren.
+            result = _re.sub(
+                r'\)\n<(fig-[a-zA-Z0-9_-]+)>',
+                r') <\1>',
+                result,
+            )
+
             result = _inject_braiid_typst(result, manuscript)
 
         return result

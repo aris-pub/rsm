@@ -259,7 +259,7 @@ class PandocTranslator:
         anchor = node.label or ""
         inner = self._walk_children_as_blocks(node)
         # Wrap in raw Typst block with left border for PDF styling
-        raw_open = {"t": "RawBlock", "c": ["typst", f'#block(stroke: (left: 1.5pt + rgb("#0361A1")), inset: (top: 6pt, bottom: 6pt), outset: (left: 14pt), width: 100%)[']}
+        raw_open = {"t": "RawBlock", "c": ["typst", f'#block(stroke: (left: 1.5pt + rgb("#D1D5DB")), inset: (top: 6pt, bottom: 6pt), outset: (left: 14pt), width: 100%)[']}
         raw_close = {"t": "RawBlock", "c": ["typst", "]"]}
         label_block = [{"t": "RawBlock", "c": ["typst", f'<{anchor}>']}] if anchor and " " not in anchor else []
         return [raw_open, label_para] + inner + [raw_close] + label_block
@@ -464,11 +464,20 @@ class PandocTranslator:
         text = node.overwrite_reftext or (
             node.target.reftext if hasattr(node.target, "reftext") else str(node.target)
         )
+        # For PDF export, :html: widgets with a :static: fallback are rendered
+        # as figures — use "Figure" instead of "Widget" in cross-references.
+        if (isinstance(node.target, nodes.Html)
+                and getattr(node.target, "static", None)
+                and text.startswith("Widget")):
+            text = "Figure" + text[6:]
         anchor = (
             f"#{node.target.label}"
             if hasattr(node.target, "label") and node.target.label
             else "#"
         )
+        # For figures, use raw Typst @label so links follow floated figures
+        if isinstance(node.target, (nodes.Figure, nodes.Html)) and node.target.label:
+            return [{"t": "RawInline", "c": ["typst", f'#link(<{node.target.label}>)[{text}]']}]
         return [{"t": "Link", "c": [["", [], []], [{"t": "Str", "c": text}], [anchor, ""]]}]
 
     def _inline_url(self, node: nodes.URL) -> list[dict]:

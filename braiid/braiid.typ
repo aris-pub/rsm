@@ -108,6 +108,25 @@
     )
   }
 
+  // Figures: float to top, numbering provided by RSM AST via supplement
+  set figure(placement: top, numbering: none)
+  // Figure captions: left-aligned with blue handrail (matches theorem style)
+  set figure.caption(separator: [. ])
+  show figure.caption: it => {
+    align(left, block(
+      stroke: (left: 1.5pt + rgb("#60B5F0")),
+      inset: (top: 6pt, bottom: 6pt),
+      outset: (left: 14pt),
+      width: 100%,
+      below: 1.2em,
+      text(size: 10pt, {
+        strong(it.supplement)
+        it.separator
+        it.body
+      }),
+    ))
+  }
+
   // Links
   show link: set text(fill: blue-500)
 
