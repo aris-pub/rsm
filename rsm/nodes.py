@@ -1777,6 +1777,7 @@ class Video(Asset):
 
 class Html(Asset):
     classreftext = "Widget {number}"
+    _number_as = Figure
 
 
 class Draft(NodeWithChildren):

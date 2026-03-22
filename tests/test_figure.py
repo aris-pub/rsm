@@ -302,7 +302,7 @@ def test_mixed_asset_numbering():
           <p>Custom HTML visualization content</p>
         </div>
         <figcaption>
-        <span class="label">Widget 1. </span>First HTML.
+        <span class="label">Widget 3. </span>First HTML.
         </figcaption>
 
         </figure>
