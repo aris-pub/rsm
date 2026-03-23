@@ -99,6 +99,7 @@ markers = [
     'visual: marks tests as visual regression tests',
     'accessibility: marks tests as WCAG compliance tests',
     'interactive: marks tests as interactive browser behavior tests',
+    'pandoc: marks tests that require the pandoc executable',
 ]
 filterwarnings = [
     "ignore:.*pkg_resources.*:DeprecationWarning",

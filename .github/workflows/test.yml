@@ -89,7 +89,7 @@ jobs:
 
     - name: Run unit tests
       run: |
-        uv run pytest -vv -m "not visual and not accessibility and not interactive"
+        uv run pytest -vv -m "not visual and not accessibility and not interactive and not pandoc"
 
     - name: Run doctests in source files
       run: |
@@ -100,7 +100,11 @@ jobs:
         cd docs && uv run make doctest
 
   pandoc-tests:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}-latest
+
+    strategy:
+      matrix:
+        os: [ubuntu, macos]
 
     env:
       PYTEST_ADDOPTS: "--color=yes"
@@ -124,8 +128,13 @@ jobs:
     - name: Install rsm-lang
       run: uv sync
 
-    - name: Install pandoc
+    - name: Install pandoc (Ubuntu)
+      if: matrix.os == 'ubuntu'
       run: sudo apt-get install -y pandoc
+
+    - name: Install pandoc (macOS)
+      if: matrix.os == 'macos'
+      run: brew install pandoc
 
     - name: Run pandoc tests
       run: uv run pytest -vv tests/test_pandoc.py
