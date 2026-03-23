@@ -5,6 +5,11 @@ from textwrap import dedent
 
 import pytest
 
+pytestmark = pytest.mark.skipif(
+    not shutil.which("pandoc"),
+    reason="pandoc executable not found",
+)
+
 from rsm.app import ParserApp, pandoc_export, pandoc_import
 from rsm.pandoc import PANDOC_API_VERSION, PandocImporter, PandocTranslator
 

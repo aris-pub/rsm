@@ -50,7 +50,7 @@ def test_with_meta():
     tree = app.transformer.tree
     have = tree.sexp(meta=True).strip()
     want = """
-    (Manuscript { :accent: blue, :lang: en, :numbering: section, :reftext: Manuscript, :title: My Title, :typography: sans-serif }
+    (Manuscript { :accent: blue, :lang: en, :numbering: section, :reftext: My Title, :title: My Title, :typography: sans-serif }
       (Section { :class: ['level-2'], :reftext: Section 1, :title: My Section }
         (Paragraph { :reftext: Paragraph }
           (Text { :reftext: Text })
