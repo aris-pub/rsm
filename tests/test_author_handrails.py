@@ -28,8 +28,7 @@ def test_single_author_with_handrails():
         <div class="hr-collapse-zone">
 
                     <div class="hr-collapse">
-                      <div class="icon collapse">
-                      </div>
+                      <div class="icon collapse"><svg width="16" height="16"><use href="#hr-icon-collapse" width="16" height="16"/></svg></div>
                     </div>
 
         </div>
@@ -39,14 +38,12 @@ def test_single_author_with_handrails():
         <div class="hr-menu">
 
           <div class="hr-menu-item link disabled">
-            <span class="icon link">
-            </span>
+            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Copy link</span>
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon code">
-            </span>
+            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Source</span>
           </div>
 
@@ -57,8 +54,7 @@ def test_single_author_with_handrails():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots">
-                          </div>
+                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -73,7 +69,7 @@ def test_single_author_with_handrails():
 
         <p class="author-names">Alice</p>
         <details class="author-details">
-        <summary><span class="icon chevron-down"></span>Affiliations</summary>
+        <summary><div class="icon chevron-down"><svg width="16" height="16"><use href="#hr-icon-chevron-down" width="16" height="16"/></svg></div>Affiliations</summary>
         <ol class="author-affiliations">
         <li>MIT</li>
         </ol>
@@ -148,8 +144,7 @@ def test_six_authors_with_handrails():
         <div class="hr-collapse-zone">
 
                     <div class="hr-collapse">
-                      <div class="icon collapse">
-                      </div>
+                      <div class="icon collapse"><svg width="16" height="16"><use href="#hr-icon-collapse" width="16" height="16"/></svg></div>
                     </div>
 
         </div>
@@ -159,14 +154,12 @@ def test_six_authors_with_handrails():
         <div class="hr-menu">
 
           <div class="hr-menu-item link disabled">
-            <span class="icon link">
-            </span>
+            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Copy link</span>
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon code">
-            </span>
+            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Source</span>
           </div>
 
@@ -177,8 +170,7 @@ def test_six_authors_with_handrails():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots">
-                          </div>
+                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -193,7 +185,7 @@ def test_six_authors_with_handrails():
 
         <p class="author-names">Author 1<sup data-tooltip="MIT">1</sup>, Author 2<sup data-tooltip="Harvard">2</sup>, Author 3<sup data-tooltip="Stanford">3</sup>, Author 4<sup data-tooltip="Berkeley">4</sup>, Author 5<sup data-tooltip="Yale">5</sup>, Author 6<sup data-tooltip="Princeton">6</sup></p>
         <details class="author-details">
-        <summary><span class="icon chevron-down"></span>Affiliations</summary>
+        <summary><div class="icon chevron-down"><svg width="16" height="16"><use href="#hr-icon-chevron-down" width="16" height="16"/></svg></div>Affiliations</summary>
         <ol class="author-affiliations">
         <li value="1"><sup>1</sup>MIT</li>
         <li value="2"><sup>2</sup>Harvard</li>

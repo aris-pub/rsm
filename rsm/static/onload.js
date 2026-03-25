@@ -11,7 +11,6 @@ import * as libs from './libraries.js';
 import * as handrails from './handrails.js';
 import * as keyboard from './keyboard.js';
 import * as minimap from './minimap.js';
-import * as icons from './icons.js';
 import * as tooltips from './tooltips.js';
 
 export async function onload(root = null, { keys = true } = {}) {
@@ -88,13 +87,6 @@ export async function onrender(root = null) {
   if (!root) root = document;
 
   try {
-    // Icons - safe to call multiple times
-    try {
-      icons.setup(root);
-    } catch (err) {
-      console.error("Loading icons.js FAILED!", err);
-    }
-
     // Re-typeset math
     try {
       await libs.typesetMath(root);

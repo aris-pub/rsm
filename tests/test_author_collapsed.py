@@ -53,7 +53,7 @@ def test_five_authors_no_collapse():
         <div class="author-block">
         <p class="author-names">Author 1<sup data-tooltip="MIT">1</sup>, Author 2<sup data-tooltip="Harvard">2</sup>, Author 3<sup data-tooltip="Stanford">3</sup>, Author 4<sup data-tooltip="Berkeley">4</sup>, Author 5<sup data-tooltip="Yale">5</sup></p>
         <details class="author-details">
-        <summary><span class="icon chevron-down"></span>Affiliations</summary>
+        <summary><div class="icon chevron-down"><svg width="16" height="16"><use href="#hr-icon-chevron-down" width="16" height="16"/></svg></div>Affiliations</summary>
         <ol class="author-affiliations">
         <li value="1"><sup>1</sup>MIT</li>
         <li value="2"><sup>2</sup>Harvard</li>
@@ -131,7 +131,7 @@ def test_six_authors():
         <div class="author-block">
         <p class="author-names">Author 1<sup data-tooltip="MIT">1</sup>, Author 2<sup data-tooltip="Harvard">2</sup>, Author 3<sup data-tooltip="Stanford">3</sup>, Author 4<sup data-tooltip="Berkeley">4</sup>, Author 5<sup data-tooltip="Yale">5</sup>, Author 6<sup data-tooltip="Princeton">6</sup></p>
         <details class="author-details">
-        <summary><span class="icon chevron-down"></span>Affiliations</summary>
+        <summary><div class="icon chevron-down"><svg width="16" height="16"><use href="#hr-icon-chevron-down" width="16" height="16"/></svg></div>Affiliations</summary>
         <ol class="author-affiliations">
         <li value="1"><sup>1</sup>MIT</li>
         <li value="2"><sup>2</sup>Harvard</li>

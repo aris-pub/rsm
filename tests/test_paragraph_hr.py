@@ -36,14 +36,12 @@ def test_paragraph_with_mathblock_ending_with_text():
           <div class="hr-menu-separator"></div>
 
           <div class="hr-menu-item link disabled">
-            <span class="icon link">
-            </span>
+            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Copy link</span>
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon code">
-            </span>
+            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Source</span>
           </div>
 
@@ -54,8 +52,7 @@ def test_paragraph_with_mathblock_ending_with_text():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots">
-                          </div>
+                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -86,14 +83,12 @@ def test_paragraph_with_mathblock_ending_with_text():
           <div class="hr-menu-separator"></div>
 
           <div class="hr-menu-item link disabled">
-            <span class="icon link">
-            </span>
+            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Copy link</span>
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon code">
-            </span>
+            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Source</span>
           </div>
 
@@ -104,8 +99,7 @@ def test_paragraph_with_mathblock_ending_with_text():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots">
-                          </div>
+                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -181,14 +175,12 @@ def test_paragraph_ending_with_mathblock():
           <div class="hr-menu-separator"></div>
 
           <div class="hr-menu-item link disabled">
-            <span class="icon link">
-            </span>
+            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Copy link</span>
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon code">
-            </span>
+            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Source</span>
           </div>
 
@@ -199,8 +191,7 @@ def test_paragraph_ending_with_mathblock():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots">
-                          </div>
+                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -231,14 +222,12 @@ def test_paragraph_ending_with_mathblock():
           <div class="hr-menu-separator"></div>
 
           <div class="hr-menu-item link disabled">
-            <span class="icon link">
-            </span>
+            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Copy link</span>
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon code">
-            </span>
+            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Source</span>
           </div>
 
@@ -249,8 +238,7 @@ def test_paragraph_ending_with_mathblock():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots">
-                          </div>
+                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -329,14 +317,12 @@ def test_paragraph_with_icon_ending_with_mathblock():
           <div class="hr-menu-separator"></div>
 
           <div class="hr-menu-item link disabled">
-            <span class="icon link">
-            </span>
+            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Copy link</span>
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon code">
-            </span>
+            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Source</span>
           </div>
 
@@ -347,8 +333,7 @@ def test_paragraph_with_icon_ending_with_mathblock():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots">
-                          </div>
+                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -379,14 +364,12 @@ def test_paragraph_with_icon_ending_with_mathblock():
           <div class="hr-menu-separator"></div>
 
           <div class="hr-menu-item link disabled">
-            <span class="icon link">
-            </span>
+            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Copy link</span>
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon code">
-            </span>
+            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Source</span>
           </div>
 
@@ -397,8 +380,7 @@ def test_paragraph_with_icon_ending_with_mathblock():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots">
-                          </div>
+                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -426,8 +408,7 @@ def test_paragraph_with_icon_ending_with_mathblock():
 
         <div class="hr-info-zone">
         <div class="hr-info">
-                        <div class="icon heart">
-                        </div>
+                        <div class="icon heart"><svg width="16" height="16"><use href="#hr-icon-heart" width="16" height="16"/></svg></div>
                         </div>
         </div>
 
@@ -482,14 +463,12 @@ def test_paragraph_with_icon_with_mathblock_ending_with_text():
           <div class="hr-menu-separator"></div>
 
           <div class="hr-menu-item link disabled">
-            <span class="icon link">
-            </span>
+            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Copy link</span>
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon code">
-            </span>
+            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Source</span>
           </div>
 
@@ -500,8 +479,7 @@ def test_paragraph_with_icon_with_mathblock_ending_with_text():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots">
-                          </div>
+                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -532,14 +510,12 @@ def test_paragraph_with_icon_with_mathblock_ending_with_text():
           <div class="hr-menu-separator"></div>
 
           <div class="hr-menu-item link disabled">
-            <span class="icon link">
-            </span>
+            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Copy link</span>
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon code">
-            </span>
+            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Source</span>
           </div>
 
@@ -550,8 +526,7 @@ def test_paragraph_with_icon_with_mathblock_ending_with_text():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots">
-                          </div>
+                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -579,8 +554,7 @@ def test_paragraph_with_icon_with_mathblock_ending_with_text():
 
         <div class="hr-info-zone">
         <div class="hr-info">
-                        <div class="icon heart">
-                        </div>
+                        <div class="icon heart"><svg width="16" height="16"><use href="#hr-icon-heart" width="16" height="16"/></svg></div>
                         </div>
         </div>
 
@@ -640,14 +614,12 @@ def test_two_paragraphs_with_icon():
           <div class="hr-menu-separator"></div>
 
           <div class="hr-menu-item link disabled">
-            <span class="icon link">
-            </span>
+            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Copy link</span>
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon code">
-            </span>
+            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Source</span>
           </div>
 
@@ -658,8 +630,7 @@ def test_two_paragraphs_with_icon():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots">
-                          </div>
+                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -690,14 +661,12 @@ def test_two_paragraphs_with_icon():
           <div class="hr-menu-separator"></div>
 
           <div class="hr-menu-item link disabled">
-            <span class="icon link">
-            </span>
+            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Copy link</span>
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon code">
-            </span>
+            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Source</span>
           </div>
 
@@ -708,8 +677,7 @@ def test_two_paragraphs_with_icon():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots">
-                          </div>
+                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -737,8 +705,7 @@ def test_two_paragraphs_with_icon():
 
         <div class="hr-info-zone">
         <div class="hr-info">
-                        <div class="icon heart">
-                        </div>
+                        <div class="icon heart"><svg width="16" height="16"><use href="#hr-icon-heart" width="16" height="16"/></svg></div>
                         </div>
         </div>
 
@@ -761,14 +728,12 @@ def test_two_paragraphs_with_icon():
           <div class="hr-menu-separator"></div>
 
           <div class="hr-menu-item link disabled">
-            <span class="icon link">
-            </span>
+            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Copy link</span>
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon code">
-            </span>
+            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Source</span>
           </div>
 
@@ -779,8 +744,7 @@ def test_two_paragraphs_with_icon():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots">
-                          </div>
+                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -799,8 +763,7 @@ def test_two_paragraphs_with_icon():
 
         <div class="hr-info-zone">
         <div class="hr-info">
-                        <div class="icon success">
-                        </div>
+                        <div class="icon success"><svg width="16" height="16"><use href="#hr-icon-success" width="16" height="16"/></svg></div>
                         </div>
         </div>
 
@@ -855,14 +818,12 @@ def test_two_paragraphs_with_icon_no_mathblock():
           <div class="hr-menu-separator"></div>
 
           <div class="hr-menu-item link disabled">
-            <span class="icon link">
-            </span>
+            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Copy link</span>
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon code">
-            </span>
+            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Source</span>
           </div>
 
@@ -873,8 +834,7 @@ def test_two_paragraphs_with_icon_no_mathblock():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots">
-                          </div>
+                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -893,8 +853,7 @@ def test_two_paragraphs_with_icon_no_mathblock():
 
         <div class="hr-info-zone">
         <div class="hr-info">
-                        <div class="icon heart">
-                        </div>
+                        <div class="icon heart"><svg width="16" height="16"><use href="#hr-icon-heart" width="16" height="16"/></svg></div>
                         </div>
         </div>
 
@@ -917,14 +876,12 @@ def test_two_paragraphs_with_icon_no_mathblock():
           <div class="hr-menu-separator"></div>
 
           <div class="hr-menu-item link disabled">
-            <span class="icon link">
-            </span>
+            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Copy link</span>
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon code">
-            </span>
+            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Source</span>
           </div>
 
@@ -935,8 +892,7 @@ def test_two_paragraphs_with_icon_no_mathblock():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots">
-                          </div>
+                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -955,8 +911,7 @@ def test_two_paragraphs_with_icon_no_mathblock():
 
         <div class="hr-info-zone">
         <div class="hr-info">
-                        <div class="icon success">
-                        </div>
+                        <div class="icon success"><svg width="16" height="16"><use href="#hr-icon-success" width="16" height="16"/></svg></div>
                         </div>
         </div>
 

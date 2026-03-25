@@ -1,4 +1,4 @@
-"""Tests for RSM source modal functionality."""
+"""Tests for RSM source modal functionality — offset-based."""
 
 import re
 from textwrap import dedent
@@ -6,148 +6,110 @@ from textwrap import dedent
 import rsm
 
 
-def test_source_attribute_on_paragraph():
-    """Test that paragraphs have data-rsm-source attribute with handrails."""
-    src = """
-    This is a test paragraph.
-    """
+def test_source_offsets_on_paragraph():
+    """Paragraphs should have data-source-start/end, not data-rsm-source."""
+    src = "This is a test paragraph.\n"
     html = rsm.render(dedent(src).lstrip(), handrails=True, add_source=True)
 
-    # Extract the paragraph handrail div
+    assert "data-rsm-source=" not in html
     match = re.search(
-        r'<div class="paragraph hr hr-hidden"[^>]*data-rsm-source="([^"]*)"', html
+        r'class="paragraph hr[^"]*"[^>]*data-source-start="(\d+)"[^>]*data-source-end="(\d+)"',
+        html,
     )
-    assert match, "Paragraph should have data-rsm-source attribute"
-    source = match.group(1)
-    assert "This is a test paragraph." in source
+    assert match, "Paragraph should have source offset attributes"
+    start, end = int(match.group(1)), int(match.group(2))
+    sliced = src[start:end]
+    assert "This is a test paragraph." in sliced
 
 
-def test_source_attribute_on_heading():
-    """Test that headings have data-rsm-source attribute with handrails."""
-    src = """
+def test_source_offsets_on_heading():
+    """Headings should have source offset attributes."""
+    src = dedent("""\
     # Test Heading
 
     Some content.
-    """
-    html = rsm.render(dedent(src).lstrip(), handrails=True, add_source=True)
+    """)
+    html = rsm.render(src, handrails=True, add_source=True)
 
-    # Extract the heading handrail div
-    match = re.search(r'<div class="heading hr"[^>]*data-rsm-source="([^"]*)"', html)
-    assert match, "Heading should have data-rsm-source attribute"
-    source = match.group(1)
-    assert "# Test Heading" in source
+    match = re.search(
+        r'class="heading hr"[^>]*data-source-start="(\d+)"[^>]*data-source-end="(\d+)"',
+        html,
+    )
+    assert match, "Heading should have source offset attributes"
+    start, end = int(match.group(1)), int(match.group(2))
+    sliced = src[start:end]
+    assert "# Test Heading" in sliced
 
 
-def test_source_attribute_on_section():
-    """Test that sections have data-rsm-source attribute with handrails."""
-    src = """
+def test_source_offsets_on_section():
+    """Section headings should have source offset attributes."""
+    src = dedent("""\
     ## Section Title
 
     Section content.
-    """
-    html = rsm.render(dedent(src).lstrip(), handrails=True, add_source=True)
+    """)
+    html = rsm.render(src, handrails=True, add_source=True)
 
-    # Extract the section heading handrail div
-    match = re.search(r'<div class="heading hr"[^>]*data-rsm-source="([^"]*)"', html)
-    assert match, "Section should have data-rsm-source attribute"
-    source = match.group(1)
-    assert "## Section Title" in source
+    match = re.search(
+        r'class="heading hr"[^>]*data-source-start="(\d+)"[^>]*data-source-end="(\d+)"',
+        html,
+    )
+    assert match, "Section should have source offset attributes"
+    start, end = int(match.group(1)), int(match.group(2))
+    sliced = src[start:end]
+    assert "## Section Title" in sliced
 
 
 def test_tree_button_removed():
-    """Test that Tree button is no longer present in handrail menu."""
-    src = """
-    This is a paragraph.
-    """
-    html = rsm.render(dedent(src).lstrip(), handrails=True, add_source=True)
-
-    # Check that Tree button is not present
+    """Tree button should not be present in handrail menu."""
+    src = "This is a paragraph.\n"
+    html = rsm.render(src, handrails=True, add_source=True)
     assert 'hr-menu-item-text">Tree<' not in html
-    assert '<span class="icon tree">' not in html
 
 
 def test_source_button_present():
-    """Test that Source button is present in handrail menu."""
-    src = """
-    This is a paragraph.
-    """
-    html = rsm.render(dedent(src).lstrip(), handrails=True, add_source=True)
-
-    # Check that Source button is present
+    """Source button should be present in handrail menu with SVG use reference."""
+    src = "This is a paragraph.\n"
+    html = rsm.render(src, handrails=True, add_source=True)
     assert 'hr-menu-item-text">Source<' in html
-    assert '<span class="icon code">' in html
+    assert 'href="#hr-icon-code"' in html
 
 
-def test_source_attribute_multiline():
-    """Test that multiline source is correctly captured."""
-    src = """
+def test_source_offsets_multiline():
+    """Multiline source should produce correct offsets."""
+    src = dedent("""\
     This is a paragraph
     with multiple lines
     of text.
-    """
-    html = rsm.render(dedent(src).lstrip(), handrails=True, add_source=True)
+    """)
+    html = rsm.render(src, handrails=True, add_source=True)
 
     match = re.search(
-        r'<div class="paragraph hr hr-hidden"[^>]*data-rsm-source="([^"]*)"', html
+        r'class="paragraph hr[^"]*"[^>]*data-source-start="(\d+)"[^>]*data-source-end="(\d+)"',
+        html,
     )
-    assert match, "Paragraph should have data-rsm-source attribute"
-    source = match.group(1)
-    # Check that newlines are preserved (HTML escaped as &#10; or actual newlines)
-    assert "This is a paragraph" in source
-    assert "with multiple lines" in source
-    assert "of text." in source
-
-
-def test_source_attribute_escapes_html():
-    """Test that HTML characters in source are properly escaped."""
-    src = """
-    Paragraph with <tags> and & symbols.
-    """
-    html = rsm.render(dedent(src).lstrip(), handrails=True, add_source=True)
-
-    match = re.search(
-        r'<div class="paragraph hr hr-hidden"[^>]*data-rsm-source="([^"]*)"', html
-    )
-    assert match, "Paragraph should have data-rsm-source attribute"
-    source = match.group(1)
-    # HTML entities should be escaped
-    assert "&lt;" in source or "Paragraph with &lt;tags&gt;" in html
-    assert "&amp;" in source or "&amp; symbols" in html
+    assert match, "Paragraph should have source offset attributes"
+    start, end = int(match.group(1)), int(match.group(2))
+    sliced = src[start:end]
+    assert "This is a paragraph" in sliced
+    assert "with multiple lines" in sliced
+    assert "of text." in sliced
 
 
 def test_copy_link_still_present():
-    """Test that Copy link button is still present."""
-    src = """
-    This is a paragraph.
-    """
-    html = rsm.render(dedent(src).lstrip(), handrails=True, add_source=True)
-
-    # Check that Copy link button is still present
+    """Copy link button should still be present with SVG use reference."""
+    src = "This is a paragraph.\n"
+    html = rsm.render(src, handrails=True, add_source=True)
     assert 'hr-menu-item-text">Copy link<' in html
-    assert '<span class="icon link">' in html
+    assert 'href="#hr-icon-link"' in html
 
 
 def test_source_not_on_special_nodes():
-    """Test that nodes without source positions (like Bibliography) don't crash.
-
-    Some nodes like Bibliography are created during transformation and don't have
-    source positions, so they won't have data-rsm-source attributes.
-    """
-    src = """
-    Text citing :cite: smith2024 ::.
-
-    :references:
-    @article{smith2024,
-      title = {My Paper},
-      author = {Jane Smith},
-      year = {2024},
-      journal = {Nature}
-    }
+    """Special nodes like Draft should not have source attributes."""
+    src = dedent("""\
+    :draft:
+    This is draft content.
     ::
-    """
-    # This should not crash
-    html = rsm.render(dedent(src).lstrip(), handrails=True, add_source=True)
-
-    # Bibliography heading won't have source because it's a synthetic node
-    # But the page should still render
-    assert "<h2>References</h2>" in html or "References" in html
+    """)
+    html = rsm.render(src, handrails=True, add_source=True)
+    assert "data-rsm-source=" not in html

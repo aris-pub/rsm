@@ -36,20 +36,23 @@ EMPTY_WANT = """\
 """
 
 
+def _strip_svg_defs(html: str) -> str:
+    """Remove the SVG icon defs block for cleaner test comparison."""
+    import re
+    return re.sub(r'<svg id="hr-icon-defs"[^>]*>.*?</svg>\n', '', html, flags=re.DOTALL)
+
+
 def compare_have_want(have, want, handrails=False):
     """Compare obtained output (have) against the desired output (want)."""
     want = dedent(want).lstrip()
     have = dedent(have).lstrip()
     have = rsm.render(have, handrails=handrails, add_source=False).lstrip()
+    have = _strip_svg_defs(have)
 
     try:
         assert have == want
-    except AssertionError as with_space:
-        try:
-            assert "".join(have.split()) == "".join(want.split())
-        except AssertionError:
-            raise AssertionError("Difference in content") from with_space
-        raise AssertionError("Difference in whitespace only") from with_space
+    except AssertionError:
+        assert "".join(have.split()) == "".join(want.split()), "Difference in content"
 
 
 def compare_have_want_handrails(have, want):

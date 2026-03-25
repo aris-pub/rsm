@@ -80,11 +80,8 @@ function openHandrail(hr) {
   if (!icon) return;
   icon.classList.remove("expand");
   icon.classList.add("collapse");
-  icon.innerHTML = `
-                    <svg width="8" height="14" viewBox="0 0 8 14" fill="none" stroke="#3C4952" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M1 1L7 7L1 13" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                    `;
+  const use = icon.querySelector("use");
+  if (use) use.setAttribute("href", "#hr-icon-collapse");
   const item_text = icon.nextElementSibling;
   if (item_text && item_text.classList.contains("hr-menu-item-text")) { item_text.textContent = "Collapse" };
 }
@@ -98,11 +95,8 @@ function closeHandrail(hr) {
   if (!icon) return;
   icon.classList.remove("collapse");
   icon.classList.add("expand");
-  icon.innerHTML = `
-                    <svg width="14" height="8" viewBox="0 0 14 8" fill="none" stroke="#3C4952" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M1 1L7 7L13 1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                    `;
+  const use = icon.querySelector("use");
+  if (use) use.setAttribute("href", "#hr-icon-expand");
   const item_text = icon.nextElementSibling;
   if (item_text && item_text.classList.contains("hr-menu-item-text")) { item_text.textContent = "Expand" };
 }
@@ -135,13 +129,8 @@ export function collapseAll(target, withinSubproof = true) {
     hr.querySelectorAll(qry).forEach(st => openHandrail(st));
     ex_icon.classList.remove("expand-all");
     ex_icon.classList.add("collapse-all");
-    ex_icon.innerHTML = `
-                    <svg width="9" height="9" viewBox="5 5 14 14" fill="none" stroke="#3C4952" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
-                      <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-                      <path d="M7 7l5 5l-5 5" />
-                      <path d="M13 7l5 5l-5 5" />
-                    </svg>
-                    `;
+    const use1 = ex_icon.querySelector("use");
+    if (use1) use1.setAttribute("href", "#hr-icon-collapse-all");
     const item_text = ex_icon.nextElementSibling;
     if (item_text && item_text.classList.contains("hr-menu-item-text")) { item_text.textContent = "Collapse all" };
     return;
@@ -152,12 +141,8 @@ export function collapseAll(target, withinSubproof = true) {
     hr.querySelectorAll(qry).forEach(st => closeHandrail(st));
     co_icon.classList.remove("collapse-all");
     co_icon.classList.add("expand-all");
-    co_icon.innerHTML = `
-                    <svg width="9" height="9" viewBox="5 5 14 14" fill="none" stroke="#3C4952" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M7 7l5 5l5 -5" />
-                      <path d="M7 13l5 5l5 -5" />
-                    </svg>
-                    `;
+    const use2 = co_icon.querySelector("use");
+    if (use2) use2.setAttribute("href", "#hr-icon-expand-all");
     const item_text = co_icon.nextElementSibling;
     if (item_text && item_text.classList.contains("hr-menu-item-text")) { item_text.textContent = "Expand all" };
     return;
@@ -211,27 +196,12 @@ function makeToast(text, style) {
   const toast = document.createElement("div");
   toast.className = `toast ${style}`
 
-  const icon = document.createElement("span");
-  icon.className = `icon ${style}`;
+  const icon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  icon.setAttribute("class", `icon ${style}`);
+  const use = document.createElementNS("http://www.w3.org/2000/svg", "use");
+  use.setAttribute("href", `#hr-icon-${style}`);
+  icon.appendChild(use);
   toast.appendChild(icon);
-
-  switch (style) {
-    case "success":
-      icon.innerHTML = `
-        <svg width="18" height="18" viewBox="2 2 20 20" fill="#3C4952" stroke-width="0" xmlns="http://www.w3.org/2000/svg">
-          <path d="M17 3.34a10 10 0 1 1 -14.995 8.984l-.005 -.324l.005 -.324a10 10 0 0 1 14.995 -8.336zm-1.293 5.953a1 1 0 0 0 -1.32 -.083l-.094 .083l-3.293 3.292l-1.293 -1.292l-.094 -.083a1 1 0 0 0 -1.403 1.403l.083 .094l2 2l.094 .083a1 1 0 0 0 1.226 0l.094 -.083l4 -4l.083 -.094a1 1 0 0 0 -.083 -1.32z" />
-        </svg>
-        `
-      break;
-    case "error":
-      icon.innerHTML = `
-        <svg width="18" height="18" viewBox="2 2 20 20" fill="#3C4952" stroke-width="0" xmlns="http://www.w3.org/2000/svg">
-          <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-          <path d="M17 3.34a10 10 0 1 1 -14.995 8.984l-.005 -.324l.005 -.324a10 10 0 0 1 14.995 -8.336zm-6.489 5.8a1 1 0 0 0 -1.218 1.567l1.292 1.293l-1.292 1.293l-.083 .094a1 1 0 0 0 1.497 1.32l1.293 -1.292l1.293 1.292l.094 .083a1 1 0 0 0 1.32 -1.497l-1.292 -1.293l1.292 -1.293l.083 -.094a1 1 0 0 0 -1.497 -1.32l-1.293 1.292l-1.293 -1.292l-.094 -.083z" />
-        </svg>
-        `
-      break;
-  }
 
   const msg = document.createElement("span");
   msg.className = "msg";
@@ -269,12 +239,16 @@ function launchToast(text, style = "information") {
 
 function showSource(target) {
   const hr = target.closest(".hr");
-  const source = hr.getAttribute("data-rsm-source");
+  const start = hr.getAttribute("data-source-start");
+  const end = hr.getAttribute("data-source-end");
+  const sourceDiv = document.querySelector(".rsm-source");
 
-  if (!source) {
+  if (!start || !end || !sourceDiv) {
     launchToast("No source available for this element.", "error");
     return;
   }
+
+  const source = sourceDiv.textContent.slice(parseInt(start), parseInt(end));
 
   // Create modal
   const modal = document.createElement("div");

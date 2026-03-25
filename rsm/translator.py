@@ -502,7 +502,6 @@ class AppendNodeTag(AppendOpenTag):
         if isinstance(node, nodes.Html) and node.static:
             kwargs["data-static"] = str(node.static)
         if include_source and manuscript_source and hasattr(node.start_point, "row"):
-            # Extract source using row and column from Point objects
             source_lines = manuscript_source.split("\n")
             start_row = node.start_point.row
             start_col = node.start_point.column
@@ -510,18 +509,11 @@ class AppendNodeTag(AppendOpenTag):
             end_col = node.end_point.column
 
             if start_row < len(source_lines) and end_row < len(source_lines):
-                if start_row == end_row:
-                    node_source = source_lines[start_row][start_col:end_col]
-                else:
-                    lines = [source_lines[start_row][start_col:]]
-                    lines.extend(source_lines[start_row + 1 : end_row])
-                    lines.append(source_lines[end_row][:end_col])
-                    node_source = "\n".join(lines)
-
-                # HTML escape for attribute
-                import html
-
-                kwargs["data-rsm-source"] = html.escape(node_source)
+                # Compute character offsets into the full source string
+                start_offset = sum(len(source_lines[r]) + 1 for r in range(start_row)) + start_col
+                end_offset = sum(len(source_lines[r]) + 1 for r in range(end_row)) + end_col
+                kwargs["data-source-start"] = str(start_offset)
+                kwargs["data-source-end"] = str(end_offset)
 
         id_ = node.label
         if not id_ and isinstance(node, nodes.Section) and node.full_number:
@@ -733,6 +725,11 @@ class Translator:
         self.deferred: list[EditCommand] = []
         self.quiet = quiet
 
+    @staticmethod
+    def _icon_ref(name: str) -> str:
+        """Emit an SVG <use> reference to a symbol in the defs block."""
+        return f'<div class="icon {name}"><svg width="16" height="16"><use href="#hr-icon-{name}" width="16" height="16"/></svg></div>'
+
     @classmethod
     def get_action_method(cls, node: nodes.Node, action: str) -> Callable:
         nodeclass = node.__class__
@@ -898,7 +895,7 @@ class Translator:
         total_notes = len(node.note_map)
 
         html = '<details class="author-details">\n'
-        html += '<summary><span class="icon chevron-down"></span>Affiliations</summary>\n'
+        html += f'<summary>{self._icon_ref("chevron-down")}Affiliations</summary>\n'
 
         if node.affiliation_map:
             html += '<ol class="author-affiliations">\n'
@@ -1686,6 +1683,22 @@ class HandrailsTranslator(Translator):
         <path d="M7 7l5 5l-5 5" />
         <path d="M13 7l5 5l-5 5" />
       </svg>""",
+        "chevron-down": """<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+<path d="M6 9l6 6l6 -6" />
+</svg>""",
+        "expand": """<svg width="14" height="8" viewBox="0 0 14 8" fill="none" stroke="#3C4952" xmlns="http://www.w3.org/2000/svg">
+<path d="M1 1L7 7L13 1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>""",
+        "expand-all": """<svg width="9" height="9" viewBox="5 5 14 14" fill="none" stroke="#3C4952" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+<path d="M7 7l5 5l5 -5" />
+<path d="M7 13l5 5l5 -5" />
+</svg>""",
+        "dots": """<svg width="24" height="24" viewBox="10 3 4 18" fill="none" stroke="#3C4952" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+<path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+<path d="M12 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" />
+<path d="M12 19m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" />
+<path d="M12 5m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" />
+</svg>""",
         "ext": """<svg width="15" height="15" viewBox="3 3 18 18" fill="none" stroke="#3C4952" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
           <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
           <path d="M12 6h-6a2 2 0 0 0 -2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-6" />
@@ -1739,17 +1752,10 @@ class HandrailsTranslator(Translator):
             end_col = node.end_point.column
 
             if start_row < len(source_lines) and end_row < len(source_lines):
-                if start_row == end_row:
-                    node_source = source_lines[start_row][start_col:end_col]
-                else:
-                    lines = [source_lines[start_row][start_col:]]
-                    lines.extend(source_lines[start_row + 1 : end_row])
-                    lines.append(source_lines[end_row][:end_col])
-                    node_source = "\n".join(lines)
-
-                import html
-
-                kwargs["data-rsm-source"] = html.escape(node_source)
+                start_offset = sum(len(source_lines[r]) + 1 for r in range(start_row)) + start_col
+                end_offset = sum(len(source_lines[r]) + 1 for r in range(end_row)) + end_col
+                kwargs["data-source-start"] = str(start_offset)
+                kwargs["data-source-end"] = str(end_offset)
 
         return (
             AppendOpenTag(classes=classes, is_selectable=True, **kwargs)
@@ -1759,10 +1765,9 @@ class HandrailsTranslator(Translator):
 
     def _hr_collapse_zone(self, collapsible: bool) -> AppendOpenCloseTag:
         if collapsible:
-            content = """
+            content = f"""
             <div class="hr-collapse">
-              <div class="icon collapse">
-              </div>
+              {self._icon_ref("collapse")}
             </div>
 """
         else:
@@ -1786,8 +1791,7 @@ class HandrailsTranslator(Translator):
             classes_str = ""
         return f"""
   <div class="hr-menu-item{classes_str}">
-    <span class="icon {icon}">
-    </span>
+    {self._icon_ref(icon)}
     <span class="hr-menu-item-text">{text}</span>
   </div>"""
 
@@ -1859,10 +1863,9 @@ class HandrailsTranslator(Translator):
     def _hr_border_zone(self) -> AppendOpenCloseTag:
         return AppendOpenCloseTag(
             tag="div",
-            content="""
+            content=f"""
                 <div class="hr-border-dots">
-                  <div class="icon dots">
-                  </div>
+                  {self._icon_ref("dots")}
                 </div>
                 <div class="hr-border-rect">
                 </div>
@@ -1897,8 +1900,7 @@ class HandrailsTranslator(Translator):
         hr_info_end = "</div>"
         if icon is not None:
             hr_info_middle = f"""
-                <div class="icon {icon}">
-                </div>
+                {self._icon_ref(icon)}
                 """
         return AppendOpenCloseTag(
             tag="div",
@@ -2107,6 +2109,32 @@ class HandrailsTranslator(Translator):
     def _make_source_div(self):
         return AppendText(text=f'<div class="rsm-source hide">{self.tree.src}</div>')
 
+    def _make_svg_defs(self):
+        """Emit a single <svg> block with <symbol> definitions for all icons."""
+        symbols = []
+        for name, svg_str in self.svg.items():
+            # Extract the inner content (paths) and viewBox from the SVG string
+            import re
+            # Extract presentation attributes from the <svg> tag
+            svg_tag = re.match(r'<svg([^>]*)>', svg_str)
+            attrs_str = svg_tag.group(1) if svg_tag else ""
+            vb_match = re.search(r'viewBox="([^"]*)"', attrs_str)
+            viewBox = vb_match.group(1) if vb_match else "0 0 18 18"
+            # Preserve fill, stroke, stroke-width, stroke-linecap, stroke-linejoin
+            pres_attrs = ""
+            for attr in ("fill", "stroke", "stroke-width", "stroke-linecap", "stroke-linejoin"):
+                m = re.search(rf'{attr}="([^"]*)"', attrs_str)
+                if m:
+                    pres_attrs += f' {attr}="{m.group(1)}"'
+            # Extract child elements (paths etc.)
+            inner = re.sub(r'<svg[^>]*>', '', svg_str)
+            inner = re.sub(r'</svg>', '', inner).strip()
+            symbols.append(
+                f'<symbol id="hr-icon-{name}" viewBox="{viewBox}"{pres_attrs}>{inner}</symbol>'
+            )
+        defs_html = '<svg id="hr-icon-defs" style="display:none"><defs id="hr-icon-defs">' + "\n".join(symbols) + "</defs></svg>"
+        return AppendText(text=defs_html)
+
     def _make_minimap(
         self, node: nodes.Contents, follow: str, with_ids: bool = False
     ) -> EditCommand:
@@ -2163,8 +2191,9 @@ class HandrailsTranslator(Translator):
             batch = self._wrap_batch_item_with_handrails(
                 4, batch, classes=["heading"], menu_label="Title", link=True, node=node
             )
+        batch.items.insert(2, self._make_svg_defs())
         if self.add_source:
-            batch.items.insert(2, self._make_source_div())
+            batch.items.insert(3, self._make_source_div())
         if False and (toc := node.first_of_type(nodes.Contents)):
             batch.items = (
                 batch.items[:3]

@@ -34,14 +34,12 @@ def test_codeblock_handrails():
           <div class="hr-menu-separator"></div>
 
           <div class="hr-menu-item link disabled">
-            <span class="icon link">
-            </span>
+            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Copy link</span>
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon code">
-            </span>
+            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Source</span>
           </div>
 
@@ -52,8 +50,7 @@ def test_codeblock_handrails():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots">
-                          </div>
+                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -124,14 +121,12 @@ def test_codeblock_with_lang_handrails():
           <div class="hr-menu-separator"></div>
 
           <div class="hr-menu-item link disabled">
-            <span class="icon link">
-            </span>
+            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Copy link</span>
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon code">
-            </span>
+            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Source</span>
           </div>
 
@@ -142,8 +137,7 @@ def test_codeblock_with_lang_handrails():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots">
-                          </div>
+                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -203,8 +197,7 @@ def test_manuscript():
         <div class="hr-collapse-zone">
 
                     <div class="hr-collapse">
-                      <div class="icon collapse">
-                      </div>
+                      <div class="icon collapse"><svg width="16" height="16"><use href="#hr-icon-collapse" width="16" height="16"/></svg></div>
                     </div>
 
         </div>
@@ -220,14 +213,12 @@ def test_manuscript():
           <div class="hr-menu-separator"></div>
 
           <div class="hr-menu-item link">
-            <span class="icon link">
-            </span>
+            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Copy link</span>
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon code">
-            </span>
+            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Source</span>
           </div>
 
@@ -238,8 +229,7 @@ def test_manuscript():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots">
-                          </div>
+                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -279,14 +269,12 @@ def test_manuscript():
           <div class="hr-menu-separator"></div>
 
           <div class="hr-menu-item link disabled">
-            <span class="icon link">
-            </span>
+            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Copy link</span>
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon code">
-            </span>
+            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Source</span>
           </div>
 
@@ -297,8 +285,7 @@ def test_manuscript():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots">
-                          </div>
+                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -355,8 +342,7 @@ def test_section():
         <div class="hr-collapse-zone">
 
                     <div class="hr-collapse">
-                      <div class="icon collapse">
-                      </div>
+                      <div class="icon collapse"><svg width="16" height="16"><use href="#hr-icon-collapse" width="16" height="16"/></svg></div>
                     </div>
 
         </div>
@@ -372,14 +358,12 @@ def test_section():
           <div class="hr-menu-separator"></div>
 
           <div class="hr-menu-item link">
-            <span class="icon link">
-            </span>
+            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Copy link</span>
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon code">
-            </span>
+            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Source</span>
           </div>
 
@@ -390,8 +374,7 @@ def test_section():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots">
-                          </div>
+                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -421,8 +404,7 @@ def test_section():
         <div class="hr-collapse-zone">
 
                     <div class="hr-collapse">
-                      <div class="icon collapse">
-                      </div>
+                      <div class="icon collapse"><svg width="16" height="16"><use href="#hr-icon-collapse" width="16" height="16"/></svg></div>
                     </div>
 
         </div>
@@ -438,14 +420,12 @@ def test_section():
           <div class="hr-menu-separator"></div>
 
           <div class="hr-menu-item link disabled">
-            <span class="icon link">
-            </span>
+            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Copy link</span>
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon code">
-            </span>
+            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Source</span>
           </div>
 
@@ -456,8 +436,7 @@ def test_section():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots">
-                          </div>
+                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -497,14 +476,12 @@ def test_section():
           <div class="hr-menu-separator"></div>
 
           <div class="hr-menu-item link disabled">
-            <span class="icon link">
-            </span>
+            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Copy link</span>
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon code">
-            </span>
+            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Source</span>
           </div>
 
@@ -515,8 +492,7 @@ def test_section():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots">
-                          </div>
+                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -575,8 +551,7 @@ def test_abstract():
         <div class="hr-collapse-zone">
 
                     <div class="hr-collapse">
-                      <div class="icon collapse">
-                      </div>
+                      <div class="icon collapse"><svg width="16" height="16"><use href="#hr-icon-collapse" width="16" height="16"/></svg></div>
                     </div>
 
         </div>
@@ -592,14 +567,12 @@ def test_abstract():
           <div class="hr-menu-separator"></div>
 
           <div class="hr-menu-item link">
-            <span class="icon link">
-            </span>
+            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Copy link</span>
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon code">
-            </span>
+            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Source</span>
           </div>
 
@@ -610,8 +583,7 @@ def test_abstract():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots">
-                          </div>
+                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -641,8 +613,7 @@ def test_abstract():
         <div class="hr-collapse-zone">
 
                     <div class="hr-collapse">
-                      <div class="icon collapse">
-                      </div>
+                      <div class="icon collapse"><svg width="16" height="16"><use href="#hr-icon-collapse" width="16" height="16"/></svg></div>
                     </div>
 
         </div>
@@ -658,14 +629,12 @@ def test_abstract():
           <div class="hr-menu-separator"></div>
 
           <div class="hr-menu-item link disabled">
-            <span class="icon link">
-            </span>
+            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Copy link</span>
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon code">
-            </span>
+            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Source</span>
           </div>
 
@@ -676,8 +645,7 @@ def test_abstract():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots">
-                          </div>
+                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -717,14 +685,12 @@ def test_abstract():
           <div class="hr-menu-separator"></div>
 
           <div class="hr-menu-item link disabled">
-            <span class="icon link">
-            </span>
+            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Copy link</span>
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon code">
-            </span>
+            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Source</span>
           </div>
 
@@ -735,8 +701,7 @@ def test_abstract():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots">
-                          </div>
+                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -795,8 +760,7 @@ def test_theorem():
         <div class="hr-collapse-zone">
 
                     <div class="hr-collapse">
-                      <div class="icon collapse">
-                      </div>
+                      <div class="icon collapse"><svg width="16" height="16"><use href="#hr-icon-collapse" width="16" height="16"/></svg></div>
                     </div>
 
         </div>
@@ -812,14 +776,12 @@ def test_theorem():
           <div class="hr-menu-separator"></div>
 
           <div class="hr-menu-item link disabled">
-            <span class="icon link">
-            </span>
+            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Copy link</span>
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon code">
-            </span>
+            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Source</span>
           </div>
 
@@ -830,8 +792,7 @@ def test_theorem():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots">
-                          </div>
+                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -867,14 +828,12 @@ def test_theorem():
           <div class="hr-menu-separator"></div>
 
           <div class="hr-menu-item link disabled">
-            <span class="icon link">
-            </span>
+            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Copy link</span>
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon code">
-            </span>
+            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Source</span>
           </div>
 
@@ -885,8 +844,7 @@ def test_theorem():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots">
-                          </div>
+                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -958,8 +916,7 @@ def test_author():
         <div class="hr-collapse-zone">
 
                     <div class="hr-collapse">
-                      <div class="icon collapse">
-                      </div>
+                      <div class="icon collapse"><svg width="16" height="16"><use href="#hr-icon-collapse" width="16" height="16"/></svg></div>
                     </div>
 
         </div>
@@ -975,14 +932,12 @@ def test_author():
           <div class="hr-menu-separator"></div>
 
           <div class="hr-menu-item link">
-            <span class="icon link">
-            </span>
+            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Copy link</span>
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon code">
-            </span>
+            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Source</span>
           </div>
 
@@ -993,8 +948,7 @@ def test_author():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots">
-                          </div>
+                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -1025,8 +979,7 @@ def test_author():
         <div class="hr-collapse-zone">
 
                     <div class="hr-collapse">
-                      <div class="icon collapse">
-                      </div>
+                      <div class="icon collapse"><svg width="16" height="16"><use href="#hr-icon-collapse" width="16" height="16"/></svg></div>
                     </div>
 
         </div>
@@ -1036,14 +989,12 @@ def test_author():
         <div class="hr-menu">
 
           <div class="hr-menu-item link disabled">
-            <span class="icon link">
-            </span>
+            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Copy link</span>
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon code">
-            </span>
+            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Source</span>
           </div>
 
@@ -1054,8 +1005,7 @@ def test_author():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots">
-                          </div>
+                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -1070,7 +1020,7 @@ def test_author():
 
         <p class="author-names">Leo Torres</p>
         <details class="author-details">
-        <summary><span class="icon chevron-down"></span>Affiliations</summary>
+        <summary><div class="icon chevron-down"><svg width="16" height="16"><use href="#hr-icon-chevron-down" width="16" height="16"/></svg></div>Affiliations</summary>
         <p class="author-correspondence">Correspondence: <a href="mailto:leo@leotrs.com">leo@leotrs.com</a></p>
         </details>
 
@@ -1137,14 +1087,12 @@ def test_bibliography():
           <div class="hr-menu-separator"></div>
 
           <div class="hr-menu-item link disabled">
-            <span class="icon link">
-            </span>
+            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Copy link</span>
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon code">
-            </span>
+            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Source</span>
           </div>
 
@@ -1155,8 +1103,7 @@ def test_bibliography():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots">
-                          </div>
+                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -1186,8 +1133,7 @@ def test_bibliography():
         <div class="hr-collapse-zone">
 
                     <div class="hr-collapse">
-                      <div class="icon collapse">
-                      </div>
+                      <div class="icon collapse"><svg width="16" height="16"><use href="#hr-icon-collapse" width="16" height="16"/></svg></div>
                     </div>
 
         </div>
@@ -1203,14 +1149,12 @@ def test_bibliography():
           <div class="hr-menu-separator"></div>
 
           <div class="hr-menu-item link disabled">
-            <span class="icon link">
-            </span>
+            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Copy link</span>
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon code">
-            </span>
+            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Source</span>
           </div>
 
@@ -1221,8 +1165,7 @@ def test_bibliography():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots">
-                          </div>
+                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -1260,8 +1203,7 @@ def test_bibliography():
         <div class="hr-menu">
 
           <div class="hr-menu-item">
-            <span class="icon code">
-            </span>
+            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Source</span>
           </div>
 
@@ -1272,8 +1214,7 @@ def test_bibliography():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots">
-                          </div>
+                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -1291,8 +1232,7 @@ def test_bibliography():
         <div class="hr-info-zone">
         <div class="hr-info">
         <a id="atiyah2018introduction-doi" class="bibitem-doi" href="https://doi.org/https://doi.org/10.1201/9780429493638" target="_blank">
-        <div class="icon ext">
-                        </div></a>
+        <div class="icon ext"><svg width="16" height="16"><use href="#hr-icon-ext" width="16" height="16"/></svg></div></a>
         </div>
         </div>
 
@@ -1340,8 +1280,7 @@ def test_inline_math_followed_by_dot():
         <div class="hr-collapse-zone">
 
                     <div class="hr-collapse">
-                      <div class="icon collapse">
-                      </div>
+                      <div class="icon collapse"><svg width="16" height="16"><use href="#hr-icon-collapse" width="16" height="16"/></svg></div>
                     </div>
 
         </div>
@@ -1357,14 +1296,12 @@ def test_inline_math_followed_by_dot():
           <div class="hr-menu-separator"></div>
 
           <div class="hr-menu-item link">
-            <span class="icon link">
-            </span>
+            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Copy link</span>
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon code">
-            </span>
+            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Source</span>
           </div>
 
@@ -1375,8 +1312,7 @@ def test_inline_math_followed_by_dot():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots">
-                          </div>
+                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -1416,14 +1352,12 @@ def test_inline_math_followed_by_dot():
           <div class="hr-menu-separator"></div>
 
           <div class="hr-menu-item link disabled">
-            <span class="icon link">
-            </span>
+            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Copy link</span>
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon code">
-            </span>
+            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Source</span>
           </div>
 
@@ -1434,8 +1368,7 @@ def test_inline_math_followed_by_dot():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots">
-                          </div>
+                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -1476,14 +1409,12 @@ def test_inline_math_followed_by_dot():
           <div class="hr-menu-separator"></div>
 
           <div class="hr-menu-item link disabled">
-            <span class="icon link">
-            </span>
+            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Copy link</span>
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon code">
-            </span>
+            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Source</span>
           </div>
 
@@ -1494,8 +1425,7 @@ def test_inline_math_followed_by_dot():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots">
-                          </div>
+                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -1535,14 +1465,12 @@ def test_inline_math_followed_by_dot():
           <div class="hr-menu-separator"></div>
 
           <div class="hr-menu-item link disabled">
-            <span class="icon link">
-            </span>
+            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Copy link</span>
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon code">
-            </span>
+            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Source</span>
           </div>
 
@@ -1553,8 +1481,7 @@ def test_inline_math_followed_by_dot():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots">
-                          </div>
+                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -1629,14 +1556,12 @@ def test_mathblock_nonum():
           <div class="hr-menu-separator"></div>
 
           <div class="hr-menu-item link disabled">
-            <span class="icon link">
-            </span>
+            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Copy link</span>
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon code">
-            </span>
+            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Source</span>
           </div>
 
@@ -1647,8 +1572,7 @@ def test_mathblock_nonum():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots">
-                          </div>
+                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -1679,14 +1603,12 @@ def test_mathblock_nonum():
           <div class="hr-menu-separator"></div>
 
           <div class="hr-menu-item link disabled">
-            <span class="icon link">
-            </span>
+            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Copy link</span>
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon code">
-            </span>
+            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Source</span>
           </div>
 
@@ -1697,8 +1619,7 @@ def test_mathblock_nonum():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots">
-                          </div>
+                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -1746,14 +1667,12 @@ def test_mathblock_nonum():
           <div class="hr-menu-separator"></div>
 
           <div class="hr-menu-item link disabled">
-            <span class="icon link">
-            </span>
+            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Copy link</span>
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon code">
-            </span>
+            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Source</span>
           </div>
 
@@ -1764,8 +1683,7 @@ def test_mathblock_nonum():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots">
-                          </div>
+                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -1796,14 +1714,12 @@ def test_mathblock_nonum():
           <div class="hr-menu-separator"></div>
 
           <div class="hr-menu-item link disabled">
-            <span class="icon link">
-            </span>
+            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Copy link</span>
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon code">
-            </span>
+            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Source</span>
           </div>
 
@@ -1814,8 +1730,7 @@ def test_mathblock_nonum():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots">
-                          </div>
+                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -1917,8 +1832,7 @@ def test_toc_no_labels():
         <div class="hr-collapse-zone">
 
                     <div class="hr-collapse">
-                      <div class="icon collapse">
-                      </div>
+                      <div class="icon collapse"><svg width="16" height="16"><use href="#hr-icon-collapse" width="16" height="16"/></svg></div>
                     </div>
 
         </div>
@@ -1934,14 +1848,12 @@ def test_toc_no_labels():
           <div class="hr-menu-separator"></div>
 
           <div class="hr-menu-item link">
-            <span class="icon link">
-            </span>
+            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Copy link</span>
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon code">
-            </span>
+            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Source</span>
           </div>
 
@@ -1952,8 +1864,7 @@ def test_toc_no_labels():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots">
-                          </div>
+                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -1983,8 +1894,7 @@ def test_toc_no_labels():
         <div class="hr-collapse-zone">
 
                     <div class="hr-collapse">
-                      <div class="icon collapse">
-                      </div>
+                      <div class="icon collapse"><svg width="16" height="16"><use href="#hr-icon-collapse" width="16" height="16"/></svg></div>
                     </div>
 
         </div>
@@ -2000,14 +1910,12 @@ def test_toc_no_labels():
           <div class="hr-menu-separator"></div>
 
           <div class="hr-menu-item link disabled">
-            <span class="icon link">
-            </span>
+            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Copy link</span>
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon code">
-            </span>
+            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Source</span>
           </div>
 
@@ -2018,8 +1926,7 @@ def test_toc_no_labels():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots">
-                          </div>
+                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -2059,14 +1966,12 @@ def test_toc_no_labels():
           <div class="hr-menu-separator"></div>
 
           <div class="hr-menu-item link disabled">
-            <span class="icon link">
-            </span>
+            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Copy link</span>
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon code">
-            </span>
+            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Source</span>
           </div>
 
@@ -2077,8 +1982,7 @@ def test_toc_no_labels():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots">
-                          </div>
+                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -2110,8 +2014,7 @@ def test_toc_no_labels():
         <div class="hr-collapse-zone">
 
                     <div class="hr-collapse">
-                      <div class="icon collapse">
-                      </div>
+                      <div class="icon collapse"><svg width="16" height="16"><use href="#hr-icon-collapse" width="16" height="16"/></svg></div>
                     </div>
 
         </div>
@@ -2127,14 +2030,12 @@ def test_toc_no_labels():
           <div class="hr-menu-separator"></div>
 
           <div class="hr-menu-item link disabled">
-            <span class="icon link">
-            </span>
+            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Copy link</span>
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon code">
-            </span>
+            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Source</span>
           </div>
 
@@ -2145,8 +2046,7 @@ def test_toc_no_labels():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots">
-                          </div>
+                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -2231,8 +2131,7 @@ def test_toc_no_labels():
         <div class="hr-collapse-zone">
 
                     <div class="hr-collapse">
-                      <div class="icon collapse">
-                      </div>
+                      <div class="icon collapse"><svg width="16" height="16"><use href="#hr-icon-collapse" width="16" height="16"/></svg></div>
                     </div>
 
         </div>
@@ -2248,14 +2147,12 @@ def test_toc_no_labels():
           <div class="hr-menu-separator"></div>
 
           <div class="hr-menu-item link disabled">
-            <span class="icon link">
-            </span>
+            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Copy link</span>
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon code">
-            </span>
+            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Source</span>
           </div>
 
@@ -2266,8 +2163,7 @@ def test_toc_no_labels():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots">
-                          </div>
+                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -2299,8 +2195,7 @@ def test_toc_no_labels():
         <div class="hr-collapse-zone">
 
                     <div class="hr-collapse">
-                      <div class="icon collapse">
-                      </div>
+                      <div class="icon collapse"><svg width="16" height="16"><use href="#hr-icon-collapse" width="16" height="16"/></svg></div>
                     </div>
 
         </div>
@@ -2316,14 +2211,12 @@ def test_toc_no_labels():
           <div class="hr-menu-separator"></div>
 
           <div class="hr-menu-item link disabled">
-            <span class="icon link">
-            </span>
+            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Copy link</span>
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon code">
-            </span>
+            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Source</span>
           </div>
 
@@ -2334,8 +2227,7 @@ def test_toc_no_labels():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots">
-                          </div>
+                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -2365,8 +2257,7 @@ def test_toc_no_labels():
         <div class="hr-collapse-zone">
 
                     <div class="hr-collapse">
-                      <div class="icon collapse">
-                      </div>
+                      <div class="icon collapse"><svg width="16" height="16"><use href="#hr-icon-collapse" width="16" height="16"/></svg></div>
                     </div>
 
         </div>
@@ -2382,14 +2273,12 @@ def test_toc_no_labels():
           <div class="hr-menu-separator"></div>
 
           <div class="hr-menu-item link disabled">
-            <span class="icon link">
-            </span>
+            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Copy link</span>
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon code">
-            </span>
+            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Source</span>
           </div>
 
@@ -2400,8 +2289,7 @@ def test_toc_no_labels():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots">
-                          </div>
+                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -2502,8 +2390,7 @@ def test_toc_with_labels():
         <div class="hr-collapse-zone">
 
                     <div class="hr-collapse">
-                      <div class="icon collapse">
-                      </div>
+                      <div class="icon collapse"><svg width="16" height="16"><use href="#hr-icon-collapse" width="16" height="16"/></svg></div>
                     </div>
 
         </div>
@@ -2519,14 +2406,12 @@ def test_toc_with_labels():
           <div class="hr-menu-separator"></div>
 
           <div class="hr-menu-item link">
-            <span class="icon link">
-            </span>
+            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Copy link</span>
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon code">
-            </span>
+            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Source</span>
           </div>
 
@@ -2537,8 +2422,7 @@ def test_toc_with_labels():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots">
-                          </div>
+                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -2568,8 +2452,7 @@ def test_toc_with_labels():
         <div class="hr-collapse-zone">
 
                     <div class="hr-collapse">
-                      <div class="icon collapse">
-                      </div>
+                      <div class="icon collapse"><svg width="16" height="16"><use href="#hr-icon-collapse" width="16" height="16"/></svg></div>
                     </div>
 
         </div>
@@ -2585,14 +2468,12 @@ def test_toc_with_labels():
           <div class="hr-menu-separator"></div>
 
           <div class="hr-menu-item link disabled">
-            <span class="icon link">
-            </span>
+            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Copy link</span>
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon code">
-            </span>
+            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Source</span>
           </div>
 
@@ -2603,8 +2484,7 @@ def test_toc_with_labels():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots">
-                          </div>
+                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -2644,14 +2524,12 @@ def test_toc_with_labels():
           <div class="hr-menu-separator"></div>
 
           <div class="hr-menu-item link disabled">
-            <span class="icon link">
-            </span>
+            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Copy link</span>
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon code">
-            </span>
+            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Source</span>
           </div>
 
@@ -2662,8 +2540,7 @@ def test_toc_with_labels():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots">
-                          </div>
+                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -2695,8 +2572,7 @@ def test_toc_with_labels():
         <div class="hr-collapse-zone">
 
                     <div class="hr-collapse">
-                      <div class="icon collapse">
-                      </div>
+                      <div class="icon collapse"><svg width="16" height="16"><use href="#hr-icon-collapse" width="16" height="16"/></svg></div>
                     </div>
 
         </div>
@@ -2712,14 +2588,12 @@ def test_toc_with_labels():
           <div class="hr-menu-separator"></div>
 
           <div class="hr-menu-item link disabled">
-            <span class="icon link">
-            </span>
+            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Copy link</span>
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon code">
-            </span>
+            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Source</span>
           </div>
 
@@ -2730,8 +2604,7 @@ def test_toc_with_labels():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots">
-                          </div>
+                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -2816,8 +2689,7 @@ def test_toc_with_labels():
         <div class="hr-collapse-zone">
 
                     <div class="hr-collapse">
-                      <div class="icon collapse">
-                      </div>
+                      <div class="icon collapse"><svg width="16" height="16"><use href="#hr-icon-collapse" width="16" height="16"/></svg></div>
                     </div>
 
         </div>
@@ -2833,14 +2705,12 @@ def test_toc_with_labels():
           <div class="hr-menu-separator"></div>
 
           <div class="hr-menu-item link">
-            <span class="icon link">
-            </span>
+            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Copy link</span>
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon code">
-            </span>
+            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Source</span>
           </div>
 
@@ -2851,8 +2721,7 @@ def test_toc_with_labels():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots">
-                          </div>
+                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -2884,8 +2753,7 @@ def test_toc_with_labels():
         <div class="hr-collapse-zone">
 
                     <div class="hr-collapse">
-                      <div class="icon collapse">
-                      </div>
+                      <div class="icon collapse"><svg width="16" height="16"><use href="#hr-icon-collapse" width="16" height="16"/></svg></div>
                     </div>
 
         </div>
@@ -2901,14 +2769,12 @@ def test_toc_with_labels():
           <div class="hr-menu-separator"></div>
 
           <div class="hr-menu-item link">
-            <span class="icon link">
-            </span>
+            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Copy link</span>
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon code">
-            </span>
+            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Source</span>
           </div>
 
@@ -2919,8 +2785,7 @@ def test_toc_with_labels():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots">
-                          </div>
+                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -2950,8 +2815,7 @@ def test_toc_with_labels():
         <div class="hr-collapse-zone">
 
                     <div class="hr-collapse">
-                      <div class="icon collapse">
-                      </div>
+                      <div class="icon collapse"><svg width="16" height="16"><use href="#hr-icon-collapse" width="16" height="16"/></svg></div>
                     </div>
 
         </div>
@@ -2967,14 +2831,12 @@ def test_toc_with_labels():
           <div class="hr-menu-separator"></div>
 
           <div class="hr-menu-item link">
-            <span class="icon link">
-            </span>
+            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Copy link</span>
           </div>
 
           <div class="hr-menu-item">
-            <span class="icon code">
-            </span>
+            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
             <span class="hr-menu-item-text">Source</span>
           </div>
 
@@ -2985,8 +2847,7 @@ def test_toc_with_labels():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots">
-                          </div>
+                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
