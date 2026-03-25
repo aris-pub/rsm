@@ -310,6 +310,7 @@ class ProcessorApp(ParserApp):
         add_source: bool = True,
         run_linter: bool = False,
         asset_resolver=None,
+        standalone: bool = False,
         strict: bool = False,
         root_dir: Path | None = None,
     ):
@@ -323,10 +324,10 @@ class ProcessorApp(ParserApp):
             )
 
         if not handrails:
-            tr = translator.Translator(asset_resolver=asset_resolver)
+            tr = translator.Translator(asset_resolver=asset_resolver, standalone=standalone)
         else:
             tr = translator.HandrailsTranslator(
-                add_source=add_source, asset_resolver=asset_resolver
+                add_source=add_source, asset_resolver=asset_resolver, standalone=standalone,
             )
         self.add_task(Task("translator", tr, tr.translate))
 
@@ -365,6 +366,7 @@ class FullBuildApp(ProcessorApp):
             add_source,
             run_linter,
             asset_resolver,
+            standalone,
             strict,
             root_dir,
         )
@@ -450,6 +452,7 @@ def render(
     log_time: bool = True,
     log_lineno: bool = True,
     asset_resolver=None,
+    standalone: bool = False,
     strict: bool = False,
     root_dir: Path | None = None,
 ) -> str:
@@ -463,6 +466,7 @@ def render(
         log_time=log_time,
         log_lineno=log_lineno,
         asset_resolver=asset_resolver,
+        standalone=standalone,
         strict=strict,
         root_dir=root_dir,
     ).run()

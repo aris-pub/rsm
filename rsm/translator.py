@@ -124,6 +124,15 @@ from .util import highlight_code
 logger = logging.getLogger("RSM").getChild("tlate")
 
 
+def _reject_html_wrapper(path: str) -> None:
+    """Raise if an embedded HTML asset contains document-level wrapper tags."""
+    raise RSMTranslatorError(
+        f"HTML asset '{path}' contains <!DOCTYPE>, <html>, or <body> tags. "
+        f"Embedded HTML figures must be fragments, not full documents. "
+        f"Remove the document wrapper and keep only the content."
+    )
+
+
 def _process_html_with_scripts(html_content: str) -> str:
     """Process HTML content to ensure JavaScript executes when dynamically inserted.
 
@@ -711,9 +720,10 @@ class Translator:
             classname = self.node.__class__.__name__
             return f'Action(node={classname}(), action="{self.action}")'
 
-    def __init__(self, quiet: bool = False, asset_resolver=None):
+    def __init__(self, quiet: bool = False, asset_resolver=None, standalone: bool = False):
         self.tree: nodes.Manuscript = None
         self.body: str = ""
+        self.standalone = standalone
         # Default to disk-based asset resolver if none provided
         if asset_resolver is None:
             from .asset_resolver import AssetResolverFromDisk
@@ -1456,27 +1466,36 @@ class Translator:
         ) or content.strip().lower().startswith("<!doctype")
 
         if is_full_html_doc:
-            return _process_html_with_scripts(content)
+            _reject_html_wrapper(path)
         return content
 
     def _resolve_image_src(self, path) -> str:
         """Resolve an image asset to a src attribute value.
 
-        Tries the asset resolver first and returns a data URI if the asset is
-        found.  Falls back to the raw path (works for disk-served static sites).
+        Delegates to the asset resolver, which returns either a URL path
+        (for server-rendered previews) or file content (for standalone
+        export, which gets base64-encoded into a data URI).
         """
+        resolved = self.asset_resolver.resolve_asset(str(path))
+        if resolved is None:
+            return str(path)
+
+        # If the resolver returned a string that looks like a URL/path
+        # (not raw content), use it directly.
+        if isinstance(resolved, str) and (resolved.startswith("/") or resolved.startswith("http")):
+            return resolved
+
+        if not self.standalone:
+            return str(path)
+
         import base64
         import mimetypes
 
-        content = self.asset_resolver.resolve_asset(str(path))
-        if content is None:
-            return str(path)
-
         mime = mimetypes.guess_type(str(path))[0] or "image/png"
-        if isinstance(content, bytes):
-            encoded = base64.b64encode(content).decode("ascii")
+        if isinstance(resolved, bytes):
+            encoded = base64.b64encode(resolved).decode("ascii")
         else:
-            encoded = base64.b64encode(content.encode("utf-8")).decode("ascii")
+            encoded = base64.b64encode(resolved.encode("utf-8")).decode("ascii")
         return f"data:{mime};base64,{encoded}"
 
     def _render_image(self, node: nodes.Asset) -> str:
@@ -1680,8 +1699,9 @@ class HandrailsTranslator(Translator):
         quiet: bool = False,
         add_source: bool = True,
         asset_resolver=None,
+        standalone: bool = False,
     ):
-        super().__init__(quiet, asset_resolver)
+        super().__init__(quiet, asset_resolver, standalone)
         self.add_source = add_source
 
     @staticmethod
@@ -2145,7 +2165,7 @@ class HandrailsTranslator(Translator):
             )
         if self.add_source:
             batch.items.insert(2, self._make_source_div())
-        if toc := node.first_of_type(nodes.Contents):
+        if False and (toc := node.first_of_type(nodes.Contents)):
             batch.items = (
                 batch.items[:3]
                 + [AppendText('<div class="float-minimap-wrapper">')]
@@ -2208,11 +2228,7 @@ class HandrailsTranslator(Translator):
             link=True if node.label else "disabled",
             node=node,
         )
-        batch.items = (
-            batch.items[:-1]
-            + self._make_minimap(node, follow="mouse").items
-            + [batch.items[-1]]
-        )
+        pass
         return batch
 
     def visit_bibliography(self, node: nodes.Bibliography) -> EditCommand:

@@ -470,7 +470,7 @@ class MockAssetResolver:
 
 
 def test_svg_image_resolved_as_data_uri():
-    """SVG figures should be inlined as data URIs when the resolver provides content."""
+    """SVG figures should be inlined as data URIs in standalone mode."""
     svg_content = '<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><circle cx="50" cy="50" r="40" fill="red"/></svg>'
     resolver = MockAssetResolver({"test.svg": svg_content})
 
@@ -481,7 +481,7 @@ def test_svg_image_resolved_as_data_uri():
         :caption: A red circle.
         ::
     """)
-    html = rsm.render(src, asset_resolver=resolver).lstrip()
+    html = rsm.render(src, asset_resolver=resolver, standalone=True).lstrip()
 
     expected_b64 = base64.b64encode(svg_content.encode("utf-8")).decode("ascii")
     expected_src = f"data:image/svg+xml;base64,{expected_b64}"
@@ -490,8 +490,7 @@ def test_svg_image_resolved_as_data_uri():
 
 
 def test_png_image_resolved_as_data_uri():
-    """PNG figures should be inlined as data URIs when the resolver provides content."""
-    # Simulate binary content returned as string (as the Studio resolver does)
+    """PNG figures should be inlined as data URIs in standalone mode."""
     fake_png = "fake-png-binary-content"
     resolver = MockAssetResolver({"photo.png": fake_png})
 
@@ -502,7 +501,7 @@ def test_png_image_resolved_as_data_uri():
         :caption: A photo.
         ::
     """)
-    html = rsm.render(src, asset_resolver=resolver).lstrip()
+    html = rsm.render(src, asset_resolver=resolver, standalone=True).lstrip()
 
     expected_b64 = base64.b64encode(fake_png.encode("utf-8")).decode("ascii")
     assert f"data:image/png;base64,{expected_b64}" in html
