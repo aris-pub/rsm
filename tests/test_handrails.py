@@ -24,28 +24,7 @@ def test_codeblock_handrails():
         </div>
 
         <div class="hr-menu-zone">
-
-        <div class="hr-menu">
-
-          <div class="hr-menu-label">
-            <span class="hr-menu-item-text">Code Block</span>
-          </div>
-
-          <div class="hr-menu-separator"></div>
-
-          <div class="hr-menu-item link disabled">
-            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Source</span>
-          </div>
-
-        </div>
-
-        </div>
+</div>
 
         <div class="hr-border-zone">
 
@@ -111,28 +90,7 @@ def test_codeblock_with_lang_handrails():
         </div>
 
         <div class="hr-menu-zone">
-
-        <div class="hr-menu">
-
-          <div class="hr-menu-label">
-            <span class="hr-menu-item-text">Code Block</span>
-          </div>
-
-          <div class="hr-menu-separator"></div>
-
-          <div class="hr-menu-item link disabled">
-            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Source</span>
-          </div>
-
-        </div>
-
-        </div>
+</div>
 
         <div class="hr-border-zone">
 
@@ -203,28 +161,7 @@ def test_manuscript():
         </div>
 
         <div class="hr-menu-zone">
-
-        <div class="hr-menu">
-
-          <div class="hr-menu-label">
-            <span class="hr-menu-item-text">Title</span>
-          </div>
-
-          <div class="hr-menu-separator"></div>
-
-          <div class="hr-menu-item link">
-            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Source</span>
-          </div>
-
-        </div>
-
-        </div>
+</div>
 
         <div class="hr-border-zone">
 
@@ -259,28 +196,7 @@ def test_manuscript():
         </div>
 
         <div class="hr-menu-zone">
-
-        <div class="hr-menu">
-
-          <div class="hr-menu-label">
-            <span class="hr-menu-item-text">Paragraph</span>
-          </div>
-
-          <div class="hr-menu-separator"></div>
-
-          <div class="hr-menu-item link disabled">
-            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Source</span>
-          </div>
-
-        </div>
-
-        </div>
+</div>
 
         <div class="hr-border-zone">
 
@@ -348,28 +264,7 @@ def test_section():
         </div>
 
         <div class="hr-menu-zone">
-
-        <div class="hr-menu">
-
-          <div class="hr-menu-label">
-            <span class="hr-menu-item-text">Title</span>
-          </div>
-
-          <div class="hr-menu-separator"></div>
-
-          <div class="hr-menu-item link">
-            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Source</span>
-          </div>
-
-        </div>
-
-        </div>
+</div>
 
         <div class="hr-border-zone">
 
@@ -410,28 +305,7 @@ def test_section():
         </div>
 
         <div class="hr-menu-zone">
-
-        <div class="hr-menu">
-
-          <div class="hr-menu-label">
-            <span class="hr-menu-item-text">Section 1</span>
-          </div>
-
-          <div class="hr-menu-separator"></div>
-
-          <div class="hr-menu-item link disabled">
-            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Source</span>
-          </div>
-
-        </div>
-
-        </div>
+</div>
 
         <div class="hr-border-zone">
 
@@ -466,28 +340,7 @@ def test_section():
         </div>
 
         <div class="hr-menu-zone">
-
-        <div class="hr-menu">
-
-          <div class="hr-menu-label">
-            <span class="hr-menu-item-text">Paragraph</span>
-          </div>
-
-          <div class="hr-menu-separator"></div>
-
-          <div class="hr-menu-item link disabled">
-            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Source</span>
-          </div>
-
-        </div>
-
-        </div>
+</div>
 
         <div class="hr-border-zone">
 
@@ -557,28 +410,7 @@ def test_abstract():
         </div>
 
         <div class="hr-menu-zone">
-
-        <div class="hr-menu">
-
-          <div class="hr-menu-label">
-            <span class="hr-menu-item-text">Title</span>
-          </div>
-
-          <div class="hr-menu-separator"></div>
-
-          <div class="hr-menu-item link">
-            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Source</span>
-          </div>
-
-        </div>
-
-        </div>
+</div>
 
         <div class="hr-border-zone">
 
@@ -619,28 +451,7 @@ def test_abstract():
         </div>
 
         <div class="hr-menu-zone">
-
-        <div class="hr-menu">
-
-          <div class="hr-menu-label">
-            <span class="hr-menu-item-text">Abstract</span>
-          </div>
-
-          <div class="hr-menu-separator"></div>
-
-          <div class="hr-menu-item link disabled">
-            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Source</span>
-          </div>
-
-        </div>
-
-        </div>
+</div>
 
         <div class="hr-border-zone">
 
@@ -675,28 +486,7 @@ def test_abstract():
         </div>
 
         <div class="hr-menu-zone">
-
-        <div class="hr-menu">
-
-          <div class="hr-menu-label">
-            <span class="hr-menu-item-text">Paragraph</span>
-          </div>
-
-          <div class="hr-menu-separator"></div>
-
-          <div class="hr-menu-item link disabled">
-            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Source</span>
-          </div>
-
-        </div>
-
-        </div>
+</div>
 
         <div class="hr-border-zone">
 
@@ -766,28 +556,7 @@ def test_theorem():
         </div>
 
         <div class="hr-menu-zone">
-
-        <div class="hr-menu">
-
-          <div class="hr-menu-label">
-            <span class="hr-menu-item-text">Theorem 1</span>
-          </div>
-
-          <div class="hr-menu-separator"></div>
-
-          <div class="hr-menu-item link disabled">
-            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Source</span>
-          </div>
-
-        </div>
-
-        </div>
+</div>
 
         <div class="hr-border-zone">
 
@@ -818,28 +587,7 @@ def test_theorem():
         </div>
 
         <div class="hr-menu-zone">
-
-        <div class="hr-menu">
-
-          <div class="hr-menu-label">
-            <span class="hr-menu-item-text">Paragraph</span>
-          </div>
-
-          <div class="hr-menu-separator"></div>
-
-          <div class="hr-menu-item link disabled">
-            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Source</span>
-          </div>
-
-        </div>
-
-        </div>
+</div>
 
         <div class="hr-border-zone">
 
@@ -922,28 +670,7 @@ def test_author():
         </div>
 
         <div class="hr-menu-zone">
-
-        <div class="hr-menu">
-
-          <div class="hr-menu-label">
-            <span class="hr-menu-item-text">Title</span>
-          </div>
-
-          <div class="hr-menu-separator"></div>
-
-          <div class="hr-menu-item link">
-            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Source</span>
-          </div>
-
-        </div>
-
-        </div>
+</div>
 
         <div class="hr-border-zone">
 
@@ -985,22 +712,7 @@ def test_author():
         </div>
 
         <div class="hr-menu-zone">
-
-        <div class="hr-menu">
-
-          <div class="hr-menu-item link disabled">
-            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Source</span>
-          </div>
-
-        </div>
-
-        </div>
+</div>
 
         <div class="hr-border-zone">
 
@@ -1077,28 +789,7 @@ def test_bibliography():
         </div>
 
         <div class="hr-menu-zone">
-
-        <div class="hr-menu">
-
-          <div class="hr-menu-label">
-            <span class="hr-menu-item-text">Paragraph</span>
-          </div>
-
-          <div class="hr-menu-separator"></div>
-
-          <div class="hr-menu-item link disabled">
-            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Source</span>
-          </div>
-
-        </div>
-
-        </div>
+</div>
 
         <div class="hr-border-zone">
 
@@ -1139,28 +830,7 @@ def test_bibliography():
         </div>
 
         <div class="hr-menu-zone">
-
-        <div class="hr-menu">
-
-          <div class="hr-menu-label">
-            <span class="hr-menu-item-text">Bibliography</span>
-          </div>
-
-          <div class="hr-menu-separator"></div>
-
-          <div class="hr-menu-item link disabled">
-            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Source</span>
-          </div>
-
-        </div>
-
-        </div>
+</div>
 
         <div class="hr-border-zone">
 
@@ -1199,17 +869,7 @@ def test_bibliography():
         </div>
 
         <div class="hr-menu-zone">
-
-        <div class="hr-menu">
-
-          <div class="hr-menu-item">
-            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Source</span>
-          </div>
-
-        </div>
-
-        </div>
+</div>
 
         <div class="hr-border-zone">
 
@@ -1286,28 +946,7 @@ def test_inline_math_followed_by_dot():
         </div>
 
         <div class="hr-menu-zone">
-
-        <div class="hr-menu">
-
-          <div class="hr-menu-label">
-            <span class="hr-menu-item-text">Title</span>
-          </div>
-
-          <div class="hr-menu-separator"></div>
-
-          <div class="hr-menu-item link">
-            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Source</span>
-          </div>
-
-        </div>
-
-        </div>
+</div>
 
         <div class="hr-border-zone">
 
@@ -1342,28 +981,7 @@ def test_inline_math_followed_by_dot():
         </div>
 
         <div class="hr-menu-zone">
-
-        <div class="hr-menu">
-
-          <div class="hr-menu-label">
-            <span class="hr-menu-item-text">Paragraph</span>
-          </div>
-
-          <div class="hr-menu-separator"></div>
-
-          <div class="hr-menu-item link disabled">
-            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Source</span>
-          </div>
-
-        </div>
-
-        </div>
+</div>
 
         <div class="hr-border-zone">
 
@@ -1399,28 +1017,7 @@ def test_inline_math_followed_by_dot():
         </div>
 
         <div class="hr-menu-zone">
-
-        <div class="hr-menu">
-
-          <div class="hr-menu-label">
-            <span class="hr-menu-item-text">Paragraph</span>
-          </div>
-
-          <div class="hr-menu-separator"></div>
-
-          <div class="hr-menu-item link disabled">
-            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Source</span>
-          </div>
-
-        </div>
-
-        </div>
+</div>
 
         <div class="hr-border-zone">
 
@@ -1455,28 +1052,7 @@ def test_inline_math_followed_by_dot():
         </div>
 
         <div class="hr-menu-zone">
-
-        <div class="hr-menu">
-
-          <div class="hr-menu-label">
-            <span class="hr-menu-item-text">Paragraph</span>
-          </div>
-
-          <div class="hr-menu-separator"></div>
-
-          <div class="hr-menu-item link disabled">
-            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Source</span>
-          </div>
-
-        </div>
-
-        </div>
+</div>
 
         <div class="hr-border-zone">
 
@@ -1546,28 +1122,7 @@ def test_mathblock_nonum():
         </div>
 
         <div class="hr-menu-zone">
-
-        <div class="hr-menu">
-
-          <div class="hr-menu-label">
-            <span class="hr-menu-item-text">Paragraph</span>
-          </div>
-
-          <div class="hr-menu-separator"></div>
-
-          <div class="hr-menu-item link disabled">
-            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Source</span>
-          </div>
-
-        </div>
-
-        </div>
+</div>
 
         <div class="hr-border-zone">
 
@@ -1593,28 +1148,7 @@ def test_mathblock_nonum():
         </div>
 
         <div class="hr-menu-zone">
-
-        <div class="hr-menu">
-
-          <div class="hr-menu-label">
-            <span class="hr-menu-item-text">Equation (1)</span>
-          </div>
-
-          <div class="hr-menu-separator"></div>
-
-          <div class="hr-menu-item link disabled">
-            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Source</span>
-          </div>
-
-        </div>
-
-        </div>
+</div>
 
         <div class="hr-border-zone">
 
@@ -1657,28 +1191,7 @@ def test_mathblock_nonum():
         </div>
 
         <div class="hr-menu-zone">
-
-        <div class="hr-menu">
-
-          <div class="hr-menu-label">
-            <span class="hr-menu-item-text">Paragraph</span>
-          </div>
-
-          <div class="hr-menu-separator"></div>
-
-          <div class="hr-menu-item link disabled">
-            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Source</span>
-          </div>
-
-        </div>
-
-        </div>
+</div>
 
         <div class="hr-border-zone">
 
@@ -1704,28 +1217,7 @@ def test_mathblock_nonum():
         </div>
 
         <div class="hr-menu-zone">
-
-        <div class="hr-menu">
-
-          <div class="hr-menu-label">
-            <span class="hr-menu-item-text">Equation</span>
-          </div>
-
-          <div class="hr-menu-separator"></div>
-
-          <div class="hr-menu-item link disabled">
-            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Source</span>
-          </div>
-
-        </div>
-
-        </div>
+</div>
 
         <div class="hr-border-zone">
 
@@ -1838,28 +1330,7 @@ def test_toc_no_labels():
         </div>
 
         <div class="hr-menu-zone">
-
-        <div class="hr-menu">
-
-          <div class="hr-menu-label">
-            <span class="hr-menu-item-text">Title</span>
-          </div>
-
-          <div class="hr-menu-separator"></div>
-
-          <div class="hr-menu-item link">
-            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Source</span>
-          </div>
-
-        </div>
-
-        </div>
+</div>
 
         <div class="hr-border-zone">
 
@@ -1900,28 +1371,7 @@ def test_toc_no_labels():
         </div>
 
         <div class="hr-menu-zone">
-
-        <div class="hr-menu">
-
-          <div class="hr-menu-label">
-            <span class="hr-menu-item-text">Abstract</span>
-          </div>
-
-          <div class="hr-menu-separator"></div>
-
-          <div class="hr-menu-item link disabled">
-            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Source</span>
-          </div>
-
-        </div>
-
-        </div>
+</div>
 
         <div class="hr-border-zone">
 
@@ -1956,28 +1406,7 @@ def test_toc_no_labels():
         </div>
 
         <div class="hr-menu-zone">
-
-        <div class="hr-menu">
-
-          <div class="hr-menu-label">
-            <span class="hr-menu-item-text">Paragraph</span>
-          </div>
-
-          <div class="hr-menu-separator"></div>
-
-          <div class="hr-menu-item link disabled">
-            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Source</span>
-          </div>
-
-        </div>
-
-        </div>
+</div>
 
         <div class="hr-border-zone">
 
@@ -2020,28 +1449,7 @@ def test_toc_no_labels():
         </div>
 
         <div class="hr-menu-zone">
-
-        <div class="hr-menu">
-
-          <div class="hr-menu-label">
-            <span class="hr-menu-item-text">Contents</span>
-          </div>
-
-          <div class="hr-menu-separator"></div>
-
-          <div class="hr-menu-item link disabled">
-            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Source</span>
-          </div>
-
-        </div>
-
-        </div>
+</div>
 
         <div class="hr-border-zone">
 
@@ -2137,28 +1545,7 @@ def test_toc_no_labels():
         </div>
 
         <div class="hr-menu-zone">
-
-        <div class="hr-menu">
-
-          <div class="hr-menu-label">
-            <span class="hr-menu-item-text">Section 1</span>
-          </div>
-
-          <div class="hr-menu-separator"></div>
-
-          <div class="hr-menu-item link disabled">
-            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Source</span>
-          </div>
-
-        </div>
-
-        </div>
+</div>
 
         <div class="hr-border-zone">
 
@@ -2201,28 +1588,7 @@ def test_toc_no_labels():
         </div>
 
         <div class="hr-menu-zone">
-
-        <div class="hr-menu">
-
-          <div class="hr-menu-label">
-            <span class="hr-menu-item-text">Section 2</span>
-          </div>
-
-          <div class="hr-menu-separator"></div>
-
-          <div class="hr-menu-item link disabled">
-            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Source</span>
-          </div>
-
-        </div>
-
-        </div>
+</div>
 
         <div class="hr-border-zone">
 
@@ -2263,28 +1629,7 @@ def test_toc_no_labels():
         </div>
 
         <div class="hr-menu-zone">
-
-        <div class="hr-menu">
-
-          <div class="hr-menu-label">
-            <span class="hr-menu-item-text">Section 2.1</span>
-          </div>
-
-          <div class="hr-menu-separator"></div>
-
-          <div class="hr-menu-item link disabled">
-            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Source</span>
-          </div>
-
-        </div>
-
-        </div>
+</div>
 
         <div class="hr-border-zone">
 
@@ -2396,28 +1741,7 @@ def test_toc_with_labels():
         </div>
 
         <div class="hr-menu-zone">
-
-        <div class="hr-menu">
-
-          <div class="hr-menu-label">
-            <span class="hr-menu-item-text">Title</span>
-          </div>
-
-          <div class="hr-menu-separator"></div>
-
-          <div class="hr-menu-item link">
-            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Source</span>
-          </div>
-
-        </div>
-
-        </div>
+</div>
 
         <div class="hr-border-zone">
 
@@ -2458,28 +1782,7 @@ def test_toc_with_labels():
         </div>
 
         <div class="hr-menu-zone">
-
-        <div class="hr-menu">
-
-          <div class="hr-menu-label">
-            <span class="hr-menu-item-text">Abstract</span>
-          </div>
-
-          <div class="hr-menu-separator"></div>
-
-          <div class="hr-menu-item link disabled">
-            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Source</span>
-          </div>
-
-        </div>
-
-        </div>
+</div>
 
         <div class="hr-border-zone">
 
@@ -2514,28 +1817,7 @@ def test_toc_with_labels():
         </div>
 
         <div class="hr-menu-zone">
-
-        <div class="hr-menu">
-
-          <div class="hr-menu-label">
-            <span class="hr-menu-item-text">Paragraph</span>
-          </div>
-
-          <div class="hr-menu-separator"></div>
-
-          <div class="hr-menu-item link disabled">
-            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Source</span>
-          </div>
-
-        </div>
-
-        </div>
+</div>
 
         <div class="hr-border-zone">
 
@@ -2578,28 +1860,7 @@ def test_toc_with_labels():
         </div>
 
         <div class="hr-menu-zone">
-
-        <div class="hr-menu">
-
-          <div class="hr-menu-label">
-            <span class="hr-menu-item-text">Contents</span>
-          </div>
-
-          <div class="hr-menu-separator"></div>
-
-          <div class="hr-menu-item link disabled">
-            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Source</span>
-          </div>
-
-        </div>
-
-        </div>
+</div>
 
         <div class="hr-border-zone">
 
@@ -2695,28 +1956,7 @@ def test_toc_with_labels():
         </div>
 
         <div class="hr-menu-zone">
-
-        <div class="hr-menu">
-
-          <div class="hr-menu-label">
-            <span class="hr-menu-item-text">Section 1</span>
-          </div>
-
-          <div class="hr-menu-separator"></div>
-
-          <div class="hr-menu-item link">
-            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Source</span>
-          </div>
-
-        </div>
-
-        </div>
+</div>
 
         <div class="hr-border-zone">
 
@@ -2759,28 +1999,7 @@ def test_toc_with_labels():
         </div>
 
         <div class="hr-menu-zone">
-
-        <div class="hr-menu">
-
-          <div class="hr-menu-label">
-            <span class="hr-menu-item-text">Section 2</span>
-          </div>
-
-          <div class="hr-menu-separator"></div>
-
-          <div class="hr-menu-item link">
-            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Source</span>
-          </div>
-
-        </div>
-
-        </div>
+</div>
 
         <div class="hr-border-zone">
 
@@ -2821,28 +2040,7 @@ def test_toc_with_labels():
         </div>
 
         <div class="hr-menu-zone">
-
-        <div class="hr-menu">
-
-          <div class="hr-menu-label">
-            <span class="hr-menu-item-text">Section 2.1</span>
-          </div>
-
-          <div class="hr-menu-separator"></div>
-
-          <div class="hr-menu-item link">
-            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Source</span>
-          </div>
-
-        </div>
-
-        </div>
+</div>
 
         <div class="hr-border-zone">
 

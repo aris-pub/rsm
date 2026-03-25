@@ -3,44 +3,52 @@
 // Basic user interactions, mostly dealing with handrails and their menus.
 //
 
+let singletonMenu = null;
+let activeHr = null;
+
 export function setup() {
 
-  // Handrail menu: show and hide
-  document.querySelectorAll(".hr > .hr-menu-zone > .hr-menu").forEach(menu => {
-    menu.addEventListener("mouseleave", function () {
-      closeMenu(menu);
-    });
-  });
+  singletonMenu = document.getElementById("hr-menu-singleton");
+
+  // Dots click: populate singleton menu from handrail data attrs, show it
   document.querySelectorAll(".hr > .hr-border-zone > .hr-border-dots").forEach(dots => {
-    dots.addEventListener("click", function (ev) {
-      const siblings = Array.from(this.parentElement.parentElement.children);
-      const target = siblings.find(sibling => sibling.classList.contains("hr-menu-zone"));
-      if (target) { target.style.display = "block" };
+    dots.addEventListener("click", function () {
+      const hr = this.closest(".hr");
+      if (activeHr === hr) {
+        hideMenu();
+        return;
+      }
+      showMenuFor(hr);
     });
   });
 
-  // Handrail menu: link button
-  document.querySelectorAll(".hr > .hr-menu-zone > .hr-menu > .hr-menu-item.link:not(.disabled)").forEach(btn => {
-    btn.addEventListener("click", ev => copyLink(ev.target));
-  });
+  // Singleton menu item handlers
+  if (singletonMenu) {
+    const menu = singletonMenu.querySelector(".hr-menu");
+    menu.addEventListener("mouseleave", hideMenu);
 
-  // Handrail menu: source button
-  document.querySelectorAll(".hr > .hr-menu-zone > .hr-menu > .hr-menu-item:has(.icon.code):not(.disabled)").forEach(btn => {
-    btn.addEventListener("click", ev => showSource(ev.target));
-  });
+    const linkItem = singletonMenu.querySelector('[data-role="link"]');
+    if (linkItem) linkItem.addEventListener("click", () => { if (activeHr) copyLink(activeHr); });
 
-  // Handrail menu: collapse and collapse-all buttons
+    const codeItem = singletonMenu.querySelector('[data-role="code"]');
+    if (codeItem) codeItem.addEventListener("click", () => { if (activeHr) showSource(activeHr); });
+
+    const collapseItem = singletonMenu.querySelector('[data-role="collapse"]');
+    if (collapseItem) collapseItem.addEventListener("click", () => { if (activeHr) toggleHandrail(activeHr); });
+
+    const collapseAllItem = singletonMenu.querySelector('[data-role="collapse-all"]');
+    if (collapseAllItem) {
+      collapseAllItem.addEventListener("click", () => {
+        if (!activeHr) return;
+        const withinSubproof = activeHr.classList.contains("step");
+        collapseAll(activeHr, withinSubproof);
+      });
+    }
+  }
+
+  // Collapse zone click (this is separate from the menu — it's the left-side toggle)
   document.querySelectorAll(".hr > .hr-collapse-zone > .hr-collapse").forEach(btn => {
     btn.addEventListener("click", ev => toggleHandrail(ev.target));
-  });
-  document.querySelectorAll(".hr.step > .hr-menu-zone > .hr-menu > .hr-menu-item.collapse-subproof:not(.disabled)").forEach(btn => {
-    btn.addEventListener("click", ev => toggleHandrail(ev.target));
-  });
-  document.querySelectorAll(".hr.step > .hr-menu-zone > .hr-menu > .hr-menu-item.collapse-steps:not(.disabled)").forEach(btn => {
-    btn.addEventListener("click", ev => collapseAll(ev.target, true));
-  });
-  document.querySelectorAll(".hr.proof > .hr-menu-zone > .hr-menu > .hr-menu-item.collapse-steps:not(.disabled)").forEach(btn => {
-    btn.addEventListener("click", ev => collapseAll(ev.target, false));
   });
 
   // Set height of offset handrails' borders
@@ -50,23 +58,89 @@ export function setup() {
 }
 
 
-function closeMenu(menu) {
-  menu.parentElement.style.display = "none";
-  menu.querySelectorAll("& > .hr-menu-item").forEach(it => it.classList.remove("active"));
+function showMenuFor(hr) {
+  if (!singletonMenu) return;
+
+  activeHr = hr;
+  const label = hr.getAttribute("data-menu-label") || "";
+  const collapse = hr.getAttribute("data-menu-collapse");
+  const collapseAll = hr.getAttribute("data-menu-collapse-all");
+  const link = hr.getAttribute("data-menu-link");
+  const code = hr.getAttribute("data-menu-code");
+
+  // Configure label
+  const labelEl = singletonMenu.querySelector('[data-role="label"]');
+  const labelSep = singletonMenu.querySelector('[data-role="label-sep"]');
+  if (labelEl) {
+    labelEl.textContent = label;
+    labelEl.parentElement.style.display = label ? "" : "none";
+  }
+  if (labelSep) labelSep.style.display = label ? "" : "none";
+
+  // Configure collapse items
+  configureItem(singletonMenu.querySelector('[data-role="collapse"]'), collapse);
+  configureItem(singletonMenu.querySelector('[data-role="collapse-all"]'), collapseAll);
+
+  // Show/hide collapse separator based on whether any collapse item is visible
+  const collapseSep = singletonMenu.querySelector('[data-role="collapse-sep"]');
+  if (collapseSep) {
+    const anyCollapse = collapse || collapseAll;
+    collapseSep.style.display = anyCollapse ? "" : "none";
+  }
+
+  // Configure link and code items
+  configureItem(singletonMenu.querySelector('[data-role="link"]'), link);
+  configureItem(singletonMenu.querySelector('[data-role="code"]'), code);
+
+  // Move singleton into the handrail's menu zone
+  const zone = hr.querySelector(":scope > .hr-menu-zone");
+  if (zone) {
+    zone.appendChild(singletonMenu);
+    singletonMenu.style.display = "";
+    zone.style.display = "block";
+  }
+}
+
+
+function configureItem(el, value) {
+  if (!el) return;
+  if (!value) {
+    el.style.display = "none";
+    el.classList.remove("disabled");
+    return;
+  }
+  el.style.display = "";
+  if (value === "disabled") {
+    el.classList.add("disabled");
+  } else {
+    el.classList.remove("disabled");
+  }
+}
+
+
+function hideMenu() {
+  if (!singletonMenu) return;
+  singletonMenu.style.display = "none";
+  singletonMenu.querySelectorAll(".hr-menu-item").forEach(it => it.classList.remove("active"));
+  if (activeHr) {
+    const zone = activeHr.querySelector(":scope > .hr-menu-zone");
+    if (zone) zone.style.display = "";
+  }
+  activeHr = null;
 }
 
 
 function updateHeight(entries) {
   for (const entry of entries) {
     const hr = entry.target.parentElement;
-    const elementsToResize = hr.querySelectorAll('& > .hr-border-zone, & > .hr-spacer-zone, & > .hr-info-zone');
+    const elementsToResize = hr.querySelectorAll(':scope > .hr-border-zone, :scope > .hr-spacer-zone, :scope > .hr-info-zone');
     elementsToResize.forEach(el => { el.style.height = `${entry.contentRect.height}px`; })
   }
 };
 
 
 export function toggleHandrail(target) {
-  const hr = target.closest(".hr");
+  const hr = target.closest ? target.closest(".hr") : target;
   if (hr.classList.contains("hr-collapsed")) { openHandrail(hr) }
   else { closeHandrail(hr) };
 };
@@ -76,14 +150,12 @@ function openHandrail(hr) {
   hr.classList.remove("hr-collapsed");
   const rest = getRest(hr);
   rest.forEach(el => { el.classList.remove("hide"); });
-  const icon = hr.querySelector("& .icon.expand");
+  const icon = hr.querySelector(":scope > .hr-collapse-zone .icon.expand");
   if (!icon) return;
   icon.classList.remove("expand");
   icon.classList.add("collapse");
   const use = icon.querySelector("use");
   if (use) use.setAttribute("href", "#hr-icon-collapse");
-  const item_text = icon.nextElementSibling;
-  if (item_text && item_text.classList.contains("hr-menu-item-text")) { item_text.textContent = "Collapse" };
 }
 
 
@@ -91,23 +163,21 @@ function closeHandrail(hr) {
   hr.classList.add("hr-collapsed");
   const rest = getRest(hr);
   rest.forEach(el => { el.classList.add("hide"); });
-  const icon = hr.querySelector("& .icon.collapse");
+  const icon = hr.querySelector(":scope > .hr-collapse-zone .icon.collapse");
   if (!icon) return;
   icon.classList.remove("collapse");
   icon.classList.add("expand");
   const use = icon.querySelector("use");
   if (use) use.setAttribute("href", "#hr-icon-expand");
-  const item_text = icon.nextElementSibling;
-  if (item_text && item_text.classList.contains("hr-menu-item-text")) { item_text.textContent = "Expand" };
 }
 
 
 function getRest(hr) {
   let rest;
   if (hr.classList.contains("hr-labeled")) {
-    rest = hr.querySelectorAll("& > .hr-content-zone > :not(.hr-label)");
+    rest = hr.querySelectorAll(":scope > .hr-content-zone > :not(.hr-label)");
   } else if (hr.classList.contains("step")) {
-    rest = hr.querySelectorAll("& > .hr-content-zone > :not(.statement)");
+    rest = hr.querySelectorAll(":scope > .hr-content-zone > :not(.statement)");
   } else {
     rest = Array.from(hr.parentElement.children).filter(el => { return el !== hr });
   };
@@ -118,53 +188,48 @@ function getRest(hr) {
 export function collapseAll(target, withinSubproof = true) {
   let qry;
   if (withinSubproof) {
-    qry = "& > .hr-content-zone > .subproof > .hr-content-zone > .step:has(.subproof)";
+    qry = ":scope > .hr-content-zone > .subproof > .hr-content-zone > .step:has(.subproof)";
   } else {
-    qry = "& > .hr-content-zone > .step:has(.subproof)";
+    qry = ":scope > .hr-content-zone > .step:has(.subproof)";
   }
 
-  const hr = target.closest(".hr");
-  const ex_icon = hr.querySelector("& .icon.expand-all");
-  if (ex_icon) {
+  const hr = target.closest ? target.closest(".hr") : target;
+
+  // Check current state of the collapse-all icon in the singleton
+  const collapseAllItem = singletonMenu ? singletonMenu.querySelector('[data-role="collapse-all"]') : null;
+  const icon = collapseAllItem ? collapseAllItem.querySelector(".icon") : null;
+
+  if (icon && icon.classList.contains("expand-all")) {
     hr.querySelectorAll(qry).forEach(st => openHandrail(st));
-    ex_icon.classList.remove("expand-all");
-    ex_icon.classList.add("collapse-all");
-    const use1 = ex_icon.querySelector("use");
-    if (use1) use1.setAttribute("href", "#hr-icon-collapse-all");
-    const item_text = ex_icon.nextElementSibling;
-    if (item_text && item_text.classList.contains("hr-menu-item-text")) { item_text.textContent = "Collapse all" };
-    return;
-  }
-
-  const co_icon = hr.querySelector("& .icon.collapse-all");
-  if (co_icon) {
+    icon.classList.remove("expand-all");
+    icon.classList.add("collapse-all");
+    const use = icon.querySelector("use");
+    if (use) use.setAttribute("href", "#hr-icon-collapse-all");
+    const text = icon.nextElementSibling;
+    if (text) text.textContent = "Collapse all";
+  } else if (icon) {
     hr.querySelectorAll(qry).forEach(st => closeHandrail(st));
-    co_icon.classList.remove("collapse-all");
-    co_icon.classList.add("expand-all");
-    const use2 = co_icon.querySelector("use");
-    if (use2) use2.setAttribute("href", "#hr-icon-expand-all");
-    const item_text = co_icon.nextElementSibling;
-    if (item_text && item_text.classList.contains("hr-menu-item-text")) { item_text.textContent = "Expand all" };
-    return;
+    icon.classList.remove("collapse-all");
+    icon.classList.add("expand-all");
+    const use = icon.querySelector("use");
+    if (use) use.setAttribute("href", "#hr-icon-expand-all");
+    const text = icon.nextElementSibling;
+    if (text) text.textContent = "Expand all";
   }
-
 };
 
-async function copyLink(target) {
+async function copyLink(hr) {
   let url;
   try {
-    // If we're in an iframe and same-origin, use parent URL
     if (window.self !== window.parent) {
       url = window.parent.location.href.split('#')[0];
     } else {
       url = document.location.href.split('#')[0];
     }
   } catch (error) {
-    // Cross-origin iframe, fall back to iframe URL
     url = document.location.href.split('#')[0];
   }
 
-  const hr = target.closest(".hr")
   let needs_anchor = true;
   let anchor = "";
   let link = "";
@@ -237,8 +302,7 @@ function launchToast(text, style = "information") {
 };
 
 
-function showSource(target) {
-  const hr = target.closest(".hr");
+function showSource(hr) {
   const start = hr.getAttribute("data-source-start");
   const end = hr.getAttribute("data-source-end");
   const sourceDiv = document.querySelector(".rsm-source");
@@ -250,7 +314,6 @@ function showSource(target) {
 
   const source = sourceDiv.textContent.slice(parseInt(start), parseInt(end));
 
-  // Create modal
   const modal = document.createElement("div");
   modal.className = "rsm-source-modal";
   modal.innerHTML = `
@@ -278,7 +341,6 @@ function showSource(target) {
   document.body.appendChild(modal);
   modal.style.display = "block";
 
-  // Close button handlers
   const closeBtn = modal.querySelector(".close-modal");
   const copyBtn = modal.querySelector(".copy-source");
 
@@ -288,14 +350,12 @@ function showSource(target) {
 
   closeBtn.addEventListener("click", closeModal);
 
-  // Close on click outside
   modal.addEventListener("click", (ev) => {
     if (ev.target === modal) {
       closeModal();
     }
   });
 
-  // Close on ESC key
   const escHandler = (ev) => {
     if (ev.key === "Escape") {
       closeModal();
@@ -304,7 +364,6 @@ function showSource(target) {
   };
   document.addEventListener("keydown", escHandler);
 
-  // Copy button
   copyBtn.addEventListener("click", async () => {
     try {
       await navigator.clipboard.writeText(source);

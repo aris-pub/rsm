@@ -34,22 +34,7 @@ def test_single_author_with_handrails():
         </div>
 
         <div class="hr-menu-zone">
-
-        <div class="hr-menu">
-
-          <div class="hr-menu-item link disabled">
-            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Source</span>
-          </div>
-
-        </div>
-
-        </div>
+</div>
 
         <div class="hr-border-zone">
 
@@ -150,22 +135,7 @@ def test_six_authors_with_handrails():
         </div>
 
         <div class="hr-menu-zone">
-
-        <div class="hr-menu">
-
-          <div class="hr-menu-item link disabled">
-            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Source</span>
-          </div>
-
-        </div>
-
-        </div>
+</div>
 
         <div class="hr-border-zone">
 

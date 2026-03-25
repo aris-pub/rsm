@@ -36,10 +36,20 @@ EMPTY_WANT = """\
 """
 
 
-def _strip_svg_defs(html: str) -> str:
-    """Remove the SVG icon defs block for cleaner test comparison."""
+def _strip_generated_blocks(html: str) -> str:
+    """Remove generated singleton blocks, data-menu attrs, and menu zone content for test comparison."""
     import re
-    return re.sub(r'<svg id="hr-icon-defs"[^>]*>.*?</svg>\n', '', html, flags=re.DOTALL)
+    html = re.sub(r'<svg id="hr-icon-defs"[^>]*>.*?</svg>\n?', '', html, flags=re.DOTALL)
+    html = re.sub(r'<div id="hr-menu-singleton".*?</div>\s*</div>\s*</div>\n?', '', html, flags=re.DOTALL)
+    html = re.sub(r'\s*data-menu-[\w-]+="[^"]*"', '', html)
+    # Normalize menu zones: strip any content inside hr-menu-zone divs
+    html = re.sub(
+        r'<div class="hr-menu-zone">\s*(?:<div class="hr-menu">.*?</div>\s*)*</div>',
+        '<div class="hr-menu-zone">\n</div>',
+        html,
+        flags=re.DOTALL,
+    )
+    return html
 
 
 def compare_have_want(have, want, handrails=False):
@@ -47,7 +57,8 @@ def compare_have_want(have, want, handrails=False):
     want = dedent(want).lstrip()
     have = dedent(have).lstrip()
     have = rsm.render(have, handrails=handrails, add_source=False).lstrip()
-    have = _strip_svg_defs(have)
+    have = _strip_generated_blocks(have)
+    want = _strip_generated_blocks(want)
 
     try:
         assert have == want

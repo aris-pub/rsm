@@ -492,6 +492,7 @@ class AppendNodeTag(AppendOpenTag):
         is_selectable: bool = False,
         include_source: bool = False,
         manuscript_source: str = "",
+        extra_attrs: dict | None = None,
     ):
         self.node = node
         classes = [node.__class__.__name__.lower()] + [str(t) for t in node.classes]
@@ -499,6 +500,8 @@ class AppendNodeTag(AppendOpenTag):
 
         # Extract node source if requested
         kwargs = {"nodeid": node.nodeid}
+        if extra_attrs:
+            kwargs.update(extra_attrs)
         if isinstance(node, nodes.Html) and node.static:
             kwargs["data-static"] = str(node.static)
         if include_source and manuscript_source and hasattr(node.start_point, "row"):
@@ -1732,12 +1735,15 @@ class HandrailsTranslator(Translator):
         depth: int,
         classes: list[str] | None = None,
         node: nodes.Node | None = None,
+        extra_attrs: dict | None = None,
     ) -> EditCommand:
         classes = (classes or []) + ["hr"] + (["hr-offset"] if depth > 0 else [])
         classes = list(dict.fromkeys(classes))  # deletes duplicates AND preserves order
 
         # Add source data if node is provided
         kwargs = {}
+        if extra_attrs:
+            kwargs.update(extra_attrs)
         if (
             self.add_source
             and node
@@ -1815,6 +1821,28 @@ class HandrailsTranslator(Translator):
             classes=(["disabled"] if disabled else []), icon="code", text="Source"
         )
 
+    @staticmethod
+    def _menu_data_attrs(
+        label: str = "",
+        collapse: bool | Literal["disabled"] = False,
+        collapse_all: bool | Literal["disabled"] = False,
+        link: bool | Literal["disabled"] = True,
+        code: bool | Literal["disabled"] = True,
+    ) -> dict:
+        """Return data attributes encoding the menu configuration."""
+        attrs = {}
+        if label:
+            attrs["data-menu-label"] = label
+        if collapse:
+            attrs["data-menu-collapse"] = "disabled" if collapse == "disabled" else "true"
+        if collapse_all:
+            attrs["data-menu-collapse-all"] = "disabled" if collapse_all == "disabled" else "true"
+        if link:
+            attrs["data-menu-link"] = "disabled" if link == "disabled" else "true"
+        if code:
+            attrs["data-menu-code"] = "disabled" if code == "disabled" else "true"
+        return attrs
+
     def _hr_menu_zone(
         self,
         label: str = "",
@@ -1822,40 +1850,11 @@ class HandrailsTranslator(Translator):
         collapse_all: bool | Literal["disabled"] = False,
         link: bool | Literal["disabled"] = True,
         code: bool | Literal["disabled"] = True,
-    ) -> AppendOpenCloseTag:
-        start, end = '\n<div class="hr-menu">', "\n</div>\n"
-        middle = ""
-        if label:
-            middle = middle + "\n" + self._hr_menu_label(label) + self._hr_menu_sep()
-        if collapse:
-            middle = (
-                middle
-                + "\n"
-                + self._hr_menu_item_collapse(disabled=collapse == "disabled")
-            )
-        if collapse_all:
-            middle = (
-                middle
-                + "\n"
-                + self._hr_menu_item_collapse_all(disabled=collapse_all == "disabled")
-            )
-        if collapse or collapse_all:
-            middle = middle + self._hr_menu_sep()
-        if link:
-            middle = (
-                middle + "\n" + self._hr_menu_item_link(disabled=link == "disabled")
-            )
-        if code:
-            middle = (
-                middle + "\n" + self._hr_menu_item_code(disabled=code == "disabled")
-            )
-        if middle.startswith("\n"):
-            middle = middle[1:]
-        return AppendOpenCloseTag(
-            tag="div",
-            content="\n".join([start, middle, end]),
-            classes=["hr-menu-zone"],
-        )
+    ) -> tuple[AppendOpenCloseTag, dict]:
+        """Return an empty menu zone and data attributes for the singleton menu."""
+        attrs = self._menu_data_attrs(label, collapse, collapse_all, link, code)
+        zone = AppendOpenCloseTag(tag="div", content="", classes=["hr-menu-zone"])
+        return zone, attrs
 
     def _hr_menu_zone_empty(self) -> AppendOpenCloseTag:
         return AppendOpenCloseTag(tag="div", content="", classes=["hr-menu-zone"])
@@ -1930,6 +1929,7 @@ class HandrailsTranslator(Translator):
         node: nodes.NodeSubType,
         additional_classes: None | list[str] = None,
         is_selectable: bool = True,
+        extra_attrs: dict | None = None,
     ):
         classes = (
             (node.classes or [])
@@ -1945,6 +1945,7 @@ class HandrailsTranslator(Translator):
             is_selectable=is_selectable,
             include_source=self.add_source,
             manuscript_source=self.tree.src if self.tree else "",
+            extra_attrs=extra_attrs,
         )
 
     def _replace_node_with_handrails(
@@ -1957,17 +1958,18 @@ class HandrailsTranslator(Translator):
         collapse_in_menu: bool = False,
         collapse_all_in_menu: bool = False,
     ):
-        handrail = self._hr_from_node(node, additional_classes)
+        menu_zone, menu_attrs = self._hr_menu_zone(
+            label=menu_label or node.reftext,
+            collapse=collapse_in_menu,
+            collapse_all=collapse_all_in_menu,
+            link=(True if node.label else "disabled"),
+        )
+        handrail = self._hr_from_node(node, additional_classes, extra_attrs=menu_attrs)
         hr_content_zone = self._hr_content_zone(True)
         newitems = [
             handrail,
             self._hr_collapse_zone(collapse_in_hr),
-            self._hr_menu_zone(
-                label=menu_label or node.reftext,
-                collapse=collapse_in_menu,
-                collapse_all=collapse_all_in_menu,
-                link=(True if node.label else "disabled"),
-            ),
+            menu_zone,
             self._hr_border_zone(),
             self._hr_spacer_zone(),
             hr_content_zone,
@@ -1989,22 +1991,19 @@ class HandrailsTranslator(Translator):
         sub: nodes.Subproof | None = node.first_of_type(nodes.Subproof)
         link: bool | Literal["disabled"] = True if node.label else "disabled"
         if sub is None:
-            menu_zone = self._hr_menu_zone(
-                label=node.reftext,
-                collapse="disabled",
-                collapse_all="disabled",
-                link=link,
+            menu_zone, menu_attrs = self._hr_menu_zone(
+                label=node.reftext, collapse="disabled", collapse_all="disabled", link=link,
             )
         elif sub and sub.first_of_type(nodes.Step) is None:
-            menu_zone = self._hr_menu_zone(
-                label=node.reftext, collapse=True, collapse_all="disabled", link=link
+            menu_zone, menu_attrs = self._hr_menu_zone(
+                label=node.reftext, collapse=True, collapse_all="disabled", link=link,
             )
         else:
-            menu_zone = self._hr_menu_zone(
-                label=node.reftext, collapse=True, collapse_all=True, link=link
+            menu_zone, menu_attrs = self._hr_menu_zone(
+                label=node.reftext, collapse=True, collapse_all=True, link=link,
             )
         newitems = [
-            self._hr_from_node(node),
+            self._hr_from_node(node, extra_attrs=menu_attrs),
             self._hr_collapse_zone(False),
             menu_zone,
             self._hr_border_zone(),
@@ -2028,13 +2027,14 @@ class HandrailsTranslator(Translator):
         link: bool | Literal["disabled"] = True,
         node: nodes.Node | None = None,
     ):
-        handrail = self._hr(include_content, depth, classes, node=node)
+        menu_zone, menu_attrs = self._hr_menu_zone(label=menu_label, link=link)
+        handrail = self._hr(include_content, depth, classes, node=node, extra_attrs=menu_attrs)
         hr_content_zone = self._hr_content_zone(include_content)
 
         newitems = [
             handrail,
             self._hr_collapse_zone(collapse_in_hr),
-            self._hr_menu_zone(label=menu_label, link=link),
+            menu_zone,
             self._hr_border_zone(),
             self._hr_spacer_zone(),
             hr_content_zone,
@@ -2105,6 +2105,32 @@ class HandrailsTranslator(Translator):
             depth=depth,
             link=link,
         )
+
+    def _make_singleton_menu(self):
+        """Emit the single shared menu template with all possible items."""
+        html = '<div id="hr-menu-singleton" style="display:none">\n'
+        html += '<div class="hr-menu">\n'
+        html += f'  <div class="hr-menu-label"><span class="hr-menu-item-text" data-role="label"></span></div>\n'
+        html += '  <div class="hr-menu-separator" data-role="label-sep"></div>\n'
+        html += f'  <div class="hr-menu-item collapse-subproof" data-role="collapse">\n'
+        html += f'    {self._icon_ref("collapse")}\n'
+        html += '    <span class="hr-menu-item-text">Collapse</span>\n'
+        html += '  </div>\n'
+        html += f'  <div class="hr-menu-item collapse-steps" data-role="collapse-all">\n'
+        html += f'    {self._icon_ref("collapse-all")}\n'
+        html += '    <span class="hr-menu-item-text">Collapse all</span>\n'
+        html += '  </div>\n'
+        html += '  <div class="hr-menu-separator" data-role="collapse-sep"></div>\n'
+        html += f'  <div class="hr-menu-item link" data-role="link">\n'
+        html += f'    {self._icon_ref("link")}\n'
+        html += '    <span class="hr-menu-item-text">Copy link</span>\n'
+        html += '  </div>\n'
+        html += f'  <div class="hr-menu-item" data-role="code">\n'
+        html += f'    {self._icon_ref("code")}\n'
+        html += '    <span class="hr-menu-item-text">Source</span>\n'
+        html += '  </div>\n'
+        html += '</div>\n</div>'
+        return AppendText(text=html)
 
     def _make_source_div(self):
         return AppendText(text=f'<div class="rsm-source hide">{self.tree.src}</div>')
@@ -2192,6 +2218,7 @@ class HandrailsTranslator(Translator):
                 4, batch, classes=["heading"], menu_label="Title", link=True, node=node
             )
         batch.items.insert(2, self._make_svg_defs())
+        batch.items.insert(3, self._make_singleton_menu())
         if self.add_source:
             batch.items.insert(3, self._make_source_div())
         if False and (toc := node.first_of_type(nodes.Contents)):
@@ -2351,6 +2378,10 @@ class HandrailsTranslator(Translator):
         items = []
         if isinstance(parent, nodes.Table):
             items.append(AppendText("\n</table>\n"))
+        menu_zone, menu_attrs = self._hr_menu_zone(
+            label="Caption",
+            link=(True if node.label else "disabled"),
+        )
         items.extend(
             [
                 AppendOpenTag(
@@ -2358,12 +2389,10 @@ class HandrailsTranslator(Translator):
                     classes=figcaption_classes,
                     is_selectable=True,
                     tabindex=0,
+                    **menu_attrs,
                 ),
                 self._hr_collapse_zone(collapsible=False),
-                self._hr_menu_zone(
-                    label="Caption",
-                    link=(True if node.label else "disabled"),
-                ),
+                menu_zone,
                 self._hr_border_zone(),
                 self._hr_spacer_zone(),
                 AppendOpenTagManualClose("div", classes=["hr-content-zone"]),

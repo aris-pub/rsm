@@ -135,8 +135,8 @@ class HTMLBuilder(BaseBuilder):
               </svg>
             </button>
         """)
-        # Insert button right after <body> tag (using regex to handle attributes)
-        return re.sub(r'(<body[^>]*>)', rf'\1\n\n{button_html}', body)
+        # Insert button right after the first <body> tag only
+        return re.sub(r'(<body[^>]*>)', rf'\1\n\n{button_html}', body, count=1)
 
     def make_html_header(self) -> str:
         custom_css_link = ""

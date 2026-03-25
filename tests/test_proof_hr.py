@@ -34,28 +34,7 @@ def test_two_steps():
         </div>
 
         <div class="hr-menu-zone">
-
-        <div class="hr-menu">
-
-          <div class="hr-menu-label">
-            <span class="hr-menu-item-text">Title</span>
-          </div>
-
-          <div class="hr-menu-separator"></div>
-
-          <div class="hr-menu-item link">
-            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Source</span>
-          </div>
-
-        </div>
-
-        </div>
+</div>
 
         <div class="hr-border-zone">
 
@@ -94,35 +73,7 @@ def test_two_steps():
         </div>
 
         <div class="hr-menu-zone">
-
-        <div class="hr-menu">
-
-          <div class="hr-menu-label">
-            <span class="hr-menu-item-text">Proof</span>
-          </div>
-
-          <div class="hr-menu-separator"></div>
-
-          <div class="hr-menu-item collapse-steps">
-            <div class="icon collapse-all"><svg width="16" height="16"><use href="#hr-icon-collapse-all" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Collapse all</span>
-          </div>
-
-          <div class="hr-menu-separator"></div>
-
-          <div class="hr-menu-item link disabled">
-            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Source</span>
-          </div>
-
-        </div>
-
-        </div>
+</div>
 
         <div class="hr-border-zone">
 
@@ -153,40 +104,7 @@ def test_two_steps():
         </div>
 
         <div class="hr-menu-zone">
-
-        <div class="hr-menu">
-
-          <div class="hr-menu-label">
-            <span class="hr-menu-item-text">Step ⟨1⟩</span>
-          </div>
-
-          <div class="hr-menu-separator"></div>
-
-          <div class="hr-menu-item collapse-subproof disabled">
-            <div class="icon collapse"><svg width="16" height="16"><use href="#hr-icon-collapse" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Collapse</span>
-          </div>
-
-          <div class="hr-menu-item collapse-steps disabled">
-            <div class="icon collapse-all"><svg width="16" height="16"><use href="#hr-icon-collapse-all" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Collapse all</span>
-          </div>
-
-          <div class="hr-menu-separator"></div>
-
-          <div class="hr-menu-item link disabled">
-            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Source</span>
-          </div>
-
-        </div>
-
-        </div>
+</div>
 
         <div class="hr-border-zone">
 
@@ -213,28 +131,7 @@ def test_two_steps():
         </div>
 
         <div class="hr-menu-zone">
-
-        <div class="hr-menu">
-
-          <div class="hr-menu-label">
-            <span class="hr-menu-item-text">Paragraph</span>
-          </div>
-
-          <div class="hr-menu-separator"></div>
-
-          <div class="hr-menu-item link disabled">
-            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Source</span>
-          </div>
-
-        </div>
-
-        </div>
+</div>
 
         <div class="hr-border-zone">
 
@@ -279,40 +176,7 @@ def test_two_steps():
         </div>
 
         <div class="hr-menu-zone">
-
-        <div class="hr-menu">
-
-          <div class="hr-menu-label">
-            <span class="hr-menu-item-text">Step ⟨2⟩</span>
-          </div>
-
-          <div class="hr-menu-separator"></div>
-
-          <div class="hr-menu-item collapse-subproof disabled">
-            <div class="icon collapse"><svg width="16" height="16"><use href="#hr-icon-collapse" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Collapse</span>
-          </div>
-
-          <div class="hr-menu-item collapse-steps disabled">
-            <div class="icon collapse-all"><svg width="16" height="16"><use href="#hr-icon-collapse-all" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Collapse all</span>
-          </div>
-
-          <div class="hr-menu-separator"></div>
-
-          <div class="hr-menu-item link disabled">
-            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Source</span>
-          </div>
-
-        </div>
-
-        </div>
+</div>
 
         <div class="hr-border-zone">
 
@@ -339,28 +203,7 @@ def test_two_steps():
         </div>
 
         <div class="hr-menu-zone">
-
-        <div class="hr-menu">
-
-          <div class="hr-menu-label">
-            <span class="hr-menu-item-text">Paragraph</span>
-          </div>
-
-          <div class="hr-menu-separator"></div>
-
-          <div class="hr-menu-item link disabled">
-            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Source</span>
-          </div>
-
-        </div>
-
-        </div>
+</div>
 
         <div class="hr-border-zone">
 
@@ -455,28 +298,7 @@ def test_sub_step():
         </div>
 
         <div class="hr-menu-zone">
-
-        <div class="hr-menu">
-
-          <div class="hr-menu-label">
-            <span class="hr-menu-item-text">Title</span>
-          </div>
-
-          <div class="hr-menu-separator"></div>
-
-          <div class="hr-menu-item link">
-            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Source</span>
-          </div>
-
-        </div>
-
-        </div>
+</div>
 
         <div class="hr-border-zone">
 
@@ -515,35 +337,7 @@ def test_sub_step():
         </div>
 
         <div class="hr-menu-zone">
-
-        <div class="hr-menu">
-
-          <div class="hr-menu-label">
-            <span class="hr-menu-item-text">Proof</span>
-          </div>
-
-          <div class="hr-menu-separator"></div>
-
-          <div class="hr-menu-item collapse-steps">
-            <div class="icon collapse-all"><svg width="16" height="16"><use href="#hr-icon-collapse-all" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Collapse all</span>
-          </div>
-
-          <div class="hr-menu-separator"></div>
-
-          <div class="hr-menu-item link disabled">
-            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Source</span>
-          </div>
-
-        </div>
-
-        </div>
+</div>
 
         <div class="hr-border-zone">
 
@@ -574,40 +368,7 @@ def test_sub_step():
         </div>
 
         <div class="hr-menu-zone">
-
-        <div class="hr-menu">
-
-          <div class="hr-menu-label">
-            <span class="hr-menu-item-text">Step ⟨1⟩</span>
-          </div>
-
-          <div class="hr-menu-separator"></div>
-
-          <div class="hr-menu-item collapse-subproof">
-            <div class="icon collapse"><svg width="16" height="16"><use href="#hr-icon-collapse" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Collapse</span>
-          </div>
-
-          <div class="hr-menu-item collapse-steps">
-            <div class="icon collapse-all"><svg width="16" height="16"><use href="#hr-icon-collapse-all" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Collapse all</span>
-          </div>
-
-          <div class="hr-menu-separator"></div>
-
-          <div class="hr-menu-item link disabled">
-            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Source</span>
-          </div>
-
-        </div>
-
-        </div>
+</div>
 
         <div class="hr-border-zone">
 
@@ -634,28 +395,7 @@ def test_sub_step():
         </div>
 
         <div class="hr-menu-zone">
-
-        <div class="hr-menu">
-
-          <div class="hr-menu-label">
-            <span class="hr-menu-item-text">Paragraph</span>
-          </div>
-
-          <div class="hr-menu-separator"></div>
-
-          <div class="hr-menu-item link disabled">
-            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Source</span>
-          </div>
-
-        </div>
-
-        </div>
+</div>
 
         <div class="hr-border-zone">
 
@@ -712,40 +452,7 @@ def test_sub_step():
         </div>
 
         <div class="hr-menu-zone">
-
-        <div class="hr-menu">
-
-          <div class="hr-menu-label">
-            <span class="hr-menu-item-text">Step ⟨1.1⟩</span>
-          </div>
-
-          <div class="hr-menu-separator"></div>
-
-          <div class="hr-menu-item collapse-subproof">
-            <div class="icon collapse"><svg width="16" height="16"><use href="#hr-icon-collapse" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Collapse</span>
-          </div>
-
-          <div class="hr-menu-item collapse-steps disabled">
-            <div class="icon collapse-all"><svg width="16" height="16"><use href="#hr-icon-collapse-all" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Collapse all</span>
-          </div>
-
-          <div class="hr-menu-separator"></div>
-
-          <div class="hr-menu-item link disabled">
-            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Source</span>
-          </div>
-
-        </div>
-
-        </div>
+</div>
 
         <div class="hr-border-zone">
 
@@ -772,28 +479,7 @@ def test_sub_step():
         </div>
 
         <div class="hr-menu-zone">
-
-        <div class="hr-menu">
-
-          <div class="hr-menu-label">
-            <span class="hr-menu-item-text">Paragraph</span>
-          </div>
-
-          <div class="hr-menu-separator"></div>
-
-          <div class="hr-menu-item link disabled">
-            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Source</span>
-          </div>
-
-        </div>
-
-        </div>
+</div>
 
         <div class="hr-border-zone">
 
@@ -850,28 +536,7 @@ def test_sub_step():
         </div>
 
         <div class="hr-menu-zone">
-
-        <div class="hr-menu">
-
-          <div class="hr-menu-label">
-            <span class="hr-menu-item-text">Paragraph</span>
-          </div>
-
-          <div class="hr-menu-separator"></div>
-
-          <div class="hr-menu-item link disabled">
-            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Source</span>
-          </div>
-
-        </div>
-
-        </div>
+</div>
 
         <div class="hr-border-zone">
 
@@ -979,28 +644,7 @@ def test_theorem():
         </div>
 
         <div class="hr-menu-zone">
-
-        <div class="hr-menu">
-
-          <div class="hr-menu-label">
-            <span class="hr-menu-item-text">Theorem 1</span>
-          </div>
-
-          <div class="hr-menu-separator"></div>
-
-          <div class="hr-menu-item link disabled">
-            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Source</span>
-          </div>
-
-        </div>
-
-        </div>
+</div>
 
         <div class="hr-border-zone">
 
@@ -1031,28 +675,7 @@ def test_theorem():
         </div>
 
         <div class="hr-menu-zone">
-
-        <div class="hr-menu">
-
-          <div class="hr-menu-label">
-            <span class="hr-menu-item-text">Paragraph</span>
-          </div>
-
-          <div class="hr-menu-separator"></div>
-
-          <div class="hr-menu-item link disabled">
-            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Source</span>
-          </div>
-
-        </div>
-
-        </div>
+</div>
 
         <div class="hr-border-zone">
 
@@ -1130,28 +753,7 @@ def test_proof():
         </div>
 
         <div class="hr-menu-zone">
-
-        <div class="hr-menu">
-
-          <div class="hr-menu-label">
-            <span class="hr-menu-item-text">Title</span>
-          </div>
-
-          <div class="hr-menu-separator"></div>
-
-          <div class="hr-menu-item link">
-            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Source</span>
-          </div>
-
-        </div>
-
-        </div>
+</div>
 
         <div class="hr-border-zone">
 
@@ -1190,35 +792,7 @@ def test_proof():
         </div>
 
         <div class="hr-menu-zone">
-
-        <div class="hr-menu">
-
-          <div class="hr-menu-label">
-            <span class="hr-menu-item-text">Proof</span>
-          </div>
-
-          <div class="hr-menu-separator"></div>
-
-          <div class="hr-menu-item collapse-steps">
-            <div class="icon collapse-all"><svg width="16" height="16"><use href="#hr-icon-collapse-all" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Collapse all</span>
-          </div>
-
-          <div class="hr-menu-separator"></div>
-
-          <div class="hr-menu-item link disabled">
-            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Source</span>
-          </div>
-
-        </div>
-
-        </div>
+</div>
 
         <div class="hr-border-zone">
 
@@ -1249,40 +823,7 @@ def test_proof():
         </div>
 
         <div class="hr-menu-zone">
-
-        <div class="hr-menu">
-
-          <div class="hr-menu-label">
-            <span class="hr-menu-item-text">Step ⟨1⟩</span>
-          </div>
-
-          <div class="hr-menu-separator"></div>
-
-          <div class="hr-menu-item collapse-subproof disabled">
-            <div class="icon collapse"><svg width="16" height="16"><use href="#hr-icon-collapse" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Collapse</span>
-          </div>
-
-          <div class="hr-menu-item collapse-steps disabled">
-            <div class="icon collapse-all"><svg width="16" height="16"><use href="#hr-icon-collapse-all" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Collapse all</span>
-          </div>
-
-          <div class="hr-menu-separator"></div>
-
-          <div class="hr-menu-item link disabled">
-            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Source</span>
-          </div>
-
-        </div>
-
-        </div>
+</div>
 
         <div class="hr-border-zone">
 
@@ -1309,28 +850,7 @@ def test_proof():
         </div>
 
         <div class="hr-menu-zone">
-
-        <div class="hr-menu">
-
-          <div class="hr-menu-label">
-            <span class="hr-menu-item-text">Paragraph</span>
-          </div>
-
-          <div class="hr-menu-separator"></div>
-
-          <div class="hr-menu-item link disabled">
-            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Source</span>
-          </div>
-
-        </div>
-
-        </div>
+</div>
 
         <div class="hr-border-zone">
 
@@ -1420,28 +940,7 @@ def test_proof_with_sketch():
         </div>
 
         <div class="hr-menu-zone">
-
-        <div class="hr-menu">
-
-          <div class="hr-menu-label">
-            <span class="hr-menu-item-text">Title</span>
-          </div>
-
-          <div class="hr-menu-separator"></div>
-
-          <div class="hr-menu-item link">
-            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Source</span>
-          </div>
-
-        </div>
-
-        </div>
+</div>
 
         <div class="hr-border-zone">
 
@@ -1480,28 +979,7 @@ def test_proof_with_sketch():
         </div>
 
         <div class="hr-menu-zone">
-
-        <div class="hr-menu">
-
-          <div class="hr-menu-label">
-            <span class="hr-menu-item-text">Sketch</span>
-          </div>
-
-          <div class="hr-menu-separator"></div>
-
-          <div class="hr-menu-item link disabled">
-            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Source</span>
-          </div>
-
-        </div>
-
-        </div>
+</div>
 
         <div class="hr-border-zone">
 
@@ -1532,28 +1010,7 @@ def test_proof_with_sketch():
         </div>
 
         <div class="hr-menu-zone">
-
-        <div class="hr-menu">
-
-          <div class="hr-menu-label">
-            <span class="hr-menu-item-text">Paragraph</span>
-          </div>
-
-          <div class="hr-menu-separator"></div>
-
-          <div class="hr-menu-item link disabled">
-            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Source</span>
-          </div>
-
-        </div>
-
-        </div>
+</div>
 
         <div class="hr-border-zone">
 
@@ -1600,35 +1057,7 @@ def test_proof_with_sketch():
         </div>
 
         <div class="hr-menu-zone">
-
-        <div class="hr-menu">
-
-          <div class="hr-menu-label">
-            <span class="hr-menu-item-text">Proof</span>
-          </div>
-
-          <div class="hr-menu-separator"></div>
-
-          <div class="hr-menu-item collapse-steps">
-            <div class="icon collapse-all"><svg width="16" height="16"><use href="#hr-icon-collapse-all" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Collapse all</span>
-          </div>
-
-          <div class="hr-menu-separator"></div>
-
-          <div class="hr-menu-item link disabled">
-            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Source</span>
-          </div>
-
-        </div>
-
-        </div>
+</div>
 
         <div class="hr-border-zone">
 
@@ -1659,40 +1088,7 @@ def test_proof_with_sketch():
         </div>
 
         <div class="hr-menu-zone">
-
-        <div class="hr-menu">
-
-          <div class="hr-menu-label">
-            <span class="hr-menu-item-text">Step ⟨1⟩</span>
-          </div>
-
-          <div class="hr-menu-separator"></div>
-
-          <div class="hr-menu-item collapse-subproof disabled">
-            <div class="icon collapse"><svg width="16" height="16"><use href="#hr-icon-collapse" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Collapse</span>
-          </div>
-
-          <div class="hr-menu-item collapse-steps disabled">
-            <div class="icon collapse-all"><svg width="16" height="16"><use href="#hr-icon-collapse-all" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Collapse all</span>
-          </div>
-
-          <div class="hr-menu-separator"></div>
-
-          <div class="hr-menu-item link disabled">
-            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Source</span>
-          </div>
-
-        </div>
-
-        </div>
+</div>
 
         <div class="hr-border-zone">
 
@@ -1719,28 +1115,7 @@ def test_proof_with_sketch():
         </div>
 
         <div class="hr-menu-zone">
-
-        <div class="hr-menu">
-
-          <div class="hr-menu-label">
-            <span class="hr-menu-item-text">Paragraph</span>
-          </div>
-
-          <div class="hr-menu-separator"></div>
-
-          <div class="hr-menu-item link disabled">
-            <div class="icon link"><svg width="16" height="16"><use href="#hr-icon-link" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Copy link</span>
-          </div>
-
-          <div class="hr-menu-item">
-            <div class="icon code"><svg width="16" height="16"><use href="#hr-icon-code" width="16" height="16"/></svg></div>
-            <span class="hr-menu-item-text">Source</span>
-          </div>
-
-        </div>
-
-        </div>
+</div>
 
         <div class="hr-border-zone">
 
