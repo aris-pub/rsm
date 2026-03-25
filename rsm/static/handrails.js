@@ -5,56 +5,69 @@
 
 let singletonMenu = null;
 let activeHr = null;
+let delegationAttached = false;
 
 export function setup() {
 
-  singletonMenu = document.getElementById("hr-menu-singleton");
+  // Event delegation: attach once to document, works across Vue re-renders.
+  if (delegationAttached) return;
+  delegationAttached = true;
 
-  // Dots click: populate singleton menu from handrail data attrs, show it
-  document.querySelectorAll(".hr > .hr-border-zone > .hr-border-dots").forEach(dots => {
-    dots.addEventListener("click", function () {
-      const hr = this.closest(".hr");
+  // Dots click → show singleton menu
+  document.addEventListener("click", function (ev) {
+    const dots = ev.target.closest(".hr-border-dots");
+    if (dots && dots.closest(".hr")) {
+      const hr = dots.closest(".hr");
       if (activeHr === hr) {
         hideMenu();
-        return;
+      } else {
+        singletonMenu = document.getElementById("hr-menu-singleton");
+        showMenuFor(hr);
       }
-      showMenuFor(hr);
-    });
-  });
+      return;
+    }
 
-  // Singleton menu item handlers
-  if (singletonMenu) {
-    const menu = singletonMenu.querySelector(".hr-menu");
-    menu.addEventListener("mouseleave", hideMenu);
-
-    const linkItem = singletonMenu.querySelector('[data-role="link"]');
-    if (linkItem) linkItem.addEventListener("click", () => { if (activeHr) copyLink(activeHr); });
-
-    const codeItem = singletonMenu.querySelector('[data-role="code"]');
-    if (codeItem) codeItem.addEventListener("click", () => { if (activeHr) showSource(activeHr); });
-
-    const collapseItem = singletonMenu.querySelector('[data-role="collapse"]');
-    if (collapseItem) collapseItem.addEventListener("click", () => { if (activeHr) toggleHandrail(activeHr); });
-
-    const collapseAllItem = singletonMenu.querySelector('[data-role="collapse-all"]');
-    if (collapseAllItem) {
-      collapseAllItem.addEventListener("click", () => {
-        if (!activeHr) return;
+    // Menu item clicks (delegated on singleton)
+    const menuItem = ev.target.closest("[data-role]");
+    if (menuItem && menuItem.closest("#hr-menu-singleton")) {
+      const role = menuItem.getAttribute("data-role");
+      if (menuItem.classList.contains("disabled")) return;
+      if (!activeHr) return;
+      if (role === "link") copyLink(activeHr);
+      else if (role === "code") showSource(activeHr);
+      else if (role === "collapse") toggleHandrail(activeHr);
+      else if (role === "collapse-all") {
         const withinSubproof = activeHr.classList.contains("step");
         collapseAll(activeHr, withinSubproof);
-      });
+      }
+      return;
     }
-  }
 
-  // Collapse zone click (this is separate from the menu — it's the left-side toggle)
-  document.querySelectorAll(".hr > .hr-collapse-zone > .hr-collapse").forEach(btn => {
-    btn.addEventListener("click", ev => toggleHandrail(ev.target));
+    // Collapse zone click (left-side toggle)
+    const collapseBtn = ev.target.closest(".hr-collapse");
+    if (collapseBtn && collapseBtn.closest(".hr-collapse-zone")) {
+      toggleHandrail(ev.target);
+      return;
+    }
   });
 
-  // Set height of offset handrails' borders
-  const resizeObserver = new ResizeObserver(updateHeight);
-  document.querySelectorAll('.hr.hr-offset > .hr-content-zone').forEach(el => resizeObserver.observe(el));
+  // Mouse leave on singleton menu → hide
+  document.addEventListener("mouseleave", function (ev) {
+    if (ev.target.closest && ev.target.closest(".hr-menu") && ev.target.closest("#hr-menu-singleton")) {
+      hideMenu();
+    }
+  }, true);
 
+  // Set height of offset handrails' borders — re-observed on every call
+  observeOffsetHandrails();
+
+}
+
+const resizeObserver = new ResizeObserver(updateHeight);
+
+export function observeOffsetHandrails() {
+  resizeObserver.disconnect();
+  document.querySelectorAll('.hr.hr-offset > .hr-content-zone').forEach(el => resizeObserver.observe(el));
 }
 
 

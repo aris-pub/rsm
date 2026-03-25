@@ -110,6 +110,13 @@ export async function onrender(root = null) {
       console.error("Pseudocode render FAILED!", err);
     }
 
+    // Re-observe offset handrails after DOM replacement
+    try {
+      handrails.observeOffsetHandrails();
+    } catch (err) {
+      console.error("Re-observing offset handrails FAILED!", err);
+    }
+
     // Tooltipster - already idempotent with :not(.tooltipstered) selector
     try {
       tooltips.createTooltips();
