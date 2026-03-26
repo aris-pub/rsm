@@ -715,10 +715,11 @@ class Translator:
             classname = self.node.__class__.__name__
             return f'Action(node={classname}(), action="{self.action}")'
 
-    def __init__(self, quiet: bool = False, asset_resolver=None, standalone: bool = False):
+    def __init__(self, quiet: bool = False, asset_resolver=None, standalone: bool = False, add_source: bool = False):
         self.tree: nodes.Manuscript = None
         self.body: str = ""
         self.standalone = standalone
+        self.add_source = add_source
         # Default to disk-based asset resolver if none provided
         if asset_resolver is None:
             from .asset_resolver import AssetResolverFromDisk
@@ -727,6 +728,16 @@ class Translator:
         self.asset_resolver = asset_resolver
         self.deferred: list[EditCommand] = []
         self.quiet = quiet
+
+    def _node_tag(self, node, tag="div", **kwargs):
+        """Create an AppendNodeTag with source offsets if add_source is enabled."""
+        return AppendNodeTag(
+            node,
+            tag,
+            include_source=self.add_source,
+            manuscript_source=getattr(self.tree, "src", "") or "",
+            **kwargs,
+        )
 
     @staticmethod
     def _icon_ref(name: str) -> str:
@@ -1064,7 +1075,7 @@ class Translator:
             node.classes.append("math-preamble")
         return AppendBatchAndDefer(
             [
-                AppendNodeTag(node, "span", newline_inner=False, newline_outer=False),
+                self._node_tag(node, "span", newline_inner=False, newline_outer=False),
                 AppendTextAndDefer(r"\(", r"\)"),
             ]
         )
@@ -1131,7 +1142,7 @@ class Translator:
         )
 
     def visit_code(self, node: nodes.Code) -> EditCommand:
-        return AppendNodeTag(node, tag="span", newline_inner=False, newline_outer=False)
+        return self._node_tag(node, tag="span", newline_inner=False, newline_outer=False)
 
     def visit_codeblock(self, node: nodes.CodeBlock) -> EditCommand:
         items = []
@@ -1180,15 +1191,13 @@ class Translator:
         ]
         return AppendBatchAndDefer(
             [
-                AppendNodeTag(
-                    node, tag="span", newline_inner=False, newline_outer=False
-                ),
+                self._node_tag(node, tag="span", newline_inner=False, newline_outer=False),
                 *commands,
             ]
         )
 
     def visit_construct(self, node: nodes.Construct) -> EditCommand:
-        return AppendNodeTag(node, tag="span", newline_inner=False, newline_outer=False)
+        return self._node_tag(node, tag="span", newline_inner=False, newline_outer=False)
 
     def _make_ahref_tag_text(
         self,
@@ -1717,8 +1726,7 @@ class HandrailsTranslator(Translator):
         asset_resolver=None,
         standalone: bool = False,
     ):
-        super().__init__(quiet, asset_resolver, standalone)
-        self.add_source = add_source
+        super().__init__(quiet, asset_resolver, standalone, add_source=add_source)
 
     @staticmethod
     def _make_option_tag(name: str, svg: str) -> AppendOpenCloseTag:
