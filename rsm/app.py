@@ -681,7 +681,14 @@ class PandocExportApp(ParserApp):
         # For LaTeX output, remove Pandoc's hidelinks (braiid.sty sets its own link colors)
         if self._to_format == "latex":
             import re as _re
+            import shutil as _shutil
             result = _re.sub(r'^\s*hidelinks,?\s*\n', '', result, flags=_re.MULTILINE)
+            # Copy braiid.sty next to the output so lualatex/pdflatex can find it
+            if self._output:
+                sty_src = Path(__file__).parent.parent / "braiid" / "braiid.sty"
+                sty_dst = Path(self._output).parent / "braiid.sty"
+                if sty_src.exists() and sty_src.resolve() != sty_dst.resolve():
+                    _shutil.copy2(sty_src, sty_dst)
 
         # For Typst output, prepend the braiid template and clean up
         if self._to_format == "typst" and self._output is None:
