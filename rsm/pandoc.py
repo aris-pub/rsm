@@ -290,7 +290,8 @@ class PandocTranslator:
 
     def _block_toc(self, node) -> list[dict]:
         return [
-            {"t": "RawBlock", "c": ["latex", "\\tableofcontents\\newpage"]},
+            {"t": "RawBlock", "c": ["latex",
+                "{\\hypersetup{linkcolor=braiid-gray-900}\\tableofcontents}\\newpage"]},
             {"t": "RawBlock", "c": ["typst",
                 '#{\n'
                 '  show outline: it => {\n'
