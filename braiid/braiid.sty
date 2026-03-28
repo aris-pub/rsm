@@ -59,12 +59,10 @@
 % ── Body text (braiid.typ: 11pt, leading 0.65em, justify, no indent) ──────
 \renewcommand{\normalsize}{\fontsize{11pt}{14.3pt}\selectfont}  % 11pt × 1.3 leading
 \normalsize
-% Set body text color globally — redefine 'black' so environments that reset to
-% black actually reset to gray-900.
-\AtBeginDocument{%
-  \color{braiid-gray-900}%
-  \colorlet{black}{braiid-gray-900}%
-}
+% Set body text color globally. Redefine 'black' before document starts so
+% every package that resets to black uses gray-900 instead.
+\colorlet{black}{braiid-gray-900}
+\AtBeginDocument{\color{braiid-gray-900}}
 \setlength{\parindent}{0pt}
 \setlength{\parskip}{6pt plus 2pt minus 1pt}
 
