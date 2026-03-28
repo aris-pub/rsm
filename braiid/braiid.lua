@@ -21,26 +21,31 @@ local fmt = FORMAT
 
 function Div(el)
   for _, cls in ipairs(el.classes) do
-    if cls == "proof" then
+    if cls == "proof" or cls == "sketch" then
+      local proof_name = cls == "sketch" and "Proof sketch" or nil
       if fmt:match("latex") then
-        return {pandoc.RawBlock("latex", "\\begin{proof}")}
+        local opt = proof_name and ("[" .. proof_name .. "]") or ""
+        return {pandoc.RawBlock("latex", "\\begin{proof}" .. opt)}
           .. el.content
           .. {pandoc.RawBlock("latex", "\\end{proof}")}
       elseif fmt:match("typst") then
+        local label = proof_name or "Proof"
         return {pandoc.RawBlock("typst",
-          '#block(spacing: 1.2em)[')}
+          '#block(spacing: 1.2em)[#emph[#strong[' .. label .. '.]]')}
           .. el.content
           .. {pandoc.RawBlock("typst",
           '#v(-0.8em)\n#align(right, box(width: 6pt, height: 6pt, fill: rgb("#0361A1")))\n]')}
       end
     end
     if theorem_envs[cls] then
+      local title = el.attributes and el.attributes["title"] or nil
       if fmt:match("latex") then
         local label = ""
         if el.identifier and el.identifier ~= "" then
           label = "\\label{" .. el.identifier .. "}"
         end
-        return {pandoc.RawBlock("latex", "\\begin{" .. cls .. "}" .. label)}
+        local opt = title and ("[" .. title .. "]") or ""
+        return {pandoc.RawBlock("latex", "\\begin{" .. cls .. "}" .. opt .. label)}
           .. el.content
           .. {pandoc.RawBlock("latex", "\\end{" .. cls .. "}")}
       elseif fmt:match("typst") then
@@ -48,8 +53,11 @@ function Div(el)
         if el.identifier and el.identifier ~= "" then
           anchor = " <" .. el.identifier .. ">"
         end
+        -- Build label line: "Definition 2.1: Title." handled by braiid.typ
+        local heading = cls:sub(1,1):upper() .. cls:sub(2)
+        if title then heading = heading .. ": " .. title end
         return {pandoc.RawBlock("typst",
-          '#block(stroke: (left: 1.5pt + rgb("#D1D5DB")), inset: (top: 6pt, bottom: 6pt), outset: (left: 14pt), width: 100%)[')}
+          '#block(stroke: (left: 1.5pt + rgb("#D1D5DB")), inset: (top: 6pt, bottom: 6pt), outset: (left: 14pt), width: 100%)[#block(sticky: true)[#strong[' .. heading .. ']]')}
           .. el.content
           .. {pandoc.RawBlock("typst", "]" .. anchor)}
       end

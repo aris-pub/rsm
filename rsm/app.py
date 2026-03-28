@@ -605,8 +605,6 @@ class _PandocRunner:
             cmd += [f"--lua-filter={lua_filter}"]
         if self.to_format == "latex":
             cmd += ["-V", "header-includes=\\usepackage{braiid}"]
-        if self.output:
-            cmd += ["-o", self.output]
         try:
             proc = subprocess.run(
                 cmd, input=json_str, capture_output=True, text=True, check=True
@@ -680,6 +678,11 @@ class PandocExportApp(ParserApp):
         pandoc_ast = pandoc_module.PandocTranslator().translate(manuscript)
         result = _PandocRunner(self._to_format, self._output).run(pandoc_ast)
 
+        # For LaTeX output, remove Pandoc's hidelinks (braiid.sty sets its own link colors)
+        if self._to_format == "latex":
+            import re as _re
+            result = _re.sub(r'^\s*hidelinks,?\s*\n', '', result, flags=_re.MULTILINE)
+
         # For Typst output, prepend the braiid template and clean up
         if self._to_format == "typst" and self._output is None:
             # Clean up Pandoc Typst output artifacts
@@ -728,6 +731,9 @@ class PandocExportApp(ParserApp):
             )
 
             result = _inject_braiid_typst(result, manuscript)
+
+        if self._output:
+            Path(self._output).write_text(result)
 
         return result
 

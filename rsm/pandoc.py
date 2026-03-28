@@ -55,16 +55,29 @@ class PandocTranslator:
         meta: dict = {}
         if node.title:
             meta["title"] = {"t": "MetaInlines", "c": [{"t": "Str", "c": node.title}]}
-        authors = [c for c in node.children if isinstance(c, nodes.Author)]
+        authors = [n for n in node.traverse() if isinstance(n, nodes.Author)]
         if authors:
-            meta["author"] = {
-                "t": "MetaList",
-                "c": [
-                    {"t": "MetaInlines", "c": [{"t": "Str", "c": a.name}]}
-                    for a in authors
-                    if a.name
-                ],
-            }
+            author_entries = []
+            for a in authors:
+                if not a.name:
+                    continue
+                inlines: list[dict] = [{"t": "Str", "c": a.name}]
+                if getattr(a, "affiliation", None):
+                    inlines += [{"t": "Str", "c": f" — {a.affiliation}"}]
+                if getattr(a, "email", None):
+                    inlines += [
+                        {"t": "Str", "c": " — "},
+                        {"t": "Link", "c": [["", [], []], [{"t": "Str", "c": a.email}], [f"mailto:{a.email}", ""]]},
+                    ]
+                author_entries.append({"t": "MetaInlines", "c": inlines})
+            if author_entries:
+                meta["author"] = {"t": "MetaList", "c": author_entries}
+        abstract_node = next(
+            (n for n in node.traverse() if isinstance(n, nodes.Abstract)), None
+        )
+        if abstract_node:
+            abs_blocks = self._walk_children_as_blocks(abstract_node)
+            meta["abstract"] = {"t": "MetaBlocks", "c": abs_blocks}
         if node.date:
             date_str = (
                 node.date.date().isoformat()
@@ -161,26 +174,14 @@ class PandocTranslator:
         return []
 
     def _block_section(self, node: nodes.Section) -> list[dict]:
-        level = node.__class__.level
+        level = max(1, node.__class__.level - 1)
         anchor = node.label or ""
         title_inlines = [{"t": "Str", "c": node.title}] if node.title else []
         header = {"t": "Header", "c": [level, [anchor, [], []], title_inlines]}
         return [header] + self._walk_children_as_blocks(node)
 
     def _block_abstract(self, node: nodes.Abstract) -> list[dict]:
-        # Emit Abstract label as raw Typst for tighter spacing control
-        header = {"t": "RawBlock", "c": ["typst",
-            '#v(0.3em)\n'
-            '#text(font: ("Montserrat", "Source Sans 3", "Source Sans Pro", "Noto Sans"), size: 16.5pt, weight: "medium", fill: rgb("#0C456E"))[Abstract]\n'
-            '#v(-0.3em)'
-        ]}
-        inner = self._walk_children_as_blocks(node)
-        result = [header] + inner
-        if node.keywords:
-            kw_text = "Keywords: " + ", ".join(node.keywords)
-            result.append({"t": "Para", "c": [{"t": "Str", "c": kw_text}]})
-        # TOC is handled by _block_toc when :toc: is in the source
-        return result
+        return []
 
     def _block_paragraph(self, node: nodes.Paragraph) -> list[dict]:
         # Emit label if the paragraph has one
@@ -256,26 +257,17 @@ class PandocTranslator:
 
     def _block_theorem(self, node: nodes.Theorem) -> list[dict]:
         classname = type(node).__name__.lower()
-        num = node.full_number
-        num_str = f" {num}" if num else ""
-        title_str = f": {node.title}" if node.title else "."
-        label_text = f"{type(node).__name__}{num_str}{title_str}"
-        label_para = {
-            "t": "Para",
-            "c": [{"t": "Strong", "c": [{"t": "Str", "c": label_text}]}],
-        }
         anchor = node.label or ""
+        kvs = []
+        if node.title:
+            kvs.append(["title", node.title])
         inner = self._walk_children_as_blocks(node)
-        return [{"t": "Div", "c": [[anchor, [classname, "theorem"], []], [label_para] + inner]}]
+        return [{"t": "Div", "c": [[anchor, [classname, "theorem"], kvs], inner]}]
 
     def _block_proof(self, node: nodes.Proof) -> list[dict]:
-        label = "Proof sketch." if isinstance(node, nodes.Sketch) else "Proof."
-        label_para = {
-            "t": "Para",
-            "c": [{"t": "Emph", "c": [{"t": "Str", "c": label}]}],
-        }
+        cls = "sketch" if isinstance(node, nodes.Sketch) else "proof"
         inner = self._walk_children_as_blocks(node)
-        return [{"t": "Div", "c": [["", ["proof"], []], [label_para] + inner]}]
+        return [{"t": "Div", "c": [["", [cls], []], inner]}]
 
     def _block_figure(self, node: nodes.Figure) -> list[dict]:
         # Use :static: path for non-web export when available
@@ -297,18 +289,21 @@ class PandocTranslator:
         }]
 
     def _block_toc(self, node) -> list[dict]:
-        return [{"t": "RawBlock", "c": ["typst",
-            '#{\n'
-            '  show outline: it => {\n'
-            '    v(0.2em)\n'
-            '    text(font: ("Montserrat", "Source Sans 3", "Source Sans Pro", "Noto Sans"), size: 16.5pt, weight: "medium", fill: rgb("#0C456E"))[Contents]\n'
-            '    v(0.2em)\n'
-            '    it\n'
-            '  }\n'
-            '  outline(indent: auto, depth: 3, title: none)\n'
-            '}\n'
-            '#v(0.5em)'
-        ]}]
+        return [
+            {"t": "RawBlock", "c": ["latex", "\\tableofcontents\\newpage"]},
+            {"t": "RawBlock", "c": ["typst",
+                '#{\n'
+                '  show outline: it => {\n'
+                '    v(0.2em)\n'
+                '    text(font: ("Montserrat", "Source Sans 3", "Source Sans Pro", "Noto Sans"), size: 16.5pt, weight: "medium", fill: rgb("#0C456E"))[Contents]\n'
+                '    v(0.2em)\n'
+                '    it\n'
+                '  }\n'
+                '  outline(indent: auto, depth: 3, title: none)\n'
+                '}\n'
+                '#v(0.5em)'
+            ]},
+        ]
 
     def _block_asset_placeholder(self, node: nodes.Node) -> list[dict]:
         # If a :static: fallback image exists, render it as a figure
@@ -326,7 +321,7 @@ class PandocTranslator:
     def _block_bibliography(self, node: nodes.Bibliography) -> list[dict]:
         header = {
             "t": "Header",
-            "c": [2, ["references", [], []], [{"t": "Str", "c": "References"}]],
+            "c": [1, ["references", [], []], [{"t": "Str", "c": "References"}]],
         }
         items = [
             [self._format_bibitem(child)]
@@ -363,8 +358,8 @@ class PandocTranslator:
         if link_url:
             inlines.append({"t": "Space"})
             inlines.append({"t": "Link", "c": [["", [], []], [{"t": "Str", "c": link_url}], [link_url, ""]]})
-        # Append label at end of text so it labels the paragraph, not the list
         if anchor:
+            inlines.insert(0, {"t": "Span", "c": [[anchor, [], []], []]})
             inlines.append({"t": "RawInline", "c": ["typst", f" <{anchor}>"]})
         return {"t": "Para", "c": inlines}
 

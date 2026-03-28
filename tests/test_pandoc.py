@@ -76,8 +76,8 @@ def test_section_header():
     )
     headers = [b for b in blocks if b["t"] == "Header"]
     assert headers
-    # Section.level == 2, so pandoc Header level == 2
-    assert headers[0]["c"][0] == 2
+    # Section.level == 2, shifted to pandoc Header level 1
+    assert headers[0]["c"][0] == 1
     title_inlines = headers[0]["c"][2]
     # Title includes section number from RSM AST
     title_text = title_inlines[0]["c"] if title_inlines else ""
@@ -112,8 +112,8 @@ def test_subsection_level():
     )
     headers = [b for b in blocks if b["t"] == "Header"]
     levels = [h["c"][0] for h in headers]
-    assert 2 in levels  # Section
-    assert 3 in levels  # Subsection
+    assert 1 in levels  # Section (RSM level 2 → Pandoc level 1)
+    assert 2 in levels  # Subsection (RSM level 3 → Pandoc level 2)
 
 
 def test_plain_paragraph():
@@ -297,10 +297,6 @@ def test_theorem_emits_div():
     div = divs[0]
     classes = div["c"][0][1]
     assert "theorem" in classes
-    # Bold label paragraph inside
-    import json
-    full = json.dumps(div)
-    assert "Theorem" in full
 
 
 def test_theorem_div_has_label():
@@ -323,7 +319,27 @@ def test_theorem_div_has_label():
     assert anchor == "thm-main"
 
 
-def test_definition_emits_div():
+def test_theorem_div_no_baked_label():
+    """Theorem Divs must NOT contain a baked-in label paragraph — amsthm handles numbering."""
+    blocks = _blocks(
+        """
+        # Doc
+
+        ## Sec
+
+        :theorem:
+          Statement.
+        ::
+        """
+    )
+    divs = [b for b in blocks if b["t"] == "Div"]
+    assert divs
+    import json
+    full = json.dumps(divs[0])
+    assert "Theorem 1" not in full
+
+
+def test_definition_emits_div_with_title_attr():
     blocks = _blocks(
         """
         # Doc
@@ -341,9 +357,9 @@ def test_definition_emits_div():
     assert divs
     classes = divs[0]["c"][0][1]
     assert "definition" in classes
-    import json
-    full = json.dumps(divs[0])
-    assert "My definition" in full
+    # Title should be in key-value attributes, not in body text
+    attrs = dict(divs[0]["c"][0][2])
+    assert attrs.get("title") == "My definition"
 
 
 def test_proof_emits_div():
@@ -362,9 +378,6 @@ def test_proof_emits_div():
     assert divs
     classes = divs[0]["c"][0][1]
     assert "proof" in classes
-    import json
-    full = json.dumps(divs[0])
-    assert "Proof." in full
 
 
 def test_bibliography_header():
