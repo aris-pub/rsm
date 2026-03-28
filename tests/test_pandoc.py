@@ -637,6 +637,99 @@ def test_roundtrip_ordered_list():
     assert "Two" in markdown_out
 
 
+def test_abstract_in_meta():
+    """Abstract content should appear in Pandoc meta, not as body blocks."""
+    ast = _translate(
+        """
+        # Doc
+
+        :abstract:
+          This is the abstract.
+        ::
+        """
+    )
+    assert "abstract" in ast["meta"]
+    # Abstract should NOT appear in body blocks
+    import json
+    body = json.dumps(ast["blocks"])
+    assert "This is the abstract" not in body
+
+
+def test_author_with_email_in_meta():
+    """Author meta should include email when present."""
+    ast = _translate(
+        """
+        # Doc
+
+        :author: {
+          :name: Jane Doe
+          :email: jane@example.com
+        } ::
+        """
+    )
+    assert "author" in ast["meta"]
+    import json
+    author_text = json.dumps(ast["meta"]["author"])
+    assert "Jane Doe" in author_text
+    assert "jane@example.com" in author_text
+
+
+def test_toc_emits_latex_tableofcontents():
+    """TOC should emit a LaTeX raw block with \\tableofcontents."""
+    blocks = _blocks(
+        """
+        # Doc
+
+        :abstract:
+          Abstract text.
+        ::
+
+        :toc:
+
+        ## Intro
+        """
+    )
+    import json
+    full = json.dumps(blocks)
+    assert "tableofcontents" in full
+
+
+def test_bibliography_anchor_has_span():
+    """Bibliography items should have a Span with anchor id for LaTeX hypertarget."""
+    blocks = _blocks(
+        """
+        # Doc
+
+        :references:
+        @article{smith2024,
+          title={A paper},
+          author={Smith, John},
+          year={2024},
+        }
+        ::
+        """
+    )
+    import json
+    full = json.dumps(blocks)
+    assert "ref-smith2024" in full
+    assert '"Span"' in full
+
+
+@_PANDOC_SKIP
+def test_latex_export_no_hidelinks():
+    """LaTeX export must not contain hidelinks."""
+    latex = pandoc_export(source="# Doc\n\nHello.", to_format="latex")
+    assert "hidelinks" not in latex
+
+
+@_PANDOC_SKIP
+def test_latex_export_copies_braiid_sty(tmp_path):
+    """LaTeX export should copy braiid.sty next to the output file."""
+    out = tmp_path / "test.tex"
+    pandoc_export(source="# Doc\n\nHello.", to_format="latex", output=str(out))
+    assert (tmp_path / "braiid.sty").exists()
+
+
 def test_mathblock_with_align_emits_rawblock():
     """Math blocks containing \\begin{align} must emit a RawBlock, not DisplayMath."""
     blocks = _blocks(
