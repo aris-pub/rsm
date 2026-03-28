@@ -280,8 +280,7 @@ def test_figure_static_path():
     assert image["c"][2][0] == "img/foo.pdf"
 
 
-def test_theorem_has_border():
-    import json
+def test_theorem_emits_div():
     blocks = _blocks(
         """
         # Doc
@@ -293,16 +292,61 @@ def test_theorem_has_border():
         ::
         """
     )
-    full = json.dumps(blocks)
-    # Theorem should have a raw Typst block with left border styling
-    assert "RawBlock" in full
-    assert "stroke" in full or "7DCDFC" in full
-    # Bold title
+    divs = [b for b in blocks if b["t"] == "Div"]
+    assert divs
+    div = divs[0]
+    classes = div["c"][0][1]
+    assert "theorem" in classes
+    # Bold label paragraph inside
+    import json
+    full = json.dumps(div)
     assert "Theorem" in full
 
 
-def test_proof_has_halmos():
+def test_theorem_div_has_label():
+    blocks = _blocks(
+        """
+        # Doc
+
+        ## Sec
+
+        :theorem: {
+          :label: thm-main
+        }
+          Statement.
+        ::
+        """
+    )
+    divs = [b for b in blocks if b["t"] == "Div"]
+    assert divs
+    anchor = divs[0]["c"][0][0]
+    assert anchor == "thm-main"
+
+
+def test_definition_emits_div():
+    blocks = _blocks(
+        """
+        # Doc
+
+        ## Sec
+
+        :definition: {
+          :title: My definition
+        }
+          A thing is a thing.
+        ::
+        """
+    )
+    divs = [b for b in blocks if b["t"] == "Div"]
+    assert divs
+    classes = divs[0]["c"][0][1]
+    assert "definition" in classes
     import json
+    full = json.dumps(divs[0])
+    assert "My definition" in full
+
+
+def test_proof_emits_div():
     blocks = _blocks(
         """
         # Doc
@@ -314,10 +358,13 @@ def test_proof_has_halmos():
         ::
         """
     )
-    full = json.dumps(blocks)
-    # Proof should have italic label and Halmos square
+    divs = [b for b in blocks if b["t"] == "Div"]
+    assert divs
+    classes = divs[0]["c"][0][1]
+    assert "proof" in classes
+    import json
+    full = json.dumps(divs[0])
     assert "Proof." in full
-    assert "0361A1" in full  # Halmos square color (braiid blue-700)
 
 
 def test_bibliography_header():
@@ -596,6 +643,30 @@ def test_mathblock_with_align_emits_rawblock():
     content = raw_blocks[0]["c"][1]
     assert r"\begin{align}" in content
     assert r"\end{align}" in content
+
+
+@_PANDOC_SKIP
+def test_latex_export_theorem_environments():
+    """LaTeX export must wrap theorem/definition/proof in proper environments."""
+    latex = pandoc_export(
+        source="# Doc\n\n## Sec\n\n:theorem:\n  Statement.\n::\n\n:proof:\n  By magic.\n::\n",
+        to_format="latex",
+    )
+    assert "\\begin{theorem}" in latex
+    assert "\\end{theorem}" in latex
+    assert "\\begin{proof}" in latex
+    assert "\\end{proof}" in latex
+
+
+@_PANDOC_SKIP
+def test_latex_export_definition_environment():
+    """LaTeX export must wrap definitions in \\begin{definition}."""
+    latex = pandoc_export(
+        source="# Doc\n\n## Sec\n\n:definition:{:title: Foo}\n  A foo is a foo.\n::\n",
+        to_format="latex",
+    )
+    assert "\\begin{definition}" in latex
+    assert "\\end{definition}" in latex
 
 
 @_PANDOC_SKIP

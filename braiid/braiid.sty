@@ -1,0 +1,24 @@
+% braiid.sty — LaTeX theorem environments for RSM documents.
+%
+% Defines theorem-like environments matching RSM's semantic classes.
+% Used alongside braiid.lua (Pandoc Lua filter).
+
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{braiid}[2026/03/28 Braiid theorem environments for RSM]
+
+\RequirePackage{amsthm}
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
+\newtheorem{exercise}[theorem]{Exercise}
+\newtheorem{problem}[theorem]{Problem}
+\newtheorem{porism}[theorem]{Porism}
+
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
