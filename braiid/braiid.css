@@ -1649,6 +1649,11 @@ a.reference.external:hover::after {
   display: none;
 }
 
+/* Dark mode asset variants */
+.dark-only { display: none; }
+.dark-theme .dark-only { display: revert; }
+.dark-theme .light-only { display: none; }
+
 /* Accessibility: Disable transitions and animations when user prefers reduced motion */
 @media (prefers-reduced-motion: reduce) {
   *,

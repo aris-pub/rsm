@@ -163,9 +163,7 @@ class PandocTranslator:
     def _block_section(self, node: nodes.Section) -> list[dict]:
         level = node.__class__.level
         anchor = node.label or ""
-        num = node.full_number
-        prefix = f"{num}. " if num and not node.nonum else ""
-        title_inlines = [{"t": "Str", "c": f"{prefix}{node.title}"}] if node.title else []
+        title_inlines = [{"t": "Str", "c": node.title}] if node.title else []
         header = {"t": "Header", "c": [level, [anchor, [], []], title_inlines]}
         return [header] + self._walk_children_as_blocks(node)
 
@@ -206,14 +204,21 @@ class PandocTranslator:
             result.append({"t": "Para", "c": current_inlines})
         return result
 
+    _LATEX_ENVS = {"align", "align*", "gather", "gather*", "multline", "multline*",
+                   "flalign", "flalign*", "alignat", "alignat*", "split"}
+
     def _block_mathblock(self, node: nodes.MathBlock) -> list[dict]:
         src = self._extract_math_source(node)
         num = node.full_number
         label = node.label or ""
         label_raw = [{"t": "RawBlock", "c": ["typst", f'<{label}>']}] if label and " " not in label else []
+
+        stripped = src.strip()
+        has_env = any(stripped.startswith(rf"\begin{{{env}}}") for env in self._LATEX_ENVS)
+        if has_env:
+            return label_raw + [{"t": "RawBlock", "c": ["latex", stripped]}]
+
         if num and not node.nonum:
-            # Use Pandoc DisplayMath for LaTeX→Typst conversion, then add
-            # the equation number as a right-aligned annotation after the math
             math_block = {"t": "Para", "c": [{"t": "Math", "c": [{"t": "DisplayMath"}, src]}]}
             num_block = {"t": "RawBlock", "c": ["typst",
                 f'#v(-2.2em)\n#align(right, text(fill: rgb("#0361A1"))[({num})])\n#v(0.5em)'

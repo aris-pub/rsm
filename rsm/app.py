@@ -598,7 +598,7 @@ class _PandocRunner:
 
     def run(self, pandoc_ast: dict) -> str:
         json_str = json.dumps(pandoc_ast)
-        cmd = ["pandoc", "--from=json", f"--to={self.to_format}"]
+        cmd = ["pandoc", "--from=json", f"--to={self.to_format}", "--standalone"]
         if self.output:
             cmd += ["-o", self.output]
         try:

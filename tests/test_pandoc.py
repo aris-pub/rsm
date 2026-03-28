@@ -84,6 +84,22 @@ def test_section_header():
     assert "Introduction" in title_text
 
 
+def test_section_header_no_number_prefix():
+    """Section titles must not include a baked-in number prefix like '1. '."""
+    blocks = _blocks(
+        """
+        # Doc
+
+        ## Introduction
+        """
+    )
+    headers = [b for b in blocks if b["t"] == "Header"]
+    assert headers
+    title_inlines = headers[0]["c"][2]
+    title_text = title_inlines[0]["c"] if title_inlines else ""
+    assert title_text == "Introduction"
+
+
 def test_subsection_level():
     blocks = _blocks(
         """
@@ -559,6 +575,36 @@ def test_roundtrip_ordered_list():
     markdown_out = pandoc_export(source=rsm_text, to_format="markdown")
     assert "One" in markdown_out
     assert "Two" in markdown_out
+
+
+def test_mathblock_with_align_emits_rawblock():
+    """Math blocks containing \\begin{align} must emit a RawBlock, not DisplayMath."""
+    blocks = _blocks(
+        r"""
+        # Doc
+
+        $$
+        \begin{align}
+        a &= b \\
+        c &= d
+        \end{align}
+        $$
+        """
+    )
+    raw_blocks = [b for b in blocks if b["t"] == "RawBlock" and b["c"][0] == "latex"]
+    assert raw_blocks
+    content = raw_blocks[0]["c"][1]
+    assert r"\begin{align}" in content
+    assert r"\end{align}" in content
+
+
+@_PANDOC_SKIP
+def test_latex_export_is_standalone():
+    """LaTeX export must include documentclass and begin/end document."""
+    latex = pandoc_export(source="# Doc\n\nHello.", to_format="latex")
+    assert "\\documentclass" in latex
+    assert "\\begin{document}" in latex
+    assert "\\end{document}" in latex
 
 
 class TestCaptionFormat:

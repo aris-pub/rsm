@@ -117,9 +117,12 @@ var RSM = (() => {
       }
     }
     if (window.temml) {
-      element.querySelectorAll("span.math").forEach((el) => {
+      const BATCH = 30;
+      const inlines = element.querySelectorAll("span.math");
+      for (let i = 0; i < inlines.length; i++) {
+        const el = inlines[i];
         const src = el.textContent;
-        if (!src.startsWith("\\(") || !src.endsWith("\\)")) return;
+        if (!src.startsWith("\\(") || !src.endsWith("\\)")) continue;
         const latex = src.slice(2, -2);
         el.dataset.latex = latex;
         try {
@@ -127,11 +130,16 @@ var RSM = (() => {
         } catch (err) {
           console.error("temml inline error:", err);
         }
-      });
-      element.querySelectorAll("div.mathblock").forEach((el) => {
+        if ((i + 1) % BATCH === 0 && i + 1 < inlines.length) {
+          await new Promise((r) => requestAnimationFrame(r));
+        }
+      }
+      const displays = element.querySelectorAll("div.mathblock");
+      for (let i = 0; i < displays.length; i++) {
+        const el = displays[i];
         const contentEl = el.querySelector(".hr-content-zone") || el;
         const src = contentEl.textContent.trim();
-        if (!src.startsWith("$$") || !src.endsWith("$$")) return;
+        if (!src.startsWith("$$") || !src.endsWith("$$")) continue;
         const latex = src.slice(2, -2).trim();
         el.dataset.latex = latex;
         try {
@@ -139,7 +147,10 @@ var RSM = (() => {
         } catch (err) {
           console.error("temml display error:", err);
         }
-      });
+        if ((i + 1) % BATCH === 0 && i + 1 < displays.length) {
+          await new Promise((r) => requestAnimationFrame(r));
+        }
+      }
       return;
     }
     if (!window.MathJax?.typesetPromise) {
@@ -964,9 +975,11 @@ var RSM = (() => {
               content = clone.html();
               break;
             case Array.from(classes).filter((cls) => ["math", "algorithm"].includes(cls)).length > 0:
-              content = $(target).html();
+              clone = $(target).clone();
+              stripHandrail(clone);
+              content = clone.html();
               break;
-            case Array.from(classes).filter((cls) => ["paragraph", "mathblock", "theorem", "proposition", "remark", "bibitem"].includes(cls)).length > 0:
+            case Array.from(classes).filter((cls) => ["paragraph", "mathblock", "theorem", "lemma", "corollary", "example", "exercise", "proposition", "problem", "porism", "remark", "definition", "bibitem"].includes(cls)).length > 0:
               clone = $(target).clone();
               stripHandrail(clone);
               content = $(clone).html();
