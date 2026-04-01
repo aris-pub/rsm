@@ -915,7 +915,7 @@ def test_bibliography():
     )
 
 
-def test_inline_math_followed_by_dot():
+def test_inline_math_followed_by_punctuation():
     compare_have_want_handrails(
         have="""
         # title
@@ -925,6 +925,12 @@ def test_inline_math_followed_by_dot():
         two $2+2=4$ baz.
 
         three $2+2=4$. Another sentence.
+
+        four $H_k$, the maximal.
+
+        five $x$; then.
+
+        six $y$) end.
         """,
         want=r"""
         <body data-accent="blue" data-lang="en" data-typography="sans-serif">
@@ -1072,6 +1078,114 @@ def test_inline_math_followed_by_dot():
 
         <p>three <span class="inline-math-wrapper">
         <span class="math" data-nodeid="13">\(2+2=4\)</span><span>.</span></span> Another sentence.</p>
+
+        </div>
+
+        <div class="hr-info-zone">
+        <div class="hr-info"></div>
+        </div>
+
+        </div>
+
+        <div class="paragraph hr hr-hidden" tabindex=0 data-nodeid="16">
+
+        <div class="hr-collapse-zone">
+        <div class="hr-spacer"></div>
+        </div>
+
+        <div class="hr-menu-zone">
+</div>
+
+        <div class="hr-border-zone">
+
+                        <div class="hr-border-dots">
+                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
+                        </div>
+                        <div class="hr-border-rect">
+                        </div>
+
+        </div>
+
+        <div class="hr-spacer-zone">
+        <div class="hr-spacer"></div>
+        </div>
+
+        <div class="hr-content-zone">
+
+        <p>four <span class="inline-math-wrapper">
+        <span class="math" data-nodeid="18">\(H_k\)</span><span>,</span></span> the maximal.</p>
+
+        </div>
+
+        <div class="hr-info-zone">
+        <div class="hr-info"></div>
+        </div>
+
+        </div>
+
+        <div class="paragraph hr hr-hidden" tabindex=0 data-nodeid="21">
+
+        <div class="hr-collapse-zone">
+        <div class="hr-spacer"></div>
+        </div>
+
+        <div class="hr-menu-zone">
+</div>
+
+        <div class="hr-border-zone">
+
+                        <div class="hr-border-dots">
+                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
+                        </div>
+                        <div class="hr-border-rect">
+                        </div>
+
+        </div>
+
+        <div class="hr-spacer-zone">
+        <div class="hr-spacer"></div>
+        </div>
+
+        <div class="hr-content-zone">
+
+        <p>five <span class="inline-math-wrapper">
+        <span class="math" data-nodeid="23">\(x\)</span><span>;</span></span> then.</p>
+
+        </div>
+
+        <div class="hr-info-zone">
+        <div class="hr-info"></div>
+        </div>
+
+        </div>
+
+        <div class="paragraph hr hr-hidden" tabindex=0 data-nodeid="26">
+
+        <div class="hr-collapse-zone">
+        <div class="hr-spacer"></div>
+        </div>
+
+        <div class="hr-menu-zone">
+</div>
+
+        <div class="hr-border-zone">
+
+                        <div class="hr-border-dots">
+                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
+                        </div>
+                        <div class="hr-border-rect">
+                        </div>
+
+        </div>
+
+        <div class="hr-spacer-zone">
+        <div class="hr-spacer"></div>
+        </div>
+
+        <div class="hr-content-zone">
+
+        <p>six <span class="inline-math-wrapper">
+        <span class="math" data-nodeid="28">\(y\)</span><span>)</span></span> end.</p>
 
         </div>
 

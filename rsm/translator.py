@@ -2509,20 +2509,19 @@ class HandrailsTranslator(Translator):
         batch = AppendBatch(batch.items)
         return batch
 
+    _TRAILING_PUNCT = set(".,;:!?)]}\"'")
+
     def visit_math(self, node: nodes.Math) -> EditCommand:
         batch = super().visit_math(node)
         sib = node.next_sibling()
         if not isinstance(sib, nodes.Text):
             return batch
-        if not sib.text.startswith("."):
+        if not sib.text or sib.text[0] not in self._TRAILING_PUNCT:
             return batch
 
-        # We reach this branch only if the Math node is immediately followed by Text
-        # that starts with a dot "."; in this case, the math and the dot may be
-        # separated if the browser's viewport is too narrow, which looks ugly.  The only
-        # way to fix it is to wrap the math and the dot in a span, and remove the dot
-        # from the subsequent text.  The span is then dealt with using CSS.
-        node._followed_by_dot = True
+        # Wrap the math and the trailing punctuation character in a span so the
+        # browser cannot break the line between them.
+        node._trailing_punct = sib.text[0]
         batch.items.insert(
             0,
             AppendOpenTagManualClose(
@@ -2536,9 +2535,11 @@ class HandrailsTranslator(Translator):
 
     def leave_math(self, node: nodes.Math) -> EditCommand:
         batch = self.leave_node(node)
-        if not getattr(node, "_followed_by_dot", False):
+        punct = getattr(node, "_trailing_punct", None)
+        if not punct:
             return batch
-        batch.items.extend([AppendText("<span>.</span>"), AppendText("</span>")])
+        escaped = punct.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+        batch.items.extend([AppendText(f"<span>{escaped}</span>"), AppendText("</span>")])
         return batch
 
     def visit_mathblock(self, node: nodes.MathBlock) -> EditCommand:
