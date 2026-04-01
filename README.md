@@ -4,6 +4,7 @@
 [![docs](https://readthedocs.org/projects/rsm-lang/badge/?version=latest)](https://rsm-lang.readthedocs.io/en/latest/?badge=latest)
 
 The web-first authoring software for scientific manuscripts.
+Part of [Aris: the open research stack](https://aris.pub).
 
 RSM is a suite of tools that aims to change the way scientific manuscripts are published
 and shared using modern web technology. Currently, most scientific publications are made
