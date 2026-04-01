@@ -10,7 +10,6 @@
 import * as libs from './libraries.js';
 import * as handrails from './handrails.js';
 import * as keyboard from './keyboard.js';
-import * as minimap from './minimap.js';
 import * as tooltips from './tooltips.js';
 
 export async function onload(root = null, { keys = true } = {}) {
@@ -57,13 +56,6 @@ export async function onload(root = null, { keys = true } = {}) {
       }
     } catch (err) {
       console.error("Loading keyboard.js FAILED!", err);
-    }
-
-    // Minimap - set up event listeners once
-    try {
-      minimap.setup();
-    } catch (err) {
-      console.error("Loading minimap.js FAILED!", err);
     }
 
     window.__rsmInitialized = true;
