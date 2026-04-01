@@ -64,6 +64,6 @@ function withinView(el, top = true) {
 
 
 function highlightMinimap(percent, name) {
-  document.getElementById(`stop-follow-${name}-1`).setAttribute("offset", `${percent}%`);
-  document.getElementById(`stop-follow-${name}-2`).setAttribute("offset", `${percent}%`);
+  document.getElementById(`stop-follow-${name}-1`)?.setAttribute("offset", `${percent}%`);
+  document.getElementById(`stop-follow-${name}-2`)?.setAttribute("offset", `${percent}%`);
 }
