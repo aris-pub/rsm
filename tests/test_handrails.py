@@ -2196,3 +2196,93 @@ def _removed_test_toc_with_labels():
         </body>
         """,
     )
+
+
+
+def test_reference_followed_by_punctuation():
+    """References followed by punctuation should be wrapped to prevent line breaks."""
+    from conftest import compare_have_want
+    compare_have_want(
+        have="""
+        # Test
+
+        :theorem: {:label: thm-one}
+          First.
+        ::
+
+        one :ref:thm-one::.
+
+        two :ref:thm-one:: baz.
+
+        three :ref:thm-one::. Another.
+
+        four :ref:thm-one::, more.
+
+        five (:ref:thm-one::).
+        """,
+        want="""
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
+
+        <main class="manuscriptwrapper">
+
+        <div class="manuscript" data-nodeid="0">
+
+        <section class="level-1">
+
+        <h1>Test</h1>
+
+        <div id="thm-one" class="theorem" data-nodeid="1">
+
+        <div class="paragraph hr-label">
+
+        <p><span class="span label">Theorem 1.</span></p>
+
+        </div>
+
+        <div class="paragraph" data-nodeid="2">
+
+        <p>First.</p>
+
+        </div>
+
+        </div>
+
+        <div class="paragraph" data-nodeid="4">
+
+        <p>one <span class="inline-ref-wrapper"><a class="reference" href="#thm-one">Theorem 1</a><span>.</span></span></p>
+
+        </div>
+
+        <div class="paragraph" data-nodeid="8">
+
+        <p>two <a class="reference" href="#thm-one">Theorem 1</a> baz.</p>
+
+        </div>
+
+        <div class="paragraph" data-nodeid="12">
+
+        <p>three <span class="inline-ref-wrapper"><a class="reference" href="#thm-one">Theorem 1</a><span>.</span></span> Another.</p>
+
+        </div>
+
+        <div class="paragraph" data-nodeid="16">
+
+        <p>four <span class="inline-ref-wrapper"><a class="reference" href="#thm-one">Theorem 1</a><span>,</span></span> more.</p>
+
+        </div>
+
+        <div class="paragraph" data-nodeid="20">
+
+        <p>five (<span class="inline-ref-wrapper"><a class="reference" href="#thm-one">Theorem 1</a><span>)</span></span>.</p>
+
+        </div>
+
+        </section>
+
+        </div>
+
+        </main>
+
+        </body>
+        """,
+    )

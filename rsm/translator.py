@@ -710,6 +710,8 @@ class Translator:
 
     """
 
+    _TRAILING_PUNCT = set(".,;:!?)]}\"'")
+
     class Action(namedtuple("Action", "node action method")):
         def __repr__(self) -> str:
             classname = self.node.__class__.__name__
@@ -1253,12 +1255,23 @@ class Translator:
                     f"{node.external_manuscript.title}, {local_reftext}"
                 )
 
-            return AppendText(self._make_ahref_tag_text(node, node.target, href))
+            tag_text = self._make_ahref_tag_text(node, node.target, href)
         else:
             # Internal reference (existing behavior)
-            return AppendText(
-                self._make_ahref_tag_text(node, node.target, f"#{node.target.label}")
+            tag_text = self._make_ahref_tag_text(
+                node, node.target, f"#{node.target.label}"
             )
+
+        # Wrap ref + trailing punctuation to prevent line break between them
+        sib = node.next_sibling()
+        if isinstance(sib, nodes.Text) and sib.text and sib.text[0] in self._TRAILING_PUNCT:
+            punct = sib.text[0]
+            sib.text = sib.text[1:]
+            escaped = punct.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+            return AppendText(
+                f'<span class="inline-ref-wrapper">{tag_text}<span>{escaped}</span></span>'
+            )
+        return AppendText(tag_text)
 
     def visit_url(self, node: nodes.URL) -> EditCommand:
         return AppendText(
@@ -2450,8 +2463,6 @@ class HandrailsTranslator(Translator):
         batch.items.insert(1, self._hr_info_zone_number(node.full_number, style="step"))
         batch = AppendBatch(batch.items)
         return batch
-
-    _TRAILING_PUNCT = set(".,;:!?)]}\"'")
 
     def visit_math(self, node: nodes.Math) -> EditCommand:
         batch = super().visit_math(node)
