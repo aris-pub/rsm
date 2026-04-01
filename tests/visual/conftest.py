@@ -26,7 +26,7 @@ def assert_snapshot(pytestconfig: Any, request: Any, browser_name: str) -> Calla
     from PIL import Image
     from pixelmatch.contrib.PIL import pixelmatch
 
-    test_name = f"{str(Path(request.node.name))}[{str(sys.platform)}]"
+    test_name = str(Path(request.node.name))
     test_dir = str(Path(request.node.name)).split('[', 1)[0]
 
     def compare(img: bytes, *, threshold: float = 0.2, name=f'{test_name}.png', fail_fast=False) -> None:
