@@ -40,7 +40,7 @@ def _strip_generated_blocks(html: str) -> str:
     """Remove generated singleton blocks, data-menu attrs, and menu zone content for test comparison."""
     import re
     html = re.sub(r'<svg id="hr-icon-defs"[^>]*>.*?</svg>\n?', '', html, flags=re.DOTALL)
-    html = re.sub(r'<div id="hr-menu-singleton".*?</div>\s*</div>\s*</div>\n?', '', html, flags=re.DOTALL)
+    html = re.sub(r'<div id="hr-menu-singleton"[^>]*>.*?</div>\n</div>\n</div>\n?', '', html, flags=re.DOTALL)
     html = re.sub(r'\s*data-menu-[\w-]+="[^"]*"', '', html)
     # Normalize menu zones: strip any content inside hr-menu-zone divs
     html = re.sub(

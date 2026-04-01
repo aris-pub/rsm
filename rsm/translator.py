@@ -2169,56 +2169,6 @@ class HandrailsTranslator(Translator):
         defs_html = '<svg id="hr-icon-defs" style="display:none"><defs id="hr-icon-defs">' + "\n".join(symbols) + "</defs></svg>"
         return AppendText(text=defs_html)
 
-    def _make_minimap(
-        self, node: nodes.Contents, follow: str, with_ids: bool = False
-    ) -> EditCommand:
-        radii = {nodes.Section: 8, nodes.Subsection: 6, nodes.Subsubsection: 4}
-        num = 0
-        circles = []
-        for ref in node.traverse(nodeclass=nodes.Reference):
-            cy = 20 + (24 + 8) * num
-            r = radii[type(ref.target)]
-            id_ = f"mm-{ref.target.label}"
-            if with_ids:
-                circles.append(
-                    f'<a href="#{ref.target.label}" class="reference" tabindex="-1">'
-                    f'<circle id="{id_}" cx="16" cy="{cy}" r="{r}" data-pos="{cy}" />'
-                )
-            else:
-                circles.append(f'<circle cx="16" cy="{cy}" r="{r}" data-pos="{cy}" />')
-            circle = f'<circle cx="16" cy="{cy}" r="{r - 4}" fill="#FCFEFF" data-pos="{cy}" />'
-            if with_ids:
-                circles.append(circle + "</a>")
-            else:
-                circles.append(circle)
-            num += 1
-        height = max(num * (24 + 8) + 8, 48)
-        svg_start = f"""
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 {height}" fill="#3C4952" preserveAspectRatio="xMinYMid meet" stroke-width="0">
-          <defs>
-
-            <linearGradient id="purple-green-{follow}" x1="0%" x2="0%" y1="0%" y2="100%" gradientUnits="userSpaceOnUse">
-              <stop offset="0%" stop-color="#AD71F2" />
-              <stop id="stop-follow-{follow}-1" offset="100%" stop-color="#1FB5A2" />
-              <stop id="stop-follow-{follow}-2" offset="100%" stop-color="#DAE1E5" />
-              <stop offset="100%" stop-color="#DAE1E5" />
-            </linearGradient>
-
-            <mask id="gradient-mask">
-              <rect width="100%" height="100%" fill="url(#purple-green-{follow})" />
-            </mask>
-
-          </defs>
-
-          <g fill="url(#purple-green-{follow})">
-            <rect x="14" y="24" width="4" height="{height - 48}" />\n    """
-        svg_middle = "\n    ".join(circles)
-        svg_end = "</g>\n</svg>"
-        svg = svg_start + svg_middle + svg_end
-        minimap = AppendOpenTagManualClose(classes=["minimap"])
-        batch = AppendBatch([minimap, AppendText(svg), minimap.close_command()])
-        return batch
-
     def visit_manuscript(self, node: nodes.Manuscript) -> EditCommand:
         batch = super().visit_manuscript(node)
         if node.title:
@@ -2229,14 +2179,6 @@ class HandrailsTranslator(Translator):
         batch.items.insert(3, self._make_singleton_menu())
         if self.add_source:
             batch.items.insert(3, self._make_source_div())
-        if False and (toc := node.first_of_type(nodes.Contents)):
-            batch.items = (
-                batch.items[:3]
-                + [AppendText('<div class="float-minimap-wrapper">')]
-                + self._make_minimap(toc, follow="scroll", with_ids=True).items
-                + [AppendText("</div>")]
-                + batch.items[3:]
-            )
         return batch
 
     def visit_author(self, node: nodes.Author) -> EditCommand:
