@@ -441,7 +441,7 @@ def test_prev_shortcut():
 
         <div class="paragraph" data-nodeid="35">
 
-        <p>Due to <a class="reference" href="#st1">Step ⟨1⟩</a>.</p>
+        <p>Due to <span class="inline-wrapper"><a class="reference" href="#st1">Step ⟨1⟩</a><span>.</span></span></p>
 
         </div>
 
@@ -569,7 +569,7 @@ def test_prev2_shortcut():
 
         <div class="paragraph" data-nodeid="39">
 
-        <p>Due to <a class="reference" href="#st1">Step ⟨1⟩</a>.</p>
+        <p>Due to <span class="inline-wrapper"><a class="reference" href="#st1">Step ⟨1⟩</a><span>.</span></span></p>
 
         </div>
 
@@ -697,7 +697,7 @@ def test_prev_and_prev2_shortcut():
 
         <div class="paragraph" data-nodeid="39">
 
-        <p>Due to <a class="reference" href="#st2">Step ⟨2⟩</a> and <a class="reference" href="#st1">Step ⟨1⟩</a>.</p>
+        <p>Due to <a class="reference" href="#st2">Step ⟨2⟩</a> and <span class="inline-wrapper"><a class="reference" href="#st1">Step ⟨1⟩</a><span>.</span></span></p>
 
         </div>
 

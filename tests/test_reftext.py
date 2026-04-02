@@ -80,7 +80,7 @@ def test_simple():
 
         <div class="paragraph" data-nodeid="5">
 
-        <p>Here we refer to the <a class="reference" href="#eqn">Important Equation</a>.</p>
+        <p>Here we refer to the <span class="inline-wrapper"><a class="reference" href="#eqn">Important Equation</a><span>.</span></span></p>
 
         </div>
 

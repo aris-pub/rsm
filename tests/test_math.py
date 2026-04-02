@@ -181,7 +181,7 @@ def test_math_ref():
         2+2=4
         $$
         </div>
-        <p> And now we refer to <a class="reference" href="#eqn-foo">(1.1)</a>.</p>
+        <p> And now we refer to <span class="inline-wrapper"><a class="reference" href="#eqn-foo">(1.1)</a><span>.</span></span></p>
         </div>
 
         </section>

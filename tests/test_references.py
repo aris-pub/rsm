@@ -34,7 +34,7 @@ def test_reftext():
 
         <div class="paragraph" data-nodeid="4">
 
-        <p>This is a paragraph that refers to <a class="reference" href="#sec-lbl">Section 1</a>.</p>
+        <p>This is a paragraph that refers to <span class="inline-wrapper"><a class="reference" href="#sec-lbl">Section 1</a><span>.</span></span></p>
 
         </div>
 
@@ -83,7 +83,7 @@ def test_overwrite_reftext():
 
         <div class="paragraph" data-nodeid="4">
 
-        <p>This is a paragraph that refers to <a class="reference" href="#sec-lbl">The Section</a>.</p>
+        <p>This is a paragraph that refers to <span class="inline-wrapper"><a class="reference" href="#sec-lbl">The Section</a><span>.</span></span></p>
 
         </div>
 

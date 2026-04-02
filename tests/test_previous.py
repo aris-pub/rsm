@@ -55,7 +55,7 @@ def test_works_with_no_reftext_and_label():
 
         <div class="paragraph" data-nodeid="8">
 
-        <p>Bar <a class="reference" href="#lbl">Step ⟨1⟩</a>.</p>
+        <p>Bar <span class="inline-wrapper"><a class="reference" href="#lbl">Step ⟨1⟩</a><span>.</span></span></p>
 
         </div>
 
@@ -126,7 +126,7 @@ def test_works_with_no_reftext_and_no_label():
 
         <div class="paragraph" data-nodeid="8">
 
-        <p>Bar <a class="reference" href="#">Step ⟨1⟩</a>.</p>
+        <p>Bar <span class="inline-wrapper"><a class="reference" href="#">Step ⟨1⟩</a><span>.</span></span></p>
 
         </div>
 
@@ -199,7 +199,7 @@ def test_works_with_reftext_and_label():
 
         <div class="paragraph" data-nodeid="8">
 
-        <p>Bar <a class="reference" href="#lbl">bar</a>.</p>
+        <p>Bar <span class="inline-wrapper"><a class="reference" href="#lbl">bar</a><span>.</span></span></p>
 
         </div>
 
@@ -270,7 +270,7 @@ def test_works_with_reftext_and_no_label(caplog):
 
         <div class="paragraph" data-nodeid="8">
 
-        <p>Bar <a class="reference" href="#">bar</a>.</p>
+        <p>Bar <span class="inline-wrapper"><a class="reference" href="#">bar</a><span>.</span></span></p>
 
         </div>
 
