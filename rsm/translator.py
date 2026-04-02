@@ -711,6 +711,7 @@ class Translator:
     """
 
     _TRAILING_PUNCT = set(".,;:!?)]}\"'")
+    _OPENING_BRACKETS = set("([{")
 
     class Action(namedtuple("Action", "node action method")):
         def __repr__(self) -> str:
@@ -1262,14 +1263,23 @@ class Translator:
                 node, node.target, f"#{node.target.label}"
             )
 
-        # Wrap ref + trailing punctuation to prevent line break between them
+        # Wrap ref + trailing punctuation to prevent line break between them.
+        # Also pull in a preceding opening bracket if present.
         sib = node.next_sibling()
         if isinstance(sib, nodes.Text) and sib.text and sib.text[0] in self._TRAILING_PUNCT:
             punct = sib.text[0]
             sib.text = sib.text[1:]
             escaped = punct.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+
+            # Check if previous sibling ends with an opening bracket.
+            # The previous text is already in self.body — remove it from there.
+            prefix = ""
+            if self.body and self.body[-1] in self._OPENING_BRACKETS:
+                prefix = self.body[-1]
+                self.body = self.body[:-1]
+
             return AppendText(
-                f'<span class="inline-wrapper">{tag_text}<span>{escaped}</span></span>'
+                f'<span class="inline-wrapper">{prefix}{tag_text}<span>{escaped}</span></span>'
             )
         return AppendText(tag_text)
 

@@ -2273,7 +2273,7 @@ def test_reference_followed_by_punctuation():
 
         <div class="paragraph" data-nodeid="20">
 
-        <p>five (<span class="inline-wrapper"><a class="reference" href="#thm-one">Theorem 1</a><span>)</span></span>.</p>
+        <p>five <span class="inline-wrapper">(<a class="reference" href="#thm-one">Theorem 1</a><span>)</span></span>.</p>
 
         </div>
 
