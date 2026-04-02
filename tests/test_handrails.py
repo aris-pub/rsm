@@ -1005,7 +1005,7 @@ def test_inline_math_followed_by_punctuation():
 
         <div class="hr-content-zone">
 
-        <p>one <span class="inline-math-wrapper">
+        <p>one <span class="inline-wrapper">
         <span class="math" data-nodeid="3">\(2+2=4\)</span><span>.</span></span></p>
 
         </div>
@@ -1076,7 +1076,7 @@ def test_inline_math_followed_by_punctuation():
 
         <div class="hr-content-zone">
 
-        <p>three <span class="inline-math-wrapper">
+        <p>three <span class="inline-wrapper">
         <span class="math" data-nodeid="13">\(2+2=4\)</span><span>.</span></span> Another sentence.</p>
 
         </div>
@@ -1112,7 +1112,7 @@ def test_inline_math_followed_by_punctuation():
 
         <div class="hr-content-zone">
 
-        <p>four <span class="inline-math-wrapper">
+        <p>four <span class="inline-wrapper">
         <span class="math" data-nodeid="18">\(H_k\)</span><span>,</span></span> the maximal.</p>
 
         </div>
@@ -1148,7 +1148,7 @@ def test_inline_math_followed_by_punctuation():
 
         <div class="hr-content-zone">
 
-        <p>five <span class="inline-math-wrapper">
+        <p>five <span class="inline-wrapper">
         <span class="math" data-nodeid="23">\(x\)</span><span>;</span></span> then.</p>
 
         </div>
@@ -1184,7 +1184,7 @@ def test_inline_math_followed_by_punctuation():
 
         <div class="hr-content-zone">
 
-        <p>six <span class="inline-math-wrapper">
+        <p>six <span class="inline-wrapper">
         <span class="math" data-nodeid="28">\(y\)</span><span>)</span></span> end.</p>
 
         </div>
@@ -2249,7 +2249,7 @@ def test_reference_followed_by_punctuation():
 
         <div class="paragraph" data-nodeid="4">
 
-        <p>one <span class="inline-ref-wrapper"><a class="reference" href="#thm-one">Theorem 1</a><span>.</span></span></p>
+        <p>one <span class="inline-wrapper"><a class="reference" href="#thm-one">Theorem 1</a><span>.</span></span></p>
 
         </div>
 
@@ -2261,19 +2261,19 @@ def test_reference_followed_by_punctuation():
 
         <div class="paragraph" data-nodeid="12">
 
-        <p>three <span class="inline-ref-wrapper"><a class="reference" href="#thm-one">Theorem 1</a><span>.</span></span> Another.</p>
+        <p>three <span class="inline-wrapper"><a class="reference" href="#thm-one">Theorem 1</a><span>.</span></span> Another.</p>
 
         </div>
 
         <div class="paragraph" data-nodeid="16">
 
-        <p>four <span class="inline-ref-wrapper"><a class="reference" href="#thm-one">Theorem 1</a><span>,</span></span> more.</p>
+        <p>four <span class="inline-wrapper"><a class="reference" href="#thm-one">Theorem 1</a><span>,</span></span> more.</p>
 
         </div>
 
         <div class="paragraph" data-nodeid="20">
 
-        <p>five (<span class="inline-ref-wrapper"><a class="reference" href="#thm-one">Theorem 1</a><span>)</span></span>.</p>
+        <p>five (<span class="inline-wrapper"><a class="reference" href="#thm-one">Theorem 1</a><span>)</span></span>.</p>
 
         </div>
 

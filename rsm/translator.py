@@ -1269,7 +1269,7 @@ class Translator:
             sib.text = sib.text[1:]
             escaped = punct.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
             return AppendText(
-                f'<span class="inline-ref-wrapper">{tag_text}<span>{escaped}</span></span>'
+                f'<span class="inline-wrapper">{tag_text}<span>{escaped}</span></span>'
             )
         return AppendText(tag_text)
 
@@ -2479,7 +2479,7 @@ class HandrailsTranslator(Translator):
             0,
             AppendOpenTagManualClose(
                 tag="span",
-                classes=["inline-math-wrapper"],
+                classes=["inline-wrapper"],
                 newline_outer=False,
             ),
         )

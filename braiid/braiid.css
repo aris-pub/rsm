@@ -1156,9 +1156,8 @@ body {
 }
 
 
-/* Inline math */
-/* Prevent math followed by a dot from being separated. */
-.manuscriptwrapper .inline-math-wrapper {
+/* Prevent inline elements (math, references) followed by punctuation from being separated. */
+.manuscriptwrapper .inline-wrapper {
   white-space: nowrap;
 }
 
