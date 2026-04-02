@@ -132,7 +132,7 @@ def test_inline_no_meta_start_with_tag():
 
         <div class="paragraph" data-nodeid="3">
 
-        <p>This span starts with a tag that is not a meta key, <span class="span" data-nodeid="5"><a class="reference" href="#lbl">some paragraph</a>, instead it starts with a ref</span>.</p>
+        <p>This span starts with a tag that is not a meta key, <span class="span" data-nodeid="5"><span class="inline-wrapper"><a class="reference" href="#lbl">some paragraph</a><span>,</span></span> instead it starts with a ref</span>.</p>
 
         </div>
 
