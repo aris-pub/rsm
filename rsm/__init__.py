@@ -1,9 +1,3 @@
-import warnings
-
-# Suppress pkg_resources deprecation warning from fs package
-# See: https://github.com/PyFilesystem/pyfilesystem2/issues/597
-warnings.filterwarnings("ignore", message="pkg_resources is deprecated")
-
 from . import (
     builder,
     linter,

@@ -6,9 +6,6 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 from textwrap import dedent
 
-from fs import open_fs
-from fs.copy import copy_file
-
 from .manuscript import WebManuscript
 
 logger = logging.getLogger("RSM").getChild("build")
@@ -344,13 +341,11 @@ class FolderBuilder(HTMLBuilder):
     def mount_static(self) -> None:
         working_path = Path(__file__).parent.absolute()
         source_path = (working_path / "static").resolve()
-        source = open_fs(str(source_path))
 
         self.web.makedir("static")
-        for fn in [
-            fn for fn in source.listdir(".") if Path(fn).suffix in {".js", ".css"}
-        ]:
-            copy_file(source, fn, self.web, f"static/{fn}")
+        for fn in source_path.iterdir():
+            if fn.suffix in {".js", ".css"}:
+                self.web.writetext(f"static/{fn.name}", fn.read_text())
 
         # Copy BRAIID CSS from braiid/ directory
         braiid_css_path = working_path.parent / "braiid" / "braiid.css"

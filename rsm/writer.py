@@ -3,8 +3,6 @@
 import logging
 from pathlib import Path
 
-from fs.copy import copy_fs
-
 from .manuscript import WebManuscript
 
 logger = logging.getLogger("RSM").getChild("write")
@@ -19,8 +17,10 @@ class Writer:
 
     def write(self, web: WebManuscript) -> None:
         self.web = web
-        # Create output directory if it doesn't exist
         if not self.dstpath.exists():
             logger.info(f"Creating output directory: {self.dstpath}")
             self.dstpath.mkdir(parents=True, exist_ok=True)
-        copy_fs(web, str(self.dstpath))
+        for path, contents in web.items():
+            dest = self.dstpath / path
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            dest.write_text(contents)
