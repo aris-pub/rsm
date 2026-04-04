@@ -16,7 +16,6 @@ keywords = ["markup", "science", "publishing", "static site generator"]
 
 # Production dependencies
 dependencies = [
-    "fs >= 2.4.15",
     "icecream >= 2.1.2",
     "livereload >= 2.6.3",
     "pygments >= 2.14.0",
