@@ -1281,6 +1281,9 @@ body {
   text-align: center;
   max-width: 100%;
   overflow-x: auto; }
+.manuscriptwrapper figure > *:not(figcaption) {
+  max-width: 100%;
+  overflow-x: auto; }
 .manuscriptwrapper figcaption {
   text-align: left;
   margin-block: var(--h4-size); }
