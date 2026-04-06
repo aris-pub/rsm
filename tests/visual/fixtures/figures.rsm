@@ -1,6 +1,6 @@
 # Visual Regression Test: Figures
 
-This document exercises :figure: options added in rsm-ayn: :alt:, :dark:, and :static:.
+This document exercises figure options: alt text, dark mode variant, and static flag.
 
 ## Basic figure
 
