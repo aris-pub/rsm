@@ -24,7 +24,7 @@ static_dir = Path(__file__).parent / "_static"
 #################
 # project definition
 project = "rsm"
-copyright = "2022, leotrs"
+copyright = "2022–2026 The Aris Program"
 author = "leotrs"
 
 # options for HTML output
@@ -99,6 +99,8 @@ autosummary_generate = True
 #####################
 # PyData sphinx theme
 #####################
+html_show_sourcelink = False
+
 html_theme_options = {
     # navbar options
     "navbar_start": ["navbar-logo"],
@@ -108,19 +110,18 @@ html_theme_options = {
     "icon_links": [
         {
             "name": "GitHub",
-            "url": "https://github.com/leotrs/rsm",
+            "url": "https://github.com/aris-pub/rsm",
             "icon": "fa-brands fa-square-github",
             "type": "fontawesome",
         },
-        {
-            "name": "Home",
-            "url": "https://www.write-rsm.org",
-            "icon": "fa-solid fa-house",
-            "type": "fontawesome",
-        },
     ],
+    # footer
+    "footer_start": ["copyright"],
+    "footer_center": [],
+    "footer_end": [],
     # page options
-    "use_edit_page_button": True,
+    "show_prev_next": False,
+    "use_edit_page_button": False,
 }
 
 # required for "Edit this page button"; see also "use_edit_page_button"

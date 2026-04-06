@@ -1,4 +1,4 @@
-﻿Note
+Note
 ====
 
 Qualified name: ``rsm.nodes.Note``

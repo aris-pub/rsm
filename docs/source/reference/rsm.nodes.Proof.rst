@@ -1,4 +1,4 @@
-﻿Proof
+Proof
 =====
 
 Qualified name: ``rsm.nodes.Proof``

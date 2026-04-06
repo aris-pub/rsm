@@ -1,4 +1,4 @@
-﻿Text
+Text
 ====
 
 Qualified name: ``rsm.nodes.Text``

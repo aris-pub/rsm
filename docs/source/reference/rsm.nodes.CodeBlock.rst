@@ -1,4 +1,4 @@
-﻿CodeBlock
+CodeBlock
 =========
 
 Qualified name: ``rsm.nodes.CodeBlock``

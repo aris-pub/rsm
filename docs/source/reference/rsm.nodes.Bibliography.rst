@@ -1,4 +1,4 @@
-﻿Bibliography
+Bibliography
 ============
 
 Qualified name: ``rsm.nodes.Bibliography``

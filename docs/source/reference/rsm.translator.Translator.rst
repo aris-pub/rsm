@@ -17,6 +17,9 @@ Qualified name: ``rsm.translator.Translator``
       
       ~Translator.get_action_method
       ~Translator.leave_abstract
+      ~Translator.leave_author
+      ~Translator.leave_authorblock
+      ~Translator.leave_authornotes
       ~Translator.leave_codeblock
       ~Translator.leave_manuscript
       ~Translator.leave_mathblock
@@ -31,6 +34,8 @@ Qualified name: ``rsm.translator.Translator``
       ~Translator.visit_algorithm
       ~Translator.visit_appendix
       ~Translator.visit_author
+      ~Translator.visit_authorblock
+      ~Translator.visit_authornotes
       ~Translator.visit_bibitem
       ~Translator.visit_bibliography
       ~Translator.visit_caption

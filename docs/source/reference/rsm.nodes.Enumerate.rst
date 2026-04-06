@@ -1,4 +1,4 @@
-﻿Enumerate
+Enumerate
 =========
 
 Qualified name: ``rsm.nodes.Enumerate``

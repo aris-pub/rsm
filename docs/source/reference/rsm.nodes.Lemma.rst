@@ -1,4 +1,4 @@
-﻿Lemma
+Lemma
 =====
 
 Qualified name: ``rsm.nodes.Lemma``

@@ -1,4 +1,4 @@
-﻿Remark
+Remark
 ======
 
 Qualified name: ``rsm.nodes.Remark``

@@ -1,4 +1,4 @@
-﻿Definition
+Definition
 ==========
 
 Qualified name: ``rsm.nodes.Definition``

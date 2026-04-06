@@ -1,4 +1,4 @@
-﻿UnknownBibitem
+UnknownBibitem
 ==============
 
 Qualified name: ``rsm.nodes.UnknownBibitem``

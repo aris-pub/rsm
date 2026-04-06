@@ -1,4 +1,4 @@
-﻿PendingCite
+PendingCite
 ===========
 
 Qualified name: ``rsm.nodes.PendingCite``

@@ -1,4 +1,4 @@
-﻿BaseReference
+BaseReference
 =============
 
 Qualified name: ``rsm.nodes.BaseReference``

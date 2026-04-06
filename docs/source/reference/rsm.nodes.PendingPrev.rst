@@ -1,4 +1,4 @@
-﻿PendingPrev
+PendingPrev
 ===========
 
 Qualified name: ``rsm.nodes.PendingPrev``

@@ -1,4 +1,4 @@
-﻿Subsubsection
+Subsubsection
 =============
 
 Qualified name: ``rsm.nodes.Subsubsection``

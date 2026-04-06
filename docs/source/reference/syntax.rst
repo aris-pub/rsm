@@ -37,16 +37,18 @@ elements in HTML, whereas meta tags are similar in some respects to HTML attribu
 
 Block and inline tags are meant to carry content.  The content may be text or other
 tags.  Meta tags are special in that they associate metadata to the immediately
-enclosing tag.  Consider this example
+enclosing tag.  Consider this example:
 
-.. code-block:: text
+.. rsm::
 
    :theorem: {
      :title: Fermat's Last Theorem
      :label: thm-fermat
    }
 
-   For integer $n > 2$, the equation $x^n + y^n = z^n$ has no positive integer solutions.
+   For integer $n > 2$, the equation
+   $x^n + y^n = z^n$ has no positive
+   integer solutions.
 
    ::
 
@@ -59,9 +61,17 @@ In the previous example, the ``:title:`` meta tag had a visible effect on the ou
 (the theorem title appears), while ``:label:`` has no visible effect but allows us to
 reference the theorem elsewhere:
 
-.. code-block:: text
+.. rsm::
 
-   As we proved in :ref:thm-fermat::, the equation has no solutions.
+   :theorem: {
+     :label: thm-ref-example
+   }
+   A theorem we want to reference.
+   ::
+
+   As we proved in
+   :ref:thm-ref-example::, the result
+   follows.
 
 Syntax rules
 ------------
@@ -71,25 +81,38 @@ the syntax used to introduce them:
 
 .. grid:: 1 2 2 2
 
-  .. grid-item-card:: Blocks
+  .. grid-item-card:: Block tags
 
      .. code-block:: text
 
         :tag: {
           :key: val
-          ...
         }
 
         <content>
 
         ::
 
+     Example:
 
-  .. grid-item-card:: Inlines
+     .. rsm::
+
+        :remark:
+        A simple remark rendered as a block.
+        ::
+
+
+  .. grid-item-card:: Inline tags
 
      .. code-block:: text
 
-        :tag: {:key: val, ...} <content> ::
+        :tag: {:key: val} <content> ::
+
+     Example:
+
+     .. rsm::
+
+        Text with :span: {:strong:} bold :: words.
 
 Here the ellipsis denote an arbitrary number of additional key-value pairs.  In general,
 blocks introduce a part of the manuscript that should be regarded as completely separate
@@ -100,14 +123,15 @@ The third type of tag is *meta* tags.  They are the tags used above to modify th
 parent tags via key-value pairs. Meta tags appear inside braces ``{}`` and provide
 metadata about the enclosing tag. For example:
 
-.. code-block:: text
+.. rsm::
 
    :theorem: {
      :title: Pythagorean Theorem
      :label: pythag
    }
 
-   For a right triangle, $a^2 + b^2 = c^2$.
+   For a right triangle,
+   $a^2 + b^2 = c^2$.
 
    ::
 

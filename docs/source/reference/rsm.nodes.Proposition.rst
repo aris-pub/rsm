@@ -1,4 +1,4 @@
-﻿Proposition
+Proposition
 ===========
 
 Qualified name: ``rsm.nodes.Proposition``

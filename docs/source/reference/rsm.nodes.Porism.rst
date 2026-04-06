@@ -1,4 +1,4 @@
-﻿Porism
+Porism
 ======
 
 Qualified name: ``rsm.nodes.Porism``

@@ -1,7 +1,8 @@
 .. _faq:
+.. _why-rsm:
 
-Frequently asked questions
-==========================
+Why RSM?
+========
 
 Quick Comparison
 ****************

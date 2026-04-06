@@ -1,4 +1,4 @@
-﻿Theorem
+Theorem
 =======
 
 Qualified name: ``rsm.nodes.Theorem``

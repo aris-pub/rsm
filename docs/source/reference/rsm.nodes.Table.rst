@@ -1,4 +1,4 @@
-﻿Table
+Table
 =====
 
 Qualified name: ``rsm.nodes.Table``

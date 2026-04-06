@@ -1,4 +1,4 @@
-﻿Figure
+Figure
 ======
 
 Qualified name: ``rsm.nodes.Figure``

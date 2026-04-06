@@ -1,4 +1,4 @@
-﻿Abstract
+Abstract
 ========
 
 Qualified name: ``rsm.nodes.Abstract``

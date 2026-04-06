@@ -1,4 +1,4 @@
-﻿Node
+Node
 ====
 
 Qualified name: ``rsm.nodes.Node``

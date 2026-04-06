@@ -110,14 +110,16 @@ class RSMDirective(Directive):
 
 
 def visit_rsm_iframe_node(self, node):
-    # Iframe loads from file, height is set via onload to match content height
     iframe_html = f'''
-    <iframe class="rsm-example-iframe"
-            src="{node.path}"
-            sandbox="allow-scripts allow-same-origin"
-            onload="this.style.height = (this.contentWindow.document.documentElement.scrollHeight + 8) + 'px';"
-            style="width: 100%; border: 1px solid var(--pst-color-border); border-radius: 4px; background: white;">
-    </iframe>
+    <div class="rsm-iframe-wrap">
+      <div class="rsm-iframe-spinner"></div>
+      <iframe class="rsm-example-iframe"
+              src="{node.path}"
+              sandbox="allow-scripts allow-same-origin"
+              onload="this.style.height = (this.contentWindow.document.documentElement.scrollHeight + 8) + 'px'; this.parentNode.classList.add('loaded');"
+              style="width: 100%; border: 1px solid var(--pst-color-border); border-radius: 4px; background: white;">
+      </iframe>
+    </div>
     '''
     self.body.append(iframe_html)
 

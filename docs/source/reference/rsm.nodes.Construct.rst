@@ -1,4 +1,4 @@
-﻿Construct
+Construct
 =========
 
 Qualified name: ``rsm.nodes.Construct``

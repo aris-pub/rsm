@@ -1,23 +1,247 @@
-@import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Source+Sans+Pro&family=Inconsolata:wdth,wght@75,300&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Source+Sans+3:wght@300;400;500;600;700&family=Source+Code+Pro:wght@400;500&display=swap");
 
+/* ─── BRAIID color primitives ─── */
+:root {
+  --braiid-blue-400: #38B4F8;
+  --braiid-blue-500: #0E9AE9;
+  --braiid-blue-600: #027AC7;
+  --braiid-blue-700: #0361A1;
+  --braiid-blue-800: #075487;
+  --braiid-blue-900: #0C456E;
+  --braiid-blue-950: #082C49;
+  --braiid-blue-50: #F0F8FF;
+  --braiid-blue-100: #E0F1FE;
+  --braiid-gray-0: #FFFFFF;
+  --braiid-gray-50: #FCFEFE;
+  --braiid-gray-75: #F5F7F8;
+  --braiid-gray-100: #EDF0F2;
+  --braiid-gray-200: #DAE1E5;
+  --braiid-gray-300: #C2CCD3;
+  --braiid-gray-700: #5F7186;
+  --braiid-gray-800: #51636F;
+  --braiid-gray-900: #3C4952;
+  --braiid-gray-950: #13181B;
+  --braiid-gray-1000: #000000;
+  --braiid-purple-500: #AD71F2;
+  --braiid-purple-600: #8B3BE2;
+  --braiid-purple-700: #7629C7;
+}
+
+/* ─── PyData theme token overrides (light) ─── */
+html[data-theme="light"] {
+  --pst-color-primary: var(--braiid-blue-700);
+  --pst-color-primary-highlight: var(--braiid-blue-600);
+  --pst-color-secondary: var(--braiid-blue-700);
+  --pst-color-secondary-highlight: var(--braiid-blue-600);
+  --pst-color-text-base: var(--braiid-gray-900);
+  --pst-color-text-muted: var(--braiid-gray-700);
+  --pst-color-border: var(--braiid-gray-200);
+  --pst-color-background: var(--braiid-gray-0);
+  --pst-color-surface: var(--braiid-gray-50);
+  --pst-color-inline-code: var(--braiid-blue-800);
+  --pst-color-inline-code-links: var(--braiid-blue-700);
+}
+
+/* ─── PyData theme token overrides (dark) ─── */
+html[data-theme="dark"] {
+  --pst-color-primary: var(--braiid-blue-400);
+  --pst-color-primary-highlight: var(--braiid-blue-500);
+  --pst-color-secondary: var(--braiid-blue-400);
+  --pst-color-secondary-highlight: var(--braiid-blue-500);
+}
+
+/* ─── Typography ─── */
 html {
   --pst-font-family-heading: 'Montserrat', sans-serif;
-  --pst-font-family-base: 'Source Sans Pro', sans-serif;
+  --pst-font-family-base: 'Source Sans 3', sans-serif;
+  --pst-font-family-monospace: 'Source Code Pro', monospace;
   --pst-sidebar-secondary: 15rem;
 }
 
-html[data-theme="light"] {
-  --pst-color-primary: #005187;
+h1 {
+  font-weight: 700;
+  letter-spacing: -0.02em;
 }
 
+h2 {
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+h3, h4 {
+  font-weight: 500;
+}
+
+/* ─── Navbar: light background in light mode ─── */
+html[data-theme="light"] .bd-header {
+  background-color: var(--braiid-gray-0) !important;
+  border-bottom: 1px solid var(--braiid-gray-200);
+  box-shadow: none !important;
+}
+
+html[data-theme="light"] .bd-header .navbar-nav .nav-link {
+  color: var(--braiid-gray-800);
+}
+
+html[data-theme="light"] .bd-header .navbar-nav .nav-link:hover,
+html[data-theme="light"] .bd-header .navbar-nav .nav-link.active {
+  color: var(--braiid-blue-700);
+}
+
+html[data-theme="light"] .bd-header .navbar-icon-links a {
+  color: var(--braiid-gray-700);
+}
+
+/* ─── Hero section ─── */
+.hero-section {
+  background: linear-gradient(135deg, var(--braiid-blue-950) 0%, var(--braiid-blue-800) 50%, var(--braiid-blue-700) 100%);
+  color: white;
+  padding: 3.5rem 2.5rem;
+  border-radius: 0.75rem;
+  margin-bottom: 3rem;
+  position: relative;
+  overflow: hidden;
+}
+
+html[data-theme="dark"] .hero-section {
+  background: linear-gradient(135deg, var(--braiid-gray-950) 0%, var(--braiid-blue-950) 50%, var(--braiid-blue-900) 100%);
+  border: 1px solid var(--braiid-blue-800);
+}
+
+.hero-section h1 {
+  font-size: 3.5rem;
+  font-weight: 700;
+  margin-bottom: 0;
+  color: white;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.hero-section .hero-dot {
+  color: var(--braiid-blue-400);
+}
+
+.hero-section .hero-subtitle {
+  font-size: 1.15rem;
+  font-weight: 400;
+  color: var(--braiid-blue-300, #7DCDFC);
+  margin-top: 0.25rem;
+  margin-bottom: 1.25rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.hero-section .hero-tagline {
+  font-size: 1.15rem;
+  font-weight: 400;
+  color: var(--braiid-blue-100);
+  margin-bottom: 2rem;
+  max-width: 40rem;
+  line-height: 1.6;
+}
+
+.hero-section .hero-actions {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.hero-section .hero-actions a {
+  display: inline-block;
+  padding: 0.6rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 0.9rem;
+  text-decoration: none;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.hero-section .hero-actions a:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.hero-section .hero-actions .btn-primary {
+  background: white;
+  color: var(--braiid-blue-800);
+}
+
+.hero-section .hero-actions .btn-secondary {
+  background: transparent;
+  color: white;
+  border: 1.5px solid rgba(255, 255, 255, 0.5);
+}
+
+.hero-section .hero-actions .btn-secondary:hover {
+  border-color: white;
+}
+
+.hero-section::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: var(--braiid-blue-400);
+}
+
+/* ─── Grid cards ─── */
+html,
+html[data-theme="light"],
 html[data-theme="dark"] {
-  --pst-color-primary: #459db9;
+  --sd-color-card-background: var(--pst-color-background);
+  --sd-color-card-border: var(--pst-color-border);
 }
 
-.navbar-brand img {
-  padding: 0.5rem;
+.sd-card.sd-sphinx-override {
+  border-radius: 0.5rem !important;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
+.sd-card.sd-sphinx-override:hover {
+  border-color: var(--pst-color-primary) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+html[data-theme="dark"] .sd-card.sd-sphinx-override:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* ─── RSM iframe loading spinner ─── */
+.rsm-iframe-wrap {
+  position: relative;
+  width: 49%;
+}
+
+.rsm-example.vertical .rsm-iframe-wrap {
+  width: 100%;
+}
+
+.rsm-iframe-spinner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 1.5rem;
+  height: 1.5rem;
+  margin: -0.75rem 0 0 -0.75rem;
+  border: 2px solid var(--pst-color-border);
+  border-top-color: var(--pst-color-primary);
+  border-radius: 50%;
+  animation: rsm-spin 0.7s linear infinite;
+  z-index: 1;
+}
+
+.rsm-iframe-wrap.loaded .rsm-iframe-spinner {
+  display: none;
+}
+
+@keyframes rsm-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ─── RSM example panels ─── */
 .rsm-example {
   display: flex;
   gap: 2%;
@@ -39,15 +263,17 @@ html[data-theme="dark"] {
 
 .rsm-example-code .highlight {
   height: 100%;
+  border-radius: 0.5rem;
 }
 
 .rsm-example-code .highlight pre {
   height: 100%;
+  font-family: 'Source Code Pro', monospace;
 }
 
 .rsm-example .manuscriptwrapper.embedded {
   width: 49%;
-  border-radius: 0.25rem;
+  border-radius: 0.5rem;
   border: 1px solid var(--pst-color-border);
   padding-block: 1rem;
   margin-bottom: 1em;
@@ -58,23 +284,41 @@ html[data-theme="dark"] {
 }
 
 .rsm-example-iframe {
-  width: 49%;
+  width: 100%;
   border: 1px solid var(--pst-color-border);
-  border-radius: 0.25rem;
+  border-radius: 0.5rem;
   background: white;
   overflow: hidden;
 }
 
-.rsm-example.vertical .rsm-example-iframe {
-  width: 100%;
+/* ─── Code blocks ─── */
+.highlight pre {
+  border-radius: 0.5rem;
+  font-family: 'Source Code Pro', monospace;
+  font-size: 0.875rem;
 }
 
+/* ─── Sidebar ─── */
 .bd-sidebar-primary {
   max-width: 20%;
 }
 
-h1, h2 {
-  font-weight: var(--semi);
+/* ─── Footer ─── */
+.bd-footer {
+  border-top: 1px solid var(--pst-color-border);
+  padding: 1.5rem 0;
+  font-size: 0.85rem;
+  color: var(--pst-color-text-muted);
+}
+
+.bd-footer .bd-footer__inner {
+  justify-content: center;
+}
+
+.bd-footer .footer-items__start,
+.bd-footer .footer-items__center,
+.bd-footer .footer-items__end {
+  flex-grow: 0;
 }
 
 .footer-item {
@@ -82,18 +326,31 @@ h1, h2 {
 }
 
 .footer-item:not(:last-child) {
-  border-right: 1px solid var(--pst-color-text-base);
+  border-right: 1px solid var(--pst-color-border);
   margin-right: .5em;
   padding-right: .5em;
 }
 
-/* these are copied directly from sphinx_copybutton styles */
-/* and from pydata-sphinx overrides of sphinx_copybutton */
+/* ─── Navbar logo ─── */
+.navbar-brand img {
+  padding: 0.5rem;
+}
+
+/* ─── Admonitions with BRAIID accent ─── */
+.admonition.tip {
+  border-left-color: var(--braiid-blue-500);
+}
+
+.admonition.important {
+  border-left-color: var(--braiid-purple-600);
+}
+
+/* ─── Openlive button ─── */
 .openlive {
   position: absolute;
   display: flex;
   align-items: center;
-  justify-content: center;    
+  justify-content: center;
   bottom: .3em;
   right: .3em;
   width: 1.7em;
@@ -103,10 +360,10 @@ h1, h2 {
   user-select: none;
   padding: 0;
   outline: none;
-  border: none;  
+  border: none;
   border-radius: 0.4em;
   background-color: unset;
-  background-color: var(--pst-color-surface);  
+  background-color: var(--pst-color-surface);
   color: var(--pst-color-muted);
 }
 
@@ -129,18 +386,7 @@ h1, h2 {
   background-color: rgb(187, 187, 187);
 }
 
-/**
- * A minimal CSS-only tooltip copied from copybutton, which coped it from:
- *   https://codepen.io/mildrenben/pen/rVBrpK
- *
- * To use, write HTML like the following:
- *
- * <p class="o-tooltip--left" data-tooltip="Hey">Short</p>
- */
-/* .o-tooltip--left { */
-/*   position: relative; */
-/* } */
-
+/* ─── Tooltip ─── */
 .o-tooltip--left:after {
   opacity: 0;
   visibility: hidden;
@@ -155,7 +401,7 @@ h1, h2 {
   transform: translateX(-102%) translateY(0);
   transition: opacity 0.2s cubic-bezier(0.64, 0.09, 0.08, 1), transform 0.2s cubic-bezier(0.64, 0.09, 0.08, 1);
   background-color: var(--pst-color-surface);
-  color: var(--pst-color-text);  
+  color: var(--pst-color-text);
 }
 
 .o-tooltip--left:hover:after {

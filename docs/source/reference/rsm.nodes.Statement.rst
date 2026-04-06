@@ -1,4 +1,4 @@
-﻿Statement
+Statement
 =========
 
 Qualified name: ``rsm.nodes.Statement``

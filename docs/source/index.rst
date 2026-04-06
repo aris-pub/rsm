@@ -1,69 +1,90 @@
-RSM: Readable Science Markup
-============================
+:html_theme.sidebar_secondary.remove:
+:nosearch:
 
-.. important::
-   **RSM is in active beta.** The language is stable and production-ready, but documentation is still evolving. We welcome feedback and bug reports via `GitHub Issues <https://github.com/aris-pub/rsm/issues>`_.
+.. meta::
+   :title: RSM: Readable Science Markup
 
-   **Publishing with Press**: You can now publish RSM manuscripts to `Scroll Press <https://scroll.press>`_, the web-native preprint archive. Press is currently in closed beta—check the website for updates.
+.. raw:: html
 
-What is RSM?
-------------
+   <div class="hero-section">
+     <h1>RSM<span class="hero-dot">.</span></h1>
+     <p class="hero-subtitle">Readable Science Markup</p>
+     <p class="hero-tagline">
+       A markup language for web-first scientific manuscripts.
+       The simplicity of Markdown. The power of semantic tagging.
+       Interactive cross-references, structured proofs, and accessible
+       typography, out of the box.
+     </p>
+     <div class="hero-actions">
+       <a href="https://rsm.studio" class="btn-primary">Try in Studio</a>
+       <a href="tutorials/getting-started.html" class="btn-secondary">Get Started →</a>
+     </div>
+   </div>
 
-RSM is a markup language for writing **web-first scientific manuscripts**. It combines:
 
-- The **simplicity** of Markdown
-- The **power** of semantic tagging
-- **Built-in support** for citations and cross-references
-- **Extensive affordances** for interactive figures, videos, algorithms, and mathematical proofs
-- **Interactive features** like tooltips and handrails for better reading experience
+A taste of RSM
+--------------
 
-**Write once, publish beautifully.** RSM manuscripts are responsive, accessible, and designed for modern web reading—not just PDFs.
+.. rsm::
 
-.. admonition:: Quick Start
+   # Euler's Identity
 
-   - **Try it online**: `RSM Studio <https://rsm.studio>`_ (no installation required)
-   - **Install locally**: See :ref:`installation` tutorial
-   - **Publish your manuscript**: Export to HTML and publish on `Scroll Press <https://scroll.press>`_
+   :author: {
+     :name: Jane Scientist
+     :affiliation: Example University
+   } ::
 
-Why RSM?
---------
+   :abstract:
+   A brief demonstration of RSM markup.
+   ::
 
-Traditional LaTeX + PDF workflows were designed for printed paper. RSM is designed for pixels:
+   ## Introduction
 
-- **Responsive**: Adapts to any screen size
-- **Interactive**: Click any reference to see a tooltip preview
-- **Accessible**: Screen reader friendly, high contrast options, custom fonts
-- **Structured proofs**: First-class support for formal mathematical writing
-- **Web-native**: HTML output works everywhere, no plugins needed
+   RSM combines the simplicity of Markdown
+   with the power of semantic tagging.
+   Write **bold**, *italic*, and
+   :math: e^{i\pi} + 1 = 0 :: inline.
 
-See :ref:`faq` for detailed comparisons with LaTeX, Markdown, and ReStructuredText.
+   :theorem: {
+     :label: thm-demo
+     :title: Main Result
+   }
+   Every RSM tag can be labeled and
+   cross-referenced with automatic tooltips.
+   ::
 
+   :proof:
+   The proof follows from :ref:thm-demo::.
+   ::
+
+
+Explore the docs
+----------------
 
 .. grid:: 1 2 2 2
 
    .. grid-item-card:: Tutorials
       :link: tutorials.html
 
-      Writing your first manuscript with RSM and other tutorials.
+      Step-by-step lessons for learning RSM from scratch.
 
 
-   .. grid-item-card:: Reference manual
+   .. grid-item-card:: How-to Guides
+      :link: guides.html
+
+      Task-oriented guides for styling, citations, and publishing.
+
+
+   .. grid-item-card:: Reference
       :link: reference.html
 
-      Complete reference of every feature and configuration option.
+      Complete reference for syntax, configuration, CLI, and API.
 
 
-   .. grid-item-card:: Contribution guide
-      :link: contributing.html
+   .. grid-item-card:: Explanation
+      :link: explanation.html
 
-      Contribute by reporting a bug or requesting a feature.  Get involved by submitting
-      a PR.
-
-
-   .. grid-item-card:: FAQ
-      :link: faq.html
-
-      Frequently asked questions.
+      Design decisions and comparisons with LaTeX and Markdown.
 
 
 .. toctree::
@@ -71,6 +92,7 @@ See :ref:`faq` for detailed comparisons with LaTeX, Markdown, and ReStructuredTe
    :hidden:
 
    tutorials
+   guides
    reference
+   explanation
    contributing
-   faq

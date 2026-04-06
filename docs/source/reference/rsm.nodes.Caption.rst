@@ -1,4 +1,4 @@
-﻿Caption
+Caption
 =======
 
 Qualified name: ``rsm.nodes.Caption``

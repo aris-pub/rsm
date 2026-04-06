@@ -35,7 +35,7 @@ def test_two_authors_same_affiliation():
         <div class="author-block">
         <p class="author-names">Alice, Bob</p>
         <details class="author-details">
-        <summary><div class="icon chevron-down"><svg width="16" height="16"><use href="#hr-icon-chevron-down" width="16" height="16"/></svg></div>Affiliations</summary>
+        <summary><div class="icon chevron-down"><svg overflow="visible"><use href="#hr-icon-chevron-down" width="100%" height="100%"/></svg></div>Affiliations</summary>
         <ol class="author-affiliations">
         <li>MIT</li>
         </ol>
@@ -85,7 +85,7 @@ def test_two_authors_different_affiliations():
         <div class="author-block">
         <p class="author-names">Alice<sup data-tooltip="MIT">1</sup>, Bob<sup data-tooltip="Harvard">2</sup></p>
         <details class="author-details">
-        <summary><div class="icon chevron-down"><svg width="16" height="16"><use href="#hr-icon-chevron-down" width="16" height="16"/></svg></div>Affiliations</summary>
+        <summary><div class="icon chevron-down"><svg overflow="visible"><use href="#hr-icon-chevron-down" width="100%" height="100%"/></svg></div>Affiliations</summary>
         <ol class="author-affiliations">
         <li value="1"><sup>1</sup>MIT</li>
         <li value="2"><sup>2</sup>Harvard</li>
@@ -142,7 +142,7 @@ def test_three_authors_mixed_affiliations():
         <div class="author-block">
         <p class="author-names">Alice<sup data-tooltip="MIT">1</sup>, Bob<sup data-tooltip="Harvard">2</sup>, Carol<sup data-tooltip="MIT">1</sup></p>
         <details class="author-details">
-        <summary><div class="icon chevron-down"><svg width="16" height="16"><use href="#hr-icon-chevron-down" width="16" height="16"/></svg></div>Affiliations</summary>
+        <summary><div class="icon chevron-down"><svg overflow="visible"><use href="#hr-icon-chevron-down" width="100%" height="100%"/></svg></div>Affiliations</summary>
         <ol class="author-affiliations">
         <li value="1"><sup>1</sup>MIT</li>
         <li value="2"><sup>2</sup>Harvard</li>
@@ -230,7 +230,7 @@ def test_two_authors_same_note():
         <div class="author-block">
         <p class="author-names">Alice, Bob</p>
         <details class="author-details">
-        <summary><div class="icon chevron-down"><svg width="16" height="16"><use href="#hr-icon-chevron-down" width="16" height="16"/></svg></div>Affiliations</summary>
+        <summary><div class="icon chevron-down"><svg overflow="visible"><use href="#hr-icon-chevron-down" width="100%" height="100%"/></svg></div>Affiliations</summary>
         <p class="author-note">Equal contribution</p>
         </details>
         </div>
@@ -278,7 +278,7 @@ def test_two_authors_different_notes():
         <div class="author-block">
         <p class="author-names">Alice<sup data-tooltip="Equal contribution">*</sup>, Bob<sup data-tooltip="Now at MIT">†</sup></p>
         <details class="author-details">
-        <summary><div class="icon chevron-down"><svg width="16" height="16"><use href="#hr-icon-chevron-down" width="16" height="16"/></svg></div>Affiliations</summary>
+        <summary><div class="icon chevron-down"><svg overflow="visible"><use href="#hr-icon-chevron-down" width="100%" height="100%"/></svg></div>Affiliations</summary>
         <p class="author-note"><sup>*</sup>Equal contribution</p>
         <p class="author-note"><sup>†</sup>Now at MIT</p>
         </details>
@@ -322,7 +322,7 @@ def test_author_with_affiliation_and_note():
         <div class="author-block">
         <p class="author-names">Alice</p>
         <details class="author-details">
-        <summary><div class="icon chevron-down"><svg width="16" height="16"><use href="#hr-icon-chevron-down" width="16" height="16"/></svg></div>Affiliations</summary>
+        <summary><div class="icon chevron-down"><svg overflow="visible"><use href="#hr-icon-chevron-down" width="100%" height="100%"/></svg></div>Affiliations</summary>
         <ol class="author-affiliations">
         <li>MIT</li>
         </ol>
@@ -409,7 +409,7 @@ def test_many_notes_symbol_progression():
         <div class="author-block">
         <p class="author-names">A1<sup data-tooltip="Note 1">*</sup>, A2<sup data-tooltip="Note 2">\u2020</sup>, A3<sup data-tooltip="Note 3">\u2021</sup>, A4<sup data-tooltip="Note 4">\u00a7</sup>, A5<sup data-tooltip="Note 5">\u00b6</sup>, A6<sup data-tooltip="Note 6">\u2016</sup>, A7<sup data-tooltip="Note 7">**</sup>, A8<sup data-tooltip="Note 8">\u2020\u2020</sup></p>
         <details class="author-details">
-        <summary><div class="icon chevron-down"><svg width="16" height="16"><use href="#hr-icon-chevron-down" width="16" height="16"/></svg></div>Affiliations</summary>
+        <summary><div class="icon chevron-down"><svg overflow="visible"><use href="#hr-icon-chevron-down" width="100%" height="100%"/></svg></div>Affiliations</summary>
         <p class="author-note"><sup>*</sup>Note 1</p>
         <p class="author-note"><sup>\u2020</sup>Note 2</p>
         <p class="author-note"><sup>\u2021</sup>Note 3</p>
@@ -474,7 +474,7 @@ def test_complex_author_combination():
         <div class="author-block">
         <p class="author-names">Alice<sup data-tooltip="MIT">1</sup>, Bob<sup data-tooltip="Harvard">2</sup>, Carol<sup data-tooltip="MIT">1</sup></p>
         <details class="author-details">
-        <summary><div class="icon chevron-down"><svg width="16" height="16"><use href="#hr-icon-chevron-down" width="16" height="16"/></svg></div>Affiliations</summary>
+        <summary><div class="icon chevron-down"><svg overflow="visible"><use href="#hr-icon-chevron-down" width="100%" height="100%"/></svg></div>Affiliations</summary>
         <ol class="author-affiliations">
         <li value="1"><sup>1</sup>MIT</li>
         <li value="2"><sup>2</sup>Harvard</li>

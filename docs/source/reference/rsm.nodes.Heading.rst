@@ -1,4 +1,4 @@
-﻿Heading
+Heading
 =======
 
 Qualified name: ``rsm.nodes.Heading``

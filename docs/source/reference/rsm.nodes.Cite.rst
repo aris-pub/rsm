@@ -1,4 +1,4 @@
-﻿Cite
+Cite
 ====
 
 Qualified name: ``rsm.nodes.Cite``

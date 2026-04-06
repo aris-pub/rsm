@@ -1,4 +1,4 @@
-﻿Bibitem
+Bibitem
 =======
 
 Qualified name: ``rsm.nodes.Bibitem``

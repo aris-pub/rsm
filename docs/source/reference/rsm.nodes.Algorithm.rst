@@ -1,4 +1,4 @@
-﻿Algorithm
+Algorithm
 =========
 
 Qualified name: ``rsm.nodes.Algorithm``

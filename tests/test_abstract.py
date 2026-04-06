@@ -57,7 +57,7 @@ def test_simple():
         <div class="author-block">
         <p class="author-names">Leo Torres</p>
         <details class="author-details">
-        <summary><div class="icon chevron-down"><svg width="16" height="16"><use href="#hr-icon-chevron-down" width="16" height="16"/></svg></div>Affiliations</summary>
+        <summary><div class="icon chevron-down"><svg overflow="visible"><use href="#hr-icon-chevron-down" width="100%" height="100%"/></svg></div>Affiliations</summary>
         <ol class="author-affiliations">
         <li>Max Planck Institute for Mathematics in the Sciences</li>
         </ol>

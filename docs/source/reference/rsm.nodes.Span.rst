@@ -1,4 +1,4 @@
-﻿Span
+Span
 ====
 
 Qualified name: ``rsm.nodes.Span``

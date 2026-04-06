@@ -35,8 +35,8 @@ meaning, not just structure.
 The ``:abstract:`` tag is a *block* tag that introduces a clearly separated part of the
 manuscript. Some tags can also have meta-data attached. For example, the ``:author:``
 tag in the first example uses ``:name:`` and ``:affiliation:`` tags to specify author
-details. Tags like ``:name:`` and ``:affiliation:`` are called *meta* tags—they modify
-their parent tag.
+details. Tags like ``:name:`` and ``:affiliation:`` are called *meta* tags. They appear
+inside braces ``{}`` immediately after the opening tag and modify their parent tag.
 
 Tags such as ``:author:`` and ``:abstract:`` introduce parts of the manuscript that are
 clearly separated from other parts. These are called *block* tags. In contrast, the
@@ -60,8 +60,6 @@ The notation ``:span: {:strong:} text ::`` to introduce bold text allows an alte
 *shorthand* notation using asterisks (``*``).
 
 .. rsm::
-
-   ## Awesome section
 
    Span tags do not introduce new parts, but
    **live within** their parents.

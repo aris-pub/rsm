@@ -1,4 +1,4 @@
-﻿TableDatum
+TableDatum
 ==========
 
 Qualified name: ``rsm.nodes.TableDatum``

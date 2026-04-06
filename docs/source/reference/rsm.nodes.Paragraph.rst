@@ -1,4 +1,4 @@
-﻿Paragraph
+Paragraph
 =========
 
 Qualified name: ``rsm.nodes.Paragraph``
