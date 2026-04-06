@@ -312,8 +312,3 @@ All four examples are valid RSM syntax. Try them:
 
    Use ``rsm serve example.rsm`` to automatically rebuild on changes.
 
-More examples available at:
-
-- `RSM Studio Gallery <https://rsm.studio/gallery>`_ (when available)
-- `Scroll Press <https://scroll.press>`_ (real published papers)
-- `/examples-rsm/ <https://github.com/leotrs/rsm/tree/main/examples-rsm>`_ folder in GitHub repo
