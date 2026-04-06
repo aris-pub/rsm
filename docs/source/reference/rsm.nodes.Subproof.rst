@@ -1,4 +1,4 @@
-﻿Subproof
+Subproof
 ========
 
 Qualified name: ``rsm.nodes.Subproof``

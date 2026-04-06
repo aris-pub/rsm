@@ -1,4 +1,4 @@
-﻿Error
+Error
 =====
 
 Qualified name: ``rsm.nodes.Error``

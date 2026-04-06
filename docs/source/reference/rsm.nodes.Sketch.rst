@@ -1,4 +1,4 @@
-﻿Sketch
+Sketch
 ======
 
 Qualified name: ``rsm.nodes.Sketch``

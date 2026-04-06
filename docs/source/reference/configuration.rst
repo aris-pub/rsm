@@ -5,7 +5,7 @@ Configuration
 
 The ``:config:`` tag allows you to specify document-level settings that control how your
 manuscript is rendered. Configuration settings are document properties that travel with
-the ``.rsm`` file — if you share the file, it renders the same way for everyone.
+the ``.rsm`` file. If you share the file, it renders the same way for everyone.
 
 Basic usage
 ***********
@@ -13,7 +13,7 @@ Basic usage
 The ``:config:`` tag appears once per document and contains meta keys that define
 document properties:
 
-.. code-block:: text
+.. rsm::
 
    # My Document
 
@@ -25,7 +25,9 @@ document properties:
    }
    ::
 
-   Content goes here.
+   ## Introduction
+   Notice the purple accent color and
+   serif typography.
 
 The ``:config:`` tag can appear anywhere in the document, but by convention it is placed
 near the top, after the title.
@@ -63,8 +65,8 @@ Sets the typeface style for the document.
 
 **Valid values:**
 
-- ``sans-serif`` (default) — Montserrat for headings, Source Sans 3 for body text
-- ``serif`` — Source Serif 4 for both headings and body text
+- ``sans-serif`` (default): Montserrat for headings, Source Sans 3 for body text
+- ``serif``: Source Serif 4 for both headings and body text
 
 **Example:**
 
@@ -111,9 +113,9 @@ Controls how theorems, lemmas, and other numbered environments are numbered.
 
 **Valid values:**
 
-- ``section`` (default) — Numbers reset at each section (e.g., Theorem 1.1, Theorem 2.1)
-- ``document`` — Numbers increment throughout the document (e.g., Theorem 1, Theorem 2)
-- ``none`` — No automatic numbering
+- ``section`` (default): numbers reset at each section (e.g., Theorem 1.1, Theorem 2.1)
+- ``document``: numbers increment throughout the document (e.g., Theorem 1, Theorem 2)
+- ``none``: no automatic numbering
 
 **Example:**
 

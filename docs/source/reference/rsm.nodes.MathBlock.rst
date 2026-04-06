@@ -1,4 +1,4 @@
-﻿MathBlock
+MathBlock
 =========
 
 Qualified name: ``rsm.nodes.MathBlock``

@@ -1,4 +1,4 @@
-﻿BaseParagraph
+BaseParagraph
 =============
 
 Qualified name: ``rsm.nodes.BaseParagraph``

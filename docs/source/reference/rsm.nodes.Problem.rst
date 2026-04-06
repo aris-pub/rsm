@@ -1,4 +1,4 @@
-﻿Problem
+Problem
 =======
 
 Qualified name: ``rsm.nodes.Problem``

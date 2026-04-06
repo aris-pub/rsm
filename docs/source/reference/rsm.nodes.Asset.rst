@@ -1,4 +1,4 @@
-﻿Asset
+Asset
 =====
 
 Qualified name: ``rsm.nodes.Asset``

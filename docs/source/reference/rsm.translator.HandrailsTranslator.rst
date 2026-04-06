@@ -17,6 +17,7 @@ Qualified name: ``rsm.translator.HandrailsTranslator``
       
       ~HandrailsTranslator.leave_algorithm
       ~HandrailsTranslator.leave_author
+      ~HandrailsTranslator.leave_authorblock
       ~HandrailsTranslator.leave_caption
       ~HandrailsTranslator.leave_codeblock
       ~HandrailsTranslator.leave_enumerate
@@ -32,6 +33,7 @@ Qualified name: ``rsm.translator.HandrailsTranslator``
       ~HandrailsTranslator.visit_abstract
       ~HandrailsTranslator.visit_algorithm
       ~HandrailsTranslator.visit_author
+      ~HandrailsTranslator.visit_authorblock
       ~HandrailsTranslator.visit_bibitem
       ~HandrailsTranslator.visit_bibliography
       ~HandrailsTranslator.visit_caption

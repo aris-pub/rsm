@@ -1,4 +1,4 @@
-﻿Example
+Example
 =======
 
 Qualified name: ``rsm.nodes.Example``

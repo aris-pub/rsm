@@ -1,4 +1,4 @@
-﻿PendingReference
+PendingReference
 ================
 
 Qualified name: ``rsm.nodes.PendingReference``

@@ -1,4 +1,4 @@
-﻿URL
+URL
 ===
 
 Qualified name: ``rsm.nodes.URL``

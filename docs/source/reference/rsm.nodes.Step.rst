@@ -1,4 +1,4 @@
-﻿Step
+Step
 ====
 
 Qualified name: ``rsm.nodes.Step``

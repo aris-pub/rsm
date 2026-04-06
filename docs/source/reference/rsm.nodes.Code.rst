@@ -1,4 +1,4 @@
-﻿Code
+Code
 ====
 
 Qualified name: ``rsm.nodes.Code``

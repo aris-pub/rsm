@@ -1,4 +1,4 @@
-﻿TableHead
+TableHead
 =========
 
 Qualified name: ``rsm.nodes.TableHead``

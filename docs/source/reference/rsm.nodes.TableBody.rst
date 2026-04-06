@@ -1,4 +1,4 @@
-﻿TableBody
+TableBody
 =========
 
 Qualified name: ``rsm.nodes.TableBody``

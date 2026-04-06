@@ -1,4 +1,4 @@
-﻿Author
+Author
 ======
 
 Qualified name: ``rsm.nodes.Author``

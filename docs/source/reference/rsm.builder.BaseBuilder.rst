@@ -1,4 +1,4 @@
-BaseBuilder
+﻿BaseBuilder
 ===========
 
 Qualified name: ``rsm.builder.BaseBuilder``
@@ -16,6 +16,7 @@ Qualified name: ``rsm.builder.BaseBuilder``
       :nosignatures:
       
       ~BaseBuilder.build
+      ~BaseBuilder.deduplicate_scripts
       ~BaseBuilder.find_required_assets
       ~BaseBuilder.make_main_file
 

@@ -1,4 +1,4 @@
-﻿NodeWithChildren
+NodeWithChildren
 ================
 
 Qualified name: ``rsm.nodes.NodeWithChildren``

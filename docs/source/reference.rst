@@ -1,25 +1,37 @@
 .. _reference:
 
-Reference manual
-================
+Reference
+=========
 
-For users
-*********
+Lookup-oriented documentation for RSM syntax, configuration, CLI, and API.
+
+Language
+********
 
 .. toctree::
    :maxdepth: 1
 
+   reference/syntax
+   reference/special
+   reference/configuration
    reference/tags
+   reference/cli-commands
+
+Architecture
+************
+
+.. toctree::
+   :maxdepth: 1
+
    reference/steps
 
 
-For developers
-**************
+API Reference
+*************
 
 .. currentmodule:: rsm
 
-The :code:`rsm` package contains core modules, implementing each of the steps in the
-file processing pipeline:
+Core modules implementing each step in the file processing pipeline:
 
 .. autosummary::
    :toctree: reference
@@ -33,7 +45,7 @@ file processing pipeline:
    builder
    writer
 
-And user-facing modules, which use the modules above to actually process a file:
+User-facing modules:
 
 .. autosummary::
    :toctree: reference

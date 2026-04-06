@@ -1,4 +1,4 @@
-﻿Exercise
+Exercise
 ========
 
 Qualified name: ``rsm.nodes.Exercise``

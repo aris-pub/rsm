@@ -1,4 +1,4 @@
-﻿Itemize
+Itemize
 =======
 
 Qualified name: ``rsm.nodes.Itemize``

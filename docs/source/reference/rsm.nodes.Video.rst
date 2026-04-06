@@ -1,4 +1,4 @@
-﻿Video
+Video
 =====
 
 Qualified name: ``rsm.nodes.Video``

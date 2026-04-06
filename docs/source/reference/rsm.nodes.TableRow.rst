@@ -1,4 +1,4 @@
-﻿TableRow
+TableRow
 ========
 
 Qualified name: ``rsm.nodes.TableRow``

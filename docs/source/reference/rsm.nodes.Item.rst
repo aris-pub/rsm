@@ -1,4 +1,4 @@
-﻿Item
+Item
 ====
 
 Qualified name: ``rsm.nodes.Item``

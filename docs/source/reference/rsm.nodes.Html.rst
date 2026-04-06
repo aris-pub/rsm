@@ -1,4 +1,4 @@
-﻿Html
+Html
 ====
 
 Qualified name: ``rsm.nodes.Html``

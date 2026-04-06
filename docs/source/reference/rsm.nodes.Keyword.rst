@@ -1,4 +1,4 @@
-﻿Keyword
+Keyword
 =======
 
 Qualified name: ``rsm.nodes.Keyword``

@@ -1,4 +1,4 @@
-﻿ClaimBlock
+ClaimBlock
 ==========
 
 Qualified name: ``rsm.nodes.ClaimBlock``

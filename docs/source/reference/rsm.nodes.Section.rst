@@ -1,4 +1,4 @@
-﻿Section
+Section
 =======
 
 Qualified name: ``rsm.nodes.Section``

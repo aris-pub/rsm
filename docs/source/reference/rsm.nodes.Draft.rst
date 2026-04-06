@@ -1,4 +1,4 @@
-﻿Draft
+Draft
 =====
 
 Qualified name: ``rsm.nodes.Draft``

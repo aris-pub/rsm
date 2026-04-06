@@ -1,4 +1,4 @@
-﻿SourceCode
+SourceCode
 ==========
 
 Qualified name: ``rsm.nodes.SourceCode``

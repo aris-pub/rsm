@@ -1,4 +1,4 @@
-﻿Corollary
+Corollary
 =========
 
 Qualified name: ``rsm.nodes.Corollary``

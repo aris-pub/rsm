@@ -27,6 +27,10 @@
       
         Author
       
+        AuthorBlock
+      
+        AuthorNotes
+      
         BaseParagraph
       
         BaseReference

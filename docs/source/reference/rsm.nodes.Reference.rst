@@ -1,4 +1,4 @@
-﻿Reference
+Reference
 =========
 
 Qualified name: ``rsm.nodes.Reference``

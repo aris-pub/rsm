@@ -1,4 +1,4 @@
-﻿Contents
+Contents
 ========
 
 Qualified name: ``rsm.nodes.Contents``

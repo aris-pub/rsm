@@ -1,4 +1,4 @@
-﻿Appendix
+Appendix
 ========
 
 Qualified name: ``rsm.nodes.Appendix``
