@@ -209,6 +209,27 @@ html[data-theme="dark"] .sd-card.sd-sphinx-override:hover {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
+/* ─── RSM syntax highlighting (from tree-sitter-rsm/queries/highlights.css) ─── */
+.rsm-highlight .tok-keyword { color: var(--braiid-blue-700, #0361a1); font-weight: 600; }
+.rsm-highlight .tok-function { color: var(--braiid-purple-700, #7629c7); }
+.rsm-highlight .tok-operator { color: var(--braiid-blue-600, #027ac7); }
+.rsm-highlight .tok-namespace { color: var(--braiid-blue-800, #075487); font-weight: 700; }
+.rsm-highlight .tok-macro { color: #8b3be2; }
+.rsm-highlight .tok-string { color: #be4a10; }
+.rsm-highlight .tok-comment { color: var(--braiid-gray-700, #5f7186); font-style: italic; }
+.rsm-highlight .tok-property { color: #973a15; }
+.rsm-highlight .tok-type { color: var(--braiid-blue-600, #027ac7); }
+.rsm-highlight .tok-modifier { color: #8b3be2; }
+.rsm-highlight .tok-enumMember { color: var(--braiid-blue-700, #0361a1); }
+.rsm-highlight .tok-number { color: var(--braiid-blue-600, #027ac7); }
+
+.rsm-highlight pre {
+  margin: 0;
+  padding: 1em;
+  overflow-x: auto;
+  line-height: 1.5;
+}
+
 /* ─── RSM iframe loading spinner ─── */
 .rsm-iframe-wrap {
   position: relative;

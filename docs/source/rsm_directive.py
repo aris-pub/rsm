@@ -7,13 +7,124 @@ Highlight and render RSM code blocks.
 """
 
 import hashlib
+from html import escape
 from pathlib import Path
 
 from docutils import nodes
 from docutils.parsers.rst import Directive
 
 import rsm
+import tree_sitter
+import tree_sitter_rsm
 
+
+# ── Syntax highlighting via tree-sitter ──────────────────────────────────────
+
+# Map CST node types to tok-* CSS classes.
+# Mirrors the capture-to-token mapping in highlights.scm / the LSP.
+_NODE_TYPE_TO_CLASS = {
+    # Block tags (keywords)
+    "theorem": "tok-keyword", "lemma": "tok-keyword", "corollary": "tok-keyword",
+    "proposition": "tok-keyword", "definition": "tok-keyword", "remark": "tok-keyword",
+    "example": "tok-keyword", "exercise": "tok-keyword", "problem": "tok-keyword",
+    "porism": "tok-keyword",
+    # Proof environments
+    "proof": "tok-keyword", "sketch": "tok-keyword", "subproof": "tok-keyword",
+    # Proof constructs
+    "assume": "tok-keyword", "case": "tok-keyword", "claim": "tok-keyword",
+    "define": "tok-keyword", "let": "tok-keyword", "new": "tok-keyword",
+    "pick": "tok-keyword", "prove": "tok-keyword", "st": "tok-keyword",
+    "suffices": "tok-keyword", "suppose": "tok-keyword", "then": "tok-keyword",
+    "wlog": "tok-keyword", "write": "tok-keyword",
+    "step": "tok-modifier", "qed": "tok-enumMember",
+    # Document structure
+    "abstract": "tok-keyword", "author": "tok-keyword", "config": "tok-keyword",
+    "figure": "tok-keyword", "video": "tok-keyword", "html": "tok-keyword",
+    "enumerate": "tok-keyword", "itemize": "tok-keyword",
+    "appendix": "tok-keyword", "toc": "tok-keyword",
+    "thead": "tok-keyword", "tbody": "tok-keyword", "tr": "tok-keyword",
+    # Inline tags
+    "draft": "tok-modifier", "note": "tok-modifier", "span": "tok-modifier",
+    # Special inlines
+    "math": "tok-operator", "code": "tok-operator",
+    "ref": "tok-function", "cite": "tok-function", "url": "tok-function",
+    "previous": "tok-function", "prev": "tok-function",
+    "prev2": "tok-function", "prev3": "tok-function",
+    "spanemphas": "tok-operator", "spanstrong": "tok-operator",
+    # Math/code content
+    "asis_text": "tok-macro",
+    # Meta
+    "name": "tok-property", "affiliation": "tok-property", "email": "tok-property",
+    "label": "tok-property", "title": "tok-property", "reftext": "tok-property",
+    "orcid": "tok-property", "author_note": "tok-property",
+    "emphas": "tok-property", "strong": "tok-property", "nonum": "tok-property",
+    "isclaim": "tok-property", "keywords": "tok-property", "msc": "tok-property",
+    "class": "tok-property", "icon": "tok-property", "alt": "tok-property",
+    "goal": "tok-property", "lang": "tok-property", "path": "tok-property",
+    "accent": "tok-property", "typography": "tok-property",
+    "numbering": "tok-property", "override_date": "tok-property",
+    "toc_depth": "tok-property", "scale": "tok-property",
+    "static": "tok-property", "theme": "tok-property", "dark": "tok-property",
+    "author_display_first": "tok-property", "author_display_last": "tok-property",
+    "metaval_text": "tok-string", "metaval_list_item": "tok-string",
+    # Bibliography
+    "kind": "tok-type", "key": "tok-property", "value": "tok-string",
+    # Delimiters
+    "::": "tok-operator", "{": "tok-operator", "}": "tok-operator",
+    ":-:": "tok-operator", "@": "tok-operator",
+    # Comments
+    "comment": "tok-comment",
+}
+
+_TS_LANG = tree_sitter.Language(tree_sitter_rsm.language())
+_TS_PARSER = tree_sitter.Parser(_TS_LANG)
+
+
+def _collect_leaf_spans(node, spans):
+    """Walk the CST and collect (start_byte, end_byte, css_class) for leaf nodes."""
+    css = _NODE_TYPE_TO_CLASS.get(node.type)
+    if css and node.child_count == 0:
+        spans.append((node.start_byte, node.end_byte, css))
+    elif node.type == "asis_text":
+        # asis_text may have children but we want to highlight the whole thing
+        spans.append((node.start_byte, node.end_byte, "tok-macro"))
+    else:
+        # Check if this is a heading text node (title field of source_file or section)
+        if node.type == "text" and node.parent:
+            parent_type = node.parent.type
+            if parent_type in ("source_file", "section", "subsection", "subsubsection"):
+                spans.append((node.start_byte, node.end_byte, "tok-namespace"))
+                return
+        for child in node.children:
+            _collect_leaf_spans(child, spans)
+
+
+def highlight_rsm(source: str) -> str:
+    """Return HTML with tok-* spans for RSM source code."""
+    tree = _TS_PARSER.parse(source.encode())
+    spans = []
+    _collect_leaf_spans(tree.root_node, spans)
+    spans.sort(key=lambda s: (s[0], -s[1]))
+
+    src_bytes = source.encode()
+    parts = []
+    pos = 0
+    for start, end, css in spans:
+        if start < pos:
+            continue
+        if start > pos:
+            parts.append(escape(src_bytes[pos:start].decode()))
+        parts.append(f'<span class="{css}">')
+        parts.append(escape(src_bytes[start:end].decode()))
+        parts.append("</span>")
+        pos = end
+    if pos < len(src_bytes):
+        parts.append(escape(src_bytes[pos:].decode()))
+
+    return "".join(parts)
+
+
+# ── Asset resolver ───────────────────────────────────────────────────────────
 
 class SourceDirAssetResolver:
     """Asset resolver that resolves paths relative to the source directory."""
@@ -34,6 +145,8 @@ class SourceDirAssetResolver:
             return None
 
 
+# ── Docutils nodes ───────────────────────────────────────────────────────────
+
 class rsm_example(nodes.Element):
     pass
 
@@ -43,6 +156,16 @@ class rsm_iframe(nodes.Element):
         super().__init__()
         self.path = path
 
+
+class rsm_highlighted_code(nodes.Element):
+    """A code block with tree-sitter syntax highlighting."""
+    def __init__(self, html, classes=None):
+        super().__init__()
+        self.html = html
+        self.extra_classes = classes or []
+
+
+# ── Directive ────────────────────────────────────────────────────────────────
 
 class RSMDirective(Directive):
     has_content = True
@@ -58,9 +181,10 @@ class RSMDirective(Directive):
         layout = self.options.get('layout', 'horizontal')
         custom_css = self.options.get('custom-css', None)
 
-        n1 = nodes.literal_block(content, content)
-        n1["language"] = "text"
-        n1["classes"].append("rsm-example-code")
+        n1 = rsm_highlighted_code(
+            highlight_rsm(content),
+            classes=["rsm-example-code"],
+        )
 
         # Use standalone mode - it uses CDN for CSS and inlines JavaScript
         # Use custom asset resolver to resolve paths relative to source directory
@@ -90,7 +214,6 @@ class RSMDirective(Directive):
         html_output = html_output.replace('class="manuscriptwrapper"', 'class="manuscriptwrapper embedded"')
 
         # Fix relative paths to _static to work from _examples/ directory
-        # Go up one level from _examples/ to reach _static/
         html_output = html_output.replace('src="_static/', 'src="../_static/')
 
         # Save to file and reference via iframe src
@@ -107,6 +230,17 @@ class RSMDirective(Directive):
         rsm_node.append(n1)
         rsm_node.append(n2)
         return [rsm_node]
+
+
+# ── Node visitors ────────────────────────────────────────────────────────────
+
+def visit_rsm_highlighted_code_node(self, node):
+    classes = " ".join(["highlight", "rsm-highlight"] + node.extra_classes)
+    self.body.append(f'<div class="{classes}"><pre>{node.html}</pre></div>')
+
+
+def depart_rsm_highlighted_code_node(self, node):
+    pass
 
 
 def visit_rsm_iframe_node(self, node):
@@ -139,18 +273,16 @@ def depart_rsm_example_node(self, node):
     self.body.append("</div>")
 
 
+# ── Sphinx setup ─────────────────────────────────────────────────────────────
+
 def add_rsm_static_files(app):
     cfg = app.config
 
-    # paths
     parent = Path(__file__).parent
     doc_static_dir = parent / "_static"
     rsm_static_dir = parent.parent.parent / "rsm" / "static"
     cfg.html_static_path.append(str(doc_static_dir.absolute()))
     cfg.html_static_path.append(str(rsm_static_dir.absolute()))
-
-    # No longer needed - each iframe contains its own complete HTML with all assets
-    # The rsm.render() output includes all CSS/JS needed for the manuscript
 
 
 def strip_object_from_bases(app, name, obj, options, bases):
@@ -166,3 +298,7 @@ def setup(app):
     app.add_directive("rsm", RSMDirective)
     app.add_node(rsm_example, html=(visit_rsm_example_node, depart_rsm_example_node))
     app.add_node(rsm_iframe, html=(visit_rsm_iframe_node, depart_rsm_iframe_node))
+    app.add_node(
+        rsm_highlighted_code,
+        html=(visit_rsm_highlighted_code_node, depart_rsm_highlighted_code_node),
+    )

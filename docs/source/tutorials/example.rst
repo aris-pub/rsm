@@ -26,7 +26,7 @@ A minimal manuscript for informal scientific writing.
    This post explores why web-native formats are the future of research communication.
    ::
 
-   ## The Problem with PDFs
+   ## The Problem with PDFs {:label: problem}
 
    Academic papers are still published primarily as PDFs, a format designed in the 1990s
    for *printing*, not *reading on screens*. This creates several issues:
@@ -35,7 +35,7 @@ A minimal manuscript for informal scientific writing.
    - **Interactive content** (data visualizations, embedded code) is impossible
    - **Accessibility** features (screen readers, high contrast) are limited
 
-   ## Why HTML?
+   ## Why HTML? {:label: why-html}
 
    HTML is the native format of the web. Modern HTML publications can:
 
@@ -49,8 +49,11 @@ A minimal manuscript for informal scientific writing.
 
    ## Getting Started
 
+   As we discussed in :ref:problem::, PDFs are not designed for screens.
+   The solution is :ref:why-html, HTML::.
+
    Try writing your next preprint in RSM and publishing it on
-   `Scroll Press <https://scroll.press>`_. Your readers will thank you.
+   :url:https://scroll.press, Scroll Press::. Your readers will thank you.
 
 
 Mathematical Paper Example
