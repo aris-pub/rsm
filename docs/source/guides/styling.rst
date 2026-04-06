@@ -112,14 +112,14 @@ Use smaller font sizes for footnotes or side comments:
 Multiple classes
 ----------------
 
-You can apply multiple CSS classes by using braces and separating them with commas:
+You can apply multiple CSS classes by separating them with spaces:
 
 .. code-block:: text
 
-   :span: {:class: {type1, type2}} Styled text ::
+   :span: {:class: type1 type2} Styled text ::
 
    :block-tag: {
-     :class: {type1, type2}
+     :class: type1 type2
    }
    Styled text
    ::
@@ -136,11 +136,11 @@ css file with the same name as the file you are processing. For example,
    $ rsm build manuscript.rsm
 
 Will include ``manuscript.css`` if it exists. To use a file with a different name, use
-the ``--custom-css`` flag.
+the ``--css`` flag.
 
 .. code-block:: bash
 
-   $ rsm build manuscript.rsm --custom-css styles.css
+   $ rsm build manuscript.rsm --css styles.css
 
 Then in your RSM manuscript, reference your custom classes:
 

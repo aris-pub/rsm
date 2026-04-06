@@ -10,7 +10,6 @@ with copy-paste examples.
    :maxdepth: 1
 
    guides/tooltips
-   guides/cross-references
    guides/citations
    guides/multi-author
    guides/styling

@@ -132,6 +132,5 @@ to the entry:
 What's next?
 ************
 
-- :ref:`tooltips`: more on ``:reftext:`` and display text options
+- :ref:`tooltips`: more on ``:reftext:``, display text, and equation references
 - :ref:`citations-guide`: multiple citations, entry types, DOI links
-- :ref:`cross-references-guide`: referencing equations, sections, and more

@@ -52,6 +52,23 @@ notation.
    Refer to :ref:lbl3:: above, or call
    it :ref:lbl3, Awesome Remark::.
 
+Referencing equations
+---------------------
+
+Math blocks can be labeled and referenced the same way:
+
+.. rsm::
+
+   :mathblock: {
+     :label: eqn-euler
+   }
+   e^{i\pi} + 1 = 0
+   ::
+
+   Equation :ref:eqn-euler:: is known as
+   Euler's identity.
+
+
 .. admonition:: Summary
 
    Use ``:label: <label>`` to assign a unique label to a region of the manuscript.  Use

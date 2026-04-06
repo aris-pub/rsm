@@ -45,14 +45,14 @@ The citation renders as a numbered link with a tooltip preview.
 Multiple citations
 ------------------
 
-Cite multiple sources by using separate ``:cite:`` tags:
+Cite multiple keys in a single tag by separating them with commas:
 
 .. rsm::
 
    ## Discussion
 
-   Building on :cite:author1:: and
-   :cite:author2::, we show that...
+   Several authors have studied this
+   problem :cite:author1,author2::.
 
    :references:
 
