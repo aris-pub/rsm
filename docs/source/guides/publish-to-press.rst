@@ -26,7 +26,7 @@ Before publishing an RSM manuscript to Press, you need:
 2. RSM installed locally (``pip install rsm-lang``)
 3. A built HTML version of your manuscript
 
-If you don't have a manuscript yet, see :ref:`first-manuscript` or :ref:`example` for templates.
+If you don't have a manuscript yet, see :ref:`getting-started` or :ref:`example` for templates.
 
 Step 1: Prepare Your Manuscript
 ********************************

@@ -34,7 +34,6 @@ Verify the installation:
 
    $ rsm --version
 
-
 Step 2: Write a manuscript
 --------------------------
 
@@ -119,6 +118,9 @@ What's next?
 Troubleshooting
 ---------------
 
+Build errors
+************
+
 **"Command not found: rsm"**
    Make sure RSM is installed (``pip install rsm-lang``) and your virtual
    environment is activated.
@@ -127,10 +129,32 @@ Troubleshooting
    Use ``cd`` to navigate to the directory containing your ``.rsm`` file, or
    provide the full path.
 
+**"SyntaxError: unexpected tag at line X"**
+   Run ``rsm check manuscript.rsm`` to see detailed error messages.
+   Common causes: missing closing Halmos ``::``, misspelled tag name,
+   or incorrect meta tag syntax (check braces and colons).
+
+Linter warnings
+***************
+
+**"LINT: Manuscript with no title"**
+   Add a title at the top of your file: ``# Your Title Here``
+
+**"LINT: Missing closing Halmos"**
+   Every opening tag needs a closing ``::``.
+   Use proper indentation to track nested tags.
+
+Browser issues
+**************
+
+**Manuscript doesn't render correctly**
+   Try a hard refresh (``Ctrl+Shift+R`` or ``Cmd+Shift+R``).
+   Check the browser console (F12) for JavaScript errors.
+   Verify the ``static/`` folder is in the same directory as the HTML file.
+
 **Math equations don't display**
    RSM uses Temml for math rendering. Try a hard refresh
-   (``Ctrl+Shift+R`` or ``Cmd+Shift+R``) or use ``rsm serve`` for
-   automatic rebuilds.
+   or use ``rsm serve`` for automatic rebuilds.
 
 **Still stuck?**
    Open an issue at https://github.com/aris-pub/rsm/issues with your RSM

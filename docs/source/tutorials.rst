@@ -28,29 +28,13 @@ Step-by-step lessons that take you from beginner to confident RSM user.
       **Next**: Explore the :ref:`guides` for common tasks
 
 
-Getting Started
-***************
+All tutorials
+*************
 
 .. toctree::
    :maxdepth: 1
 
    tutorials/getting-started
-   tutorials/installation
-   tutorials/first-manuscript
-
-Feature Tour
-************
-
-.. toctree::
-   :maxdepth: 1
-
    tutorials/markup
    tutorials/handrail
-
-Examples
-********
-
-.. toctree::
-   :maxdepth: 1
-
    tutorials/example
