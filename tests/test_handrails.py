@@ -29,7 +29,7 @@ def test_codeblock_handrails():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
+                          <div class="icon dots"><svg overflow="visible"><use href="#hr-icon-dots" width="100%" height="100%"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -95,7 +95,7 @@ def test_codeblock_with_lang_handrails():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
+                          <div class="icon dots"><svg overflow="visible"><use href="#hr-icon-dots" width="100%" height="100%"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -155,7 +155,7 @@ def test_manuscript():
         <div class="hr-collapse-zone">
 
                     <div class="hr-collapse">
-                      <div class="icon collapse"><svg width="16" height="16"><use href="#hr-icon-collapse" width="16" height="16"/></svg></div>
+                      <div class="icon collapse"><svg overflow="visible"><use href="#hr-icon-collapse" width="100%" height="100%"/></svg></div>
                     </div>
 
         </div>
@@ -166,7 +166,7 @@ def test_manuscript():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
+                          <div class="icon dots"><svg overflow="visible"><use href="#hr-icon-dots" width="100%" height="100%"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -201,7 +201,7 @@ def test_manuscript():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
+                          <div class="icon dots"><svg overflow="visible"><use href="#hr-icon-dots" width="100%" height="100%"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -258,7 +258,7 @@ def test_section():
         <div class="hr-collapse-zone">
 
                     <div class="hr-collapse">
-                      <div class="icon collapse"><svg width="16" height="16"><use href="#hr-icon-collapse" width="16" height="16"/></svg></div>
+                      <div class="icon collapse"><svg overflow="visible"><use href="#hr-icon-collapse" width="100%" height="100%"/></svg></div>
                     </div>
 
         </div>
@@ -269,7 +269,7 @@ def test_section():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
+                          <div class="icon dots"><svg overflow="visible"><use href="#hr-icon-dots" width="100%" height="100%"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -299,7 +299,7 @@ def test_section():
         <div class="hr-collapse-zone">
 
                     <div class="hr-collapse">
-                      <div class="icon collapse"><svg width="16" height="16"><use href="#hr-icon-collapse" width="16" height="16"/></svg></div>
+                      <div class="icon collapse"><svg overflow="visible"><use href="#hr-icon-collapse" width="100%" height="100%"/></svg></div>
                     </div>
 
         </div>
@@ -310,7 +310,7 @@ def test_section():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
+                          <div class="icon dots"><svg overflow="visible"><use href="#hr-icon-dots" width="100%" height="100%"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -345,7 +345,7 @@ def test_section():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
+                          <div class="icon dots"><svg overflow="visible"><use href="#hr-icon-dots" width="100%" height="100%"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -404,7 +404,7 @@ def test_abstract():
         <div class="hr-collapse-zone">
 
                     <div class="hr-collapse">
-                      <div class="icon collapse"><svg width="16" height="16"><use href="#hr-icon-collapse" width="16" height="16"/></svg></div>
+                      <div class="icon collapse"><svg overflow="visible"><use href="#hr-icon-collapse" width="100%" height="100%"/></svg></div>
                     </div>
 
         </div>
@@ -415,7 +415,7 @@ def test_abstract():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
+                          <div class="icon dots"><svg overflow="visible"><use href="#hr-icon-dots" width="100%" height="100%"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -445,7 +445,7 @@ def test_abstract():
         <div class="hr-collapse-zone">
 
                     <div class="hr-collapse">
-                      <div class="icon collapse"><svg width="16" height="16"><use href="#hr-icon-collapse" width="16" height="16"/></svg></div>
+                      <div class="icon collapse"><svg overflow="visible"><use href="#hr-icon-collapse" width="100%" height="100%"/></svg></div>
                     </div>
 
         </div>
@@ -456,7 +456,7 @@ def test_abstract():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
+                          <div class="icon dots"><svg overflow="visible"><use href="#hr-icon-dots" width="100%" height="100%"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -491,7 +491,7 @@ def test_abstract():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
+                          <div class="icon dots"><svg overflow="visible"><use href="#hr-icon-dots" width="100%" height="100%"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -550,7 +550,7 @@ def test_theorem():
         <div class="hr-collapse-zone">
 
                     <div class="hr-collapse">
-                      <div class="icon collapse"><svg width="16" height="16"><use href="#hr-icon-collapse" width="16" height="16"/></svg></div>
+                      <div class="icon collapse"><svg overflow="visible"><use href="#hr-icon-collapse" width="100%" height="100%"/></svg></div>
                     </div>
 
         </div>
@@ -561,7 +561,7 @@ def test_theorem():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
+                          <div class="icon dots"><svg overflow="visible"><use href="#hr-icon-dots" width="100%" height="100%"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -592,7 +592,7 @@ def test_theorem():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
+                          <div class="icon dots"><svg overflow="visible"><use href="#hr-icon-dots" width="100%" height="100%"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -664,7 +664,7 @@ def test_author():
         <div class="hr-collapse-zone">
 
                     <div class="hr-collapse">
-                      <div class="icon collapse"><svg width="16" height="16"><use href="#hr-icon-collapse" width="16" height="16"/></svg></div>
+                      <div class="icon collapse"><svg overflow="visible"><use href="#hr-icon-collapse" width="100%" height="100%"/></svg></div>
                     </div>
 
         </div>
@@ -675,7 +675,7 @@ def test_author():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
+                          <div class="icon dots"><svg overflow="visible"><use href="#hr-icon-dots" width="100%" height="100%"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -706,7 +706,7 @@ def test_author():
         <div class="hr-collapse-zone">
 
                     <div class="hr-collapse">
-                      <div class="icon collapse"><svg width="16" height="16"><use href="#hr-icon-collapse" width="16" height="16"/></svg></div>
+                      <div class="icon collapse"><svg overflow="visible"><use href="#hr-icon-collapse" width="100%" height="100%"/></svg></div>
                     </div>
 
         </div>
@@ -717,7 +717,7 @@ def test_author():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
+                          <div class="icon dots"><svg overflow="visible"><use href="#hr-icon-dots" width="100%" height="100%"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -732,7 +732,7 @@ def test_author():
 
         <p class="author-names">Leo Torres</p>
         <details class="author-details">
-        <summary><div class="icon chevron-down"><svg width="16" height="16"><use href="#hr-icon-chevron-down" width="16" height="16"/></svg></div>Affiliations</summary>
+        <summary><div class="icon chevron-down"><svg overflow="visible"><use href="#hr-icon-chevron-down" width="100%" height="100%"/></svg></div>Affiliations</summary>
         <p class="author-correspondence">Correspondence: <a href="mailto:leo@leotrs.com">leo@leotrs.com</a></p>
         </details>
 
@@ -794,7 +794,7 @@ def test_bibliography():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
+                          <div class="icon dots"><svg overflow="visible"><use href="#hr-icon-dots" width="100%" height="100%"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -824,7 +824,7 @@ def test_bibliography():
         <div class="hr-collapse-zone">
 
                     <div class="hr-collapse">
-                      <div class="icon collapse"><svg width="16" height="16"><use href="#hr-icon-collapse" width="16" height="16"/></svg></div>
+                      <div class="icon collapse"><svg overflow="visible"><use href="#hr-icon-collapse" width="100%" height="100%"/></svg></div>
                     </div>
 
         </div>
@@ -835,7 +835,7 @@ def test_bibliography():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
+                          <div class="icon dots"><svg overflow="visible"><use href="#hr-icon-dots" width="100%" height="100%"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -874,7 +874,7 @@ def test_bibliography():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
+                          <div class="icon dots"><svg overflow="visible"><use href="#hr-icon-dots" width="100%" height="100%"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -892,7 +892,7 @@ def test_bibliography():
         <div class="hr-info-zone">
         <div class="hr-info">
         <a id="atiyah2018introduction-doi" class="bibitem-doi" href="https://doi.org/https://doi.org/10.1201/9780429493638" target="_blank">
-        <div class="icon ext"><svg width="16" height="16"><use href="#hr-icon-ext" width="16" height="16"/></svg></div></a>
+        <div class="icon ext"><svg overflow="visible"><use href="#hr-icon-ext" width="100%" height="100%"/></svg></div></a>
         </div>
         </div>
 
@@ -946,7 +946,7 @@ def test_inline_math_followed_by_punctuation():
         <div class="hr-collapse-zone">
 
                     <div class="hr-collapse">
-                      <div class="icon collapse"><svg width="16" height="16"><use href="#hr-icon-collapse" width="16" height="16"/></svg></div>
+                      <div class="icon collapse"><svg overflow="visible"><use href="#hr-icon-collapse" width="100%" height="100%"/></svg></div>
                     </div>
 
         </div>
@@ -957,7 +957,7 @@ def test_inline_math_followed_by_punctuation():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
+                          <div class="icon dots"><svg overflow="visible"><use href="#hr-icon-dots" width="100%" height="100%"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -992,7 +992,7 @@ def test_inline_math_followed_by_punctuation():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
+                          <div class="icon dots"><svg overflow="visible"><use href="#hr-icon-dots" width="100%" height="100%"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -1028,7 +1028,7 @@ def test_inline_math_followed_by_punctuation():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
+                          <div class="icon dots"><svg overflow="visible"><use href="#hr-icon-dots" width="100%" height="100%"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -1063,7 +1063,7 @@ def test_inline_math_followed_by_punctuation():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
+                          <div class="icon dots"><svg overflow="visible"><use href="#hr-icon-dots" width="100%" height="100%"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -1099,7 +1099,7 @@ def test_inline_math_followed_by_punctuation():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
+                          <div class="icon dots"><svg overflow="visible"><use href="#hr-icon-dots" width="100%" height="100%"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -1135,7 +1135,7 @@ def test_inline_math_followed_by_punctuation():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
+                          <div class="icon dots"><svg overflow="visible"><use href="#hr-icon-dots" width="100%" height="100%"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -1171,7 +1171,7 @@ def test_inline_math_followed_by_punctuation():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
+                          <div class="icon dots"><svg overflow="visible"><use href="#hr-icon-dots" width="100%" height="100%"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -1241,7 +1241,7 @@ def test_mathblock_nonum():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
+                          <div class="icon dots"><svg overflow="visible"><use href="#hr-icon-dots" width="100%" height="100%"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -1267,7 +1267,7 @@ def test_mathblock_nonum():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
+                          <div class="icon dots"><svg overflow="visible"><use href="#hr-icon-dots" width="100%" height="100%"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -1310,7 +1310,7 @@ def test_mathblock_nonum():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
+                          <div class="icon dots"><svg overflow="visible"><use href="#hr-icon-dots" width="100%" height="100%"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -1336,7 +1336,7 @@ def test_mathblock_nonum():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
+                          <div class="icon dots"><svg overflow="visible"><use href="#hr-icon-dots" width="100%" height="100%"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -1439,7 +1439,7 @@ def _removed_test_toc_no_labels():
         <div class="hr-collapse-zone">
 
                     <div class="hr-collapse">
-                      <div class="icon collapse"><svg width="16" height="16"><use href="#hr-icon-collapse" width="16" height="16"/></svg></div>
+                      <div class="icon collapse"><svg overflow="visible"><use href="#hr-icon-collapse" width="100%" height="100%"/></svg></div>
                     </div>
 
         </div>
@@ -1450,7 +1450,7 @@ def _removed_test_toc_no_labels():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
+                          <div class="icon dots"><svg overflow="visible"><use href="#hr-icon-dots" width="100%" height="100%"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -1480,7 +1480,7 @@ def _removed_test_toc_no_labels():
         <div class="hr-collapse-zone">
 
                     <div class="hr-collapse">
-                      <div class="icon collapse"><svg width="16" height="16"><use href="#hr-icon-collapse" width="16" height="16"/></svg></div>
+                      <div class="icon collapse"><svg overflow="visible"><use href="#hr-icon-collapse" width="100%" height="100%"/></svg></div>
                     </div>
 
         </div>
@@ -1491,7 +1491,7 @@ def _removed_test_toc_no_labels():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
+                          <div class="icon dots"><svg overflow="visible"><use href="#hr-icon-dots" width="100%" height="100%"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -1526,7 +1526,7 @@ def _removed_test_toc_no_labels():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
+                          <div class="icon dots"><svg overflow="visible"><use href="#hr-icon-dots" width="100%" height="100%"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -1558,7 +1558,7 @@ def _removed_test_toc_no_labels():
         <div class="hr-collapse-zone">
 
                     <div class="hr-collapse">
-                      <div class="icon collapse"><svg width="16" height="16"><use href="#hr-icon-collapse" width="16" height="16"/></svg></div>
+                      <div class="icon collapse"><svg overflow="visible"><use href="#hr-icon-collapse" width="100%" height="100%"/></svg></div>
                     </div>
 
         </div>
@@ -1569,7 +1569,7 @@ def _removed_test_toc_no_labels():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
+                          <div class="icon dots"><svg overflow="visible"><use href="#hr-icon-dots" width="100%" height="100%"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -1654,7 +1654,7 @@ def _removed_test_toc_no_labels():
         <div class="hr-collapse-zone">
 
                     <div class="hr-collapse">
-                      <div class="icon collapse"><svg width="16" height="16"><use href="#hr-icon-collapse" width="16" height="16"/></svg></div>
+                      <div class="icon collapse"><svg overflow="visible"><use href="#hr-icon-collapse" width="100%" height="100%"/></svg></div>
                     </div>
 
         </div>
@@ -1665,7 +1665,7 @@ def _removed_test_toc_no_labels():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
+                          <div class="icon dots"><svg overflow="visible"><use href="#hr-icon-dots" width="100%" height="100%"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -1697,7 +1697,7 @@ def _removed_test_toc_no_labels():
         <div class="hr-collapse-zone">
 
                     <div class="hr-collapse">
-                      <div class="icon collapse"><svg width="16" height="16"><use href="#hr-icon-collapse" width="16" height="16"/></svg></div>
+                      <div class="icon collapse"><svg overflow="visible"><use href="#hr-icon-collapse" width="100%" height="100%"/></svg></div>
                     </div>
 
         </div>
@@ -1708,7 +1708,7 @@ def _removed_test_toc_no_labels():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
+                          <div class="icon dots"><svg overflow="visible"><use href="#hr-icon-dots" width="100%" height="100%"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -1738,7 +1738,7 @@ def _removed_test_toc_no_labels():
         <div class="hr-collapse-zone">
 
                     <div class="hr-collapse">
-                      <div class="icon collapse"><svg width="16" height="16"><use href="#hr-icon-collapse" width="16" height="16"/></svg></div>
+                      <div class="icon collapse"><svg overflow="visible"><use href="#hr-icon-collapse" width="100%" height="100%"/></svg></div>
                     </div>
 
         </div>
@@ -1749,7 +1749,7 @@ def _removed_test_toc_no_labels():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
+                          <div class="icon dots"><svg overflow="visible"><use href="#hr-icon-dots" width="100%" height="100%"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -1850,7 +1850,7 @@ def _removed_test_toc_with_labels():
         <div class="hr-collapse-zone">
 
                     <div class="hr-collapse">
-                      <div class="icon collapse"><svg width="16" height="16"><use href="#hr-icon-collapse" width="16" height="16"/></svg></div>
+                      <div class="icon collapse"><svg overflow="visible"><use href="#hr-icon-collapse" width="100%" height="100%"/></svg></div>
                     </div>
 
         </div>
@@ -1861,7 +1861,7 @@ def _removed_test_toc_with_labels():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
+                          <div class="icon dots"><svg overflow="visible"><use href="#hr-icon-dots" width="100%" height="100%"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -1891,7 +1891,7 @@ def _removed_test_toc_with_labels():
         <div class="hr-collapse-zone">
 
                     <div class="hr-collapse">
-                      <div class="icon collapse"><svg width="16" height="16"><use href="#hr-icon-collapse" width="16" height="16"/></svg></div>
+                      <div class="icon collapse"><svg overflow="visible"><use href="#hr-icon-collapse" width="100%" height="100%"/></svg></div>
                     </div>
 
         </div>
@@ -1902,7 +1902,7 @@ def _removed_test_toc_with_labels():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
+                          <div class="icon dots"><svg overflow="visible"><use href="#hr-icon-dots" width="100%" height="100%"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -1937,7 +1937,7 @@ def _removed_test_toc_with_labels():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
+                          <div class="icon dots"><svg overflow="visible"><use href="#hr-icon-dots" width="100%" height="100%"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -1969,7 +1969,7 @@ def _removed_test_toc_with_labels():
         <div class="hr-collapse-zone">
 
                     <div class="hr-collapse">
-                      <div class="icon collapse"><svg width="16" height="16"><use href="#hr-icon-collapse" width="16" height="16"/></svg></div>
+                      <div class="icon collapse"><svg overflow="visible"><use href="#hr-icon-collapse" width="100%" height="100%"/></svg></div>
                     </div>
 
         </div>
@@ -1980,7 +1980,7 @@ def _removed_test_toc_with_labels():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
+                          <div class="icon dots"><svg overflow="visible"><use href="#hr-icon-dots" width="100%" height="100%"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -2065,7 +2065,7 @@ def _removed_test_toc_with_labels():
         <div class="hr-collapse-zone">
 
                     <div class="hr-collapse">
-                      <div class="icon collapse"><svg width="16" height="16"><use href="#hr-icon-collapse" width="16" height="16"/></svg></div>
+                      <div class="icon collapse"><svg overflow="visible"><use href="#hr-icon-collapse" width="100%" height="100%"/></svg></div>
                     </div>
 
         </div>
@@ -2076,7 +2076,7 @@ def _removed_test_toc_with_labels():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
+                          <div class="icon dots"><svg overflow="visible"><use href="#hr-icon-dots" width="100%" height="100%"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -2108,7 +2108,7 @@ def _removed_test_toc_with_labels():
         <div class="hr-collapse-zone">
 
                     <div class="hr-collapse">
-                      <div class="icon collapse"><svg width="16" height="16"><use href="#hr-icon-collapse" width="16" height="16"/></svg></div>
+                      <div class="icon collapse"><svg overflow="visible"><use href="#hr-icon-collapse" width="100%" height="100%"/></svg></div>
                     </div>
 
         </div>
@@ -2119,7 +2119,7 @@ def _removed_test_toc_with_labels():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
+                          <div class="icon dots"><svg overflow="visible"><use href="#hr-icon-dots" width="100%" height="100%"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -2149,7 +2149,7 @@ def _removed_test_toc_with_labels():
         <div class="hr-collapse-zone">
 
                     <div class="hr-collapse">
-                      <div class="icon collapse"><svg width="16" height="16"><use href="#hr-icon-collapse" width="16" height="16"/></svg></div>
+                      <div class="icon collapse"><svg overflow="visible"><use href="#hr-icon-collapse" width="100%" height="100%"/></svg></div>
                     </div>
 
         </div>
@@ -2160,7 +2160,7 @@ def _removed_test_toc_with_labels():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
+                          <div class="icon dots"><svg overflow="visible"><use href="#hr-icon-dots" width="100%" height="100%"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>

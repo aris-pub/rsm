@@ -31,7 +31,7 @@ def test_paragraph_with_mathblock_ending_with_text():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
+                          <div class="icon dots"><svg overflow="visible"><use href="#hr-icon-dots" width="100%" height="100%"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -57,7 +57,7 @@ def test_paragraph_with_mathblock_ending_with_text():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
+                          <div class="icon dots"><svg overflow="visible"><use href="#hr-icon-dots" width="100%" height="100%"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -128,7 +128,7 @@ def test_paragraph_ending_with_mathblock():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
+                          <div class="icon dots"><svg overflow="visible"><use href="#hr-icon-dots" width="100%" height="100%"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -154,7 +154,7 @@ def test_paragraph_ending_with_mathblock():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
+                          <div class="icon dots"><svg overflow="visible"><use href="#hr-icon-dots" width="100%" height="100%"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -228,7 +228,7 @@ def test_paragraph_with_icon_ending_with_mathblock():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
+                          <div class="icon dots"><svg overflow="visible"><use href="#hr-icon-dots" width="100%" height="100%"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -254,7 +254,7 @@ def test_paragraph_with_icon_ending_with_mathblock():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
+                          <div class="icon dots"><svg overflow="visible"><use href="#hr-icon-dots" width="100%" height="100%"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -282,7 +282,7 @@ def test_paragraph_with_icon_ending_with_mathblock():
 
         <div class="hr-info-zone">
         <div class="hr-info">
-                        <div class="icon heart"><svg width="16" height="16"><use href="#hr-icon-heart" width="16" height="16"/></svg></div>
+                        <div class="icon heart"><svg overflow="visible"><use href="#hr-icon-heart" width="100%" height="100%"/></svg></div>
                         </div>
         </div>
 
@@ -332,7 +332,7 @@ def test_paragraph_with_icon_with_mathblock_ending_with_text():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
+                          <div class="icon dots"><svg overflow="visible"><use href="#hr-icon-dots" width="100%" height="100%"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -358,7 +358,7 @@ def test_paragraph_with_icon_with_mathblock_ending_with_text():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
+                          <div class="icon dots"><svg overflow="visible"><use href="#hr-icon-dots" width="100%" height="100%"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -386,7 +386,7 @@ def test_paragraph_with_icon_with_mathblock_ending_with_text():
 
         <div class="hr-info-zone">
         <div class="hr-info">
-                        <div class="icon heart"><svg width="16" height="16"><use href="#hr-icon-heart" width="16" height="16"/></svg></div>
+                        <div class="icon heart"><svg overflow="visible"><use href="#hr-icon-heart" width="100%" height="100%"/></svg></div>
                         </div>
         </div>
 
@@ -441,7 +441,7 @@ def test_two_paragraphs_with_icon():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
+                          <div class="icon dots"><svg overflow="visible"><use href="#hr-icon-dots" width="100%" height="100%"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -467,7 +467,7 @@ def test_two_paragraphs_with_icon():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
+                          <div class="icon dots"><svg overflow="visible"><use href="#hr-icon-dots" width="100%" height="100%"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -495,7 +495,7 @@ def test_two_paragraphs_with_icon():
 
         <div class="hr-info-zone">
         <div class="hr-info">
-                        <div class="icon heart"><svg width="16" height="16"><use href="#hr-icon-heart" width="16" height="16"/></svg></div>
+                        <div class="icon heart"><svg overflow="visible"><use href="#hr-icon-heart" width="100%" height="100%"/></svg></div>
                         </div>
         </div>
 
@@ -513,7 +513,7 @@ def test_two_paragraphs_with_icon():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
+                          <div class="icon dots"><svg overflow="visible"><use href="#hr-icon-dots" width="100%" height="100%"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -532,7 +532,7 @@ def test_two_paragraphs_with_icon():
 
         <div class="hr-info-zone">
         <div class="hr-info">
-                        <div class="icon success"><svg width="16" height="16"><use href="#hr-icon-success" width="16" height="16"/></svg></div>
+                        <div class="icon success"><svg overflow="visible"><use href="#hr-icon-success" width="100%" height="100%"/></svg></div>
                         </div>
         </div>
 
@@ -582,7 +582,7 @@ def test_two_paragraphs_with_icon_no_mathblock():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
+                          <div class="icon dots"><svg overflow="visible"><use href="#hr-icon-dots" width="100%" height="100%"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -601,7 +601,7 @@ def test_two_paragraphs_with_icon_no_mathblock():
 
         <div class="hr-info-zone">
         <div class="hr-info">
-                        <div class="icon heart"><svg width="16" height="16"><use href="#hr-icon-heart" width="16" height="16"/></svg></div>
+                        <div class="icon heart"><svg overflow="visible"><use href="#hr-icon-heart" width="100%" height="100%"/></svg></div>
                         </div>
         </div>
 
@@ -619,7 +619,7 @@ def test_two_paragraphs_with_icon_no_mathblock():
         <div class="hr-border-zone">
 
                         <div class="hr-border-dots">
-                          <div class="icon dots"><svg width="16" height="16"><use href="#hr-icon-dots" width="16" height="16"/></svg></div>
+                          <div class="icon dots"><svg overflow="visible"><use href="#hr-icon-dots" width="100%" height="100%"/></svg></div>
                         </div>
                         <div class="hr-border-rect">
                         </div>
@@ -638,7 +638,7 @@ def test_two_paragraphs_with_icon_no_mathblock():
 
         <div class="hr-info-zone">
         <div class="hr-info">
-                        <div class="icon success"><svg width="16" height="16"><use href="#hr-icon-success" width="16" height="16"/></svg></div>
+                        <div class="icon success"><svg overflow="visible"><use href="#hr-icon-success" width="100%" height="100%"/></svg></div>
                         </div>
         </div>
 

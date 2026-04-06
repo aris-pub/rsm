@@ -745,7 +745,7 @@ class Translator:
     @staticmethod
     def _icon_ref(name: str) -> str:
         """Emit an SVG <use> reference to a symbol in the defs block."""
-        return f'<div class="icon {name}"><svg width="16" height="16"><use href="#hr-icon-{name}" width="16" height="16"/></svg></div>'
+        return f'<div class="icon {name}"><svg overflow="visible"><use href="#hr-icon-{name}" width="100%" height="100%"/></svg></div>'
 
     @classmethod
     def get_action_method(cls, node: nodes.Node, action: str) -> Callable:
