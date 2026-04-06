@@ -234,6 +234,7 @@ html[data-theme="dark"] .sd-card.sd-sphinx-override:hover {
 .rsm-iframe-wrap {
   position: relative;
   width: 49%;
+  overflow: hidden;
 }
 
 .rsm-example.vertical .rsm-iframe-wrap {
@@ -266,6 +267,8 @@ html[data-theme="dark"] .sd-card.sd-sphinx-override:hover {
 .rsm-example {
   display: flex;
   gap: 2%;
+  max-width: 100%;
+  overflow: hidden;
 }
 
 .rsm-example.vertical {
