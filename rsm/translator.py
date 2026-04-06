@@ -2385,12 +2385,15 @@ class HandrailsTranslator(Translator):
         return batch
 
     def visit_codeblock(self, node: nodes.CodeBlock) -> EditCommand:
-        cmd = super().visit_codeblock(node)
         batch = self._replace_node_with_handrails(node, collapse_in_hr=False)
-        if "hr-hidden" not in batch.items[0].classes:
-            batch.items[0].classes.append("hr-hidden")
-        batch = AppendBatchAndDefer([*batch.items, *cmd.items[1:]])
-        return batch
+        handrail_idx = 0
+        if isinstance(node.parent, nodes.Paragraph):
+            batch.items.insert(0, AppendText("</p>"))
+            handrail_idx = 1
+        offset_class = ["hr-offset"] if isinstance(node.parent, nodes.Paragraph) else []
+        batch.items[handrail_idx].classes += ["hr-hidden"] + offset_class
+        batch.items.append(AppendOpenTag("pre"))
+        return AppendBatchAndDefer(batch.items)
 
     @auto_leave_deferred
     def leave_codeblock(self, node: nodes.CodeBlock, base_batch) -> EditCommand:

@@ -255,9 +255,17 @@ class StandaloneBuilder(HTMLBuilder):
             logger.warning(f"Custom CSS file not found: {self.custom_css}")
             return ""
 
+    def _get_pygments_css_inline(self) -> str:
+        """Read pygments.css for inlining in standalone output."""
+        css_path = Path(__file__).parent / "static" / "pygments.css"
+        if css_path.exists():
+            return f"<style>\n{css_path.read_text()}\n  </style>\n  "
+        return ""
+
     def make_html_header(self) -> str:
         inline_js = self._get_inline_js()
         custom_css_inline = self._get_custom_css_inline()
+        pygments_css_inline = self._get_pygments_css_inline()
 
         menu_position_style = ""
         if self.menu_position == "right":
@@ -308,7 +316,7 @@ class StandaloneBuilder(HTMLBuilder):
   <link rel="stylesheet" type="text/css" href="{self.CDN_RSM_CSS}" />
   <link rel="stylesheet" type="text/css" href="{self.CDN_TOOLTIPSTER_CSS}" />
   <link rel="stylesheet" href="{self.CDN_PSEUDOCODE_CSS}">
-  {custom_css_inline}{menu_position_style}
+  {pygments_css_inline}{custom_css_inline}{menu_position_style}
   <script src="{self.CDN_JQUERY}"></script>
   <script src="{self.CDN_TOOLTIPSTER_JS}"></script>
   <script>
