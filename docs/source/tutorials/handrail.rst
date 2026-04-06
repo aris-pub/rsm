@@ -1,37 +1,90 @@
 .. _handrail:
 
-The handrail
+The Handrail
 ============
 
-In the following example, hover (or tap, on mobile) on the manuscript title.
+The handrail is RSM's interactive sidebar. It appears to the left of manuscript
+elements when you hover over them, giving readers a way to navigate and interact
+with the document's logical structure.
+
+
+Seeing the handrail
+*******************
+
+Hover (or tap, on mobile) over the manuscript title below:
 
 .. rsm::
 
    # Hover me!
    Introducing the handrail.
 
-You will see a context menu appearing to the left of the manuscript title.  This area is
-called the `handrail`.  It is an area that allows for interaction with individual parts
-of the manuscript.  RSM markup automatically generates handrails for different parts of
-the manuscript, such as sections and remarks.
+A context menu appears to the left. That area is the handrail.
+
+
+What gets a handrail?
+*********************
+
+Sections, theorems, proofs, remarks, and paragraphs all have handrails. In
+general, any part of the manuscript that shows a gray border on the left admits
+interaction via a handrail.
 
 .. rsm::
 
-   # Handrails
+   # Handrails everywhere
 
    ## Sections have handrails
 
    :remark:
-   Other special parts have
-   handrails too, and so do paragraphs.
+   Remarks have handrails too.
    ::
 
-In general, any part of the manuscript that shows a gray border to the left admits
-interaction via a handrail.
+   :theorem:
+   Theorems have handrails, and so do
+   their proofs.
+   ::
+
+   :proof:
+   Hover over this proof to see its
+   handrail.
+   ::
+
+   And every paragraph has one as well.
+
+Try hovering over each element to see its handrail appear.
+
+
+Nested handrails
+****************
+
+Unlike cells in a notebook (which are always consecutive), handrails can be
+nested. A theorem lives inside a section, and both have their own handrail.
+Hovering over the inner element shows its handrail without hiding the outer one.
+
+.. rsm::
+
+   ## A section
+
+   :definition:
+   A **handrail** is an interactive region
+   to the left of a manuscript element.
+   ::
+
+   Notice how the section and the definition
+   each have their own handrail, and the
+   definition's handrail is nested inside the
+   section's.
+
+
+The handrail menu
+*****************
+
+Each handrail has a small menu icon. Clicking it reveals options for that
+element, such as copying a permalink or viewing the source markup. The exact
+options depend on the type of element.
 
 .. tip::
 
-   If you are familiar with notebook interfaces such as Jupyter Notebooks, you may think
-   of handrails in RSM as marking individual "cells" in a notebook.  The main difference
-   is that in RSM, handrails may be nested within each other, while cells in a notebook
-   are always consecutive.
+   If you are familiar with notebook interfaces such as Jupyter Notebooks, you
+   may think of handrails as marking individual "cells". The key difference is
+   that RSM handrails can be nested within each other, reflecting the document's
+   logical structure.

@@ -3,14 +3,14 @@
 Publishing to Scroll Press
 ===========================
 
-`Scroll Press <https://scroll.press>`_ is a web-native preprint archive for HTML manuscripts. Press accepts any manuscript that renders to HTML—RSM, Quarto, Jupyter notebooks (via nbconvert), Pandoc, and more. This tutorial shows you how to publish your RSM work to Press and get a permanent URL and DOI.
+`Scroll Press <https://scroll.press>`_ is a web-native preprint archive for HTML manuscripts. Press accepts any manuscript that renders to HTML: RSM, Quarto, Jupyter notebooks (via nbconvert), Pandoc, and more. This tutorial shows you how to publish your RSM work to Press and get a permanent URL and DOI.
 
 What is Scroll Press?
 *********************
 
 Scroll Press is a preprint server, like arXiv, but designed for modern **web-first research**:
 
-- **HTML-native**: No PDFs—readers get responsive, interactive manuscripts
+- **HTML-native**: no PDFs, readers get responsive, interactive manuscripts
 - **Permanent URLs and DOIs**: Every paper gets a stable, citable link
 - **Open access**: Free to publish, free to read
 - **No gatekeeping**: Publish immediately (moderation is post-publication)
@@ -18,7 +18,7 @@ Scroll Press is a preprint server, like arXiv, but designed for modern **web-fir
 Prerequisites
 *************
 
-This tutorial focuses on publishing **RSM manuscripts** to Press. If you're using Quarto, Jupyter notebooks, or other HTML-generating tools, the workflow is similar—just skip to Step 4 (Create Account) with your HTML file ready.
+This tutorial focuses on publishing **RSM manuscripts** to Press. If you're using Quarto, Jupyter notebooks, or other HTML-generating tools, the workflow is similar; just skip to Step 4 (Create Account) with your HTML file ready.
 
 Before publishing an RSM manuscript to Press, you need:
 

@@ -65,7 +65,7 @@ RSM includes pre-defined font size classes:
 
    :paragraph: {:class: huger} Huger text (2.5rem)
 
-These font size classes work on any tag—blocks, inlines, paragraphs, or even math:
+These font size classes work on any tag: blocks, inlines, paragraphs, or even math:
 
 .. rsm::
 
@@ -214,14 +214,14 @@ Best practices
 
    Don't use ``:class:`` to fake structural elements like headings, sections, or theorems.
    If you need a theorem, use ``:theorem:``. If you need a section, use ``##``. Don't
-   create a paragraph with custom styling to look like a theorem—that breaks semantic
+   create a paragraph with custom styling to look like a theorem, as that breaks semantic
    meaning and accessibility.
 
    The ``:class:`` meta tag is for *how something looks*, not *what it is*.
 
    **If you find yourself using** ``:class:`` **to override RSM's default behavior for semantic
    tags**, please `open an issue <https://github.com/aris-pub/rsm/issues>`_ or contribute to
-   the language. The defaults should work for most cases—if they don't for you, we want to know.
+   the language. The defaults should work for most cases. If they don't for you, we want to know.
 
 1. **Use built-in classes first**: RSM's built-in classes handle common cases and work
    consistently across themes.

@@ -3,21 +3,21 @@
 Cross-referencing Theorems and Equations
 ========================================
 
-This guide covers labeling constructs and referencing them throughout your
+This guide covers labeling tags and referencing them throughout your
 manuscript.
 
 
-Labeling a construct
---------------------
+Labeling a tag
+--------------
 
-Any block-level construct can be given a label using the ``:label:`` meta tag:
+Any block-level tag can be given a label using the ``:label:`` meta tag:
 
 .. rsm::
 
    :theorem: {
      :label: main-thm
    }
-   Every RSM construct can be labeled
+   Every RSM tag can be labeled
    and referenced.
    ::
 
@@ -91,6 +91,6 @@ Math blocks can be labeled and referenced the same way:
 
 .. admonition:: Summary
 
-   Use ``:label:`` to name any construct. Use ``:ref:<label>::`` to link to it.
+   Use ``:label:`` to name any tag. Use ``:ref:<label>::`` to link to it.
    Customize display text with ``:reftext:`` (global) or
    ``:ref:<label>, text::`` (local). All references display with tooltips.

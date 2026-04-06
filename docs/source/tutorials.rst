@@ -36,5 +36,6 @@ All tutorials
 
    tutorials/getting-started
    tutorials/markup
+   tutorials/references
    tutorials/handrail
    tutorials/example

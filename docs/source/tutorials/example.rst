@@ -139,7 +139,7 @@ A research article with theorems, proofs, and structured mathematics.
 Experimental Results Example
 *****************************
 
-A paper with code, data, and visualizations (conceptual—RSM doesn't execute code).
+A paper with code, data, and visualizations (conceptual; RSM doesn't execute code).
 
 .. rsm::
    :layout: vertical
@@ -207,7 +207,7 @@ A paper with code, data, and visualizations (conceptual—RSM doesn't execute co
    ## Conclusion
 
    In low-data regimes, **simpler is better**. Before reaching for deep learning,
-   try linear models—they're interpretable, fast, and often more accurate.
+   try linear models. They're interpretable, fast, and often more accurate.
 
    :references:
 

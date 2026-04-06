@@ -209,6 +209,38 @@ html[data-theme="dark"] .sd-card.sd-sphinx-override:hover {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
+/* ─── RSM iframe loading spinner ─── */
+.rsm-iframe-wrap {
+  position: relative;
+  width: 49%;
+}
+
+.rsm-example.vertical .rsm-iframe-wrap {
+  width: 100%;
+}
+
+.rsm-iframe-spinner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 1.5rem;
+  height: 1.5rem;
+  margin: -0.75rem 0 0 -0.75rem;
+  border: 2px solid var(--pst-color-border);
+  border-top-color: var(--pst-color-primary);
+  border-radius: 50%;
+  animation: rsm-spin 0.7s linear infinite;
+  z-index: 1;
+}
+
+.rsm-iframe-wrap.loaded .rsm-iframe-spinner {
+  display: none;
+}
+
+@keyframes rsm-spin {
+  to { transform: rotate(360deg); }
+}
+
 /* ─── RSM example panels ─── */
 .rsm-example {
   display: flex;
@@ -252,15 +284,11 @@ html[data-theme="dark"] .sd-card.sd-sphinx-override:hover {
 }
 
 .rsm-example-iframe {
-  width: 49%;
+  width: 100%;
   border: 1px solid var(--pst-color-border);
   border-radius: 0.5rem;
   background: white;
   overflow: hidden;
-}
-
-.rsm-example.vertical .rsm-example-iframe {
-  width: 100%;
 }
 
 /* ─── Code blocks ─── */

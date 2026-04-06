@@ -49,7 +49,7 @@ A taste of RSM
      :label: thm-demo
      :title: Main Result
    }
-   Every RSM construct can be labeled and
+   Every RSM tag can be labeled and
    cross-referenced with automatic tooltips.
    ::
 

@@ -65,7 +65,7 @@ What makes RSM different
 ------------------------
 
 **Semantic tags, not presentational commands.**
-Every RSM construct (``:theorem:``, ``:proof:``, ``:cite:``, ``:ref:``) carries
+Every RSM tag (``:theorem:``, ``:proof:``, ``:cite:``, ``:ref:``) carries
 meaning, not just formatting. The toolchain uses this structure to generate
 tooltips, navigation, and accessibility features automatically.
 
