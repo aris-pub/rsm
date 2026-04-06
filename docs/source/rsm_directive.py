@@ -250,8 +250,9 @@ def visit_rsm_iframe_node(self, node):
       <iframe class="rsm-example-iframe"
               src="{node.path}"
               sandbox="allow-scripts allow-same-origin"
-              onload="this.style.height = (this.contentWindow.document.documentElement.scrollHeight + 8) + 'px'; this.parentNode.classList.add('loaded');"
-              style="width: 100%; border: 1px solid var(--pst-color-border); border-radius: 4px; background: white;">
+              scrolling="no"
+              onload="var f=this;function r(){{f.style.height=(f.contentWindow.document.documentElement.scrollHeight+8)+'px'}};r();f.parentNode.classList.add('loaded');new ResizeObserver(r).observe(f.contentWindow.document.documentElement);"
+              style="width: 100%; border: 1px solid var(--pst-color-border); border-radius: 4px; background: white; overflow: hidden;">
       </iframe>
     </div>
     '''
