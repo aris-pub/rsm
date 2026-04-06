@@ -164,9 +164,15 @@ A paper with code, data, and visualizations (conceptual; RSM doesn't execute cod
 
    We tested three algorithms:
 
-   1. **Linear Regression** (baseline)
-   2. **Random Forest** (ensemble method)
-   3. **Small Neural Network** (3 hidden layers)
+   :enumerate:
+
+   :-: **Linear Regression** (baseline)
+
+   :-: **Random Forest** (ensemble method)
+
+   :-: **Small Neural Network** (3 hidden layers)
+
+   ::
 
    Datasets ranged from 100 to 1000 samples, with 10 features each.
 

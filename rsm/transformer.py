@@ -111,6 +111,7 @@ class Transformer:
         root_dir: Path | None = None,
         src_file: Path | None = None,
         strict: bool = False,
+        parser=None,
     ) -> None:
         self.tree: nodes.Manuscript | None = None
         self.labels_to_nodes: dict[str, nodes.Node] = {}
@@ -118,6 +119,7 @@ class Transformer:
         self.src_file = src_file
         self.external_manuscripts: dict[str, tuple[nodes.Manuscript, dict]] = {}
         self.strict = strict
+        self.parser = parser
 
     def transform(self, tree: nodes.Manuscript) -> nodes.Manuscript:
         """Transform a manuscript tree.
@@ -210,37 +212,39 @@ class Transformer:
         return result
 
     def check_for_cst_errors(self) -> None:
-        """Check for CST errors in the transformed tree.
+        """Check the concrete syntax tree for parse errors.
 
-        If strict mode is enabled and Error nodes are found in the tree, raise an
-        exception. This transform runs last to ensure all other transformations have
-        completed.
+        Walks the CST (not the AST) because some ERROR nodes may not survive
+        the abstractify step if they are nested inside node types not in
+        PUSH_THESE_TYPES.
 
         Raises
         ------
         RSMTransformerError
-            If strict mode is enabled and Error nodes are present in the tree.
-
-        Notes
-        -----
-        This transform does not modify the tree. It only checks for errors and
-        optionally raises an exception.
-
+            If strict mode is enabled and ERROR nodes are present in the CST.
         """
         if not self.strict:
             return
+        if not self.parser or not self.parser.cst:
+            return
 
-        error_nodes = list(
-            self.tree.traverse(condition=lambda n: isinstance(n, nodes.Error))
-        )
+        error_nodes = []
+
+        def _find_errors(node):
+            if node.type == "ERROR":
+                error_nodes.append(node)
+            for child in node.children:
+                _find_errors(child)
+
+        _find_errors(self.parser.cst.root_node)
 
         if error_nodes:
             error_messages = []
-            for error_node in error_nodes:
-                start = error_node.start_point
-                end = error_node.end_point
+            for node in error_nodes:
+                start = node.start_point
+                end = node.end_point
                 error_messages.append(
-                    f"  - ({start[0]}, {start[1]}) - ({end[0]}, {end[1]}): {error_node.children[0].text if error_node.children else 'unknown error'}"
+                    f"  - ({start[0]}, {start[1]}) - ({end[0]}, {end[1]}): {node.text.decode('utf-8', errors='replace') if node.text else 'unknown error'}"
                 )
 
             error_summary = "\n".join(error_messages)

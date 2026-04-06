@@ -58,7 +58,7 @@ Different affiliations
 Author notes
 ------------
 
-Use ``:note:`` to add equal contribution markers, corresponding author
+Use ``:author-note:`` to add equal contribution markers, corresponding author
 designations, or other annotations:
 
 .. rsm::
@@ -68,13 +68,13 @@ designations, or other annotations:
    :author: {
      :name: Alice Smith
      :affiliation: Example University
-     :note: Equal contribution
+     :author-note: Equal contribution
    } ::
 
    :author: {
      :name: Bob Jones
      :affiliation: Example University
-     :note: Equal contribution
+     :author-note: Equal contribution
    } ::
 
    ## Introduction
@@ -112,6 +112,6 @@ reveals the full list.
 
 .. tip::
 
-   Combine ``:affiliation:``, ``:note:``, and ``:orcid:`` as needed. RSM
+   Combine ``:affiliation:``, ``:author-note:``, and ``:orcid:`` as needed. RSM
    handles the numbering and grouping of shared affiliations and notes
    automatically.

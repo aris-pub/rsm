@@ -268,7 +268,7 @@ class ParserApp(RSMApp):
             Task("parser", p := tsparser.TSParser(), p.parse),
             Task(
                 "transformer",
-                t := transformer.Transformer(root_dir=root_dir, strict=strict),
+                t := transformer.Transformer(root_dir=root_dir, strict=strict, parser=p),
                 t.transform,
             ),
         ]
