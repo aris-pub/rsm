@@ -502,8 +502,9 @@ class AppendNodeTag(AppendOpenTag):
         kwargs = {"nodeid": node.nodeid}
         if extra_attrs:
             kwargs.update(extra_attrs)
-        if isinstance(node, nodes.Html) and node.static:
-            kwargs["data-static"] = str(node.static)
+        if isinstance(node, nodes.Asset) and node.static:
+            static_src = self._resolve_image_src(node.static) if hasattr(self, '_resolve_image_src') else str(node.static)
+            kwargs["data-static"] = static_src
         if include_source and manuscript_source and hasattr(node.start_point, "row"):
             source_lines = manuscript_source.split("\n")
             start_row = node.start_point.row
@@ -1591,11 +1592,19 @@ class Translator:
         else:
             return self._render_image(node)
 
+    def _static_fallback_img(self, node: nodes.Asset) -> str:
+        if not node.static:
+            return ""
+        src = self._resolve_image_src(node.static)
+        alt = f"Static view of {node.__class__.__name__} {node.full_number}."
+        return f'<img class="static-fallback" src="{src}" alt="{alt}" style="display:none">'
+
     def visit_figure(self, node: nodes.Figure) -> EditCommand:
         return AppendBatchAndDefer(
             [
                 AppendNodeTag(node, "figure"),
                 AppendText(self._detect_content_type_and_render(node)),
+                AppendText(self._static_fallback_img(node)),
             ]
         )
 
@@ -1612,6 +1621,7 @@ class Translator:
             [
                 AppendNodeTag(node, "figure"),
                 AppendText(self._detect_content_type_and_render(node)),
+                AppendText(self._static_fallback_img(node)),
             ]
         )
 
@@ -1740,6 +1750,13 @@ class HandrailsTranslator(Translator):
           <path d="M11 13l9 -9" />
           <path d="M15 4h5v5" />
         </svg>""",
+        "image": """<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3C4952" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+          <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+          <path d="M15 8h.01" />
+          <path d="M3 6a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v12a3 3 0 0 1 -3 3h-12a3 3 0 0 1 -3 -3v-12" />
+          <path d="M3 16l5 -5c.928 -.893 2.072 -.893 3 0l5 5" />
+          <path d="M14 14l1 -1c.928 -.893 2.072 -.893 3 0l3 3" />
+        </svg>""",
     }
 
     def __init__(
@@ -1859,6 +1876,7 @@ class HandrailsTranslator(Translator):
         collapse_all: bool | Literal["disabled"] = False,
         link: bool | Literal["disabled"] = True,
         code: bool | Literal["disabled"] = True,
+        static_toggle: bool | Literal["disabled"] = False,
     ) -> dict:
         """Return data attributes encoding the menu configuration."""
         attrs = {}
@@ -1872,6 +1890,8 @@ class HandrailsTranslator(Translator):
             attrs["data-menu-link"] = "disabled" if link == "disabled" else "true"
         if code:
             attrs["data-menu-code"] = "disabled" if code == "disabled" else "true"
+        if static_toggle:
+            attrs["data-menu-static-toggle"] = "disabled" if static_toggle == "disabled" else "true"
         return attrs
 
     def _hr_menu_zone(
@@ -1881,9 +1901,10 @@ class HandrailsTranslator(Translator):
         collapse_all: bool | Literal["disabled"] = False,
         link: bool | Literal["disabled"] = True,
         code: bool | Literal["disabled"] = True,
+        static_toggle: bool | Literal["disabled"] = False,
     ) -> tuple[AppendOpenCloseTag, dict]:
         """Return an empty menu zone and data attributes for the singleton menu."""
-        attrs = self._menu_data_attrs(label, collapse, collapse_all, link, code)
+        attrs = self._menu_data_attrs(label, collapse, collapse_all, link, code, static_toggle)
         zone = AppendOpenCloseTag(tag="div", content="", classes=["hr-menu-zone"])
         return zone, attrs
 
@@ -2160,6 +2181,11 @@ class HandrailsTranslator(Translator):
         html += f'    {self._icon_ref("code")}\n'
         html += '    <span class="hr-menu-item-text">Source</span>\n'
         html += '  </div>\n'
+        html += '  <div class="hr-menu-separator" data-role="static-sep"></div>\n'
+        html += f'  <div class="hr-menu-item" data-role="static-toggle">\n'
+        html += f'    {self._icon_ref("image")}\n'
+        html += '    <span class="hr-menu-item-text">Static view</span>\n'
+        html += '  </div>\n'
         html += '</div>\n</div>'
         return AppendText(text=html)
 
@@ -2351,9 +2377,11 @@ class HandrailsTranslator(Translator):
         items = []
         if isinstance(parent, nodes.Table):
             items.append(AppendText("\n</table>\n"))
+        has_static = isinstance(parent, nodes.Asset) and parent.static
         menu_zone, menu_attrs = self._hr_menu_zone(
             label="Caption",
             link=(True if node.label else "disabled"),
+            static_toggle=(True if has_static else "disabled"),
         )
         items.extend(
             [

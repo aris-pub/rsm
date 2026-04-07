@@ -406,8 +406,9 @@ def test_figure_static_path():
 
         <section class="level-1">
 
-        <figure class="figure" data-nodeid="1">
+        <figure class="figure" data-static="assets/interactive-static.png" data-nodeid="1">
         <img src="assets/interactive.svg" alt="Figure 1.">
+        <img class="static-fallback" src="assets/interactive-static.png" alt="Static view of Figure 1." style="display:none">
         </figure>
 
         </section>
@@ -441,11 +442,12 @@ def test_figure_all_new_options():
 
         <section class="level-1">
 
-        <figure class="figure" data-nodeid="1">
+        <figure class="figure" data-static="assets/plot-static.png" data-nodeid="1">
         <picture>
         <source media="(prefers-color-scheme: dark)" srcset="assets/plot-dark.png">
         <img src="assets/plot-light.png" alt="A density plot.">
         </picture>
+        <img class="static-fallback" src="assets/plot-static.png" alt="Static view of Figure 1." style="display:none">
         </figure>
 
         </section>
