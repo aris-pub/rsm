@@ -13,5 +13,6 @@ with copy-paste examples.
    guides/citations
    guides/multi-author
    guides/styling
+   guides/converting
    guides/recipes
    guides/publish-to-press

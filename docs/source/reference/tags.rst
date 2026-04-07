@@ -21,14 +21,11 @@ List of all tags
 .. autoclass:: definition
 .. autoclass:: enumerate
 .. autoclass:: example
-.. autoclass:: exercise
 .. autoclass:: figure
 .. autoclass:: html
 .. autoclass:: itemize
 .. autoclass:: lemma
 .. autoclass:: mathblock
-.. autoclass:: porism
-.. autoclass:: problem
 .. autoclass:: proof
 .. autoclass:: proposition
 .. autoclass:: references
@@ -64,10 +61,12 @@ List of all tags
 
 .. rubric:: Meta Tags
 
+.. autoclass:: alt
 .. autoclass:: affiliation
 .. autoclass:: author_display_first
 .. autoclass:: author_display_last
 .. autoclass:: author_note
+.. autoclass:: dark
 .. autoclass:: email
 .. autoclass:: emphas
 .. autoclass:: goal
@@ -83,8 +82,10 @@ List of all tags
 .. autoclass:: orcid
 .. autoclass:: override_date
 .. autoclass:: path
+.. autoclass:: preamble
 .. autoclass:: reftext
 .. autoclass:: scale
+.. autoclass:: static
 .. autoclass:: strong
 .. autoclass:: theme
 .. autoclass:: title
@@ -97,14 +98,17 @@ List of all tags
 .. autoclass:: assume
 .. autoclass:: case
 .. autoclass:: define
+.. autoclass:: exercise
 .. autoclass:: let
 .. autoclass:: new
 .. autoclass:: p
 .. autoclass:: pick
+.. autoclass:: porism
 .. autoclass:: prev
 .. autoclass:: prev2
 .. autoclass:: prev3
 .. autoclass:: previous
+.. autoclass:: problem
 .. autoclass:: prove
 .. autoclass:: qed
 .. autoclass:: st

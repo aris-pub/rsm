@@ -16,6 +16,7 @@ Language
    reference/configuration
    reference/tags
    reference/cli-commands
+   reference/import-export
 
 API Reference
 *************

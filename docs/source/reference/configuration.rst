@@ -127,25 +127,6 @@ Controls how theorems, lemmas, and other numbered environments are numbered.
    ::
 
 
-toc-depth
----------
-
-Sets how many heading levels appear in the table of contents.
-
-**Valid values:** Integer from 1 to 6
-
-**Example:**
-
-.. code-block:: text
-
-   :config: {
-     :toc-depth: 3
-   }
-   ::
-
-This will include h1, h2, and h3 headings in the table of contents.
-
-
 override-date
 -------------
 

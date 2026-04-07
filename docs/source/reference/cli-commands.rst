@@ -3,103 +3,235 @@
 CLI Commands
 ============
 
-RSM provides three command a few utilities when installed locally:
-
-1. ``rsm build`` Takes a file containing RSM source and outputs a fully functioning
-   website.
-2. ``rsm render`` Takes a file containing RSM source and translates it to HTML.  It does
-   not make a working website, it only computes the HTML body and prints it to screen.
-3. ``rsm check`` Takes a file containing RSM source and runs consistency and sanity
-   checks.  It outputs a set of warnings and suggestions to screen.  It does not write
-   any HTML, and it does not overwrite the source file.
-
-These three commands correspond one-to-one to the functions in the main package:
-``rsm.build()``, ``rsm.render()``, and ``rsm.lint()``.
-
-Most users will spend most of their time running ``rsm build``. The purpose of ``rsm
-check`` is to be integrated to text editors in the future. ``rsm render`` is mostly
-useful for development, testing, and rapid iteration at the CLI or python REPL.
+RSM provides eight subcommands. Run ``rsm --help`` for a summary, or
+``rsm <command> --help`` for details on any command.
 
 
-Arguments and flags
-*******************
+rsm init
+--------
 
-We focus on the CLI flags accepted by ``rsm build``. The other two commands have very
-similar flags. For a complete and updated list of arguments, run ``rsm build -h`` at
-your terminal. Here we provide some common examples.
+Initialize a new RSM project in the current directory.
 
-Suppose you have a file called ``manuscript.rsm`` containing RSM source code.  The
-simplest way of building your web manuscript is via:
+.. code-block:: bash
+
+   $ rsm init
+   $ rsm init --css         # also create a custom.css file
+   $ rsm init --force       # overwrite existing files
+
+**Flags:**
+
+``--css``
+   Create a ``custom.css`` file alongside the RSM source.
+
+``--force``
+   Initialize even if RSM files already exist in the directory.
+
+
+rsm build
+---------
+
+Build an RSM source file to a complete HTML page with static assets.
 
 .. code-block:: bash
 
    $ rsm build manuscript.rsm
+   $ rsm build manuscript.rsm -o build/
+   $ rsm build manuscript.rsm --standalone
 
-This will output a ``index.html`` file in the current directory, as well as a
-``static/`` folder containing all necessary assets.
+Produces ``index.html`` (or the filename derived from the source) and a
+``static/`` folder. This is the main command for producing output ready
+to serve or publish.
+
+**Flags (in addition to** :ref:`common flags <common-flags>` **):**
+
+``--standalone``
+   Output a single self-contained HTML file with inlined JS and CDN CSS.
+   No ``static/`` folder is created.
+
+``-o, --output PATH``
+   Output path. Can be a directory or a filename.
+
+``-p, --print``
+   Print the generated HTML to stdout.
+
+``--no-theme-toggle``
+   Disable the dark mode toggle button.
 
 
-Input
------
+rsm render
+----------
 
-By default, ``rsm build`` interprets its first argument as a path to a file. You may
-also provide RSM source directly at the terminal via the ``-c`` flag:
+Render RSM source to an HTML body fragment and print to stdout. No ``<head>``,
+no static files. Useful for testing and piping.
 
 .. code-block:: bash
 
-   $ rsm build "# Hello\n\nThis is a minimal manuscript." -c
+   $ rsm render manuscript.rsm
+   $ rsm render -c "## Hello\n\nWorld." -r
+
+**Flags (in addition to** :ref:`common flags <common-flags>` **):**
+
+``-s, --silent``
+   Suppress HTML output, show only log messages.
 
 
-Automatic builds
-----------------
+rsm check
+----------
 
-Using the ``--serve`` flag you may specify a path to ``rsm build`` and instruct it to
-watch the file for any modifications. ``rsm build`` will rebuild the entire manuscript
-whenever there is a change in the file, without you having to manually relaunch the
-command.
+Run the linter on an RSM source file. Reports warnings and suggestions
+without producing any output.
 
 .. code-block:: bash
 
-   $ rsm build manuscript.rsm --serve
-   [server] Serving on http://127.0.0.1:5500
-   [handlers]Start watching changes
-   [handlers]Start detecting changes
-   ...
+   $ rsm check manuscript.rsm
 
 
-You may now open your browser at the address ``http://127.0.0.1:5500`` and see your
-manuscript.  Whenever the ``manuscript.rsm`` file changes on disk, the browser will
-automatically reload and show the changes.
+rsm parse
+----------
+
+Parse RSM source and output the abstract syntax tree as JSON.
+
+.. code-block:: bash
+
+   $ rsm parse manuscript.rsm
+   $ rsm parse manuscript.rsm --pretty
+
+**Flags (in addition to** :ref:`common flags <common-flags>` **):**
+
+``--pretty``
+   Pretty-print JSON output with indentation.
 
 
-Output
-------
+rsm export
+----------
 
-Sometimes it is useful to run the build without producing any output, just to see the
-logs. This is possible with the ``-s`` flag. This is specially useful with ``rsm
-render`` and ``rsm check``.
+Export RSM source to any Pandoc-supported format. Requires
+`Pandoc <https://pandoc.org>`_.
+
+.. code-block:: bash
+
+   $ rsm export manuscript.rsm --to latex
+   $ rsm export manuscript.rsm --to pdf -o manuscript.pdf
+
+**Flags (in addition to** :ref:`common flags <common-flags>` **):**
+
+``--to FORMAT``
+   Output format (default: ``latex``). Any Pandoc-supported format:
+   ``latex``, ``pdf``, ``docx``, ``epub``, ``typst``, etc.
+
+``-o, --output PATH``
+   Output file path. Omit to write to stdout.
+
+See :ref:`import-export-ref` for format details and limitations.
 
 
-Logs
-----
+rsm import
+----------
 
-There are three flags to control the logs.
+Import a document in any Pandoc-supported format and convert it to RSM
+source. Requires `Pandoc <https://pandoc.org>`_.
 
-1. ``-v`` or ``-vv`` to control the verbosity.
-2. ``--log-no-timestamps`` to remove timestamps from logs (useful during testing).
-3. ``--log-format`` to change the format of the logs. The default value is ``"rsm"`` and
-   it is most readable by humans. ``"json"`` is useful when transferring the logs to
-   another application such as the online editor. ``"lint"`` is the format used by
-   default by ``rsm check`` and it adheres to the same format used by other static
-   analysis tools such as ``pylint`` and ``mypy``. ``"plain"`` is useful during testing.
+.. code-block:: bash
+
+   $ rsm import draft.md -o manuscript.rsm
+   $ rsm import paper.tex --from latex -o manuscript.rsm
+
+**Flags:**
+
+``--from FORMAT``
+   Input format (default: ``markdown``). Any Pandoc-supported format.
+
+``-c, --string``
+   Interpret the source argument as a string, not a file path.
+
+``-o, --output PATH``
+   Output ``.rsm`` file path. Omit to write to stdout.
+
+See :ref:`import-export-ref` for format details and limitations.
 
 
-Misc.
+rsm serve
+---------
+
+Start a development server with live reload. Optionally builds an RSM file
+first and rebuilds on changes.
+
+.. code-block:: bash
+
+   $ rsm serve manuscript.rsm
+   $ rsm serve manuscript.rsm --port 8080
+   $ rsm serve                  # serve current directory
+
+**Flags:**
+
+``--port PORT``
+   Port number (default: 5500).
+
+``--no-browser``
+   Do not automatically open the browser.
+
+``--standalone``
+   Use standalone mode for builds.
+
+``-o, --output PATH``
+   Output path for builds.
+
+``-p, --print``
+   Print HTML to stdout on each rebuild.
+
+``--no-theme-toggle``
+   Disable dark mode toggle.
+
+``--css PATH``
+   Path to custom CSS file.
+
+``--menu-right``
+   Position handrail menus to the right.
+
+
+.. _common-flags:
+
+Common flags
+------------
+
+These flags are available on ``build``, ``render``, ``check``, ``parse``,
+and ``export``:
+
+``src``
+   RSM source file path (positional argument).
+
+``-c, --string``
+   Interpret ``src`` as a source string instead of a file path.
+
+``-r, --handrails``
+   Include interactive handrails in output.
+
+``--css PATH``
+   Path to a custom CSS file.
+
+``--menu-right``
+   Position handrail context menus to the right instead of left.
+
+``--strict``
+   Halt on CST parse errors instead of continuing with warnings.
+
+``-v, --verbose``
+   Increase log verbosity. Use ``-vv`` for debug output.
+
+``--log-no-timestamps``
+   Exclude timestamps from log output.
+
+``--log-no-lineno``
+   Exclude line numbers from log output.
+
+``--log-format {plain,rsm,json,lint}``
+   Log output format (default: ``rsm``).
+
+
+Notes
 -----
 
-1. ``rsm render`` accepts another flag, ``-r`` which uses the translator that outputs
-   handrails (see :ref:`how-rsm-works`).
-2. ``rsm check`` ignores ``-s`` since by default it has no output other than logs.
-3. ``rsm check`` ignores ``-v`` and ``-vv`` since it sets its own specific loglevel.
-4. ``rsm check`` ignores ``-r`` since it never reaches the translation step.
-5. ``rsm check`` and ``rsm render`` do not accept ``--serve``.
+1. ``rsm render`` uses the basic translator by default. Add ``-r`` to use
+   the handrails translator (see :ref:`how-rsm-works`).
+2. ``rsm check`` always uses ``lint`` log format regardless of ``--log-format``.
+3. ``rsm build`` always enables handrails.
