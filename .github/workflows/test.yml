@@ -175,6 +175,14 @@ jobs:
       run: |
         uv run pytest -vv -m visual -n 2 --timeout=60 --max-worker-restart=2
 
+    - name: Upload visual test diffs
+      if: failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: visual-test-diffs
+        path: tests/visual/snapshot_tests_failures/
+        retention-days: 7
+
   interactive-tests:
     runs-on: ubuntu-latest
     timeout-minutes: 15
