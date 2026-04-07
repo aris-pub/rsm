@@ -230,6 +230,17 @@ html[data-theme="dark"] .sd-card.sd-sphinx-override:hover {
   line-height: 1.5;
 }
 
+/* ─── RSM source-only blocks (no rendered preview) ─── */
+.rsm-source-only pre {
+  margin: 0;
+  padding: 1em;
+  overflow-x: auto;
+  line-height: 1.5;
+  border-radius: 0.5rem;
+  border: 1px solid var(--pst-color-border);
+  background: var(--pst-color-surface);
+}
+
 /* ─── RSM iframe loading spinner ─── */
 .rsm-iframe-wrap {
   position: relative;

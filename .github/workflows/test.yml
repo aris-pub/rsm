@@ -207,6 +207,31 @@ jobs:
     - name: Run interactive tests
       run: uv run pytest tests/interactive/ -vv --browser chromium --timeout=60
 
+  docs-build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout the repository and submodules
+      uses: actions/checkout@v3
+      with:
+        submodules: true
+
+    - name: Set up Python 3.12
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+
+    - name: Install uv
+      run: |
+        curl -LsSf https://astral.sh/uv/install.sh | sh
+        echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+
+    - name: Install rsm-lang
+      run: uv sync
+
+    - name: Build docs (warnings as errors)
+      run: uv run python -m sphinx -b html -W docs/source docs/build/html
+
   accessibility-tests:
     runs-on: macos-latest
     timeout-minutes: 15

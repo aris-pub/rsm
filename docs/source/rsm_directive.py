@@ -171,8 +171,17 @@ class RSMDirective(Directive):
     has_content = True
     option_spec = {
         'layout': lambda x: x.strip().lower() if x else 'horizontal',
-        'custom-css': lambda x: x.strip() if x else None
+        'custom-css': lambda x: x.strip() if x else None,
+        'source-only': lambda x: True,
     }
+
+    def _validate(self, content):
+        """Parse with strict mode to catch syntax errors, discard the result."""
+        try:
+            rsm.render(content, strict=True, handrails=False)
+        except Exception as e:
+            source_file = self.state.document.current_source
+            raise type(e)(f"Error in {source_file}:\n{e}") from e
 
     def run(self):
         content = "\n".join(self.content)
@@ -180,11 +189,16 @@ class RSMDirective(Directive):
         app = env.app
         layout = self.options.get('layout', 'horizontal')
         custom_css = self.options.get('custom-css', None)
+        source_only = 'source-only' in self.options
 
         n1 = rsm_highlighted_code(
             highlight_rsm(content),
-            classes=["rsm-example-code"],
+            classes=["rsm-example-code"] if not source_only else ["rsm-source-only"],
         )
+
+        if source_only:
+            self._validate(content)
+            return [n1]
 
         # Use standalone mode - it uses CDN for CSS and inlines JavaScript
         # Use custom asset resolver to resolve paths relative to source directory

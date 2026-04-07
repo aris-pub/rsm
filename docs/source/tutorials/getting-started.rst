@@ -39,7 +39,8 @@ Step 2: Write a manuscript
 
 Create a file called ``manuscript.rsm`` with the following contents:
 
-.. code-block:: text
+.. rsm::
+   :source-only:
 
    # My First Manuscript
 
@@ -54,12 +55,15 @@ Create a file called ``manuscript.rsm`` with the following contents:
 
    ## Introduction {:label: intro}
 
-   RSM is a markup language for **web-first** scientific manuscripts.
-   It supports *emphasis*, **bold text**, and $x^2 + y^2 = z^2$.
+   RSM is a markup language for **web-first**
+   scientific manuscripts.
+   It supports *emphasis*, **bold text**,
+   and $x^2 + y^2 = z^2$.
 
    ## Results
 
-   We can reference the introduction using :ref:intro::.
+   We can reference the introduction
+   using :ref:intro::.
 
 Let's break down what's happening:
 
