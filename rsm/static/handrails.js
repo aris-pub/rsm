@@ -119,7 +119,9 @@ function showMenuFor(hr) {
     const figure = hr.closest("figure") || hr.closest("figcaption")?.parentElement;
     const isShowingStatic = figure && figure.classList.contains("showing-static");
     const textEl = staticToggleEl.querySelector(".hr-menu-item-text");
-    if (textEl) textEl.textContent = isShowingStatic ? "Interactive view" : "Static view";
+    if (textEl) textEl.textContent = isShowingStatic ? "Interactive" : "Static";
+    const useEl = staticToggleEl.querySelector("svg use");
+    if (useEl) useEl.setAttribute("href", isShowingStatic ? "#hr-icon-play" : "#hr-icon-image");
   }
 
   // Move singleton into the handrail's menu zone
@@ -421,5 +423,7 @@ function toggleStaticView(hr, menuItem) {
   fallback.style.display = isShowingStatic ? "" : "none";
 
   const textEl = menuItem.querySelector(".hr-menu-item-text");
-  if (textEl) textEl.textContent = isShowingStatic ? "Interactive view" : "Static view";
+  if (textEl) textEl.textContent = isShowingStatic ? "Interactive" : "Static";
+  const useEl = menuItem.querySelector("svg use");
+  if (useEl) useEl.setAttribute("href", isShowingStatic ? "#hr-icon-play" : "#hr-icon-image");
 }

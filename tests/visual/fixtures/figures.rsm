@@ -16,3 +16,13 @@ This document exercises figure options: alt text, dark mode variant, and static 
 
 :figure: {:path: figure-light.png :dark: figure-dark.png :alt: Colour diagram}
 ::
+
+## Figure with static fallback
+
+:figure: {
+  :path: figure-light.png
+  :static: figure-dark.png
+  :alt: A figure that can toggle to static
+}
+:caption: Toggle this figure between interactive and static.
+::

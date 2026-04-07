@@ -1596,7 +1596,7 @@ class Translator:
         if not node.static:
             return ""
         src = self._resolve_image_src(node.static)
-        alt = f"Static view of {node.__class__.__name__} {node.full_number}."
+        alt = f"Static fallback for {node.__class__.__name__} {node.full_number}."
         return f'<img class="static-fallback" src="{src}" alt="{alt}" style="display:none">'
 
     def visit_figure(self, node: nodes.Figure) -> EditCommand:
@@ -1756,6 +1756,10 @@ class HandrailsTranslator(Translator):
           <path d="M3 6a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v12a3 3 0 0 1 -3 3h-12a3 3 0 0 1 -3 -3v-12" />
           <path d="M3 16l5 -5c.928 -.893 2.072 -.893 3 0l5 5" />
           <path d="M14 14l1 -1c.928 -.893 2.072 -.893 3 0l3 3" />
+        </svg>""",
+        "play": """<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3C4952" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+          <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+          <path d="M7 4v16l13 -8l-13 -8" />
         </svg>""",
     }
 
@@ -2184,7 +2188,7 @@ class HandrailsTranslator(Translator):
         html += '  <div class="hr-menu-separator" data-role="static-sep"></div>\n'
         html += f'  <div class="hr-menu-item" data-role="static-toggle">\n'
         html += f'    {self._icon_ref("image")}\n'
-        html += '    <span class="hr-menu-item-text">Static view</span>\n'
+        html += '    <span class="hr-menu-item-text">Static</span>\n'
         html += '  </div>\n'
         html += '</div>\n</div>'
         return AppendText(text=html)

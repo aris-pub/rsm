@@ -70,6 +70,12 @@ def interactive_server(tmp_path_factory: Any):
             strict=True,
         )
 
+    # Copy image assets so figures can render
+    import shutil
+    for img in fixtures_dir.iterdir():
+        if img.suffix.lower() in {".png", ".jpg", ".jpeg", ".gif", ".svg", ".webp"}:
+            shutil.copy(img, serve_dir / img.name)
+
     _write_iframe_hosts(serve_dir)
 
     port = _find_free_port()

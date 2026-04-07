@@ -1,0 +1,16 @@
+# Figure Toggle Test
+
+## Figures
+
+:figure: {
+  :path: figure-light.png
+  :static: figure-light.png
+}
+:caption: A figure with a static fallback.
+::
+
+:figure: {
+  :path: figure-light.png
+}
+:caption: A figure without a static fallback.
+::
