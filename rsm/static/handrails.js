@@ -40,6 +40,7 @@ export function setup() {
         const withinSubproof = activeHr.classList.contains("step");
         collapseAll(activeHr, withinSubproof);
       }
+      else if (role === "static-toggle") toggleStaticView(activeHr, menuItem);
       return;
     }
 
@@ -52,10 +53,13 @@ export function setup() {
   });
 
   // Mouse leave on singleton menu → hide
-  document.addEventListener("mouseleave", function (ev) {
-    if (ev.target.closest && ev.target.closest(".hr-menu") && ev.target.closest("#hr-menu-singleton")) {
-      hideMenu();
-    }
+  // Use capture on mouseout (which bubbles, unlike mouseleave) and check
+  // that relatedTarget is outside the menu before hiding.
+  document.addEventListener("mouseout", function (ev) {
+    const menu = ev.target.closest && ev.target.closest("#hr-menu-singleton .hr-menu");
+    if (!menu) return;
+    if (ev.relatedTarget && menu.contains(ev.relatedTarget)) return;
+    hideMenu();
   }, true);
 
   // Set height of offset handrails' borders — re-observed on every call
@@ -104,6 +108,19 @@ function showMenuFor(hr) {
   // Configure link and code items
   configureItem(singletonMenu.querySelector('[data-role="link"]'), link);
   configureItem(singletonMenu.querySelector('[data-role="code"]'), code);
+
+  // Configure static toggle
+  const staticToggle = hr.getAttribute("data-menu-static-toggle");
+  const staticToggleEl = singletonMenu.querySelector('[data-role="static-toggle"]');
+  const staticSep = singletonMenu.querySelector('[data-role="static-sep"]');
+  configureItem(staticToggleEl, staticToggle);
+  if (staticSep) staticSep.style.display = staticToggle ? "" : "none";
+  if (staticToggleEl && staticToggle && staticToggle !== "disabled") {
+    const figure = hr.closest("figure") || hr.closest("figcaption")?.parentElement;
+    const isShowingStatic = figure && figure.classList.contains("showing-static");
+    const textEl = staticToggleEl.querySelector(".hr-menu-item-text");
+    if (textEl) textEl.textContent = isShowingStatic ? "Interactive view" : "Static view";
+  }
 
   // Move singleton into the handrail's menu zone
   const zone = hr.querySelector(":scope > .hr-menu-zone");
@@ -386,3 +403,23 @@ function showSource(hr) {
     }
   });
 };
+
+
+function toggleStaticView(hr, menuItem) {
+  const figure = hr.closest("figure") || hr.closest("figcaption")?.parentElement;
+  if (!figure) return;
+
+  const fallback = figure.querySelector(".static-fallback");
+  if (!fallback) return;
+
+  const isShowingStatic = figure.classList.toggle("showing-static");
+
+  for (const child of figure.children) {
+    if (child === fallback || child.tagName === "FIGCAPTION") continue;
+    child.style.display = isShowingStatic ? "none" : "";
+  }
+  fallback.style.display = isShowingStatic ? "" : "none";
+
+  const textEl = menuItem.querySelector(".hr-menu-item-text");
+  if (textEl) textEl.textContent = isShowingStatic ? "Interactive view" : "Static view";
+}
