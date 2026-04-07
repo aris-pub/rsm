@@ -98,7 +98,7 @@ Misc.
 -----
 
 1. ``rsm render`` accepts another flag, ``-r`` which uses the translator that outputs
-   handrails (see :ref:`translator`).
+   handrails (see :ref:`how-rsm-works`).
 2. ``rsm check`` ignores ``-s`` since by default it has no output other than logs.
 3. ``rsm check`` ignores ``-v`` and ``-vv`` since it sets its own specific loglevel.
 4. ``rsm check`` ignores ``-r`` since it never reaches the translation step.

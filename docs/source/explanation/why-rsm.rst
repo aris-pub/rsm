@@ -116,19 +116,15 @@ Detailed Comparisons
 The following sections explain the design choices behind RSM in detail.
 
 
-.. _whats-wrong-with-latex-pdf:
+.. _why-not-latex-pdf:
 
-What's wrong with LaTeX + PDF?
-******************************
+Why not LaTeX + PDF?
+********************
 
-There's nothing inherently wrong with writing scientific manuscripts in LaTeX and
-publishing them in PDF format.  However, the LaTeX ecosystem was designed at a time
-where the main medium of scientific publication was physically printed books and
-magazines.  Today, this is far from the truth as more and more scientists read (and
-write) papers online.  The PDF format and many of LaTeX's features are designed to
-output documents that will be physically printed, and this is not necessarily the best
-option when reading a digital document.  These are some of the problems that arise when
-reading PDFs on a digital device:
+LaTeX and PDF remain excellent for print-oriented publishing. However, the LaTeX
+ecosystem was designed when the primary medium was physically printed books and
+journals. Today, most scientists read papers on screens. The PDF format inherits
+several limitations in this context:
 
 1. A PDF file has a fixed geometry (page size, margins, etc), while digital devices
    (laptops, tablets, mobile phones) have a variety of screen sizes and shapes.  The
@@ -156,14 +152,12 @@ reading PDFs on a digital device:
    final output and some post-processing is sometimes necessary.
 
 
-What's wrong with Markdown?
-***************************
+Why not Markdown?
+*****************
 
-There's nothing inherently wrong with writing a scientific manuscript in Markdown and
-then using some tool to render it into a fully-featured web page.  In fact, some modern
-tools such as `Quarto <https://quarto.org/>`_ are based on (extensions of) the Markdown
-language.  However, ReStructured Manuscripts uses its own language for a number of
-reasons.
+Markdown is a natural starting point for web-native writing. Tools like
+`Quarto <https://quarto.org/>`_ extend it for scientific use. RSM chose a
+different path for several reasons.
 
 1. One of the main features of RSM is being able to reference any place of the
    manuscript, even single words, and automatically showing tooltips to the referenced
@@ -181,19 +175,17 @@ reasons.
    "Markdown but not Markdown", we decided to implement our own language.
 
 
-What's wrong with ReST?
-***********************
+Why not ReStructuredText?
+*************************
 
-ReStructured Text (ReST) is another popular markup language used primarily by the
-`Sphinx <https://www.sphinx-doc.org/>`_ documentation builder and static site generator.
-The first version of RSM was in fact implemented as an extension to ReST, and used
-Sphinx in the back end.  However, this quickly became unsustainable as having the core
-features of the language be implemented as Sphinx extensions made development, testing,
-and overall developer experience awful.  Furthermore, those extensions were already
-going beyond what is reasonable to implement as a language extension.  Instead, we
-decided to create a new language, taking the best of both Markdown and ReST.  The name
-ReStructured Manuscripts is a nod to its roots in ReStructured Text, as well as a nod to
-structured proofs, the way that RSM handles mathematical writing in manuscripts.
+RSM started as a Sphinx/ReST extension. The first version used ReST's directive
+system and Sphinx as the backend. This became unsustainable: core features
+implemented as Sphinx extensions made development and testing painful, and the
+extensions were pushing beyond what the directive API could reasonably support.
+
+RSM became its own language, taking the best of both Markdown and ReST. The
+name Readable Science Markup reflects its focus on readability and scientific
+writing.
 
 
 Is CSS better than Tex?

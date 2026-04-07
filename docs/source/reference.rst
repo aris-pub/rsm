@@ -17,15 +17,6 @@ Language
    reference/tags
    reference/cli-commands
 
-Architecture
-************
-
-.. toctree::
-   :maxdepth: 1
-
-   reference/steps
-
-
 API Reference
 *************
 

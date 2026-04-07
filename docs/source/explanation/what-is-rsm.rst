@@ -9,20 +9,6 @@ targets pixels: responsive layout, interactive cross-references, and accessible
 typography, out of the box.
 
 
-The problem
------------
-
-Scientific publishing still assumes paper. LaTeX produces fixed-geometry PDFs
-that don't adapt to screens, can't offer interactive navigation, and require
-external tooling for web output. Markdown is too simple for structured academic
-writing (no semantic tags, no first-class theorems, no cross-reference
-tooltips). Quarto adds computational notebooks but inherits Pandoc's
-limitations for formal mathematics.
-
-RSM is purpose-built for researchers who want to publish on the web without
-giving up the rigor of LaTeX.
-
-
 A minimal example
 -----------------
 
@@ -44,25 +30,25 @@ A minimal example
    :theorem: {
      :label: thm-euler
    }
-   For any real number :math: x ::,
-   :mathblock:
+   For any real number $x$,
+   $$
    e^{ix} = \cos x + i\sin x
-   ::
-   In particular, :math: e^{i\pi} + 1 = 0 ::.
+   $$
+   In particular, $e^{i\pi} + 1 = 0$.
    ::
 
    :proof:
    The proof follows from the Taylor series
-   expansions of :math: e^x ::,
-   :math: \cos x ::, and :math: \sin x ::.
+   expansions of $e^x$,
+   $\cos x$, and $\sin x$.
    ::
 
-   Setting :math: x = \pi :: in
+   Setting $x = \pi$ in
    :ref:thm-euler:: yields the result.
 
 
-What makes RSM different
-------------------------
+What you get
+------------
 
 **Semantic tags, not presentational commands.**
 Every RSM tag (``:theorem:``, ``:proof:``, ``:cite:``, ``:ref:``) carries
@@ -84,46 +70,7 @@ RSM has first-class support for theorem environments, proof steps, sub-proofs,
 and sketches, not as macros but as language-level constructs with
 cross-referencing built in.
 
-
-How it compares
----------------
-
-.. list-table::
-   :header-rows: 1
-   :widths: 25 15 15 15 15
-
-   * -
-     - RSM
-     - LaTeX
-     - Markdown
-     - Quarto
-   * - **Output**
-     - HTML
-     - PDF
-     - HTML (via converter)
-     - HTML, PDF, etc.
-   * - **Responsive**
-     - Yes
-     - No
-     - Depends on theme
-     - Yes
-   * - **Structured proofs**
-     - First-class
-     - Via amsthm
-     - No
-     - Via LaTeX blocks
-   * - **Interactive refs**
-     - Automatic tooltips
-     - No
-     - No
-     - Limited
-   * - **Learning curve**
-     - 1-2 hours
-     - Weeks
-     - 30 minutes
-     - 2-3 hours
-
-See :ref:`why-rsm` for detailed comparisons and design rationale.
+For detailed comparisons with LaTeX, Markdown, and Quarto, see :ref:`why-rsm`.
 
 
 Try it now

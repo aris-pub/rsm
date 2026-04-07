@@ -10,3 +10,6 @@ Background and context for understanding RSM's design decisions.
 
    explanation/what-is-rsm
    explanation/why-rsm
+   explanation/design-principles
+   explanation/how-rsm-works
+   explanation/latex-mental-model
