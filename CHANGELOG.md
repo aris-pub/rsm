@@ -1,5 +1,56 @@
 # Changelog
 
+## [1.2.0] - 2026-04-07
+
+### Added
+
+- Static view toggle for figures and HTML widgets, allowing readers to switch between interactive and static renderings
+- Complete LaTeX export with braiid styling matching Typst output, including theorem environments via Lua filter
+- Braiid Typst template for PDF export with figure styling, numbering, and author extraction
+- Clickable cross-references and citation links in PDF export
+- Blue left border on theorem blocks and Halmos square on proofs in PDF
+- Static fallback images for Html and Video assets in PDF export
+- Shared figure counter between Figure and Html assets
+- Tree-sitter syntax highlighting in documentation RSM examples
+- Singleton handrail menu, reducing DOM complexity by 43%
+- SVG icon deduplication via `<defs>`/`<symbol>`/`<use>`
+- Images served by URL in non-standalone mode (base64 only in standalone)
+- Source-only mode for the RSM directive
+- LSP requests for source/preview navigation
+- Support for `:preamble:` meta key on math and mathblock nodes
+- External cross-references prefixed with manuscript title
+- Responsive side padding for mobile viewports
+- Source offset attributes on inline elements
+- Batch math typesetting with `requestAnimationFrame` yields for better performance
+
+### Fixed
+
+- Handrail menu stays open when moving between items
+- Icon clipping in handrail menu SVGs
+- Inline math and cross-references wrapping to a new line separately from trailing punctuation
+- Codeblock indentation and syntax highlighting in standalone mode
+- Figure children overflowing their container
+- iframe ResizeObserver for interactive content
+- Strict mode now checks CST for errors instead of AST
+- Equation numbers rendered as overlay instead of grid wrapper
+- Image assets resolved through asset resolver as data URIs
+- Bibliography items breaking across pages
+- Orphaned theorem/proof titles and headings at page bottom
+- Duplicate TOC emission removed — only one TOC rendered after abstract
+- Handrail and heading colors unified to blue-700/blue-900
+- Tighter spacing on first page, headings, and abstract
+- LaTeX output compiles without setup (braiid.sty copied alongside output)
+- LaTeX standalone output, section numbering, and align environments
+- Pandoc translator missing handlers and caption format
+- Semantic token spans use character length and split multi-line tokens correctly
+- Invalid child positions handled in `rsm/nodePosition`
+- Uniform text color before document load
+
+### Changed
+
+- Replaced pyfilesystem2 dependency with pathlib and shutil
+- Unified inline-math-wrapper and inline-ref-wrapper into a single inline-wrapper
+
 ## [1.1.0] - 2026-03-17
 
 ### Added
