@@ -102,17 +102,22 @@ export function loadMathJax() {
 export async function typesetMath(root = document) {
   const element = root === document ? document.body : root;
 
+  // Bail before any renderer-availability check if there is no math to
+  // typeset. Studio's editor re-runs onrender → typesetMath on every
+  // keystroke; for math-less documents the legacy fall-through landed in
+  // the MathJax-not-ready branch below and spammed a false-alarm warning
+  // on each edit.
+  const hasMath = element.querySelector('span.math, div.mathblock');
+  if (!hasMath) return;
+
   // Load Temml on-demand if math elements exist but no renderer is loaded.
   // This handles the case where the initial render had no math (so onload
   // skipped Temml), then a subsequent compile introduces math.
   if (!window.temml && !window.MathJax?.typesetPromise) {
-    const hasMath = element.querySelector('span.math, div.mathblock');
-    if (hasMath) {
-      try {
-        await loadTemml();
-      } catch {
-        try { await loadMathJax(); } catch { /* both failed */ }
-      }
+    try {
+      await loadTemml();
+    } catch {
+      try { await loadMathJax(); } catch { /* both failed */ }
     }
   }
 

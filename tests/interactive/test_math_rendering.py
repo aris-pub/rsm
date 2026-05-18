@@ -31,7 +31,9 @@ class TestMathRendering:
         inline = page.locator("span.math").first
         expect(inline).to_be_visible()
         content = inline.text_content()
-        assert not content.startswith("\\("), f"Inline math not rendered: {content[:80]}"
+        assert not content.startswith("\\("), (
+            f"Inline math not rendered: {content[:80]}"
+        )
 
     def test_display_math_renders(self, page: Page, interactive_server: str):
         page.goto(f"{interactive_server}/math-basic.html")
@@ -39,7 +41,9 @@ class TestMathRendering:
         display = page.locator("div.mathblock").first
         expect(display).to_be_visible()
         content = display.text_content().strip()
-        assert not content.startswith("$$"), f"Display math not rendered: {content[:80]}"
+        assert not content.startswith("$$"), (
+            f"Display math not rendered: {content[:80]}"
+        )
 
     def test_temml_loaded(self, page: Page, interactive_server: str):
         page.goto(f"{interactive_server}/math-basic.html")
@@ -61,7 +65,9 @@ class TestMathOnDemandLoading:
         has_temml = page.evaluate("() => !!window.temml")
         assert not has_temml, "Temml should NOT be loaded for a page without math"
 
-    def test_typeset_math_loads_temml_on_demand(self, page: Page, interactive_server: str):
+    def test_typeset_math_loads_temml_on_demand(
+        self, page: Page, interactive_server: str
+    ):
         """After initializing on a no-math page, injecting math elements and
         calling typesetMath should load Temml and render them."""
         page.goto(f"{interactive_server}/no-math.html")
@@ -99,4 +105,48 @@ class TestMathOnDemandLoading:
         inline_content = page.locator("span.math").first.text_content()
         assert not inline_content.startswith("\\("), (
             f"Inline math not rendered after on-demand load: {inline_content[:80]}"
+        )
+
+    def test_typeset_math_silent_on_math_less_page(
+        self, page: Page, interactive_server: str
+    ):
+        """Regression: typesetMath must not emit 'Neither temml nor MathJax'
+        warnings when there is no math in the document.
+
+        Studio's editor recompiles the manuscript on every keystroke and runs
+        onrender → typesetMath each time.  For a math-less document, the
+        function previously fell through past the on-demand load (which is
+        also gated on math presence) and into the MathJax fallback's
+        availability check, logging a warning.  The warning is a false alarm
+        — there is no math to typeset — but it spams the console on every
+        edit, drowning out real diagnostics.
+        """
+        warnings: list[str] = []
+        page.on(
+            "console",
+            lambda msg: warnings.append(msg.text)
+            if msg.type == "warning" and "Neither temml nor MathJax" in msg.text
+            else None,
+        )
+
+        page.goto(f"{interactive_server}/no-math.html")
+        wait_for_rsm(page)
+
+        # Sanity: no temml on a math-less page
+        assert not page.evaluate("() => !!window.temml")
+
+        # Call typesetMath the way onrender would after a recompile.  One
+        # call is enough; the bug manifests on every invocation.
+        page.evaluate(
+            """async () => {
+            const libs = await import('/static/libraries.js');
+            const container = document.querySelector('.manuscriptwrapper') || document.body;
+            await libs.typesetMath(container);
+        }"""
+        )
+
+        # No "Neither temml nor MathJax ready for typesetting" warnings.
+        assert warnings == [], (
+            f"typesetMath emitted spurious 'Neither temml nor MathJax' "
+            f"warnings on a math-less page: {warnings}"
         )
