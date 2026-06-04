@@ -39,14 +39,20 @@ def test_disk_resolver_returns_none_for_missing_file():
     assert result is None
 
 
-def test_disk_resolver_handles_unicode_decode_error(tmp_path):
-    """Test that AssetResolverFromDisk returns None for binary files."""
+def test_disk_resolver_returns_bytes_for_binary_files(tmp_path):
+    """Binary (non-UTF-8) assets are returned as raw bytes, not None.
+
+    Binary assets such as PNG/JPEG images are not a read error: callers that
+    inline assets (standalone data URIs) need the raw bytes. A UTF-8 text read
+    must not be attempted on them.
+    """
     binary_file = tmp_path / "test.bin"
-    binary_file.write_bytes(b"\xff\xfe\x00\x01")  # Invalid UTF-8
+    payload = b"\xff\xfe\x00\x01"  # Invalid UTF-8
+    binary_file.write_bytes(payload)
 
     resolver = AssetResolverFromDisk()
     result = resolver.resolve_asset(str(binary_file))
-    assert result is None
+    assert result == payload
 
 
 def test_custom_resolver_integration():

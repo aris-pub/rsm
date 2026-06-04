@@ -12,6 +12,7 @@ patterns across the entire RSM package.
 """
 
 import logging
+from pathlib import Path
 from typing import Protocol
 
 logger = logging.getLogger("RSM").getChild("asset")
@@ -24,7 +25,7 @@ class AssetResolver(Protocol):
     any specific storage mechanism (filesystem, database, remote storage, etc.).
     """
 
-    def resolve_asset(self, path: str) -> str | None:
+    def resolve_asset(self, path: str) -> str | bytes | None:
         """Resolve an asset path to its content.
 
         Parameters
@@ -34,9 +35,9 @@ class AssetResolver(Protocol):
 
         Returns
         -------
-        Optional[str]
-            The asset content as a string, or None if the asset cannot be found
-            or read.
+        str | bytes | None
+            Text content as ``str``, binary content (e.g. images) as ``bytes``,
+            or None if the asset cannot be found or read.
         """
         ...
 
@@ -48,7 +49,7 @@ class AssetResolverFromDisk:
     directly from disk.
     """
 
-    def resolve_asset(self, path: str) -> str | None:
+    def resolve_asset(self, path: str) -> str | bytes | None:
         """Read asset content from filesystem.
 
         Parameters
@@ -58,16 +59,22 @@ class AssetResolverFromDisk:
 
         Returns
         -------
-        Optional[str]
-            File content as UTF-8 string, or None if file not found or cannot
-            be read as text.
+        str | bytes | None
+            File content decoded as UTF-8 ``str`` for text assets, raw ``bytes``
+            for binary assets (e.g. PNG/JPEG images), or None if the file is not
+            found or cannot be read. Binary assets are not a read error: callers
+            that inline assets (standalone data URIs) need the raw bytes.
         """
         try:
-            with open(path, encoding="utf-8") as f:
-                return f.read()
+            raw = Path(path).read_bytes()
         except FileNotFoundError:
             logger.error(f"Asset file not found: {path}")
             return None
-        except (OSError, UnicodeDecodeError) as e:
+        except OSError as e:
             logger.error(f"Error reading asset file {path}: {e}")
             return None
+
+        try:
+            return raw.decode("utf-8")
+        except UnicodeDecodeError:
+            return raw

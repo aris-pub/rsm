@@ -71,10 +71,19 @@ class BaseBuilder(ABC):
     def make_main_file(self) -> None:
         pass
 
+    # Binary media (images, video) is referenced by relative path and left in
+    # place rather than bundled into static/ (see test_multiple_files_assets).
+    # Excluding it here keeps it out of mount_required_assets, which would
+    # otherwise read the bytes only to write them back as text.
+    _UNBUNDLED_MEDIA_SUFFIXES = frozenset(
+        {".png", ".jpg", ".jpeg", ".gif", ".mp4", ".webm", ".avi", ".mov"}
+    )
+
     def find_required_assets(self) -> None:
         self.required_assets = [
             Path(x) for x in re.findall(r'src="(.*?)"', str(self.body))
             if not x.startswith(("http://", "https://"))
+            and Path(x).suffix.lower() not in self._UNBUNDLED_MEDIA_SUFFIXES
         ]
 
 
