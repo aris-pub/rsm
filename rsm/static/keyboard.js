@@ -2,7 +2,7 @@
 //
 // Keyboard interaction
 //
-import { toggleHandrail, collapseAll } from './handrails.js';
+import { toggleHandrail, collapseAll, toggleTocView } from './handrails.js';
 
 export function setup(root) {
   // Nagivation: next or previous
@@ -109,6 +109,9 @@ function executeActiveMenuItem(el) {
       break;
     case "collapse-steps":
       collapseAll(el);
+      break;
+    case "toc-view":
+      toggleTocView(el, null);
       break;
     case true:
       console.log($`unknown item class: ${cls[0]}`);

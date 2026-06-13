@@ -141,7 +141,7 @@ key. Section-form tags do not need a Halmos — they close implicitly.
 | `:sketch:` | Proof sketch |
 | `:step:` | Proof step (inside proofs) |
 | `:theorem:` | Theorem |
-| `:toc:` | Table of contents (stamp — close immediately with `::`) |
+| `:toc:` | Table of contents (standard block; takes meta such as `:view:`, but no content) |
 | `:video:` | Video asset |
 
 All block tags open with `:tag:`, take optional `{meta}`, contain paragraphs/blocks, and
@@ -607,8 +607,10 @@ Supported fields: `title`, `author`, `year`, `publisher`, `journal`, `volume`, `
 
 6. **`:prev:` stamps don't take content** — write `:prev:`, not `:prev: something ::`.
 
-7. **`:toc:` needs a Halmos** — write `:toc:`, but it is technically followed by `::`. The
-   grammar requires it.
+7. **`:toc:` is a block with no content** — close it with `::` like any block. It accepts a
+   meta region (e.g. `:view: tree` to default the table of contents to the dependency
+   tree view), but content written inside it is discarded with a warning; the table of
+   contents is generated automatically.
 
 8. **Bare text outside paragraphs** — all text must live inside a paragraph context. Top-level
    text after a section heading is fine (implicit paragraph), but text floating outside any

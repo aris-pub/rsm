@@ -90,6 +90,7 @@ List of all tags
 .. autoclass:: theme
 .. autoclass:: title
 .. autoclass:: toc_depth
+.. autoclass:: view
 .. autoclass:: class_
 
 

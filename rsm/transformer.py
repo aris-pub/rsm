@@ -618,6 +618,17 @@ class Transformer:
         if toc is None:
             return
 
+        # :toc: is a standard block grammatically, but its contents are
+        # auto-generated here; author-written content is not allowed.
+        if toc.children:
+            logger.warning("The :toc: tag takes no content; discarding it")
+            for child in list(toc.children):
+                child.remove_self()
+
+        # Compute cross-section reference edges before creating the TOC's own
+        # Reference nodes, so they are not counted as edges themselves.
+        self._compute_toc_edges(toc)
+
         current_parent = toc
         for sec in self.tree.traverse(nodeclass=nodes.Section):
             item = nodes.Item()
@@ -648,6 +659,70 @@ class Transformer:
                     current_parent = itemize
             else:
                 raise RSMTransformerError("How did we get here?")
+
+    def _compute_toc_edges(self, toc: nodes.Contents) -> None:
+        """Derive cross-section reference edges for the TOC tree view.
+
+        Each resolved Reference contributes an edge between the nearest
+        enclosing Section of its location and that of its target (the target
+        itself when it is a Section). Intra-section references are dropped,
+        parallel references collapse into a count, and references to an
+        earlier section are dependencies ("dep") while references to a later
+        section are forward pointers ("fwd").
+        """
+        sections = list(self.tree.traverse(nodeclass=nodes.Section))
+        row_of = {id(sec): row for row, sec in enumerate(sections)}
+
+        def depth_of(sec: nodes.Section) -> int:
+            if isinstance(sec, nodes.Subsubsection):
+                return 3
+            if isinstance(sec, nodes.Subsection):
+                return 2
+            return 1
+
+        toc.tree_nodes = [
+            {
+                "num": "" if sec.nonum else str(sec.full_number),
+                "title": sec.title,
+                "label": sec.label or "",
+                "depth": depth_of(sec),
+            }
+            for sec in sections
+        ]
+        toc.tree_root_title = self.tree.title or "Document"
+
+        def nearest_section(node: nodes.Node) -> nodes.Section | None:
+            # first_ancestor_of_type matches exact types by design; here the
+            # nearest enclosing TOC entry of ANY section level is wanted.
+            ancestor = node.parent
+            while ancestor is not None and not isinstance(ancestor, nodes.Section):
+                ancestor = ancestor.parent
+            return ancestor
+
+        counts: dict[tuple[int, int], int] = {}
+        for ref in self.tree.traverse(nodeclass=nodes.Reference):
+            src = nearest_section(ref)
+            target = ref.target
+            if isinstance(target, nodes.Section):
+                dst = target
+            elif isinstance(target, nodes.Node):
+                dst = nearest_section(target)
+            else:
+                dst = None
+            if src is None or dst is None or src is dst:
+                continue
+            key = (row_of[id(src)], row_of[id(dst)])
+            counts[key] = counts.get(key, 0) + 1
+
+        toc.toc_edges = [
+            {
+                "src": s,
+                "dst": d,
+                "count": c,
+                "kind": "dep" if d < s else "fwd",
+            }
+            for (s, d), c in sorted(counts.items())
+        ]
 
     def add_keywords_to_constructs(self) -> None:
         for construct in self.tree.traverse(nodeclass=nodes.Construct):

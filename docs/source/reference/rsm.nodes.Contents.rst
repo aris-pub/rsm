@@ -1,4 +1,4 @@
-Contents
+﻿Contents
 ========
 
 Qualified name: ``rsm.nodes.Contents``
@@ -21,6 +21,7 @@ Qualified name: ``rsm.nodes.Contents``
 
    .. autosummary::
      
+     ~Contents.newmetakeys
      ~Contents.nodeid
      ~Contents.label
      ~Contents.classes

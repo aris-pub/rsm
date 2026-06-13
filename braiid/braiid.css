@@ -1187,6 +1187,103 @@ body {
 /* TOC */
 .manuscriptwrapper {
 
+  /* TOC tree view: build-time dependency graph shown in place of the list */
+  .toc svg.toc-tree {
+    display: none;
+  }
+
+  .toc.tree svg.toc-tree {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    overflow: visible;
+  }
+
+  .toc.tree ul.contents {
+    display: none;
+  }
+
+  .toc .toc-node rect {
+    fill: var(--white, #fff);
+    stroke: var(--gray-300, #d4dae3);
+    stroke-width: 1.2;
+  }
+
+  .toc .toc-node.level-1 rect {
+    stroke-width: 1.6;
+  }
+
+  .toc .toc-node .toc-secnum {
+    font-size: 13.5px;
+    font-weight: 600;
+    fill: var(--gray-500, #8a94a3);
+  }
+
+  .toc .toc-node.level-1 .toc-secnum {
+    fill: var(--text-primary, #1a2433);
+  }
+
+  .toc .toc-node a {
+    text-decoration: none;
+  }
+
+  .toc .toc-hover-label rect {
+    fill: var(--white, #fff);
+    stroke: var(--gray-300, #d4dae3);
+    stroke-width: 1.2;
+  }
+
+  .toc .toc-hover-label text {
+    font-size: 13px;
+    font-weight: 600;
+    fill: var(--text-primary, #1a2433);
+  }
+
+  .toc .toc-edge {
+    fill: none;
+    stroke: var(--blue, #2c5e9e);
+    opacity: 0.75;
+  }
+
+  /* Forward pointers ("expanded later in...") are NOT prerequisites; keep them
+     in a very gentle visual register so they never compete with the
+     read-before structure. */
+  .toc .toc-edge.fwd {
+    stroke: var(--gold, #b08a3e);
+    stroke-dasharray: 3 5;
+    stroke-width: 1 !important;
+    opacity: 0.28;
+  }
+
+  /* Containment edges (read the enclosing section first) are real
+     prerequisites, drawn as a quiet skeleton. */
+  .toc .toc-edge.struct {
+    stroke: var(--gray-300, #d4dae3);
+    opacity: 0.85;
+  }
+
+  .toc .toc-node.level-0 rect {
+    fill: var(--blue, #2c5e9e);
+    stroke: var(--blue, #2c5e9e);
+  }
+
+  .toc .toc-node.level-0 .toc-secnum {
+    fill: var(--white, #fff);
+    font-weight: 700;
+  }
+
+  .toc .toc-arrowhead.dep { fill: var(--blue, #2c5e9e); }
+  .toc .toc-arrowhead.fwd { fill: var(--gold, #b08a3e); }
+
+  .toc .toc-faded {
+    opacity: 0.1;
+    transition: opacity 0.15s;
+  }
+
+  .toc .toc-node, .toc .toc-edge {
+    transition: opacity 0.15s;
+  }
+
   .toc-wrapper, .float-minimap-wrapper {
     display: flex;
     flex-direction: row;

@@ -1814,7 +1814,21 @@ class Caption(Paragraph):
 
 
 class Contents(Itemize):
-    pass
+    newmetakeys: ClassVar[set] = {"view"}
+
+    def __init__(self, view: str = "list", **kwargs: Any) -> None:
+        super().__init__(**kwargs)
+        self.view = view
+        # Filled by the transformer: cross-section reference edges as dicts
+        # {"src": row, "dst": row, "count": n, "kind": "dep" | "fwd"}, where
+        # rows index the TOC entries in document order.
+        self.toc_edges: list[dict] = []
+        # Filled by the transformer: ordered TOC entries as dicts
+        # {"num", "title", "label", "depth"}, index = document order.
+        self.tree_nodes: list[dict] = []
+        # Filled by the transformer: the manuscript title, shown as the root
+        # node of the dependency graph so no section is left isolated.
+        self.tree_root_title: str = ""
 
 
 class Item(BaseParagraph):

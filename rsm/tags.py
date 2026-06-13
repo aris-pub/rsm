@@ -172,6 +172,8 @@ title = MetaTagInfo(None, str)
 """Manuscript or section title."""
 toc_depth = MetaTagInfo(None, int)
 """Table of contents depth."""
+view = MetaTagInfo(None, str)
+"""Table of contents view: list (default) or tree."""
 class_ = MetaTagInfo(None, list)
 """CSS classes for this tag."""
 

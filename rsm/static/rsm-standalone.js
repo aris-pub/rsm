@@ -103,16 +103,15 @@ var RSM = (() => {
   }
   async function typesetMath(root2 = document) {
     const element = root2 === document ? document.body : root2;
+    const hasMath = element.querySelector("span.math, div.mathblock");
+    if (!hasMath) return;
     if (!window.temml && !window.MathJax?.typesetPromise) {
-      const hasMath = element.querySelector("span.math, div.mathblock");
-      if (hasMath) {
+      try {
+        await loadTemml();
+      } catch {
         try {
-          await loadTemml();
+          await loadMathJax();
         } catch {
-          try {
-            await loadMathJax();
-          } catch {
-          }
         }
       }
     }
@@ -190,11 +189,91 @@ var RSM = (() => {
     return pseudocodeLoadPromise;
   }
 
+  // rsm/static/tocarcs.js
+  function wire(svg) {
+    const nodes = [...svg.querySelectorAll(".toc-node")];
+    const edges = [...svg.querySelectorAll(".toc-edge")];
+    const hover = svg.querySelector(".toc-hover-label");
+    if (!nodes.length) return;
+    const hRect = hover && hover.querySelector("rect");
+    const hText = hover && hover.querySelector("text");
+    const prereq = /* @__PURE__ */ new Map();
+    for (const e of edges) {
+      if (e.classList.contains("fwd")) continue;
+      const f = e.dataset.from;
+      if (!prereq.has(f)) prereq.set(f, []);
+      prereq.get(f).push(e.dataset.to);
+    }
+    function closure(idx) {
+      const seen = /* @__PURE__ */ new Set([idx]);
+      const stack = [idx];
+      while (stack.length) {
+        for (const to of prereq.get(stack.pop()) || []) {
+          if (!seen.has(to)) {
+            seen.add(to);
+            stack.push(to);
+          }
+        }
+      }
+      return seen;
+    }
+    function showLabel(node) {
+      if (!hover || !hText) return;
+      hText.textContent = node.getAttribute("data-title") || "";
+      const rect = node.querySelector("rect");
+      const nx = parseFloat(rect.getAttribute("x"));
+      const ny = parseFloat(rect.getAttribute("y"));
+      const nw = parseFloat(rect.getAttribute("width"));
+      const box = hText.getBBox();
+      const padX = 9;
+      const w = box.width + 2 * padX;
+      const h = box.height + 10;
+      let lx = nx + nw / 2 - w / 2;
+      let ly = ny - h - 8;
+      if (ly < -10) ly = ny + parseFloat(rect.getAttribute("height")) + 8;
+      hRect.setAttribute("x", lx);
+      hRect.setAttribute("y", ly);
+      hRect.setAttribute("width", w);
+      hRect.setAttribute("height", h);
+      hText.setAttribute("x", lx + padX);
+      hText.setAttribute("y", ly + h / 2);
+      hText.setAttribute("dominant-baseline", "central");
+      hover.style.display = "";
+      svg.appendChild(hover);
+    }
+    nodes.forEach((node) => {
+      const idx = node.getAttribute("data-idx");
+      node.addEventListener("mouseenter", () => {
+        const cone = closure(idx);
+        for (const e of edges) {
+          const on = !e.classList.contains("fwd") && cone.has(e.dataset.from) && cone.has(e.dataset.to);
+          e.classList.toggle("toc-faded", !on);
+        }
+        for (const n of nodes) n.classList.toggle("toc-faded", !cone.has(n.getAttribute("data-idx")));
+        showLabel(node);
+      });
+      node.addEventListener("mouseleave", () => {
+        for (const x of svg.querySelectorAll(".toc-faded")) x.classList.remove("toc-faded");
+        if (hover) hover.style.display = "none";
+      });
+    });
+  }
+  function drawAll(root2 = document) {
+    root2.querySelectorAll(".toc.tree svg.toc-tree").forEach((svg) => {
+      if (svg.dataset.wired) return;
+      svg.dataset.wired = "1";
+      wire(svg);
+    });
+  }
+  function setup(root2 = document) {
+    drawAll(root2);
+  }
+
   // rsm/static/handrails.js
   var singletonMenu = null;
   var activeHr = null;
   var delegationAttached = false;
-  function setup() {
+  function setup2() {
     if (delegationAttached) return;
     delegationAttached = true;
     document.addEventListener("click", function(ev) {
@@ -220,7 +299,8 @@ var RSM = (() => {
         else if (role === "collapse-all") {
           const withinSubproof = activeHr.classList.contains("step");
           collapseAll(activeHr, withinSubproof);
-        }
+        } else if (role === "static-toggle") toggleStaticView(activeHr, menuItem);
+        else if (role === "toc-view") toggleTocView(activeHr, menuItem);
         return;
       }
       const collapseBtn = ev.target.closest(".hr-collapse");
@@ -229,10 +309,11 @@ var RSM = (() => {
         return;
       }
     });
-    document.addEventListener("mouseleave", function(ev) {
-      if (ev.target.closest && ev.target.closest(".hr-menu") && ev.target.closest("#hr-menu-singleton")) {
-        hideMenu();
-      }
+    document.addEventListener("mouseout", function(ev) {
+      const menu = ev.target.closest && ev.target.closest("#hr-menu-singleton .hr-menu");
+      if (!menu) return;
+      if (ev.relatedTarget && menu.contains(ev.relatedTarget)) return;
+      hideMenu();
     }, true);
     observeOffsetHandrails();
   }
@@ -265,6 +346,30 @@ var RSM = (() => {
     }
     configureItem(singletonMenu.querySelector('[data-role="link"]'), link);
     configureItem(singletonMenu.querySelector('[data-role="code"]'), code);
+    const staticToggle = hr.getAttribute("data-menu-static-toggle");
+    const staticToggleEl = singletonMenu.querySelector('[data-role="static-toggle"]');
+    const staticSep = singletonMenu.querySelector('[data-role="static-sep"]');
+    configureItem(staticToggleEl, staticToggle);
+    if (staticSep) staticSep.style.display = staticToggle ? "" : "none";
+    if (staticToggleEl && staticToggle && staticToggle !== "disabled") {
+      const figure = hr.closest("figure") || hr.closest("figcaption")?.parentElement;
+      const isShowingStatic = figure && figure.classList.contains("showing-static");
+      const textEl = staticToggleEl.querySelector(".hr-menu-item-text");
+      if (textEl) textEl.textContent = isShowingStatic ? "Interactive" : "Static";
+      const useEl = staticToggleEl.querySelector("svg use");
+      if (useEl) useEl.setAttribute("href", isShowingStatic ? "#hr-icon-play" : "#hr-icon-image");
+    }
+    const tocView = hr.getAttribute("data-menu-toc-view");
+    const tocViewEl = singletonMenu.querySelector('[data-role="toc-view"]');
+    const tocViewSep = singletonMenu.querySelector('[data-role="toc-view-sep"]');
+    configureItem(tocViewEl, tocView);
+    if (tocViewSep) tocViewSep.style.display = tocView ? "" : "none";
+    if (tocViewEl && tocView && tocView !== "disabled") {
+      const toc = hr.closest(".toc");
+      const isTree = toc && toc.classList.contains("tree");
+      const textEl = tocViewEl.querySelector(".hr-menu-item-text");
+      if (textEl) textEl.textContent = isTree ? "View as list" : "View as tree";
+    }
     const zone = hr.querySelector(":scope > .hr-menu-zone");
     if (zone) {
       zone.appendChild(singletonMenu);
@@ -516,9 +621,35 @@ var RSM = (() => {
       }
     });
   }
+  function toggleTocView(hr, menuItem) {
+    const toc = hr.closest(".toc");
+    if (!toc) return;
+    const isTree = toc.classList.toggle("tree");
+    if (isTree) (void 0)(toc);
+    if (menuItem) {
+      const textEl = menuItem.querySelector(".hr-menu-item-text");
+      if (textEl) textEl.textContent = isTree ? "View as list" : "View as tree";
+    }
+  }
+  function toggleStaticView(hr, menuItem) {
+    const figure = hr.closest("figure") || hr.closest("figcaption")?.parentElement;
+    if (!figure) return;
+    const fallback = figure.querySelector(".static-fallback");
+    if (!fallback) return;
+    const isShowingStatic = figure.classList.toggle("showing-static");
+    for (const child of figure.children) {
+      if (child === fallback || child.tagName === "FIGCAPTION") continue;
+      child.style.display = isShowingStatic ? "none" : "";
+    }
+    fallback.style.display = isShowingStatic ? "" : "none";
+    const textEl = menuItem.querySelector(".hr-menu-item-text");
+    if (textEl) textEl.textContent = isShowingStatic ? "Interactive" : "Static";
+    const useEl = menuItem.querySelector("svg use");
+    if (useEl) useEl.setAttribute("href", isShowingStatic ? "#hr-icon-play" : "#hr-icon-image");
+  }
 
   // rsm/static/keyboard.js
-  function setup2(root2) {
+  function setup3(root2) {
     root2.addEventListener("keydown", (event) => {
       if (["j", "k"].includes(event.key)) {
         event.preventDefault();
@@ -630,6 +761,9 @@ var RSM = (() => {
         break;
       case "collapse-steps":
         collapseAll(el);
+        break;
+      case "toc-view":
+        toggleTocView(el, null);
         break;
       case true:
         console.log($`unknown item class: ${cls[0]}`);
@@ -964,13 +1098,18 @@ var RSM = (() => {
         console.error("Loading pseudocode FAILED!", err);
       }
       try {
-        setup();
+        setup2();
       } catch (err) {
         console.error("Loading handrails.js FAILED!", err);
       }
       try {
+        setup(root2);
+      } catch (err) {
+        console.error("Loading tocarcs.js FAILED!", err);
+      }
+      try {
         if (keys) {
-          setup2(root2);
+          setup3(root2);
         }
       } catch (err) {
         console.error("Loading keyboard.js FAILED!", err);
@@ -993,6 +1132,11 @@ var RSM = (() => {
         await typesetMath(root2);
       } catch (err) {
         console.error("Math typeset FAILED!", err);
+      }
+      try {
+        drawAll(root2);
+      } catch (err) {
+        console.error("TOC arcs redraw FAILED!", err);
       }
       try {
         const elements = root2.querySelectorAll("pre.pseudocode:not(.rendered)");

@@ -3,6 +3,8 @@
 // Basic user interactions, mostly dealing with handrails and their menus.
 //
 
+import * as tocarcs from './tocarcs.js';
+
 let singletonMenu = null;
 let activeHr = null;
 let delegationAttached = false;
@@ -41,6 +43,7 @@ export function setup() {
         collapseAll(activeHr, withinSubproof);
       }
       else if (role === "static-toggle") toggleStaticView(activeHr, menuItem);
+      else if (role === "toc-view") toggleTocView(activeHr, menuItem);
       return;
     }
 
@@ -122,6 +125,19 @@ function showMenuFor(hr) {
     if (textEl) textEl.textContent = isShowingStatic ? "Interactive" : "Static";
     const useEl = staticToggleEl.querySelector("svg use");
     if (useEl) useEl.setAttribute("href", isShowingStatic ? "#hr-icon-play" : "#hr-icon-image");
+  }
+
+  // Configure TOC view toggle
+  const tocView = hr.getAttribute("data-menu-toc-view");
+  const tocViewEl = singletonMenu.querySelector('[data-role="toc-view"]');
+  const tocViewSep = singletonMenu.querySelector('[data-role="toc-view-sep"]');
+  configureItem(tocViewEl, tocView);
+  if (tocViewSep) tocViewSep.style.display = tocView ? "" : "none";
+  if (tocViewEl && tocView && tocView !== "disabled") {
+    const toc = hr.closest(".toc");
+    const isTree = toc && toc.classList.contains("tree");
+    const textEl = tocViewEl.querySelector(".hr-menu-item-text");
+    if (textEl) textEl.textContent = isTree ? "View as list" : "View as tree";
   }
 
   // Move singleton into the handrail's menu zone
@@ -406,6 +422,17 @@ function showSource(hr) {
   });
 };
 
+
+export function toggleTocView(hr, menuItem) {
+  const toc = hr.closest(".toc");
+  if (!toc) return;
+  const isTree = toc.classList.toggle("tree");
+  if (isTree) tocarcs.draw(toc);
+  if (menuItem) {
+    const textEl = menuItem.querySelector(".hr-menu-item-text");
+    if (textEl) textEl.textContent = isTree ? "View as list" : "View as tree";
+  }
+}
 
 function toggleStaticView(hr, menuItem) {
   const figure = hr.closest("figure") || hr.closest("figcaption")?.parentElement;

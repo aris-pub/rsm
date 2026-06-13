@@ -1045,14 +1045,108 @@ class Translator:
         return AppendNodeTag(node, "li")
 
     def visit_contents(self, node: nodes.Contents) -> EditCommand:
+        toc_classes = ["toc"] + (["tree"] if node.view == "tree" else [])
         return AppendBatchAndDefer(
             [
-                AppendOpenTag(classes=["toc"]),
+                AppendOpenTag(classes=toc_classes),
                 AppendHeading(3, "Table of Contents"),
                 AppendOpenTag(classes=["toc-wrapper"]),
+                AppendText(text=self._toc_tree_svg(node)),
                 AppendNodeTag(node, "ul"),
             ]
         )
+
+    def _toc_tree_svg(self, node: nodes.Contents) -> str:
+        """Pre-rendered dependency-graph SVG for the TOC tree view.
+
+        Layout is computed here at build time (grandalf), so no layout library
+        ships to the browser; tocarcs.js only handles hover focus.
+        """
+        from html import escape
+
+        from .toc_layout import layout_tree
+
+        secs = node.tree_nodes
+        if not secs:
+            return '<svg class="toc-tree" aria-hidden="true"></svg>'
+
+        # A synthetic root node holds the manuscript title; every section hangs
+        # from its outline parent (top-level sections from the root), so the
+        # graph is one connected tree with no isolated nodes. These structural
+        # edges are drawn subtly; the real reference edges stay prominent.
+        root_idx = len(secs)
+        root = {"num": "", "title": node.tree_root_title, "label": "", "depth": 0}
+        struct = []
+        for i, sec in enumerate(secs):
+            if sec["depth"] == 1:
+                parent = root_idx
+            else:
+                parent = root_idx
+                for j in range(i - 1, -1, -1):
+                    if secs[j]["depth"] < sec["depth"]:
+                        parent = j
+                        break
+            struct.append({"src": i, "dst": parent, "count": 1, "kind": "struct"})
+
+        layout = layout_tree(secs + [root], node.toc_edges + struct)
+        if layout is None:
+            return '<svg class="toc-tree" aria-hidden="true"></svg>'
+
+        pad = 12
+        w = layout["width"] + 2 * pad
+        h = layout["height"] + 2 * pad
+        parts = [
+            f'<svg class="toc-tree" width="{w:.0f}" height="{h:.0f}" '
+            f'viewBox="{-pad} {-pad} {w:.0f} {h:.0f}" role="img" '
+            'aria-label="Section dependency graph">',
+            '<defs>'
+            '<marker id="toc-arr-dep" viewBox="0 0 10 8" refX="8.5" refY="4" '
+            'markerWidth="8" markerHeight="6.5" markerUnits="userSpaceOnUse" '
+            'orient="auto-start-reverse">'
+            '<path d="M0,0 L10,4 L0,8 z" class="toc-arrowhead dep"/></marker>'
+            '<marker id="toc-arr-fwd" viewBox="0 0 10 8" refX="8.5" refY="4" '
+            'markerWidth="8" markerHeight="6.5" markerUnits="userSpaceOnUse" '
+            'orient="auto-start-reverse">'
+            '<path d="M0,0 L10,4 L0,8 z" class="toc-arrowhead fwd"/></marker>'
+            '</defs>',
+            '<g class="toc-edges-layer">',
+        ]
+        for e in layout["edges"]:
+            x1, y1, x2, y2 = e["x1"], e["y1"], e["x2"], e["y2"]
+            my = (y1 + y2) / 2
+            d = f'M {x1:.1f} {y1:.1f} C {x1:.1f} {my:.1f}, {x2:.1f} {my:.1f}, {x2:.1f} {y2:.1f}'
+            if e["kind"] == "struct":
+                sw, marker = 1.0, ""
+            else:
+                sw = 1.1 + e["count"] * 0.7
+                marker = f' marker-end="url(#toc-arr-{e["kind"]})"'
+            parts.append(
+                f'<path class="toc-edge {e["kind"]}" d="{d}" '
+                f'stroke-width="{sw:.1f}" data-from="{e["src"]}" '
+                f'data-to="{e["dst"]}"{marker}></path>'
+            )
+        parts.append('</g><g class="toc-nodes-layer">')
+        for n in layout["nodes"]:
+            href = f'#{n["label"]}' if n["label"] else "#"
+            cx = n["x"] + n["w"] / 2
+            cy = n["y"] + n["h"] / 2
+            num = escape(n["num"]) + "." if n["num"] else escape(n["title"])
+            full = (f'{n["num"]}. {n["title"]}' if n["num"] else n["title"])
+            parts.append(
+                f'<a href="{escape(href)}" class="toc-node level-{n["depth"]}" '
+                f'data-idx="{n["idx"]}" data-title="{escape(full)}">'
+                f'<rect x="{n["x"]:.1f}" y="{n["y"]:.1f}" width="{n["w"]}" '
+                f'height="{n["h"]}" rx="6"></rect>'
+                f'<text class="toc-secnum" x="{cx:.1f}" y="{cy:.1f}" '
+                f'text-anchor="middle" dominant-baseline="central">{num}</text></a>'
+            )
+        parts.append('</g>')
+        parts.append(
+            '<g class="toc-hover-label" style="display:none">'
+            '<rect rx="7"></rect><text></text></g>'
+        )
+        parts.append('</svg>')
+        return "".join(parts)
 
     def visit_note(self, node: nodes.Note) -> EditCommand:
         return AppendBatchAndDefer(
@@ -1881,6 +1975,7 @@ class HandrailsTranslator(Translator):
         link: bool | Literal["disabled"] = True,
         code: bool | Literal["disabled"] = True,
         static_toggle: bool | Literal["disabled"] = False,
+        toc_view: bool | Literal["disabled"] = False,
     ) -> dict:
         """Return data attributes encoding the menu configuration."""
         attrs = {}
@@ -1896,6 +1991,8 @@ class HandrailsTranslator(Translator):
             attrs["data-menu-code"] = "disabled" if code == "disabled" else "true"
         if static_toggle:
             attrs["data-menu-static-toggle"] = "disabled" if static_toggle == "disabled" else "true"
+        if toc_view:
+            attrs["data-menu-toc-view"] = "disabled" if toc_view == "disabled" else "true"
         return attrs
 
     def _hr_menu_zone(
@@ -1906,9 +2003,12 @@ class HandrailsTranslator(Translator):
         link: bool | Literal["disabled"] = True,
         code: bool | Literal["disabled"] = True,
         static_toggle: bool | Literal["disabled"] = False,
+        toc_view: bool | Literal["disabled"] = False,
     ) -> tuple[AppendOpenCloseTag, dict]:
         """Return an empty menu zone and data attributes for the singleton menu."""
-        attrs = self._menu_data_attrs(label, collapse, collapse_all, link, code, static_toggle)
+        attrs = self._menu_data_attrs(
+            label, collapse, collapse_all, link, code, static_toggle, toc_view
+        )
         zone = AppendOpenCloseTag(tag="div", content="", classes=["hr-menu-zone"])
         return zone, attrs
 
@@ -2081,9 +2181,12 @@ class HandrailsTranslator(Translator):
         depth: int = 0,
         menu_label: str = "",
         link: bool | Literal["disabled"] = True,
+        toc_view: bool | Literal["disabled"] = False,
         node: nodes.Node | None = None,
     ):
-        menu_zone, menu_attrs = self._hr_menu_zone(label=menu_label, link=link)
+        menu_zone, menu_attrs = self._hr_menu_zone(
+            label=menu_label, link=link, toc_view=toc_view
+        )
         handrail = self._hr(include_content, depth, classes, node=node, extra_attrs=menu_attrs)
         hr_content_zone = self._hr_content_zone(include_content)
 
@@ -2123,6 +2226,7 @@ class HandrailsTranslator(Translator):
         classes: list[str] | None = None,
         menu_label: str = "",
         link: bool | Literal["disabled"] = True,
+        toc_view: bool | Literal["disabled"] = False,
         node: nodes.Node | None = None,
     ):
         return self._wrap_item_with_handrails(
@@ -2136,6 +2240,7 @@ class HandrailsTranslator(Translator):
             depth=depth,
             menu_label=menu_label,
             link=link,
+            toc_view=toc_view,
             node=node,
         )
 
@@ -2189,6 +2294,11 @@ class HandrailsTranslator(Translator):
         html += f'  <div class="hr-menu-item" data-role="static-toggle">\n'
         html += f'    {self._icon_ref("image")}\n'
         html += '    <span class="hr-menu-item-text">Static</span>\n'
+        html += '  </div>\n'
+        html += '  <div class="hr-menu-separator" data-role="toc-view-sep"></div>\n'
+        html += f'  <div class="hr-menu-item toc-view" data-role="toc-view">\n'
+        html += f'    {self._icon_ref("tree")}\n'
+        html += '    <span class="hr-menu-item-text">View as tree</span>\n'
         html += '  </div>\n'
         html += '</div>\n</div>'
         return AppendText(text=html)
@@ -2285,9 +2395,9 @@ class HandrailsTranslator(Translator):
             classes=["heading"],
             menu_label=node.reftext,
             link=True if node.label else "disabled",
+            toc_view=True,
             node=node,
         )
-        pass
         return batch
 
     def visit_bibliography(self, node: nodes.Bibliography) -> EditCommand:

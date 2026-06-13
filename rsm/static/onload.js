@@ -11,6 +11,7 @@ import * as libs from './libraries.js';
 import * as handrails from './handrails.js';
 import * as keyboard from './keyboard.js';
 import * as tooltips from './tooltips.js';
+import * as tocarcs from './tocarcs.js';
 
 export async function onload(root = null, { keys = true } = {}) {
   if (!root) root = document;
@@ -49,6 +50,13 @@ export async function onload(root = null, { keys = true } = {}) {
       console.error("Loading handrails.js FAILED!", err);
     }
 
+    // TOC tree view arcs - draw any default-tree TOCs, redraw on resize
+    try {
+      tocarcs.setup(root);
+    } catch (err) {
+      console.error("Loading tocarcs.js FAILED!", err);
+    }
+
     // Keyboard - set up event listeners once
     try {
       if (keys) {
@@ -84,6 +92,13 @@ export async function onrender(root = null) {
       await libs.typesetMath(root);
     } catch (err) {
       console.error("Math typeset FAILED!", err);
+    }
+
+    // Redraw TOC tree arcs (row positions may have changed)
+    try {
+      tocarcs.drawAll(root);
+    } catch (err) {
+      console.error("TOC arcs redraw FAILED!", err);
     }
 
     // Render pseudocode elements that haven't been rendered yet

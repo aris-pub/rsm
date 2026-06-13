@@ -1,0 +1,98 @@
+// tocarcs.js
+//
+// Hover interaction for the TOC tree view. The dependency graph is laid out and
+// fully positioned at build time (in Python, via grandalf) and shipped as a
+// static SVG. This module only adds hover focus: dim unrelated nodes/edges and
+// reveal the hovered section's full title. No layout runs in the browser.
+
+function wire(svg) {
+  const nodes = [...svg.querySelectorAll(".toc-node")];
+  const edges = [...svg.querySelectorAll(".toc-edge")];
+  const hover = svg.querySelector(".toc-hover-label");
+  if (!nodes.length) return;
+  const hRect = hover && hover.querySelector("rect");
+  const hText = hover && hover.querySelector("text");
+
+  // Prerequisite adjacency: an edge from X to Y (containment up, or a backward
+  // reference) means "read Y before X". Forward pointers are not prerequisites
+  // and are excluded. The upstream closure of X is everything to read first.
+  const prereq = new Map();
+  for (const e of edges) {
+    if (e.classList.contains("fwd")) continue;
+    const f = e.dataset.from;
+    if (!prereq.has(f)) prereq.set(f, []);
+    prereq.get(f).push(e.dataset.to);
+  }
+  function closure(idx) {
+    const seen = new Set([idx]);
+    const stack = [idx];
+    while (stack.length) {
+      for (const to of prereq.get(stack.pop()) || []) {
+        if (!seen.has(to)) {
+          seen.add(to);
+          stack.push(to);
+        }
+      }
+    }
+    return seen;
+  }
+
+  function showLabel(node) {
+    if (!hover || !hText) return;
+    hText.textContent = node.getAttribute("data-title") || "";
+    const rect = node.querySelector("rect");
+    const nx = parseFloat(rect.getAttribute("x"));
+    const ny = parseFloat(rect.getAttribute("y"));
+    const nw = parseFloat(rect.getAttribute("width"));
+    // place above the node, centered, flipping below if it would clip the top
+    const box = hText.getBBox();
+    const padX = 9;
+    const w = box.width + 2 * padX;
+    const h = box.height + 10;
+    let lx = nx + nw / 2 - w / 2;
+    let ly = ny - h - 8;
+    if (ly < -10) ly = ny + parseFloat(rect.getAttribute("height")) + 8;
+    hRect.setAttribute("x", lx);
+    hRect.setAttribute("y", ly);
+    hRect.setAttribute("width", w);
+    hRect.setAttribute("height", h);
+    hText.setAttribute("x", lx + padX);
+    hText.setAttribute("y", ly + h / 2);
+    hText.setAttribute("dominant-baseline", "central");
+    hover.style.display = "";
+    svg.appendChild(hover); // keep on top
+  }
+
+  nodes.forEach((node) => {
+    const idx = node.getAttribute("data-idx");
+    node.addEventListener("mouseenter", () => {
+      // Light up the full set of sections to read before this one.
+      const cone = closure(idx);
+      for (const e of edges) {
+        const on =
+          !e.classList.contains("fwd") &&
+          cone.has(e.dataset.from) &&
+          cone.has(e.dataset.to);
+        e.classList.toggle("toc-faded", !on);
+      }
+      for (const n of nodes) n.classList.toggle("toc-faded", !cone.has(n.getAttribute("data-idx")));
+      showLabel(node);
+    });
+    node.addEventListener("mouseleave", () => {
+      for (const x of svg.querySelectorAll(".toc-faded")) x.classList.remove("toc-faded");
+      if (hover) hover.style.display = "none";
+    });
+  });
+}
+
+export function drawAll(root = document) {
+  root.querySelectorAll(".toc.tree svg.toc-tree").forEach((svg) => {
+    if (svg.dataset.wired) return;
+    svg.dataset.wired = "1";
+    wire(svg);
+  });
+}
+
+export function setup(root = document) {
+  drawAll(root);
+}
