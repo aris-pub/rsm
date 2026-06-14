@@ -1592,6 +1592,15 @@ class Statement(NodeWithChildren):
 class Proof(NodeWithChildren):
     has_handrail = True
 
+    def __init__(self, **kwargs: Any) -> None:
+        super().__init__(**kwargs)
+        # Filled by the transformer for the floating proof-tree view, mirroring
+        # the TOC tree: ordered step nodes, prerequisite/containment edges, and
+        # the title of the result being proved (the tree's root).
+        self.tree_nodes: list[dict] = []
+        self.tree_edges: list[dict] = []
+        self.tree_root_title: str = "Proof"
+
 
 class Subproof(NodeWithChildren):  # importantly, NOT a subclass of Proof!
     pass

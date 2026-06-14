@@ -5,7 +5,7 @@
 // static SVG. This module only adds hover focus: dim unrelated nodes/edges and
 // reveal the hovered section's full title. No layout runs in the browser.
 
-function wire(svg) {
+export function wireTree(svg) {
   const nodes = [...svg.querySelectorAll(".toc-node")];
   const edges = [...svg.querySelectorAll(".toc-edge")];
   const hover = svg.querySelector(".toc-hover-label");
@@ -89,7 +89,7 @@ export function drawAll(root = document) {
   root.querySelectorAll(".toc.tree svg.toc-tree").forEach((svg) => {
     if (svg.dataset.wired) return;
     svg.dataset.wired = "1";
-    wire(svg);
+    wireTree(svg);
   });
 }
 

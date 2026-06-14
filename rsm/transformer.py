@@ -152,6 +152,7 @@ class Transformer:
         self.add_necessary_subproofs()
         self.autonumber_nodes()
         self.make_toc()
+        self.make_proof_trees()
         self.add_keywords_to_constructs()
         self.add_handrail_depth()
         self.assign_node_ids()
@@ -723,6 +724,104 @@ class Transformer:
             }
             for (s, d), c in sorted(counts.items())
         ]
+
+    def make_proof_trees(self) -> None:
+        for proof in self.tree.traverse(nodeclass=nodes.Proof):
+            self._compute_proof_tree(proof)
+
+    def _compute_proof_tree(self, proof: nodes.Proof) -> None:
+        """Per-proof step DAG for the floating proof-tree, mirroring the TOC.
+
+        Nodes are the proof's steps in document order; edges are references
+        from one step to another step OF THE SAME PROOF (containment edges and
+        the root are added by the renderer, as for the TOC). Cross-proof and
+        external references are dropped: the tree is scoped to one proof.
+        """
+        steps = list(proof.traverse(nodeclass=nodes.Step))
+        if not steps:
+            return
+        row_of = {id(s): i for i, s in enumerate(steps)}
+
+        def step_depth(step: nodes.Step) -> int:
+            d = 1
+            anc = step.parent
+            while anc is not None and anc is not proof:
+                if isinstance(anc, nodes.Step):
+                    d += 1
+                anc = anc.parent
+            return d
+
+        def nearest_step(node: nodes.Node) -> nodes.Step | None:
+            anc = node.parent
+            while anc is not None and anc is not proof:
+                if isinstance(anc, nodes.Step):
+                    return anc
+                anc = anc.parent
+            return None
+
+        proof.tree_nodes = [
+            {
+                "num": str(s.full_number),
+                "title": self._step_title(s),
+                "label": s.label or "",
+                "depth": step_depth(s),
+            }
+            for s in steps
+        ]
+        proof.tree_root_title = self._proof_root_title(proof)
+
+        counts: dict[tuple[int, int], int] = {}
+        for ref in proof.traverse(nodeclass=nodes.Reference):
+            target = ref.target
+            if not isinstance(target, nodes.Step) or id(target) not in row_of:
+                continue
+            src = nearest_step(ref)
+            if src is None or src is target:
+                continue
+            key = (row_of[id(src)], row_of[id(target)])
+            counts[key] = counts.get(key, 0) + 1
+
+        proof.tree_edges = [
+            {"src": s, "dst": d, "count": c, "kind": "dep" if d < s else "fwd"}
+            for (s, d), c in sorted(counts.items())
+        ]
+
+    @staticmethod
+    def _step_title(step: nodes.Step) -> str:
+        """Short text of a step's own claim, excluding nested sub-steps."""
+        parts: list[str] = []
+
+        def walk(node: nodes.Node) -> None:
+            for child in node.children:
+                if isinstance(child, nodes.Step):
+                    continue
+                if isinstance(child, nodes.Text):
+                    parts.append(child.text)
+                elif isinstance(child, nodes.NodeWithChildren):
+                    walk(child)
+
+        walk(step)
+        text = " ".join(" ".join(parts).split())
+        return text[:90]
+
+    @staticmethod
+    def _proof_root_title(proof: nodes.Proof) -> str:
+        """The result a proof establishes, used as its tree's root label."""
+        sib = proof.prev_sibling()
+        theorem_types = (
+            nodes.Theorem,
+            nodes.Lemma,
+            nodes.Corollary,
+            nodes.Proposition,
+            nodes.Definition,
+            nodes.Remark,
+            nodes.Statement,
+        )
+        while sib is not None:
+            if isinstance(sib, theorem_types):
+                return sib.reftext or "Statement"
+            sib = sib.prev_sibling()
+        return "Statement"
 
     def add_keywords_to_constructs(self) -> None:
         for construct in self.tree.traverse(nodeclass=nodes.Construct):

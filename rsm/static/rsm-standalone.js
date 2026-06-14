@@ -190,7 +190,7 @@ var RSM = (() => {
   }
 
   // rsm/static/tocarcs.js
-  function wire(svg) {
+  function wireTree(svg) {
     const nodes = [...svg.querySelectorAll(".toc-node")];
     const edges = [...svg.querySelectorAll(".toc-edge")];
     const hover = svg.querySelector(".toc-hover-label");
@@ -262,7 +262,7 @@ var RSM = (() => {
     root2.querySelectorAll(".toc.tree svg.toc-tree").forEach((svg) => {
       if (svg.dataset.wired) return;
       svg.dataset.wired = "1";
-      wire(svg);
+      wireTree(svg);
     });
   }
   function setup(root2 = document) {
@@ -1073,6 +1073,53 @@ var RSM = (() => {
     tt.content($(content));
   }
 
+  // rsm/static/prooftree.js
+  function setup4(root2 = document) {
+    const rail = root2.querySelector(".proof-rail");
+    if (!rail) return;
+    const items = /* @__PURE__ */ new Map();
+    for (const item of rail.querySelectorAll(".proof-rail-item")) {
+      items.set(item.dataset.proof, item);
+      const svg = item.querySelector("svg.toc-tree");
+      if (svg && !svg.dataset.wired) {
+        svg.dataset.wired = "1";
+        wireTree(svg);
+      }
+    }
+    const proofs = [...root2.querySelectorAll(".proof[data-nodeid]")];
+    if (!proofs.length && !items.has("toc")) return;
+    rail.classList.add("active");
+    let current = null;
+    function show(key) {
+      if (!items.has(key)) key = items.has("toc") ? "toc" : null;
+      if (key === current) return;
+      current = key;
+      for (const [k, item] of items) item.classList.toggle("shown", k === key);
+    }
+    show("toc");
+    const visible = /* @__PURE__ */ new Set();
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting) visible.add(e.target);
+          else visible.delete(e.target);
+        }
+        let best = null;
+        let bestTop = Infinity;
+        for (const p of visible) {
+          const top = p.getBoundingClientRect().top;
+          if (top < bestTop) {
+            bestTop = top;
+            best = p;
+          }
+        }
+        show(best ? best.getAttribute("data-nodeid") : "toc");
+      },
+      { rootMargin: "-12% 0px -55% 0px", threshold: 0 }
+    );
+    for (const p of proofs) observer.observe(p);
+  }
+
   // rsm/static/onload.js
   async function onload(root2 = null, { keys = true } = {}) {
     if (!root2) root2 = document;
@@ -1106,6 +1153,11 @@ var RSM = (() => {
         setup(root2);
       } catch (err) {
         console.error("Loading tocarcs.js FAILED!", err);
+      }
+      try {
+        setup4(root2);
+      } catch (err) {
+        console.error("Loading prooftree.js FAILED!", err);
       }
       try {
         if (keys) {

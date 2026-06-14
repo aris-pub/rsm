@@ -12,6 +12,7 @@ import * as handrails from './handrails.js';
 import * as keyboard from './keyboard.js';
 import * as tooltips from './tooltips.js';
 import * as tocarcs from './tocarcs.js';
+import * as prooftree from './prooftree.js';
 
 export async function onload(root = null, { keys = true } = {}) {
   if (!root) root = document;
@@ -55,6 +56,13 @@ export async function onload(root = null, { keys = true } = {}) {
       tocarcs.setup(root);
     } catch (err) {
       console.error("Loading tocarcs.js FAILED!", err);
+    }
+
+    // Floating proof-tree rail - shows the in-view proof's step tree
+    try {
+      prooftree.setup(root);
+    } catch (err) {
+      console.error("Loading prooftree.js FAILED!", err);
     }
 
     // Keyboard - set up event listeners once

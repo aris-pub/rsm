@@ -13,22 +13,40 @@ NODE_H = 30
 NODE_PAD_X = 11
 CHAR_W = 7.0  # approx advance of the number glyphs at the TOC font size
 LAYER_GAP = 58  # vertical gap between layers (grandalf yspace)
+HORIZ_LAYER_GAP = 38  # tighter depth gap when laid out left-to-right
+GUTTER_ASPECT = 0.62  # target width/height for the horizontal rail tree
 SIBLING_GAP = 26  # horizontal gap between nodes in a layer (grandalf xspace)
 COMPONENT_GAP = 70  # horizontal gap between disconnected components
 
 
-def _node_width(node: dict) -> int:
-    # Numbered sections size to their (short) number; the unnumbered root node
-    # sizes to its title text so the paper title fits.
+ROOT_LABEL = "Goal"  # horizontal proof-rail root; full statement shown on hover
+
+
+def _node_width(node: dict, compact_root: bool = False) -> int:
+    # Numbered sections size to their (short) number. The unnumbered root sizes
+    # to its title so the paper title fits in the vertical TOC; in the narrow
+    # proof rail it shrinks to the short "Goal" marker (full statement on hover)
+    # so it doesn't eat the limited horizontal space.
+    if compact_root and node["depth"] == 0:
+        return int(len(ROOT_LABEL) * CHAR_W) + 2 * NODE_PAD_X
     text = node["num"] + "." if node["num"] else node["title"]
     return int(len(text) * CHAR_W) + 2 * NODE_PAD_X
 
 
-def layout_tree(nodes: list[dict], edges: list[dict]) -> dict | None:
+def layout_tree(
+    nodes: list[dict], edges: list[dict], orient: str = "vertical"
+) -> dict | None:
     """Return positioned nodes and edges, or None if layout is unavailable.
 
     nodes: [{"num", "title", "label", "depth"}], index = document order.
     edges: [{"src", "dst", "count", "kind"}] with src/dst indexing `nodes`.
+    orient: "vertical" stacks layers top-to-bottom (foundations on top); this is
+    the TOC block default. "horizontal" runs depth left-to-right and stacks the
+    sibling steps vertically, giving a tall, narrow graph that fits the proof
+    rail at full text size and scrolls as the reader moves through the proof.
+    grandalf only lays out top-down, so for the horizontal case we feed it node
+    boxes with width/height swapped (so layer and sibling gaps are sized for the
+    final orientation) and transpose the resulting coordinates.
     """
     if not nodes:
         return None
@@ -38,11 +56,14 @@ def layout_tree(nodes: list[dict], edges: list[dict]) -> dict | None:
     except ImportError:
         return None
 
-    nw = {i: _node_width(n) for i, n in enumerate(nodes)}
+    horizontal = orient == "horizontal"
+    nw = {i: _node_width(n, horizontal) for i, n in enumerate(nodes)}
 
     verts = {i: Vertex(i) for i in range(len(nodes))}
     for i, v in verts.items():
-        v.view = _View(nw[i], NODE_H)
+        # In horizontal mode the layer axis (grandalf's "vertical") must leave
+        # room for each node's text width, so hand grandalf swapped dimensions.
+        v.view = _View(NODE_H, nw[i]) if horizontal else _View(nw[i], NODE_H)
 
     # Dependency and structural (outline backbone) edges define the layering;
     # both are acyclic. Forward pointers are drawn over the computed positions.
@@ -56,7 +77,7 @@ def layout_tree(nodes: list[dict], edges: list[dict]) -> dict | None:
     for comp in comps:
         sug = SugiyamaLayout(comp)
         sug.xspace = SIBLING_GAP
-        sug.yspace = LAYER_GAP
+        sug.yspace = HORIZ_LAYER_GAP if horizontal else LAYER_GAP
         sug.init_all()
         sug.draw()
         xs = [v.view.xy[0] for v in comp.sV]
@@ -68,13 +89,40 @@ def layout_tree(nodes: list[dict], edges: list[dict]) -> dict | None:
         comp_w = (max(xs) - min_x) if len(xs) > 1 else nw[comp.sV[0].data]
         x_cursor += comp_w + COMPONENT_GAP
 
-    # Flip vertically: grandalf puts dependents (edge sources) at the top, but
-    # we want the foundational sections everything depends on (the sinks, e.g.
-    # section 1) at the top, with dependents flowing downward.
+    # grandalf puts dependents (edge sources) in the first layer and the sinks
+    # everything depends on (the foundations, e.g. section 1 or a proof's root
+    # statement) in the last. We want the foundations to lead: at the top in
+    # vertical mode, at the left in horizontal mode.
     max_y = max(y for _, y in placed.values())
-    placed = {i: (x, max_y - y) for i, (x, y) in placed.items()}
+    if horizontal:
+        # depth -> x (foundation at left), sibling spread -> y
+        placed = {i: (max_y - y, x) for i, (x, y) in placed.items()}
+        # grandalf orders siblings to minimize crossings; reassign the vertical
+        # slots in document order so the rail reads top-to-bottom in step
+        # sequence (step 1 above step 2, ...), keeping grandalf's spacing.
+        from collections import defaultdict
 
-    height = max(y for _, y in placed.values()) + NODE_H
+        layers: dict[float, list[int]] = defaultdict(list)
+        for i, (x, _) in placed.items():
+            layers[round(x, 1)].append(i)
+        for idxs in layers.values():
+            slots = sorted(placed[i][1] for i in idxs)
+            for slot, i in zip(slots, sorted(idxs)):
+                placed[i] = (placed[i][0], slot)
+        # A proof step DAG is naturally tall and thin, so when fit into the
+        # gutter it scales to the height and leaves the width empty (and the
+        # nodes small). Spread the depth axis until the tree is about as wide
+        # as the gutter is, so it scales up to fill the space.
+        cur_w = max(placed[i][0] + nw[i] for i in placed)
+        cur_h = max(placed[i][1] + NODE_H for i in placed)
+        target_w = cur_h * GUTTER_ASPECT
+        if 0 < cur_w < target_w:
+            sx = target_w / cur_w
+            placed = {i: (x * sx, y) for i, (x, y) in placed.items()}
+    else:
+        placed = {i: (x, max_y - y) for i, (x, y) in placed.items()}
+
+    height = max(placed[i][1] + NODE_H for i in placed)
     width = max(placed[i][0] + nw[i] for i in placed)
 
     out_nodes = []
@@ -88,7 +136,7 @@ def layout_tree(nodes: list[dict], edges: list[dict]) -> dict | None:
     out_edges = []
     for e in edges:
         a, b = out_nodes[e["src"]], out_nodes[e["dst"]]
-        ax, ay, bx, by = _anchor(a, b)
+        ax, ay, bx, by = _anchor(a, b, horizontal)
         out_edges.append(
             {"src": e["src"], "dst": e["dst"], "kind": e["kind"],
              "count": e["count"], "x1": ax, "y1": ay, "x2": bx, "y2": by}
@@ -98,17 +146,29 @@ def layout_tree(nodes: list[dict], edges: list[dict]) -> dict | None:
             "nodes": out_nodes, "edges": out_edges}
 
 
-def _anchor(a: dict, b: dict) -> tuple[float, float, float, float]:
-    """Edge anchor points on the box faces, by vertical relationship."""
+def _anchor(
+    a: dict, b: dict, horizontal: bool = False
+) -> tuple[float, float, float, float]:
+    """Edge anchor points on the box faces, by layer relationship."""
     acx, bcx = a["x"] + a["w"] / 2, b["x"] + b["w"] / 2
+    acy, bcy = a["y"] + a["h"] / 2, b["y"] + b["h"] / 2
+    if horizontal:  # depth runs left-to-right
+        if b["x"] > a["x"]:  # b right of a: leave right, enter left
+            return a["x"] + a["w"], acy, b["x"], bcy
+        if b["x"] < a["x"]:  # b left of a: leave left, enter right
+            return a["x"], acy, b["x"] + b["w"], bcy
+        # same layer: leave bottom/top
+        if bcy >= acy:
+            return acx, a["y"] + a["h"], bcx, b["y"]
+        return acx, a["y"], bcx, b["y"] + b["h"]
     if b["y"] > a["y"]:  # b below a: leave bottom, enter top
         return acx, a["y"] + a["h"], bcx, b["y"]
     if b["y"] < a["y"]:  # b above a: leave top, enter bottom
         return acx, a["y"], bcx, b["y"] + b["h"]
     # same layer: leave right/left
     if bcx >= acx:
-        return a["x"] + a["w"], a["y"] + a["h"] / 2, b["x"], b["y"] + b["h"] / 2
-    return a["x"], a["y"] + a["h"] / 2, b["x"] + b["w"], b["y"] + b["h"] / 2
+        return a["x"] + a["w"], acy, b["x"], bcy
+    return a["x"], acy, b["x"] + b["w"], bcy
 
 
 class _View:

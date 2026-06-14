@@ -1057,25 +1057,35 @@ class Translator:
         )
 
     def _toc_tree_svg(self, node: nodes.Contents) -> str:
-        """Pre-rendered dependency-graph SVG for the TOC tree view.
+        return self._build_tree_svg(
+            node.tree_nodes, node.toc_edges, node.tree_root_title,
+            "Section dependency graph",
+        )
+
+    def _build_tree_svg(
+        self, tree_nodes: list[dict], ref_edges: list[dict],
+        root_title: str, aria_label: str, orient: str = "vertical",
+    ) -> str:
+        """Pre-rendered dependency-graph SVG, shared by the TOC and proof trees.
 
         Layout is computed here at build time (grandalf), so no layout library
-        ships to the browser; tocarcs.js only handles hover focus.
+        ships to the browser; the hover/focus JS works on the static SVG. A
+        synthetic root node holds `root_title`; every node hangs from its
+        outline parent (depth-1 nodes from the root), reconstructed from the
+        depth sequence, so the graph is one connected tree with no isolated
+        nodes. Containment edges are drawn subtly; reference edges stay
+        prominent.
         """
         from html import escape
 
-        from .toc_layout import layout_tree
+        from .toc_layout import ROOT_LABEL, layout_tree
 
-        secs = node.tree_nodes
+        secs = tree_nodes
         if not secs:
             return '<svg class="toc-tree" aria-hidden="true"></svg>'
 
-        # A synthetic root node holds the manuscript title; every section hangs
-        # from its outline parent (top-level sections from the root), so the
-        # graph is one connected tree with no isolated nodes. These structural
-        # edges are drawn subtly; the real reference edges stay prominent.
         root_idx = len(secs)
-        root = {"num": "", "title": node.tree_root_title, "label": "", "depth": 0}
+        root = {"num": "", "title": root_title, "label": "", "depth": 0}
         struct = []
         for i, sec in enumerate(secs):
             if sec["depth"] == 1:
@@ -1088,9 +1098,10 @@ class Translator:
                         break
             struct.append({"src": i, "dst": parent, "count": 1, "kind": "struct"})
 
-        layout = layout_tree(secs + [root], node.toc_edges + struct)
+        layout = layout_tree(secs + [root], ref_edges + struct, orient)
         if layout is None:
             return '<svg class="toc-tree" aria-hidden="true"></svg>'
+        horizontal = orient == "horizontal"
 
         pad = 12
         w = layout["width"] + 2 * pad
@@ -1098,7 +1109,7 @@ class Translator:
         parts = [
             f'<svg class="toc-tree" width="{w:.0f}" height="{h:.0f}" '
             f'viewBox="{-pad} {-pad} {w:.0f} {h:.0f}" role="img" '
-            'aria-label="Section dependency graph">',
+            f'aria-label="{escape(aria_label)}">',
             '<defs>'
             '<marker id="toc-arr-dep" viewBox="0 0 10 8" refX="8.5" refY="4" '
             'markerWidth="8" markerHeight="6.5" markerUnits="userSpaceOnUse" '
@@ -1113,8 +1124,12 @@ class Translator:
         ]
         for e in layout["edges"]:
             x1, y1, x2, y2 = e["x1"], e["y1"], e["x2"], e["y2"]
-            my = (y1 + y2) / 2
-            d = f'M {x1:.1f} {y1:.1f} C {x1:.1f} {my:.1f}, {x2:.1f} {my:.1f}, {x2:.1f} {y2:.1f}'
+            if horizontal:  # curve bends along x so left-to-right edges read cleanly
+                mx = (x1 + x2) / 2
+                d = f'M {x1:.1f} {y1:.1f} C {mx:.1f} {y1:.1f}, {mx:.1f} {y2:.1f}, {x2:.1f} {y2:.1f}'
+            else:
+                my = (y1 + y2) / 2
+                d = f'M {x1:.1f} {y1:.1f} C {x1:.1f} {my:.1f}, {x2:.1f} {my:.1f}, {x2:.1f} {y2:.1f}'
             if e["kind"] == "struct":
                 sw, marker = 1.0, ""
             else:
@@ -1130,15 +1145,20 @@ class Translator:
             href = f'#{n["label"]}' if n["label"] else "#"
             cx = n["x"] + n["w"] / 2
             cy = n["y"] + n["h"] / 2
-            num = escape(n["num"]) + "." if n["num"] else escape(n["title"])
             full = (f'{n["num"]}. {n["title"]}' if n["num"] else n["title"])
+            # The compact horizontal-rail root shows a short "Goal" marker; its
+            # full statement is on hover. Other nodes show their number/title.
+            if horizontal and n["depth"] == 0:
+                inner = escape(ROOT_LABEL)
+            else:
+                inner = escape(n["num"]) + "." if n["num"] else escape(n["title"])
             parts.append(
                 f'<a href="{escape(href)}" class="toc-node level-{n["depth"]}" '
                 f'data-idx="{n["idx"]}" data-title="{escape(full)}">'
                 f'<rect x="{n["x"]:.1f}" y="{n["y"]:.1f}" width="{n["w"]}" '
                 f'height="{n["h"]}" rx="6"></rect>'
                 f'<text class="toc-secnum" x="{cx:.1f}" y="{cy:.1f}" '
-                f'text-anchor="middle" dominant-baseline="central">{num}</text></a>'
+                f'text-anchor="middle" dominant-baseline="central">{inner}</text></a>'
             )
         parts.append('</g>')
         parts.append(
@@ -2306,6 +2326,41 @@ class HandrailsTranslator(Translator):
     def _make_source_div(self):
         return AppendText(text=f'<div class="rsm-source hide">{self.tree.src}</div>')
 
+    def _make_proof_rail(self):
+        """A document-level container holding one pre-rendered step-tree SVG per
+        proof, tagged by proof nodeid. prooftree.js floats it on the left and
+        shows the tree of whichever proof is in view as the reader scrolls."""
+        # The floating proof-tree rail is part of the graph-navigation
+        # experience opted into by `:toc: {:view: tree}`; without it the
+        # document's HTML is unchanged.
+        toc = next(iter(self.tree.traverse(nodeclass=nodes.Contents)), None)
+        if toc is None or getattr(toc, "view", "list") != "tree":
+            return AppendText(text="")
+
+        items = []
+        # Fallback shown when the reader is outside any proof: the section TOC.
+        if toc.tree_nodes:
+            items.append(
+                '<div class="proof-rail-item" data-proof="toc">'
+                + self._toc_tree_svg(toc)
+                + "</div>"
+            )
+        for proof in self.tree.traverse(nodeclass=nodes.Proof):
+            if not proof.tree_nodes:
+                continue
+            svg = self._build_tree_svg(
+                proof.tree_nodes, proof.tree_edges, proof.tree_root_title,
+                "Proof step dependency graph", orient="horizontal",
+            )
+            items.append(
+                f'<div class="proof-rail-item" data-proof="{proof.nodeid}">{svg}</div>'
+            )
+        if not items:
+            return AppendText(text="")
+        return AppendText(
+            text='<div class="proof-rail" aria-hidden="true">' + "".join(items) + "</div>"
+        )
+
     def _make_svg_defs(self):
         """Emit a single <svg> block with <symbol> definitions for all icons."""
         symbols = []
@@ -2340,6 +2395,7 @@ class HandrailsTranslator(Translator):
             )
         batch.items.insert(2, self._make_svg_defs())
         batch.items.insert(3, self._make_singleton_menu())
+        batch.items.insert(3, self._make_proof_rail())
         if self.add_source:
             batch.items.insert(3, self._make_source_div())
         return batch

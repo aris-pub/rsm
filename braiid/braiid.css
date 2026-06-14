@@ -1203,43 +1203,43 @@ body {
     display: none;
   }
 
-  .toc .toc-node rect {
+  .toc-tree .toc-node rect {
     fill: var(--white, #fff);
     stroke: var(--gray-300, #d4dae3);
     stroke-width: 1.2;
   }
 
-  .toc .toc-node.level-1 rect {
+  .toc-tree .toc-node.level-1 rect {
     stroke-width: 1.6;
   }
 
-  .toc .toc-node .toc-secnum {
+  .toc-tree .toc-node .toc-secnum {
     font-size: 13.5px;
     font-weight: 600;
     fill: var(--gray-500, #8a94a3);
   }
 
-  .toc .toc-node.level-1 .toc-secnum {
+  .toc-tree .toc-node.level-1 .toc-secnum {
     fill: var(--text-primary, #1a2433);
   }
 
-  .toc .toc-node a {
+  .toc-tree .toc-node a {
     text-decoration: none;
   }
 
-  .toc .toc-hover-label rect {
+  .toc-tree .toc-hover-label rect {
     fill: var(--white, #fff);
     stroke: var(--gray-300, #d4dae3);
     stroke-width: 1.2;
   }
 
-  .toc .toc-hover-label text {
+  .toc-tree .toc-hover-label text {
     font-size: 13px;
     font-weight: 600;
     fill: var(--text-primary, #1a2433);
   }
 
-  .toc .toc-edge {
+  .toc-tree .toc-edge {
     fill: none;
     stroke: var(--blue, #2c5e9e);
     opacity: 0.75;
@@ -1248,7 +1248,7 @@ body {
   /* Forward pointers ("expanded later in...") are NOT prerequisites; keep them
      in a very gentle visual register so they never compete with the
      read-before structure. */
-  .toc .toc-edge.fwd {
+  .toc-tree .toc-edge.fwd {
     stroke: var(--gold, #b08a3e);
     stroke-dasharray: 3 5;
     stroke-width: 1 !important;
@@ -1257,31 +1257,72 @@ body {
 
   /* Containment edges (read the enclosing section first) are real
      prerequisites, drawn as a quiet skeleton. */
-  .toc .toc-edge.struct {
+  .toc-tree .toc-edge.struct {
     stroke: var(--gray-300, #d4dae3);
     opacity: 0.85;
   }
 
-  .toc .toc-node.level-0 rect {
+  .toc-tree .toc-node.level-0 rect {
     fill: var(--blue, #2c5e9e);
     stroke: var(--blue, #2c5e9e);
   }
 
-  .toc .toc-node.level-0 .toc-secnum {
+  .toc-tree .toc-node.level-0 .toc-secnum {
     fill: var(--white, #fff);
     font-weight: 700;
   }
 
-  .toc .toc-arrowhead.dep { fill: var(--blue, #2c5e9e); }
-  .toc .toc-arrowhead.fwd { fill: var(--gold, #b08a3e); }
+  .toc-tree .toc-arrowhead.dep { fill: var(--blue, #2c5e9e); }
+  .toc-tree .toc-arrowhead.fwd { fill: var(--gold, #b08a3e); }
 
-  .toc .toc-faded {
+  .toc-tree .toc-faded {
     opacity: 0.1;
     transition: opacity 0.15s;
   }
 
-  .toc .toc-node, .toc .toc-edge {
+  .toc-tree .toc-node, .toc-tree .toc-edge {
     transition: opacity 0.15s;
+  }
+
+  /* Floating proof-tree rail: shows the in-view proof's step tree (or the
+     section TOC between proofs), pinned to the left as the reader scrolls. */
+  .proof-rail { display: none; }
+
+  .proof-rail.active {
+    /* Frameless: shrink-wrap the tree and center it in the gutter; never
+       scroll (hard rule). The SVG below is capped to the gutter box so it
+       always scales down to fit. */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    left: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    max-width: min(34vw, 460px);
+    max-height: 90vh;
+    overflow: hidden;
+    z-index: 40;
+  }
+
+  .proof-rail-item { display: none; }
+  .proof-rail-item.shown { display: block; }
+
+  /* Capped to the gutter box: a tree larger than this scales down (aspect
+     preserved) to fit entirely; a smaller one stays at its natural size. No
+     overflow, so the rail never shows a scrollbar. */
+  .proof-rail-item svg.toc-tree {
+    display: block;
+    width: auto;
+    height: auto;
+    max-width: min(34vw, 460px);
+    max-height: 90vh;
+    overflow: visible;
+  }
+
+  /* Not enough room to float the rail without overlapping the column. */
+  @media (max-width: 1100px) {
+    .proof-rail.active { display: none; }
   }
 
   .toc-wrapper, .float-minimap-wrapper {
