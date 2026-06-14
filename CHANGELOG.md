@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.3.0] - 2026-06-14
+
+### Added
+- The table of contents now offers a dependency-graph tree view, letting you navigate your document by how its sections relate to one another.
+
+### Fixed
+- Binary image assets are now read correctly as raw bytes instead of UTF-8 text, so images no longer get corrupted during processing.
+- Documents that contain no math are skipped during math typesetting rather than producing a spurious warning.
+
 ## [1.2.0] - 2026-04-07
 
 ### Added
