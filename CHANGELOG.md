@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.3.1] - 2026-06-14
+
+### Fixed
+
+- Pointed the bundled tree-sitter-rsm grammar at the ABI-14 parser, restoring compatibility with the language server.
+
 ## [1.3.0] - 2026-06-14
 
 ### Added
