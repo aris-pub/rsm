@@ -1666,6 +1666,12 @@ class Translator:
         """Detect content type from path and return appropriate HTML."""
         path_str = str(node.path).lower()
 
+        # An asset with no real path (e.g. an inline :html: block whose markup
+        # is carried by its own children) has nothing to render here, and must
+        # not fall through to the image branch, which would emit <img src=".">.
+        if not path_str or path_str == ".":
+            return ""
+
         # Image files
         if any(
             path_str.endswith(ext) for ext in [".png", ".jpg", ".jpeg", ".gif", ".svg"]
