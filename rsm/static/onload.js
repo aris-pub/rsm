@@ -13,6 +13,7 @@ import * as keyboard from './keyboard.js';
 import * as tooltips from './tooltips.js';
 import * as tocarcs from './tocarcs.js';
 import * as prooftree from './prooftree.js';
+import * as focusmode from './focusmode.js';
 
 export async function onload(root = null, { keys = true } = {}) {
   if (!root) root = document;
@@ -63,6 +64,13 @@ export async function onload(root = null, { keys = true } = {}) {
       prooftree.setup(root);
     } catch (err) {
       console.error("Loading prooftree.js FAILED!", err);
+    }
+
+    // Focus mode - click a rail node to collapse the proof to its cone
+    try {
+      focusmode.setup(root);
+    } catch (err) {
+      console.error("Loading focusmode.js FAILED!", err);
     }
 
     // Keyboard - set up event listeners once

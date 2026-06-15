@@ -1120,6 +1120,101 @@ var RSM = (() => {
     for (const p of proofs) observer.observe(p);
   }
 
+  // rsm/static/focusmode.js
+  function setup5(root2 = document) {
+    const rail = root2.querySelector(".proof-rail");
+    if (!rail) return;
+    let active = null;
+    function coneOf(svg, startIdx) {
+      const prereq = /* @__PURE__ */ new Map();
+      for (const e of svg.querySelectorAll(".toc-edge")) {
+        if (e.classList.contains("fwd")) continue;
+        const f = e.dataset.from;
+        if (!prereq.has(f)) prereq.set(f, []);
+        prereq.get(f).push(e.dataset.to);
+      }
+      const seen = /* @__PURE__ */ new Set([String(startIdx)]);
+      const stack = [String(startIdx)];
+      while (stack.length) {
+        for (const to of prereq.get(stack.pop()) || []) {
+          if (!seen.has(to)) {
+            seen.add(to);
+            stack.push(to);
+          }
+        }
+      }
+      return seen;
+    }
+    const stepsOf = (proofEl) => [...proofEl.querySelectorAll(".step")];
+    const collapseStep = (st) => st.classList.add("proof-focus-collapsed");
+    const openStep = (st) => st.classList.remove("proof-focus-collapsed");
+    function dimRail(svg, cone) {
+      for (const n of svg.querySelectorAll(".toc-node")) {
+        const lit = cone.has(n.dataset.idx);
+        n.classList.toggle("focus-lit", lit);
+        n.classList.toggle("focus-faded", !lit);
+      }
+      for (const e of svg.querySelectorAll(".toc-edge")) {
+        const lit = !e.classList.contains("fwd") && cone.has(e.dataset.from) && cone.has(e.dataset.to);
+        e.classList.toggle("focus-lit", lit);
+        e.classList.toggle("focus-faded", !lit);
+      }
+    }
+    const undimRail = (svg) => svg.querySelectorAll(".focus-faded, .focus-lit").forEach((x) => x.classList.remove("focus-faded", "focus-lit"));
+    function stepNumber(st) {
+      const el = st && st.querySelector(":scope > .hr-info-zone .step-number");
+      return el ? el.textContent.trim() : "";
+    }
+    let exitBar = null;
+    function setExitBar(sel) {
+      const num = stepNumber(sel);
+      if (!exitBar) {
+        exitBar = document.createElement("div");
+        exitBar.className = "proof-focus-exit";
+        exitBar.setAttribute("role", "button");
+        exitBar.tabIndex = 0;
+        exitBar.addEventListener("click", exitFocus);
+      }
+      exitBar.innerHTML = `<span class="proof-focus-back">\u21A9</span><span>${num ? `Step ${num}` : "Focused"} \xB7 <span class="proof-focus-show-all">Show full proof</span></span>`;
+      rail.insertBefore(exitBar, rail.firstChild);
+      rail.classList.add("focusing");
+    }
+    function exitFocus() {
+      if (!active) return;
+      rail.classList.remove("focusing");
+      if (exitBar) exitBar.remove();
+      stepsOf(active.proofEl).forEach(openStep);
+      undimRail(active.svg);
+      active.proofEl.classList.remove("proof-focused");
+      active = null;
+    }
+    function enterFocus(railItem, proofEl, startIdx) {
+      exitFocus();
+      const svg = railItem.querySelector("svg.toc-tree");
+      if (!svg) return;
+      const cone = coneOf(svg, startIdx);
+      const steps = stepsOf(proofEl);
+      steps.forEach((st, i) => cone.has(String(i)) ? openStep(st) : collapseStep(st));
+      dimRail(svg, cone);
+      proofEl.classList.add("proof-focused");
+      const sel = steps[startIdx];
+      active = { proofEl, svg, startIdx: String(startIdx) };
+      setExitBar(sel);
+      if (sel) sel.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+    rail.addEventListener("click", (ev) => {
+      const node = ev.target.closest(".toc-node");
+      if (!node) return;
+      const railItem = node.closest(".proof-rail-item");
+      if (!railItem || railItem.dataset.proof === "toc") return;
+      ev.preventDefault();
+      if (node.classList.contains("level-0")) return;
+      const proofEl = root2.querySelector(`.proof[data-nodeid="${railItem.dataset.proof}"]`);
+      if (!proofEl) return;
+      enterFocus(railItem, proofEl, node.dataset.idx);
+    });
+  }
+
   // rsm/static/onload.js
   async function onload(root2 = null, { keys = true } = {}) {
     if (!root2) root2 = document;
@@ -1158,6 +1253,11 @@ var RSM = (() => {
         setup4(root2);
       } catch (err) {
         console.error("Loading prooftree.js FAILED!", err);
+      }
+      try {
+        setup5(root2);
+      } catch (err) {
+        console.error("Loading focusmode.js FAILED!", err);
       }
       try {
         if (keys) {

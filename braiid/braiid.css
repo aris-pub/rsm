@@ -665,19 +665,6 @@ body {
     width: calc(100% - calc(var(--hr-total-offset) * 4));
   }
 
-  /* hr-info-zone positioning at each depth to keep numbers in fixed column */
-  & > .manuscript section .hr .hr.hr-offset > .hr-info-zone {
-    left: 100%;
-  }
-
-  & > .manuscript section .hr .hr .hr.hr-offset > .hr-info-zone {
-    left: calc(100% - var(--chunk-half));
-  }
-
-  & > .manuscript section .hr .hr .hr .hr.hr-offset > .hr-info-zone {
-    left: calc(100% + var(--chunk));
-  }
-
 }
 
 
@@ -824,6 +811,22 @@ body {
     &.hr-offset > .hr-info-zone {position: absolute; left: 100%;}
 
   }
+}
+
+/* Keep the info-zone number column fixed regardless of proof nesting. Each
+   enclosing .subproof indents its steps right by --chunk-half (via hr-shift-1),
+   so pull the number left by the same amount per subproof level. Keying on
+   .subproof (the sole indentation source) is depth-correct; this replaces an
+   older patch that counted raw .hr ancestors (which interleave wrapper
+   handrails) with inconsistent magic offsets, so numbers drifted with depth. */
+.manuscriptwrapper .subproof .hr.hr-offset > .hr-info-zone {
+  left: calc(100% - var(--chunk-half));
+}
+.manuscriptwrapper .subproof .subproof .hr.hr-offset > .hr-info-zone {
+  left: calc(100% - 2 * var(--chunk-half));
+}
+.manuscriptwrapper .subproof .subproof .subproof .hr.hr-offset > .hr-info-zone {
+  left: calc(100% - 3 * var(--chunk-half));
 }
 
 /* Handrails: individual elements -- collapse-zone */
@@ -1323,6 +1326,82 @@ body {
   /* Not enough room to float the rail without overlapping the column. */
   @media (max-width: 1100px) {
     .proof-rail.active { display: none; }
+  }
+
+  /* Rail nodes are clickable (focus mode), so signal it. */
+  .proof-rail-item .toc-node { cursor: pointer; }
+
+  /* When a step is focused, everything outside its cone recedes hard and the
+     cone path lights up bold blue so it reads as a single unambiguous route.
+     Selectors match the specificity of the struct/fwd edge opacity rules above
+     (and come later) so they actually win over them. */
+  .toc-tree .toc-node.focus-faded,
+  .toc-tree .toc-edge.focus-faded {
+    opacity: 0.06;
+  }
+
+  .toc-tree .toc-edge.focus-lit {
+    opacity: 1;
+    stroke: var(--blue, #2c5e9e);
+    stroke-dasharray: none;
+    stroke-width: 2.4;
+  }
+
+  .toc-tree .toc-node.focus-lit rect {
+    stroke: var(--blue, #2c5e9e);
+    stroke-width: 1.8;
+  }
+
+  /* The one way out of focus mode: a clickable bar in the rail (which is fixed
+     on screen), stacked above the tree while focused. */
+  .proof-rail.active.focusing {
+    flex-direction: column;
+    gap: 0.55rem;
+  }
+
+  .proof-focus-exit {
+    display: flex;
+    align-items: center;
+    gap: 0.35em;
+    max-width: 100%;
+    padding: 0.4rem 0.7rem;
+    font-size: 0.8rem;
+    line-height: 1.2;
+    color: var(--blue, #2c5e9e);
+    background: rgba(44, 94, 158, 0.08);
+    border: 1px solid rgba(44, 94, 158, 0.25);
+    border-radius: 8px;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .proof-focus-exit:hover { background: rgba(44, 94, 158, 0.14); }
+
+  .proof-focus-exit .proof-focus-back { font-size: 1.05em; line-height: 1; }
+  .proof-focus-exit .proof-focus-show-all {
+    font-weight: 600;
+    text-decoration: underline;
+  }
+
+
+  /* Focus mode: a collapsed step folds to a thin line; its ⟨n⟩ stays in the
+     right margin (where expanded steps show it too), so the proof reads as a
+     clean column of right-aligned numbers with the focused path inline. */
+  .step.proof-focus-collapsed > .hr-content-zone > * { display: none; }
+
+  .step.proof-focus-collapsed > .hr-content-zone {
+    position: relative;
+    min-height: 1.3em;
+  }
+
+  /* A short, faint mark on the fold so an empty line still reads as a step. */
+  .step.proof-focus-collapsed > .hr-content-zone::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: 1.4rem;
+    border-top: 2px solid var(--gray-300, #d4dae3);
   }
 
   .toc-wrapper, .float-minimap-wrapper {
