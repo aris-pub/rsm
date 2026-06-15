@@ -1118,6 +1118,50 @@ var RSM = (() => {
       { rootMargin: "-12% 0px -55% 0px", threshold: 0 }
     );
     for (const p of proofs) observer.observe(p);
+    let currentNode = null;
+    function clearCurrent() {
+      if (currentNode) {
+        currentNode.classList.remove("current-step");
+        currentNode = null;
+      }
+    }
+    function markStep(stepEl) {
+      if (!stepEl || rail.classList.contains("focusing")) return clearCurrent();
+      const proofEl = stepEl.closest(".proof[data-nodeid]");
+      const item = proofEl && items.get(proofEl.getAttribute("data-nodeid"));
+      if (!item) return clearCurrent();
+      const idx = [...proofEl.querySelectorAll(".step")].indexOf(stepEl);
+      const node = idx >= 0 ? item.querySelector(`.toc-node[data-idx="${idx}"]`) : null;
+      if (node === currentNode) return;
+      clearCurrent();
+      if (node) {
+        node.classList.add("current-step");
+        currentNode = node;
+      }
+    }
+    const stepsInView = /* @__PURE__ */ new Set();
+    const stepObserver = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting) stepsInView.add(e.target);
+          else stepsInView.delete(e.target);
+        }
+        let best = null;
+        let bestTop = -Infinity;
+        for (const s of stepsInView) {
+          const top = s.getBoundingClientRect().top;
+          if (top > bestTop) {
+            bestTop = top;
+            best = s;
+          }
+        }
+        markStep(best);
+      },
+      { rootMargin: "-50% 0px -50% 0px", threshold: 0 }
+    );
+    for (const s of root2.querySelectorAll(".proof[data-nodeid] .step")) {
+      stepObserver.observe(s);
+    }
   }
 
   // rsm/static/focusmode.js

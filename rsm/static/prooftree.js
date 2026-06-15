@@ -58,4 +58,57 @@ export function setup(root = document) {
     { rootMargin: "-12% 0px -55% 0px", threshold: 0 },
   );
   for (const p of proofs) observer.observe(p);
+
+  // Active-step tracking: mark the rail node of the step currently being read,
+  // using the same "topmost in the reading band" rule. Suppressed during focus
+  // mode, which provides its own emphasis.
+  let currentNode = null;
+  function clearCurrent() {
+    if (currentNode) {
+      currentNode.classList.remove("current-step");
+      currentNode = null;
+    }
+  }
+  function markStep(stepEl) {
+    if (!stepEl || rail.classList.contains("focusing")) return clearCurrent();
+    const proofEl = stepEl.closest(".proof[data-nodeid]");
+    const item = proofEl && items.get(proofEl.getAttribute("data-nodeid"));
+    if (!item) return clearCurrent();
+    // step index in document order == the rail node's data-idx
+    const idx = [...proofEl.querySelectorAll(".step")].indexOf(stepEl);
+    const node = idx >= 0 ? item.querySelector(`.toc-node[data-idx="${idx}"]`) : null;
+    if (node === currentNode) return;
+    clearCurrent();
+    if (node) {
+      node.classList.add("current-step");
+      currentNode = node;
+    }
+  }
+
+  const stepsInView = new Set();
+  const stepObserver = new IntersectionObserver(
+    (entries) => {
+      for (const e of entries) {
+        if (e.isIntersecting) stepsInView.add(e.target);
+        else stepsInView.delete(e.target);
+      }
+      // The root is a zero-height line at the viewport's vertical center, so the
+      // intersecting steps are those crossing it: an ancestor chain whose
+      // deepest member (largest top) is the step actually being read.
+      let best = null;
+      let bestTop = -Infinity;
+      for (const s of stepsInView) {
+        const top = s.getBoundingClientRect().top;
+        if (top > bestTop) {
+          bestTop = top;
+          best = s;
+        }
+      }
+      markStep(best);
+    },
+    { rootMargin: "-50% 0px -50% 0px", threshold: 0 },
+  );
+  for (const s of root.querySelectorAll(".proof[data-nodeid] .step")) {
+    stepObserver.observe(s);
+  }
 }

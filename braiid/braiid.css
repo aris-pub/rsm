@@ -1352,6 +1352,18 @@ body {
     stroke-width: 1.8;
   }
 
+  /* Active-step tracking: the step currently being read is filled to read as
+     "you are here", distinct from the white default and the solid-blue root. */
+  .toc-tree .toc-node.current-step rect {
+    fill: rgba(44, 94, 158, 0.16);
+    stroke: var(--blue, #2c5e9e);
+    stroke-width: 2;
+  }
+  .toc-tree .toc-node.current-step .toc-secnum {
+    fill: var(--blue, #2c5e9e);
+    font-weight: 700;
+  }
+
   /* The one way out of focus mode: a clickable bar in the rail (which is fixed
      on screen), stacked above the tree while focused. */
   .proof-rail.active.focusing {
