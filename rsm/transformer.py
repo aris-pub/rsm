@@ -156,6 +156,7 @@ class Transformer:
         self.add_keywords_to_constructs()
         self.add_handrail_depth()
         self.assign_node_ids()
+        self.make_proof_state()
         self.check_for_cst_errors()
         return tree
 
@@ -822,6 +823,86 @@ class Transformer:
                 return sib.reftext or "Statement"
             sib = sib.prev_sibling()
         return "Statement"
+
+    def make_proof_state(self) -> None:
+        """Per-step `hypotheses |- goal` for the rail's State view (runs after
+        node ids are assigned, since it records construct node ids to clone)."""
+        for proof in self.tree.traverse(nodeclass=nodes.Proof):
+            self._compute_proof_state(proof)
+
+    HYP_KINDS = ("let", "assume")
+    GOAL_KINDS = ("claim", "claimblock")
+
+    def _compute_proof_state(self, proof: nodes.Proof) -> None:
+        steps = list(proof.traverse(nodeclass=nodes.Step))
+        if not steps:
+            return
+
+        def nearest_step(node: nodes.Node) -> nodes.Step | None:
+            anc = node.parent
+            while anc is not None and anc is not proof:
+                if isinstance(anc, nodes.Step):
+                    return anc
+                anc = anc.parent
+            return None
+
+        def own_constructs(container: nodes.Node, kinds: tuple) -> list:
+            # constructs of the given kinds belonging directly to `container`
+            # (not to a nested step); for the theorem container, all of them.
+            out = []
+            is_step = isinstance(container, nodes.Step)
+            for c in container.traverse(nodeclass=nodes.Construct):
+                if c.kind not in kinds:
+                    continue
+                if not is_step or nearest_step(c) is container:
+                    out.append(c)
+            return out
+
+        def ancestors(step: nodes.Step) -> list:  # outermost first
+            chain = [step]
+            anc = step.parent
+            while anc is not None and anc is not proof:
+                if isinstance(anc, nodes.Step):
+                    chain.append(anc)
+                anc = anc.parent
+            chain.reverse()
+            return chain
+
+        theorem = proof.prev_sibling()
+        thm_types = (
+            nodes.Theorem, nodes.Lemma, nodes.Corollary,
+            nodes.Proposition, nodes.Statement,
+        )
+        while theorem is not None and not isinstance(theorem, thm_types):
+            theorem = theorem.prev_sibling()
+        # Theorem hypotheses have no step number (they precede the proof).
+        base_hyps = (
+            [{"id": c.nodeid, "num": None} for c in own_constructs(theorem, self.HYP_KINDS)]
+            if theorem is not None else []
+        )
+
+        state = []
+        for s in steps:
+            chain = ancestors(s)
+            hyps = list(base_hyps)
+            for anc in chain:
+                num = str(anc.full_number)
+                hyps += [
+                    {"id": c.nodeid, "num": num}
+                    for c in own_constructs(anc, self.HYP_KINDS)
+                ]
+            goal = None
+            for anc in reversed(chain):  # innermost first
+                claims = own_constructs(anc, self.GOAL_KINDS)
+                if claims:
+                    goal = {"id": claims[0].nodeid, "num": str(anc.full_number)}
+                    break
+            # A setup step with no claim of its own is working toward the
+            # theorem; show its conclusion as the goal.
+            if goal is None and theorem is not None:
+                goal = {"id": theorem.nodeid, "num": theorem.reftext or None, "thm": True}
+            state.append({"goal": goal, "hyps": hyps})
+        proof.step_state = state
 
     def add_keywords_to_constructs(self) -> None:
         for construct in self.tree.traverse(nodeclass=nodes.Construct):

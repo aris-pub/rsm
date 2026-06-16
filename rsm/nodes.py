@@ -1600,6 +1600,10 @@ class Proof(NodeWithChildren):
         self.tree_nodes: list[dict] = []
         self.tree_edges: list[dict] = []
         self.tree_root_title: str = "Proof"
+        # Per-step proof state for the rail's "State" view: each entry is
+        # {"goal": nodeid, "hyps": [nodeid, ...]} indexed like tree_nodes, where
+        # goal is the step's claim and hyps is the full in-scope context.
+        self.step_state: list[dict] = []
 
 
 class Subproof(NodeWithChildren):  # importantly, NOT a subclass of Proof!

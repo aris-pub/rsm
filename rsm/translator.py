@@ -123,6 +123,23 @@ from .util import highlight_code
 
 logger = logging.getLogger("RSM").getChild("tlate")
 
+# Tabler icons (hierarchy-3, list-details) for the proof rail's Map/State tabs.
+_RAIL_MAP_ICON = (
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" '
+    'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+    '<path d="M12 5m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/>'
+    '<path d="M6 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/>'
+    '<path d="M18 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/>'
+    '<path d="M6 17v-2a6 6 0 0 1 12 0v2"/><path d="M12 7v4"/></svg>'
+)
+_RAIL_STATE_ICON = (
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" '
+    'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+    '<path d="M13 5h8"/><path d="M13 9h5"/><path d="M13 15h8"/><path d="M13 19h5"/>'
+    '<path d="M3 4m0 1a1 1 0 0 1 1 -1h2a1 1 0 0 1 1 1v2a1 1 0 0 1 -1 1h-2a1 1 0 0 1 -1 -1z"/>'
+    '<path d="M3 14m0 1a1 1 0 0 1 1 -1h2a1 1 0 0 1 1 1v2a1 1 0 0 1 -1 1h-2a1 1 0 0 1 -1 -1z"/></svg>'
+)
+
 
 def _reject_html_wrapper(path: str) -> None:
     """Raise if an embedded HTML asset contains document-level wrapper tags."""
@@ -2346,11 +2363,7 @@ class HandrailsTranslator(Translator):
         items = []
         # Fallback shown when the reader is outside any proof: the section TOC.
         if toc.tree_nodes:
-            items.append(
-                '<div class="proof-rail-item" data-proof="toc">'
-                + self._toc_tree_svg(toc)
-                + "</div>"
-            )
+            items.append(self._rail_item("toc", self._toc_tree_svg(toc), None))
         for proof in self.tree.traverse(nodeclass=nodes.Proof):
             if not proof.tree_nodes:
                 continue
@@ -2358,13 +2371,40 @@ class HandrailsTranslator(Translator):
                 proof.tree_nodes, proof.tree_edges, proof.tree_root_title,
                 "Proof step dependency graph", orient="horizontal",
             )
-            items.append(
-                f'<div class="proof-rail-item" data-proof="{proof.nodeid}">{svg}</div>'
-            )
+            items.append(self._rail_item(str(proof.nodeid), svg, proof.step_state))
         if not items:
             return AppendText(text="")
+
+        # Map shows where you are (the dependency graph); State shows what you
+        # are doing (the live hypotheses and current goal of the step in view).
+        tabs = (
+            '<div class="rail-tabs" role="tablist">'
+            '<button class="rail-tab active" data-view="map" '
+            'title="Map: where you are in the proof\'s dependency structure">'
+            + _RAIL_MAP_ICON + "<span>Map</span></button>"
+            '<button class="rail-tab" data-view="state" '
+            'title="State: the hypotheses in force and the goal you must show">'
+            + _RAIL_STATE_ICON + "<span>State</span></button>"
+            "</div>"
+        )
         return AppendText(
-            text='<div class="proof-rail" aria-hidden="true">' + "".join(items) + "</div>"
+            text='<div class="proof-rail view-map" aria-hidden="true">'
+            + tabs + "".join(items) + "</div>"
+        )
+
+    def _rail_item(self, key: str, svg: str, step_state) -> str:
+        data = ""
+        if step_state is not None:
+            import json
+            data = (
+                '<script type="application/json" class="rail-state-data">'
+                + json.dumps(step_state) + "</script>"
+            )
+        return (
+            f'<div class="proof-rail-item" data-proof="{key}">'
+            f'<div class="rail-panel rail-map">{svg}</div>'
+            f'<div class="rail-panel rail-state"></div>'
+            f"{data}</div>"
         )
 
     def _make_svg_defs(self):

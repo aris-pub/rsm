@@ -1292,24 +1292,49 @@ body {
   .proof-rail { display: none; }
 
   .proof-rail.active {
-    /* Frameless: shrink-wrap the tree and center it in the gutter; never
-       scroll (hard rule). The SVG below is capped to the gutter box so it
-       always scales down to fit. */
+    /* Frameless column: Map/State tabs on top, the shown panel below, pinned
+       in the gutter. The Map tree is capped to fit (never scrolls). */
     display: flex;
-    align-items: center;
-    justify-content: center;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.45rem;
     position: fixed;
     left: 0.75rem;
-    top: 50%;
-    transform: translateY(-50%);
-    max-width: min(34vw, 460px);
-    max-height: 90vh;
+    /* Anchor the top so it doesn't drift up and down as content changes. */
+    top: 5rem;
+    width: min(34vw, 460px);
+    max-height: calc(100vh - 7rem);
     overflow: hidden;
     z-index: 40;
   }
 
-  .proof-rail-item { display: none; }
-  .proof-rail-item.shown { display: block; }
+  .rail-tabs { display: flex; gap: 0.3rem; flex-shrink: 0; }
+  .rail-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.4rem 0.85rem;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    background: none;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: var(--gray-500, #8a94a3);
+  }
+  .rail-tab svg { width: 18px; height: 18px; }
+  .rail-tab.active {
+    color: var(--blue, #2c5e9e);
+    background: rgba(44, 94, 158, 0.08);
+  }
+  .rail-tab:hover { color: var(--blue, #2c5e9e); }
+
+  .proof-rail-item { display: none; min-height: 0; }
+  .proof-rail-item.shown { display: flex; flex-direction: column; min-height: 0; }
+
+  /* View toggling: show only the active view's panel of the shown item. */
+  .proof-rail.view-map .rail-state { display: none; }
+  .proof-rail.view-state .rail-map { display: none; }
+  .rail-map { display: flex; align-items: center; justify-content: center; min-height: 0; }
 
   /* Capped to the gutter box: a tree larger than this scales down (aspect
      preserved) to fit entirely; a smaller one stays at its natural size. No
@@ -1319,9 +1344,45 @@ body {
     width: auto;
     height: auto;
     max-width: min(34vw, 460px);
-    max-height: 90vh;
+    max-height: calc(90vh - 2.5rem);
     overflow: visible;
   }
+
+  /* State view: live hypotheses and current goal, cloned from the body. */
+  .rail-state {
+    font-size: 0.85rem;
+    color: var(--text-secondary, #3a4453);
+    overflow: hidden; /* hard rule: no scrollbars */
+    overflow-wrap: break-word;
+  }
+  .rail-state .hr-content-zone { width: auto; }
+  .rail-state-block { margin-bottom: 0.7rem; }
+  .rail-state-label {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--gray-500, #8a94a3);
+    font-weight: 700;
+    margin-bottom: 0.3rem;
+  }
+  .rail-hyps ul {
+    list-style: none; margin: 0; padding: 0;
+    display: flex; flex-direction: column; gap: 0.35rem;
+  }
+  .rail-hyps li { padding-left: 0.6rem; border-left: 2px solid var(--gray-200, #e6eaef); }
+  .rail-hyps li.rail-hyp-empty {
+    color: var(--gray-400, #aab2bd);
+    font-style: italic;
+    border-left-style: dashed;
+  }
+  .rail-goal-body { padding-left: 0.6rem; border-left: 2px solid var(--blue, #2c5e9e); }
+  .rail-step-badge {
+    color: var(--gray-500, #8a94a3);
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+    margin-right: 0.4em;
+  }
+  .rail-state-empty { color: var(--gray-500, #8a94a3); font-style: italic; font-size: 0.8rem; }
 
   /* Not enough room to float the rail without overlapping the column. */
   @media (max-width: 1100px) {

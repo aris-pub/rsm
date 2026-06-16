@@ -65,7 +65,9 @@ def test_external_refs_excluded():
 
 def test_rail_emitted_with_tree_toc():
     html = rsm.render(SRC, handrails=True)
-    assert 'class="proof-rail"' in html
+    assert 'class="proof-rail view-map"' in html
+    # the rail has Map/State tabs
+    assert 'class="rail-tab' in html
     # at least the proof's own step-tree is shown in the rail
     assert html.count('class="proof-rail-item"') >= 1
     proof = _proof(SRC)

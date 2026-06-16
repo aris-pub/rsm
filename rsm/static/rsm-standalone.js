@@ -1086,6 +1086,31 @@ var RSM = (() => {
         wireTree(svg);
       }
     }
+    const stateData = /* @__PURE__ */ new Map();
+    for (const [key, item] of items) {
+      const sd = item.querySelector(".rail-state-data");
+      if (sd) {
+        try {
+          stateData.set(key, JSON.parse(sd.textContent));
+        } catch (e) {
+        }
+      }
+    }
+    let view = rail.classList.contains("view-state") ? "state" : "map";
+    const active = { idx: -1 };
+    let currentNode = null;
+    const tabs = rail.querySelector(".rail-tabs");
+    if (tabs) {
+      tabs.addEventListener("click", (ev) => {
+        const t = ev.target.closest(".rail-tab");
+        if (!t) return;
+        view = t.dataset.view;
+        for (const b of tabs.querySelectorAll(".rail-tab")) b.classList.toggle("active", b === t);
+        rail.classList.toggle("view-map", view === "map");
+        rail.classList.toggle("view-state", view === "state");
+        renderState();
+      });
+    }
     const proofs = [...root2.querySelectorAll(".proof[data-nodeid]")];
     if (!proofs.length && !items.has("toc")) return;
     rail.classList.add("active");
@@ -1095,6 +1120,7 @@ var RSM = (() => {
       if (key === current) return;
       current = key;
       for (const [k, item] of items) item.classList.toggle("shown", k === key);
+      updateState();
     }
     show("toc");
     const visible = /* @__PURE__ */ new Set();
@@ -1118,49 +1144,133 @@ var RSM = (() => {
       { rootMargin: "-12% 0px -55% 0px", threshold: 0 }
     );
     for (const p of proofs) observer.observe(p);
-    let currentNode = null;
-    function clearCurrent() {
-      if (currentNode) {
-        currentNode.classList.remove("current-step");
-        currentNode = null;
-      }
-    }
-    function markStep(stepEl) {
-      if (!stepEl || rail.classList.contains("focusing")) return clearCurrent();
-      const proofEl = stepEl.closest(".proof[data-nodeid]");
-      const item = proofEl && items.get(proofEl.getAttribute("data-nodeid"));
-      if (!item) return clearCurrent();
-      const idx = [...proofEl.querySelectorAll(".step")].indexOf(stepEl);
-      const node = idx >= 0 ? item.querySelector(`.toc-node[data-idx="${idx}"]`) : null;
+    function setCurrentNode(node) {
       if (node === currentNode) return;
-      clearCurrent();
-      if (node) {
-        node.classList.add("current-step");
-        currentNode = node;
-      }
+      if (currentNode) currentNode.classList.remove("current-step");
+      currentNode = node;
+      if (node) node.classList.add("current-step");
     }
-    const stepsInView = /* @__PURE__ */ new Set();
-    const stepObserver = new IntersectionObserver(
-      (entries) => {
-        for (const e of entries) {
-          if (e.isIntersecting) stepsInView.add(e.target);
-          else stepsInView.delete(e.target);
+    function setActiveIdx(idx) {
+      if (idx === active.idx) return;
+      active.idx = idx;
+      renderState();
+    }
+    function currentStepOf(proofEl) {
+      const center = window.innerHeight / 2;
+      let best = -1;
+      let bestTop = -Infinity;
+      proofEl.querySelectorAll(".step").forEach((s, i) => {
+        const top = s.getBoundingClientRect().top;
+        if (top <= center && top > bestTop) {
+          bestTop = top;
+          best = i;
         }
-        let best = null;
-        let bestTop = -Infinity;
-        for (const s of stepsInView) {
-          const top = s.getBoundingClientRect().top;
-          if (top > bestTop) {
-            bestTop = top;
-            best = s;
-          }
+      });
+      return best;
+    }
+    function updateState() {
+      if (rail.classList.contains("focusing")) {
+        setCurrentNode(null);
+        return;
+      }
+      let idx = -1;
+      if (current && current !== "toc") {
+        const proofEl = root2.querySelector(`.proof[data-nodeid="${current}"]`);
+        if (proofEl) {
+          idx = currentStepOf(proofEl);
+          if (idx < 0) idx = 0;
         }
-        markStep(best);
-      },
-      { rootMargin: "-50% 0px -50% 0px", threshold: 0 }
-    );
+      }
+      setActiveIdx(idx);
+      const item = current ? items.get(current) : null;
+      setCurrentNode(
+        item && idx >= 0 ? item.querySelector(`.toc-node[data-idx="${idx}"]`) : null
+      );
+    }
+    const stepObserver = new IntersectionObserver(() => updateState(), {
+      rootMargin: "-50% 0px -50% 0px",
+      threshold: 0
+    });
     for (const s of root2.querySelectorAll(".proof[data-nodeid] .step")) {
       stepObserver.observe(s);
+    }
+    function cloneClean(el) {
+      const c = el.cloneNode(true);
+      c.removeAttribute("id");
+      c.removeAttribute("data-nodeid");
+      c.querySelectorAll("[id],[data-nodeid]").forEach((n) => {
+        n.removeAttribute("id");
+        n.removeAttribute("data-nodeid");
+      });
+      c.querySelectorAll(
+        ".hr-collapse-zone,.hr-menu-zone,.hr-border-zone,.hr-spacer-zone,.hr-info-zone"
+      ).forEach((n) => n.remove());
+      c.querySelectorAll(".hr").forEach(
+        (n) => n.classList.remove("hr", "hr-offset", "hr-labeled", "hr-hidden")
+      );
+      return c;
+    }
+    function renderState() {
+      if (view !== "state") return;
+      const item = current ? items.get(current) : null;
+      if (!item) return;
+      const panel = item.querySelector(".rail-state");
+      if (!panel) return;
+      const data = stateData.get(item.dataset.proof);
+      if (!data || active.idx < 0 || active.idx >= data.length) {
+        panel.innerHTML = '<div class="rail-state-empty">Scroll into a proof to see its live hypotheses and current goal.</div>';
+        return;
+      }
+      const st = data[active.idx];
+      panel.innerHTML = "";
+      function badge(num) {
+        const b = document.createElement("span");
+        b.className = "rail-step-badge";
+        b.textContent = "\u27E8" + num + "\u27E9";
+        return b;
+      }
+      const hyps = (st.hyps || []).map((h) => ({ el: root2.querySelector(`[data-nodeid="${h.id}"]`), num: h.num })).filter((h) => h.el);
+      const hblock = document.createElement("div");
+      hblock.className = "rail-state-block rail-hyps";
+      hblock.innerHTML = '<div class="rail-state-label">Assuming</div>';
+      const ul = document.createElement("ul");
+      if (hyps.length) {
+        for (const h of hyps) {
+          const li = document.createElement("li");
+          if (h.num) li.appendChild(badge(h.num));
+          li.appendChild(cloneClean(h.el));
+          ul.appendChild(li);
+        }
+      } else {
+        const li = document.createElement("li");
+        li.className = "rail-hyp-empty";
+        li.textContent = "no assumptions yet";
+        ul.appendChild(li);
+      }
+      hblock.appendChild(ul);
+      panel.appendChild(hblock);
+      const goalBlock = document.createElement("div");
+      goalBlock.className = "rail-state-block rail-goal";
+      goalBlock.innerHTML = '<div class="rail-state-label">To show</div>';
+      const body = document.createElement("div");
+      body.className = "rail-goal-body";
+      const g = st.goal;
+      const goalEl = g && g.id != null ? root2.querySelector(`[data-nodeid="${g.id}"]`) : null;
+      if (goalEl) {
+        if (g.num) body.appendChild(badge(g.num));
+        if (g.thm) {
+          const cz = goalEl.querySelector(":scope > .hr-content-zone") || goalEl;
+          const clone = cloneClean(cz);
+          clone.querySelectorAll(".hr-label, .construct.let, .construct.assume").forEach((n) => n.remove());
+          body.appendChild(clone);
+        } else {
+          body.appendChild(cloneClean(goalEl));
+        }
+      } else {
+        body.textContent = "the main result";
+      }
+      goalBlock.appendChild(body);
+      panel.appendChild(goalBlock);
     }
   }
 
