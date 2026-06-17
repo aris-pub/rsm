@@ -891,7 +891,7 @@ def test_bibliography():
 
         <div class="hr-info-zone">
         <div class="hr-info">
-        <a id="atiyah2018introduction-doi" class="bibitem-doi" href="https://doi.org/https://doi.org/10.1201/9780429493638" target="_blank">
+        <a id="atiyah2018introduction-doi" class="bibitem-doi" href="https://doi.org/https://doi.org/10.1201/9780429493638" target="_blank" aria-label="DOI">
         <div class="icon ext"><svg overflow="visible"><use href="#hr-icon-ext" width="100%" height="100%"/></svg></div></a>
         </div>
         </div>

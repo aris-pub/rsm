@@ -2896,10 +2896,14 @@ class HandrailsTranslator(Translator):
         left, right = mobj.span()
         hr.items[-4]._text = text[:left] + text[right:]
 
-        # ...and add it to the info zone.
+        # ...and add it to the info zone. The link is icon-only, so give it an
+        # accessible name (WCAG link-name).
+        opening = mobj.group(1)
+        label = "DOI" if "bibitem-doi" in opening else "Link"
+        opening = opening.replace(">", f' aria-label="{label}">', 1)
         hr.items[-2].content = (
             '<div class="hr-info">\n'
-            + mobj.group(1)
+            + opening
             + "\n"
             + hr.items[-2].content[22:-6].strip()
             + "</a>\n</div>"
