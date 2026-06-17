@@ -26,6 +26,7 @@ List of all tags
 .. autoclass:: itemize
 .. autoclass:: lemma
 .. autoclass:: mathblock
+.. autoclass:: notation
 .. autoclass:: proof
 .. autoclass:: proposition
 .. autoclass:: references

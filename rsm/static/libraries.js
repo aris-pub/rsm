@@ -3,6 +3,8 @@
 // Load external libraries dynamically
 //
 
+import { getNotationMacros } from './notation.js';
+
 let temmlLoaded = false;
 let temmlLoadPromise = null;
 
@@ -48,12 +50,21 @@ export function loadMathJax() {
     return mathJaxLoadPromise;
   }
 
+  // Feed the same :notation: macros to MathJax so the fallback honors the
+  // author's notation with no author-side change.  MathJax macro keys omit the
+  // leading backslash; getNotationMacros() already merges reader overrides.
+  const notationMacros = {};
+  for (const [name, value] of Object.entries(getNotationMacros())) {
+    notationMacros[name.replace(/^\\/, '')] = value;
+  }
+
   const config = document.createElement('script');
   config.innerHTML = `window.MathJax = {
       startup: {
         typeset: false
       },
       tex: {
+        macros: ${JSON.stringify(notationMacros)},
         inlineMath: [['$', '$'], ['\\\\(', '\\\\)']],
         displayMath: [['$$', '$$'], ['\\\\[', '\\\\]']],
         processEscapes: true,
@@ -133,7 +144,7 @@ export async function typesetMath(root = document) {
       const latex = src.slice(2, -2);
       el.dataset.latex = latex;
       try {
-        temml.render(latex, el, { throwOnError: false });
+        temml.render(latex, el, { throwOnError: false, macros: { ...getNotationMacros() } });
       } catch (err) {
         console.error('temml inline error:', err);
       }
@@ -154,7 +165,7 @@ export async function typesetMath(root = document) {
       const latex = src.slice(2, -2).trim();
       el.dataset.latex = latex;
       try {
-        temml.render(latex, contentEl, { displayMode: true, throwOnError: false });
+        temml.render(latex, contentEl, { displayMode: true, throwOnError: false, macros: { ...getNotationMacros() } });
       } catch (err) {
         console.error('temml display error:', err);
       }

@@ -13,6 +13,9 @@ abstract = BlockTagInfo(None)
 """Manuscript abstract."""
 algorithm = BlockTagInfo(None)
 """Algorithm listing."""
+notation = BlockTagInfo(None)
+r"""Declare reader-rebindable notation macros, one per line as
+``\macro $default$ label``."""
 appendix = BlockTagInfo(None)
 """Mark where the appendix sections begin."""
 author = BlockTagInfo(None)

@@ -24,6 +24,31 @@ var RSM = (() => {
     onrender: () => onrender
   });
 
+  // rsm/static/notation.js
+  var _macros = null;
+  function storageKey() {
+    return "rsm-notation:" + location.pathname;
+  }
+  function loadOverrides() {
+    try {
+      return JSON.parse(localStorage.getItem(storageKey())) || {};
+    } catch {
+      return {};
+    }
+  }
+  function getNotationMacros() {
+    if (_macros) return _macros;
+    _macros = {};
+    document.querySelectorAll("script.rsm-notation").forEach((s) => {
+      try {
+        for (const e of JSON.parse(s.textContent)) _macros[e.macro] = e.default;
+      } catch {
+      }
+    });
+    Object.assign(_macros, loadOverrides());
+    return _macros;
+  }
+
   // rsm/static/libraries.js
   var temmlLoaded = false;
   var temmlLoadPromise = null;
@@ -58,12 +83,17 @@ var RSM = (() => {
     if (mathJaxLoadPromise) {
       return mathJaxLoadPromise;
     }
+    const notationMacros = {};
+    for (const [name, value] of Object.entries(getNotationMacros())) {
+      notationMacros[name.replace(/^\\/, "")] = value;
+    }
     const config = document.createElement("script");
     config.innerHTML = `window.MathJax = {
       startup: {
         typeset: false
       },
       tex: {
+        macros: ${JSON.stringify(notationMacros)},
         inlineMath: [['$', '$'], ['\\\\(', '\\\\)']],
         displayMath: [['$$', '$$'], ['\\\\[', '\\\\]']],
         processEscapes: true,
@@ -125,7 +155,7 @@ var RSM = (() => {
         const latex = src.slice(2, -2);
         el.dataset.latex = latex;
         try {
-          temml.render(latex, el, { throwOnError: false });
+          temml.render(latex, el, { throwOnError: false, macros: { ...getNotationMacros() } });
         } catch (err) {
           console.error("temml inline error:", err);
         }
@@ -142,7 +172,7 @@ var RSM = (() => {
         const latex = src.slice(2, -2).trim();
         el.dataset.latex = latex;
         try {
-          temml.render(latex, contentEl, { displayMode: true, throwOnError: false });
+          temml.render(latex, contentEl, { displayMode: true, throwOnError: false, macros: { ...getNotationMacros() } });
         } catch (err) {
           console.error("temml display error:", err);
         }

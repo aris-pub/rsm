@@ -1431,6 +1431,21 @@ class Algorithm(NodeWithChildren):
     has_handrail = True
 
 
+class Notation(NodeWithChildren):
+    r"""Reader-rebindable notation macros.
+
+    The contents are raw lines, each declaring one macro as
+    ``\macro $default$ label``. The transformer parses them into ``entries``
+    (macro name, default LaTeX, human label); the frontend defines the macro
+    from the default and lets the reader swap its rendering. Not RSM markup;
+    this is presentation-layer only.
+    """
+
+    def __init__(self, **kwargs: Any) -> None:
+        super().__init__(**kwargs)
+        self.entries: list[dict] = []
+
+
 class Appendix(Node):
     """Mark the start of the Appendix sections.
 

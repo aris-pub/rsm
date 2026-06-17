@@ -1307,6 +1307,15 @@ class Translator:
             ]
         )
 
+    def visit_notation(self, node: nodes.Notation) -> EditCommand:
+        # Emit the rebindable-notation entries as data for the frontend, which
+        # defines the macros from the defaults and lets the reader reskin them.
+        import json
+        data = json.dumps(node.entries).replace("</", "<\\/")
+        return AppendText(
+            f'<script type="application/json" class="rsm-notation">{data}</script>'
+        )
+
     def visit_text(self, node: nodes.Text) -> EditCommand:
         return AppendText(node.text)
 

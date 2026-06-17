@@ -247,6 +247,7 @@ CST_TYPE_TO_AST_TYPE: dict[str, Callable] = {
     "abstract": nodes.Abstract,
     "appendix": nodes.Appendix,
     "algorithm": nodes.Algorithm,
+    "notation": nodes.Notation,
     "author": nodes.Author,
     "enumerate": nodes.Enumerate,
     "cite": nodes.PendingCite,
@@ -643,7 +644,7 @@ def _abstractify(cst: TSTree) -> nodes.Manuscript:
             ast_node.ingest_dict_as_meta(_parse_meta_into_dict(meta))
 
         # process some special tags
-        if ast_node_type in ["math", "code", "mathblock", "codeblock", "algorithm"]:
+        if ast_node_type in ["math", "code", "mathblock", "codeblock", "algorithm", "notation"]:
             # "asis_text" is not pushed to the stack for further processing so must
             # handle it here
             asis = cst_node.named_children[-1]

@@ -25,6 +25,7 @@ place is of utmost importance.
 """
 
 import logging
+import re
 from collections import defaultdict
 from collections.abc import Generator
 from itertools import count
@@ -145,6 +146,7 @@ class Transformer:
         self.tree = tree
 
         self.collect_labels()
+        self.parse_notation()
         self.resolve_pending_references()
         self.assign_author_affiliations()
         self.assign_author_note_symbols()
@@ -823,6 +825,32 @@ class Transformer:
                 return sib.reftext or "Statement"
             sib = sib.prev_sibling()
         return "Statement"
+
+    _NOTATION_LINE = re.compile(r"^\s*(\\[A-Za-z]+)\s*\$(.+?)\$\s*(.*?)\s*$")
+
+    def parse_notation(self) -> None:
+        """Parse each :notation: block's raw lines into entries:
+        `\\macro $default$ label` -> {macro, default, label}."""
+        for notn in self.tree.traverse(nodeclass=nodes.Notation):
+            text_node = next(iter(notn.traverse(nodeclass=nodes.Text)), None)
+            if text_node is None:
+                continue
+            entries = []
+            for line in text_node.text.splitlines():
+                if not line.strip():
+                    continue
+                m = self._NOTATION_LINE.match(line)
+                if not m:
+                    logger.warning(f"Unparseable :notation: line: {line!r}")
+                    continue
+                entries.append(
+                    {"macro": m.group(1), "default": m.group(2).strip(),
+                     "label": m.group(3).strip()}
+                )
+            notn.entries = entries
+            # the raw lines are now captured in `entries`; drop them so they
+            # don't render as literal text.
+            notn.clear()
 
     def make_proof_state(self) -> None:
         """Per-step `hypotheses |- goal` for the rail's State view (runs after

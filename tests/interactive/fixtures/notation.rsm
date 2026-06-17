@@ -1,0 +1,11 @@
+# Notation
+
+:notation:
+  \eig $\lambda$ general eigenvalue
+::
+
+Inline use of the macro: $\eig$.
+
+$$
+\eig + 1
+$$
