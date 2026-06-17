@@ -139,6 +139,25 @@ _RAIL_STATE_ICON = (
     '<path d="M3 4m0 1a1 1 0 0 1 1 -1h2a1 1 0 0 1 1 1v2a1 1 0 0 1 -1 1h-2a1 1 0 0 1 -1 -1z"/>'
     '<path d="M3 14m0 1a1 1 0 0 1 1 -1h2a1 1 0 0 1 1 1v2a1 1 0 0 1 -1 1h-2a1 1 0 0 1 -1 -1z"/></svg>'
 )
+_RAIL_NOTATION_ICON = (
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" '
+    'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+    '<path d="M20 17v-12c0 -1.121 -.879 -2 -2 -2s-2 .879 -2 2v12l2 2l2 -2z"/>'
+    '<path d="M16 7h4"/>'
+    '<path d="M18 19h-13a2 2 0 1 1 0 -4h4a2 2 0 1 0 0 -4h-3"/></svg>'
+)
+_RAIL_SIDEBAR_COLLAPSE_ICON = (
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" '
+    'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+    '<path d="M4 4m0 2a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2z"/>'
+    '<path d="M9 4v16"/><path d="M15 10l-2 2l2 2"/></svg>'
+)
+_RAIL_SIDEBAR_EXPAND_ICON = (
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" '
+    'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+    '<path d="M4 4m0 2a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2z"/>'
+    '<path d="M9 4v16"/><path d="M14 10l2 2l-2 2"/></svg>'
+)
 
 
 def _reject_html_wrapper(path: str) -> None:
@@ -2369,10 +2388,22 @@ class HandrailsTranslator(Translator):
         if toc is None or getattr(toc, "view", "list") != "tree":
             return AppendText(text="")
 
-        items = []
-        # Fallback shown when the reader is outside any proof: the section TOC.
+        # Document scope: the whole-document TOC tree, plus a notation pane when
+        # the author declared rebindable notation.
+        doc_panels = []
         if toc.tree_nodes:
-            items.append(self._rail_item("toc", self._toc_tree_svg(toc), None))
+            doc_panels.append(
+                f'<div class="rail-panel rail-doc-map">{self._toc_tree_svg(toc)}</div>'
+            )
+        has_notation = (
+            next(iter(self.tree.traverse(nodeclass=nodes.Notation)), None) is not None
+        )
+        if has_notation:
+            doc_panels.append('<div class="rail-panel rail-notation"></div>')
+
+        # Proof scope: one pre-rendered step-tree (and its state) per proof,
+        # auto-followed by prooftree.js as the reader scrolls.
+        proof_items = []
         for proof in self.tree.traverse(nodeclass=nodes.Proof):
             if not proof.tree_nodes:
                 continue
@@ -2380,25 +2411,76 @@ class HandrailsTranslator(Translator):
                 proof.tree_nodes, proof.tree_edges, proof.tree_root_title,
                 "Proof step dependency graph", orient="horizontal",
             )
-            items.append(self._rail_item(str(proof.nodeid), svg, proof.step_state))
-        if not items:
+            proof_items.append(
+                self._rail_item(str(proof.nodeid), svg, proof.step_state)
+            )
+
+        if not doc_panels and not proof_items:
             return AppendText(text="")
 
-        # Map shows where you are (the dependency graph); State shows what you
-        # are doing (the live hypotheses and current goal of the step in view).
-        tabs = (
-            '<div class="rail-tabs" role="tablist">'
-            '<button class="rail-tab active" data-view="map" '
+        scopes = (
+            '<div class="rail-scopes" role="tablist">'
+            '<button class="rail-scope active" data-scope="document" '
+            'title="Document: structure and notation for the whole paper">'
+            "Document</button>"
+            '<button class="rail-scope" data-scope="proof" '
+            "title=\"Proof: the dependency graph and live state of the proof "
+            'you are reading">Proof</button>'
+            "</div>"
+        )
+
+        # Document sub-tabs: the TOC map, and Notation when present.
+        doc_tabs = [
+            '<button class="rail-tab active" data-view="doc-map" '
+            'title="Map of the document\'s structure">'
+            + _RAIL_MAP_ICON + "<span>TOC</span></button>"
+        ]
+        if has_notation:
+            doc_tabs.append(
+                '<button class="rail-tab" data-view="notation" '
+                'title="Rename the symbols used in this paper">'
+                + _RAIL_NOTATION_ICON + "<span>Notation</span></button>"
+            )
+        doc_subtabs = (
+            '<div class="rail-subtabs rail-subtabs-document" role="tablist">'
+            + "".join(doc_tabs) + "</div>"
+        )
+
+        # Proof sub-tabs: Map (where you are) and State (what you must show).
+        proof_subtabs = (
+            '<div class="rail-subtabs rail-subtabs-proof" role="tablist">'
+            '<button class="rail-tab active" data-view="proof-map" '
             'title="Map: where you are in the proof\'s dependency structure">'
-            + _RAIL_MAP_ICON + "<span>Map</span></button>"
+            + _RAIL_MAP_ICON + "<span>Proof</span></button>"
             '<button class="rail-tab" data-view="state" '
             'title="State: the hypotheses in force and the goal you must show">'
             + _RAIL_STATE_ICON + "<span>State</span></button>"
             "</div>"
         )
+
+        collapse = (
+            '<button class="rail-collapse" title="Collapse" '
+            'aria-label="Collapse sidebar">'
+            '<span class="rail-collapse-collapse">'
+            + _RAIL_SIDEBAR_COLLAPSE_ICON + "</span>"
+            '<span class="rail-collapse-expand">'
+            + _RAIL_SIDEBAR_EXPAND_ICON + "</span></button>"
+        )
+        document_section = (
+            '<div class="rail-section rail-document">' + "".join(doc_panels) + "</div>"
+        )
+        proof_section = (
+            '<div class="rail-section rail-proof">'
+            '<div class="rail-proof-empty">'
+            "Scroll into a proof to see its map and state.</div>"
+            + "".join(proof_items) + "</div>"
+        )
+
         return AppendText(
-            text='<div class="proof-rail view-map" aria-hidden="true">'
-            + tabs + "".join(items) + "</div>"
+            text='<div class="proof-rail scope-document doc-view-map '
+            'proof-view-map" aria-hidden="true">'
+            + collapse + scopes + doc_subtabs + proof_subtabs
+            + document_section + proof_section + "</div>"
         )
 
     def _rail_item(self, key: str, svg: str, step_state) -> str:

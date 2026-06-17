@@ -36,6 +36,14 @@ var RSM = (() => {
       return {};
     }
   }
+  function saveOverride(macro, latex) {
+    const overrides = loadOverrides();
+    overrides[macro] = latex;
+    try {
+      localStorage.setItem(storageKey(), JSON.stringify(overrides));
+    } catch {
+    }
+  }
   function getNotationMacros() {
     if (_macros) return _macros;
     _macros = {};
@@ -47,6 +55,210 @@ var RSM = (() => {
     });
     Object.assign(_macros, loadOverrides());
     return _macros;
+  }
+  function isValid(latex) {
+    if (!latex || !latex.trim()) return false;
+    if (!window.temml) return true;
+    try {
+      window.temml.renderToString(latex, { throwOnError: true });
+      return true;
+    } catch {
+      return false;
+    }
+  }
+  function reRenderAll(root2 = document) {
+    if (!window.temml) return;
+    const macros = getNotationMacros();
+    root2.querySelectorAll("span.math[data-latex]").forEach((el) => {
+      try {
+        window.temml.render(el.dataset.latex, el, {
+          throwOnError: false,
+          macros: { ...macros }
+        });
+      } catch (err) {
+        console.error("notation re-render (inline):", err);
+      }
+    });
+    root2.querySelectorAll("div.mathblock[data-latex]").forEach((el) => {
+      const target = el.querySelector(".hr-content-zone") || el;
+      try {
+        window.temml.render(el.dataset.latex, target, {
+          displayMode: true,
+          throwOnError: false,
+          macros: { ...macros }
+        });
+      } catch (err) {
+        console.error("notation re-render (display):", err);
+      }
+    });
+  }
+  function setMacro(macro, latex) {
+    if (!isValid(latex)) return false;
+    getNotationMacros()[macro] = latex;
+    saveOverride(macro, latex);
+    reRenderAll();
+    return true;
+  }
+  function resetMacro(macro) {
+    const entry = listNotation().find((e) => e.macro === macro);
+    const overrides = loadOverrides();
+    delete overrides[macro];
+    try {
+      localStorage.setItem(storageKey(), JSON.stringify(overrides));
+    } catch {
+    }
+    if (entry) {
+      getNotationMacros()[macro] = entry.default;
+      reRenderAll();
+    }
+  }
+  function listNotation() {
+    const macros = getNotationMacros();
+    const out = [];
+    const seen = /* @__PURE__ */ new Set();
+    document.querySelectorAll("script.rsm-notation").forEach((s) => {
+      try {
+        for (const e of JSON.parse(s.textContent)) {
+          if (seen.has(e.macro)) continue;
+          seen.add(e.macro);
+          out.push({
+            macro: e.macro,
+            label: e.label || e.macro,
+            default: e.default,
+            current: macros[e.macro] ?? e.default
+          });
+        }
+      } catch {
+      }
+    });
+    return out;
+  }
+  var _LOCATE_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"/><path d="M12 12m-5 0a5 5 0 1 0 10 0a5 5 0 1 0 -10 0"/><path d="M12 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"/></svg>';
+  function usesOf(macro, root2 = document) {
+    const re = new RegExp(macro.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "(?![a-zA-Z])");
+    return [
+      ...root2.querySelectorAll("span.math[data-latex], div.mathblock[data-latex]")
+    ].filter((el) => re.test(el.dataset.latex));
+  }
+  function flash(el) {
+    el.classList.add("notation-located");
+    setTimeout(() => el.classList.remove("notation-located"), 1800);
+  }
+  function nearestOf(els) {
+    const center = window.innerHeight / 2;
+    let best = null;
+    let bestDist = Infinity;
+    for (const el of els) {
+      const r = el.getBoundingClientRect();
+      const dist = Math.abs(r.top + r.height / 2 - center);
+      if (dist < bestDist) {
+        bestDist = dist;
+        best = el;
+      }
+    }
+    return best;
+  }
+  function jumpTo(el) {
+    el.scrollIntoView({ behavior: "smooth", block: "center" });
+    flash(el);
+  }
+  function mountNotationPanel(root2 = document) {
+    const panel = root2.querySelector(".rail-notation");
+    if (!panel) return;
+    const entries = listNotation();
+    panel.innerHTML = "";
+    if (!entries.length) {
+      const empty = document.createElement("div");
+      empty.className = "rail-notation-empty";
+      empty.textContent = "This paper declares no rebindable notation.";
+      panel.appendChild(empty);
+      return;
+    }
+    for (const e of entries) {
+      let renderPreview = function(latex) {
+        if (!window.temml) {
+          preview.textContent = "";
+          return;
+        }
+        try {
+          preview.innerHTML = window.temml.renderToString(latex, { throwOnError: true });
+          input.classList.remove("invalid");
+        } catch {
+          input.classList.add("invalid");
+        }
+      }, commit = function() {
+        if (input.value === lastApplied) return;
+        const ok = setMacro(e.macro, input.value);
+        input.classList.toggle("invalid", !ok);
+        if (ok) {
+          lastApplied = input.value;
+          const uses = usesOf(e.macro, root2);
+          uses.forEach(flash);
+          const nearest = nearestOf(uses);
+          if (nearest) nearest.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      };
+      const row = document.createElement("div");
+      row.className = "rail-notation-row";
+      const label = document.createElement("div");
+      label.className = "rail-notation-label";
+      label.textContent = e.label;
+      const edit = document.createElement("div");
+      edit.className = "rail-notation-edit";
+      const input = document.createElement("input");
+      input.type = "text";
+      input.className = "rail-notation-input";
+      input.value = e.current;
+      input.spellcheck = false;
+      input.setAttribute("aria-label", `LaTeX for ${e.label}`);
+      const preview = document.createElement("span");
+      preview.className = "rail-notation-preview";
+      const apply = document.createElement("button");
+      apply.type = "button";
+      apply.className = "rail-notation-apply";
+      apply.textContent = "Apply";
+      const locate = document.createElement("button");
+      locate.type = "button";
+      locate.className = "rail-notation-locate";
+      locate.title = "Scroll to the nearest occurrence of this symbol";
+      locate.innerHTML = _LOCATE_ICON;
+      const reset = document.createElement("button");
+      reset.type = "button";
+      reset.className = "rail-notation-reset";
+      reset.title = "Reset to the author's default";
+      reset.textContent = "\u21BA";
+      renderPreview(input.value);
+      let lastApplied = e.current;
+      input.addEventListener("input", () => renderPreview(input.value));
+      input.addEventListener("keydown", (ev) => {
+        if (ev.key === "Enter") {
+          ev.preventDefault();
+          commit();
+        }
+      });
+      input.addEventListener("blur", commit);
+      for (const btn of [apply, locate, reset]) {
+        btn.addEventListener("mousedown", (ev) => ev.preventDefault());
+      }
+      apply.addEventListener("click", commit);
+      locate.addEventListener("click", () => {
+        const el = nearestOf(usesOf(e.macro, root2));
+        if (el) jumpTo(el);
+      });
+      reset.addEventListener("click", () => {
+        resetMacro(e.macro);
+        input.value = e.default;
+        lastApplied = e.default;
+        renderPreview(input.value);
+        usesOf(e.macro, root2).forEach(flash);
+      });
+      const actions = document.createElement("div");
+      actions.className = "rail-notation-actions";
+      actions.append(apply, locate, reset);
+      edit.append(input, preview);
+      row.append(label, edit, actions);
+      panel.appendChild(row);
+    }
   }
 
   // rsm/static/libraries.js
@@ -1107,14 +1319,16 @@ var RSM = (() => {
   function setup4(root2 = document) {
     const rail = root2.querySelector(".proof-rail");
     if (!rail) return;
-    const items = /* @__PURE__ */ new Map();
-    for (const item of rail.querySelectorAll(".proof-rail-item")) {
-      items.set(item.dataset.proof, item);
-      const svg = item.querySelector("svg.toc-tree");
-      if (svg && !svg.dataset.wired) {
+    const lsKey = "rsm-sidebar:" + location.pathname;
+    rail.querySelectorAll("svg.toc-tree").forEach((svg) => {
+      if (!svg.dataset.wired) {
         svg.dataset.wired = "1";
         wireTree(svg);
       }
+    });
+    const items = /* @__PURE__ */ new Map();
+    for (const item of rail.querySelectorAll(".rail-proof .proof-rail-item")) {
+      items.set(item.dataset.proof, item);
     }
     const stateData = /* @__PURE__ */ new Map();
     for (const [key, item] of items) {
@@ -1126,54 +1340,120 @@ var RSM = (() => {
         }
       }
     }
-    let view = rail.classList.contains("view-state") ? "state" : "map";
-    const active = { idx: -1 };
+    let proofView = rail.classList.contains("proof-view-state") ? "state" : "map";
+    let current;
     let currentNode = null;
-    const tabs = rail.querySelector(".rail-tabs");
-    if (tabs) {
-      tabs.addEventListener("click", (ev) => {
-        const t = ev.target.closest(".rail-tab");
-        if (!t) return;
-        view = t.dataset.view;
-        for (const b of tabs.querySelectorAll(".rail-tab")) b.classList.toggle("active", b === t);
-        rail.classList.toggle("view-map", view === "map");
-        rail.classList.toggle("view-state", view === "state");
+    const active = { idx: -1 };
+    rail.classList.add("active");
+    function railClassFor(tab) {
+      const inDoc = !!tab.closest(".rail-subtabs-document");
+      const suffix = tab.dataset.view.replace(/^(doc|proof)-/, "");
+      return (inDoc ? "doc-view-" : "proof-view-") + suffix;
+    }
+    function saveLayout() {
+      const layout = {
+        scope: rail.classList.contains("scope-proof") ? "proof" : "document",
+        docView: rail.classList.contains("doc-view-notation") ? "notation" : "doc-map",
+        proofView: rail.classList.contains("proof-view-state") ? "state" : "proof-map",
+        collapsed: rail.classList.contains("collapsed")
+      };
+      try {
+        localStorage.setItem(lsKey, JSON.stringify(layout));
+      } catch (e) {
+      }
+    }
+    function selectScope(scope) {
+      for (const s of rail.querySelectorAll(".rail-scope")) {
+        s.classList.toggle("active", s.dataset.scope === scope);
+      }
+      rail.classList.toggle("scope-document", scope === "document");
+      rail.classList.toggle("scope-proof", scope === "proof");
+    }
+    function selectTab(tab) {
+      const row = tab.closest(".rail-subtabs");
+      for (const t of row.querySelectorAll(".rail-tab")) {
+        t.classList.toggle("active", t === tab);
+        rail.classList.remove(railClassFor(t));
+      }
+      rail.classList.add(railClassFor(tab));
+      if (row.classList.contains("rail-subtabs-proof")) {
+        proofView = tab.dataset.view === "state" ? "state" : "map";
         renderState();
+      }
+    }
+    const scopeRow = rail.querySelector(".rail-scopes");
+    if (scopeRow) {
+      scopeRow.addEventListener("click", (ev) => {
+        const s = ev.target.closest(".rail-scope");
+        if (!s) return;
+        selectScope(s.dataset.scope);
+        saveLayout();
       });
     }
+    for (const row of rail.querySelectorAll(".rail-subtabs")) {
+      row.addEventListener("click", (ev) => {
+        const t = ev.target.closest(".rail-tab");
+        if (!t) return;
+        selectTab(t);
+        saveLayout();
+      });
+    }
+    const collapseBtn = rail.querySelector(".rail-collapse");
+    if (collapseBtn) {
+      collapseBtn.addEventListener("click", () => {
+        rail.classList.toggle("collapsed");
+        saveLayout();
+      });
+    }
+    try {
+      const saved = JSON.parse(localStorage.getItem(lsKey) || "null");
+      if (saved) {
+        selectScope(saved.scope === "proof" ? "proof" : "document");
+        const docTab = rail.querySelector(
+          `.rail-subtabs-document .rail-tab[data-view="${saved.docView}"]`
+        );
+        if (docTab) selectTab(docTab);
+        const proofTab = rail.querySelector(
+          `.rail-subtabs-proof .rail-tab[data-view="${saved.proofView}"]`
+        );
+        if (proofTab) selectTab(proofTab);
+        rail.classList.toggle("collapsed", !!saved.collapsed);
+      }
+    } catch (e) {
+    }
     const proofs = [...root2.querySelectorAll(".proof[data-nodeid]")];
-    if (!proofs.length && !items.has("toc")) return;
-    rail.classList.add("active");
-    let current = null;
     function show(key) {
-      if (!items.has(key)) key = items.has("toc") ? "toc" : null;
+      if (!items.has(key)) key = null;
       if (key === current) return;
       current = key;
       for (const [k, item] of items) item.classList.toggle("shown", k === key);
+      rail.classList.toggle("no-proof", key === null);
       updateState();
     }
-    show("toc");
-    const visible = /* @__PURE__ */ new Set();
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const e of entries) {
-          if (e.isIntersecting) visible.add(e.target);
-          else visible.delete(e.target);
-        }
-        let best = null;
-        let bestTop = Infinity;
-        for (const p of visible) {
-          const top = p.getBoundingClientRect().top;
-          if (top < bestTop) {
-            bestTop = top;
-            best = p;
+    show(null);
+    if (proofs.length) {
+      const visible = /* @__PURE__ */ new Set();
+      const observer = new IntersectionObserver(
+        (entries) => {
+          for (const e of entries) {
+            if (e.isIntersecting) visible.add(e.target);
+            else visible.delete(e.target);
           }
-        }
-        show(best ? best.getAttribute("data-nodeid") : "toc");
-      },
-      { rootMargin: "-12% 0px -55% 0px", threshold: 0 }
-    );
-    for (const p of proofs) observer.observe(p);
+          let best = null;
+          let bestTop = Infinity;
+          for (const p of visible) {
+            const top = p.getBoundingClientRect().top;
+            if (top < bestTop) {
+              bestTop = top;
+              best = p;
+            }
+          }
+          show(best ? best.getAttribute("data-nodeid") : null);
+        },
+        { rootMargin: "-12% 0px -55% 0px", threshold: 0 }
+      );
+      for (const p of proofs) observer.observe(p);
+    }
     function setCurrentNode(node) {
       if (node === currentNode) return;
       if (currentNode) currentNode.classList.remove("current-step");
@@ -1204,7 +1484,7 @@ var RSM = (() => {
         return;
       }
       let idx = -1;
-      if (current && current !== "toc") {
+      if (current) {
         const proofEl = root2.querySelector(`.proof[data-nodeid="${current}"]`);
         if (proofEl) {
           idx = currentStepOf(proofEl);
@@ -1241,7 +1521,7 @@ var RSM = (() => {
       return c;
     }
     function renderState() {
-      if (view !== "state") return;
+      if (proofView !== "state") return;
       const item = current ? items.get(current) : null;
       if (!item) return;
       const panel = item.querySelector(".rail-state");
@@ -1452,6 +1732,11 @@ var RSM = (() => {
       }
       window.__rsmInitialized = true;
       await onrender(root2);
+      try {
+        mountNotationPanel(root2);
+      } catch (err) {
+        console.error("Loading notation panel FAILED!", err);
+      }
     } catch (err) {
       console.error("An error occurred during initialization:", err);
     }

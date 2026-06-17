@@ -1,10 +1,11 @@
 // prooftree.js
 //
-// Floating left rail that shows the step-dependency tree of the proof the
-// reader is currently in (or the section TOC when between proofs). The trees
-// are pre-rendered SVGs inside .proof-rail (one per proof, plus a TOC
-// fallback), laid out at build time; this module only chooses which one is
-// shown as the reader scrolls, and reuses the tree hover logic from tocarcs.
+// Floating sidebar with two scopes:
+//   Document - the whole-paper TOC tree, and the Notation panel
+//   Proof    - the step-dependency tree and live State of the proof in view
+// Both DAGs are pre-rendered SVGs (laid out at build time); this module routes
+// scope/sub-tab clicks, auto-follows the proof you are reading, handles the
+// collapse control, and remembers your layout in localStorage.
 
 import { wireTree } from "./tocarcs.js";
 
@@ -12,17 +13,21 @@ export function setup(root = document) {
   const rail = root.querySelector(".proof-rail");
   if (!rail) return;
 
-  const items = new Map();
-  for (const item of rail.querySelectorAll(".proof-rail-item")) {
-    items.set(item.dataset.proof, item);
-    const svg = item.querySelector("svg.toc-tree");
-    if (svg && !svg.dataset.wired) {
+  const lsKey = "rsm-sidebar:" + location.pathname;
+
+  // Wire hover behavior on every pre-rendered tree (the TOC and each proof).
+  rail.querySelectorAll("svg.toc-tree").forEach((svg) => {
+    if (!svg.dataset.wired) {
       svg.dataset.wired = "1";
       wireTree(svg);
     }
-  }
+  });
 
-  // Per-proof "State" data: data-proof -> [{goal, hyps}, ...] indexed by step.
+  // Per-proof items live under the Proof scope; the TOC is a Document panel.
+  const items = new Map();
+  for (const item of rail.querySelectorAll(".rail-proof .proof-rail-item")) {
+    items.set(item.dataset.proof, item);
+  }
   const stateData = new Map();
   for (const [key, item] of items) {
     const sd = item.querySelector(".rail-state-data");
@@ -35,63 +40,150 @@ export function setup(root = document) {
     }
   }
 
-  let view = rail.classList.contains("view-state") ? "state" : "map";
-  const active = { idx: -1 };
+  // State, declared up front so early calls (restore, show) never hit the TDZ.
+  let proofView = rail.classList.contains("proof-view-state") ? "state" : "map";
+  // data-proof of the proof in view, or null outside one. Starts undefined so
+  // the first show(null) actually runs (and sets the no-proof state).
+  let current;
   let currentNode = null;
-  const tabs = rail.querySelector(".rail-tabs");
-  if (tabs) {
-    tabs.addEventListener("click", (ev) => {
+  const active = { idx: -1 };
+
+  rail.classList.add("active");
+
+  // ---- layout: scope, sub-tabs, collapse (persisted) ----
+
+  // Map a sub-tab button to the rail class that selects its panel. The class is
+  // scoped (doc-view-* vs proof-view-*) so Document and Proof can both have a
+  // "map" sub-tab without colliding.
+  function railClassFor(tab) {
+    const inDoc = !!tab.closest(".rail-subtabs-document");
+    const suffix = tab.dataset.view.replace(/^(doc|proof)-/, "");
+    return (inDoc ? "doc-view-" : "proof-view-") + suffix;
+  }
+
+  function saveLayout() {
+    const layout = {
+      scope: rail.classList.contains("scope-proof") ? "proof" : "document",
+      docView: rail.classList.contains("doc-view-notation") ? "notation" : "doc-map",
+      proofView: rail.classList.contains("proof-view-state") ? "state" : "proof-map",
+      collapsed: rail.classList.contains("collapsed"),
+    };
+    try {
+      localStorage.setItem(lsKey, JSON.stringify(layout));
+    } catch (e) {
+      /* localStorage unavailable; layout stays session-only */
+    }
+  }
+
+  function selectScope(scope) {
+    for (const s of rail.querySelectorAll(".rail-scope")) {
+      s.classList.toggle("active", s.dataset.scope === scope);
+    }
+    rail.classList.toggle("scope-document", scope === "document");
+    rail.classList.toggle("scope-proof", scope === "proof");
+  }
+
+  function selectTab(tab) {
+    const row = tab.closest(".rail-subtabs");
+    for (const t of row.querySelectorAll(".rail-tab")) {
+      t.classList.toggle("active", t === tab);
+      rail.classList.remove(railClassFor(t));
+    }
+    rail.classList.add(railClassFor(tab));
+    if (row.classList.contains("rail-subtabs-proof")) {
+      proofView = tab.dataset.view === "state" ? "state" : "map";
+      renderState();
+    }
+  }
+
+  const scopeRow = rail.querySelector(".rail-scopes");
+  if (scopeRow) {
+    scopeRow.addEventListener("click", (ev) => {
+      const s = ev.target.closest(".rail-scope");
+      if (!s) return;
+      selectScope(s.dataset.scope);
+      saveLayout();
+    });
+  }
+  for (const row of rail.querySelectorAll(".rail-subtabs")) {
+    row.addEventListener("click", (ev) => {
       const t = ev.target.closest(".rail-tab");
       if (!t) return;
-      view = t.dataset.view;
-      for (const b of tabs.querySelectorAll(".rail-tab")) b.classList.toggle("active", b === t);
-      rail.classList.toggle("view-map", view === "map");
-      rail.classList.toggle("view-state", view === "state");
-      renderState();
+      selectTab(t);
+      saveLayout();
+    });
+  }
+  const collapseBtn = rail.querySelector(".rail-collapse");
+  if (collapseBtn) {
+    collapseBtn.addEventListener("click", () => {
+      rail.classList.toggle("collapsed");
+      saveLayout();
     });
   }
 
-  const proofs = [...root.querySelectorAll(".proof[data-nodeid]")];
-  if (!proofs.length && !items.has("toc")) return;
+  // Restore a previously saved layout.
+  try {
+    const saved = JSON.parse(localStorage.getItem(lsKey) || "null");
+    if (saved) {
+      selectScope(saved.scope === "proof" ? "proof" : "document");
+      const docTab = rail.querySelector(
+        `.rail-subtabs-document .rail-tab[data-view="${saved.docView}"]`,
+      );
+      if (docTab) selectTab(docTab);
+      const proofTab = rail.querySelector(
+        `.rail-subtabs-proof .rail-tab[data-view="${saved.proofView}"]`,
+      );
+      if (proofTab) selectTab(proofTab);
+      rail.classList.toggle("collapsed", !!saved.collapsed);
+    }
+  } catch (e) {
+    /* ignore malformed saved layout */
+  }
 
-  rail.classList.add("active");
-  let current = null;
+  // ---- proof auto-follow ----
+
+  const proofs = [...root.querySelectorAll(".proof[data-nodeid]")];
+
   function show(key) {
-    if (!items.has(key)) key = items.has("toc") ? "toc" : null;
+    if (!items.has(key)) key = null;
     if (key === current) return;
     current = key;
     for (const [k, item] of items) item.classList.toggle("shown", k === key);
+    // Outside any proof the Proof scope has nothing live to show; CSS uses this
+    // to present an empty state rather than a blank panel.
+    rail.classList.toggle("no-proof", key === null);
     updateState();
   }
-  show("toc");
+  show(null);
 
-  // The active proof is the one whose box is highest while still overlapping
-  // the reading band near the top of the viewport; otherwise the TOC fallback.
-  const visible = new Set();
-  const observer = new IntersectionObserver(
-    (entries) => {
-      for (const e of entries) {
-        if (e.isIntersecting) visible.add(e.target);
-        else visible.delete(e.target);
-      }
-      let best = null;
-      let bestTop = Infinity;
-      for (const p of visible) {
-        const top = p.getBoundingClientRect().top;
-        if (top < bestTop) {
-          bestTop = top;
-          best = p;
+  if (proofs.length) {
+    // The active proof is the one whose box is highest while still overlapping
+    // the reading band near the top of the viewport.
+    const visible = new Set();
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting) visible.add(e.target);
+          else visible.delete(e.target);
         }
-      }
-      show(best ? best.getAttribute("data-nodeid") : "toc");
-    },
-    { rootMargin: "-12% 0px -55% 0px", threshold: 0 },
-  );
-  for (const p of proofs) observer.observe(p);
+        let best = null;
+        let bestTop = Infinity;
+        for (const p of visible) {
+          const top = p.getBoundingClientRect().top;
+          if (top < bestTop) {
+            bestTop = top;
+            best = p;
+          }
+        }
+        show(best ? best.getAttribute("data-nodeid") : null);
+      },
+      { rootMargin: "-12% 0px -55% 0px", threshold: 0 },
+    );
+    for (const p of proofs) observer.observe(p);
+  }
 
-  // Active-step tracking: mark the rail node of the step currently being read,
-  // using the same "topmost in the reading band" rule. Suppressed during focus
-  // mode, which provides its own emphasis.
+  // ---- active-step tracking + State view ----
+
   function setCurrentNode(node) {
     if (node === currentNode) return;
     if (currentNode) currentNode.classList.remove("current-step");
@@ -105,8 +197,7 @@ export function setup(root = document) {
   }
   function currentStepOf(proofEl) {
     // The deepest step whose top has passed the viewport center: the step being
-    // read, and in a gap between steps the last one passed. Never nothing while
-    // a step is above the center.
+    // read, and in a gap between steps the last one passed.
     const center = window.innerHeight / 2;
     let best = -1;
     let bestTop = -Infinity;
@@ -125,11 +216,11 @@ export function setup(root = document) {
       return;
     }
     let idx = -1;
-    if (current && current !== "toc") {
+    if (current) {
       const proofEl = root.querySelector(`.proof[data-nodeid="${current}"]`);
       if (proofEl) {
         idx = currentStepOf(proofEl);
-        // Above the first step (the proof's opening) still shows step 1's state,
+        // Above the first step the proof's opening still shows step 1's state,
         // so the rail is never empty while you are inside a proof.
         if (idx < 0) idx = 0;
       }
@@ -141,7 +232,6 @@ export function setup(root = document) {
     );
   }
 
-  // Recompute the current step whenever a step boundary crosses the center.
   const stepObserver = new IntersectionObserver(() => updateState(), {
     rootMargin: "-50% 0px -50% 0px",
     threshold: 0,
@@ -159,8 +249,7 @@ export function setup(root = document) {
       n.removeAttribute("data-nodeid");
     });
     // Strip handrail scaffolding so the clone reads as plain prose, not a mini
-    // handrail (its offset zones also overflow the narrow rail and force a
-    // scrollbar).
+    // handrail (its offset zones also overflow the narrow rail).
     c.querySelectorAll(
       ".hr-collapse-zone,.hr-menu-zone,.hr-border-zone,.hr-spacer-zone,.hr-info-zone",
     ).forEach((n) => n.remove());
@@ -172,10 +261,9 @@ export function setup(root = document) {
 
   // Render the State view for the shown proof at the current step: the live
   // hypotheses and the goal, cloned from the body so their math is already
-  // typeset. The body element comes before the hidden source copy, so a
-  // first-match lookup by nodeid returns the real one.
+  // typeset.
   function renderState() {
-    if (view !== "state") return;
+    if (proofView !== "state") return;
     const item = current ? items.get(current) : null;
     if (!item) return;
     const panel = item.querySelector(".rail-state");
@@ -231,11 +319,8 @@ export function setup(root = document) {
     if (goalEl) {
       if (g.num) body.appendChild(badge(g.num));
       if (g.thm) {
-        // theorem block: show its statement minus the hypotheses already listed
         const cz = goalEl.querySelector(":scope > .hr-content-zone") || goalEl;
         const clone = cloneClean(cz);
-        // drop the title label and the hypotheses already shown above; keep the
-        // theorem's conclusion as the goal.
         clone
           .querySelectorAll(".hr-label, .construct.let, .construct.assume")
           .forEach((n) => n.remove());

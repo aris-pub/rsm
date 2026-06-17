@@ -1308,7 +1308,29 @@ body {
     z-index: 40;
   }
 
-  .rail-tabs { display: flex; gap: 0.3rem; flex-shrink: 0; }
+  /* Tab rows: the scope axis (Document / Proof) on top, then the active scope's
+     sub-tabs below. */
+  .rail-tabs,
+  .rail-subtabs,
+  .rail-scopes { display: flex; gap: 0.3rem; flex-shrink: 0; }
+  .rail-scope {
+    flex: 1;
+    padding: 0.3rem 0.5rem;
+    border: none;
+    border-bottom: 2px solid transparent;
+    background: none;
+    cursor: pointer;
+    font-size: 0.82rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: var(--gray-500, #8a94a3);
+  }
+  .rail-scope.active {
+    color: var(--blue, #2c5e9e);
+    border-bottom-color: var(--blue, #2c5e9e);
+  }
+  .rail-scope:hover { color: var(--blue, #2c5e9e); }
+
   .rail-tab {
     display: inline-flex;
     align-items: center;
@@ -1328,18 +1350,145 @@ body {
   }
   .rail-tab:hover { color: var(--blue, #2c5e9e); }
 
+  /* Collapse control: shrinks the sidebar to a single re-open affordance so the
+     document can read as just the prose. */
+  .rail-collapse {
+    align-self: flex-end;
+    display: inline-flex;
+    padding: 0.2rem;
+    border: none;
+    background: none;
+    cursor: pointer;
+    color: var(--gray-500, #8a94a3);
+  }
+  .rail-collapse svg { width: 18px; height: 18px; }
+  .rail-collapse:hover { color: var(--blue, #2c5e9e); }
+  .proof-rail.collapsed { width: auto; gap: 0; }
+  .proof-rail.collapsed > :not(.rail-collapse) { display: none; }
+  .rail-collapse-collapse,
+  .rail-collapse-expand { display: inline-flex; }
+  .rail-collapse-expand { display: none; }
+  .proof-rail.collapsed .rail-collapse-collapse { display: none; }
+  .proof-rail.collapsed .rail-collapse-expand { display: inline-flex; }
+
+  /* Scope routing: show only the active scope's sub-tabs and section. */
+  .proof-rail.scope-document .rail-subtabs-proof,
+  .proof-rail.scope-document .rail-proof { display: none; }
+  .proof-rail.scope-proof .rail-subtabs-document,
+  .proof-rail.scope-proof .rail-document { display: none; }
+
+  .rail-section { display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
+
+  /* Document sub-tab routing. */
+  .proof-rail.doc-view-map .rail-notation { display: none; }
+  .proof-rail.doc-view-notation .rail-doc-map { display: none; }
+  .rail-doc-map { display: flex; align-items: center; justify-content: center; min-height: 0; }
+
   .proof-rail-item { display: none; min-height: 0; }
   .proof-rail-item.shown { display: flex; flex-direction: column; min-height: 0; }
 
-  /* View toggling: show only the active view's panel of the shown item. */
-  .proof-rail.view-map .rail-state { display: none; }
-  .proof-rail.view-state .rail-map { display: none; }
+  /* Proof sub-tab routing: show only the active panel of the shown item. */
+  .proof-rail.proof-view-map .rail-state { display: none; }
+  .proof-rail.proof-view-state .rail-map { display: none; }
   .rail-map { display: flex; align-items: center; justify-content: center; min-height: 0; }
+
+  /* Outside any proof the Proof scope has nothing live, so show an empty state. */
+  .rail-proof-empty {
+    display: none;
+    color: var(--gray-500, #8a94a3);
+    font-style: italic;
+    font-size: 0.8rem;
+  }
+  .proof-rail.no-proof .rail-proof-empty { display: block; }
+
+  /* Notation pane: one rebind row per declared symbol. */
+  .rail-notation {
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 0.2rem 0;
+  }
+  .rail-notation-row { display: flex; flex-direction: column; gap: 0.25rem; }
+  .rail-notation-label {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--gray-500, #8a94a3);
+    font-weight: 700;
+  }
+  .rail-notation-edit { display: flex; align-items: center; gap: 0.4rem; }
+  .rail-notation-actions { display: flex; align-items: center; gap: 0.4rem; }
+  .rail-notation-apply {
+    padding: 0.2rem 0.7rem;
+    border: 1px solid var(--blue, #2c5e9e);
+    border-radius: 6px;
+    background: var(--blue, #2c5e9e);
+    color: #fff;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .rail-notation-apply:hover { background: #244e85; }
+  /* Push locate + reset to the right, away from Apply. */
+  .rail-notation-locate { margin-left: auto; }
+  .rail-notation-input {
+    flex: 1;
+    min-width: 0;
+    font-family: var(--mono, monospace);
+    font-size: 0.82rem;
+    padding: 0.25rem 0.45rem;
+    border: 1px solid var(--gray-200, #e6eaef);
+    border-radius: 6px;
+    background: var(--white, #fff);
+    color: var(--text-primary, #1a2230);
+  }
+  .rail-notation-input:focus { outline: none; border-color: var(--blue, #2c5e9e); }
+  .rail-notation-input.invalid { border-color: #c0392b; }
+  .rail-notation-preview {
+    min-width: 1.8em;
+    text-align: center;
+    color: var(--text-secondary, #3a4453);
+    font-size: 0.95rem;
+  }
+  .rail-notation-reset,
+  .rail-notation-locate {
+    border: none;
+    background: none;
+    cursor: pointer;
+    padding: 0.2rem;
+    color: var(--gray-400, #aab2bd);
+    font-size: 1rem;
+    line-height: 1;
+  }
+  .rail-notation-reset:hover,
+  .rail-notation-locate:hover { color: var(--blue, #2c5e9e); }
+  .rail-notation-locate { display: inline-flex; }
+  .rail-notation-locate svg { width: 16px; height: 16px; }
+
+  /* Gentle, temporary highlight on the symbol the reader located: a soft halo
+     that fades in, holds, then fades out, so it's easy to spot without jarring.
+     The box-shadow spread haloes even a small inline symbol without shifting
+     layout. */
+  /* Highlight the located symbol. Static (not animated) so it survives
+     prefers-reduced-motion, and !important so it beats the math element's own
+     background. The box-shadow spread haloes even a small inline symbol. */
+  .notation-located {
+    background-color: rgba(247, 201, 72, 0.9) !important;
+    box-shadow: 0 0 0 4px rgba(247, 201, 72, 0.9);
+    border-radius: 3px;
+  }
+  .rail-notation-empty {
+    color: var(--gray-500, #8a94a3);
+    font-style: italic;
+    font-size: 0.8rem;
+  }
 
   /* Capped to the gutter box: a tree larger than this scales down (aspect
      preserved) to fit entirely; a smaller one stays at its natural size. No
      overflow, so the rail never shows a scrollbar. */
-  .proof-rail-item svg.toc-tree {
+  .proof-rail svg.toc-tree {
     display: block;
     width: auto;
     height: auto;

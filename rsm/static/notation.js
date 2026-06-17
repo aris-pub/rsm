@@ -100,3 +100,212 @@ export function setMacro(macro, latex) {
   reRenderAll();
   return true;
 }
+
+// Revert a macro to the author's default: drop the override and re-render.
+export function resetMacro(macro) {
+  const entry = listNotation().find((e) => e.macro === macro);
+  const overrides = loadOverrides();
+  delete overrides[macro];
+  try {
+    localStorage.setItem(storageKey(), JSON.stringify(overrides));
+  } catch {
+    /* localStorage unavailable */
+  }
+  if (entry) {
+    getNotationMacros()[macro] = entry.default;
+    reRenderAll();
+  }
+}
+
+// The declared notation as the reader UI needs it: label, author default, and
+// the value currently in force (default overlaid with any reader override).
+export function listNotation() {
+  const macros = getNotationMacros();
+  const out = [];
+  const seen = new Set();
+  document.querySelectorAll("script.rsm-notation").forEach((s) => {
+    try {
+      for (const e of JSON.parse(s.textContent)) {
+        if (seen.has(e.macro)) continue;
+        seen.add(e.macro);
+        out.push({
+          macro: e.macro,
+          label: e.label || e.macro,
+          default: e.default,
+          current: macros[e.macro] ?? e.default,
+        });
+      }
+    } catch {
+      /* malformed notation data; skip */
+    }
+  });
+  return out;
+}
+
+const _LOCATE_ICON =
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ' +
+  'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+  '<path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"/>' +
+  '<path d="M12 12m-5 0a5 5 0 1 0 10 0a5 5 0 1 0 -10 0"/>' +
+  '<path d="M12 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"/></svg>';
+
+// Every math element whose source uses this macro, matched on the whole control
+// sequence so \eig never matches \eigenvalue.
+function usesOf(macro, root = document) {
+  const re = new RegExp(macro.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "(?![a-zA-Z])");
+  return [
+    ...root.querySelectorAll("span.math[data-latex], div.mathblock[data-latex]"),
+  ].filter((el) => re.test(el.dataset.latex));
+}
+
+// Briefly highlight an element so the reader can spot it.
+function flash(el) {
+  el.classList.add("notation-located");
+  setTimeout(() => el.classList.remove("notation-located"), 1800);
+}
+
+// Of a set of elements, the one whose vertical center is closest to the
+// viewport center: nearest to where the reader is currently looking.
+function nearestOf(els) {
+  const center = window.innerHeight / 2;
+  let best = null;
+  let bestDist = Infinity;
+  for (const el of els) {
+    const r = el.getBoundingClientRect();
+    const dist = Math.abs(r.top + r.height / 2 - center);
+    if (dist < bestDist) {
+      bestDist = dist;
+      best = el;
+    }
+  }
+  return best;
+}
+
+function jumpTo(el) {
+  el.scrollIntoView({ behavior: "smooth", block: "center" });
+  flash(el);
+}
+
+// Build the Notation pane (Document scope) into its .rail-notation panel: one
+// row per declared symbol with a LaTeX field, a live preview, a locate, and a
+// reset.
+export function mountNotationPanel(root = document) {
+  const panel = root.querySelector(".rail-notation");
+  if (!panel) return;
+  const entries = listNotation();
+  panel.innerHTML = "";
+  if (!entries.length) {
+    const empty = document.createElement("div");
+    empty.className = "rail-notation-empty";
+    empty.textContent = "This paper declares no rebindable notation.";
+    panel.appendChild(empty);
+    return;
+  }
+
+  for (const e of entries) {
+    const row = document.createElement("div");
+    row.className = "rail-notation-row";
+
+    const label = document.createElement("div");
+    label.className = "rail-notation-label";
+    label.textContent = e.label;
+
+    const edit = document.createElement("div");
+    edit.className = "rail-notation-edit";
+
+    const input = document.createElement("input");
+    input.type = "text";
+    input.className = "rail-notation-input";
+    input.value = e.current;
+    input.spellcheck = false;
+    input.setAttribute("aria-label", `LaTeX for ${e.label}`);
+
+    const preview = document.createElement("span");
+    preview.className = "rail-notation-preview";
+
+    const apply = document.createElement("button");
+    apply.type = "button";
+    apply.className = "rail-notation-apply";
+    apply.textContent = "Apply";
+
+    const locate = document.createElement("button");
+    locate.type = "button";
+    locate.className = "rail-notation-locate";
+    locate.title = "Scroll to the nearest occurrence of this symbol";
+    locate.innerHTML = _LOCATE_ICON;
+
+    const reset = document.createElement("button");
+    reset.type = "button";
+    reset.className = "rail-notation-reset";
+    reset.title = "Reset to the author's default";
+    reset.textContent = "↺";
+
+    function renderPreview(latex) {
+      if (!window.temml) {
+        preview.textContent = "";
+        return;
+      }
+      try {
+        preview.innerHTML = window.temml.renderToString(latex, { throwOnError: true });
+        input.classList.remove("invalid");
+      } catch {
+        input.classList.add("invalid");
+      }
+    }
+    renderPreview(input.value);
+
+    // Apply the typed value: validate, re-render, and flash every instance that
+    // changed so the reader sees the effect (not just the symbol on the input's
+    // row). No-op if nothing changed, so clicking away doesn't re-flash.
+    let lastApplied = e.current;
+    function commit() {
+      if (input.value === lastApplied) return;
+      const ok = setMacro(e.macro, input.value);
+      input.classList.toggle("invalid", !ok);
+      if (ok) {
+        lastApplied = input.value;
+        const uses = usesOf(e.macro, root);
+        uses.forEach(flash);
+        // Always bring the nearest instance into view so the change is visible
+        // even when you applied it while no instance was on screen.
+        const nearest = nearestOf(uses);
+        if (nearest) nearest.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    }
+
+    input.addEventListener("input", () => renderPreview(input.value));
+    input.addEventListener("keydown", (ev) => {
+      if (ev.key === "Enter") {
+        ev.preventDefault();
+        commit();
+      }
+    });
+    input.addEventListener("blur", commit);
+
+    // Keep focus in the field when a control is clicked (so blur doesn't fire a
+    // duplicate commit); each button then runs its own explicit action.
+    for (const btn of [apply, locate, reset]) {
+      btn.addEventListener("mousedown", (ev) => ev.preventDefault());
+    }
+    apply.addEventListener("click", commit);
+    locate.addEventListener("click", () => {
+      const el = nearestOf(usesOf(e.macro, root));
+      if (el) jumpTo(el);
+    });
+    reset.addEventListener("click", () => {
+      resetMacro(e.macro);
+      input.value = e.default;
+      lastApplied = e.default;
+      renderPreview(input.value);
+      usesOf(e.macro, root).forEach(flash);
+    });
+
+    const actions = document.createElement("div");
+    actions.className = "rail-notation-actions";
+    actions.append(apply, locate, reset);
+
+    edit.append(input, preview);
+    row.append(label, edit, actions);
+    panel.appendChild(row);
+  }
+}

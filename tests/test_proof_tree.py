@@ -63,20 +63,86 @@ def test_external_refs_excluded():
     assert len(p.tree_edges) == 2
 
 
+# A document with a title, a tree-view TOC over several sections, and a proof,
+# so the floating sidebar has real content under both the Document scope (TOC
+# tree) and the Proof scope (the proof's step-tree).
+RAIL_SRC = """\
+# Demo
+
+:toc: {
+  :view: tree
+}
+::
+
+## One
+  {:label: sec-one}
+
+:theorem: {:label: thm-x} A claim.::
+
+:proof:
+  :step: {:label: st-1} Foo.::
+  :step: {:label: st-2} Bar by :ref:st-1::.::
+  :step: :qed: Done by :ref:st-2::.::
+::
+
+## Two
+  {:label: sec-two}
+
+See :ref:thm-x::.
+"""
+
+# The same document plus a :notation: block, so the Document scope grows a
+# Notation sub-tab.
+RAIL_SRC_NOTATION = RAIL_SRC.replace(
+    "  {:label: sec-one}\n\n",
+    "  {:label: sec-one}\n\n:notation:\n  \\eig $\\lambda$ eigenvalue\n::\n\n",
+)
+
+
 def test_rail_emitted_with_tree_toc():
-    html = rsm.render(SRC, handrails=True)
-    assert 'class="proof-rail view-map"' in html
-    # the rail has Map/State tabs
-    assert 'class="rail-tab' in html
-    # at least the proof's own step-tree is shown in the rail
+    html = rsm.render(RAIL_SRC, handrails=True)
+    assert 'class="proof-rail' in html
+    # two scope tabs: Document and Proof
+    assert 'data-scope="document"' in html
+    assert 'data-scope="proof"' in html
+    # Proof scope sub-tabs: the proof-DAG ("map") and the State
+    assert 'data-view="proof-map"' in html
+    assert 'data-view="state"' in html
+    # Document scope sub-tab: the whole-document TOC tree
+    assert 'data-view="doc-map"' in html
+    # the proof's own step-tree lives under the Proof scope
     assert html.count('class="proof-rail-item"') >= 1
-    proof = _proof(SRC)
+    proof = _proof(RAIL_SRC)
     assert f'data-proof="{proof.nodeid}"' in html
 
 
+def test_toc_tree_lives_under_document_scope():
+    html = rsm.render(RAIL_SRC, handrails=True)
+    # The TOC tree is a Document-scope panel now, not a per-proof item keyed "toc".
+    assert 'class="rail-panel rail-doc-map"' in html
+    assert 'data-proof="toc"' not in html
+
+
+def test_collapse_control_present():
+    html = rsm.render(RAIL_SRC, handrails=True)
+    assert 'class="rail-collapse"' in html
+
+
+def test_notation_tab_present_when_declared():
+    html = rsm.render(RAIL_SRC_NOTATION, handrails=True)
+    assert 'data-view="notation"' in html
+    assert 'class="rail-panel rail-notation"' in html
+
+
+def test_no_notation_tab_without_notation():
+    html = rsm.render(RAIL_SRC, handrails=True)
+    assert 'data-view="notation"' not in html
+    assert "rail-notation" not in html
+
+
 def test_rail_absent_without_tree_toc():
-    # No TOC view directive (the default list view): no floating rail.
-    html = rsm.render(SRC.replace("  :view: tree\n", ""), handrails=True)
+    # No tree view directive (the default list view): no floating sidebar.
+    html = rsm.render(RAIL_SRC.replace("  :view: tree\n", ""), handrails=True)
     assert "proof-rail" not in html
 
 

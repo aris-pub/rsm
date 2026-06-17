@@ -14,6 +14,7 @@ import * as tooltips from './tooltips.js';
 import * as tocarcs from './tocarcs.js';
 import * as prooftree from './prooftree.js';
 import * as focusmode from './focusmode.js';
+import * as notation from './notation.js';
 
 export async function onload(root = null, { keys = true } = {}) {
   if (!root) root = document;
@@ -86,6 +87,14 @@ export async function onload(root = null, { keys = true } = {}) {
 
     // Render initial content
     await onrender(root);
+
+    // Notation pane (Document scope of the sidebar) - built after the first
+    // typeset so the live LaTeX preview has the math renderer available.
+    try {
+      notation.mountNotationPanel(root);
+    } catch (err) {
+      console.error("Loading notation panel FAILED!", err);
+    }
 
   } catch (err) {
     console.error("An error occurred during initialization:", err);

@@ -1,0 +1,45 @@
+# Sidebar Demo
+
+:toc: {
+  :view: tree
+}
+::
+
+## Introduction
+  {:label: sec-intro}
+
+:notation:
+  \eig $\lambda$ eigenvalue
+::
+
+The spectral radius is written $\eig$ throughout this demonstration document.
+
+This paragraph is filler so the proof below starts off-screen on load.
+This paragraph is filler so the proof below starts off-screen on load.
+This paragraph is filler so the proof below starts off-screen on load.
+This paragraph is filler so the proof below starts off-screen on load.
+This paragraph is filler so the proof below starts off-screen on load.
+This paragraph is filler so the proof below starts off-screen on load.
+This paragraph is filler so the proof below starts off-screen on load.
+This paragraph is filler so the proof below starts off-screen on load.
+This paragraph is filler so the proof below starts off-screen on load.
+This paragraph is filler so the proof below starts off-screen on load.
+This paragraph is filler so the proof below starts off-screen on load.
+This paragraph is filler so the proof below starts off-screen on load.
+
+## Results
+  {:label: sec-results}
+
+:theorem: {:label: thm-x} A claim about $\eig$.::
+
+:proof:
+  :step: {:label: st-1} First, $\eig$ is real.::
+  :step: {:label: st-2} Then it is bounded, by :ref:st-1::.::
+  :step: :qed: Done by :ref:st-2::.::
+::
+
+Trailing prose so the proof can scroll fully into the reading band.
+Trailing prose so the proof can scroll fully into the reading band.
+Trailing prose so the proof can scroll fully into the reading band.
+Trailing prose so the proof can scroll fully into the reading band.
+Trailing prose so the proof can scroll fully into the reading band.
