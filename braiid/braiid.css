@@ -1219,7 +1219,7 @@ body {
   .toc-tree .toc-node .toc-secnum {
     font-size: 13.5px;
     font-weight: 600;
-    fill: var(--gray-500, #8a94a3);
+    fill: var(--gray-700, #5F7186);
   }
 
   .toc-tree .toc-node.level-1 .toc-secnum {
@@ -1308,6 +1308,13 @@ body {
     z-index: 40;
   }
 
+  /* Visible keyboard focus for the sidebar controls and the tree-DAG nodes. */
+  .proof-rail :focus-visible,
+  .toc-tree a:focus-visible {
+    outline: 2px solid var(--blue, #2c5e9e);
+    outline-offset: 2px;
+  }
+
   /* Tab rows: the scope axis (Document / Proof) on top, then the active scope's
      sub-tabs below. */
   .rail-tabs,
@@ -1323,7 +1330,7 @@ body {
     font-size: 0.82rem;
     font-weight: 600;
     letter-spacing: 0.02em;
-    color: var(--gray-500, #8a94a3);
+    color: var(--gray-700, #5F7186);
   }
   .rail-scope.active {
     color: var(--blue, #2c5e9e);
@@ -1341,7 +1348,7 @@ body {
     background: none;
     cursor: pointer;
     font-size: 0.9rem;
-    color: var(--gray-500, #8a94a3);
+    color: var(--gray-700, #5F7186);
   }
   .rail-tab svg { width: 18px; height: 18px; }
   .rail-tab.active {
@@ -1359,7 +1366,7 @@ body {
     border: none;
     background: none;
     cursor: pointer;
-    color: var(--gray-500, #8a94a3);
+    color: var(--gray-700, #5F7186);
   }
   .rail-collapse svg { width: 18px; height: 18px; }
   .rail-collapse:hover { color: var(--blue, #2c5e9e); }
@@ -1395,7 +1402,7 @@ body {
   /* Outside any proof the Proof scope has nothing live, so show an empty state. */
   .rail-proof-empty {
     display: none;
-    color: var(--gray-500, #8a94a3);
+    color: var(--gray-700, #5F7186);
     font-style: italic;
     font-size: 0.8rem;
   }
@@ -1415,7 +1422,7 @@ body {
     font-size: 0.68rem;
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    color: var(--gray-500, #8a94a3);
+    color: var(--gray-700, #5F7186);
     font-weight: 700;
   }
   .rail-notation-edit { display: flex; align-items: center; gap: 0.4rem; }
@@ -1480,7 +1487,7 @@ body {
     border-radius: 3px;
   }
   .rail-notation-empty {
-    color: var(--gray-500, #8a94a3);
+    color: var(--gray-700, #5F7186);
     font-style: italic;
     font-size: 0.8rem;
   }
@@ -1510,7 +1517,7 @@ body {
     font-size: 0.68rem;
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    color: var(--gray-500, #8a94a3);
+    color: var(--gray-700, #5F7186);
     font-weight: 700;
     margin-bottom: 0.3rem;
   }
@@ -1526,12 +1533,12 @@ body {
   }
   .rail-goal-body { padding-left: 0.6rem; border-left: 2px solid var(--blue, #2c5e9e); }
   .rail-step-badge {
-    color: var(--gray-500, #8a94a3);
+    color: var(--gray-700, #5F7186);
     font-variant-numeric: tabular-nums;
     font-weight: 600;
     margin-right: 0.4em;
   }
-  .rail-state-empty { color: var(--gray-500, #8a94a3); font-style: italic; font-size: 0.8rem; }
+  .rail-state-empty { color: var(--gray-700, #5F7186); font-style: italic; font-size: 0.8rem; }
 
   /* Not enough room to float the rail without overlapping the column. */
   @media (max-width: 1100px) {

@@ -1364,7 +1364,9 @@ var RSM = (() => {
     }
     function selectScope(scope) {
       for (const s of rail.querySelectorAll(".rail-scope")) {
-        s.classList.toggle("active", s.dataset.scope === scope);
+        const on = s.dataset.scope === scope;
+        s.classList.toggle("active", on);
+        s.setAttribute("aria-pressed", String(on));
       }
       rail.classList.toggle("scope-document", scope === "document");
       rail.classList.toggle("scope-proof", scope === "proof");
@@ -1373,6 +1375,7 @@ var RSM = (() => {
       const row = tab.closest(".rail-subtabs");
       for (const t of row.querySelectorAll(".rail-tab")) {
         t.classList.toggle("active", t === tab);
+        t.setAttribute("aria-pressed", String(t === tab));
         rail.classList.remove(railClassFor(t));
       }
       rail.classList.add(railClassFor(tab));

@@ -100,6 +100,21 @@ def test_proof_autofollow(page: Page, interactive_server: str):
     )
 
 
+def test_sidebar_absent_without_js(browser, interactive_server: str):
+    """Graceful degradation (O8): with JS disabled the sidebar enhancement is
+    not shown, but the paper's content remains fully present and readable."""
+    context = browser.new_context(java_script_enabled=False)
+    page = context.new_page()
+    try:
+        page.goto(f"{interactive_server}/sidebar.html")
+        assert not page.locator(".proof-rail").is_visible()
+        body = page.locator("body").inner_text()
+        assert "spectral radius" in body  # prose is present
+        assert "Results" in body  # sections are present
+    finally:
+        context.close()
+
+
 def _open_notation(page: Page) -> None:
     # Document scope is active by default; reveal its Notation sub-tab.
     page.click('.rail-subtabs-document .rail-tab[data-view="notation"]')

@@ -1144,7 +1144,7 @@ class Translator:
         h = layout["height"] + 2 * pad
         parts = [
             f'<svg class="toc-tree" width="{w:.0f}" height="{h:.0f}" '
-            f'viewBox="{-pad} {-pad} {w:.0f} {h:.0f}" role="img" '
+            f'viewBox="{-pad} {-pad} {w:.0f} {h:.0f}" role="group" '
             f'aria-label="{escape(aria_label)}">',
             '<defs>'
             '<marker id="toc-arr-dep" viewBox="0 0 10 8" refX="8.5" refY="4" '
@@ -2419,11 +2419,12 @@ class HandrailsTranslator(Translator):
             return AppendText(text="")
 
         scopes = (
-            '<div class="rail-scopes" role="tablist">'
+            '<div class="rail-scopes">'
             '<button class="rail-scope active" data-scope="document" '
+            'aria-pressed="true" '
             'title="Document: structure and notation for the whole paper">'
             "Document</button>"
-            '<button class="rail-scope" data-scope="proof" '
+            '<button class="rail-scope" data-scope="proof" aria-pressed="false" '
             "title=\"Proof: the dependency graph and live state of the proof "
             'you are reading">Proof</button>'
             "</div>"
@@ -2432,27 +2433,28 @@ class HandrailsTranslator(Translator):
         # Document sub-tabs: the TOC map, and Notation when present.
         doc_tabs = [
             '<button class="rail-tab active" data-view="doc-map" '
-            'title="Map of the document\'s structure">'
+            'aria-pressed="true" title="Map of the document\'s structure">'
             + _RAIL_MAP_ICON + "<span>TOC</span></button>"
         ]
         if has_notation:
             doc_tabs.append(
                 '<button class="rail-tab" data-view="notation" '
-                'title="Rename the symbols used in this paper">'
+                'aria-pressed="false" title="Rename the symbols used in this paper">'
                 + _RAIL_NOTATION_ICON + "<span>Notation</span></button>"
             )
         doc_subtabs = (
-            '<div class="rail-subtabs rail-subtabs-document" role="tablist">'
+            '<div class="rail-subtabs rail-subtabs-document">'
             + "".join(doc_tabs) + "</div>"
         )
 
         # Proof sub-tabs: Map (where you are) and State (what you must show).
         proof_subtabs = (
-            '<div class="rail-subtabs rail-subtabs-proof" role="tablist">'
+            '<div class="rail-subtabs rail-subtabs-proof">'
             '<button class="rail-tab active" data-view="proof-map" '
+            'aria-pressed="true" '
             'title="Map: where you are in the proof\'s dependency structure">'
             + _RAIL_MAP_ICON + "<span>Proof</span></button>"
-            '<button class="rail-tab" data-view="state" '
+            '<button class="rail-tab" data-view="state" aria-pressed="false" '
             'title="State: the hypotheses in force and the goal you must show">'
             + _RAIL_STATE_ICON + "<span>State</span></button>"
             "</div>"
@@ -2478,7 +2480,8 @@ class HandrailsTranslator(Translator):
 
         return AppendText(
             text='<div class="proof-rail scope-document doc-view-map '
-            'proof-view-map" aria-hidden="true">'
+            'proof-view-map" role="complementary" aria-label="Document and '
+            'proof navigation">'
             + collapse + scopes + doc_subtabs + proof_subtabs
             + document_section + proof_section + "</div>"
         )
