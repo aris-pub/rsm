@@ -146,6 +146,7 @@ class Transformer:
         self.tree = tree
 
         self.collect_labels()
+        self.resolve_proof_of()
         self.parse_notation()
         self.resolve_pending_references()
         self.assign_author_affiliations()
@@ -280,6 +281,33 @@ class Transformer:
                 node.label = ""
                 continue
             self.labels_to_nodes[node.label] = node
+
+    def resolve_proof_of(self) -> None:
+        """Resolve each :proof: {:of: <label>} to the result it establishes.
+
+        A proof detached from its theorem names the result with :of:; the
+        resolved node is later used as the proof tree's root and the State pane's
+        goal/hypotheses, and is rendered as a link in the proof's lead.
+        """
+        provable = (
+            nodes.Theorem, nodes.Lemma, nodes.Corollary,
+            nodes.Proposition, nodes.Statement,
+        )
+        for proof in self.tree.traverse(nodeclass=nodes.Proof):
+            label = getattr(proof, "of", None)
+            if not label:
+                continue
+            target = self.labels_to_nodes.get(label)
+            if target is None:
+                raise RSMTransformerError(
+                    f':proof: {{:of: {label}}} references an unknown label "{label}"'
+                )
+            if not isinstance(target, provable):
+                raise RSMTransformerError(
+                    f":proof: {{:of: {label}}} must name a theorem-like block, not "
+                    f"{type(target).__name__}"
+                )
+            proof.proves = target
 
     def _label_to_node(
         self, label: str, external_file: str | None = None, default=nodes.Error
@@ -819,6 +847,9 @@ class Transformer:
     @staticmethod
     def _proof_root_title(proof: nodes.Proof) -> str:
         """The result a proof establishes, used as its tree's root label."""
+        declared = getattr(proof, "proves", None)
+        if declared is not None:
+            return declared.reftext or "Statement"
         sib = proof.prev_sibling()
         theorem_types = (
             nodes.Theorem,
@@ -924,11 +955,12 @@ class Transformer:
             out.reverse()
             return out
 
-        theorem = proof.prev_sibling()
         thm_types = (
             nodes.Theorem, nodes.Lemma, nodes.Corollary,
             nodes.Proposition, nodes.Statement,
         )
+        # A :of:-declared result takes precedence over the preceding sibling.
+        theorem = getattr(proof, "proves", None) or proof.prev_sibling()
         while theorem is not None and not isinstance(theorem, thm_types):
             theorem = theorem.prev_sibling()
         # Theorem hypotheses have no step number (they precede the proof).

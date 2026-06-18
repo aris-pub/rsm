@@ -1609,6 +1609,9 @@ class Statement(NodeWithChildren):
 
 class Proof(NodeWithChildren):
     has_handrail = True
+    # Label of the result this proof establishes, for proofs detached from their
+    # theorem (e.g. several proofs of one theorem under separate sections).
+    newmetakeys: ClassVar[set] = {"of"}
 
     def __init__(self, **kwargs: Any) -> None:
         super().__init__(**kwargs)

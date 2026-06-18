@@ -1503,8 +1503,18 @@ class Translator:
         if last:
             last.classes.append("last")
 
-        classname = node.__class__.__name__.lower()
-        title = self._make_title_node(label=f"{classname.capitalize()}.")
+        proves = getattr(node, "proves", None)
+        if proves is not None:
+            # "Proof of <linked result>." The reference renders like any :ref:.
+            title = nodes.Paragraph(classes=["hr-label"])
+            span = nodes.Span(classes=["label"])
+            span.append(nodes.Text(text="Proof of "))
+            span.append(nodes.Reference(target=proves))
+            span.append(nodes.Text(text="."))
+            title.append(span)
+        else:
+            classname = node.__class__.__name__.lower()
+            title = self._make_title_node(label=f"{classname.capitalize()}.")
         return AppendBatchAndDefer(
             [
                 AppendNodeTag(node),
