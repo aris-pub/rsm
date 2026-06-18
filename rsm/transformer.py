@@ -674,7 +674,13 @@ class Transformer:
         earlier section are dependencies ("dep") while references to a later
         section are forward pointers ("fwd").
         """
-        sections = list(self.tree.traverse(nodeclass=nodes.Section))
+        # Unnumbered sections (a colophon, say) are back-matter and stay out
+        # of the table of contents.
+        sections = [
+            sec
+            for sec in self.tree.traverse(nodeclass=nodes.Section)
+            if not sec.nonum
+        ]
         row_of = {id(sec): row for row, sec in enumerate(sections)}
 
         def depth_of(sec: nodes.Section) -> int:
@@ -714,6 +720,9 @@ class Transformer:
             else:
                 dst = None
             if src is None or dst is None or src is dst:
+                continue
+            # A reference touching an unnumbered (out-of-TOC) section has no row.
+            if id(src) not in row_of or id(dst) not in row_of:
                 continue
             key = (row_of[id(src)], row_of[id(dst)])
             counts[key] = counts.get(key, 0) + 1

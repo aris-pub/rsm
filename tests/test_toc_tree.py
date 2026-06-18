@@ -68,6 +68,42 @@ def test_tree_nodes_recorded():
     assert nums == [("1", 1), ("2", 1), ("2.1", 2), ("3", 1)]
 
 
+def test_nonum_section_excluded_from_toc():
+    src = """:toc: ::
+
+## One
+  {:label: sec-one}
+
+x
+
+## Colophon
+  {:label: sec-colophon :nonum:}
+
+Back-matter, out of the TOC.
+"""
+    titles = [n["title"] for n in _toc(src).tree_nodes]
+    assert titles == ["One"]
+    assert "Colophon" not in titles
+
+
+def test_ref_into_nonum_section_drops_edge():
+    # A reference whose target is an out-of-TOC (nonum) section contributes no
+    # edge and must not raise from the missing row.
+    src = """:toc: ::
+
+## One
+  {:label: sec-one}
+
+See :ref:sec-colophon::.
+
+## Colophon
+  {:label: sec-colophon :nonum:}
+
+Out of the TOC.
+"""
+    assert _toc(src).toc_edges == []
+
+
 def test_toc_markup_default_list():
     html = rsm.render(SRC, handrails=False)
     assert 'svg class="toc-tree"' in html
