@@ -87,6 +87,36 @@ class TestFigureToggle:
         toggle = page.locator('#hr-menu-singleton [data-role="static-toggle"]')
         expect(toggle).to_have_class(re.compile("disabled"))
 
+    def test_static_fallback_nested_in_handrail_is_revealed(
+        self, page: Page, interactive_server: str
+    ):
+        """Regression: the static fallback lives inside the chromeless asset
+        handrail (.hr-bare > .hr-content-zone). Toggling to static must reveal
+        the fallback itself, not hide the wrapper that contains it (which would
+        bury it). Guards the asset-handrail structure and the toggle against
+        drifting apart again."""
+        page.goto(f"{interactive_server}/figure-static.html")
+        page.wait_for_function(RSM_READY, timeout=10_000)
+
+        figure = page.locator("figure").first
+        # Precondition: the fallback really is nested inside the asset handrail.
+        expect(
+            figure.locator(".hr-bare .hr-content-zone > .static-fallback")
+        ).to_have_count(1)
+
+        fallback = figure.locator(".static-fallback")
+        interactive = figure.locator(
+            ".hr-bare .hr-content-zone > :not(.static-fallback)"
+        ).first
+
+        figure.locator("figcaption .hr-border-dots").click()
+        page.locator('#hr-menu-singleton [data-role="static-toggle"]').click()
+
+        # The fallback is genuinely visible (no ancestor is display:none) and the
+        # interactive content beside it is hidden.
+        expect(fallback).to_be_visible()
+        expect(interactive).to_be_hidden()
+
     def test_icon_changes_on_toggle(self, page: Page, interactive_server: str):
         page.goto(f"{interactive_server}/figure-static.html")
         page.wait_for_function(RSM_READY, timeout=10_000)

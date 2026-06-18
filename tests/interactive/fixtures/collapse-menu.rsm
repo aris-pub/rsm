@@ -1,0 +1,32 @@
+# Collapse menu labels
+
+## A section
+  {:label: sec-cm}
+
+Filler paragraph giving the proof some vertical room above it.
+
+:proof:
+
+  :step: {:label: stp-outer}
+
+    :claim: An outer step whose substeps can be collapsed. ::
+
+    :p:
+
+      :step: {:label: stp-inner-a}
+
+        :claim: First inner step. ::
+
+        :p: Reason one. :: ::
+
+      :step: {:label: stp-inner-b}
+
+        :qed:
+
+        :p: Reason two. :: ::
+
+    :: ::
+
+::
+
+Trailing filler paragraph giving scroll room below the proof.

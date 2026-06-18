@@ -37,10 +37,11 @@ export function setup() {
       if (!activeHr) return;
       if (role === "link") copyLink(activeHr);
       else if (role === "code") showSource(activeHr);
-      else if (role === "collapse") toggleHandrail(activeHr);
+      else if (role === "collapse") { toggleHandrail(activeHr); refreshCollapseLabels(activeHr); }
       else if (role === "collapse-all") {
         const withinSubproof = activeHr.classList.contains("step");
         collapseAll(activeHr, withinSubproof);
+        refreshCollapseLabels(activeHr);
       }
       else if (role === "static-toggle") toggleStaticView(activeHr, menuItem);
       else if (role === "toc-view") toggleTocView(activeHr, menuItem);
@@ -110,6 +111,11 @@ function showMenuFor(hr) {
   configureItem(singletonMenu.querySelector('[data-role="collapse"]'), collapse);
   configureItem(singletonMenu.querySelector('[data-role="collapse-all"]'), collapseAll);
 
+  // Reflect the handrail's collapsed state in the collapse item labels (the
+  // per-handrail flip open/closeHandrail used to do was lost in the singleton
+  // refactor). Done here on open, and again right after a collapse click.
+  refreshCollapseLabels(hr);
+
   // Show/hide collapse separator based on whether any collapse item is visible
   const collapseSep = singletonMenu.querySelector('[data-role="collapse-sep"]');
   if (collapseSep) {
@@ -172,6 +178,62 @@ function configureItem(el, value) {
   } else {
     el.classList.remove("disabled");
   }
+}
+
+
+// Set a collapse menu item's label, icon class, and icon href from state. opts
+// is {collapse: [text, iconClass, href], expand: [text, iconClass, href]}; the
+// icon class also drives collapseAll's toggle direction, so keep it in sync.
+function syncCollapseLabel(item, collapsed, opts) {
+  if (!item) return;
+  const [text, iconClass, href] = collapsed ? opts.expand : opts.collapse;
+  const textEl = item.querySelector(".hr-menu-item-text");
+  if (textEl) textEl.textContent = text;
+  const icon = item.querySelector(".icon");
+  if (icon) {
+    icon.classList.remove(opts.collapse[1], opts.expand[1]);
+    icon.classList.add(iconClass);
+  }
+  const use = item.querySelector("svg use");
+  if (use) use.setAttribute("href", href);
+}
+
+
+// Sync both collapse item labels to hr's current state. Called on menu open and
+// again right after a collapse action, so the open menu updates in place.
+function refreshCollapseLabels(hr) {
+  if (!singletonMenu || !hr) return;
+  const collapse = hr.getAttribute("data-menu-collapse");
+  if (collapse && collapse !== "disabled") {
+    syncCollapseLabel(
+      singletonMenu.querySelector('[data-role="collapse"]'),
+      hr.classList.contains("hr-collapsed"),
+      { collapse: ["Collapse", "collapse", "#hr-icon-collapse"],
+        expand: ["Expand", "expand", "#hr-icon-expand"] },
+    );
+  }
+  const collapseAll = hr.getAttribute("data-menu-collapse-all");
+  if (collapseAll && collapseAll !== "disabled") {
+    syncCollapseLabel(
+      singletonMenu.querySelector('[data-role="collapse-all"]'),
+      allSubstepsCollapsed(hr),
+      { collapse: ["Collapse all", "collapse-all", "#hr-icon-collapse-all"],
+        expand: ["Expand all", "expand-all", "#hr-icon-expand-all"] },
+    );
+  }
+}
+
+
+// Whether every collapsible sub-step under hr is currently collapsed. Mirrors
+// the query collapseAll() uses so the label matches what the action would do.
+function allSubstepsCollapsed(hr) {
+  const withinSubproof = hr.classList.contains("step");
+  const qry = withinSubproof
+    ? ":scope > .hr-content-zone > .subproof > .hr-content-zone > .step:has(.subproof)"
+    : ":scope > .hr-content-zone > .step:has(.subproof)";
+  const steps = hr.querySelectorAll(qry);
+  if (steps.length === 0) return false;
+  return Array.from(steps).every((s) => s.classList.contains("hr-collapsed"));
 }
 
 
@@ -474,8 +536,13 @@ function toggleStaticView(hr, menuItem) {
 
   const isShowingStatic = figure.classList.toggle("showing-static");
 
-  for (const child of figure.children) {
-    if (child === fallback || child.tagName === "FIGCAPTION") continue;
+  // The interactive content and the fallback are siblings inside the asset's
+  // content zone (a chromeless .hr-bare handrail wraps them). Toggle them there:
+  // hiding the figure's direct children instead would bury the fallback inside
+  // the very wrapper it lives in.
+  const container = fallback.parentElement;
+  for (const child of container.children) {
+    if (child === fallback) continue;
     child.style.display = isShowingStatic ? "none" : "";
   }
   fallback.style.display = isShowingStatic ? "" : "none";
