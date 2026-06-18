@@ -1425,6 +1425,33 @@ body {
   }
   .proof-rail.no-proof .rail-proof-empty { display: block; }
 
+  /* Collapsed proof: the rail shows a single node standing for the proof, not
+     the step graph the page is hiding. The card itself expands the proof. */
+  .proof-rail-item .rail-collapsed-card { display: none; }
+  .proof-rail.proof-collapsed .proof-rail-item.shown .rail-map,
+  .proof-rail.proof-collapsed .proof-rail-item.shown .rail-state { display: none; }
+  .proof-rail.proof-collapsed .proof-rail-item.shown .rail-collapsed-card {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+    width: 100%;
+    padding: 0.7rem 0.8rem;
+    text-align: left;
+    font: inherit;
+    background: var(--gray-75);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-lg);
+    cursor: pointer;
+  }
+  .proof-rail.proof-collapsed .proof-rail-item.shown .rail-collapsed-card:hover {
+    background: var(--primary-50);
+    border-color: var(--primary-700);
+  }
+  .rail-collapsed-title { font-weight: 600; font-size: 0.875rem; color: var(--text-body); }
+  .rail-collapsed-meta { font-size: 0.8rem; color: var(--text-subtle); }
+  .rail-collapsed-cue { font-size: 0.8rem; color: var(--primary-700); }
+
   /* Notation pane: one rebind row per declared symbol. */
   .rail-notation {
     display: flex;

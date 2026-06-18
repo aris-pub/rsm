@@ -2418,7 +2418,10 @@ class HandrailsTranslator(Translator):
                 "Proof step dependency graph", orient="horizontal",
             )
             proof_items.append(
-                self._rail_item(str(proof.nodeid), svg, proof.step_state)
+                self._rail_item(
+                    str(proof.nodeid), svg, proof.step_state,
+                    proof.tree_root_title, len(proof.tree_nodes),
+                )
             )
 
         if not doc_panels and not proof_items:
@@ -2493,7 +2496,11 @@ class HandrailsTranslator(Translator):
             + document_section + proof_section + "</div>"
         )
 
-    def _rail_item(self, key: str, svg: str, step_state) -> str:
+    def _rail_item(
+        self, key: str, svg: str, step_state, root_title: str, step_count: int
+    ) -> str:
+        from html import escape
+
         data = ""
         if step_state is not None:
             import json
@@ -2501,11 +2508,24 @@ class HandrailsTranslator(Translator):
                 '<script type="application/json" class="rail-state-data">'
                 + json.dumps(step_state) + "</script>"
             )
+        # Shown by prooftree.js when the followed proof is collapsed: a single
+        # node standing for the proof, so the rail never asserts a step graph the
+        # body is hiding. The card itself expands the proof in the body.
+        plural = "" if step_count == 1 else "s"
+        collapsed_card = (
+            f'<button class="rail-panel rail-collapsed-card rail-expand-proof" '
+            f'type="button" data-proof="{key}" aria-expanded="false" '
+            f'data-tooltip="Expand this proof to navigate its steps">'
+            f'<span class="rail-collapsed-title">{escape(root_title)}</span>'
+            f'<span class="rail-collapsed-meta">{step_count} step{plural} hidden</span>'
+            f'<span class="rail-collapsed-cue">Expand to navigate</span>'
+            "</button>"
+        )
         return (
             f'<div class="proof-rail-item" data-proof="{key}">'
             f'<div class="rail-panel rail-map">{svg}</div>'
             f'<div class="rail-panel rail-state"></div>'
-            f"{data}</div>"
+            f"{collapsed_card}{data}</div>"
         )
 
     def _make_svg_defs(self):

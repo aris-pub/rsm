@@ -1,7 +1,20 @@
 # Collapsed proofs
 
+:toc: {
+  :view: tree
+}
+::
+
 ## A section
   {:label: sec-collapsed}
+
+Filler paragraph one, padding the section so the proof sits well below the top.
+
+Filler paragraph two, more vertical room above the proof for the reading band.
+
+Filler paragraph three, still more room so scrolling can position the proof.
+
+Filler paragraph four, padding padding padding padding padding padding padding.
 
 :sketch:
 
@@ -21,10 +34,27 @@
 
 ::
 
-A paragraph between the two proofs.
+A paragraph between the two proofs, with filler so the reading band can isolate
+one proof at a time. Filler filler filler filler filler filler filler filler.
 
 :proof:
 
   :step: {:label: stp-e1} A step in an unmarked proof, visible on load. ::
 
 ::
+
+Trailing filler one, giving room to scroll the page past the proofs.
+
+Trailing filler two, more scroll room below so positioning is unconstrained.
+
+Trailing filler three, padding padding padding padding padding padding padding.
+
+Trailing filler four, padding padding padding padding padding padding padding.
+
+Trailing filler five, padding padding padding padding padding padding padding.
+
+Trailing filler six, padding padding padding padding padding padding padding.
+
+Trailing filler seven, padding padding padding padding padding padding padding.
+
+Trailing filler eight, padding padding padding padding padding padding padding.

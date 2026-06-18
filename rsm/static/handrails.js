@@ -203,10 +203,11 @@ export function toggleHandrail(target) {
 };
 
 
-function openHandrail(hr) {
+export function openHandrail(hr) {
   hr.classList.remove("hr-collapsed");
   const rest = getRest(hr);
   rest.forEach(el => { el.classList.remove("hide"); });
+  notifyHandrailToggle(hr, false);
   const icon = hr.querySelector(":scope > .hr-collapse-zone .icon.expand");
   if (!icon) return;
   icon.classList.remove("expand");
@@ -220,12 +221,23 @@ function closeHandrail(hr) {
   hr.classList.add("hr-collapsed");
   const rest = getRest(hr);
   rest.forEach(el => { el.classList.add("hide"); });
+  notifyHandrailToggle(hr, true);
   const icon = hr.querySelector(":scope > .hr-collapse-zone .icon.collapse");
   if (!icon) return;
   icon.classList.remove("collapse");
   icon.classList.add("expand");
   const use = icon.querySelector("use");
   if (use) use.setAttribute("href", "#hr-icon-expand");
+}
+
+
+// Let other modules (the floating sidebar) react when a handrail is collapsed
+// or expanded, so the rail can mirror the body's disclosure state instead of
+// asserting a step graph the body is hiding.
+function notifyHandrailToggle(hr, collapsed) {
+  document.dispatchEvent(
+    new CustomEvent("rsm:handrail-toggle", { detail: { hr, collapsed } }),
+  );
 }
 
 

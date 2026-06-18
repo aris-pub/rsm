@@ -8,6 +8,7 @@
 // collapse control, and remembers your layout in localStorage.
 
 import { wireTree } from "./tocarcs.js";
+import { openHandrail } from "./handrails.js";
 
 export function setup(root = document) {
   const rail = root.querySelector(".proof-rail");
@@ -147,6 +148,19 @@ export function setup(root = document) {
 
   const proofs = [...root.querySelectorAll(".proof[data-nodeid]")];
 
+  function proofElFor(key) {
+    return key ? root.querySelector(`.proof[data-nodeid="${key}"]`) : null;
+  }
+  // Mirror the body: when the followed proof is collapsed, CSS swaps its step
+  // graph for a single-node card so the rail never shows steps the page hides.
+  function updateCollapsedClass() {
+    const el = proofElFor(current);
+    rail.classList.toggle(
+      "proof-collapsed",
+      !!(el && el.classList.contains("hr-collapsed")),
+    );
+  }
+
   function show(key) {
     if (!items.has(key)) key = null;
     if (key === current) return;
@@ -155,6 +169,7 @@ export function setup(root = document) {
     // Outside any proof the Proof scope has nothing live to show; CSS uses this
     // to present an empty state rather than a blank panel.
     rail.classList.toggle("no-proof", key === null);
+    updateCollapsedClass();
     updateState();
   }
   show(null);
@@ -184,6 +199,25 @@ export function setup(root = document) {
     );
     for (const p of proofs) observer.observe(p);
   }
+
+  // The body's collapse control flips the rail between the step graph and the
+  // single-node card; the card flips it back by expanding the proof in place
+  // and scrolling to it (never a silent off-screen body change).
+  document.addEventListener("rsm:handrail-toggle", (ev) => {
+    const hr = ev.detail && ev.detail.hr;
+    if (hr && hr.matches && hr.matches(".proof[data-nodeid]")) {
+      updateCollapsedClass();
+      updateState();
+    }
+  });
+  rail.addEventListener("click", (ev) => {
+    const btn = ev.target.closest(".rail-expand-proof");
+    if (!btn) return;
+    const el = proofElFor(btn.dataset.proof);
+    if (!el) return;
+    openHandrail(el);
+    el.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
 
   // ---- active-step tracking + State view ----
 

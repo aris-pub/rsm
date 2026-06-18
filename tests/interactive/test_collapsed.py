@@ -47,3 +47,39 @@ def test_expanding_does_not_select_the_block(page: Page, interactive_server: str
     marked.locator(".hr-collapse-zone .hr-collapse").click()
     expect(page.locator("#stp-c1")).to_be_visible()  # it expanded
     assert marked.evaluate("el => el.matches(':focus')") is False
+
+
+# The Proof tab must mirror the body's collapse state: a collapsed proof shows a
+# single-node card, not the step graph it is hiding.
+
+def _band_in(page: Page) -> None:
+    """Scroll the collapsed proof into the rail's reading band."""
+    page.locator(".proof.hr[data-start-collapsed]").evaluate(
+        "el => { const r = el.getBoundingClientRect();"
+        " window.scrollBy(0, r.top - window.innerHeight * 0.18); }"
+    )
+
+
+def test_collapsed_proof_shows_card_not_dag(page: Page, interactive_server: str):
+    _load(page, interactive_server)
+    page.wait_for_selector(".proof-rail.active", timeout=10_000)
+    page.click('.rail-scope[data-scope="proof"]')
+    _band_in(page)
+    expect(page.locator(".proof-rail")).to_have_class(re.compile(r"\bproof-collapsed\b"))
+    expect(page.locator(".proof-rail-item.shown .rail-collapsed-card")).to_be_visible()
+    expect(page.locator(".proof-rail-item.shown .rail-map")).to_be_hidden()
+
+
+def test_card_expands_proof_and_restores_map(page: Page, interactive_server: str):
+    _load(page, interactive_server)
+    page.wait_for_selector(".proof-rail.active", timeout=10_000)
+    page.click('.rail-scope[data-scope="proof"]')
+    _band_in(page)
+    card = page.locator(".proof-rail-item.shown .rail-collapsed-card")
+    expect(card).to_be_visible()
+    card.click()
+    expect(page.locator("#stp-c1")).to_be_visible()  # body proof expanded
+    expect(page.locator(".proof-rail")).not_to_have_class(
+        re.compile(r"\bproof-collapsed\b")
+    )
+    expect(page.locator(".proof-rail-item.shown .rail-map")).to_be_visible()

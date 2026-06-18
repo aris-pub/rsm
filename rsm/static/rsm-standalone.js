@@ -675,6 +675,7 @@ var RSM = (() => {
     rest.forEach((el) => {
       el.classList.remove("hide");
     });
+    notifyHandrailToggle(hr, false);
     const icon = hr.querySelector(":scope > .hr-collapse-zone .icon.expand");
     if (!icon) return;
     icon.classList.remove("expand");
@@ -688,12 +689,18 @@ var RSM = (() => {
     rest.forEach((el) => {
       el.classList.add("hide");
     });
+    notifyHandrailToggle(hr, true);
     const icon = hr.querySelector(":scope > .hr-collapse-zone .icon.collapse");
     if (!icon) return;
     icon.classList.remove("collapse");
     icon.classList.add("expand");
     const use = icon.querySelector("use");
     if (use) use.setAttribute("href", "#hr-icon-expand");
+  }
+  function notifyHandrailToggle(hr, collapsed) {
+    document.dispatchEvent(
+      new CustomEvent("rsm:handrail-toggle", { detail: { hr, collapsed } })
+    );
   }
   function collapseInitial(root2) {
     (root2 || document).querySelectorAll(".hr[data-start-collapsed]").forEach((hr) => closeHandrail(hr));
@@ -1457,12 +1464,23 @@ var RSM = (() => {
     } catch (e) {
     }
     const proofs = [...root2.querySelectorAll(".proof[data-nodeid]")];
+    function proofElFor(key) {
+      return key ? root2.querySelector(`.proof[data-nodeid="${key}"]`) : null;
+    }
+    function updateCollapsedClass() {
+      const el = proofElFor(current);
+      rail.classList.toggle(
+        "proof-collapsed",
+        !!(el && el.classList.contains("hr-collapsed"))
+      );
+    }
     function show(key) {
       if (!items.has(key)) key = null;
       if (key === current) return;
       current = key;
       for (const [k, item] of items) item.classList.toggle("shown", k === key);
       rail.classList.toggle("no-proof", key === null);
+      updateCollapsedClass();
       updateState();
     }
     show(null);
@@ -1489,6 +1507,21 @@ var RSM = (() => {
       );
       for (const p of proofs) observer.observe(p);
     }
+    document.addEventListener("rsm:handrail-toggle", (ev) => {
+      const hr = ev.detail && ev.detail.hr;
+      if (hr && hr.matches && hr.matches(".proof[data-nodeid]")) {
+        updateCollapsedClass();
+        updateState();
+      }
+    });
+    rail.addEventListener("click", (ev) => {
+      const btn = ev.target.closest(".rail-expand-proof");
+      if (!btn) return;
+      const el = proofElFor(btn.dataset.proof);
+      if (!el) return;
+      openHandrail(el);
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
     function setCurrentNode(node) {
       if (node === currentNode) return;
       if (currentNode) currentNode.classList.remove("current-step");

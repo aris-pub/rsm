@@ -833,6 +833,13 @@ class Transformer:
             if isinstance(sib, theorem_types):
                 return sib.reftext or "Statement"
             sib = sib.prev_sibling()
+        # No theorem precedes this proof (e.g. several proofs of one result, each
+        # under its own subsection): fall back to the enclosing heading's title.
+        anc = proof.parent
+        while anc is not None and not isinstance(anc, nodes.Section):
+            anc = anc.parent
+        if anc is not None and getattr(anc, "title", ""):
+            return anc.title
         return "Statement"
 
     _NOTATION_LINE = re.compile(r"^\s*(\\[A-Za-z]+)\s*\$(.+?)\$\s*(.*?)\s*$")
