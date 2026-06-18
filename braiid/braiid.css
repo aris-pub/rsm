@@ -848,6 +848,7 @@ body {
     top: var(--chunk-sixth);
     border-radius: var(--radius-lg);
     background: var(--surface-hover);
+    color: var(--gray-900);
     z-index: 1;
 
     .icon {padding-top: var(--chunk-sixth); padding-bottom: var(--chunk-sixth);}
@@ -967,6 +968,16 @@ body {
 .manuscriptwrapper .hr.hr-hidden:hover {
   & > .hr-border-zone {opacity: 100%;}
 }
+/* Layout-only handrail for assets: reserves the content-zone gutter so the asset
+   aligns with the reading column, but shows no chrome at all, even on hover. The
+   empty zones carry no icons, so pin them to the standard zone width or the
+   content-zone would start a notch to the left of body prose. */
+.manuscriptwrapper .hr.hr-bare > .hr-border-zone { opacity: 0; }
+.manuscriptwrapper .hr.hr-bare > .hr-collapse-zone,
+.manuscriptwrapper .hr.hr-bare > .hr-border-zone,
+.manuscriptwrapper .hr.hr-bare > .hr-spacer-zone {
+  flex: 0 0 var(--hr-zone-width);
+}
 .manuscriptwrapper .step.hr:hover > .hr-info-zone p {
   color: var(--extra-dark);
   font-weight: var(--weight-semi);
@@ -997,8 +1008,7 @@ body {
 
   /* highlight EVERY nested handrail border */
   .hr-border-zone {
-    .hr-border-dots {background: var(--primary-600);}
-    .hr-border-dots svg {stroke: var(--almost-white);}
+    .hr-border-dots {background: var(--primary-600); color: var(--almost-white);}
     .hr-border-rect {border-left-color: var(--handrail-active);}
   }
   &.hr-collapsed > .hr-spacer-zone, &.hr-collapsed > .hr-border-zone > .hr-border-rect {
@@ -1781,6 +1791,8 @@ body {
   border-radius: var(--radius-lg);
   padding: 0.75em 1em;
   font-size: 0.9em; }
+/* The "Figure N."/"Widget N." caption label gets the bold treatment. */
+.manuscriptwrapper figcaption .label { font-weight: var(--weight-bold); }
 
 
 /* Other */

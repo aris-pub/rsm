@@ -1903,7 +1903,7 @@ class HandrailsTranslator(Translator):
 <path d="M7 7l5 5l5 -5" />
 <path d="M7 13l5 5l5 -5" />
 </svg>""",
-        "dots": """<svg width="24" height="24" viewBox="10 3 4 18" fill="none" stroke="#3C4952" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+        "dots": """<svg width="24" height="24" viewBox="10 3 4 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
 <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
 <path d="M12 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" />
 <path d="M12 19m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" />
@@ -2692,6 +2692,42 @@ class HandrailsTranslator(Translator):
         batch = super().leave_node(node)
         batch.items.insert(-1, self._hr_info_zone_icon(getattr(node, "icon", None)))
         return batch
+
+    def _asset_handrails(self, node, with_fallback: bool = True) -> EditCommand:
+        # A plain <figure> holds the asset body wrapped in a chromeless alignment
+        # handrail (no menu, no visible bar, no info zone, not focusable) so the
+        # body lines up with the reading column. The caption is a sibling child
+        # that keeps its own on-hover handrail at the same depth, so the two align.
+        # The body handrail is literal HTML so it closes before the caption while
+        # the <figure> stays open (deferred) to receive the caption.
+        body_classes = "hr hr-bare" + (" hr-offset" if node.handrail_depth > 0 else "")
+        inner = self._detect_content_type_and_render(node)
+        if with_fallback:
+            inner += self._static_fallback_img(node)
+        body = (
+            f'<div class="{body_classes}">'
+            + self._hr_collapse_zone(collapsible=False).make_text()
+            + self._hr_menu_zone_empty().make_text()
+            + self._hr_border_zone_empty().make_text()
+            + self._hr_spacer_zone().make_text()
+            + '<div class="hr-content-zone">'
+            + inner
+            + "</div>"
+            # Empty info zone so the body reserves the right gutter exactly like a
+            # paragraph, aligning the asset with prose and its caption on the right.
+            + self._hr_info_zone_icon(None).make_text()
+            + "</div>"
+        )
+        return AppendBatchAndDefer([AppendNodeTag(node, "figure"), AppendText(body)])
+
+    def visit_figure(self, node: nodes.Figure) -> EditCommand:
+        return self._asset_handrails(node)
+
+    def visit_html(self, node: nodes.Html) -> EditCommand:
+        return self._asset_handrails(node)
+
+    def visit_video(self, node: nodes.Video) -> EditCommand:
+        return self._asset_handrails(node, with_fallback=False)
 
     def visit_caption(self, node: nodes.Caption) -> EditCommand:
         parent = node.parent

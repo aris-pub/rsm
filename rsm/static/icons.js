@@ -18,7 +18,7 @@ const icons = {
 <path d="M11 13l9 -9" />
 <path d="M15 4h5v5" />
 </svg>`,
-  "dots": `<svg width="24" height="24" viewBox="10 3 4 18" fill="none" stroke="#3C4952" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+  "dots": `<svg width="24" height="24" viewBox="10 3 4 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
 <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
 <path d="M12 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" />
 <path d="M12 19m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" />
