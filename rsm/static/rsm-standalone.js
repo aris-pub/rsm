@@ -554,6 +554,11 @@ var RSM = (() => {
         return;
       }
     });
+    document.addEventListener("mousedown", function(ev) {
+      if (ev.target.closest && ev.target.closest(".hr-collapse-zone")) {
+        ev.preventDefault();
+      }
+    });
     document.addEventListener("mouseout", function(ev) {
       const menu = ev.target.closest && ev.target.closest("#hr-menu-singleton .hr-menu");
       if (!menu) return;
@@ -689,6 +694,9 @@ var RSM = (() => {
     icon.classList.add("expand");
     const use = icon.querySelector("use");
     if (use) use.setAttribute("href", "#hr-icon-expand");
+  }
+  function collapseInitial(root2) {
+    (root2 || document).querySelectorAll(".hr[data-start-collapsed]").forEach((hr) => closeHandrail(hr));
   }
   function getRest(hr) {
     let rest;
@@ -1732,6 +1740,7 @@ var RSM = (() => {
       }
       try {
         setup2();
+        collapseInitial(root2);
       } catch (err) {
         console.error("Loading handrails.js FAILED!", err);
       }

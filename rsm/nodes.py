@@ -124,7 +124,7 @@ class Node:
     _number_as: ClassVar[type["Node"] | None] = None
     # see property number_as for documentation
 
-    newmetakeys: ClassVar[set] = {"label", "classes", "nonum", "reftext"}
+    newmetakeys: ClassVar[set] = {"label", "classes", "nonum", "collapsed", "reftext"}
     """Meta keys to add to those of the parent class.
 
     .. important::
@@ -164,6 +164,7 @@ class Node:
         classes: list[str] | None = None,
         number: int | None = None,
         nonum: bool = False,
+        collapsed: bool = False,
         reftext_template: str = "",
         start_point: tuple[int, int] = (-1, -1),
         end_point: tuple[int, int] = (-1, -1),
@@ -180,6 +181,8 @@ class Node:
         """Node number."""
         self.nonum: bool = nonum
         """Whether this node should be automatically given a number."""
+        self.collapsed: bool = collapsed
+        """Whether this node's handrail should start collapsed (applied by JS on load)."""
         self.reftext_template: str = reftext_template or self.classreftext
         """Reftext template, or "" to use :attr:`classreftext`."""
         self.start_point: tuple[int, int] = start_point
@@ -423,7 +426,7 @@ class Node:
 
         Examples
         --------
-        >>> all_nodes_meta = {"label", "classes", "nonum", "reftext"}
+        >>> all_nodes_meta = {"label", "classes", "nonum", "collapsed", "reftext"}
         >>> nodes.Node.metakeys() == all_nodes_meta
         True
         >>> nodes.Span.metakeys() - all_nodes_meta == {"strong", "emphas", "little", "insert", "delete"}

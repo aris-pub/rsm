@@ -55,6 +55,15 @@ export function setup() {
     }
   });
 
+  // A click on the collapse control must not focus (and so visually select) the
+  // enclosing handrail. Suppressing the default on mousedown prevents that focus
+  // without blurring whatever the reader had focused before.
+  document.addEventListener("mousedown", function (ev) {
+    if (ev.target.closest && ev.target.closest(".hr-collapse-zone")) {
+      ev.preventDefault();
+    }
+  });
+
   // Mouse leave on singleton menu → hide
   // Use capture on mouseout (which bubbles, unlike mouseleave) and check
   // that relatedTarget is outside the menu before hiding.
@@ -217,6 +226,16 @@ function closeHandrail(hr) {
   icon.classList.add("expand");
   const use = icon.querySelector("use");
   if (use) use.setAttribute("href", "#hr-icon-expand");
+}
+
+
+// Collapse, on load, every handrail the author marked with :collapsed:. Done in
+// JS (not baked into the HTML) so that with scripting off the block renders
+// fully expanded and the document stays a complete, readable paper.
+export function collapseInitial(root) {
+  (root || document)
+    .querySelectorAll(".hr[data-start-collapsed]")
+    .forEach(hr => closeHandrail(hr));
 }
 
 

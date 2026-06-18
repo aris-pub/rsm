@@ -1961,6 +1961,9 @@ class HandrailsTranslator(Translator):
         kwargs = {}
         if extra_attrs:
             kwargs.update(extra_attrs)
+        if node is not None and getattr(node, "collapsed", False):
+            # Marker only: JS collapses on load, so JS-off keeps the block open.
+            kwargs["data-start-collapsed"] = "true"
         if (
             self.add_source
             and node
@@ -2166,6 +2169,9 @@ class HandrailsTranslator(Translator):
             + (additional_classes or [])
         )
         classes = list(dict.fromkeys(classes))  # deletes duplicates AND preserves order
+        if getattr(node, "collapsed", False):
+            # Marker only: JS collapses on load, so JS-off keeps the block open.
+            extra_attrs = {**(extra_attrs or {}), "data-start-collapsed": "true"}
         return AppendNodeTag(
             node,
             additional_classes=classes,

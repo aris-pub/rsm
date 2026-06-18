@@ -1,0 +1,30 @@
+# Collapsed proofs
+
+## A section
+  {:label: sec-collapsed}
+
+:sketch:
+
+  This sketch is a sibling of the proof and is always visible.
+
+::
+
+:proof: {:collapsed:}
+
+  :step: {:label: stp-c1} A first step that should be hidden on load. ::
+
+  :step: {:label: stp-c2}
+
+    :qed:
+
+    :p: Done. :: ::
+
+::
+
+A paragraph between the two proofs.
+
+:proof:
+
+  :step: {:label: stp-e1} A step in an unmarked proof, visible on load. ::
+
+::

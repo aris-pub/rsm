@@ -149,6 +149,8 @@ name = MetaTagInfo(None, str)
 """Author name."""
 nonum = MetaTagInfo(None, bool)
 """Whether to number the tag."""
+collapsed = MetaTagInfo(None, bool)
+"""Whether the tag's handrail should start collapsed (applied by JS on load)."""
 numbering = MetaTagInfo(None, str)
 """Numbering mode for theorems and sections (document, section, or none)."""
 orcid = MetaTagInfo(None, str)

@@ -49,6 +49,8 @@ export async function onload(root = null, { keys = true } = {}) {
     // Handrails - set up event listeners once
     try {
       handrails.setup();
+      // Collapse blocks marked :collapsed: (subtractive: JS-off shows them open).
+      handrails.collapseInitial(root);
     } catch (err) {
       console.error("Loading handrails.js FAILED!", err);
     }
