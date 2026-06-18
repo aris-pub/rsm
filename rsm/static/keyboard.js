@@ -5,8 +5,21 @@
 import { toggleHandrail, collapseAll, toggleTocView } from './handrails.js';
 
 export function setup(root) {
+  // Single-key shortcuts must not preempt the browser. Bail when a modifier is
+  // held (so CMD/CTRL+L still reaches the address bar, etc.) or when focus is in
+  // an editable field (so typing letters is never hijacked). Shift is allowed:
+  // "H" is an intentional shortcut.
+  function ignore(event) {
+    if (event.metaKey || event.ctrlKey || event.altKey) return true;
+    const t = event.target;
+    if (!t) return false;
+    if (t.isContentEditable) return true;
+    return t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.tagName === "SELECT";
+  }
+
   // Nagivation: next or previous
   root.addEventListener('keydown', (event) => {
+    if (ignore(event)) return;
     if (['j', 'k'].includes(event.key)) {
       event.preventDefault();
       event.stopPropagation();
@@ -16,6 +29,7 @@ export function setup(root) {
 
   // Nagivation: up or down
   root.addEventListener('keydown', (event) => {
+    if (ignore(event)) return;
     if (['h', 'l'].includes(event.key)) {
       event.preventDefault();
       event.stopPropagation();
@@ -25,25 +39,31 @@ export function setup(root) {
 
   // Navigation: back to top
   root.addEventListener('keydown', (event) => {
+    if (ignore(event)) return;
     if (event.key == "H") { event.stopPropagation(); focusTop(); };
   });
 
   // Basic actions on the currently focused element
   root.addEventListener('keydown', (event) => {
+    if (ignore(event)) return;
     if (event.key == ".") { event.stopPropagation(); toggleMenu(document.activeElement); };
   });
   root.addEventListener('keydown', (event) => {
+    if (ignore(event)) return;
     if (event.key == ",") { event.stopPropagation(); toggleCollapse(document.activeElement); };
   });
   root.addEventListener('keydown', (event) => {
+    if (ignore(event)) return;
     if (event.key == ";") { event.stopPropagation(); toggleCollapseAll(document.activeElement); };
   });
   root.addEventListener('keydown', (event) => {
+    if (ignore(event)) return;
     if (event.key == "z") { event.stopPropagation(); scrollToMiddle(document.activeElement); };
   });
 
   // Interaction with the menu of the currently focused element
   root.addEventListener('keydown', (event) => {
+    if (ignore(event)) return;
     if (["ArrowUp", "ArrowDown"].includes(event.key)) {
       event.preventDefault();
       event.stopPropagation();
@@ -51,7 +71,7 @@ export function setup(root) {
     }
   });
   root.addEventListener("keyup", (event) => {
-    event.preventDefault();
+    if (ignore(event)) return;
     if (event.keyCode === 13) {
       event.preventDefault();
       event.stopPropagation();
@@ -61,6 +81,7 @@ export function setup(root) {
 
   // Tooltips
   root.addEventListener('keydown', (event) => {
+    if (ignore(event)) return;
     if (event.key == "i") {
       event.stopPropagation();
       toggleTooltip(document.activeElement);
