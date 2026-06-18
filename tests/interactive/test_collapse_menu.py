@@ -77,6 +77,43 @@ def test_clicking_menu_item_does_not_select_block(page: Page, interactive_server
     assert step.evaluate("el => el.matches(':focus')") is False
 
 
+def test_dot_shortcut_opens_focused_menu(page: Page, interactive_server: str):
+    # The "." shortcut toggles the focused handrail's menu. It must drive the
+    # shared singleton (move it into the focused handrail's zone), not the old
+    # per-handrail menu-zone, which is empty until the singleton is moved in.
+    _load(page, interactive_server)
+    step = page.locator("#stp-outer")
+    step.focus()
+    page.keyboard.press(".")
+    expect(step.locator(":scope > .hr-menu-zone #hr-menu-singleton")).to_be_visible()
+
+
+def test_escape_closes_open_menu(page: Page, interactive_server: str):
+    _load(page, interactive_server)
+    step = page.locator("#stp-outer")
+    step.focus()
+    page.keyboard.press(".")
+    expect(step.locator(":scope > .hr-menu-zone #hr-menu-singleton")).to_be_visible()
+    page.keyboard.press("Escape")
+    expect(page.locator("#hr-menu-singleton")).to_be_hidden()
+
+
+def test_comma_collapses_focused_step(page: Page, interactive_server: str):
+    _load(page, interactive_server)
+    step = page.locator("#stp-outer")
+    step.focus()
+    page.keyboard.press(",")
+    expect(step).to_have_class(re.compile(r"\bhr-collapsed\b"))
+
+
+def test_semicolon_collapses_all_substeps(page: Page, interactive_server: str):
+    _load(page, interactive_server)
+    step = page.locator("#stp-outer")
+    step.focus()
+    page.keyboard.press(";")
+    expect(page.locator("#stp-inner-a")).to_have_class(re.compile(r"\bhr-collapsed\b"))
+
+
 def test_collapse_all_label_reflects_substep_state(page: Page, interactive_server: str):
     _load(page, interactive_server)
     # Collapse both inner steps via their own menus (not via "Collapse all", so the

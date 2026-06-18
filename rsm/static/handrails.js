@@ -255,6 +255,32 @@ function hideMenu() {
 }
 
 
+// Toggle the singleton menu for a handrail, mirroring a click on its dots. Used
+// by the "." keyboard shortcut, which must drive the singleton rather than the
+// old per-handrail menu-zone (empty until the singleton is moved into it).
+export function toggleMenuFor(hr) {
+  if (!hr || !hr.classList || !hr.classList.contains("hr")) return;
+  if (activeHr === hr) {
+    hideMenu();
+  } else {
+    singletonMenu = document.getElementById("hr-menu-singleton");
+    showMenuFor(hr);
+  }
+}
+
+
+// Close the open menu, if any (used by the Escape shortcut).
+export function closeMenu() {
+  if (activeHr) hideMenu();
+}
+
+
+// Whether a menu is currently open on hr (its zone holds the singleton).
+export function menuOpenOn(hr) {
+  return !!hr && activeHr === hr;
+}
+
+
 function updateHeight(entries) {
   for (const entry of entries) {
     const hr = entry.target.parentElement;
@@ -333,36 +359,22 @@ function getRest(hr) {
 
 
 export function collapseAll(target, withinSubproof = true) {
-  let qry;
-  if (withinSubproof) {
-    qry = ":scope > .hr-content-zone > .subproof > .hr-content-zone > .step:has(.subproof)";
-  } else {
-    qry = ":scope > .hr-content-zone > .step:has(.subproof)";
-  }
+  const qry = withinSubproof
+    ? ":scope > .hr-content-zone > .subproof > .hr-content-zone > .step:has(.subproof)"
+    : ":scope > .hr-content-zone > .step:has(.subproof)";
 
   const hr = target.closest ? target.closest(".hr") : target;
+  const steps = Array.from(hr.querySelectorAll(qry));
+  if (!steps.length) return;
 
-  // Check current state of the collapse-all icon in the singleton
-  const collapseAllItem = singletonMenu ? singletonMenu.querySelector('[data-role="collapse-all"]') : null;
-  const icon = collapseAllItem ? collapseAllItem.querySelector(".icon") : null;
+  // Direction comes from the actual substep state, not the singleton menu icon
+  // (which is null until the menu has been opened, breaking the "." path).
+  const allCollapsed = steps.every(s => s.classList.contains("hr-collapsed"));
+  steps.forEach(s => (allCollapsed ? openHandrail(s) : closeHandrail(s)));
 
-  if (icon && icon.classList.contains("expand-all")) {
-    hr.querySelectorAll(qry).forEach(st => openHandrail(st));
-    icon.classList.remove("expand-all");
-    icon.classList.add("collapse-all");
-    const use = icon.querySelector("use");
-    if (use) use.setAttribute("href", "#hr-icon-collapse-all");
-    const text = icon.nextElementSibling;
-    if (text) text.textContent = "Collapse all";
-  } else if (icon) {
-    hr.querySelectorAll(qry).forEach(st => closeHandrail(st));
-    icon.classList.remove("collapse-all");
-    icon.classList.add("expand-all");
-    const use = icon.querySelector("use");
-    if (use) use.setAttribute("href", "#hr-icon-expand-all");
-    const text = icon.nextElementSibling;
-    if (text) text.textContent = "Expand all";
-  }
+  // Keep the shared menu label in sync if it is currently shown for this hr;
+  // otherwise showMenuFor re-derives it on the next open.
+  refreshCollapseLabels(hr);
 };
 
 async function copyLink(hr) {

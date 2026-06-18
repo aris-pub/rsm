@@ -701,6 +701,21 @@ var RSM = (() => {
     }
     activeHr = null;
   }
+  function toggleMenuFor(hr) {
+    if (!hr || !hr.classList || !hr.classList.contains("hr")) return;
+    if (activeHr === hr) {
+      hideMenu();
+    } else {
+      singletonMenu = document.getElementById("hr-menu-singleton");
+      showMenuFor(hr);
+    }
+  }
+  function closeMenu() {
+    if (activeHr) hideMenu();
+  }
+  function menuOpenOn(hr) {
+    return !!hr && activeHr === hr;
+  }
   function updateHeight(entries) {
     for (const entry of entries) {
       const hr = entry.target.parentElement;
@@ -770,32 +785,13 @@ var RSM = (() => {
     return rest;
   }
   function collapseAll(target, withinSubproof = true) {
-    let qry;
-    if (withinSubproof) {
-      qry = ":scope > .hr-content-zone > .subproof > .hr-content-zone > .step:has(.subproof)";
-    } else {
-      qry = ":scope > .hr-content-zone > .step:has(.subproof)";
-    }
+    const qry = withinSubproof ? ":scope > .hr-content-zone > .subproof > .hr-content-zone > .step:has(.subproof)" : ":scope > .hr-content-zone > .step:has(.subproof)";
     const hr = target.closest ? target.closest(".hr") : target;
-    const collapseAllItem = singletonMenu ? singletonMenu.querySelector('[data-role="collapse-all"]') : null;
-    const icon = collapseAllItem ? collapseAllItem.querySelector(".icon") : null;
-    if (icon && icon.classList.contains("expand-all")) {
-      hr.querySelectorAll(qry).forEach((st) => openHandrail(st));
-      icon.classList.remove("expand-all");
-      icon.classList.add("collapse-all");
-      const use = icon.querySelector("use");
-      if (use) use.setAttribute("href", "#hr-icon-collapse-all");
-      const text = icon.nextElementSibling;
-      if (text) text.textContent = "Collapse all";
-    } else if (icon) {
-      hr.querySelectorAll(qry).forEach((st) => closeHandrail(st));
-      icon.classList.remove("collapse-all");
-      icon.classList.add("expand-all");
-      const use = icon.querySelector("use");
-      if (use) use.setAttribute("href", "#hr-icon-expand-all");
-      const text = icon.nextElementSibling;
-      if (text) text.textContent = "Expand all";
-    }
+    const steps = Array.from(hr.querySelectorAll(qry));
+    if (!steps.length) return;
+    const allCollapsed = steps.every((s) => s.classList.contains("hr-collapsed"));
+    steps.forEach((s) => allCollapsed ? openHandrail(s) : closeHandrail(s));
+    refreshCollapseLabels(hr);
   }
   async function copyLink(hr) {
     let url;
@@ -988,15 +984,18 @@ var RSM = (() => {
       if (ignore(event)) return;
       if (event.key == "H") {
         event.stopPropagation();
-        focusTop();
+        focusTop(root2);
       }
       ;
+    });
+    root2.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") closeMenu();
     });
     root2.addEventListener("keydown", (event) => {
       if (ignore(event)) return;
       if (event.key == ".") {
         event.stopPropagation();
-        toggleMenu(document.activeElement);
+        toggleMenuFor(document.activeElement);
       }
       ;
     });
@@ -1026,19 +1025,19 @@ var RSM = (() => {
     });
     root2.addEventListener("keydown", (event) => {
       if (ignore(event)) return;
-      if (["ArrowUp", "ArrowDown"].includes(event.key)) {
-        event.preventDefault();
-        event.stopPropagation();
-        menuUpOrDown(document.activeElement, event.key == "ArrowUp" ? "up" : "down");
-      }
+      if (!["ArrowUp", "ArrowDown"].includes(event.key)) return;
+      if (!menuOpenOn(document.activeElement)) return;
+      event.preventDefault();
+      event.stopPropagation();
+      menuUpOrDown(document.activeElement, event.key == "ArrowUp" ? "up" : "down");
     });
     root2.addEventListener("keyup", (event) => {
       if (ignore(event)) return;
-      if (event.keyCode === 13) {
-        event.preventDefault();
-        event.stopPropagation();
-        executeActiveMenuItem(document.activeElement);
-      }
+      if (event.keyCode !== 13) return;
+      if (!menuOpenOn(document.activeElement)) return;
+      event.preventDefault();
+      event.stopPropagation();
+      executeActiveMenuItem(document.activeElement);
     });
     root2.addEventListener("keydown", (event) => {
       if (ignore(event)) return;
@@ -1062,62 +1061,25 @@ var RSM = (() => {
     }
   }
   function executeActiveMenuItem(el) {
-    const menu = el.querySelector("& > .hr-menu-zone > .hr-menu");
+    const menu = el.querySelector(":scope > .hr-menu-zone .hr-menu");
     if (!menu) return;
-    const activeItems = menu.querySelectorAll("& > .hr-menu-item.active:not(.disabled)");
-    if (activeItems.length == 0) return;
-    if (activeItems.length > 1) {
-      console.log("more than one active items, ignoring");
-      return;
-    }
-    ;
-    const cls = Array.from(activeItems[0].classList).filter((cls2) => cls2 !== "active" && cls2 !== "hr-menu-item");
-    if (cls.length == 0) {
-      console.log(`unknown item`);
-      return;
-    }
-    ;
-    if (cls.length > 1) {
-      console.log(`item has too many classes, ignoring`);
-      return;
-    }
-    ;
-    switch (cls[0]) {
-      case "collapse-subproof":
-        toggleHandrail(el);
-        break;
-      case "collapse-steps":
-        collapseAll(el);
-        break;
-      case "toc-view":
-        toggleTocView(el, null);
-        break;
-      case true:
-        console.log($`unknown item class: ${cls[0]}`);
-    }
+    const active = menu.querySelector(":scope > .hr-menu-item.active:not(.disabled)");
+    if (active) active.click();
   }
   function menuUpOrDown(el, direction) {
-    const menu = el.querySelector("& > .hr-menu-zone");
-    if (!getComputedStyle(menu).display == "none") return;
-    const qry = `
-      & > .hr-menu > .hr-menu-item:hover,
-      & > .hr-menu > .hr-menu-item:active,
-      & > .hr-menu > .hr-menu-item:focus,
-      & > .hr-menu > .hr-menu-item.active
-  `;
-    const currentItem = menu.querySelector(qry);
-    const allItems = Array.from(menu.querySelectorAll("& > .hr-menu > .hr-menu-item"));
-    let index = allItems.indexOf(currentItem);
-    if (index == -1) index = 0;
-    if (!currentItem || index == -1) {
-      index = 0;
-    } else if (direction == "down") {
-      index = (index + 1) % allItems.length;
-    } else if (direction == "up") {
-      index = (index - 1 + allItems.length) % allItems.length;
+    const menu = el.querySelector(":scope > .hr-menu-zone .hr-menu");
+    if (!menu) return;
+    const items = Array.from(menu.querySelectorAll(":scope > .hr-menu-item")).filter((it) => it.offsetParent !== null && !it.classList.contains("disabled"));
+    if (!items.length) return;
+    const current = items.find((it) => it.classList.contains("active"));
+    let index = current ? items.indexOf(current) : -1;
+    if (index === -1) {
+      index = direction === "down" ? 0 : items.length - 1;
+    } else {
+      index = direction === "down" ? (index + 1) % items.length : (index - 1 + items.length) % items.length;
     }
-    if (currentItem) currentItem.classList.remove("active");
-    allItems[index].classList.add("active");
+    if (current) current.classList.remove("active");
+    items[index].classList.add("active");
   }
   function focusUpOrDown(direction, root2) {
     const focusableElements = getFocusableElements(root2);
@@ -1213,31 +1175,16 @@ var RSM = (() => {
   }
   function toggleCollapse(el) {
     if (!el.classList.contains("hr")) return;
-    const coll1 = el.querySelector("& > .hr-collapse-zone > .hr-collapse");
-    const coll2 = el.querySelector("& > .hr-menu-zone .collapse-subproof:not(.disabled)");
-    if (!coll1 && !coll2) return;
+    const chevron = el.querySelector(":scope > .hr-collapse-zone > .hr-collapse");
+    const collapse = el.getAttribute("data-menu-collapse");
+    if (!chevron && (!collapse || collapse === "disabled")) return;
     toggleHandrail(el);
   }
   function toggleCollapseAll(el) {
     if (!el.classList.contains("hr")) return;
-    const collAll = el.querySelector(`
-        & > .hr-menu-zone .collapse-all:not(.disabled),
-        & > .hr-menu-zone .expand-all:not(.disabled)
-    `);
-    const withinSubproof = el.classList.contains("step");
-    if (collAll) collapseAll(el, withinSubproof);
-  }
-  function toggleMenu(el) {
-    if (!el.classList.contains("hr")) return;
-    const menu = el.querySelector("& > .hr-menu-zone");
-    if (!menu) return;
-    const style = getComputedStyle(menu);
-    if (style.display == "none") menu.style.display = "block";
-    else if (style.display == "block") {
-      menu.querySelectorAll("& > .hr-menu > .hr-menu-item").forEach((it) => it.classList.remove("active"));
-      menu.style.display = "none";
-    }
-    ;
+    const collapseAll_ = el.getAttribute("data-menu-collapse-all");
+    if (!collapseAll_ || collapseAll_ === "disabled") return;
+    collapseAll(el, el.classList.contains("step"));
   }
   function isFocusable(el) {
     if (el.classList.contains("hr-collapsed") && !el.classList.contains("hide")) return true;
