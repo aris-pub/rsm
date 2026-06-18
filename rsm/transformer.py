@@ -912,6 +912,18 @@ class Transformer:
             chain.reverse()
             return chain
 
+        def preceding_step_siblings(step: nodes.Step) -> list:  # document order
+            # A let/assume introduced by a step stays in scope for every later
+            # step at the same level (Lamport), so a later step's hypotheses
+            # include those of all its preceding step siblings.
+            out = []
+            sib = step.prev_sibling(nodes.Step)
+            while sib is not None:
+                out.append(sib)
+                sib = sib.prev_sibling(nodes.Step)
+            out.reverse()
+            return out
+
         theorem = proof.prev_sibling()
         thm_types = (
             nodes.Theorem, nodes.Lemma, nodes.Corollary,
@@ -930,6 +942,14 @@ class Transformer:
             chain = ancestors(s)
             hyps = list(base_hyps)
             for anc in chain:
+                # Preceding siblings at this level are in scope, then the
+                # ancestor's own let/assume.
+                for sib in preceding_step_siblings(anc):
+                    snum = str(sib.full_number)
+                    hyps += [
+                        {"id": c.nodeid, "num": snum}
+                        for c in own_constructs(sib, self.HYP_KINDS)
+                    ]
                 num = str(anc.full_number)
                 hyps += [
                     {"id": c.nodeid, "num": num}
