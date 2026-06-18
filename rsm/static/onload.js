@@ -92,6 +92,9 @@ export async function onload(root = null, { keys = true } = {}) {
     // typeset so the live LaTeX preview has the math renderer available.
     try {
       notation.mountNotationPanel(root);
+      // The notation buttons are created here, after the initial createTooltips
+      // pass, so bind tooltips again (idempotent via :not(.tooltipstered)).
+      tooltips.createTooltips();
     } catch (err) {
       console.error("Loading notation panel FAILED!", err);
     }

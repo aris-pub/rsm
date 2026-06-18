@@ -1219,11 +1219,11 @@ body {
   .toc-tree .toc-node .toc-secnum {
     font-size: 13.5px;
     font-weight: 600;
-    fill: var(--gray-700, #5F7186);
+    fill: var(--gray-700);
   }
 
   .toc-tree .toc-node.level-1 .toc-secnum {
-    fill: var(--text-primary, #1a2433);
+    fill: var(--text-body);
   }
 
   .toc-tree .toc-node a {
@@ -1239,12 +1239,12 @@ body {
   .toc-tree .toc-hover-label text {
     font-size: 13px;
     font-weight: 600;
-    fill: var(--text-primary, #1a2433);
+    fill: var(--text-body);
   }
 
   .toc-tree .toc-edge {
     fill: none;
-    stroke: var(--blue, #2c5e9e);
+    stroke: var(--primary-700);
     opacity: 0.75;
   }
 
@@ -1266,8 +1266,8 @@ body {
   }
 
   .toc-tree .toc-node.level-0 rect {
-    fill: var(--blue, #2c5e9e);
-    stroke: var(--blue, #2c5e9e);
+    fill: var(--primary-700);
+    stroke: var(--primary-700);
   }
 
   .toc-tree .toc-node.level-0 .toc-secnum {
@@ -1275,7 +1275,7 @@ body {
     font-weight: 700;
   }
 
-  .toc-tree .toc-arrowhead.dep { fill: var(--blue, #2c5e9e); }
+  .toc-tree .toc-arrowhead.dep { fill: var(--primary-700); }
   .toc-tree .toc-arrowhead.fwd { fill: var(--gold, #b08a3e); }
 
   .toc-tree .toc-faded {
@@ -1292,26 +1292,38 @@ body {
   .proof-rail { display: none; }
 
   .proof-rail.active {
-    /* Frameless column: Map/State tabs on top, the shown panel below, pinned
-       in the gutter. The Map tree is capped to fit (never scrolls). */
+    /* A contained floating panel in the gutter: a clear surface with its own
+       border and shadow, not loose controls hovering in the margin. Scope/
+       sub-tabs on top, the shown panel below; the Map tree is capped to fit. */
     display: flex;
     flex-direction: column;
     align-items: stretch;
-    gap: 0.45rem;
+    gap: 0.5rem;
     position: fixed;
-    left: 0.75rem;
+    left: 1rem;
     /* Anchor the top so it doesn't drift up and down as content changes. */
     top: 5rem;
-    width: min(34vw, 460px);
+    width: min(31vw, 380px);
     max-height: calc(100vh - 7rem);
     overflow: hidden;
     z-index: 40;
+    padding: 0.85rem;
+    background: var(--surface-page);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-xl);
+    box-shadow: 0 1px 2px rgba(40, 60, 90, 0.04), 0 4px 14px rgba(40, 60, 90, 0.07);
+  }
+  /* Collapsed: a compact square handle, not a tall rounded blob. */
+  .proof-rail.active.collapsed {
+    padding: 0.4rem;
+    border-radius: var(--radius-lg);
+    box-shadow: 0 1px 3px rgba(40, 60, 90, 0.10);
   }
 
   /* Visible keyboard focus for the sidebar controls and the tree-DAG nodes. */
   .proof-rail :focus-visible,
   .toc-tree a:focus-visible {
-    outline: 2px solid var(--blue, #2c5e9e);
+    outline: 2px solid var(--primary-700);
     outline-offset: 2px;
   }
 
@@ -1327,16 +1339,16 @@ body {
     border-bottom: 2px solid transparent;
     background: none;
     cursor: pointer;
-    font-size: 0.82rem;
+    font-size: 0.875rem;
     font-weight: 600;
     letter-spacing: 0.02em;
-    color: var(--gray-700, #5F7186);
+    color: var(--gray-700);
   }
   .rail-scope.active {
-    color: var(--blue, #2c5e9e);
-    border-bottom-color: var(--blue, #2c5e9e);
+    color: var(--primary-700);
+    border-bottom-color: var(--primary-700);
   }
-  .rail-scope:hover { color: var(--blue, #2c5e9e); }
+  .rail-scope:hover { color: var(--primary-700); }
 
   .rail-tab {
     display: inline-flex;
@@ -1344,34 +1356,39 @@ body {
     gap: 0.4rem;
     padding: 0.4rem 0.85rem;
     border: 1px solid transparent;
-    border-radius: 8px;
-    background: none;
+    border-radius: var(--radius-lg);
+    background: var(--gray-75);
     cursor: pointer;
-    font-size: 0.9rem;
-    color: var(--gray-700, #5F7186);
+    font-size: 0.82rem;
+    color: var(--gray-700);
   }
   .rail-tab svg { width: 18px; height: 18px; }
   .rail-tab.active {
-    color: var(--blue, #2c5e9e);
-    background: rgba(44, 94, 158, 0.08);
+    color: var(--primary-700);
+    background: var(--primary-50);
   }
-  .rail-tab:hover { color: var(--blue, #2c5e9e); }
+  .rail-tab:hover { color: var(--primary-700); }
 
   /* Collapse control: shrinks the sidebar to a single re-open affordance so the
      document can read as just the prose. */
+  /* The scope tabs and the collapse control share the top row, so the panel
+     opens with no near-empty row above the tabs. */
+  .rail-header { display: flex; align-items: center; gap: 0.4rem; }
+  .rail-header .rail-scopes { flex: 1; }
+
   .rail-collapse {
-    align-self: flex-end;
     display: inline-flex;
     padding: 0.2rem;
     border: none;
     background: none;
     cursor: pointer;
-    color: var(--gray-700, #5F7186);
+    color: var(--gray-700);
   }
   .rail-collapse svg { width: 18px; height: 18px; }
-  .rail-collapse:hover { color: var(--blue, #2c5e9e); }
+  .rail-collapse:hover { color: var(--primary-700); }
   .proof-rail.collapsed { width: auto; gap: 0; }
-  .proof-rail.collapsed > :not(.rail-collapse) { display: none; }
+  .proof-rail.collapsed > :not(.rail-header) { display: none; }
+  .proof-rail.collapsed .rail-scopes { display: none; }
   .rail-collapse-collapse,
   .rail-collapse-expand { display: inline-flex; }
   .rail-collapse-expand { display: none; }
@@ -1399,10 +1416,10 @@ body {
   .proof-rail.proof-view-state .rail-map { display: none; }
   .rail-map { display: flex; align-items: center; justify-content: center; min-height: 0; }
 
-  /* Outside any proof the Proof scope has nothing live, so show an empty state. */
+  /* Outside any proof the Proof scope has nothing live to show. */
   .rail-proof-empty {
     display: none;
-    color: var(--gray-700, #5F7186);
+    color: var(--gray-700);
     font-style: italic;
     font-size: 0.8rem;
   }
@@ -1419,45 +1436,43 @@ body {
   }
   .rail-notation-row { display: flex; flex-direction: column; gap: 0.25rem; }
   .rail-notation-label {
-    font-size: 0.68rem;
+    font-size: 0.7rem;
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    color: var(--gray-700, #5F7186);
+    color: var(--gray-700);
     font-weight: 700;
   }
   .rail-notation-edit { display: flex; align-items: center; gap: 0.4rem; }
   .rail-notation-actions { display: flex; align-items: center; gap: 0.4rem; }
   .rail-notation-apply {
     padding: 0.2rem 0.7rem;
-    border: 1px solid var(--blue, #2c5e9e);
-    border-radius: 6px;
-    background: var(--blue, #2c5e9e);
+    border: 1px solid var(--primary-700);
+    border-radius: var(--radius-lg);
+    background: var(--primary-700);
     color: #fff;
-    font-size: 0.78rem;
+    font-size: 0.82rem;
     font-weight: 600;
     cursor: pointer;
   }
-  .rail-notation-apply:hover { background: #244e85; }
-  /* Push locate + reset to the right, away from Apply. */
-  .rail-notation-locate { margin-left: auto; }
+  .rail-notation-apply:hover { background: var(--primary-800); }
   .rail-notation-input {
     flex: 1;
     min-width: 0;
-    font-family: var(--mono, monospace);
+    font-family: var(--font-mono);
     font-size: 0.82rem;
     padding: 0.25rem 0.45rem;
-    border: 1px solid var(--gray-200, #e6eaef);
-    border-radius: 6px;
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-lg);
     background: var(--white, #fff);
-    color: var(--text-primary, #1a2230);
+    color: var(--text-body);
   }
-  .rail-notation-input:focus { outline: none; border-color: var(--blue, #2c5e9e); }
-  .rail-notation-input.invalid { border-color: #c0392b; }
+  .rail-notation-input:focus { outline: none; border-color: var(--primary-700); }
+  .rail-notation-input.invalid { border-color: var(--error-500); }
   .rail-notation-preview {
     min-width: 1.8em;
     text-align: center;
-    color: var(--text-secondary, #3a4453);
-    font-size: 0.95rem;
+    color: var(--text-subtle);
+    font-size: 0.9rem;
   }
   .rail-notation-reset,
   .rail-notation-locate {
@@ -1465,12 +1480,12 @@ body {
     background: none;
     cursor: pointer;
     padding: 0.2rem;
-    color: var(--gray-400, #aab2bd);
+    color: var(--gray-400);
     font-size: 1rem;
     line-height: 1;
   }
   .rail-notation-reset:hover,
-  .rail-notation-locate:hover { color: var(--blue, #2c5e9e); }
+  .rail-notation-locate:hover { color: var(--primary-700); }
   .rail-notation-locate { display: inline-flex; }
   .rail-notation-locate svg { width: 16px; height: 16px; }
 
@@ -1482,14 +1497,14 @@ body {
      prefers-reduced-motion, and !important so it beats the math element's own
      background. The box-shadow spread haloes even a small inline symbol. */
   .notation-located {
-    background-color: rgba(247, 201, 72, 0.9) !important;
-    box-shadow: 0 0 0 4px rgba(247, 201, 72, 0.9);
+    background-color: var(--yellow-300) !important;
+    box-shadow: 0 0 0 4px var(--yellow-300);
     border-radius: 3px;
   }
   .rail-notation-empty {
-    color: var(--gray-700, #5F7186);
+    color: var(--gray-700);
     font-style: italic;
-    font-size: 0.8rem;
+    font-size: 0.82rem;
   }
 
   /* Capped to the gutter box: a tree larger than this scales down (aspect
@@ -1499,25 +1514,25 @@ body {
     display: block;
     width: auto;
     height: auto;
-    max-width: min(34vw, 460px);
+    max-width: 100%;
     max-height: calc(90vh - 2.5rem);
     overflow: visible;
   }
 
   /* State view: live hypotheses and current goal, cloned from the body. */
   .rail-state {
-    font-size: 0.85rem;
-    color: var(--text-secondary, #3a4453);
+    font-size: 0.82rem;
+    color: var(--text-subtle);
     overflow: hidden; /* hard rule: no scrollbars */
     overflow-wrap: break-word;
   }
   .rail-state .hr-content-zone { width: auto; }
   .rail-state-block { margin-bottom: 0.7rem; }
   .rail-state-label {
-    font-size: 0.68rem;
+    font-size: 0.7rem;
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    color: var(--gray-700, #5F7186);
+    color: var(--gray-700);
     font-weight: 700;
     margin-bottom: 0.3rem;
   }
@@ -1525,20 +1540,20 @@ body {
     list-style: none; margin: 0; padding: 0;
     display: flex; flex-direction: column; gap: 0.35rem;
   }
-  .rail-hyps li { padding-left: 0.6rem; border-left: 2px solid var(--gray-200, #e6eaef); }
+  .rail-hyps li { padding-left: 0.6rem; border-left: 2px solid var(--gray-200); }
   .rail-hyps li.rail-hyp-empty {
-    color: var(--gray-400, #aab2bd);
+    color: var(--gray-400);
     font-style: italic;
     border-left-style: dashed;
   }
-  .rail-goal-body { padding-left: 0.6rem; border-left: 2px solid var(--blue, #2c5e9e); }
+  .rail-goal-body { padding-left: 0.6rem; border-left: 2px solid var(--primary-700); }
   .rail-step-badge {
-    color: var(--gray-700, #5F7186);
+    color: var(--gray-700);
     font-variant-numeric: tabular-nums;
     font-weight: 600;
     margin-right: 0.4em;
   }
-  .rail-state-empty { color: var(--gray-700, #5F7186); font-style: italic; font-size: 0.8rem; }
+  .rail-state-empty { color: var(--gray-700); font-style: italic; font-size: 0.8rem; }
 
   /* Not enough room to float the rail without overlapping the column. */
   @media (max-width: 1100px) {
@@ -1559,25 +1574,25 @@ body {
 
   .toc-tree .toc-edge.focus-lit {
     opacity: 1;
-    stroke: var(--blue, #2c5e9e);
+    stroke: var(--primary-700);
     stroke-dasharray: none;
     stroke-width: 2.4;
   }
 
   .toc-tree .toc-node.focus-lit rect {
-    stroke: var(--blue, #2c5e9e);
+    stroke: var(--primary-700);
     stroke-width: 1.8;
   }
 
   /* Active-step tracking: the step currently being read is filled to read as
      "you are here", distinct from the white default and the solid-blue root. */
   .toc-tree .toc-node.current-step rect {
-    fill: rgba(44, 94, 158, 0.16);
-    stroke: var(--blue, #2c5e9e);
+    fill: var(--primary-100);
+    stroke: var(--primary-700);
     stroke-width: 2;
   }
   .toc-tree .toc-node.current-step .toc-secnum {
-    fill: var(--blue, #2c5e9e);
+    fill: var(--primary-700);
     font-weight: 700;
   }
 
@@ -1596,15 +1611,15 @@ body {
     padding: 0.4rem 0.7rem;
     font-size: 0.8rem;
     line-height: 1.2;
-    color: var(--blue, #2c5e9e);
-    background: rgba(44, 94, 158, 0.08);
-    border: 1px solid rgba(44, 94, 158, 0.25);
+    color: var(--primary-700);
+    background: var(--primary-50);
+    border: 1px solid var(--primary-200);
     border-radius: 8px;
     cursor: pointer;
     user-select: none;
   }
 
-  .proof-focus-exit:hover { background: rgba(44, 94, 158, 0.14); }
+  .proof-focus-exit:hover { background: var(--primary-100); }
 
   .proof-focus-exit .proof-focus-back { font-size: 1.05em; line-height: 1; }
   .proof-focus-exit .proof-focus-show-all {
@@ -1736,7 +1751,7 @@ body {
 .manuscriptwrapper figcaption > .hr-content-zone {
   background: var(--gray-100);
   border: 1px solid var(--gray-200);
-  border-radius: 6px;
+  border-radius: var(--radius-lg);
   padding: 0.75em 1em;
   font-size: 0.9em; }
 

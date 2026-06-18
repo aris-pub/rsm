@@ -6,6 +6,7 @@
 export function createTooltips() {
   $(".manuscriptwrapper a.reference:not(.external):not(.tooltipstered)").tooltipster({
     theme: ['tooltipster-shadow', 'tooltipster-shadow-rsm'],
+    delay: 200,
     minWidth: 100,
     maxWidth: 500,
     trigger: 'custom',
@@ -103,6 +104,7 @@ export function createTooltips() {
 
   $(".manuscriptwrapper .author-names sup[data-tooltip]:not(.tooltipstered)").tooltipster({
     theme: ['tooltipster-shadow', 'tooltipster-shadow-rsm'],
+    delay: 200,
     minWidth: 100,
     maxWidth: 500,
     trigger: 'custom',
@@ -119,6 +121,30 @@ export function createTooltips() {
     functionInit: function (instance, helper) {
       let text = $(helper.origin).attr("data-tooltip");
       setTooltipContent(instance, text);
+    },
+  });
+
+  // Sidebar control labels: the same tooltipster mechanism as the body, with a
+  // plain-text label taken from data-tooltip.
+  $(".proof-rail [data-tooltip]:not(.tooltipstered)").tooltipster({
+    theme: ['tooltipster-shadow', 'tooltipster-shadow-rsm'],
+    delay: 200,
+    side: 'bottom',
+    trigger: 'custom',
+    triggerOpen: {
+      mouseenter: true,
+      touchstart: true
+    },
+    triggerClose: {
+      click: true,
+      mouseleave: true,
+      originClick: true,
+      touchleave: true
+    },
+    functionInit: function (instance, helper) {
+      // Wrap in .manuscriptwrapper like the body tooltips so the label inherits
+      // the same typography instead of the bare tooltipster default.
+      setTooltipContent(instance, $(helper.origin).attr("data-tooltip"));
     },
   });
 }

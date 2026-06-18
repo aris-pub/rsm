@@ -217,15 +217,18 @@ var RSM = (() => {
       apply.type = "button";
       apply.className = "rail-notation-apply";
       apply.textContent = "Apply";
+      apply.setAttribute("data-tooltip", "Apply this symbol throughout the paper");
       const locate = document.createElement("button");
       locate.type = "button";
       locate.className = "rail-notation-locate";
-      locate.title = "Scroll to the nearest occurrence of this symbol";
+      locate.setAttribute("aria-label", "Scroll to the nearest occurrence of this symbol");
+      locate.setAttribute("data-tooltip", "Scroll to the nearest occurrence of this symbol");
       locate.innerHTML = _LOCATE_ICON;
       const reset = document.createElement("button");
       reset.type = "button";
       reset.className = "rail-notation-reset";
-      reset.title = "Reset to the author's default";
+      reset.setAttribute("aria-label", "Reset to the author's default");
+      reset.setAttribute("data-tooltip", "Reset to the author's default");
       reset.textContent = "\u21BA";
       renderPreview(input.value);
       let lastApplied = e.current;
@@ -1198,6 +1201,7 @@ var RSM = (() => {
   function createTooltips() {
     $(".manuscriptwrapper a.reference:not(.external):not(.tooltipstered)").tooltipster({
       theme: ["tooltipster-shadow", "tooltipster-shadow-rsm"],
+      delay: 200,
       minWidth: 100,
       maxWidth: 500,
       trigger: "custom",
@@ -1284,6 +1288,7 @@ var RSM = (() => {
     });
     $(".manuscriptwrapper .author-names sup[data-tooltip]:not(.tooltipstered)").tooltipster({
       theme: ["tooltipster-shadow", "tooltipster-shadow-rsm"],
+      delay: 200,
       minWidth: 100,
       maxWidth: 500,
       trigger: "custom",
@@ -1300,6 +1305,25 @@ var RSM = (() => {
       functionInit: function(instance, helper) {
         let text = $(helper.origin).attr("data-tooltip");
         setTooltipContent(instance, text);
+      }
+    });
+    $(".proof-rail [data-tooltip]:not(.tooltipstered)").tooltipster({
+      theme: ["tooltipster-shadow", "tooltipster-shadow-rsm"],
+      delay: 200,
+      side: "bottom",
+      trigger: "custom",
+      triggerOpen: {
+        mouseenter: true,
+        touchstart: true
+      },
+      triggerClose: {
+        click: true,
+        mouseleave: true,
+        originClick: true,
+        touchleave: true
+      },
+      functionInit: function(instance, helper) {
+        setTooltipContent(instance, $(helper.origin).attr("data-tooltip"));
       }
     });
   }
@@ -1737,6 +1761,7 @@ var RSM = (() => {
       await onrender(root2);
       try {
         mountNotationPanel(root2);
+        createTooltips();
       } catch (err) {
         console.error("Loading notation panel FAILED!", err);
       }

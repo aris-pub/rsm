@@ -227,17 +227,20 @@ export function mountNotationPanel(root = document) {
     apply.type = "button";
     apply.className = "rail-notation-apply";
     apply.textContent = "Apply";
+    apply.setAttribute("data-tooltip", "Apply this symbol throughout the paper");
 
     const locate = document.createElement("button");
     locate.type = "button";
     locate.className = "rail-notation-locate";
-    locate.title = "Scroll to the nearest occurrence of this symbol";
+    locate.setAttribute("aria-label", "Scroll to the nearest occurrence of this symbol");
+    locate.setAttribute("data-tooltip", "Scroll to the nearest occurrence of this symbol");
     locate.innerHTML = _LOCATE_ICON;
 
     const reset = document.createElement("button");
     reset.type = "button";
     reset.className = "rail-notation-reset";
-    reset.title = "Reset to the author's default";
+    reset.setAttribute("aria-label", "Reset to the author's default");
+    reset.setAttribute("data-tooltip", "Reset to the author's default");
     reset.textContent = "↺";
 
     function renderPreview(latex) {
