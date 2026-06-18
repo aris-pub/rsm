@@ -67,6 +67,16 @@ def test_collapse_label_updates_in_place_on_click(page: Page, interactive_server
     expect(_collapse_text(page)).to_have_text("Expand")
 
 
+def test_clicking_menu_item_does_not_select_block(page: Page, interactive_server: str):
+    # Clicking a menu item runs its action but must not focus (and so highlight
+    # in blue) the block, the same rule the collapse chevron already follows.
+    _load(page, interactive_server)
+    step = page.locator("#stp-outer")
+    _dots(step).click()
+    page.locator("#hr-menu-singleton [data-role='collapse-all']").click()
+    assert step.evaluate("el => el.matches(':focus')") is False
+
+
 def test_collapse_all_label_reflects_substep_state(page: Page, interactive_server: str):
     _load(page, interactive_server)
     # Collapse both inner steps via their own menus (not via "Collapse all", so the

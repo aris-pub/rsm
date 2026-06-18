@@ -558,7 +558,8 @@ var RSM = (() => {
       }
     });
     document.addEventListener("mousedown", function(ev) {
-      if (ev.target.closest && ev.target.closest(".hr-collapse-zone")) {
+      if (!ev.target.closest) return;
+      if (ev.target.closest(".hr-collapse-zone") || ev.target.closest(".hr-border-zone") || ev.target.closest("#hr-menu-singleton")) {
         ev.preventDefault();
       }
     });

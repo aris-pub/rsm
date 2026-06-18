@@ -56,11 +56,17 @@ export function setup() {
     }
   });
 
-  // A click on the collapse control must not focus (and so visually select) the
-  // enclosing handrail. Suppressing the default on mousedown prevents that focus
-  // without blurring whatever the reader had focused before.
+  // A click on the handrail's controls (collapse chevron, the dots, or any menu
+  // item) must not focus (and so visually select) the enclosing handrail.
+  // Suppressing the default on mousedown prevents that focus without blurring
+  // whatever the reader had focused before.
   document.addEventListener("mousedown", function (ev) {
-    if (ev.target.closest && ev.target.closest(".hr-collapse-zone")) {
+    if (!ev.target.closest) return;
+    if (
+      ev.target.closest(".hr-collapse-zone") ||
+      ev.target.closest(".hr-border-zone") ||
+      ev.target.closest("#hr-menu-singleton")
+    ) {
       ev.preventDefault();
     }
   });
