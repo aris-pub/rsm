@@ -977,6 +977,11 @@ class Transformer:
                 # Preceding siblings at this level are in scope, then the
                 # ancestor's own let/assume.
                 for sib in preceding_step_siblings(anc):
+                    # A sibling that states its own claim is an ASSUME...PROVE:
+                    # its assumptions are discharged by that claim and do not
+                    # propagate to later siblings (only within its own subproof).
+                    if own_constructs(sib, self.GOAL_KINDS):
+                        continue
                     snum = str(sib.full_number)
                     hyps += [
                         {"id": c.nodeid, "num": snum}
