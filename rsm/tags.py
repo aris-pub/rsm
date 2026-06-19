@@ -151,6 +151,8 @@ nonum = MetaTagInfo(None, bool)
 """Whether to number the tag."""
 collapsed = MetaTagInfo(None, bool)
 """Whether the tag's handrail should start collapsed (applied by JS on load)."""
+of = MetaTagInfo(None, str)
+"""The label of the result a detached :proof: establishes (sets the proof tree root, the State pane goal, and the linked "Proof of ..." lead)."""
 numbering = MetaTagInfo(None, str)
 """Numbering mode for theorems and sections (document, section, or none)."""
 orcid = MetaTagInfo(None, str)
