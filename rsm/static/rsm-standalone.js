@@ -823,6 +823,7 @@ var RSM = (() => {
     }
     link = `${url}#${anchor}`;
     try {
+      window.focus();
       await navigator.clipboard.writeText(link);
       launchToast("Link copied to clipboard.", "success");
     } catch (error) {
@@ -920,6 +921,7 @@ var RSM = (() => {
     document.addEventListener("keydown", escHandler);
     copyBtn.addEventListener("click", async () => {
       try {
+        window.focus();
         await navigator.clipboard.writeText(source);
         launchToast("Source copied to clipboard.", "success");
       } catch (error) {

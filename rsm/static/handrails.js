@@ -408,6 +408,11 @@ async function copyLink(hr) {
   }
   link = `${url}#${anchor}`
   try {
+    // The mousedown that stops a menu click from selecting the handrail also
+    // stops the document (notably an embedding iframe) from taking focus, and
+    // clipboard.writeText requires a focused document. Re-focus the window (not
+    // the handrail) so copy-link still works inside an iframe.
+    window.focus();
     await navigator.clipboard.writeText(link);
     launchToast("Link copied to clipboard.", "success");
   } catch (error) {
@@ -525,6 +530,7 @@ function showSource(hr) {
 
   copyBtn.addEventListener("click", async () => {
     try {
+      window.focus();  // see copyLink: clipboard.writeText needs a focused document
       await navigator.clipboard.writeText(source);
       launchToast("Source copied to clipboard.", "success");
     } catch (error) {
