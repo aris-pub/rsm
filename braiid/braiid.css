@@ -829,6 +829,20 @@ body {
   left: calc(100% - 3 * var(--chunk-half));
 }
 
+/* The info-zone is absolute and (for nested steps) pulled left into the content
+   area, so the content-zone must reserve the same width on its right or its
+   text flows under the number column and is occluded when the block is painted
+   on focus. Mirror the left-pull above, per subproof level. */
+.manuscriptwrapper .subproof .hr.hr-offset > .hr-content-zone {
+  margin-right: var(--chunk-half);
+}
+.manuscriptwrapper .subproof .subproof .hr.hr-offset > .hr-content-zone {
+  margin-right: calc(2 * var(--chunk-half));
+}
+.manuscriptwrapper .subproof .subproof .subproof .hr.hr-offset > .hr-content-zone {
+  margin-right: calc(3 * var(--chunk-half));
+}
+
 /* Handrails: individual elements -- collapse-zone */
 .manuscriptwrapper .hr .hr-collapse-zone {
   .hr-collapse {
