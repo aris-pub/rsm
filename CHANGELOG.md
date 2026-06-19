@@ -1,5 +1,25 @@
 # Changelog
 
+## [1.4.0] - 2026-06-19
+
+### Added
+- A floating proof-tree rail that maps a proof's structure, highlights the step you're currently reading, and offers a focus mode that dims everything else. Switch between its Map and State tabs to follow the proof's outline or inspect the assumptions and claims in scope at each step.
+- A two-scope floating sidebar with a built-in notation reader, redesigned as floating cards with a tooltip on every control. Proofs you've collapsed are now mirrored in its Proof tab.
+- Reader-rebindable notation macros, so readers can change how a document's notation is rendered for them.
+- A `:collapsed:` metakey that starts any block in its collapsed state.
+- A `:of:` metakey for declaring which result a detached proof proves.
+- Improved proof-scope analysis: introductions such as `let` and `assume` now carry past a co-located claim instead of being cut off by it.
+
+### Fixed
+- Assumptions introduced in an `ASSUME...PROVE` step now stay local to that step, while `let`/`assume` introductions correctly remain in scope for later sibling steps.
+- Copying from handrails now re-focuses the window first, so clipboard writes no longer silently fail.
+- Nested step text now clears the right-hand info zone, clicking a handrail's menu controls no longer selects the whole block, and the collapse-menu labels and figure static toggle have been restored.
+- Figures and embeds get a chromeless alignment handrail.
+- Keyboard shortcuts: menu shortcuts work again for the single shared menu (with Escape to dismiss), and shortcuts are ignored while a modifier is held or an editable field is focused.
+- Unnumbered sections are excluded from the table of contents.
+- Pathless `:html:` blocks no longer emit a spurious empty `<img>`.
+- Accessibility: bibliography DOI and URL links now have accessible names, plus a broader accessibility pass over the floating sidebar.
+
 ## [1.3.1] - 2026-06-14
 
 ### Fixed
