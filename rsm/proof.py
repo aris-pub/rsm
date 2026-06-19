@@ -297,11 +297,12 @@ def _compute_state(proof) -> None:
             # Preceding siblings at this level are in scope, then the
             # ancestor's own let/assume.
             for sib in preceding_step_siblings(anc):
-                # A sibling that states its own claim is an ASSUME...PROVE:
-                # its assumptions are discharged by that claim and do not
-                # propagate to later siblings (only within its own subproof).
-                if own_constructs(sib, GOAL_KINDS):
-                    continue
+                # Rule 1: an introduction (:let:/:assume:) stays in scope for
+                # every later sibling, whether or not the introducing step also
+                # states a claim. Splitting a step never changes scope. A
+                # hypothesis meant to be local to one sub-result belongs inside
+                # that step's subproof (or as the antecedent of a conditional
+                # goal), not as a sibling-level introduction.
                 snum = str(sib.full_number)
                 hyps += [
                     {"id": c.nodeid, "num": snum}

@@ -1,8 +1,10 @@
 """Tests for the per-step proof state (the floating sidebar's ASSUMING / TO SHOW).
 
-An assumption introduced by a bare ``:assume:`` step stays in scope, per
-Lamport's paradigm, for every later sibling step and any substeps therein, not
-only for the step that introduces it.
+Scope rule (Rule 1): an introduction (``:let:``/``:assume:``) stays in scope for
+every later sibling step and any substeps therein, whether or not the
+introducing step also states a claim. Splitting one step into two never changes
+scope. A hypothesis meant to be local to a single sub-result belongs inside that
+step's subproof, not as a sibling-level introduction.
 """
 
 import rsm
@@ -68,8 +70,9 @@ def test_assumption_scopes_to_later_siblings_and_substeps():
         )
 
 
-# A step whose statement is ASSUME...PROVE (assume paired with its own claim):
-# the assumption is local to proving that step, so it must not leak to a sibling.
+# A step that introduces an assumption AND states its own claim. Under Rule 1
+# the assumption still propagates to a later sibling (splitting is invariant);
+# locality would require putting the assume inside the step's own subproof.
 SRC_LOCAL = """\
 # S
 
@@ -105,7 +108,7 @@ SRC_LOCAL = """\
 """
 
 
-def test_assume_prove_assumption_is_local_to_its_step():
+def test_assumption_in_a_claim_step_still_propagates_to_siblings():
     p = _proof(SRC_LOCAL)
     steps = list(p.traverse(nodeclass=nodes.Step))
     assume = next(
@@ -114,5 +117,6 @@ def test_assume_prove_assumption_is_local_to_its_step():
     hyps = {s.label: [h["id"] for h in st["hyps"]] for s, st in zip(steps, p.step_state)}
     # In scope inside case one's own subproof...
     assert assume.nodeid in hyps["st-c1sub"]
-    # ...but discharged by case one's claim, so absent from the sibling case two.
-    assert assume.nodeid not in hyps["st-case2"]
+    # ...and, under Rule 1, also in the later sibling case two (the claim in
+    # case one does not confine the assumption to that step).
+    assert assume.nodeid in hyps["st-case2"]
