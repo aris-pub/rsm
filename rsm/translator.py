@@ -119,6 +119,7 @@ from collections.abc import Callable, Iterable
 from typing import Any, Literal
 
 from . import nodes
+from . import proof as proofmodel
 from .util import highlight_code
 
 logger = logging.getLogger("RSM").getChild("tlate")
@@ -2429,7 +2430,7 @@ class HandrailsTranslator(Translator):
             )
             proof_items.append(
                 self._rail_item(
-                    str(proof.nodeid), svg, proof.step_state,
+                    str(proof.nodeid), svg, proofmodel.serialize_state(proof),
                     proof.tree_root_title, len(proof.tree_nodes),
                 )
             )

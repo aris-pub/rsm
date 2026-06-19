@@ -147,20 +147,17 @@ class Transformer:
         self.tree = tree
 
         self.collect_labels()
-        self.resolve_proof_of()
         self.parse_notation()
         self.resolve_pending_references()
         self.assign_author_affiliations()
         self.assign_author_note_symbols()
         self.build_author_block()
-        self.add_necessary_subproofs()
         self.autonumber_nodes()
         self.make_toc()
-        self.make_proof_trees()
+        self.analyze_proofs()
         self.add_keywords_to_constructs()
         self.add_handrail_depth()
         self.assign_node_ids()
-        self.make_proof_state()
         self.check_for_cst_errors()
         return tree
 
@@ -283,8 +280,8 @@ class Transformer:
                 continue
             self.labels_to_nodes[node.label] = node
 
-    def resolve_proof_of(self) -> None:
-        proof.resolve_of(self.tree, self.labels_to_nodes)
+    def analyze_proofs(self) -> None:
+        proof.analyze_proofs(self.tree, self.labels_to_nodes)
 
     def _label_to_node(
         self, label: str, external_file: str | None = None, default=nodes.Error
@@ -534,9 +531,6 @@ class Transformer:
 
         self.tree.prepend(block)
 
-    def add_necessary_subproofs(self) -> None:
-        proof.add_necessary_subproofs(self.tree)
-
     def autonumber_nodes(self) -> None:
         counts: dict[type[nodes.Node], dict[type[nodes.Node], Generator]] = defaultdict(
             lambda: defaultdict(lambda: count(start=1))
@@ -552,7 +546,6 @@ class Transformer:
                 within_appendix = True
                 continue
             if isinstance(node, nodes.Proof | nodes.Subproof):
-                proof.number_steps(node)
                 continue
             if isinstance(node, nodes.Step):
                 continue
@@ -708,9 +701,6 @@ class Transformer:
             for (s, d), c in sorted(counts.items())
         ]
 
-    def make_proof_trees(self) -> None:
-        proof.make_trees(self.tree)
-
     _NOTATION_LINE = re.compile(r"^\s*(\\[A-Za-z]+)\s*\$(.+?)\$\s*(.*?)\s*$")
 
     def parse_notation(self) -> None:
@@ -736,9 +726,6 @@ class Transformer:
             # the raw lines are now captured in `entries`; drop them so they
             # don't render as literal text.
             notn.clear()
-
-    def make_proof_state(self) -> None:
-        proof.make_state(self.tree)
 
     def add_keywords_to_constructs(self) -> None:
         for construct in self.tree.traverse(nodeclass=nodes.Construct):

@@ -6,23 +6,25 @@ about them inline; this module gathers that work so the model has one owner and
 the views (the floating rail, the State pane, the proof-DAG SVG, an eventual
 LSP) are pure consumers of what is computed here.
 
-The passes, in the order the transformer runs them:
+``analyze_proofs`` is the single entry the transformer calls; it runs these in
+order:
 
 - ``resolve_of``            resolve ``:proof: {:of: <label>}`` to the result it
                             proves (sets ``proof.proves``).
 - ``add_necessary_subproofs``  wrap a step's sub-steps in a synthesized
                             ``Subproof`` so the hierarchy is well formed.
-- ``number_steps``          assign the per-proof ``1.1`` step numbering.
+- ``_number_all_steps``     assign the per-proof ``1.1`` step numbering.
 - ``make_trees``            derive each proof's step-dependency DAG
                             (``tree_nodes`` / ``tree_edges`` / ``tree_root_title``).
 - ``make_state``            derive each step's ``hypotheses |- goal`` scope
-                            (``step_state``), the data the State pane renders.
+                            (``step_state``) as node references.
 
 These mutate nodes in place, matching the transformer's whole-tree contract.
-They depend on shared passes that still live in the transformer (label
-collection before ``resolve_of``; numbering before ``make_trees``; node-id
-assignment before ``make_state``), so the transformer keeps the call-sites and
-their ordering for now.
+The only external prerequisites are label collection and reference resolution
+(both run earlier in the transformer). ``make_state`` records node references
+rather than ids, so ``analyze_proofs`` runs before id assignment;
+``serialize_state`` resolves those references to the id-keyed JSON the rail
+emits, at translate time.
 """
 
 import logging
@@ -40,6 +42,22 @@ class ProofError(Exception):
 # computation in make_state.
 HYP_KINDS = ("let", "assume")
 GOAL_KINDS = ("claim", "claimblock")
+
+
+def analyze_proofs(tree, labels_to_nodes) -> None:
+    """Run the full proof model over the tree, in dependency order.
+
+    This is the single entry point the transformer calls. Each pass mutates
+    nodes in place. ``make_state`` records node *references* that
+    ``serialize_state`` resolves to node ids at translate time, so the whole
+    analysis can run before ids are assigned (which matters because
+    ``add_necessary_subproofs`` creates nodes that still need ids).
+    """
+    resolve_of(tree, labels_to_nodes)
+    add_necessary_subproofs(tree)
+    _number_all_steps(tree)
+    make_trees(tree)
+    make_state(tree)
 
 
 def resolve_of(tree, labels_to_nodes) -> None:
@@ -109,6 +127,13 @@ def number_steps(proof) -> None:
     step_gen = (s for s in proof.children if isinstance(s, nodes.Step))
     for idx, step in enumerate(step_gen, start=1):
         step.number = idx
+
+
+def _number_all_steps(tree) -> None:
+    """Number the steps of every proof and subproof in the tree."""
+    for node in tree.traverse():
+        if isinstance(node, (nodes.Proof, nodes.Subproof)):
+            number_steps(node)
 
 
 def make_trees(tree) -> None:
@@ -222,10 +247,30 @@ def _proof_root_title(proof) -> str:
 
 
 def make_state(tree) -> None:
-    """Per-step ``hypotheses |- goal`` for the rail's State view (runs after node
-    ids are assigned, since it records construct node ids to clone)."""
+    """Per-step ``hypotheses |- goal`` for the rail's State view.
+
+    Records node *references* (not ids) so it can run before ids are assigned;
+    ``serialize_state`` turns those refs into the id-keyed JSON the rail emits.
+    """
     for proof in tree.traverse(nodeclass=nodes.Proof):
         _compute_state(proof)
+
+
+def serialize_state(proof):
+    """Resolve a proof's ref-based ``step_state`` to the id-keyed form the rail
+    emits as JSON. Runs at translate time, once node ids exist."""
+
+    def entry(item):
+        if item is None:
+            return None
+        out = {k: v for k, v in item.items() if k != "node"}
+        out["id"] = item["node"].nodeid
+        return out
+
+    return [
+        {"goal": entry(st["goal"]), "hyps": [entry(h) for h in st["hyps"]]}
+        for st in getattr(proof, "step_state", [])
+    ]
 
 
 def _compute_state(proof) -> None:
@@ -285,7 +330,7 @@ def _compute_state(proof) -> None:
         theorem = theorem.prev_sibling()
     # Theorem hypotheses have no step number (they precede the proof).
     base_hyps = (
-        [{"id": c.nodeid, "num": None} for c in own_constructs(theorem, HYP_KINDS)]
+        [{"node": c, "num": None} for c in own_constructs(theorem, HYP_KINDS)]
         if theorem is not None else []
     )
 
@@ -305,23 +350,23 @@ def _compute_state(proof) -> None:
                 # goal), not as a sibling-level introduction.
                 snum = str(sib.full_number)
                 hyps += [
-                    {"id": c.nodeid, "num": snum}
+                    {"node": c, "num": snum}
                     for c in own_constructs(sib, HYP_KINDS)
                 ]
             num = str(anc.full_number)
             hyps += [
-                {"id": c.nodeid, "num": num}
+                {"node": c, "num": num}
                 for c in own_constructs(anc, HYP_KINDS)
             ]
         goal = None
         for anc in reversed(chain):  # innermost first
             claims = own_constructs(anc, GOAL_KINDS)
             if claims:
-                goal = {"id": claims[0].nodeid, "num": str(anc.full_number)}
+                goal = {"node": claims[0], "num": str(anc.full_number)}
                 break
         # A setup step with no claim of its own is working toward the
         # theorem; show its conclusion as the goal.
         if goal is None and theorem is not None:
-            goal = {"id": theorem.nodeid, "num": theorem.reftext or None, "thm": True}
+            goal = {"node": theorem, "num": theorem.reftext or None, "thm": True}
         state.append({"goal": goal, "hyps": hyps})
     proof.step_state = state

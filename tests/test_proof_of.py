@@ -76,8 +76,8 @@ def test_of_seeds_state_with_theorem_hyps_and_goal():
         c for c in thm.traverse(nodeclass=nodes.Construct) if c.kind == "let"
     )
     first = proof.step_state[0]
-    assert any(h["id"] == let_c.nodeid for h in first["hyps"]), "theorem :let: not seeded"
-    assert first["goal"]["id"] == thm.nodeid
+    assert any(h["node"] is let_c for h in first["hyps"]), "theorem :let: not seeded"
+    assert first["goal"]["node"] is thm
 
 
 def test_of_renders_linked_lead():

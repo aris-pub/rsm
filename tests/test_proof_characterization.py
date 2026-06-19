@@ -17,6 +17,7 @@ import re
 import rsm
 import rsm.nodes as nodes
 from rsm import app
+from rsm.proof import serialize_state
 
 # A bare :assume: step, then a step carrying its own claim plus two substeps,
 # then a final qed step. Enough structure to exercise depth-2 numbering,
@@ -105,7 +106,7 @@ def test_bare_assumption_propagates_through_depth():
         c for c in p.traverse(nodeclass=nodes.Construct) if c.kind == "assume"
     )
     for lbl in ("st-2", "st-2a", "st-2b", "st-3"):
-        assert assume.nodeid in [h["id"] for h in by_label[lbl]["hyps"]], lbl
+        assert assume in [h["node"] for h in by_label[lbl]["hyps"]], lbl
 
 
 def test_goal_resolves_to_own_claim_then_parent_then_theorem():
@@ -140,9 +141,9 @@ def test_rail_state_data_matches_model_and_resolves_in_dom():
     )
     assert m, "rail-state-data script not emitted"
     data = json.loads(m.group(1))
-    # The emitted JSON is exactly the computed model...
+    # The emitted JSON is exactly the serialized model (refs resolved to ids)...
     _, p = _proof()
-    assert data == p.step_state
+    assert data == serialize_state(p)
     # ...and every id it references resolves to a data-nodeid in the DOM, the
     # contract prooftree.js relies on (it does querySelector by that id).
     ids = {h["id"] for st in data for h in st["hyps"]}
