@@ -1175,8 +1175,14 @@ body {
 
   &.proof {position: relative;} /*to be able to position the Halmos*/
 
-  &.proof:hover::after,
-  &.proof:focus::after,
+  /* The proof's own end-of-proof tombstone keys off its content-zone, not the
+     proof box. The proof is hr-labeled (not hr-offset), so its info-zone stays
+     in normal flex flow on the right; the proof box therefore runs past the
+     content column that the offset steps' tombstones align to. Anchoring to the
+     content-zone drops the proof tombstone into the same column as the steps. */
+  &.proof > .hr-content-zone {position: relative;}
+  &.proof:hover > .hr-content-zone::after,
+  &.proof:focus > .hr-content-zone::after,
   &.proof .step:hover::after,
   &.proof .step:focus::after {
     content: "";
@@ -1187,8 +1193,16 @@ body {
     top: calc(100% - var(--chunk-sixth));
     border-radius: var(--radius-sm);
   }
-  &.proof:hover::after, &.proof:focus::after,
+  &.proof:hover > .hr-content-zone::after, &.proof:focus > .hr-content-zone::after,
   &.proof .step:hover::after, &.proof .step:focus::after {left: calc(100% + var(--chunk-sixth));}
+  /* Nested-step tombstones: undo the per-subproof-level indentation so they
+     hold the proof's right-edge column, exactly as the info-zone is corrected. */
+  &.proof .subproof .step:hover::after,
+  &.proof .subproof .step:focus::after {left: calc(100% + var(--chunk-sixth) - var(--chunk-half));}
+  &.proof .subproof .subproof .step:hover::after,
+  &.proof .subproof .subproof .step:focus::after {left: calc(100% + var(--chunk-sixth) - 2 * var(--chunk-half));}
+  &.proof .subproof .subproof .subproof .step:hover::after,
+  &.proof .subproof .subproof .subproof .step:focus::after {left: calc(100% + var(--chunk-sixth) - 3 * var(--chunk-half));}
 
   &.step.hr-collapsed > .hr-content-zone::after {
     content: "steps hidden";
