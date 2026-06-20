@@ -391,11 +391,17 @@ def _normalize_text(root: TSNode) -> str:
             if (last := node.last_of_type(nodes.Text)) and not last.next_sibling():
                 last.text = last.text.rstrip()
 
-        # Return the space we borrowed from Construct nodes.
+        # Return the space we borrowed from Construct nodes. The keyword and its
+        # content must stay separated whatever the first content node is: fold the
+        # space into a leading Text, otherwise restore it as its own Text node.
+        # (Math used to be the only non-Text case handled; a leading Reference,
+        # Span, Cite, ... fell through, and inline-block links trim their own
+        # leading space, so e.g. ":assume: :ref:..." rendered as "ASSUMEthe ...".)
         if isinstance(node, nodes.Construct):
-            if (first := node.first_of_type(nodes.Text)) and not first.prev_sibling():
+            first = node.children[0] if node.children else None
+            if isinstance(first, nodes.Text):
                 first.text = f" {first.text}"
-            if (first := node.first_of_type(nodes.Math)) and not first.prev_sibling():
+            elif first is not None:
                 node.prepend(nodes.Text(" "))
             node.prepend(nodes.Keyword().append(nodes.Text(node.keyword)))
 
