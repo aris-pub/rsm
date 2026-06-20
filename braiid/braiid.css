@@ -1187,7 +1187,7 @@ body {
     top: calc(100% - var(--chunk-sixth));
     border-radius: var(--radius-sm);
   }
-  &.proof:hover::after, &.proof:focus::after {left: calc(100% + var(--chunk-sixth) - var(--chunk));}
+  &.proof:hover::after, &.proof:focus::after,
   &.proof .step:hover::after, &.proof .step:focus::after {left: calc(100% + var(--chunk-sixth));}
 
   &.step.hr-collapsed > .hr-content-zone::after {

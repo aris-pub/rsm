@@ -535,10 +535,9 @@ class TestMakePythonAPINoFileOutput:
 
         html_content = output_html.read_text()
 
-        # Should contain theme toggle button by default
-        assert 'class="rsm-theme-toggle"' in html_content
-
-        # Should contain localStorage script
+        # Light/dark moved to the sidebar Reading tab: no chrome toggle button,
+        # but the pre-paint boot script still applies saved preferences.
+        assert 'class="rsm-theme-toggle"' not in html_content
         assert "localStorage.getItem" in html_content
 
     @pytest.mark.slow

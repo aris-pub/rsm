@@ -1,104 +1,70 @@
-"""Tests for theme_toggle parameter.
+"""Tests for the theme_toggle parameter.
 
-The theme_toggle parameter controls whether the dark mode toggle button and
-localStorage script are included in the output HTML.
+theme_toggle controls whether the pre-paint boot script is emitted, the one
+that applies the reader's saved theme and type preferences (from the
+``rsm-reading`` localStorage key) before first paint. The interactive light/dark
+control, along with the type controls, now lives in the sidebar's Reading tab,
+so there is no longer a standalone chrome toggle button.
 """
 
 import rsm
 
 
 class TestThemeToggleParameter:
-    """Test theme_toggle parameter in rsm.build()."""
+    """Test the theme_toggle parameter in rsm.build()."""
 
-    def test_theme_toggle_true_includes_button(self):
-        """Test that theme_toggle=True includes dark mode toggle button."""
+    def test_theme_toggle_true_emits_boot_script(self):
         source = "Hello world.\n\n"
         result = rsm.build(source, handrails=False, lint=False, theme_toggle=True)
+        assert "localStorage.getItem" in result
+        assert "rsm-reading" in result
 
-        assert 'class="rsm-theme-toggle"' in result
-        assert "addEventListener('click'" in result
-        assert "onclick=" not in result
-
-    def test_theme_toggle_false_excludes_button(self):
-        """Test that theme_toggle=False excludes dark mode toggle button."""
-        source = "nHello world.\n\n"
+    def test_theme_toggle_false_omits_boot_script(self):
+        source = "Hello world.\n\n"
         result = rsm.build(source, handrails=False, lint=False, theme_toggle=False)
+        assert "localStorage.getItem" not in result
 
+    def test_no_standalone_chrome_toggle_button(self):
+        """Light/dark moved to the sidebar Reading tab; no chrome button is injected."""
+        source = "Hello world.\n\n"
+        result = rsm.build(source, handrails=False, lint=False, theme_toggle=True)
         assert 'class="rsm-theme-toggle"' not in result
         assert "addEventListener('click'" not in result
 
-    def test_theme_toggle_true_includes_localstorage_script(self):
-        """Test that theme_toggle=True includes localStorage script."""
-        source = "Hello world.\n\n"
-        result = rsm.build(source, handrails=False, lint=False, theme_toggle=True)
-
-        assert "localStorage.getItem" in result
-        assert "rsm-theme" in result
-        assert "addEventListener('click'" in result
-
-    def test_theme_toggle_false_excludes_localstorage_script(self):
-        """Test that theme_toggle=False excludes localStorage script."""
-        source = "Hello world.\n\n"
-        result = rsm.build(source, handrails=False, lint=False, theme_toggle=False)
-
-        assert "addEventListener('click'" not in result
-
     def test_theme_toggle_default_is_true(self):
-        """Test that theme_toggle defaults to True for backwards compatibility."""
         source = "Hello world.\n\n"
         result = rsm.build(source, handrails=False, lint=False)
-
-        assert 'class="rsm-theme-toggle"' in result
-        assert "addEventListener('click'" in result
+        assert "localStorage.getItem" in result
 
     def test_theme_toggle_works_with_standalone(self):
-        """Test that theme_toggle works with standalone=True."""
         source = "Hello world.\n\n"
         result = rsm.build(
             source, handrails=False, lint=False, standalone=True, theme_toggle=False
         )
-
+        # No chrome toggle button, and still valid standalone HTML. (We don't
+        # assert on localStorage here: standalone inlines the bundle, whose
+        # reading-control JS uses localStorage regardless of theme_toggle.)
         assert 'class="rsm-theme-toggle"' not in result
-        assert "addEventListener('click'" not in result
-        # Should still be valid standalone HTML
         assert "cdn.jsdelivr.net" in result
 
 
 class TestThemeToggleBuilder:
-    """Test theme_toggle parameter at the builder level."""
+    """Test the theme_toggle parameter at the builder level."""
 
     def test_folder_builder_with_theme_toggle_false(self, tmp_path):
-        """Test FolderBuilder respects theme_toggle=False."""
         from rsm.builder import FolderBuilder
 
         builder = FolderBuilder(theme_toggle=False)
-        body = '<body><div class="manuscript">Test</main></body>'
+        body = '<body><div class="manuscript">Test</div></body>'
         web = builder.build(body, src=tmp_path / "test.rsm")
-
         html = web.readtext("index.html")
-        assert 'class="rsm-theme-toggle"' not in html
-        assert "addEventListener('click'" not in html
-
-    def test_standalone_builder_with_theme_toggle_false(self, tmp_path):
-        """Test StandaloneBuilder respects theme_toggle=False."""
-        from rsm.builder import StandaloneBuilder
-
-        builder = StandaloneBuilder(theme_toggle=False)
-        body = '<body><div class="manuscript">Test</main></body>'
-        web = builder.build(body, src=tmp_path / "test.rsm")
-
-        html = web.readtext("index.html")
-        assert 'class="rsm-theme-toggle"' not in html
-        assert "addEventListener('click'" not in html
+        assert "localStorage.getItem" not in html
 
     def test_builder_theme_toggle_default_is_true(self, tmp_path):
-        """Test that builder theme_toggle defaults to True."""
         from rsm.builder import FolderBuilder
 
         builder = FolderBuilder()
-        body = '<body><div class="manuscript">Test</main></body>'
+        body = '<body><div class="manuscript">Test</div></body>'
         web = builder.build(body, src=tmp_path / "test.rsm")
-
         html = web.readtext("index.html")
-        assert 'class="rsm-theme-toggle"' in html
-        assert "addEventListener('click'" in html
+        assert "localStorage.getItem" in html
