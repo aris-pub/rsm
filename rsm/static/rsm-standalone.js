@@ -1642,6 +1642,10 @@ var RSM = (() => {
         n.removeAttribute("id");
         n.removeAttribute("data-nodeid");
       });
+      c.classList.remove("tooltipstered");
+      c.querySelectorAll(".tooltipstered").forEach(
+        (n) => n.classList.remove("tooltipstered")
+      );
       c.querySelectorAll(
         ".hr-collapse-zone,.hr-menu-zone,.hr-border-zone,.hr-spacer-zone,.hr-info-zone"
       ).forEach((n) => n.remove());
@@ -1711,6 +1715,7 @@ var RSM = (() => {
       }
       goalBlock.appendChild(body);
       panel.appendChild(goalBlock);
+      createTooltips();
     }
   }
 

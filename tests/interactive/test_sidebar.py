@@ -223,3 +223,35 @@ def test_notation_apply_scrolls_to_nearest(page: Page, interactive_server: str):
     page.locator(".rail-notation-input").first.fill("\\mu")
     page.click(".rail-notation-apply")
     page.wait_for_function(_NEAREST_CENTERED, timeout=5_000)
+
+
+def test_proof_state_refs_get_body_tooltips(page: Page, interactive_server: str):
+    """A reference cloned into the live Proof > State panel must get the same
+    tooltipster tooltip as in the body.
+
+    Regression: cloneClean() deep-cloned the body link, copying its
+    ``tooltipstered`` class but not the tooltipster instance, so the sidebar
+    link looked initialized yet had no working tooltip, and createTooltips()'s
+    ``:not(.tooltipstered)`` filter then skipped it on re-init.
+    """
+    page.set_viewport_size({"width": 1280, "height": 460})
+    _load(page, interactive_server)
+    # Go live: Proof scope, State sub-tab.
+    page.click('.rail-scope[data-scope="proof"]')
+    page.click('.rail-subtabs-proof .rail-tab[data-view="state"]')
+    # Scroll a late step into the reading band so its accumulated hypotheses
+    # (which include the :assume: that references thm-x) render in the panel.
+    page.evaluate(
+        """() => {
+            const steps = document.querySelectorAll('.proof .step');
+            const el = steps[steps.length - 1];
+            const y = el.getBoundingClientRect().top + window.scrollY
+                      - window.innerHeight * 0.4;
+            window.scrollTo(0, y);
+        }"""
+    )
+    link = page.wait_for_selector(".rail-state a.reference", timeout=5_000)
+    # The same hover-triggered tooltipster tooltip as in the body must appear.
+    link.hover()
+    tip = page.wait_for_selector(".tooltipster-base", state="visible", timeout=3_000)
+    assert tip.is_visible()

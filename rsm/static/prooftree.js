@@ -9,6 +9,7 @@
 
 import { wireTree } from "./tocarcs.js";
 import { openHandrail } from "./handrails.js";
+import { createTooltips } from "./tooltips.js";
 
 export function setup(root = document) {
   const rail = root.querySelector(".proof-rail");
@@ -337,6 +338,13 @@ export function setup(root = document) {
       n.removeAttribute("id");
       n.removeAttribute("data-nodeid");
     });
+    // cloneNode copies tooltipster's marker class but not its instance, leaving
+    // dead links the re-init would skip. Clear it so createTooltips() rebinds
+    // the cloned references to the same body tooltip.
+    c.classList.remove("tooltipstered");
+    c.querySelectorAll(".tooltipstered").forEach((n) =>
+      n.classList.remove("tooltipstered"),
+    );
     // Strip handrail scaffolding so the clone reads as plain prose, not a mini
     // handrail (its offset zones also overflow the narrow rail).
     c.querySelectorAll(
@@ -422,5 +430,9 @@ export function setup(root = document) {
     }
     goalBlock.appendChild(body);
     panel.appendChild(goalBlock);
+
+    // The references just cloned into the panel carry no live tooltip; bind them
+    // with the same initializer the body uses (idempotent via :not(.tooltipstered)).
+    createTooltips();
   }
 }
