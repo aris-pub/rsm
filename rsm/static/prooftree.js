@@ -64,7 +64,7 @@ export function setup(root = document) {
 
   function saveLayout() {
     const layout = {
-      scope: rail.classList.contains("scope-proof") ? "proof" : "document",
+      scope: rail.querySelector(".rail-scope.active")?.dataset.scope || "document",
       docView: rail.classList.contains("doc-view-notation") ? "notation" : "doc-map",
       proofView: rail.classList.contains("proof-view-state") ? "state" : "proof-map",
       collapsed: rail.classList.contains("collapsed"),
@@ -84,6 +84,7 @@ export function setup(root = document) {
     }
     rail.classList.toggle("scope-document", scope === "document");
     rail.classList.toggle("scope-proof", scope === "proof");
+    rail.classList.toggle("scope-reading", scope === "reading");
   }
 
   function selectTab(tab) {
@@ -125,11 +126,62 @@ export function setup(root = document) {
     });
   }
 
+  // ---- reading controls (typeface, size, line height, width, theme) ----
+  // Each button sets a root data-reading-* attribute (or the dark-theme class)
+  // and persists it; the inline boot script pre-applies them before first paint.
+  const READING_KEY = "rsm-reading";
+  function readReadingPrefs() {
+    try {
+      return JSON.parse(localStorage.getItem(READING_KEY) || "{}") || {};
+    } catch (e) {
+      return {};
+    }
+  }
+  function applyReading(control, value) {
+    const el = document.documentElement;
+    if (control === "theme") el.classList.toggle("dark-theme", value === "dark");
+    else el.setAttribute("data-reading-" + control, value);
+  }
+  const readingPanel = rail.querySelector(".rail-reading");
+  if (readingPanel) {
+    readingPanel.addEventListener("click", (ev) => {
+      const btn = ev.target.closest(".reading-opt");
+      if (!btn) return;
+      const row = btn.closest(".reading-row");
+      const control = row.dataset.control;
+      for (const o of row.querySelectorAll(".reading-opt")) {
+        const on = o === btn;
+        o.classList.toggle("active", on);
+        o.setAttribute("aria-pressed", String(on));
+      }
+      applyReading(control, btn.dataset.value);
+      const prefs = readReadingPrefs();
+      prefs[control] = btn.dataset.value;
+      try {
+        localStorage.setItem(READING_KEY, JSON.stringify(prefs));
+      } catch (e) {
+        /* localStorage unavailable; preference stays session-only */
+      }
+    });
+    // Apply saved prefs (idempotent with the boot script) and sync the buttons.
+    const prefs = readReadingPrefs();
+    for (const row of readingPanel.querySelectorAll(".reading-row")) {
+      const value = prefs[row.dataset.control];
+      if (!value) continue;
+      applyReading(row.dataset.control, value);
+      for (const o of row.querySelectorAll(".reading-opt")) {
+        const on = o.dataset.value === value;
+        o.classList.toggle("active", on);
+        o.setAttribute("aria-pressed", String(on));
+      }
+    }
+  }
+
   // Restore a previously saved layout.
   try {
     const saved = JSON.parse(localStorage.getItem(lsKey) || "null");
     if (saved) {
-      selectScope(saved.scope === "proof" ? "proof" : "document");
+      selectScope(saved.scope || "document");
       const docTab = rail.querySelector(
         `.rail-subtabs-document .rail-tab[data-view="${saved.docView}"]`,
       );

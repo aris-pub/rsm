@@ -122,27 +122,9 @@ class HTMLBuilder(BaseBuilder):
         self.web.html = html
 
     def _inject_dark_mode_button(self, body: str) -> str:
-        """Inject dark mode toggle button right after <body> tag."""
-        button_html = dedent("""\
-            <button class="rsm-theme-toggle" aria-label="Toggle dark mode">
-              <svg class="light-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="4"></circle>
-                <path d="M12 2v2"></path>
-                <path d="M12 20v2"></path>
-                <path d="m4.93 4.93 1.41 1.41"></path>
-                <path d="m17.66 17.66 1.41 1.41"></path>
-                <path d="M2 12h2"></path>
-                <path d="M20 12h2"></path>
-                <path d="m6.34 17.66-1.41 1.41"></path>
-                <path d="m19.07 4.93-1.41 1.41"></path>
-              </svg>
-              <svg class="dark-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1 -9 -9"></path>
-              </svg>
-            </button>
-        """)
-        # Insert button right after the first <body> tag only
-        return re.sub(r'(<body[^>]*>)', rf'\1\n\n{button_html}', body, count=1)
+        """No-op: light/dark is now a control in the sidebar's Reading tab, not a
+        standalone chrome button. Kept so existing call sites stay valid."""
+        return body
 
     def make_html_header(self) -> str:
         custom_css_link = ""
@@ -169,25 +151,21 @@ class HTMLBuilder(BaseBuilder):
             dark_mode_script = dedent("""\
 
           <script>
-            // Dark mode toggle with localStorage and system preference detection
+            // Apply saved reading preferences before first paint (typeface,
+            // size, line height, width, and light/dark). The interactive
+            // controls live in the sidebar's Reading tab.
             (function() {
-              const savedTheme = localStorage.getItem('rsm-theme');
-              const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-              const isDark = savedTheme === 'dark' || (!savedTheme && prefersDark);
-
-              if (isDark) {
-                document.documentElement.classList.add('dark-theme');
-              }
-
-              document.addEventListener('DOMContentLoaded', function() {
-                const toggleButton = document.querySelector('.rsm-theme-toggle');
-                if (toggleButton) {
-                  toggleButton.addEventListener('click', function() {
-                    const isDark = document.documentElement.classList.toggle('dark-theme');
-                    localStorage.setItem('rsm-theme', isDark ? 'dark' : 'light');
-                  });
-                }
+              var prefs = {};
+              try { prefs = JSON.parse(localStorage.getItem('rsm-reading') || '{}') || {}; } catch (e) {}
+              var root = document.documentElement;
+              ['typeface', 'size', 'leading', 'measure'].forEach(function(c) {
+                if (prefs[c]) root.setAttribute('data-reading-' + c, prefs[c]);
               });
+              var theme = prefs.theme || localStorage.getItem('rsm-theme');
+              var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+              if (theme === 'dark' || (!theme && prefersDark)) {
+                root.classList.add('dark-theme');
+              }
             })();
           </script>
         """)
@@ -293,25 +271,20 @@ class StandaloneBuilder(HTMLBuilder):
         if self.theme_toggle:
             dark_mode_script = """
   <script>
-    // Dark mode toggle with localStorage and system preference detection
+    // Apply saved reading preferences before first paint; controls live in the
+    // sidebar's Reading tab.
     (function() {
-      const savedTheme = localStorage.getItem('rsm-theme');
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      const isDark = savedTheme === 'dark' || (!savedTheme && prefersDark);
-
-      if (isDark) {
-        document.documentElement.classList.add('dark-theme');
-      }
-
-      document.addEventListener('DOMContentLoaded', function() {
-        const toggleButton = document.querySelector('.rsm-theme-toggle');
-        if (toggleButton) {
-          toggleButton.addEventListener('click', function() {
-            const isDark = document.documentElement.classList.toggle('dark-theme');
-            localStorage.setItem('rsm-theme', isDark ? 'dark' : 'light');
-          });
-        }
+      var prefs = {};
+      try { prefs = JSON.parse(localStorage.getItem('rsm-reading') || '{}') || {}; } catch (e) {}
+      var root = document.documentElement;
+      ['typeface', 'size', 'leading', 'measure'].forEach(function(c) {
+        if (prefs[c]) root.setAttribute('data-reading-' + c, prefs[c]);
       });
+      var theme = prefs.theme || localStorage.getItem('rsm-theme');
+      var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (theme === 'dark' || (!theme && prefersDark)) {
+        root.classList.add('dark-theme');
+      }
     })();
   </script>
 """

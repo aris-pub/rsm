@@ -1,7 +1,7 @@
 /* Declare layer order first - unlayered styles will have highest priority */
 @layer base;
 
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Source+Sans+3:ital,wght@0,200..900;1,200..900&family=Source+Serif+4:ital,opsz,wght@0,8..60,200..900;1,8..60,200..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Source+Sans+3:ital,wght@0,200..900;1,200..900&family=Source+Serif+4:ital,opsz,wght@0,8..60,200..900;1,8..60,200..900&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Source+Code+Pro:ital,wght@0,200..900;1,200..900&display=swap');
 @import url('pygments.css') layer(base);
 
@@ -419,6 +419,26 @@ body {
   --font-body: 'Source Serif 4', serif;
 }
 
+/* Reader type controls: the rail's Reading scope sets these data-* attributes
+   on :root, overriding the variables the content already consumes. Default
+   values (size 2, normal leading, normal width) carry no attribute. Widths are
+   capped so the widest never collides with the rail in the gutter. */
+:root[data-reading-typeface="serif"] {
+  --font-heading: 'Source Serif 4', serif;
+  --font-body: 'Source Serif 4', serif;
+}
+:root[data-reading-typeface="legible"] {
+  --font-heading: 'Atkinson Hyperlegible', 'Source Sans 3', sans-serif;
+  --font-body: 'Atkinson Hyperlegible', 'Source Sans 3', sans-serif;
+}
+:root[data-reading-size="1"] { --font-size: 90%; }
+:root[data-reading-size="3"] { --font-size: 112%; }
+:root[data-reading-size="4"] { --font-size: 125%; }
+:root[data-reading-leading="tight"] { --body-line-height: 1.3; }
+:root[data-reading-leading="loose"] { --body-line-height: 1.85; }
+:root[data-reading-measure="narrow"] { --content-max-width: 52rem; }
+:root[data-reading-measure="wide"] { --content-max-width: 68rem; }
+
 
 .dark-theme {
   /* Inverted from light mode */
@@ -616,7 +636,7 @@ body {
 /* Widths */
 .manuscriptwrapper {
   width: 100%;
-  max-width: var(--chunk-20);
+  max-width: var(--content-max-width, var(--chunk-20));
 
   & > .manuscript {
     width: 100%;
@@ -1393,6 +1413,34 @@ body {
   }
   .rail-tab:hover { color: var(--primary-700); }
 
+  /* Reading scope: the type controls. */
+  .rail-reading-panel {
+    display: flex; flex-direction: column; gap: 0.75rem;
+    padding: 0.5rem 0.2rem; overflow-y: auto;
+  }
+  .reading-row { display: flex; flex-direction: column; gap: 0.3rem; }
+  .reading-label {
+    font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.04em;
+    color: var(--gray-700);
+  }
+  .reading-opts { display: flex; gap: 0.25rem; }
+  .reading-opt {
+    flex: 1; padding: 0.3rem 0.4rem; border: 1px solid var(--gray-300);
+    border-radius: 0.3rem; background: var(--gray-0); color: var(--gray-800);
+    font-size: 0.8rem; line-height: 1; cursor: pointer;
+  }
+  .reading-opt:hover { border-color: var(--primary-400); }
+  .reading-opt.active {
+    background: var(--primary-100); border-color: var(--primary-500);
+    color: var(--primary-800);
+  }
+  /* Size row: the four A's grow to preview the step. */
+  .reading-row[data-control="size"] .reading-opt { font-family: var(--font-body); }
+  .reading-row[data-control="size"] .reading-opt:nth-child(1) { font-size: 0.7rem; }
+  .reading-row[data-control="size"] .reading-opt:nth-child(2) { font-size: 0.85rem; }
+  .reading-row[data-control="size"] .reading-opt:nth-child(3) { font-size: 1rem; }
+  .reading-row[data-control="size"] .reading-opt:nth-child(4) { font-size: 1.2rem; }
+
   /* Collapse control: shrinks the sidebar to a single re-open affordance so the
      document can read as just the prose. */
   /* The scope tabs and the collapse control share the top row, so the panel
@@ -1421,9 +1469,15 @@ body {
 
   /* Scope routing: show only the active scope's sub-tabs and section. */
   .proof-rail.scope-document .rail-subtabs-proof,
-  .proof-rail.scope-document .rail-proof { display: none; }
+  .proof-rail.scope-document .rail-proof,
+  .proof-rail.scope-document .rail-reading { display: none; }
   .proof-rail.scope-proof .rail-subtabs-document,
-  .proof-rail.scope-proof .rail-document { display: none; }
+  .proof-rail.scope-proof .rail-document,
+  .proof-rail.scope-proof .rail-reading { display: none; }
+  .proof-rail.scope-reading .rail-subtabs-document,
+  .proof-rail.scope-reading .rail-subtabs-proof,
+  .proof-rail.scope-reading .rail-document,
+  .proof-rail.scope-reading .rail-proof { display: none; }
 
   .rail-section { display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
 

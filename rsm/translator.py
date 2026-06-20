@@ -159,6 +159,46 @@ _RAIL_SIDEBAR_EXPAND_ICON = (
     '<path d="M4 4m0 2a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2z"/>'
     '<path d="M9 4v16"/><path d="M14 10l2 2l-2 2"/></svg>'
 )
+# Reader type controls in the rail's Reading scope. Each row toggles a root
+# data-reading-* attribute the stylesheet keys on (overriding a CSS variable);
+# the default value carries no attribute, so an untouched reader inherits the
+# author's build defaults. Theme reuses the existing .dark-theme class.
+_READING_CONTROLS = [
+    ("typeface", "Typeface",
+     [("sans", "Sans"), ("serif", "Serif"), ("legible", "Legible")], "sans"),
+    ("size", "Size",
+     [("1", "A"), ("2", "A"), ("3", "A"), ("4", "A")], "2"),
+    ("leading", "Line height",
+     [("tight", "Tight"), ("normal", "Normal"), ("loose", "Loose")], "normal"),
+    ("measure", "Width",
+     [("narrow", "Narrow"), ("normal", "Normal"), ("wide", "Wide")], "normal"),
+    ("theme", "Theme",
+     [("light", "Light"), ("dark", "Dark")], "light"),
+]
+
+
+def _make_reading_panel() -> str:
+    from html import escape
+    rows = []
+    for control, label, options, default in _READING_CONTROLS:
+        opts = []
+        for value, text in options:
+            active = " active" if value == default else ""
+            pressed = "true" if value == default else "false"
+            opts.append(
+                f'<button class="reading-opt{active}" data-value="{value}" '
+                f'aria-pressed="{pressed}">{escape(text)}</button>'
+            )
+        rows.append(
+            f'<div class="reading-row" data-control="{control}">'
+            f'<span class="reading-label">{escape(label)}</span>'
+            f'<div class="reading-opts" role="group" aria-label="{escape(label)}">'
+            + "".join(opts) + "</div></div>"
+        )
+    return (
+        '<div class="rail-section rail-reading">'
+        '<div class="rail-reading-panel">' + "".join(rows) + "</div></div>"
+    )
 
 
 def _reject_html_wrapper(path: str) -> None:
@@ -2447,6 +2487,10 @@ class HandrailsTranslator(Translator):
             '<button class="rail-scope" data-scope="proof" aria-pressed="false" '
             "data-tooltip=\"Proof: the dependency graph and live state of the proof "
             'you are reading">Proof</button>'
+            '<button class="rail-scope" data-scope="reading" '
+            'aria-pressed="false" '
+            'data-tooltip="Reading: typeface, size, spacing, and theme">'
+            "Reading</button>"
             "</div>"
         )
 
@@ -2504,7 +2548,7 @@ class HandrailsTranslator(Translator):
             'proof navigation">'
             + '<div class="rail-header">' + scopes + collapse + "</div>"
             + doc_subtabs + proof_subtabs
-            + document_section + proof_section + "</div>"
+            + document_section + proof_section + _make_reading_panel() + "</div>"
         )
 
     def _rail_item(
