@@ -2511,13 +2511,16 @@ class HandrailsTranslator(Translator):
             + "".join(doc_tabs) + "</div>"
         )
 
-        # Proof sub-tabs: Map (where you are) and State (what you must show).
+        # Proof sub-tabs: Steps (where you are) and State (what you must show).
+        # The view's internal name stays "proof-map" (JS state + persisted layout
+        # key off it); only the visible label reads "Steps" to avoid colliding
+        # with the "Proof" scope tab above it.
         proof_subtabs = (
             '<div class="rail-subtabs rail-subtabs-proof">'
             '<button class="rail-tab active" data-view="proof-map" '
             'aria-pressed="true" '
-            'data-tooltip="Map: where you are in the proof\'s dependency structure">'
-            + _RAIL_MAP_ICON + "<span>Proof</span></button>"
+            'data-tooltip="Steps: where you are in the proof\'s dependency structure">'
+            + _RAIL_MAP_ICON + "<span>Steps</span></button>"
             '<button class="rail-tab" data-view="state" aria-pressed="false" '
             'data-tooltip="State: the hypotheses in force and the goal you must show">'
             + _RAIL_STATE_ICON + "<span>State</span></button>"
