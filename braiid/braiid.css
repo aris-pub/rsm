@@ -1703,9 +1703,11 @@ body {
   .rail-state-body li.rail-hyp-cont { padding-left: 1.7rem; }
   .rail-hyp-empty { color: var(--gray-400); font-style: italic; }
 
-  /* Demote the construct keyword to a quiet tag so the math reads loudest. */
+  /* Demote the construct keyword to a quiet tag so the math reads loudest.
+     --gray-700 (not --gray-600) keeps it quiet while clearing WCAG AA on the
+     panel surface. */
   .rail-state .keyword {
-    color: var(--gray-600);
+    color: var(--gray-700);
     font-weight: 500;
     font-size: 0.85em;
     letter-spacing: 0.02em;
@@ -1722,7 +1724,8 @@ body {
   /* Step chip: a clickable pill that jumps to the introducing step. */
   .rail-step-badge {
     display: inline-block; border: none; cursor: pointer;
-    background: var(--gray-100); color: var(--gray-700);
+    /* --gray-900 on the --gray-100 fill clears WCAG AA (~8:1); --gray-700 fell just under 4.5:1. */
+    background: var(--gray-100); color: var(--gray-900);
     border-radius: var(--radius-sm);
     padding: 0 0.3em; margin-right: 0.4em;
     font-variant-numeric: tabular-nums; font-size: 0.85em;

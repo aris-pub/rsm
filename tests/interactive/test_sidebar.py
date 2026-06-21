@@ -305,3 +305,37 @@ def test_proof_state_math_is_typeset(page: Page, interactive_server: str):
     assert "\\(" not in state.inner_text()
     # and the math is real MathML, in the ASSUME group specifically
     assert page.locator(".rail-state .rail-hyps math").count() > 0
+
+
+def test_proof_state_group_keyboard_operable(page: Page, interactive_server: str):
+    """WCAG 2.1 AA: the State-panel group headers must be reachable and operable
+    by keyboard alone. Each header is a native <button> with aria-expanded, so
+    Tab can focus it and Enter toggles its band collapsed/expanded."""
+    page.set_viewport_size({"width": 1280, "height": 460})
+    _load(page, interactive_server)
+    page.click('.rail-scope[data-scope="proof"]')
+    page.click('.rail-subtabs-proof .rail-tab[data-view="state"]')
+    page.evaluate(
+        """() => {
+            const el = document.querySelector('.proof[data-nodeid]');
+            const y = el.getBoundingClientRect().top + window.scrollY
+                      - window.innerHeight * 0.2;
+            window.scrollTo(0, y);
+        }"""
+    )
+    head = page.wait_for_selector(".rail-state .rail-goal .rail-state-head", timeout=5_000)
+    # The PROVE band renders expanded.
+    assert head.get_attribute("aria-expanded") == "true"
+    # Keyboard-focusable: focus lands on the native button (not skipped/disabled).
+    head.focus()
+    assert page.evaluate(
+        "() => document.activeElement.classList.contains('rail-state-head')"
+    )
+    # Enter on the focused header collapses the band...
+    head.press("Enter")
+    assert head.get_attribute("aria-expanded") == "false"
+    assert page.locator(".rail-state .rail-goal.collapsed").count() == 1
+    # ...and Enter again re-expands it.
+    head.press("Enter")
+    assert head.get_attribute("aria-expanded") == "true"
+    assert page.locator(".rail-state .rail-goal.collapsed").count() == 0
