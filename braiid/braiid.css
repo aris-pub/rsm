@@ -1284,6 +1284,21 @@ body {
     fill: var(--text-body);
   }
 
+  /* External named results a step depends on (lemmas, theorems). Tinted and
+     dash-outlined in the accent color so they read as "proved elsewhere",
+     distinct from the proof's own steps. */
+  .toc-tree .toc-node-result rect {
+    fill: var(--primary-50);
+    stroke: var(--primary-500);
+    stroke-width: 1.4;
+    stroke-dasharray: 3 2;
+  }
+
+  .toc-tree .toc-node-result .toc-secnum {
+    fill: var(--primary-700);
+    font-weight: 600;
+  }
+
   .toc-tree .toc-node a {
     text-decoration: none;
   }

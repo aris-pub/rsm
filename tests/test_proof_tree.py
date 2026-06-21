@@ -55,11 +55,30 @@ def test_proof_tree_root_title():
     assert p.tree_root_title and p.tree_root_title != "Proof"
 
 
-def test_external_refs_excluded():
-    # A reference to a result outside the proof must not create a step edge.
+def test_external_result_refs_included():
+    # A reference to a named result (theorem/lemma/...) outside the proof now
+    # gets its own node in the DAG, with a dependency edge from the citing step.
     src = SRC.replace("Bar by :ref:st-1::", "Bar by :ref:thm-x:: and :ref:st-1::")
     p = _proof(src)
-    # still only the two intra-proof step edges
+    results = [n for n in p.tree_nodes if n.get("type") == "result"]
+    assert len(results) == 1
+    assert results[0]["label"] == "thm-x"
+    row = p.tree_nodes.index(results[0])
+    to_result = [e for e in p.tree_edges if e["dst"] == row]
+    assert len(to_result) == 1
+    assert to_result[0]["src"] == 1 and to_result[0]["kind"] == "dep"
+    # the two intra-proof step edges (whose targets are among the 3 steps) remain
+    assert len([e for e in p.tree_edges if e["dst"] < 3]) == 2
+
+
+def test_external_definition_refs_excluded():
+    # Definitions are not dependencies for the DAG; citing one adds no node.
+    src = SRC.replace(
+        ":theorem: {:label: thm-x} A claim.::",
+        ":definition: {:label: def-x} A def.::",
+    ).replace("Bar by :ref:st-1::", "Bar by :ref:def-x:: and :ref:st-1::")
+    p = _proof(src)
+    assert not any(n.get("type") == "result" for n in p.tree_nodes)
     assert len(p.tree_edges) == 2
 
 

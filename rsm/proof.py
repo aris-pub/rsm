@@ -141,13 +141,23 @@ def make_trees(tree) -> None:
         _compute_tree(proof)
 
 
+def _is_named_result(node) -> bool:
+    """Whether a cited node counts as a proof dependency worth its own DAG node:
+    the theorem family (theorem, lemma, proposition, corollary), but not
+    definitions, remarks, or examples."""
+    return isinstance(node, nodes.Theorem) and not isinstance(
+        node, (nodes.Definition, nodes.Remark, nodes.Example)
+    )
+
+
 def _compute_tree(proof) -> None:
     """Per-proof step DAG for the floating proof-tree, mirroring the TOC.
 
-    Nodes are the proof's steps in document order; edges are references from one
-    step to another step OF THE SAME PROOF (containment edges and the root are
-    added by the renderer, as for the TOC). Cross-proof and external references
-    are dropped: the tree is scoped to one proof.
+    Nodes are the proof's steps in document order, plus one appended node per
+    external named result (theorem/lemma/...) a step cites; edges are step->step
+    references within the proof and step->result dependencies. Containment edges
+    and the root are added by the renderer, as for the TOC. Definitions,
+    equations, and cross-proof step references stay out.
     """
     steps = list(proof.traverse(nodeclass=nodes.Step))
     if not steps:
@@ -177,24 +187,57 @@ def _compute_tree(proof) -> None:
             "title": _step_title(s),
             "label": s.label or "",
             "depth": step_depth(s),
+            "type": "step",
         }
         for s in steps
     ]
     proof.tree_root_title = _proof_root_title(proof)
 
+    n_steps = len(steps)
+    # External named results (theorem/lemma/proposition/corollary) cited by a
+    # step become their own nodes, deduped by target and appended after the
+    # steps, so the DAG shows the proof's dependence on results proved
+    # elsewhere. Definitions, remarks, examples, equations, and cross-proof step
+    # references are not dependencies in this sense and stay out.
+    result_row: dict[int, int] = {}
     counts: dict[tuple[int, int], int] = {}
     for ref in proof.traverse(nodeclass=nodes.Reference):
-        target = ref.target
-        if not isinstance(target, nodes.Step) or id(target) not in row_of:
-            continue
         src = nearest_step(ref)
-        if src is None or src is target:
+        if src is None:
             continue
-        key = (row_of[id(src)], row_of[id(target)])
+        target = ref.target
+        if isinstance(target, nodes.Step) and id(target) in row_of:
+            if src is target:
+                continue
+            dst = row_of[id(target)]
+        elif _is_named_result(target):
+            tid = id(target)
+            if tid not in result_row:
+                result_row[tid] = len(proof.tree_nodes)
+                proof.tree_nodes.append(
+                    {
+                        "num": "",
+                        "title": str(getattr(target, "reftext", "") or ""),
+                        "label": target.label or "",
+                        "depth": 1,
+                        "type": "result",
+                    }
+                )
+            dst = result_row[tid]
+        else:
+            continue
+        key = (row_of[id(src)], dst)
         counts[key] = counts.get(key, 0) + 1
 
     proof.tree_edges = [
-        {"src": s, "dst": d, "count": c, "kind": "dep" if d < s else "fwd"}
+        {
+            "src": s,
+            "dst": d,
+            "count": c,
+            # result edges (to appended result nodes) read as dependencies;
+            # intra-proof edges keep the backward/forward distinction.
+            "kind": "dep" if d >= n_steps else ("dep" if d < s else "fwd"),
+        }
         for (s, d), c in sorted(counts.items())
     ]
 

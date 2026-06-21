@@ -1165,6 +1165,8 @@ class Translator:
         root = {"num": "", "title": root_title, "label": "", "depth": 0}
         struct = []
         for i, sec in enumerate(secs):
+            if sec.get("type") == "result":
+                continue  # result nodes hang off their dependency edge, not the outline
             if sec["depth"] == 1:
                 parent = root_idx
             else:
@@ -1229,8 +1231,11 @@ class Translator:
                 inner = escape(ROOT_LABEL)
             else:
                 inner = escape(n["num"]) + "." if n["num"] else escape(n["title"])
+            ncls = "toc-node level-{}".format(n["depth"])
+            if n.get("type") == "result":
+                ncls += " toc-node-result"
             parts.append(
-                f'<a href="{escape(href)}" class="toc-node level-{n["depth"]}" '
+                f'<a href="{escape(href)}" class="{ncls}" '
                 f'data-idx="{n["idx"]}" data-title="{escape(full)}">'
                 f'<rect x="{n["x"]:.1f}" y="{n["y"]:.1f}" width="{n["w"]}" '
                 f'height="{n["h"]}" rx="6"></rect>'
