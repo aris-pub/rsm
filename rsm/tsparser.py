@@ -422,8 +422,18 @@ def _normalize_text(root: TSNode) -> str:
 
         # Finally we handle the space between non-Text children of a paragraph, for
         # example two Spans together, or a Span followed by a Construct.  In all cases,
-        # we simply insert a single space between them.
-        classes = [nodes.Span, nodes.Construct, nodes.Math]
+        # we simply insert a single space between them.  References and citations are
+        # inline too, so e.g. "$x$ :cite:..." must not render glued as "x[1]".
+        classes = [
+            nodes.Span,
+            nodes.Construct,
+            nodes.Math,
+            nodes.Cite,
+            nodes.PendingCite,
+            nodes.Reference,
+            nodes.URL,
+            nodes.PendingReference,
+        ]
         sibling = node.next_sibling()
         if sibling and type(node) in classes and type(sibling) in classes:
             node.replace_self([node, nodes.Text(" ")])

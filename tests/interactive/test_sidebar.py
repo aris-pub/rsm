@@ -405,9 +405,10 @@ def test_proof_state_context_row_jumps_to_source(page: Page, interactive_server:
 
 
 def test_proof_state_setup_goal_is_a_gutter_row(page: Page, interactive_server: str):
-    """When the current step is a setup step (no own claim), PROVE shows the
-    theorem behind a disclosure, but still as a gutter row: the .rail-jump-row
-    treatment (rule + hover) plus a (section) marker for where it is stated."""
+    """When the current step is a setup step (no own claim), PROVE shows a
+    clamped preview of the theorem statement (so the collapsed state still
+    carries information), as a gutter row: the .rail-jump-row treatment (rule +
+    hover), a (section) marker, and a "show more" toggle."""
     page.set_viewport_size({"width": 1280, "height": 460})
     _load(page, interactive_server)
     page.click('.rail-scope[data-scope="proof"]')
@@ -425,6 +426,9 @@ def test_proof_state_setup_goal_is_a_gutter_row(page: Page, interactive_server: 
         ".rail-state .rail-goal .rail-goal-summary", timeout=5_000
     )
     assert "rail-jump-row" in (summary.get_attribute("class") or "")
+    # the preview shows the statement text, not a blank disclosure
+    preview = page.locator(".rail-state .rail-goal .rail-goal-text").inner_text()
+    assert preview.strip()
     assert page.locator(".rail-state .rail-goal .rail-goal-toggle").count() == 1
     num = page.locator(".rail-state .rail-goal .rail-state-num").first.inner_text()
     assert num.startswith("(") and num.endswith(")")

@@ -778,3 +778,25 @@ def test_bibtex_keys_do_not_leak_into_body_text():
         </body>
         """,
     )
+
+
+def test_space_kept_between_math_and_citation():
+    """A citation or reference immediately after inline math must keep the
+    separating space. The space-insertion pass only treated Span/Construct/Math
+    as inline, so `$x$ :cite:..` and `$x$ :ref:..` rendered glued ("x[1]").
+    """
+    import rsm.nodes as nodes
+
+    src = (
+        "# T\n\n"
+        "count by $x$ :cite:bar:: and $y$ :ref:lbl:: end.\n\n"
+        "## S\n  {:label: lbl}\n\n"
+        ":bibliography:\n  :bibitem:bar Foo 2020::\n::\n"
+    )
+    app = rsm.app.ProcessorApp(plain=src)
+    app.run()
+    para = next(app.translator.tree.traverse(nodeclass=nodes.Paragraph))
+    kinds = [type(c).__name__ for c in para.children]
+    # a separating Text (the space) must precede both the Cite and the Reference
+    assert kinds[kinds.index("Cite") - 1] == "Text"
+    assert kinds[kinds.index("Reference") - 1] == "Text"

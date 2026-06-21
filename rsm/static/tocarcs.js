@@ -63,26 +63,49 @@ export function wireTree(svg) {
     svg.appendChild(hover); // keep on top
   }
 
+  // Light up a node's prerequisite cone (the path to read before it) and fade
+  // the rest. idx == null clears the fade entirely.
+  function applyCone(idx) {
+    if (idx == null) {
+      for (const x of svg.querySelectorAll(".toc-faded")) x.classList.remove("toc-faded");
+      return;
+    }
+    const cone = closure(idx);
+    for (const e of edges) {
+      const on =
+        !e.classList.contains("fwd") &&
+        cone.has(e.dataset.from) &&
+        cone.has(e.dataset.to);
+      e.classList.toggle("toc-faded", !on);
+    }
+    for (const n of nodes) {
+      n.classList.toggle("toc-faded", !cone.has(n.getAttribute("data-idx")));
+    }
+  }
+  svg.__applyCone = applyCone;
+
   nodes.forEach((node) => {
     const idx = node.getAttribute("data-idx");
     node.addEventListener("mouseenter", () => {
-      // Light up the full set of sections to read before this one.
-      const cone = closure(idx);
-      for (const e of edges) {
-        const on =
-          !e.classList.contains("fwd") &&
-          cone.has(e.dataset.from) &&
-          cone.has(e.dataset.to);
-        e.classList.toggle("toc-faded", !on);
-      }
-      for (const n of nodes) n.classList.toggle("toc-faded", !cone.has(n.getAttribute("data-idx")));
+      applyCone(idx);
       showLabel(node);
     });
     node.addEventListener("mouseleave", () => {
-      for (const x of svg.querySelectorAll(".toc-faded")) x.classList.remove("toc-faded");
+      // Revert to the pinned "current path" the tree rests in (or clear).
+      applyCone(svg.__pinnedIdx != null ? svg.__pinnedIdx : null);
       if (hover) hover.style.display = "none";
     });
   });
+
+  // A pin requested before this tree was wired takes effect now.
+  if (svg.__pinnedIdx != null) applyCone(svg.__pinnedIdx);
+}
+
+// Persistently highlight a node's prerequisite cone: the "current path" the
+// tree rests in between hovers. Pass null to clear. Safe to call before wiring.
+export function pinTreeCurrent(svg, idx) {
+  svg.__pinnedIdx = idx;
+  if (svg.__applyCone) svg.__applyCone(idx);
 }
 
 export function drawAll(root = document) {

@@ -1516,7 +1516,11 @@ body {
   .rail-doc-map { display: flex; align-items: center; justify-content: center; min-height: 0; }
 
   .proof-rail-item { display: none; min-height: 0; }
-  .proof-rail-item.shown { display: flex; flex-direction: column; min-height: 0; }
+  /* A little more breathing room below the sub-tabs than the row gap alone. */
+  .proof-rail-item.shown {
+    display: flex; flex-direction: column; min-height: 0;
+    margin-top: var(--chunk-sixth);
+  }
 
   /* Proof sub-tab routing: show only the active panel of the shown item. */
   .proof-rail.proof-view-map .rail-state { display: none; }
@@ -1662,6 +1666,9 @@ body {
   }
   .rail-state .hr-content-zone { width: auto; }
   .rail-state-block { margin-bottom: var(--chunk-half); }
+  /* No trailing gap below the last band; the card padding alone sets the inset,
+     matching the left/right padding instead of stacking a band gap on top. */
+  .rail-state-block:last-child { margin-bottom: 0; }
 
   /* Band header is a full-width toggle button (keyboard- and AT-operable). */
   .rail-state-head {
@@ -1677,12 +1684,13 @@ body {
     font-weight: 700;
   }
   .rail-goal .rail-state-label { color: var(--primary-700); }
+  /* Tabler chevron-down; rotates to point right when its band is collapsed. */
   .rail-state-caret {
-    width: 0; height: 0;
-    border-left: 4px solid transparent; border-right: 4px solid transparent;
-    border-top: 5px solid var(--gray-400);
+    display: inline-flex;
+    color: var(--gray-400);
     transition: transform 0.15s ease;
   }
+  .rail-state-caret svg { width: 15px; height: 15px; display: block; }
   .rail-state-block.collapsed .rail-state-caret { transform: rotate(-90deg); }
   .rail-state-block.collapsed .rail-state-body { display: none; }
 
@@ -1748,17 +1756,20 @@ body {
     letter-spacing: 0.02em;
   }
 
-  /* The toggle is the content cell of its gutter row: kill the button's own
-     borders so only .rail-jump-row's left rule shows, and left-align the label. */
+  /* The goal preview: a clamped statement so the collapsed state still shows
+     the opening words, with a quiet "show more" link below it. */
+  .rail-goal-text.clamped {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+  }
   .rail-goal-toggle {
-    background: none; border: none; cursor: pointer; text-align: left;
+    display: block;
+    margin-top: var(--chunk-twelfth);
+    background: none; border: none; padding: 0; cursor: pointer; text-align: left;
     color: var(--primary-600); font-size: 0.78rem; text-decoration: underline;
   }
-  .rail-goal-full {
-    margin-top: var(--chunk-sixth);
-    padding-left: calc(var(--rail-num-width, 2.8ch) + var(--chunk-sixth));
-  }
-  .rail-goal-full.collapsed { display: none; }
 
   .rail-state-empty { color: var(--gray-700); font-style: italic; font-size: 0.8rem; }
 
@@ -1801,6 +1812,21 @@ body {
   .toc-tree .toc-node.current-step .toc-secnum {
     fill: var(--primary-700);
     font-weight: 700;
+  }
+
+  /* Proof DAG: the rail pins the current step's prerequisite cone, so the tree
+     rests showing your path. Containment and reference edges share one blue (no
+     blue-vs-gray puzzle); their stroke-width already sets them apart. Everything
+     off the path fades to a faint web. The faded selectors are kept specific
+     enough to beat the per-kind edge colour. */
+  .rail-map .toc-tree .toc-edge,
+  .rail-map .toc-tree .toc-edge.struct {
+    stroke: var(--primary-600);
+    opacity: 0.9;
+  }
+  .rail-map .toc-tree .toc-edge.toc-faded,
+  .rail-map .toc-tree .toc-node.toc-faded {
+    opacity: 0.12;
   }
 
   /* The one way out of focus mode: a clickable bar in the rail (which is fixed

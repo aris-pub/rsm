@@ -486,22 +486,37 @@ var RSM = (() => {
       hover.style.display = "";
       svg.appendChild(hover);
     }
+    function applyCone(idx) {
+      if (idx == null) {
+        for (const x of svg.querySelectorAll(".toc-faded")) x.classList.remove("toc-faded");
+        return;
+      }
+      const cone = closure(idx);
+      for (const e of edges) {
+        const on = !e.classList.contains("fwd") && cone.has(e.dataset.from) && cone.has(e.dataset.to);
+        e.classList.toggle("toc-faded", !on);
+      }
+      for (const n of nodes) {
+        n.classList.toggle("toc-faded", !cone.has(n.getAttribute("data-idx")));
+      }
+    }
+    svg.__applyCone = applyCone;
     nodes.forEach((node) => {
       const idx = node.getAttribute("data-idx");
       node.addEventListener("mouseenter", () => {
-        const cone = closure(idx);
-        for (const e of edges) {
-          const on = !e.classList.contains("fwd") && cone.has(e.dataset.from) && cone.has(e.dataset.to);
-          e.classList.toggle("toc-faded", !on);
-        }
-        for (const n of nodes) n.classList.toggle("toc-faded", !cone.has(n.getAttribute("data-idx")));
+        applyCone(idx);
         showLabel(node);
       });
       node.addEventListener("mouseleave", () => {
-        for (const x of svg.querySelectorAll(".toc-faded")) x.classList.remove("toc-faded");
+        applyCone(svg.__pinnedIdx != null ? svg.__pinnedIdx : null);
         if (hover) hover.style.display = "none";
       });
     });
+    if (svg.__pinnedIdx != null) applyCone(svg.__pinnedIdx);
+  }
+  function pinTreeCurrent(svg, idx) {
+    svg.__pinnedIdx = idx;
+    if (svg.__applyCone) svg.__applyCone(idx);
   }
   function drawAll(root2 = document) {
     root2.querySelectorAll(".toc.tree svg.toc-tree").forEach((svg) => {
@@ -1623,9 +1638,10 @@ var RSM = (() => {
       }
       setActiveIdx(idx);
       const item = current ? items.get(current) : null;
-      setCurrentNode(
-        item && idx >= 0 ? item.querySelector(`.toc-node[data-idx="${idx}"]`) : null
-      );
+      const node = item && idx >= 0 ? item.querySelector(`.toc-node[data-idx="${idx}"]`) : null;
+      setCurrentNode(node);
+      const dag = item ? item.querySelector("svg.toc-tree") : null;
+      if (dag) pinTreeCurrent(dag, idx >= 0 ? String(idx) : null);
     }
     const stepObserver = new IntersectionObserver(() => updateState(), {
       rootMargin: "-50% 0px -50% 0px",
@@ -1681,7 +1697,7 @@ var RSM = (() => {
         head.type = "button";
         head.className = "rail-state-head";
         head.setAttribute("aria-expanded", String(!collapsed));
-        head.innerHTML = '<span class="rail-state-label">' + label + '</span><span class="rail-state-caret" aria-hidden="true"></span>';
+        head.innerHTML = '<span class="rail-state-label">' + label + '</span><span class="rail-state-caret" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6l6 -6"/></svg></span>';
         const body = document.createElement("div");
         body.className = "rail-state-body";
         head.addEventListener("click", () => {
@@ -1733,23 +1749,26 @@ var RSM = (() => {
         const summary = document.createElement("div");
         summary.className = "rail-goal-summary rail-jump-row";
         summary.appendChild(numCell(g.num, g.marker));
-        const toggle = document.createElement("button");
-        toggle.type = "button";
-        toggle.className = "rail-goal-toggle";
-        toggle.textContent = "show statement";
-        summary.appendChild(toggle);
-        goalB.body.appendChild(summary);
-        const full = document.createElement("div");
-        full.className = "rail-goal-full collapsed";
+        const preview = document.createElement("div");
+        preview.className = "rail-goal-preview";
+        const text = document.createElement("div");
+        text.className = "rail-goal-text clamped";
         const cz = goalEl.querySelector(":scope > .hr-content-zone") || goalEl;
         const clone = cloneClean(cz);
         clone.querySelectorAll(".hr-label, .construct.let, .construct.assume").forEach((n) => n.remove());
-        full.appendChild(clone);
-        goalB.body.appendChild(full);
+        text.appendChild(clone);
+        preview.appendChild(text);
+        const toggle = document.createElement("button");
+        toggle.type = "button";
+        toggle.className = "rail-goal-toggle";
+        toggle.textContent = "show more";
         toggle.addEventListener("click", () => {
-          const hidden = full.classList.toggle("collapsed");
-          toggle.textContent = hidden ? "show statement" : "hide statement";
+          const clamped = text.classList.toggle("clamped");
+          toggle.textContent = clamped ? "show more" : "show less";
         });
+        preview.appendChild(toggle);
+        summary.appendChild(preview);
+        goalB.body.appendChild(summary);
       } else if (goalEl) {
         const gbody = document.createElement("div");
         gbody.className = "rail-goal-body";

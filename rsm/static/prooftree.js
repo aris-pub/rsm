@@ -7,7 +7,7 @@
 // scope/sub-tab clicks, auto-follows the proof you are reading, handles the
 // collapse control, and remembers your layout in localStorage.
 
-import { wireTree } from "./tocarcs.js";
+import { wireTree, pinTreeCurrent } from "./tocarcs.js";
 import { openHandrail } from "./handrails.js";
 import { createTooltips } from "./tooltips.js";
 import { reRenderAll } from "./notation.js";
@@ -319,9 +319,12 @@ export function setup(root = document) {
     }
     setActiveIdx(idx);
     const item = current ? items.get(current) : null;
-    setCurrentNode(
-      item && idx >= 0 ? item.querySelector(`.toc-node[data-idx="${idx}"]`) : null,
-    );
+    const node =
+      item && idx >= 0 ? item.querySelector(`.toc-node[data-idx="${idx}"]`) : null;
+    setCurrentNode(node);
+    // Keep the proof DAG resting on the current step's prerequisite path.
+    const dag = item ? item.querySelector("svg.toc-tree") : null;
+    if (dag) pinTreeCurrent(dag, idx >= 0 ? String(idx) : null);
   }
 
   const stepObserver = new IntersectionObserver(() => updateState(), {
@@ -398,7 +401,10 @@ export function setup(root = document) {
       head.setAttribute("aria-expanded", String(!collapsed));
       head.innerHTML =
         '<span class="rail-state-label">' + label + "</span>" +
-        '<span class="rail-state-caret" aria-hidden="true"></span>';
+        '<span class="rail-state-caret" aria-hidden="true">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ' +
+        'stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6l6 -6"/></svg>' +
+        "</span>";
       const body = document.createElement("div");
       body.className = "rail-state-body";
       head.addEventListener("click", () => {
@@ -464,30 +470,34 @@ export function setup(root = document) {
     const goalEl = g && g.id != null ? root.querySelector('[data-nodeid="' + g.id + '"]') : null;
     if (goalEl && g.thm) {
       // A setup step's goal is the whole theorem: a gutter row (section marker +
-      // rule + hover) whose content is a disclosure for the full statement. The
-      // disclosure toggle is the only control, so the row is not made jumpable.
+      // rule + hover) showing a clamped preview of the statement so the
+      // collapsed state still carries information, with a "show more" toggle.
+      // The toggle is the only control, so the row is not made jumpable.
       const summary = document.createElement("div");
       summary.className = "rail-goal-summary rail-jump-row";
       summary.appendChild(numCell(g.num, g.marker));
-      const toggle = document.createElement("button");
-      toggle.type = "button";
-      toggle.className = "rail-goal-toggle";
-      toggle.textContent = "show statement";
-      summary.appendChild(toggle);
-      goalB.body.appendChild(summary);
-      const full = document.createElement("div");
-      full.className = "rail-goal-full collapsed";
+      const preview = document.createElement("div");
+      preview.className = "rail-goal-preview";
+      const text = document.createElement("div");
+      text.className = "rail-goal-text clamped";
       const cz = goalEl.querySelector(":scope > .hr-content-zone") || goalEl;
       const clone = cloneClean(cz);
       clone
         .querySelectorAll(".hr-label, .construct.let, .construct.assume")
         .forEach((n) => n.remove());
-      full.appendChild(clone);
-      goalB.body.appendChild(full);
+      text.appendChild(clone);
+      preview.appendChild(text);
+      const toggle = document.createElement("button");
+      toggle.type = "button";
+      toggle.className = "rail-goal-toggle";
+      toggle.textContent = "show more";
       toggle.addEventListener("click", () => {
-        const hidden = full.classList.toggle("collapsed");
-        toggle.textContent = hidden ? "show statement" : "hide statement";
+        const clamped = text.classList.toggle("clamped");
+        toggle.textContent = clamped ? "show more" : "show less";
       });
+      preview.appendChild(toggle);
+      summary.appendChild(preview);
+      goalB.body.appendChild(summary);
     } else if (goalEl) {
       const gbody = document.createElement("div");
       gbody.className = "rail-goal-body";

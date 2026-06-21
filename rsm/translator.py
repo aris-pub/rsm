@@ -1142,6 +1142,7 @@ class Translator:
     def _build_tree_svg(
         self, tree_nodes: list[dict], ref_edges: list[dict],
         root_title: str, aria_label: str, orient: str = "vertical",
+        bracket_nums: bool = False,
     ) -> str:
         """Pre-rendered dependency-graph SVG, shared by the TOC and proof trees.
 
@@ -1229,8 +1230,12 @@ class Translator:
             # full statement is on hover. Other nodes show their number/title.
             if horizontal and n["depth"] == 0:
                 inner = escape(ROOT_LABEL)
+            elif n["num"]:
+                # Match the State panel's step markers: ⟨X.Y⟩ for the proof DAG,
+                # "X.Y." for the document TOC.
+                inner = f"⟨{escape(n['num'])}⟩" if bracket_nums else escape(n["num"]) + "."
             else:
-                inner = escape(n["num"]) + "." if n["num"] else escape(n["title"])
+                inner = escape(n["title"])
             ncls = "toc-node level-{}".format(n["depth"])
             if n.get("type") == "result":
                 ncls += " toc-node-result"
@@ -2472,6 +2477,7 @@ class HandrailsTranslator(Translator):
             svg = self._build_tree_svg(
                 proof.tree_nodes, proof.tree_edges, proof.tree_root_title,
                 "Proof step dependency graph", orient="horizontal",
+                bracket_nums=True,
             )
             proof_items.append(
                 self._rail_item(
