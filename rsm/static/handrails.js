@@ -325,10 +325,39 @@ function closeHandrail(hr) {
 }
 
 
+// Persist each block's/step's collapsed state per document, so a reader's
+// disclosure choices survive a reload. Keyed by data-nodeid, which is stable
+// for a given build. `suppressPersist` guards the programmatic load-time passes
+// (initial author collapses and the restore below) from writing back.
+const COLLAPSE_KEY = "rsm-collapse:" + location.pathname;
+let suppressPersist = false;
+
+function loadCollapseState() {
+  try {
+    return JSON.parse(localStorage.getItem(COLLAPSE_KEY)) || {};
+  } catch {
+    return {};
+  }
+}
+
+function persistCollapse(hr, collapsed) {
+  const id = hr.getAttribute("data-nodeid");
+  if (id == null) return;
+  try {
+    const state = loadCollapseState();
+    state[id] = collapsed;
+    localStorage.setItem(COLLAPSE_KEY, JSON.stringify(state));
+  } catch {
+    /* private mode / storage full: persistence is best-effort */
+  }
+}
+
+
 // Let other modules (the floating sidebar) react when a handrail is collapsed
 // or expanded, so the rail can mirror the body's disclosure state instead of
 // asserting a step graph the body is hiding.
 function notifyHandrailToggle(hr, collapsed) {
+  if (!suppressPersist) persistCollapse(hr, collapsed);
   document.dispatchEvent(
     new CustomEvent("rsm:handrail-toggle", { detail: { hr, collapsed } }),
   );
@@ -339,9 +368,28 @@ function notifyHandrailToggle(hr, collapsed) {
 // JS (not baked into the HTML) so that with scripting off the block renders
 // fully expanded and the document stays a complete, readable paper.
 export function collapseInitial(root) {
+  suppressPersist = true;
   (root || document)
     .querySelectorAll(".hr[data-start-collapsed]")
     .forEach(hr => closeHandrail(hr));
+  suppressPersist = false;
+}
+
+
+// Re-apply the reader's persisted collapse choices, overriding the author
+// defaults from collapseInitial. Call after collapseInitial on load.
+export function restoreCollapse(root) {
+  const state = loadCollapseState();
+  suppressPersist = true;
+  for (const hr of (root || document).querySelectorAll(".hr[data-nodeid]")) {
+    const id = hr.getAttribute("data-nodeid");
+    if (!(id in state)) continue;
+    const wantCollapsed = state[id];
+    const isCollapsed = hr.classList.contains("hr-collapsed");
+    if (wantCollapsed && !isCollapsed) closeHandrail(hr);
+    else if (!wantCollapsed && isCollapsed) openHandrail(hr);
+  }
+  suppressPersist = false;
 }
 
 

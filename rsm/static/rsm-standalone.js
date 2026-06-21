@@ -777,13 +777,48 @@ var RSM = (() => {
     const use = icon.querySelector("use");
     if (use) use.setAttribute("href", "#hr-icon-expand");
   }
+  var COLLAPSE_KEY = "rsm-collapse:" + location.pathname;
+  var suppressPersist = false;
+  function loadCollapseState() {
+    try {
+      return JSON.parse(localStorage.getItem(COLLAPSE_KEY)) || {};
+    } catch {
+      return {};
+    }
+  }
+  function persistCollapse(hr, collapsed) {
+    const id = hr.getAttribute("data-nodeid");
+    if (id == null) return;
+    try {
+      const state = loadCollapseState();
+      state[id] = collapsed;
+      localStorage.setItem(COLLAPSE_KEY, JSON.stringify(state));
+    } catch {
+    }
+  }
   function notifyHandrailToggle(hr, collapsed) {
+    if (!suppressPersist) persistCollapse(hr, collapsed);
     document.dispatchEvent(
       new CustomEvent("rsm:handrail-toggle", { detail: { hr, collapsed } })
     );
   }
   function collapseInitial(root2) {
+    suppressPersist = true;
     (root2 || document).querySelectorAll(".hr[data-start-collapsed]").forEach((hr) => closeHandrail(hr));
+    suppressPersist = false;
+  }
+  function restoreCollapse(root2) {
+    const state = loadCollapseState();
+    suppressPersist = true;
+    for (const hr of (root2 || document).querySelectorAll(".hr[data-nodeid]")) {
+      const id = hr.getAttribute("data-nodeid");
+      if (!(id in state)) continue;
+      const wantCollapsed = state[id];
+      const isCollapsed = hr.classList.contains("hr-collapsed");
+      if (wantCollapsed && !isCollapsed) closeHandrail(hr);
+      else if (!wantCollapsed && isCollapsed) openHandrail(hr);
+    }
+    suppressPersist = false;
   }
   function getRest(hr) {
     let rest;
@@ -1960,6 +1995,7 @@ var RSM = (() => {
       try {
         setup2();
         collapseInitial(root2);
+        restoreCollapse(root2);
       } catch (err) {
         console.error("Loading handrails.js FAILED!", err);
       }

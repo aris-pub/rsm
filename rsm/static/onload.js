@@ -51,6 +51,8 @@ export async function onload(root = null, { keys = true } = {}) {
       handrails.setup();
       // Collapse blocks marked :collapsed: (subtractive: JS-off shows them open).
       handrails.collapseInitial(root);
+      // Then restore the reader's own collapse choices from a previous visit.
+      handrails.restoreCollapse(root);
     } catch (err) {
       console.error("Loading handrails.js FAILED!", err);
     }

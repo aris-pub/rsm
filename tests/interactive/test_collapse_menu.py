@@ -126,3 +126,18 @@ def test_collapse_all_label_reflects_substep_state(page: Page, interactive_serve
     # Opening the outer step's menu must now show the all-collapsed label.
     _dots(page.locator("#stp-outer")).click()
     expect(_collapse_all_text(page)).to_have_text("Expand all")
+
+
+def test_collapse_state_persists_across_reload(page: Page, interactive_server: str):
+    """A reader's collapse choice is stored in localStorage and restored on
+    reload: the block stays collapsed, an untouched sibling stays expanded."""
+    _load(page, interactive_server)
+    step = page.locator("#stp-inner-a")
+    _dots(step).click()
+    page.locator("#hr-menu-singleton [data-role='collapse']").click()
+    expect(step).to_have_class(re.compile(r"\bhr-collapsed\b"))
+
+    page.reload()
+    page.wait_for_function(RSM_READY, timeout=10_000)
+    expect(page.locator("#stp-inner-a")).to_have_class(re.compile(r"\bhr-collapsed\b"))
+    expect(page.locator("#stp-inner-b")).not_to_have_class(re.compile(r"\bhr-collapsed\b"))
