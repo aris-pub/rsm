@@ -1654,36 +1654,109 @@ var RSM = (() => {
       );
       return c;
     }
+    const collapseState = {};
     function renderState() {
       if (proofView !== "state") return;
       const item = current ? items.get(current) : null;
       if (!item) return;
       const panel = item.querySelector(".rail-state");
       if (!panel) return;
+      panel.setAttribute("aria-live", "polite");
       const data = stateData.get(item.dataset.proof);
       if (!data || active.idx < 0 || active.idx >= data.length) {
         panel.innerHTML = '<div class="rail-state-empty">Scroll into a proof to see its live hypotheses and current goal.</div>';
         return;
       }
       const st = data[active.idx];
+      const proofKey = item.dataset.proof;
       panel.innerHTML = "";
-      function badge(num) {
-        const b = document.createElement("span");
+      function makeBlock(role, label, defaultCollapsed) {
+        const key = proofKey + ":" + role;
+        const collapsed = key in collapseState ? collapseState[key] : defaultCollapsed;
+        const block = document.createElement("div");
+        block.className = "rail-state-block rail-" + role + (collapsed ? " collapsed" : "");
+        block.setAttribute("role", "group");
+        block.setAttribute("aria-label", label);
+        const head = document.createElement("button");
+        head.type = "button";
+        head.className = "rail-state-head";
+        head.setAttribute("aria-expanded", String(!collapsed));
+        head.innerHTML = '<span class="rail-state-label">' + label + '</span><span class="rail-state-caret" aria-hidden="true"></span>';
+        const body = document.createElement("div");
+        body.className = "rail-state-body";
+        head.addEventListener("click", () => {
+          const nowCollapsed = !block.classList.contains("collapsed");
+          block.classList.toggle("collapsed", nowCollapsed);
+          head.setAttribute("aria-expanded", String(!nowCollapsed));
+          collapseState[key] = nowCollapsed;
+        });
+        block.appendChild(head);
+        block.appendChild(body);
+        return { block, body };
+      }
+      function badge(text, targetId, tip) {
+        const b = document.createElement("button");
+        b.type = "button";
         b.className = "rail-step-badge";
-        b.textContent = "\u27E8" + num + "\u27E9";
+        b.textContent = "\u27E8" + text + "\u27E9";
+        if (tip) b.setAttribute("data-tooltip", tip);
+        if (targetId != null) {
+          b.addEventListener("click", () => {
+            const t = root2.querySelector('[data-nodeid="' + targetId + '"]');
+            if (t) t.scrollIntoView({ block: "center", behavior: "smooth" });
+          });
+        }
         return b;
       }
-      const hyps = (st.hyps || []).map((h) => ({ el: root2.querySelector(`[data-nodeid="${h.id}"]`), num: h.num })).filter((h) => h.el);
-      const hblock = document.createElement("div");
-      hblock.className = "rail-state-block rail-hyps";
-      hblock.innerHTML = '<div class="rail-state-label">Assuming</div>';
+      const goalB = makeBlock("goal", "Prove", false);
+      const g = st.goal;
+      const goalEl = g && g.id != null ? root2.querySelector('[data-nodeid="' + g.id + '"]') : null;
+      if (goalEl && g.thm) {
+        const summary = document.createElement("div");
+        summary.className = "rail-goal-summary";
+        if (g.num) summary.appendChild(badge(g.num, g.id, "jump to " + g.num));
+        const toggle = document.createElement("button");
+        toggle.type = "button";
+        toggle.className = "rail-goal-toggle";
+        toggle.textContent = "show statement";
+        summary.appendChild(toggle);
+        goalB.body.appendChild(summary);
+        const full = document.createElement("div");
+        full.className = "rail-goal-full collapsed";
+        const cz = goalEl.querySelector(":scope > .hr-content-zone") || goalEl;
+        const clone = cloneClean(cz);
+        clone.querySelectorAll(".hr-label, .construct.let, .construct.assume").forEach((n) => n.remove());
+        full.appendChild(clone);
+        goalB.body.appendChild(full);
+        toggle.addEventListener("click", () => {
+          const hidden = full.classList.toggle("collapsed");
+          toggle.textContent = hidden ? "show statement" : "hide statement";
+        });
+      } else if (goalEl) {
+        const gbody = document.createElement("div");
+        gbody.className = "rail-goal-body";
+        if (g.num) gbody.appendChild(badge(g.num, g.id, "introduced in step " + g.num));
+        gbody.appendChild(cloneClean(goalEl));
+        goalB.body.appendChild(gbody);
+      } else {
+        goalB.body.textContent = "the main result";
+      }
+      panel.appendChild(goalB.block);
+      const hyps = (st.hyps || []).map((h) => ({ el: root2.querySelector('[data-nodeid="' + h.id + '"]'), num: h.num, id: h.id })).filter((h) => h.el);
+      const hypB = makeBlock("hyps", "Assume", false);
       const ul = document.createElement("ul");
       if (hyps.length) {
+        let prev = null;
         for (const h of hyps) {
           const li = document.createElement("li");
-          if (h.num) li.appendChild(badge(h.num));
+          if (h.num && h.num !== prev) {
+            li.appendChild(badge(h.num, h.id, "introduced in step " + h.num));
+          } else {
+            li.classList.add("rail-hyp-cont");
+          }
           li.appendChild(cloneClean(h.el));
           ul.appendChild(li);
+          prev = h.num;
         }
       } else {
         const li = document.createElement("li");
@@ -1691,30 +1764,21 @@ var RSM = (() => {
         li.textContent = "no assumptions yet";
         ul.appendChild(li);
       }
-      hblock.appendChild(ul);
-      panel.appendChild(hblock);
-      const goalBlock = document.createElement("div");
-      goalBlock.className = "rail-state-block rail-goal";
-      goalBlock.innerHTML = '<div class="rail-state-label">To show</div>';
-      const body = document.createElement("div");
-      body.className = "rail-goal-body";
-      const g = st.goal;
-      const goalEl = g && g.id != null ? root2.querySelector(`[data-nodeid="${g.id}"]`) : null;
-      if (goalEl) {
-        if (g.num) body.appendChild(badge(g.num));
-        if (g.thm) {
-          const cz = goalEl.querySelector(":scope > .hr-content-zone") || goalEl;
-          const clone = cloneClean(cz);
-          clone.querySelectorAll(".hr-label, .construct.let, .construct.assume").forEach((n) => n.remove());
-          body.appendChild(clone);
-        } else {
-          body.appendChild(cloneClean(goalEl));
+      hypB.body.appendChild(ul);
+      panel.appendChild(hypB.block);
+      const ctx = (st.context || []).map((c) => ({ el: root2.querySelector('[data-nodeid="' + c.id + '"]') })).filter((c) => c.el);
+      if (ctx.length) {
+        const ctxB = makeBlock("context", "In scope", ctx.length > 4);
+        const cul = document.createElement("ul");
+        for (const c of ctx) {
+          const li = document.createElement("li");
+          li.appendChild(cloneClean(c.el));
+          cul.appendChild(li);
         }
-      } else {
-        body.textContent = "the main result";
+        ctxB.body.appendChild(cul);
+        panel.appendChild(ctxB.block);
       }
-      goalBlock.appendChild(body);
-      panel.appendChild(goalBlock);
+      reRenderAll(panel);
       createTooltips();
     }
   }

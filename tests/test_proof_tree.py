@@ -174,3 +174,50 @@ def test_proofless_tree_toc_has_no_rail():
     html = rsm.render(":toc: {\n  :view: tree\n}\n::\n\n# A\n\nx\n", handrails=True)
     # No proofs, so no rail at all.
     assert "proof-rail" not in html
+
+
+def test_prose_introduction_enters_proof_context():
+    # A :write:/:let:/:assume: in running prose is in scope from that point to
+    # the end of the document, so a later proof inherits it as ambient context
+    # (a separate group from the proof's own hypotheses).
+    src = (
+        "# S\n\n"
+        "We :write: $A$ for the adjacency matrix ::.\n\n"
+        ":theorem: {:label: thm-y} A claim about $A$.::\n\n"
+        ":proof:\n"
+        "  :step: {:label: st-1} Foo.::\n"
+        "::\n"
+    )
+    p = _proof(src)
+    ctx = p.step_state[0].get("context", [])
+    assert [c["node"].kind for c in ctx] == ["write"]
+
+
+def test_theorem_hypothesis_not_in_context():
+    # A :let: inside a theorem statement is that theorem's local antecedent
+    # (a hypothesis), not document-wide ambient context.
+    src = (
+        "# S\n\n"
+        ":theorem: {:label: thm-z} :let: $G$ be a graph ::. A claim.::\n\n"
+        ":proof:\n"
+        "  :step: {:label: st-1} Foo.::\n"
+        "::\n"
+    )
+    p = _proof(src)
+    assert p.step_state[0].get("context", []) == []
+    assert [h["node"].kind for h in p.step_state[0]["hyps"]] == ["let"]
+
+
+def test_definition_introduction_in_context():
+    # A :write: inside a :definition: is document-wide, so it does enter context.
+    src = (
+        "# S\n\n"
+        ":definition: {:label: def-x} :write: $T$ for the thing ::.::\n\n"
+        ":theorem: {:label: thm-w} A claim about $T$.::\n\n"
+        ":proof:\n"
+        "  :step: {:label: st-1} Foo.::\n"
+        "::\n"
+    )
+    p = _proof(src)
+    ctx = p.step_state[0].get("context", [])
+    assert [c["node"].kind for c in ctx] == ["write"]

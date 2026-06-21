@@ -43,6 +43,11 @@ class ProofError(Exception):
 HYP_KINDS = ("let", "assume")
 GOAL_KINDS = ("claim", "claimblock")
 
+# Every construct introduces a symbol or assumption except these (assertions,
+# goal restructurings, and the QED marker). Used to collect the document-wide
+# context that prose and definitions contribute.
+_NON_INTRO_KINDS = frozenset({"then", "suffices", "claim", "claimblock", "qed", "prove"})
+
 
 def analyze_proofs(tree, labels_to_nodes) -> None:
     """Run the full proof model over the tree, in dependency order.
@@ -289,14 +294,44 @@ def _proof_root_title(proof) -> str:
     return "Statement"
 
 
+def _is_prose_intro(node) -> bool:
+    """A construct that introduces a symbol or assumption into document-wide
+    context: one living in running prose or in a definition, but not inside a
+    proof or a theorem-family statement (whose introductions are that result's
+    local antecedents). Such an introduction is in scope to the end of the paper.
+    """
+    if not isinstance(node, nodes.Construct) or node.kind in _NON_INTRO_KINDS:
+        return False
+    anc = node.parent
+    while anc is not None:
+        if isinstance(anc, nodes.Definition):
+            anc = anc.parent  # a definition is itself a document-wide intro
+            continue
+        if isinstance(anc, (nodes.Proof, nodes.Theorem, nodes.Statement)):
+            return False
+        anc = anc.parent
+    return True
+
+
 def make_state(tree) -> None:
-    """Per-step ``hypotheses |- goal`` for the rail's State view.
+    """Per-step ``hypotheses |- goal`` for the rail's State view, plus the
+    document-wide ambient context each proof inherits.
 
     Records node *references* (not ids) so it can run before ids are assigned;
     ``serialize_state`` turns those refs into the id-keyed JSON the rail emits.
     """
+    # Prose and definition introductions accumulate in document order and stay
+    # in scope to the end of the paper, so each proof inherits every such
+    # introduction that precedes it.
+    ambient: list = []
+    per_proof: dict = {}
+    for node in tree.traverse():
+        if isinstance(node, nodes.Proof):
+            per_proof[id(node)] = list(ambient)
+        elif _is_prose_intro(node):
+            ambient.append(node)
     for proof in tree.traverse(nodeclass=nodes.Proof):
-        _compute_state(proof)
+        _compute_state(proof, per_proof.get(id(proof), ()))
 
 
 def serialize_state(proof):
@@ -311,15 +346,22 @@ def serialize_state(proof):
         return out
 
     return [
-        {"goal": entry(st["goal"]), "hyps": [entry(h) for h in st["hyps"]]}
+        {
+            "goal": entry(st["goal"]),
+            "hyps": [entry(h) for h in st["hyps"]],
+            "context": [entry(c) for c in st.get("context", [])],
+        }
         for st in getattr(proof, "step_state", [])
     ]
 
 
-def _compute_state(proof) -> None:
+def _compute_state(proof, ambient_intros=()) -> None:
     steps = list(proof.traverse(nodeclass=nodes.Step))
     if not steps:
         return
+    # Document-wide context inherited by this proof (prose/definition intros in
+    # scope here), the same for every step and shown as its own group.
+    context = [{"node": c, "num": None} for c in ambient_intros]
 
     def nearest_step(node: nodes.Node) -> nodes.Step | None:
         anc = node.parent
@@ -411,5 +453,5 @@ def _compute_state(proof) -> None:
         # theorem; show its conclusion as the goal.
         if goal is None and theorem is not None:
             goal = {"node": theorem, "num": theorem.reftext or None, "thm": True}
-        state.append({"goal": goal, "hyps": hyps})
+        state.append({"goal": goal, "hyps": hyps, "context": context})
     proof.step_state = state

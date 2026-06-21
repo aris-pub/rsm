@@ -255,3 +255,53 @@ def test_proof_state_refs_get_body_tooltips(page: Page, interactive_server: str)
     link.hover()
     tip = page.wait_for_selector(".tooltipster-base", state="visible", timeout=3_000)
     assert tip.is_visible()
+
+
+def test_proof_state_shows_document_context(page: Page, interactive_server: str):
+    """The Proof > State panel shows a "Context" group carrying the symbols and
+    assumptions introduced in prose before the proof (here, the `:write:` that
+    defines the spectral radius), distinct from the proof's own hypotheses."""
+    page.set_viewport_size({"width": 1280, "height": 460})
+    _load(page, interactive_server)
+    page.click('.rail-scope[data-scope="proof"]')
+    page.click('.rail-subtabs-proof .rail-tab[data-view="state"]')
+    # Scroll the proof into the reading band so the State panel renders live.
+    page.evaluate(
+        """() => {
+            const el = document.querySelector('.proof[data-nodeid]');
+            const y = el.getBoundingClientRect().top + window.scrollY
+                      - window.innerHeight * 0.2;
+            window.scrollTo(0, y);
+        }"""
+    )
+    block = page.wait_for_selector(".rail-state .rail-context", timeout=5_000)
+    text = block.inner_text()
+    assert "in scope" in text.lower()  # the document-context group, label uppercased by CSS
+    assert "spectral radius" in text
+    # the cloned introduction keeps its construct keyword (WRITE)
+    assert block.query_selector(".keyword") is not None
+
+
+def test_proof_state_math_is_typeset(page: Page, interactive_server: str):
+    """Regression: cloned proof-step fragments came into the State panel as raw
+    LaTeX (\\(...\\)); the panel must re-typeset them so no raw delimiters remain
+    and real MathML is present (also an a11y requirement)."""
+    page.set_viewport_size({"width": 1280, "height": 460})
+    _load(page, interactive_server)
+    page.click('.rail-scope[data-scope="proof"]')
+    page.click('.rail-subtabs-proof .rail-tab[data-view="state"]')
+    page.evaluate(
+        """() => {
+            const steps = document.querySelectorAll('.proof .step');
+            const el = steps[steps.length - 1];
+            const y = el.getBoundingClientRect().top + window.scrollY
+                      - window.innerHeight * 0.4;
+            window.scrollTo(0, y);
+        }"""
+    )
+    panel = page.wait_for_selector(".rail-state .rail-state-block", timeout=5_000)
+    state = page.locator(".rail-state")
+    # no raw inline-math delimiters survive anywhere in the panel
+    assert "\\(" not in state.inner_text()
+    # and the math is real MathML, in the ASSUME group specifically
+    assert page.locator(".rail-state .rail-hyps math").count() > 0

@@ -10,6 +10,7 @@
 import { wireTree } from "./tocarcs.js";
 import { openHandrail } from "./handrails.js";
 import { createTooltips } from "./tooltips.js";
+import { reRenderAll } from "./notation.js";
 
 export function setup(root = document) {
   const rail = root.querySelector(".proof-rail");
@@ -356,15 +357,21 @@ export function setup(root = document) {
     return c;
   }
 
-  // Render the State view for the shown proof at the current step: the live
-  // hypotheses and the goal, cloned from the body so their math is already
-  // typeset.
+  // Collapse state for the State panel's bands, keyed by proof+role, so a
+  // reader's collapse choice survives the panel's re-render on scroll.
+  const collapseState = {};
+
+  // Render the State view for the shown proof at the current step. Order is
+  // PROVE -> ASSUME -> IN SCOPE: the goal first (what the reader most needs),
+  // then the proof's own hypotheses, then document-wide context. Each is a
+  // labeled, collapsible band; math is cloned from the body and re-typeset.
   function renderState() {
     if (proofView !== "state") return;
     const item = current ? items.get(current) : null;
     if (!item) return;
     const panel = item.querySelector(".rail-state");
     if (!panel) return;
+    panel.setAttribute("aria-live", "polite");
     const data = stateData.get(item.dataset.proof);
     if (!data || active.idx < 0 || active.idx >= data.length) {
       panel.innerHTML =
@@ -372,29 +379,113 @@ export function setup(root = document) {
       return;
     }
     const st = data[active.idx];
+    const proofKey = item.dataset.proof;
     panel.innerHTML = "";
 
-    function badge(num) {
-      const b = document.createElement("span");
+    // A labeled, collapsible band. The header is a real button (keyboard- and
+    // screen-reader-operable); collapse state persists across re-renders.
+    function makeBlock(role, label, defaultCollapsed) {
+      const key = proofKey + ":" + role;
+      const collapsed = key in collapseState ? collapseState[key] : defaultCollapsed;
+      const block = document.createElement("div");
+      block.className = "rail-state-block rail-" + role + (collapsed ? " collapsed" : "");
+      block.setAttribute("role", "group");
+      block.setAttribute("aria-label", label);
+      const head = document.createElement("button");
+      head.type = "button";
+      head.className = "rail-state-head";
+      head.setAttribute("aria-expanded", String(!collapsed));
+      head.innerHTML =
+        '<span class="rail-state-label">' + label + "</span>" +
+        '<span class="rail-state-caret" aria-hidden="true"></span>';
+      const body = document.createElement("div");
+      body.className = "rail-state-body";
+      head.addEventListener("click", () => {
+        const nowCollapsed = !block.classList.contains("collapsed");
+        block.classList.toggle("collapsed", nowCollapsed);
+        head.setAttribute("aria-expanded", String(!nowCollapsed));
+        collapseState[key] = nowCollapsed;
+      });
+      block.appendChild(head);
+      block.appendChild(body);
+      return { block, body };
+    }
+
+    // A chip marking where something came from; clicking jumps to it in the body.
+    function badge(text, targetId, tip) {
+      const b = document.createElement("button");
+      b.type = "button";
       b.className = "rail-step-badge";
-      b.textContent = "⟨" + num + "⟩"; // the step it comes from
+      b.textContent = "⟨" + text + "⟩";
+      if (tip) b.setAttribute("data-tooltip", tip);
+      if (targetId != null) {
+        b.addEventListener("click", () => {
+          const t = root.querySelector('[data-nodeid="' + targetId + '"]');
+          if (t) t.scrollIntoView({ block: "center", behavior: "smooth" });
+        });
+      }
       return b;
     }
 
-    // Assuming: always shown, with an explicit empty list when there's nothing.
+    // PROVE first.
+    const goalB = makeBlock("goal", "Prove", false);
+    const g = st.goal;
+    const goalEl = g && g.id != null ? root.querySelector('[data-nodeid="' + g.id + '"]') : null;
+    if (goalEl && g.thm) {
+      // A setup step's goal is the whole theorem: show a one-line chip and tuck
+      // the full statement behind an inline disclosure.
+      const summary = document.createElement("div");
+      summary.className = "rail-goal-summary";
+      if (g.num) summary.appendChild(badge(g.num, g.id, "jump to " + g.num));
+      const toggle = document.createElement("button");
+      toggle.type = "button";
+      toggle.className = "rail-goal-toggle";
+      toggle.textContent = "show statement";
+      summary.appendChild(toggle);
+      goalB.body.appendChild(summary);
+      const full = document.createElement("div");
+      full.className = "rail-goal-full collapsed";
+      const cz = goalEl.querySelector(":scope > .hr-content-zone") || goalEl;
+      const clone = cloneClean(cz);
+      clone
+        .querySelectorAll(".hr-label, .construct.let, .construct.assume")
+        .forEach((n) => n.remove());
+      full.appendChild(clone);
+      goalB.body.appendChild(full);
+      toggle.addEventListener("click", () => {
+        const hidden = full.classList.toggle("collapsed");
+        toggle.textContent = hidden ? "show statement" : "hide statement";
+      });
+    } else if (goalEl) {
+      const gbody = document.createElement("div");
+      gbody.className = "rail-goal-body";
+      if (g.num) gbody.appendChild(badge(g.num, g.id, "introduced in step " + g.num));
+      gbody.appendChild(cloneClean(goalEl));
+      goalB.body.appendChild(gbody);
+    } else {
+      goalB.body.textContent = "the main result";
+    }
+    panel.appendChild(goalB.block);
+
+    // ASSUME: the proof's own hypotheses, with a ⟨n⟩ chip on the first of each
+    // run of same-step introductions (consecutive same-step rows share a chip).
     const hyps = (st.hyps || [])
-      .map((h) => ({ el: root.querySelector(`[data-nodeid="${h.id}"]`), num: h.num }))
+      .map((h) => ({ el: root.querySelector('[data-nodeid="' + h.id + '"]'), num: h.num, id: h.id }))
       .filter((h) => h.el);
-    const hblock = document.createElement("div");
-    hblock.className = "rail-state-block rail-hyps";
-    hblock.innerHTML = '<div class="rail-state-label">Assuming</div>';
+    const hypB = makeBlock("hyps", "Assume", false);
     const ul = document.createElement("ul");
     if (hyps.length) {
+      let prev = null;
       for (const h of hyps) {
         const li = document.createElement("li");
-        if (h.num) li.appendChild(badge(h.num));
+        if (h.num && h.num !== prev) {
+          li.appendChild(badge(h.num, h.id, "introduced in step " + h.num));
+        } else {
+          li.classList.add("rail-hyp-cont");
+        }
         li.appendChild(cloneClean(h.el));
         ul.appendChild(li);
+        prev = h.num;
       }
     } else {
       const li = document.createElement("li");
@@ -402,37 +493,31 @@ export function setup(root = document) {
       li.textContent = "no assumptions yet";
       ul.appendChild(li);
     }
-    hblock.appendChild(ul);
-    panel.appendChild(hblock);
+    hypB.body.appendChild(ul);
+    panel.appendChild(hypB.block);
 
-    // To show: the step's goal, or the theorem's conclusion for setup steps.
-    const goalBlock = document.createElement("div");
-    goalBlock.className = "rail-state-block rail-goal";
-    goalBlock.innerHTML = '<div class="rail-state-label">To show</div>';
-    const body = document.createElement("div");
-    body.className = "rail-goal-body";
-    const g = st.goal;
-    const goalEl = g && g.id != null ? root.querySelector(`[data-nodeid="${g.id}"]`) : null;
-    if (goalEl) {
-      if (g.num) body.appendChild(badge(g.num));
-      if (g.thm) {
-        const cz = goalEl.querySelector(":scope > .hr-content-zone") || goalEl;
-        const clone = cloneClean(cz);
-        clone
-          .querySelectorAll(".hr-label, .construct.let, .construct.assume")
-          .forEach((n) => n.remove());
-        body.appendChild(clone);
-      } else {
-        body.appendChild(cloneClean(goalEl));
+    // IN SCOPE: document-wide introductions (prose + definitions), reference
+    // material, collapsed by default once there are more than a few.
+    const ctx = (st.context || [])
+      .map((c) => ({ el: root.querySelector('[data-nodeid="' + c.id + '"]') }))
+      .filter((c) => c.el);
+    if (ctx.length) {
+      const ctxB = makeBlock("context", "In scope", ctx.length > 4);
+      const cul = document.createElement("ul");
+      for (const c of ctx) {
+        const li = document.createElement("li");
+        li.appendChild(cloneClean(c.el));
+        cul.appendChild(li);
       }
-    } else {
-      body.textContent = "the main result";
+      ctxB.body.appendChild(cul);
+      panel.appendChild(ctxB.block);
     }
-    goalBlock.appendChild(body);
-    panel.appendChild(goalBlock);
 
-    // The references just cloned into the panel carry no live tooltip; bind them
-    // with the same initializer the body uses (idempotent via :not(.tooltipstered)).
+    // Cloned fragments can carry un-typeset math (raw \(...\)); re-render every
+    // math element in the panel from its stored data-latex.
+    reRenderAll(panel);
+    // Cloned references carry no live tooltip, and the chips carry a
+    // data-tooltip; bind both with the body's initializer (idempotent).
     createTooltips();
   }
 }

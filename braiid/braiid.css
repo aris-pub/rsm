@@ -1656,37 +1656,79 @@ body {
   /* State view: live hypotheses and current goal, cloned from the body. */
   .rail-state {
     font-size: 0.82rem;
-    color: var(--text-subtle);
+    color: var(--text-body);
     overflow: hidden; /* hard rule: no scrollbars */
     overflow-wrap: break-word;
   }
   .rail-state .hr-content-zone { width: auto; }
-  .rail-state-block { margin-bottom: 0.7rem; }
+  .rail-state-block { margin-bottom: var(--chunk-half); }
+
+  /* Band header is a full-width toggle button (keyboard- and AT-operable). */
+  .rail-state-head {
+    display: flex; align-items: center; justify-content: space-between;
+    width: 100%; background: none; border: none; padding: 0;
+    margin-bottom: var(--chunk-twelfth); cursor: pointer;
+  }
   .rail-state-label {
     font-size: 0.7rem;
     text-transform: uppercase;
     letter-spacing: 0.06em;
     color: var(--gray-700);
     font-weight: 700;
-    margin-bottom: 0.3rem;
   }
-  .rail-hyps ul {
+  .rail-goal .rail-state-label { color: var(--primary-700); }
+  .rail-state-caret {
+    width: 0; height: 0;
+    border-left: 4px solid transparent; border-right: 4px solid transparent;
+    border-top: 5px solid var(--gray-400);
+    transition: transform 0.15s ease;
+  }
+  .rail-state-block.collapsed .rail-state-caret { transform: rotate(-90deg); }
+  .rail-state-block.collapsed .rail-state-body { display: none; }
+
+  /* One accent rule per band, tinted by role; no per-item marks. */
+  .rail-state-body {
+    border-left: 2px solid var(--gray-300);
+    padding-left: var(--chunk-third);
+  }
+  .rail-hyps .rail-state-body { border-left-color: var(--primary-400); }
+  .rail-goal .rail-state-body {
+    border-left-color: var(--primary-600); border-left-width: 3px;
+    color: var(--gray-900);
+  }
+  .rail-state-body ul {
     list-style: none; margin: 0; padding: 0;
-    display: flex; flex-direction: column; gap: 0.35rem;
+    display: flex; flex-direction: column; gap: var(--chunk-sixth);
   }
-  .rail-hyps li { padding-left: 0.6rem; border-left: 2px solid var(--gray-200); }
-  .rail-hyps li.rail-hyp-empty {
-    color: var(--gray-400);
-    font-style: italic;
-    border-left-style: dashed;
+  .rail-state-body li.rail-hyp-cont { padding-left: 1.7rem; }
+  .rail-hyp-empty { color: var(--gray-400); font-style: italic; }
+
+  /* Demote the construct keyword to a quiet tag so the math reads loudest. */
+  .rail-state .keyword {
+    color: var(--gray-600);
+    font-weight: 500;
+    font-size: 0.85em;
+    letter-spacing: 0.02em;
   }
-  .rail-goal-body { padding-left: 0.6rem; border-left: 2px solid var(--primary-700); }
+
+  .rail-goal-summary { display: flex; align-items: center; gap: var(--chunk-sixth); }
+  .rail-goal-toggle {
+    background: none; border: none; padding: 0; cursor: pointer;
+    color: var(--primary-600); font-size: 0.78rem; text-decoration: underline;
+  }
+  .rail-goal-full { margin-top: var(--chunk-sixth); }
+  .rail-goal-full.collapsed { display: none; }
+
+  /* Step chip: a clickable pill that jumps to the introducing step. */
   .rail-step-badge {
-    color: var(--gray-700);
-    font-variant-numeric: tabular-nums;
-    font-weight: 600;
-    margin-right: 0.4em;
+    display: inline-block; border: none; cursor: pointer;
+    background: var(--gray-100); color: var(--gray-700);
+    border-radius: var(--radius-sm);
+    padding: 0 0.3em; margin-right: 0.4em;
+    font-variant-numeric: tabular-nums; font-size: 0.85em;
   }
+  .rail-step-badge:hover { background: var(--primary-50); color: var(--primary-700); }
+
   .rail-state-empty { color: var(--gray-700); font-style: italic; font-size: 0.8rem; }
 
   /* Not enough room to float the rail without overlapping the column. */
