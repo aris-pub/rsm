@@ -339,3 +339,92 @@ def test_proof_state_group_keyboard_operable(page: Page, interactive_server: str
     head.press("Enter")
     assert head.get_attribute("aria-expanded") == "true"
     assert page.locator(".rail-state .rail-goal.collapsed").count() == 0
+
+
+# The intro :write: that defines the spectral radius sits near the viewport center.
+_WRITE_CENTERED = """() => {
+    const el = [...document.querySelectorAll('.write')]
+        .find(e => !e.closest('.proof-rail') && e.textContent.includes('spectral radius'));
+    if (!el) return false;
+    const c = window.innerHeight / 2;
+    const r = el.getBoundingClientRect();
+    return Math.abs(r.top + r.height / 2 - c) < window.innerHeight * 0.35;
+}"""
+
+
+def _scroll_proof_into_band(page: Page) -> None:
+    page.evaluate(
+        """() => {
+            const el = document.querySelector('.proof[data-nodeid]');
+            const y = el.getBoundingClientRect().top + window.scrollY
+                      - window.innerHeight * 0.2;
+            window.scrollTo(0, y);
+        }"""
+    )
+
+
+def test_proof_state_rows_are_uniform_jump_rows(page: Page, interactive_server: str):
+    """No ⟨n⟩ step chips and no reserved chip gutter: every row in every band is
+    a uniform jump-to-source row, including the In-scope (document-context)
+    rows, which previously had no jump action at all."""
+    page.set_viewport_size({"width": 1280, "height": 460})
+    _load(page, interactive_server)
+    page.click('.rail-scope[data-scope="proof"]')
+    page.click('.rail-subtabs-proof .rail-tab[data-view="state"]')
+    _scroll_proof_into_band(page)
+    page.wait_for_selector(".rail-state .rail-context", timeout=5_000)
+    assert page.locator(".rail-state .rail-step-badge").count() == 0
+    assert page.locator(".rail-state .rail-hyps .rail-jump-row").count() > 0
+    assert page.locator(".rail-state .rail-context .rail-jump-row").count() > 0
+    # The provenance number is back, in the left gutter: a ⟨n⟩ step number in
+    # ASSUME, a (n) section number in IN SCOPE.
+    hyp_nums = page.locator(".rail-state .rail-hyps .rail-state-num")
+    hyp_texts = [hyp_nums.nth(i).inner_text().strip() for i in range(hyp_nums.count())]
+    assert any(t.startswith("⟨") and t.endswith("⟩") for t in hyp_texts)
+    ctx_num = page.locator(".rail-state .rail-context .rail-state-num").first.inner_text()
+    assert ctx_num.startswith("(") and ctx_num.endswith(")")
+
+
+def test_proof_state_context_row_jumps_to_source(page: Page, interactive_server: str):
+    """Clicking an In-scope row scrolls the body to where that item was
+    introduced in prose: here the :write: defining the spectral radius, up in
+    the Introduction well above the proof."""
+    page.set_viewport_size({"width": 1280, "height": 460})
+    _load(page, interactive_server)
+    page.click('.rail-scope[data-scope="proof"]')
+    page.click('.rail-subtabs-proof .rail-tab[data-view="state"]')
+    _scroll_proof_into_band(page)
+    row = page.wait_for_selector(
+        ".rail-state .rail-context li:has-text('spectral radius')", timeout=5_000
+    )
+    # The intro write starts off-screen (above the proof in view)...
+    assert page.evaluate(_WRITE_CENTERED) is False
+    # ...and clicking the row scrolls it to the reading band.
+    row.click()
+    page.wait_for_function(_WRITE_CENTERED, timeout=5_000)
+
+
+def test_proof_state_setup_goal_is_a_gutter_row(page: Page, interactive_server: str):
+    """When the current step is a setup step (no own claim), PROVE shows the
+    theorem behind a disclosure, but still as a gutter row: the .rail-jump-row
+    treatment (rule + hover) plus a (section) marker for where it is stated."""
+    page.set_viewport_size({"width": 1280, "height": 460})
+    _load(page, interactive_server)
+    page.click('.rail-scope[data-scope="proof"]')
+    page.click('.rail-subtabs-proof .rail-tab[data-view="state"]')
+    # Center the proof's first step, an :assume: working toward the theorem.
+    page.evaluate(
+        """() => {
+            const step = document.querySelector('.proof .step');
+            const y = step.getBoundingClientRect().top + window.scrollY
+                      - window.innerHeight * 0.5;
+            window.scrollTo(0, y);
+        }"""
+    )
+    summary = page.wait_for_selector(
+        ".rail-state .rail-goal .rail-goal-summary", timeout=5_000
+    )
+    assert "rail-jump-row" in (summary.get_attribute("class") or "")
+    assert page.locator(".rail-state .rail-goal .rail-goal-toggle").count() == 1
+    num = page.locator(".rail-state .rail-goal .rail-state-num").first.inner_text()
+    assert num.startswith("(") and num.endswith(")")

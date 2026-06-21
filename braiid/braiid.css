@@ -1667,7 +1667,7 @@ body {
   .rail-state-head {
     display: flex; align-items: center; justify-content: space-between;
     width: 100%; background: none; border: none; padding: 0;
-    margin-bottom: var(--chunk-twelfth); cursor: pointer;
+    margin-bottom: var(--chunk-sixth); cursor: pointer;
   }
   .rail-state-label {
     font-size: 0.7rem;
@@ -1686,22 +1686,57 @@ body {
   .rail-state-block.collapsed .rail-state-caret { transform: rotate(-90deg); }
   .rail-state-block.collapsed .rail-state-body { display: none; }
 
-  /* One accent rule per band, tinted by role; no per-item marks. */
-  .rail-state-body {
-    border-left: 2px solid var(--gray-300);
-    padding-left: var(--chunk-third);
+  .rail-goal .rail-state-body { color: var(--gray-900); }
+  /* The accent rule is ONE continuous bar per band, parked at the gutter/content
+     boundary, so it can never break between rows of differing height. */
+  .rail-state-body { position: relative; }
+  .rail-state-body::before {
+    content: ""; position: absolute; top: 0; bottom: 0;
+    left: var(--rail-num-width, 2.8ch);
+    width: 2px; background: var(--gray-300);
   }
-  .rail-hyps .rail-state-body { border-left-color: var(--primary-400); }
-  .rail-goal .rail-state-body {
-    border-left-color: var(--primary-600); border-left-width: 3px;
-    color: var(--gray-900);
-  }
+  .rail-hyps .rail-state-body::before { background: var(--primary-400); }
+  .rail-goal .rail-state-body::before { width: 3px; background: var(--primary-600); }
   .rail-state-body ul {
     list-style: none; margin: 0; padding: 0;
-    display: flex; flex-direction: column; gap: var(--chunk-sixth);
+    display: flex; flex-direction: column;
   }
-  .rail-state-body li.rail-hyp-cont { padding-left: 1.7rem; }
-  .rail-hyp-empty { color: var(--gray-400); font-style: italic; }
+  .rail-hyp-empty {
+    color: var(--gray-400); font-style: italic;
+    padding-left: calc(var(--rail-num-width, 2.8ch) + var(--chunk-sixth));
+  }
+
+  /* Every row jumps to where its item was introduced: the whole row is the
+     mouse target, the leading keyword the keyboard control. A two-column grid
+     reads "number │ content": the provenance number sits in a left gutter, the
+     band's accent rule (drawn once on the body, above) runs at the column
+     boundary, then the cloned construct. Markers align to the first text
+     baseline. A faint wash on hover (or keyboard focus) is the only affordance. */
+  .rail-jump-row {
+    cursor: pointer;
+    display: grid;
+    grid-template-columns: var(--rail-num-width, 2.8ch) 1fr;
+    align-items: baseline;
+  }
+  .rail-jump-control { cursor: pointer; }
+  .rail-jump-row:hover,
+  .rail-jump-row:focus-within { background: var(--gray-100); }
+  /* justify-self:end keeps the marker content-sized (not stretched to the
+     column), so it stays right-aligned against the rule AND its measured
+     scrollWidth is the true text width, letting the gutter shrink again after a
+     deeply-nested proof. */
+  .rail-state-num {
+    justify-self: end;
+    white-space: nowrap;
+    padding: var(--chunk-twelfth) var(--chunk-sixth) var(--chunk-twelfth) 0;
+    color: var(--gray-700);
+    font-size: 0.78em;
+    font-variant-numeric: tabular-nums;
+    user-select: none;
+  }
+  .rail-jump-row > :not(.rail-state-num) {
+    padding: var(--chunk-twelfth) 0 var(--chunk-twelfth) var(--chunk-sixth);
+  }
 
   /* Demote the construct keyword to a quiet tag so the math reads loudest.
      --gray-700 (not --gray-600) keeps it quiet while clearing WCAG AA on the
@@ -1713,24 +1748,17 @@ body {
     letter-spacing: 0.02em;
   }
 
-  .rail-goal-summary { display: flex; align-items: center; gap: var(--chunk-sixth); }
+  /* The toggle is the content cell of its gutter row: kill the button's own
+     borders so only .rail-jump-row's left rule shows, and left-align the label. */
   .rail-goal-toggle {
-    background: none; border: none; padding: 0; cursor: pointer;
+    background: none; border: none; cursor: pointer; text-align: left;
     color: var(--primary-600); font-size: 0.78rem; text-decoration: underline;
   }
-  .rail-goal-full { margin-top: var(--chunk-sixth); }
-  .rail-goal-full.collapsed { display: none; }
-
-  /* Step chip: a clickable pill that jumps to the introducing step. */
-  .rail-step-badge {
-    display: inline-block; border: none; cursor: pointer;
-    /* --gray-900 on the --gray-100 fill clears WCAG AA (~8:1); --gray-700 fell just under 4.5:1. */
-    background: var(--gray-100); color: var(--gray-900);
-    border-radius: var(--radius-sm);
-    padding: 0 0.3em; margin-right: 0.4em;
-    font-variant-numeric: tabular-nums; font-size: 0.85em;
+  .rail-goal-full {
+    margin-top: var(--chunk-sixth);
+    padding-left: calc(var(--rail-num-width, 2.8ch) + var(--chunk-sixth));
   }
-  .rail-step-badge:hover { background: var(--primary-50); color: var(--primary-700); }
+  .rail-goal-full.collapsed { display: none; }
 
   .rail-state-empty { color: var(--gray-700); font-style: italic; font-size: 0.8rem; }
 

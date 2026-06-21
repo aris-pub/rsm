@@ -221,3 +221,62 @@ def test_definition_introduction_in_context():
     p = _proof(src)
     ctx = p.step_state[0].get("context", [])
     assert [c["node"].kind for c in ctx] == ["write"]
+
+
+def test_theorem_premise_serializes_with_section_marker():
+    # A :let: in the theorem statement is a hypothesis with no step number; it is
+    # introduced with the theorem, so its serialized marker is the section (like
+    # the goal), while a step's own :let: keeps a step marker.
+    from rsm.proof import serialize_state
+
+    src = (
+        "# Title\n\n"
+        "## S\n\n"
+        ":theorem: {:label: thm-z} :let: $G$ be a graph ::. A claim.::\n\n"
+        ":proof:\n"
+        "  :step: {:label: st-1} :let: $x$ be a vertex ::. Foo.::\n"
+        "::\n"
+    )
+    p = _proof(src)
+    hyps = serialize_state(p)[0]["hyps"]
+    markers = {h["marker"] for h in hyps}
+    assert "section" in markers and "step" in markers
+    premise = next(h for h in hyps if h["marker"] == "section")
+    assert premise["num"] == "1"  # the theorem's section, not None
+
+
+def test_section_marker_uses_subsection_precision():
+    # A symbol introduced inside a subsection is marked with the full subsection
+    # number (X.Y), matching how nested steps show ⟨X.Y⟩, not just the enclosing
+    # top-level section.
+    from rsm.proof import serialize_state
+
+    src = (
+        "# Title\n\n"
+        "## S\n\n"
+        "### Sub\n\n"
+        "We :write: $A$ for the matrix ::.\n\n"
+        ":theorem: {:label: thm-q} A claim about $A$.::\n\n"
+        ":proof:\n"
+        "  :step: {:label: st-1} Foo.::\n"
+        "::\n"
+    )
+    p = _proof(src)
+    ctx = serialize_state(p)[0]["context"]
+    assert ctx and ctx[0]["num"] == "1.1"
+
+
+def test_pick_introduces_a_hypothesis():
+    # :pick: brings a symbol into scope, so a later sibling step sees it among
+    # its hypotheses (like :let:), not just :let:/:assume:.
+    src = (
+        "# Title\n\n## S\n\n"
+        ":theorem: {:label: thm-p} A claim.::\n\n"
+        ":proof:\n"
+        "  :step: {:label: st-a} :pick: $x$ ::. Foo.::\n"
+        "  :step: {:label: st-b} Bar by :ref:st-a::.::\n"
+        "::\n"
+    )
+    p = _proof(src)
+    # the later step's hypotheses include the pick'd symbol from the first step
+    assert any(h["node"].kind == "pick" for h in p.step_state[1]["hyps"])

@@ -1694,27 +1694,45 @@ var RSM = (() => {
         block.appendChild(body);
         return { block, body };
       }
-      function badge(text, targetId, tip) {
-        const b = document.createElement("button");
-        b.type = "button";
-        b.className = "rail-step-badge";
-        b.textContent = "\u27E8" + text + "\u27E9";
-        if (tip) b.setAttribute("data-tooltip", tip);
-        if (targetId != null) {
-          b.addEventListener("click", () => {
-            const t = root2.querySelector('[data-nodeid="' + targetId + '"]');
-            if (t) t.scrollIntoView({ block: "center", behavior: "smooth" });
-          });
-        }
-        return b;
+      function numCell(num, kind) {
+        const s = document.createElement("span");
+        s.className = "rail-state-num";
+        s.setAttribute("aria-hidden", "true");
+        if (num) s.textContent = kind === "section" ? "(" + num + ")" : "\u27E8" + num + "\u27E9";
+        return s;
+      }
+      function scrollToNode(targetId) {
+        const t = root2.querySelector('[data-nodeid="' + targetId + '"]');
+        if (t) t.scrollIntoView({ block: "center", behavior: "smooth" });
+      }
+      function makeJumpable(li, targetId, tip) {
+        if (targetId == null) return;
+        li.classList.add("rail-jump-row");
+        li.addEventListener("click", (ev) => {
+          if (ev.target.closest("a")) return;
+          scrollToNode(targetId);
+        });
+        const host = li.querySelector(".keyword") || (li.querySelector("a") ? null : li);
+        if (!host) return;
+        host.classList.add("rail-jump-control");
+        host.setAttribute("role", "button");
+        host.setAttribute("tabindex", "0");
+        host.setAttribute("aria-label", tip || "jump to source");
+        if (tip) host.setAttribute("data-tooltip", tip);
+        host.addEventListener("keydown", (ev) => {
+          if (ev.key === "Enter" || ev.key === " ") {
+            ev.preventDefault();
+            scrollToNode(targetId);
+          }
+        });
       }
       const goalB = makeBlock("goal", "Prove", false);
       const g = st.goal;
       const goalEl = g && g.id != null ? root2.querySelector('[data-nodeid="' + g.id + '"]') : null;
       if (goalEl && g.thm) {
         const summary = document.createElement("div");
-        summary.className = "rail-goal-summary";
-        if (g.num) summary.appendChild(badge(g.num, g.id, "jump to " + g.num));
+        summary.className = "rail-goal-summary rail-jump-row";
+        summary.appendChild(numCell(g.num, g.marker));
         const toggle = document.createElement("button");
         toggle.type = "button";
         toggle.className = "rail-goal-toggle";
@@ -1735,28 +1753,30 @@ var RSM = (() => {
       } else if (goalEl) {
         const gbody = document.createElement("div");
         gbody.className = "rail-goal-body";
-        if (g.num) gbody.appendChild(badge(g.num, g.id, "introduced in step " + g.num));
+        gbody.appendChild(numCell(g.num, g.marker));
         gbody.appendChild(cloneClean(goalEl));
+        makeJumpable(gbody, g.id, g.num ? "Go to step " + g.num : "Go to the goal");
         goalB.body.appendChild(gbody);
       } else {
         goalB.body.textContent = "the main result";
       }
       panel.appendChild(goalB.block);
-      const hyps = (st.hyps || []).map((h) => ({ el: root2.querySelector('[data-nodeid="' + h.id + '"]'), num: h.num, id: h.id })).filter((h) => h.el);
+      const hyps = (st.hyps || []).map((h) => ({
+        el: root2.querySelector('[data-nodeid="' + h.id + '"]'),
+        num: h.num,
+        id: h.id,
+        marker: h.marker
+      })).filter((h) => h.el);
       const hypB = makeBlock("hyps", "Assume", false);
       const ul = document.createElement("ul");
       if (hyps.length) {
-        let prev = null;
         for (const h of hyps) {
           const li = document.createElement("li");
-          if (h.num && h.num !== prev) {
-            li.appendChild(badge(h.num, h.id, "introduced in step " + h.num));
-          } else {
-            li.classList.add("rail-hyp-cont");
-          }
+          li.appendChild(numCell(h.num, h.marker));
           li.appendChild(cloneClean(h.el));
+          const where = h.marker === "section" ? "section " : "step ";
+          makeJumpable(li, h.id, h.num ? "Introduced in " + where + h.num : "Jump to source");
           ul.appendChild(li);
-          prev = h.num;
         }
       } else {
         const li = document.createElement("li");
@@ -1766,19 +1786,35 @@ var RSM = (() => {
       }
       hypB.body.appendChild(ul);
       panel.appendChild(hypB.block);
-      const ctx = (st.context || []).map((c) => ({ el: root2.querySelector('[data-nodeid="' + c.id + '"]') })).filter((c) => c.el);
+      const ctx = (st.context || []).map((c) => ({
+        el: root2.querySelector('[data-nodeid="' + c.id + '"]'),
+        id: c.id,
+        num: c.num,
+        marker: c.marker
+      })).filter((c) => c.el);
       if (ctx.length) {
         const ctxB = makeBlock("context", "In scope", ctx.length > 4);
         const cul = document.createElement("ul");
         for (const c of ctx) {
           const li = document.createElement("li");
+          li.appendChild(numCell(c.num, c.marker));
           li.appendChild(cloneClean(c.el));
+          makeJumpable(
+            li,
+            c.id,
+            c.num ? "Introduced in section " + c.num : "Jump to where this is introduced"
+          );
           cul.appendChild(li);
         }
         ctxB.body.appendChild(cul);
         panel.appendChild(ctxB.block);
       }
-      reRenderAll(panel);
+      let maxNum = 0;
+      panel.querySelectorAll(".rail-state-num").forEach((n) => {
+        maxNum = Math.max(maxNum, n.scrollWidth);
+      });
+      if (maxNum > 0) panel.style.setProperty("--rail-num-width", maxNum + "px");
+      typesetMath(panel).then(() => reRenderAll(panel));
       createTooltips();
     }
   }

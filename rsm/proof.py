@@ -39,8 +39,10 @@ class ProofError(Exception):
 
 
 # Construct kinds that introduce a hypothesis vs state a goal. Used by the scope
-# computation in make_state.
-HYP_KINDS = ("let", "assume")
+# computation in make_state. :pick: (existential instantiation) and :new: bring a
+# fresh symbol into the proof's scope just as :let: does, so they count as
+# hypotheses for the State panel.
+HYP_KINDS = ("let", "assume", "pick", "new")
 GOAL_KINDS = ("claim", "claimblock")
 
 # Every construct introduces a symbol or assumption except these (assertions,
@@ -345,11 +347,55 @@ def serialize_state(proof):
         out["id"] = item["node"].nodeid
         return out
 
+    def section_num(node):
+        # The nearest section-like ancestor, so a symbol introduced in a
+        # subsection is marked with its full number (X.Y), matching nested steps.
+        sec = node.first_ancestor_of_type(
+            (nodes.Subsubsection, nodes.Subsection, nodes.Section)
+        )
+        return sec.full_number if sec else None
+
+    def hyp_entry(item):
+        out = entry(item)
+        if out is None:
+            return None
+        # A step-introduced hypothesis is marked by its step; a theorem premise
+        # (no step number) is introduced with the theorem, so it takes the same
+        # section marker the goal does.
+        if out.get("num") is None:
+            out["num"] = section_num(item["node"])
+            out["marker"] = "section"
+        else:
+            out["marker"] = "step"
+        return out
+
+    def ctx_entry(item):
+        out = entry(item)
+        if out is None:
+            return None
+        # An In-scope item's provenance is the section it was introduced in.
+        out["num"] = section_num(item["node"])
+        out["marker"] = "section"
+        return out
+
+    def goal_entry(item):
+        out = entry(item)
+        if out is None:
+            return None
+        # A setup goal is the whole theorem (section provenance); a step's own
+        # claim is marked by its step.
+        if out.get("thm"):
+            out["num"] = section_num(item["node"])
+            out["marker"] = "section"
+        else:
+            out["marker"] = "step"
+        return out
+
     return [
         {
-            "goal": entry(st["goal"]),
-            "hyps": [entry(h) for h in st["hyps"]],
-            "context": [entry(c) for c in st.get("context", [])],
+            "goal": goal_entry(st["goal"]),
+            "hyps": [hyp_entry(h) for h in st["hyps"]],
+            "context": [ctx_entry(c) for c in st.get("context", [])],
         }
         for st in getattr(proof, "step_state", [])
     ]

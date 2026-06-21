@@ -11,6 +11,7 @@ import { wireTree } from "./tocarcs.js";
 import { openHandrail } from "./handrails.js";
 import { createTooltips } from "./tooltips.js";
 import { reRenderAll } from "./notation.js";
+import { typesetMath } from "./libraries.js";
 
 export function setup(root = document) {
   const rail = root.querySelector(".proof-rail");
@@ -411,20 +412,50 @@ export function setup(root = document) {
       return { block, body };
     }
 
-    // A chip marking where something came from; clicking jumps to it in the body.
-    function badge(text, targetId, tip) {
-      const b = document.createElement("button");
-      b.type = "button";
-      b.className = "rail-step-badge";
-      b.textContent = "⟨" + text + "⟩";
-      if (tip) b.setAttribute("data-tooltip", tip);
-      if (targetId != null) {
-        b.addEventListener("click", () => {
-          const t = root.querySelector('[data-nodeid="' + targetId + '"]');
-          if (t) t.scrollIntoView({ block: "center", behavior: "smooth" });
-        });
-      }
-      return b;
+    // The provenance number in a row's left gutter, bracketed by kind: ⟨n⟩ for a
+    // step, (n) for a section. Decorative: the same fact is in the keyword
+    // control's tooltip/aria-label, so it is hidden from screen readers.
+    function numCell(num, kind) {
+      const s = document.createElement("span");
+      s.className = "rail-state-num";
+      s.setAttribute("aria-hidden", "true");
+      if (num) s.textContent = kind === "section" ? "(" + num + ")" : "⟨" + num + "⟩";
+      return s;
+    }
+
+    // Scroll the body to wherever a state item was introduced.
+    function scrollToNode(targetId) {
+      const t = root.querySelector('[data-nodeid="' + targetId + '"]');
+      if (t) t.scrollIntoView({ block: "center", behavior: "smooth" });
+    }
+
+    // Every state row jumps to where its item was introduced: prose/definition
+    // for In-scope items, the introducing step for hypotheses and goals. The
+    // whole row is the mouse target (inner reference links keep their own jump),
+    // and the leading construct keyword is the keyboard/SR control carrying the
+    // tooltip. The keyword sits beside any inner links (siblings), so there is
+    // no nested-interactive violation; when a row has no keyword we fall back to
+    // the row itself, but only when it holds no inner link to nest inside it.
+    function makeJumpable(li, targetId, tip) {
+      if (targetId == null) return;
+      li.classList.add("rail-jump-row");
+      li.addEventListener("click", (ev) => {
+        if (ev.target.closest("a")) return; // let reference links navigate
+        scrollToNode(targetId);
+      });
+      const host = li.querySelector(".keyword") || (li.querySelector("a") ? null : li);
+      if (!host) return;
+      host.classList.add("rail-jump-control");
+      host.setAttribute("role", "button");
+      host.setAttribute("tabindex", "0");
+      host.setAttribute("aria-label", tip || "jump to source");
+      if (tip) host.setAttribute("data-tooltip", tip);
+      host.addEventListener("keydown", (ev) => {
+        if (ev.key === "Enter" || ev.key === " ") {
+          ev.preventDefault();
+          scrollToNode(targetId);
+        }
+      });
     }
 
     // PROVE first.
@@ -432,11 +463,12 @@ export function setup(root = document) {
     const g = st.goal;
     const goalEl = g && g.id != null ? root.querySelector('[data-nodeid="' + g.id + '"]') : null;
     if (goalEl && g.thm) {
-      // A setup step's goal is the whole theorem: show a one-line chip and tuck
-      // the full statement behind an inline disclosure.
+      // A setup step's goal is the whole theorem: a gutter row (section marker +
+      // rule + hover) whose content is a disclosure for the full statement. The
+      // disclosure toggle is the only control, so the row is not made jumpable.
       const summary = document.createElement("div");
-      summary.className = "rail-goal-summary";
-      if (g.num) summary.appendChild(badge(g.num, g.id, "jump to " + g.num));
+      summary.className = "rail-goal-summary rail-jump-row";
+      summary.appendChild(numCell(g.num, g.marker));
       const toggle = document.createElement("button");
       toggle.type = "button";
       toggle.className = "rail-goal-toggle";
@@ -459,33 +491,35 @@ export function setup(root = document) {
     } else if (goalEl) {
       const gbody = document.createElement("div");
       gbody.className = "rail-goal-body";
-      if (g.num) gbody.appendChild(badge(g.num, g.id, "introduced in step " + g.num));
+      gbody.appendChild(numCell(g.num, g.marker));
       gbody.appendChild(cloneClean(goalEl));
+      makeJumpable(gbody, g.id, g.num ? "Go to step " + g.num : "Go to the goal");
       goalB.body.appendChild(gbody);
     } else {
       goalB.body.textContent = "the main result";
     }
     panel.appendChild(goalB.block);
 
-    // ASSUME: the proof's own hypotheses, with a ⟨n⟩ chip on the first of each
-    // run of same-step introductions (consecutive same-step rows share a chip).
+    // ASSUME: the proof's own hypotheses, each row jumping to its introducing
+    // step.
     const hyps = (st.hyps || [])
-      .map((h) => ({ el: root.querySelector('[data-nodeid="' + h.id + '"]'), num: h.num, id: h.id }))
+      .map((h) => ({
+        el: root.querySelector('[data-nodeid="' + h.id + '"]'),
+        num: h.num,
+        id: h.id,
+        marker: h.marker,
+      }))
       .filter((h) => h.el);
     const hypB = makeBlock("hyps", "Assume", false);
     const ul = document.createElement("ul");
     if (hyps.length) {
-      let prev = null;
       for (const h of hyps) {
         const li = document.createElement("li");
-        if (h.num && h.num !== prev) {
-          li.appendChild(badge(h.num, h.id, "introduced in step " + h.num));
-        } else {
-          li.classList.add("rail-hyp-cont");
-        }
+        li.appendChild(numCell(h.num, h.marker));
         li.appendChild(cloneClean(h.el));
+        const where = h.marker === "section" ? "section " : "step ";
+        makeJumpable(li, h.id, h.num ? "Introduced in " + where + h.num : "Jump to source");
         ul.appendChild(li);
-        prev = h.num;
       }
     } else {
       const li = document.createElement("li");
@@ -499,24 +533,48 @@ export function setup(root = document) {
     // IN SCOPE: document-wide introductions (prose + definitions), reference
     // material, collapsed by default once there are more than a few.
     const ctx = (st.context || [])
-      .map((c) => ({ el: root.querySelector('[data-nodeid="' + c.id + '"]') }))
+      .map((c) => ({
+        el: root.querySelector('[data-nodeid="' + c.id + '"]'),
+        id: c.id,
+        num: c.num,
+        marker: c.marker,
+      }))
       .filter((c) => c.el);
     if (ctx.length) {
       const ctxB = makeBlock("context", "In scope", ctx.length > 4);
       const cul = document.createElement("ul");
       for (const c of ctx) {
         const li = document.createElement("li");
+        li.appendChild(numCell(c.num, c.marker));
         li.appendChild(cloneClean(c.el));
+        makeJumpable(
+          li,
+          c.id,
+          c.num ? "Introduced in section " + c.num : "Jump to where this is introduced"
+        );
         cul.appendChild(li);
       }
       ctxB.body.appendChild(cul);
       panel.appendChild(ctxB.block);
     }
 
-    // Cloned fragments can carry un-typeset math (raw \(...\)); re-render every
-    // math element in the panel from its stored data-latex.
-    reRenderAll(panel);
-    // Cloned references carry no live tooltip, and the chips carry a
+    // Size the marker gutter to the widest marker actually present (a dotted
+    // ⟨3.3⟩ or ⟨1.5.1⟩ needs more room than a bare ⟨3⟩), so no marker overlaps
+    // the rule and single-digit proofs waste no space. scrollWidth is the true
+    // content width even while the column still clips it.
+    let maxNum = 0;
+    panel.querySelectorAll(".rail-state-num").forEach((n) => {
+      maxNum = Math.max(maxNum, n.scrollWidth);
+    });
+    if (maxNum > 0) panel.style.setProperty("--rail-num-width", maxNum + "px");
+
+    // Clones can carry math the body has not typeset yet (typesetMath runs
+    // progressively, so a proof scrolled to early may still hold raw \(...\)).
+    // typesetMath renders those raw spans; reRenderAll then re-applies the
+    // current notation to every already-typeset span. The two are complementary
+    // (each skips what the other handles), so running both covers all clones.
+    typesetMath(panel).then(() => reRenderAll(panel));
+    // Cloned references carry no live tooltip, and the markers carry a
     // data-tooltip; bind both with the body's initializer (idempotent).
     createTooltips();
   }
