@@ -404,6 +404,34 @@ def test_proof_state_context_row_jumps_to_source(page: Page, interactive_server:
     page.wait_for_function(_WRITE_CENTERED, timeout=5_000)
 
 
+def test_proof_dag_pins_current_step_path(page: Page, interactive_server: str):
+    """The proof DAG (Steps view) rests highlighting the current step's
+    prerequisite cone: the current node is marked, and off-path nodes fade, so
+    the whole tree is not lit at once."""
+    page.set_viewport_size({"width": 1280, "height": 460})
+    _load(page, interactive_server)
+    page.click('.rail-scope[data-scope="proof"]')  # Steps (map) is the default proof view
+    # Make the proof's first step current: its cone is small, so later steps fade.
+    page.evaluate(
+        """() => {
+            const step = document.querySelector('.proof .step');
+            const y = step.getBoundingClientRect().top + window.scrollY
+                      - window.innerHeight * 0.5;
+            window.scrollTo(0, y);
+        }"""
+    )
+    cur = page.wait_for_selector(
+        ".rail-map svg.toc-tree .toc-node.current-step", timeout=5_000
+    )
+    assert "toc-faded" not in (cur.get_attribute("class") or "")
+    # at least one node is off the current path and faded (path pinned, not all lit)
+    page.wait_for_function(
+        "() => document.querySelectorAll('.rail-map svg.toc-tree .toc-node.toc-faded')"
+        ".length > 0",
+        timeout=5_000,
+    )
+
+
 def test_proof_state_setup_goal_is_a_gutter_row(page: Page, interactive_server: str):
     """When the current step is a setup step (no own claim), PROVE shows a
     clamped preview of the theorem statement (so the collapsed state still

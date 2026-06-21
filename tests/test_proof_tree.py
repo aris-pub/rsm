@@ -266,6 +266,15 @@ def test_section_marker_uses_subsection_precision():
     assert ctx and ctx[0]["num"] == "1.1"
 
 
+def test_proof_dag_step_labels_are_bracketed():
+    # Proof DAG step nodes render ⟨X⟩ to match the State panel markers; the
+    # document section tree keeps the plain "X." format (bracket_nums default).
+    html = rsm.render(SRC, handrails=True)
+    assert ">⟨1⟩<" in html  # ⟨1⟩ appears as a proof-DAG node label
+    # nothing before the proof rail-map (the document tree) is bracketed
+    assert "⟨" not in html.split('class="rail-panel rail-map"')[0]
+
+
 def test_pick_introduces_a_hypothesis():
     # :pick: brings a symbol into scope, so a later sibling step sees it among
     # its hypotheses (like :let:), not just :let:/:assume:.
