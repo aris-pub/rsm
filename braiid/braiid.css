@@ -973,6 +973,41 @@ body {
 .manuscriptwrapper .hr:hover {
   & > .hr-border-zone .hr-border-dots, & > .hr-collapse-zone .hr-collapse {opacity: 100%;}
 }
+
+/* Touch has no hover, so the gutter controls would be invisible and unreachable.
+   Under a no-hover, coarse-pointer environment, give every block a single
+   control: drop the per-block collapse chevron (collapse/expand moves into the
+   dots menu) and reveal the menu-dots at rest. The dots carry a page-coloured
+   background so they BREAK the vertical rule instead of sitting on top of it,
+   and a >=44px invisible ::before is the tap target (the glyph stays small).
+   Desktop keeps the chevron and the hover reveal above. */
+@media (hover: none) and (pointer: coarse) {
+  .manuscriptwrapper .hr > .hr-collapse-zone .hr-collapse { display: none; }
+  /* Reveal the dots. At rest their background matches the page, so they break
+     the vertical rule (occlude it) without reading as a pill. The visible
+     rounded pill appears only while that block's menu is open. */
+  .manuscriptwrapper .hr > .hr-border-zone .hr-border-dots {
+    opacity: 1;
+    background: var(--surface-page);
+  }
+  .manuscriptwrapper .hr.hr-menu-open > .hr-border-zone .hr-border-dots {
+    background: var(--surface-hover);
+  }
+  .manuscriptwrapper .hr .hr-border-dots::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 44px;
+    height: 44px;
+    transform: translate(-50%, -50%);
+  }
+  /* The dots sit near the left edge, so the menu opens to the RIGHT, flush to
+     the handrail, or it clips off-screen. Mirror the global --menu-right
+     override (which uses !important to beat the later base positioning rules). */
+  .manuscriptwrapper .hr .hr-menu-zone .hr-menu { left: 18px !important; }
+  .manuscriptwrapper .hr.hr-offset .hr-menu-zone .hr-menu { left: 18px !important; }
+}
 .manuscriptwrapper .hr.hr-hidden {
   & > .hr-border-zone {opacity: 0%;}
 }
@@ -1109,7 +1144,11 @@ body {
 .manuscriptwrapper .hr.hr-collapsed  {
 
   & > .hr-border-zone > .hr-border-rect {
-    border-bottom-left-radius: var(--chunk-sixth);
+    border-bottom-left-radius: var(--chunk-half);
+  }
+
+  & > .hr-spacer-zone {
+    border-bottom-left-radius: var(--chunk-twelfth);
   }
 
   & > .hr-spacer-zone, & > .hr-border-zone > .hr-border-rect {

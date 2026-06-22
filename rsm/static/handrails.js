@@ -7,6 +7,13 @@ import * as tocarcs from './tocarcs.js';
 
 let singletonMenu = null;
 let activeHr = null;
+
+// Touch (no-hover, coarse pointer): mirrors the @media query that hides the
+// per-block collapse chevron, so the menu carries collapse/expand instead.
+const IS_TOUCH =
+  typeof window !== "undefined" &&
+  typeof window.matchMedia === "function" &&
+  window.matchMedia("(hover: none) and (pointer: coarse)").matches;
 let delegationAttached = false;
 
 export function setup() {
@@ -98,9 +105,23 @@ function showMenuFor(hr) {
   if (!singletonMenu) return;
 
   activeHr = hr;
+  hr.classList.add("hr-menu-open");
   const label = hr.getAttribute("data-menu-label") || "";
-  const collapse = hr.getAttribute("data-menu-collapse");
+  let collapse = hr.getAttribute("data-menu-collapse");
   const collapseAll = hr.getAttribute("data-menu-collapse-all");
+  // On touch the per-block collapse chevron is hidden (CSS), so move its action
+  // into the menu: any chevron-collapsible block gets a Collapse/Expand item,
+  // even if the build did not mark it menu-collapsible. Persist it on the node so
+  // refreshCollapseLabels (which re-reads the attribute) keeps the label in sync.
+  // Desktop is unaffected: the chevron stays and IS_TOUCH is false.
+  if (
+    IS_TOUCH &&
+    (!collapse || collapse === "disabled") &&
+    hr.querySelector(":scope > .hr-collapse-zone .hr-collapse")
+  ) {
+    collapse = "enabled";
+    hr.setAttribute("data-menu-collapse", collapse);
+  }
   const link = hr.getAttribute("data-menu-link");
   const code = hr.getAttribute("data-menu-code");
 
@@ -248,6 +269,7 @@ function hideMenu() {
   singletonMenu.style.display = "none";
   singletonMenu.querySelectorAll(".hr-menu-item").forEach(it => it.classList.remove("active"));
   if (activeHr) {
+    activeHr.classList.remove("hr-menu-open");
     const zone = activeHr.querySelector(":scope > .hr-menu-zone");
     if (zone) zone.style.display = "";
   }
