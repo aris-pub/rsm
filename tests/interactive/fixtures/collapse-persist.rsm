@@ -1,0 +1,26 @@
+# Collapse Persistence
+
+A lead paragraph giving the document some body content.
+
+## Labeled Section
+  {:label: sec-alpha}
+
+:theorem: {:label: thm-alpha}
+
+  A theorem whose handrail carries a data-nodeid.
+
+::
+
+:proof:
+
+  :step: {:label: stp-alpha} A step inside the proof. ::
+
+::
+
+## Unlabeled Section
+
+:theorem:
+
+  A theorem in a section the author left unlabeled.
+
+::

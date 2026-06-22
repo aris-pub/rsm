@@ -326,9 +326,9 @@ function closeHandrail(hr) {
 
 
 // Persist each block's/step's collapsed state per document, so a reader's
-// disclosure choices survive a reload. Keyed by data-nodeid, which is stable
-// for a given build. `suppressPersist` guards the programmatic load-time passes
-// (initial author collapses and the restore below) from writing back.
+// disclosure choices survive a reload. `suppressPersist` guards the programmatic
+// load-time passes (initial author collapses and the restore below) from writing
+// back.
 const COLLAPSE_KEY = "rsm-collapse:" + location.pathname;
 let suppressPersist = false;
 
@@ -340,12 +340,38 @@ function loadCollapseState() {
   }
 }
 
+// A stable per-document persistence key for any collapsible handrail.
+//
+// data-nodeid is emitted only on a node's full container (the element wrapping
+// heading + content). For self-wrapping blocks (theorem, proof, step, ...) that
+// container IS the .hr handrail, so it carries the nodeid directly. A section is
+// the exception: its nodeid lands on the <section> wrapper, while the
+// collapsible handrail is the inner .heading.hr, whose body are its *siblings*
+// inside that section. So the heading element itself has no nodeid, and every
+// id-less collapsible block is a heading. The fallbacks below therefore only
+// ever apply to headings:
+//   - section id (the author's label): present on numbered sections, and more
+//     stable across rebuilds than a renumbered nodeid.
+//   - heading text: the document title, the generated table-of-contents, and
+//     the bibliography have no <section> of their own (they climb to the
+//     manuscript root), so borrowing an ancestor's nodeid would collide them
+//     all onto root nodeid 0. Their text is the only handle that stays distinct.
+function collapseKey(hr) {
+  const nid = hr.getAttribute("data-nodeid");
+  if (nid != null) return "n:" + nid;
+  const sec = hr.closest("section");
+  if (sec && sec.id) return "s:" + sec.id;
+  if (hr.id) return "e:" + hr.id;
+  const txt = (hr.textContent || "").replace(/\s+/g, " ").trim();
+  return txt ? "t:" + txt : null;
+}
+
 function persistCollapse(hr, collapsed) {
-  const id = hr.getAttribute("data-nodeid");
-  if (id == null) return;
+  const key = collapseKey(hr);
+  if (key == null) return;
   try {
     const state = loadCollapseState();
-    state[id] = collapsed;
+    state[key] = collapsed;
     localStorage.setItem(COLLAPSE_KEY, JSON.stringify(state));
   } catch {
     /* private mode / storage full: persistence is best-effort */
@@ -377,14 +403,17 @@ export function collapseInitial(root) {
 
 
 // Re-apply the reader's persisted collapse choices, overriding the author
-// defaults from collapseInitial. Call after collapseInitial on load.
+// defaults from collapseInitial. Call after collapseInitial on load. Iterates
+// every .hr, not just .hr[data-nodeid], because section headings carry no
+// nodeid (see collapseKey) yet are collapsible and must be restored too.
 export function restoreCollapse(root) {
   const state = loadCollapseState();
   suppressPersist = true;
-  for (const hr of (root || document).querySelectorAll(".hr[data-nodeid]")) {
-    const id = hr.getAttribute("data-nodeid");
-    if (!(id in state)) continue;
-    const wantCollapsed = state[id];
+  for (const hr of (root || document).querySelectorAll(".hr")) {
+    if (hr.closest(".rsm-source")) continue;
+    const key = collapseKey(hr);
+    if (key == null || !(key in state)) continue;
+    const wantCollapsed = state[key];
     const isCollapsed = hr.classList.contains("hr-collapsed");
     if (wantCollapsed && !isCollapsed) closeHandrail(hr);
     else if (!wantCollapsed && isCollapsed) openHandrail(hr);
