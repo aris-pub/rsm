@@ -1365,6 +1365,10 @@ var RSM = (() => {
           console.log(`tooltip target with unknown tag ${tag}`);
         }
         setTooltipContent(instance, content);
+      },
+      functionReady: function(instance, helper) {
+        const el = instance.elementTooltip ? instance.elementTooltip() : helper.tooltip;
+        if (el) typesetMath(el instanceof $ ? el[0] : el);
       }
     });
     $(".manuscriptwrapper .author-names sup[data-tooltip]:not(.tooltipstered)").tooltipster({

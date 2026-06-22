@@ -3,6 +3,8 @@
 // Setup tooltips on <a> tags.
 //
 
+import { typesetMath } from "./libraries.js";
+
 export function createTooltips() {
   $(".manuscriptwrapper a.reference:not(.external):not(.tooltipstered)").tooltipster({
     theme: ['tooltipster-shadow', 'tooltipster-shadow-rsm'],
@@ -98,6 +100,13 @@ export function createTooltips() {
       }
 
       setTooltipContent(instance, content);
+    },
+    functionReady: function (instance, helper) {
+      // The tooltip content is a clone of the target and can carry un-typeset
+      // math (raw \(...\) inline or $$...$$ display); render it the same way the
+      // body and the sidebar do, so tooltips are never the odd one out.
+      const el = instance.elementTooltip ? instance.elementTooltip() : helper.tooltip;
+      if (el) typesetMath(el instanceof $ ? el[0] : el);
     }
   });
 

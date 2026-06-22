@@ -257,6 +257,23 @@ def test_proof_state_refs_get_body_tooltips(page: Page, interactive_server: str)
     assert tip.is_visible()
 
 
+def test_body_reference_tooltip_renders_math(page: Page, interactive_server: str):
+    """A body reference tooltip must render its target's math, not show raw
+    \\(...\\)/$$...$$: the tooltip content is a clone, so it is typeset on open
+    (functionReady) like the sidebar and body do."""
+    page.set_viewport_size({"width": 1280, "height": 720})
+    _load(page, interactive_server)
+    # A body reference whose target (thm-x, "A claim about λ") carries math.
+    ref = page.wait_for_selector(
+        '.manuscript a.reference[href="#thm-x"]', timeout=5_000
+    )
+    ref.scroll_into_view_if_needed()
+    ref.hover()
+    tip = page.wait_for_selector(".tooltipster-base", state="visible", timeout=3_000)
+    assert "\\(" not in tip.inner_text()
+    assert page.locator(".tooltipster-base math").count() > 0
+
+
 def test_proof_state_shows_document_context(page: Page, interactive_server: str):
     """The Proof > State panel shows a "Context" group carrying the symbols and
     assumptions introduced in prose before the proof (here, the `:write:` that
