@@ -199,6 +199,129 @@ export function setup(root = document) {
     /* ignore malformed saved layout */
   }
 
+  // ---- mobile bottom-drawer (<=1100px) ----
+  // Below the desktop breakpoint the rail re-skins as a bottom sheet with three
+  // states (data-drawer: closed | peek | open). CSS owns the layout; here we
+  // inject the grip and peek-goal bar, drive the transitions, persist the state,
+  // and (via updatePeekGoal, called from updateState) keep the peek goal current.
+  let drawerGoalEl = null;
+  if (window.matchMedia("(max-width: 1100px)").matches) {
+    const handle = document.createElement("button");
+    handle.type = "button";
+    handle.className = "rail-handle";
+    handle.setAttribute("aria-label", "Toggle the navigation drawer");
+    const peek = document.createElement("div");
+    peek.className = "rail-peek";
+    peek.innerHTML =
+      '<span class="rail-peek-label">Prove</span><span class="rail-peek-goal"></span>';
+    rail.insertBefore(peek, rail.firstChild);
+    rail.insertBefore(handle, rail.firstChild);
+    drawerGoalEl = peek.querySelector(".rail-peek-goal");
+
+    const DRAWER_KEY = "rsm-drawer:" + location.pathname;
+    const setDrawer = (state, persist = true) => {
+      rail.dataset.drawer = state;
+      handle.setAttribute("aria-expanded", String(state === "open"));
+      if (persist) {
+        try {
+          localStorage.setItem(DRAWER_KEY, state);
+        } catch (e) {
+          /* localStorage unavailable; state stays session-only */
+        }
+      }
+    };
+    let savedDrawer = null;
+    try {
+      savedDrawer = localStorage.getItem(DRAWER_KEY);
+    } catch (e) {
+      /* ignore */
+    }
+    setDrawer(["closed", "peek", "open"].includes(savedDrawer) ? savedDrawer : "peek", false);
+
+    // Drag the grip to step between states (closed <-> peek <-> open); a tap
+    // (no real drag) toggles peek<->open and reopens a closed sheet to peek.
+    // There is no separate close button: dragging down reaches closed.
+    const ORDER = ["closed", "peek", "open"];
+    let dragY = null;
+    let dragged = false;
+    handle.addEventListener("pointerdown", (ev) => {
+      dragY = ev.clientY;
+      dragged = false;
+      try {
+        handle.setPointerCapture(ev.pointerId);
+      } catch (e) {
+        /* synthetic/uncaptured pointer */
+      }
+    });
+    handle.addEventListener("pointermove", (ev) => {
+      if (dragY !== null && Math.abs(ev.clientY - dragY) > 8) dragged = true;
+    });
+    handle.addEventListener("pointerup", (ev) => {
+      if (dragY === null) return;
+      const dy = ev.clientY - dragY;
+      const i = ORDER.indexOf(rail.dataset.drawer);
+      if (!dragged) {
+        setDrawer(rail.dataset.drawer === "peek" ? "open" : "peek");
+      } else if (dy < 0) {
+        setDrawer(ORDER[Math.min(i + 1, ORDER.length - 1)]);
+      } else {
+        setDrawer(ORDER[Math.max(i - 1, 0)]);
+      }
+      dragY = null;
+      dragged = false;
+    });
+    // Focusing a step (a map-node click) drops the sheet to peek so the body's
+    // focused cone is readable; the exit bar in the rail restores it.
+    document.addEventListener("rsm:focus-enter", () => setDrawer("peek"));
+  }
+
+  // Keep the peek bar showing the current proof's goal, with rendered math, on
+  // one clamped line (no-op off mobile). Re-render only when the goal changes,
+  // since typesetting is not free.
+  let peekGoalId;
+  function updatePeekGoal() {
+    if (!drawerGoalEl) return;
+    let g = null;
+    const data = current ? stateData.get(current) : null;
+    if (data && active.idx >= 0 && active.idx < data.length) g = data[active.idx].goal;
+    const gid = g && g.id != null ? String(g.id) : null;
+    if (gid === peekGoalId) return;
+    peekGoalId = gid;
+    const el = gid != null ? root.querySelector('[data-nodeid="' + gid + '"]') : null;
+    if (!el) {
+      rail.classList.add("drawer-no-goal");
+      drawerGoalEl.textContent = "Open the navigation drawer";
+      return;
+    }
+    rail.classList.remove("drawer-no-goal");
+    // Show just the goal statement: clone the content, drop its label and any
+    // let/assume preamble, then typeset the cloned math.
+    const cz = el.querySelector(":scope > .hr-content-zone") || el;
+    const clone = cloneClean(cz);
+    clone
+      .querySelectorAll(".hr-label, .construct.let, .construct.assume")
+      .forEach((n) => n.remove());
+    drawerGoalEl.innerHTML = "";
+    drawerGoalEl.appendChild(clone);
+    // Drop a leading connective ("⊢", a dangling ", then"/"Then") left behind by
+    // removing the let/assume preamble, so the peek reads as a clean statement.
+    // Skip text inside math (never rewrite rendered formulas), clean the first
+    // prose text node, then stop.
+    const tw = document.createTreeWalker(drawerGoalEl, NodeFilter.SHOW_TEXT, {
+      acceptNode: (n) =>
+        n.parentElement && n.parentElement.closest("math")
+          ? NodeFilter.FILTER_REJECT
+          : NodeFilter.FILTER_ACCEPT,
+    });
+    let tn;
+    while ((tn = tw.nextNode())) {
+      if (!tn.textContent.trim()) continue;
+      tn.textContent = tn.textContent.replace(/^[\s,.;:⊢]*(?:then\b[\s,]*)?/i, "");
+      break;
+    }
+    typesetMath(drawerGoalEl).then(() => reRenderAll(drawerGoalEl));
+  }
+
   // ---- proof auto-follow ----
 
   const proofs = [...root.querySelectorAll(".proof[data-nodeid]")];
@@ -325,6 +448,7 @@ export function setup(root = document) {
     // Keep the proof DAG resting on the current step's prerequisite path.
     const dag = item ? item.querySelector("svg.toc-tree") : null;
     if (dag) pinTreeCurrent(dag, idx >= 0 ? String(idx) : null);
+    updatePeekGoal();
   }
 
   const stepObserver = new IntersectionObserver(() => updateState(), {

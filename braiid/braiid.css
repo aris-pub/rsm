@@ -1754,9 +1754,123 @@ body {
 
   .rail-state-empty { color: var(--gray-700); font-style: italic; font-size: 0.8rem; }
 
-  /* Not enough room to float the rail without overlapping the column. */
+  /* Below the desktop breakpoint there is no room to float the rail beside the
+     column, so the same .proof-rail re-skins as a bottom-sheet DRAWER with three
+     states driven by data-drawer (closed | peek | open). prooftree.js injects the
+     .rail-handle grip and the .rail-peek goal bar and drives the transitions. */
+  .rail-handle, .rail-peek { display: none; }
+
   @media (max-width: 1100px) {
-    .proof-rail.active { display: none; }
+    .proof-rail.active {
+      position: fixed;
+      left: 0; right: 0; bottom: 0; top: auto;
+      /* Match the reading column, not the whole viewport: same width as the
+         text content (manuscript max-width minus the side padding), centered. */
+      margin-inline: auto;
+      width: calc(100% - 2 * var(--side-padding));
+      max-width: calc(var(--content-max-width, var(--chunk-20)) - 2 * var(--side-padding));
+      max-height: 85vh;
+      gap: 0;
+      padding: 0;
+      border: 1px solid var(--gray-200);
+      border-bottom: none;
+      border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+      box-shadow: 0 -2px 16px rgba(40, 60, 90, 0.12);
+    }
+
+    /* The grip: a slim pill, present in every state (it raises/lowers the
+       sheet). Kept compact so peek is a thin bar, not a tall blank panel. */
+    .proof-rail.active .rail-handle {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      min-height: 20px;
+      padding: 6px 0 2px;
+      flex-shrink: 0;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+    }
+    .proof-rail.active .rail-handle::before {
+      content: "";
+      width: 2rem; height: 4px;
+      border-radius: 999px;
+      background: var(--gray-300);
+    }
+
+    /* The desktop collapse control is redundant on the drawer: the grip lowers
+       it (drag down to close), so hide the "close sidebar" button on mobile. */
+    .proof-rail.active .rail-collapse { display: none; }
+
+    /* Peek bar: a one-line, clamped current goal at reading size. The cloned
+       goal (with rendered math) is forced inline so it never wraps the bar. */
+    .proof-rail.active .rail-peek {
+      align-items: baseline;
+      gap: 0.4rem;
+      padding: 0 var(--chunk-half) var(--chunk-third);
+      min-width: 0;
+      font-size: 1rem;
+    }
+    /* Flatten the cloned goal onto one line: inline its block containers and let
+       a display equation sit inline-block. Do NOT touch MathML internals (they
+       need their own display), so only the block wrappers are overridden. */
+    .proof-rail.active .rail-peek-goal :is(div, p, .paragraph, .mathblock, ul, ol, li) {
+      display: inline;
+      margin: 0;
+    }
+    /* The goal can contain a display equation, which temml hard-codes to
+       `display: block math` via an inline style (so it pops out big and centered
+       on its own line). In the one-line peek, override that to flow inline and
+       render text-style (compact), like inline math in a sentence. */
+    .proof-rail.active .rail-peek-goal math[display="block"] {
+      display: inline-block !important;
+      math-style: compact;
+      font-size: 0.95em;
+      vertical-align: middle;
+      margin: 0;
+    }
+    .proof-rail.drawer-no-goal .rail-peek { justify-content: center; }
+    .rail-peek-label {
+      flex-shrink: 0;
+      font-weight: 600;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--primary-700);
+    }
+    .proof-rail.drawer-no-goal .rail-peek-label { display: none; }
+    .rail-peek-goal {
+      min-width: 0;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      color: var(--text-body);
+    }
+    .proof-rail.drawer-no-goal .rail-peek-goal { color: var(--gray-700); font-style: italic; }
+
+    /* ---- states ---- */
+    .proof-rail.active[data-drawer="closed"] { height: 44px; }
+    .proof-rail.active[data-drawer="closed"] > .rail-header,
+    .proof-rail.active[data-drawer="closed"] > .rail-subtabs,
+    .proof-rail.active[data-drawer="closed"] > .rail-section { display: none; }
+
+    .proof-rail.active[data-drawer="peek"] { height: auto; }
+    .proof-rail.active[data-drawer="peek"] > .rail-header,
+    .proof-rail.active[data-drawer="peek"] > .rail-subtabs,
+    .proof-rail.active[data-drawer="peek"] > .rail-section { display: none; }
+    .proof-rail.active[data-drawer="peek"] > .rail-peek { display: flex; }
+
+    .proof-rail.active[data-drawer="open"] { height: 75vh; }
+    .proof-rail.active[data-drawer="open"] > .rail-header,
+    .proof-rail.active[data-drawer="open"] > .rail-subtabs { padding: 0 var(--chunk-half); }
+    .proof-rail.active[data-drawer="open"] > .rail-header { padding-top: var(--chunk-third); }
+    .proof-rail.active[data-drawer="open"] > .rail-section {
+      padding: 0 var(--chunk-half) var(--chunk-half);
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow-y: auto;
+    }
   }
 
   /* Rail nodes are clickable (focus mode), so signal it. */

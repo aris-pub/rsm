@@ -117,6 +117,8 @@ export function setup(root = document) {
     const sel = steps[startIdx];
     active = { proofEl, svg, startIdx: String(startIdx) };
     setExitBar(sel);
+    // Let the mobile drawer drop to peek so the focused cone is readable.
+    document.dispatchEvent(new CustomEvent("rsm:focus-enter"));
     if (sel) sel.scrollIntoView({ behavior: "smooth", block: "center" });
   }
 
