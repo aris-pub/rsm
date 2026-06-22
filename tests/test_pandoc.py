@@ -832,6 +832,89 @@ class TestCaptionFormat:
         result = pandoc_export(source, to_format="typst")
         assert len(result) > 0
 
+    def test_table_uses_pandoc_tuple_encoding(self):
+        """Regression: pandoc encodes TableHead/TableBody/TableFoot, Row, and Cell
+        as bare tuples (arrays), and Alignment as a tagged object. Emitting tagged
+        {"t": "TableHead"} nodes or a bare-string alignment makes pandoc reject the
+        AST. The table's :label: must also become the block id so a :ref: to the
+        table resolves."""
+        blocks = _blocks("""\
+        :table: {:label: tbl-x}
+          :thead:
+            :tr: :td: a :: :td: b :: ::
+          ::
+          :tbody:
+            :tr: :td: 1 :: :td: 2 :: ::
+          ::
+          :caption: A test table.
+        ::
+        """)
+        tables = [b for b in blocks if b["t"] == "Table"]
+        assert len(tables) == 1
+        attr, _caption, colspecs, thead, tbodies, tfoot = tables[0]["c"]
+        # the table label becomes the block id (so :ref: to the table resolves)
+        assert attr[0] == "tbl-x"
+        # column-spec alignment is a tagged object, not a bare string
+        assert colspecs and colspecs[0][0] == {"t": "AlignDefault"}
+        # TableHead / TableBody / TableFoot are bare arrays (pandoc tuples)
+        assert isinstance(thead, list)
+        assert isinstance(tbodies, list) and tbodies and isinstance(tbodies[0], list)
+        assert isinstance(tfoot, list)
+        # the Row and Cell inside the head are bare arrays too
+        head_rows = thead[1]
+        assert head_rows and isinstance(head_rows[0], list)   # Row = [attr, [Cell]]
+        cells = head_rows[0][1]
+        assert cells and isinstance(cells[0], list)           # Cell = [attr, align, ...]
+
+    def test_table_exports_to_latex_through_pandoc(self):
+        """The full RSM -> pandoc-JSON -> LaTeX pipeline must not crash on a table."""
+        source = dedent("""\
+        :table: {:label: tbl-x}
+          :thead:
+            :tr: :td: a :: :td: b :: ::
+          ::
+          :tbody:
+            :tr: :td: 1 :: :td: 2 :: ::
+          ::
+          :caption: A test table.
+        ::
+        """).strip()
+        result = pandoc_export(source, to_format="latex")
+        assert "longtable" in result or "tabular" in result
+
+    def test_figure_reference_exports_as_portable_link(self):
+        """A :ref: to a figure must become a normal pandoc Link, not a Typst-only
+        RawInline. Pandoc drops a RawInline whose format does not match the export
+        target, which left figure cross-references blank in the LaTeX output."""
+        blocks = _blocks("""\
+        :figure: {
+          :path: test.png
+          :label: fig-x
+        }
+          :caption: A test figure.
+        ::
+
+        See :ref:fig-x:: for details.
+        """)
+        found = {"typst_raw": [], "links": []}
+
+        def walk(node):
+            if isinstance(node, dict):
+                if (node.get("t") == "RawInline" and isinstance(node.get("c"), list)
+                        and node["c"] and node["c"][0] == "typst"):
+                    found["typst_raw"].append(node)
+                if node.get("t") == "Link":
+                    found["links"].append(node)
+                walk(node.get("c"))
+            elif isinstance(node, list):
+                for item in node:
+                    walk(item)
+
+        walk(blocks)
+        assert not found["typst_raw"], "figure ref must not be a Typst-only RawInline"
+        assert any(link["c"][2][0] == "#fig-x" for link in found["links"]), \
+            "figure ref must be a pandoc Link targeting #fig-x"
+
 
 class TestCitationsAsPlainText:
     """rsm-98c: Citations should render as plain text [N] for Typst compatibility."""

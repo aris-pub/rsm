@@ -371,11 +371,12 @@ class PandocTranslator:
         body_rows = self._table_rows(body) if body else []
 
         all_rows = head_rows + body_rows
+        # Rows are pandoc tuples encoded as bare arrays: Row = [attr, [Cell]].
         col_count = max(
-            (len(r["c"][1]) for r in all_rows),
+            (len(r[1]) for r in all_rows),
             default=1,
         ) if all_rows else 1
-        col_specs = [["AlignDefault", {"t": "ColWidthDefault"}] for _ in range(col_count)]
+        col_specs = [[{"t": "AlignDefault"}, {"t": "ColWidthDefault"}] for _ in range(col_count)]
 
         caption_node = node.first_of_type(nodes.Caption)
         if caption_node:
@@ -384,13 +385,16 @@ class PandocTranslator:
         else:
             caption = [None, []]
 
+        # TableHead/TableBody/TableFoot are pandoc tuples (bare arrays), not tagged
+        # union nodes; only Block/Inline/Alignment use the {"t":..,"c":..} form.
+        # The table's label becomes the block id so cross-references resolve.
         return [{"t": "Table", "c": [
-            ["", [], []],
+            [node.label or "", [], []],
             caption,
             col_specs,
-            {"t": "TableHead", "c": [["", [], []], head_rows]},
-            [{"t": "TableBody", "c": [["", [], []], 0, [], body_rows]}],
-            {"t": "TableFoot", "c": [["", [], []], []]},
+            [["", [], []], head_rows],
+            [[["", [], []], 0, [], body_rows]],
+            [["", [], []], []],
         ]}]
 
     def _table_rows(self, node: nodes.NodeWithChildren) -> list[dict]:
@@ -402,16 +406,15 @@ class PandocTranslator:
             for cell in row.children:
                 if isinstance(cell, nodes.TableDatum):
                     inlines = self._walk_children_as_inlines(cell)
-                    cells.append({
-                        "t": "Cell",
-                        "c": [
-                            ["", [], []],
-                            {"t": "AlignDefault"},
-                            1, 1,
-                            [{"t": "Plain", "c": inlines}],
-                        ],
-                    })
-            rows.append({"t": "Row", "c": [["", [], []], cells]})
+                    # Cell = [attr, Alignment, RowSpan, ColSpan, [Block]] (bare array).
+                    cells.append([
+                        ["", [], []],
+                        {"t": "AlignDefault"},
+                        1, 1,
+                        [{"t": "Plain", "c": inlines}],
+                    ])
+            # Row = [attr, [Cell]] (bare array).
+            rows.append([["", [], []], cells])
         return rows
 
     # ── Inline handlers ───────────────────────────────────────────────────────
@@ -476,9 +479,9 @@ class PandocTranslator:
             if hasattr(node.target, "label") and node.target.label
             else "#"
         )
-        # For figures, use raw Typst @label so links follow floated figures
-        if isinstance(node.target, (nodes.Figure, nodes.Html)) and node.target.label:
-            return [{"t": "RawInline", "c": ["typst", f'#link(<{node.target.label}>)[{text}]']}]
+        # A normal pandoc Link to the target's anchor works across all output
+        # formats (LaTeX \hyperref, HTML <a>, Typst #link); a format-specific
+        # RawInline would be silently dropped whenever the export target differs.
         return [{"t": "Link", "c": [["", [], []], [{"t": "Str", "c": text}], [anchor, ""]]}]
 
     def _inline_url(self, node: nodes.URL) -> list[dict]:
