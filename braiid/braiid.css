@@ -833,35 +833,12 @@ body {
   }
 }
 
-/* Keep the info-zone number column fixed regardless of proof nesting. Each
-   enclosing .subproof indents its steps right by --chunk-half (via hr-shift-1),
-   so pull the number left by the same amount per subproof level. Keying on
-   .subproof (the sole indentation source) is depth-correct; this replaces an
-   older patch that counted raw .hr ancestors (which interleave wrapper
-   handrails) with inconsistent magic offsets, so numbers drifted with depth. */
-.manuscriptwrapper .subproof .hr.hr-offset > .hr-info-zone {
-  left: calc(100% - var(--chunk-half));
-}
-.manuscriptwrapper .subproof .subproof .hr.hr-offset > .hr-info-zone {
-  left: calc(100% - 2 * var(--chunk-half));
-}
-.manuscriptwrapper .subproof .subproof .subproof .hr.hr-offset > .hr-info-zone {
-  left: calc(100% - 3 * var(--chunk-half));
-}
-
-/* The info-zone is absolute and (for nested steps) pulled left into the content
-   area, so the content-zone must reserve the same width on its right or its
-   text flows under the number column and is occluded when the block is painted
-   on focus. Mirror the left-pull above, per subproof level. */
-.manuscriptwrapper .subproof .hr.hr-offset > .hr-content-zone {
-  margin-right: var(--chunk-half);
-}
-.manuscriptwrapper .subproof .subproof .hr.hr-offset > .hr-content-zone {
-  margin-right: calc(2 * var(--chunk-half));
-}
-.manuscriptwrapper .subproof .subproof .subproof .hr.hr-offset > .hr-content-zone {
-  margin-right: calc(3 * var(--chunk-half));
-}
+/* With .subproof boxes pinned flush to the content column (see .hr-shift-1),
+   every step box shares the same right edge, so the base rule
+   `.hr-offset > .hr-info-zone { left: 100% }` lands every step number on one
+   column at any nesting depth. The number sits in the margin at the box's right
+   edge, so content never runs under it: no per-depth number offset and no
+   content-zone reservation are needed. */
 
 /* Handrails: individual elements -- collapse-zone */
 .manuscriptwrapper .hr .hr-collapse-zone {
@@ -1164,7 +1141,17 @@ body {
 
   .hr-shift-1 {
     left: var(--chunk-half);
-    width: calc(100% - var(--chunk-half));
+    /* As a flex item the shifted box grows back to full width and overflows
+       its container's right edge by chunk-half at every nesting level,
+       accumulating. Pin the width and stop the flex grow/shrink so each
+       shifted box stays flush at the content column -- this is what keeps step
+       numbers, highlights, and tombstones on one right-hand column at any
+       depth, with no per-level offset hacks. !important is required to beat the
+       flex defaults that otherwise restore the full width. */
+    width: calc(100% - var(--chunk-half)) !important;
+    flex-grow: 0 !important;
+    flex-shrink: 0 !important;
+    box-sizing: border-box !important;
   }
 
   &.subproof .hr-offset.hr.hr-hidden .hr-border-zone {opacity: 100%;}
@@ -1195,14 +1182,8 @@ body {
   }
   &.proof:hover > .hr-content-zone::after, &.proof:focus > .hr-content-zone::after,
   &.proof .step:hover::after, &.proof .step:focus::after {left: calc(100% + var(--chunk-sixth));}
-  /* Nested-step tombstones: undo the per-subproof-level indentation so they
-     hold the proof's right-edge column, exactly as the info-zone is corrected. */
-  &.proof .subproof .step:hover::after,
-  &.proof .subproof .step:focus::after {left: calc(100% + var(--chunk-sixth) - var(--chunk-half));}
-  &.proof .subproof .subproof .step:hover::after,
-  &.proof .subproof .subproof .step:focus::after {left: calc(100% + var(--chunk-sixth) - 2 * var(--chunk-half));}
-  &.proof .subproof .subproof .subproof .step:hover::after,
-  &.proof .subproof .subproof .subproof .step:focus::after {left: calc(100% + var(--chunk-sixth) - 3 * var(--chunk-half));}
+  /* Tombstones ride the same flush right edge as the numbers (see .hr-shift-1),
+     so the base rule above positions them at every depth; no per-level offset. */
 
   &.step.hr-collapsed > .hr-content-zone::after {
     content: "steps hidden";

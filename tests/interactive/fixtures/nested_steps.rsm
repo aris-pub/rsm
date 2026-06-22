@@ -1,0 +1,54 @@
+# Nested steps
+
+:theorem: {
+  :label: thm-nest
+  :title: Nesting
+}
+
+  A statement to be proved.
+
+::
+
+:proof: {:of: thm-nest}
+
+  :step: {:label: ns-0a} Depth zero, step A. ::
+
+  :step: {:label: ns-0b}
+
+    :claim: Depth zero, step B. ::
+
+    :p:
+
+      :step: {:label: ns-1a} Depth one, step A. ::
+
+      :step: {:label: ns-1b}
+
+        :claim: Depth one, step B. ::
+
+        :p:
+
+          :step: {:label: ns-2a}
+
+            :claim: Depth two, step A claim. ::
+
+            :p: A justification paragraph with enough text that it would run
+            across the content width and reach the number column if it were
+            not constrained. ::
+
+          ::
+
+          :step: {:label: ns-2b}
+
+            :claim: Depth two, step B. ::
+
+            :p:
+
+              :step: {:label: ns-3a} Depth three, step A. ::
+
+            :: ::
+
+        :: ::
+
+    :: ::
+
+::
