@@ -14,6 +14,13 @@ RSM_READY = "() => window.__rsmInitialized === true"
 
 
 def _load(page: Page, server: str) -> None:
+    # The proof-rail is a fixed sidebar only above the 1320px responsive drawer
+    # breakpoint; below it the rail becomes a bottom drawer whose controls are
+    # hidden in the default peek state (clicks then time out). These tests
+    # exercise the desktop sidebar, so ensure a desktop-width viewport. Tests
+    # that need a specific size set it before calling _load (width stays >=1321).
+    if page.viewport_size["width"] < 1321:
+        page.set_viewport_size({"width": 1400, "height": 900})
     page.goto(f"{server}/sidebar.html")
     page.wait_for_function(RSM_READY, timeout=10_000)
     page.wait_for_selector(".proof-rail.active", timeout=10_000)
@@ -74,7 +81,7 @@ def test_scope_persists(page: Page, interactive_server: str):
 def test_proof_autofollow(page: Page, interactive_server: str):
     # Short (but still wide: the floating sidebar has a min-width) viewport, so
     # the proof is reliably below the fold at the top.
-    page.set_viewport_size({"width": 1280, "height": 460})
+    page.set_viewport_size({"width": 1400, "height": 460})
     _load(page, interactive_server)
     # At the top the proof is off-screen: no proof is "in view".
     page.evaluate("() => window.scrollTo(0, 0)")
@@ -196,7 +203,7 @@ def test_notation_change_highlights_all_instances(page: Page, interactive_server
 
 
 def test_notation_locate_scrolls_to_nearest(page: Page, interactive_server: str):
-    page.set_viewport_size({"width": 1280, "height": 460})
+    page.set_viewport_size({"width": 1400, "height": 460})
     _load(page, interactive_server)
     _open_notation(page)
     # At the bottom, the nearest \eig is a lower instance, not the intro one.
@@ -215,7 +222,7 @@ def test_notation_locate_scrolls_to_nearest(page: Page, interactive_server: str)
 
 
 def test_notation_apply_scrolls_to_nearest(page: Page, interactive_server: str):
-    page.set_viewport_size({"width": 1280, "height": 460})
+    page.set_viewport_size({"width": 1400, "height": 460})
     _load(page, interactive_server)
     _open_notation(page)
     # Apply while no instance is on screen: it scrolls the nearest into view.
@@ -234,7 +241,7 @@ def test_proof_state_refs_get_body_tooltips(page: Page, interactive_server: str)
     link looked initialized yet had no working tooltip, and createTooltips()'s
     ``:not(.tooltipstered)`` filter then skipped it on re-init.
     """
-    page.set_viewport_size({"width": 1280, "height": 460})
+    page.set_viewport_size({"width": 1400, "height": 460})
     _load(page, interactive_server)
     # Go live: Proof scope, State sub-tab.
     page.click('.rail-scope[data-scope="proof"]')
@@ -261,7 +268,7 @@ def test_body_reference_tooltip_renders_math(page: Page, interactive_server: str
     """A body reference tooltip must render its target's math, not show raw
     \\(...\\)/$$...$$: the tooltip content is a clone, so it is typeset on open
     (functionReady) like the sidebar and body do."""
-    page.set_viewport_size({"width": 1280, "height": 720})
+    page.set_viewport_size({"width": 1400, "height": 720})
     _load(page, interactive_server)
     # A body reference whose target (thm-x, "A claim about λ") carries math.
     ref = page.wait_for_selector(
@@ -278,7 +285,7 @@ def test_proof_state_shows_document_context(page: Page, interactive_server: str)
     """The Proof > State panel shows a "Context" group carrying the symbols and
     assumptions introduced in prose before the proof (here, the `:write:` that
     defines the spectral radius), distinct from the proof's own hypotheses."""
-    page.set_viewport_size({"width": 1280, "height": 460})
+    page.set_viewport_size({"width": 1400, "height": 460})
     _load(page, interactive_server)
     page.click('.rail-scope[data-scope="proof"]')
     page.click('.rail-subtabs-proof .rail-tab[data-view="state"]')
@@ -303,7 +310,7 @@ def test_proof_state_math_is_typeset(page: Page, interactive_server: str):
     """Regression: cloned proof-step fragments came into the State panel as raw
     LaTeX (\\(...\\)); the panel must re-typeset them so no raw delimiters remain
     and real MathML is present (also an a11y requirement)."""
-    page.set_viewport_size({"width": 1280, "height": 460})
+    page.set_viewport_size({"width": 1400, "height": 460})
     _load(page, interactive_server)
     page.click('.rail-scope[data-scope="proof"]')
     page.click('.rail-subtabs-proof .rail-tab[data-view="state"]')
@@ -328,7 +335,7 @@ def test_proof_state_group_keyboard_operable(page: Page, interactive_server: str
     """WCAG 2.1 AA: the State-panel group headers must be reachable and operable
     by keyboard alone. Each header is a native <button> with aria-expanded, so
     Tab can focus it and Enter toggles its band collapsed/expanded."""
-    page.set_viewport_size({"width": 1280, "height": 460})
+    page.set_viewport_size({"width": 1400, "height": 460})
     _load(page, interactive_server)
     page.click('.rail-scope[data-scope="proof"]')
     page.click('.rail-subtabs-proof .rail-tab[data-view="state"]')
@@ -384,7 +391,7 @@ def test_proof_state_rows_are_uniform_jump_rows(page: Page, interactive_server: 
     """No ⟨n⟩ step chips and no reserved chip gutter: every row in every band is
     a uniform jump-to-source row, including the In-scope (document-context)
     rows, which previously had no jump action at all."""
-    page.set_viewport_size({"width": 1280, "height": 460})
+    page.set_viewport_size({"width": 1400, "height": 460})
     _load(page, interactive_server)
     page.click('.rail-scope[data-scope="proof"]')
     page.click('.rail-subtabs-proof .rail-tab[data-view="state"]')
@@ -406,7 +413,7 @@ def test_proof_state_context_row_jumps_to_source(page: Page, interactive_server:
     """Clicking an In-scope row scrolls the body to where that item was
     introduced in prose: here the :write: defining the spectral radius, up in
     the Introduction well above the proof."""
-    page.set_viewport_size({"width": 1280, "height": 460})
+    page.set_viewport_size({"width": 1400, "height": 460})
     _load(page, interactive_server)
     page.click('.rail-scope[data-scope="proof"]')
     page.click('.rail-subtabs-proof .rail-tab[data-view="state"]')
@@ -425,7 +432,7 @@ def test_proof_dag_pins_current_step_path(page: Page, interactive_server: str):
     """The proof DAG (Steps view) rests highlighting the current step's
     prerequisite cone: the current node is marked, and off-path nodes fade, so
     the whole tree is not lit at once."""
-    page.set_viewport_size({"width": 1280, "height": 460})
+    page.set_viewport_size({"width": 1400, "height": 460})
     _load(page, interactive_server)
     page.click('.rail-scope[data-scope="proof"]')  # Steps (map) is the default proof view
     # Make the proof's first step current: its cone is small, so later steps fade.
@@ -454,7 +461,7 @@ def test_proof_state_setup_goal_is_a_gutter_row(page: Page, interactive_server: 
     clamped preview of the theorem statement (so the collapsed state still
     carries information), as a gutter row: the .rail-jump-row treatment (rule +
     hover), a (section) marker, and a "show more" toggle."""
-    page.set_viewport_size({"width": 1280, "height": 460})
+    page.set_viewport_size({"width": 1400, "height": 460})
     _load(page, interactive_server)
     page.click('.rail-scope[data-scope="proof"]')
     page.click('.rail-subtabs-proof .rail-tab[data-view="state"]')

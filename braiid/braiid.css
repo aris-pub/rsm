@@ -1074,12 +1074,12 @@ body {
 
 
 /* Handrail active */
-/* :focus-visible, not :focus: the gutter highlight is the keyboard focus
-   indicator, so it should appear for keyboard navigation (Tab and the arrow-key
-   nav, which focuses programmatically) but not for mouse clicks. Matches how the
-   rail and TOC links already gate their focus rings. */
+/* Deliberately :focus, NOT :focus-visible. Clicking a block to highlight it is
+   an intended interaction here, so the highlight must show for mouse clicks as
+   well as keyboard focus. Keyboard focus is still always visible (WCAG 2.4.7 is
+   satisfied either way); do not "fix" this to :focus-visible. */
 .manuscriptwrapper .hr.active,
-.manuscriptwrapper:not([data-selecting]) .hr:focus-visible {
+.manuscriptwrapper:not([data-selecting]) .hr:focus {
   /* reset the default behavior */
   outline: none;
 

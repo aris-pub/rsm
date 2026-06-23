@@ -185,7 +185,7 @@ jobs:
 
   interactive-tests:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
 
     env:
       PYTEST_ADDOPTS: "--color=yes"

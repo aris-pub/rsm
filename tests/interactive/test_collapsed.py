@@ -16,6 +16,10 @@ RSM_READY = "() => window.__rsmInitialized === true"
 
 
 def _load(page: Page, server: str) -> None:
+    # Desktop width so the proof-rail is the sidebar, not the bottom drawer
+    # (whose controls are hidden below the 1320px breakpoint). See test_sidebar.
+    if page.viewport_size["width"] < 1321:
+        page.set_viewport_size({"width": 1400, "height": 900})
     page.goto(f"{server}/collapsed.html")
     page.wait_for_function(RSM_READY, timeout=10_000)
 
