@@ -2667,9 +2667,12 @@ a.reference.external:hover::after {
     width: clamp(300px, calc((100vw - var(--content-max-width, var(--chunk-20))) / 2 - 2rem), 380px);
   }
   .manuscriptwrapper {
+    /* The rail supplies the left margin, so trim the column's own side padding;
+       otherwise the text sits ~104px inside the box, far from the rail. */
+    --side-padding: 2rem;
     margin-left: max(
       calc((100vw - var(--content-max-width, var(--chunk-20))) / 2),
-      calc(1rem + clamp(300px, calc((100vw - var(--content-max-width, var(--chunk-20))) / 2 - 2rem), 380px) + 1.5rem)
+      calc(1rem + clamp(300px, calc((100vw - var(--content-max-width, var(--chunk-20))) / 2 - 2rem), 380px) + 1rem)
     );
     margin-right: auto;
   }
