@@ -67,7 +67,7 @@ def test_simple():
 
         <div class="abstract" data-nodeid="2">
 
-        <h3>Abstract</h3>
+        <h2>Abstract</h2>
 
         <div class="paragraph" data-nodeid="3">
 

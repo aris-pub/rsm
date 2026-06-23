@@ -111,10 +111,21 @@ def test_toc_markup_default_list():
     assert 'ul class="contents"' in html  # list still present as fallback
 
 
+def test_toc_is_navigation_landmark():
+    # The TOC container is a <nav> with an accessible name, not a bare div, so it
+    # is exposed as a navigation landmark (WCAG 1.3.1) that screen readers can
+    # jump to. The rail is a separate (complementary) landmark, hence the name.
+    html = rsm.render(SRC, handrails=False)
+    assert '<nav class="toc"' in html
+    assert 'aria-label="Table of contents"' in html
+    assert '<div class="toc">' not in html
+
+
 def test_view_meta_sets_tree_default():
     src = ":toc: {\n  :view: tree\n}\n::\n\n## A\n\nx\n"
     html = rsm.render(src, handrails=False)
     assert 'class="toc tree"' in html
+    assert '<nav class="toc tree"' in html  # nav landmark holds in tree view too
 
 
 def test_svg_has_positioned_nodes_and_edges():
@@ -125,6 +136,9 @@ def test_svg_has_positioned_nodes_and_edges():
     assert 'class="toc-node level-0"' in html  # the root
     assert 'class="toc-edge ' in html
     assert "data-title=" in html  # title carried for hover
+    # Each section link's accessible name is its full "num. title", not just the
+    # visible secnum, so screen readers can tell the links apart (a11y).
+    assert 'aria-label="1. One"' in html
 
 
 def test_root_node_carries_manuscript_title():

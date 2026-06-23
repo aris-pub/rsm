@@ -97,6 +97,56 @@ class TestWCAGCompliance:
 
         assert len(results.response["violations"]) == 0, self._format_violations(results.response["violations"])
 
+    @pytest.mark.parametrize("dark_theme", [False, True])
+    def test_front_matter_landmarks_and_headings(
+        self,
+        serve_rsm_a11y: callable,
+        page: Page,
+        dark_theme: bool,
+    ) -> None:
+        """Front matter (abstract + table of contents) accessibility.
+
+        The shared visual fixtures have no abstract or :toc:, so this exercises
+        the front-matter specific guarantees: the abstract/TOC headings are
+        emitted at semantic level 2 (no h1->h3 skip, WCAG 1.3.1 heading-order),
+        the TOC is a named navigation landmark, and each TOC link exposes its
+        full section title as an accessible name (not just the secnum). Run in
+        both themes so the front-matter eyebrow's contrast holds in dark mode.
+        """
+        src = (
+            "# Front matter accessibility\n\n"
+            ":abstract:\n"
+            "  An abstract paragraph for the accessibility fixture.\n"
+            "::\n\n"
+            ":toc:\n\n"
+            "## Introduction\n\nIntro body.\n\n"
+            "## Methods\n\nMethods body.\n\n"
+            "### Details\n\nDetails body.\n"
+        )
+        page = serve_rsm_a11y(src, dark_theme)
+
+        axe = Axe()
+        results = axe.run(page, options={
+            "runOnly": {
+                "type": "tag",
+                "values": ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "best-practice"],
+            }
+        })
+        assert len(results.response["violations"]) == 0, self._format_violations(results.response["violations"])
+
+        # TOC is a navigation landmark with an accessible name.
+        assert page.locator('nav.toc[aria-label="Table of contents"]').count() == 1
+
+        # Abstract heading is level 2, not the old level 3 (no h1->h3 skip).
+        assert page.locator(".abstract h2").count() == 1
+        assert page.locator(".abstract h3").count() == 0
+
+        # TOC links carry their full "num. title" as the accessible name.
+        labels = page.eval_on_selector_all(
+            "nav.toc a", "els => els.map(e => e.getAttribute('aria-label'))"
+        )
+        assert any(lbl and "Introduction" in lbl for lbl in labels), labels
+
     def test_keyboard_navigation(
         self,
         serve_rsm_a11y: callable,

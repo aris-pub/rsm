@@ -783,6 +783,33 @@ body {
   /* Margins between the heading and the first paragraph */
   .hr.heading {margin-bottom: var(--chunk-third);}
 
+  /* Front-matter headings (abstract, table of contents) are emitted at semantic
+   level 2 so the document outline never skips from the h1 title to an h3
+   (WCAG 1.3.1 heading-order). But they are front matter, not numbered content
+   sections, so they read as a quiet uppercase eyebrow label rather than as a
+   section head: that distinguishes them from the h2 section heads and avoids
+   colliding with the h3 subsection heads. Sized at h5 (not the body-sized h6) so
+   the short label still has presence in the full-width handrail row. Semantic
+   level and visual size are deliberately decoupled. (letter-spacing has no token
+   in braiid; the em value follows the existing label convention.) */
+  /* The heading row is a flex container, so its content-zone (the highlight box)
+   stretches to the height of the taller control gutter. Center the short eyebrow
+   label in that box so the highlight has equal space above and below it. */
+  .abstract > .heading.hr > .hr-content-zone,
+  .toc > .heading.hr > .hr-content-zone {
+    display: flex;
+    align-items: center;
+  }
+  .abstract > .heading.hr > .hr-content-zone > h2,
+  .toc > .heading.hr > .hr-content-zone > h2 {
+    font-size: calc(var(--h6-size) * 0.8);
+    font-weight: var(--weight-semi);
+    color: var(--text-subtle);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin: 0;
+  }
+
   /* Margins between most elements */
   .hr {margin-block-end: 1em;}
   .hr.mathblock, .hr.codeblock {margin-block-end: 0em;}
@@ -1047,8 +1074,12 @@ body {
 
 
 /* Handrail active */
+/* :focus-visible, not :focus: the gutter highlight is the keyboard focus
+   indicator, so it should appear for keyboard navigation (Tab and the arrow-key
+   nav, which focuses programmatically) but not for mouse clicks. Matches how the
+   rail and TOC links already gate their focus rings. */
 .manuscriptwrapper .hr.active,
-.manuscriptwrapper:not([data-selecting]) .hr:focus {
+.manuscriptwrapper:not([data-selecting]) .hr:focus-visible {
   /* reset the default behavior */
   outline: none;
 

@@ -1027,7 +1027,11 @@ class Translator:
         return AppendBatchAndDefer(
             [
                 AppendNodeTag(node),
-                AppendHeading(3, "Abstract"),
+                # Level 2, not 3: the abstract is front matter sitting between the
+                # h1 title and the first numbered section (also h2), so emitting it
+                # at h3 skips a level and trips WCAG 1.3.1 heading-order. Its
+                # front-matter look is set in braiid.css, decoupled from the level.
+                AppendHeading(2, "Abstract"),
             ]
         )
 
@@ -1125,8 +1129,17 @@ class Translator:
         toc_classes = ["toc"] + (["tree"] if node.view == "tree" else [])
         return AppendBatchAndDefer(
             [
-                AppendOpenTag(classes=toc_classes),
-                AppendHeading(3, "Table of Contents"),
+                # <nav> (not a bare div): the table of contents is a list of
+                # section links, the textbook navigation landmark, so screen
+                # readers can jump to it. aria-label names the landmark since the
+                # rail is a separate (complementary) landmark.
+                AppendOpenTag(
+                    tag="nav", classes=toc_classes, **{"aria-label": "Table of contents"}
+                ),
+                # Level 2 for the same heading-order reason as the abstract: the
+                # table of contents is front matter between the h1 and the first
+                # numbered h2. Front-matter styling lives in braiid.css.
+                AppendHeading(2, "Table of Contents"),
                 AppendOpenTag(classes=["toc-wrapper"]),
                 AppendText(text=self._toc_tree_svg(node)),
                 AppendNodeTag(node, "ul"),
@@ -1240,8 +1253,12 @@ class Translator:
             if n.get("type") == "result":
                 ncls += " toc-node-result"
             parts.append(
+                # aria-label gives the link its full "num. title" accessible name;
+                # without it the only name is the visible secnum text ("2."), so a
+                # screen reader cannot tell the section links apart.
                 f'<a href="{escape(href)}" class="{ncls}" '
-                f'data-idx="{n["idx"]}" data-title="{escape(full)}">'
+                f'data-idx="{n["idx"]}" data-title="{escape(full)}" '
+                f'aria-label="{escape(full)}">'
                 f'<rect x="{n["x"]:.1f}" y="{n["y"]:.1f}" width="{n["w"]}" '
                 f'height="{n["h"]}" rx="6"></rect>'
                 f'<text class="toc-secnum" x="{cx:.1f}" y="{cy:.1f}" '
