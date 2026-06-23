@@ -205,7 +205,7 @@ export function setup(root = document) {
   // inject the grip and peek-goal bar, drive the transitions, persist the state,
   // and (via updatePeekGoal, called from updateState) keep the peek goal current.
   let drawerGoalEl = null;
-  if (window.matchMedia("(max-width: 1100px)").matches) {
+  if (window.matchMedia("(max-width: 1320px)").matches) {
     const handle = document.createElement("button");
     handle.type = "button";
     handle.className = "rail-handle";

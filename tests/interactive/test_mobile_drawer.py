@@ -21,7 +21,7 @@ pytestmark = pytest.mark.interactive
 
 RSM_READY = "() => window.__rsmInitialized === true"
 MOBILE = {"width": 800, "height": 1000}
-DESKTOP = {"width": 1280, "height": 900}
+DESKTOP = {"width": 1400, "height": 900}
 
 
 def _load(page: Page, server: str, viewport=MOBILE) -> None:
@@ -158,3 +158,43 @@ def test_focusing_drops_to_peek(page: Page, interactive_server: str):
     assert _state(page) == "open"
     page.evaluate("() => document.dispatchEvent(new CustomEvent('rsm:focus-enter'))")
     assert _state(page) == "peek", "rsm:focus-enter should drop the drawer to peek"
+
+
+def test_desktop_rail_pushes_content(page: Page, interactive_server: str):
+    """At a width where the rail cannot fit in the centred margin, the content is
+    pushed to the right of the rail (no overlap), not overlapped, not centred."""
+    page.set_viewport_size({"width": 1450, "height": 900})
+    page.goto(f"{interactive_server}/sidebar.html")
+    page.wait_for_function(RSM_READY, timeout=10_000)
+    page.wait_for_selector(".proof-rail.active", timeout=10_000)
+    g = page.evaluate(
+        """() => {
+        const w = document.querySelector('.manuscriptwrapper').getBoundingClientRect();
+        const r = document.querySelector('.proof-rail').getBoundingClientRect();
+        return {railRight: Math.round(r.right), contentLeft: Math.round(w.left),
+                contentW: Math.round(w.width), vw: window.innerWidth};
+    }"""
+    )
+    assert g["contentLeft"] >= g["railRight"], f"content overlaps the rail: {g}"
+    centred = (g["vw"] - g["contentW"]) / 2
+    assert g["contentLeft"] > centred + 10, f"content not pushed right of centre: {g}"
+
+
+def test_desktop_rail_centered_when_wide(page: Page, interactive_server: str):
+    """When the margin is wide enough for the rail, the content stays centred and
+    the rail does not overlap it."""
+    page.set_viewport_size({"width": 1920, "height": 900})
+    page.goto(f"{interactive_server}/sidebar.html")
+    page.wait_for_function(RSM_READY, timeout=10_000)
+    page.wait_for_selector(".proof-rail.active", timeout=10_000)
+    g = page.evaluate(
+        """() => {
+        const w = document.querySelector('.manuscriptwrapper').getBoundingClientRect();
+        const r = document.querySelector('.proof-rail').getBoundingClientRect();
+        return {railRight: Math.round(r.right), contentLeft: Math.round(w.left),
+                contentRight: Math.round(w.right), vw: window.innerWidth};
+    }"""
+    )
+    assert g["contentLeft"] >= g["railRight"], f"rail overlaps content: {g}"
+    left, right = g["contentLeft"], g["vw"] - g["contentRight"]
+    assert abs(left - right) < 12, f"content not centred when wide: left={left} right={right}"

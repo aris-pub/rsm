@@ -1799,7 +1799,7 @@ body {
      .rail-handle grip and the .rail-peek goal bar and drives the transitions. */
   .rail-handle, .rail-peek { display: none; }
 
-  @media (max-width: 1100px) {
+  @media (max-width: 1320px) {
     .proof-rail.active {
       position: fixed;
       left: 0; right: 0; bottom: 0; top: auto;
@@ -2656,3 +2656,21 @@ a.reference.external:hover::after {
 
 /* Preamble math nodes contain macro definitions and should be invisible */
 .math-preamble { display: none; }
+
+/* Desktop side-rail responsive behavior: the rail shrinks 380px -> 300px as the
+   margin tightens (content stays centred); at the 300px min it pushes the
+   content to the right so it never overlaps. Below ~1320px (the @media above)
+   the content can no longer fit beside the min rail, so the rail becomes a
+   bottom-sheet drawer and the content re-centres. */
+@media (min-width: 1321px) {
+  .manuscriptwrapper .proof-rail.active {
+    width: clamp(300px, calc((100vw - var(--content-max-width, var(--chunk-20))) / 2 - 2rem), 380px);
+  }
+  .manuscriptwrapper {
+    margin-left: max(
+      calc((100vw - var(--content-max-width, var(--chunk-20))) / 2),
+      calc(1rem + clamp(300px, calc((100vw - var(--content-max-width, var(--chunk-20))) / 2 - 2rem), 380px) + 1.5rem)
+    );
+    margin-right: auto;
+  }
+}
