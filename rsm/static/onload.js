@@ -87,6 +87,23 @@ export async function onload(root = null, { keys = true } = {}) {
       console.error("Loading keyboard.js FAILED!", err);
     }
 
+    // In-document jumps (the rail/keyboard chrome jumps and :ref:/TOC clicks)
+    // navigate by URL hash so they ride the native browser Back button. Native
+    // hash navigation restores scroll but NOT focus, so move focus to the target
+    // block for keyboard / screen-reader users (and again on Back).
+    try {
+      window.addEventListener("hashchange", () => {
+        const id = decodeURIComponent(window.location.hash.slice(1));
+        if (!id) return;
+        const el = document.getElementById(id);
+        if (!el) return;
+        if (!el.hasAttribute("tabindex")) el.setAttribute("tabindex", "-1");
+        el.focus({ preventScroll: true });
+      });
+    } catch (err) {
+      console.error("Setting up hash-focus FAILED!", err);
+    }
+
     window.__rsmInitialized = true;
 
     // Render initial content

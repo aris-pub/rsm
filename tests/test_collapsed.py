@@ -38,6 +38,7 @@ def test_collapse_is_subtractive_not_baked_into_html():
     # The static markup must NOT carry hr-collapsed (that would hide the content
     # with JS off). The hr-collapsed class is added by JS on load instead.
     html = rsm.render(PROOF.format(flag=" {:collapsed:}"), handrails=True)
-    m = re.search(r'<div class="([^"]*)"[^>]*data-start-collapsed="true"', html)
+    # id-agnostic: handrail blocks now carry a synthetic id before class.
+    m = re.search(r'<div [^>]*class="([^"]*)"[^>]*data-start-collapsed="true"', html)
     assert m is not None
     assert "hr-collapsed" not in m.group(1)

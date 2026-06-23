@@ -394,7 +394,10 @@ export function setup(root = document) {
     const el = proofElFor(btn.dataset.proof);
     if (!el) return;
     openHandrail(el);
-    el.scrollIntoView({ behavior: "smooth", block: "start" });
+    // Navigate by hash so the jump pushes a browser-history entry (native Back
+    // returns the reader to where they were). Every block carries an id.
+    if (el.id) location.hash = el.id;
+    else el.scrollIntoView({ behavior: "smooth", block: "start" });
   });
 
   // ---- active-step tracking + State view ----
@@ -556,7 +559,9 @@ export function setup(root = document) {
     // Scroll the body to wherever a state item was introduced.
     function scrollToNode(targetId) {
       const t = root.querySelector('[data-nodeid="' + targetId + '"]');
-      if (t) t.scrollIntoView({ block: "center", behavior: "smooth" });
+      // Navigate by hash so the jump is reversible via the browser Back button.
+      if (t && t.id) location.hash = t.id;
+      else if (t) t.scrollIntoView({ block: "center", behavior: "smooth" });
     }
 
     // Every state row jumps to where its item was introduced: prose/definition

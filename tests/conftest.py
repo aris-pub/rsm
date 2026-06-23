@@ -42,6 +42,11 @@ def _strip_generated_blocks(html: str) -> str:
     html = re.sub(r'<svg id="hr-icon-defs"[^>]*>.*?</svg>\n?', '', html, flags=re.DOTALL)
     html = re.sub(r'<div id="hr-menu-singleton"[^>]*>.*?</div>\n</div>\n</div>\n?', '', html, flags=re.DOTALL)
     html = re.sub(r'\s*data-menu-[\w-]+="[^"]*"', '', html)
+    # Synthetic block ids (id="n42") are generated per build so every block is
+    # hash-addressable; ignore them in structural comparisons. Semantic ids
+    # (id="thm-x", id="sec-intro") do not match and are still asserted. Emission
+    # of the synthetic ids is covered by tests/test_block_ids.py.
+    html = re.sub(r'\s*id="n\d+"', '', html)
     # Normalize menu zones: strip any content inside hr-menu-zone divs
     html = re.sub(
         r'<div class="hr-menu-zone">\s*(?:<div class="hr-menu">.*?</div>\s*)*</div>',

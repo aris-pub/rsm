@@ -108,7 +108,9 @@ def test_toc_markup_default_list():
     html = rsm.render(SRC, handrails=False)
     assert 'svg class="toc-tree"' in html
     assert 'class="toc"' in html and "toc tree" not in html  # list is default
-    assert 'ul class="contents"' in html  # list still present as fallback
+    # id-agnostic: every block now carries a synthetic id, so the <ul> renders
+    # as <ul id="n.." class="contents">.
+    assert 'class="contents"' in html  # list still present as fallback
 
 
 def test_toc_is_navigation_landmark():

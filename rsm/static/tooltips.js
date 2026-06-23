@@ -169,6 +169,11 @@ function stripHandrail(hr) {
 
 function setTooltipContent(tt, content) {
   // add .manuscriptwrapper so that all CSS rules apply inside the tooltip
-  content = `<div class="manuscriptwrapper">${content}</div>`;
-  tt.content($(content));
+  const $content = $(`<div class="manuscriptwrapper">${content}</div>`);
+  // The tooltip lives in the live DOM, so strip ids/data-nodeid from the cloned
+  // subtree: otherwise it duplicates the source block's id, which breaks
+  // getElementById and hash-based navigation to that block.
+  $content.find("[id]").removeAttr("id");
+  $content.find("[data-nodeid]").removeAttr("data-nodeid");
+  tt.content($content);
 }

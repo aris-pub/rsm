@@ -105,9 +105,18 @@ export function setup(root) {
 
 
 function focusTop(root) {
-  const focusable = getFocusableElements(root);
-  focusable[0].focus();
-  scrollToMiddle(focusable[0], "up");
+  // Jump to the top of the document. "#top" is the browser-native fragment for
+  // the document top: it scrolls to the very top (no element needed) and pushes
+  // a history entry, so the jump rides native Back. The global hashchange
+  // handler has no element to focus for "#top", so move keyboard focus to the
+  // first content block here (preventScroll so it doesn't fight the hash scroll)
+  // to keep SR / keyboard users with the viewport.
+  location.hash = "top";
+  const top = (root.querySelector(".manuscriptwrapper") || root).querySelector(".hr[id]");
+  if (top) {
+    if (!top.hasAttribute("tabindex")) top.setAttribute("tabindex", "-1");
+    top.focus({ preventScroll: true });
+  }
 }
 
 

@@ -532,6 +532,7 @@ var RSM = (() => {
   // rsm/static/handrails.js
   var singletonMenu = null;
   var activeHr = null;
+  var IS_TOUCH = typeof window !== "undefined" && typeof window.matchMedia === "function" && window.matchMedia("(hover: none) and (pointer: coarse)").matches;
   var delegationAttached = false;
   function setup2() {
     if (delegationAttached) return;
@@ -594,9 +595,14 @@ var RSM = (() => {
   function showMenuFor(hr) {
     if (!singletonMenu) return;
     activeHr = hr;
+    hr.classList.add("hr-menu-open");
     const label = hr.getAttribute("data-menu-label") || "";
-    const collapse = hr.getAttribute("data-menu-collapse");
+    let collapse = hr.getAttribute("data-menu-collapse");
     const collapseAll2 = hr.getAttribute("data-menu-collapse-all");
+    if (IS_TOUCH && (!collapse || collapse === "disabled") && hr.querySelector(":scope > .hr-collapse-zone .hr-collapse")) {
+      collapse = "enabled";
+      hr.setAttribute("data-menu-collapse", collapse);
+    }
     const link = hr.getAttribute("data-menu-link");
     const code = hr.getAttribute("data-menu-code");
     const labelEl = singletonMenu.querySelector('[data-role="label"]');
@@ -711,6 +717,7 @@ var RSM = (() => {
     singletonMenu.style.display = "none";
     singletonMenu.querySelectorAll(".hr-menu-item").forEach((it) => it.classList.remove("active"));
     if (activeHr) {
+      activeHr.classList.remove("hr-menu-open");
       const zone = activeHr.querySelector(":scope > .hr-menu-zone");
       if (zone) zone.style.display = "";
     }
@@ -786,12 +793,21 @@ var RSM = (() => {
       return {};
     }
   }
+  function collapseKey(hr) {
+    const nid = hr.getAttribute("data-nodeid");
+    if (nid != null) return "n:" + nid;
+    const sec = hr.closest("section");
+    if (sec && sec.id) return "s:" + sec.id;
+    if (hr.id) return "e:" + hr.id;
+    const txt = (hr.textContent || "").replace(/\s+/g, " ").trim();
+    return txt ? "t:" + txt : null;
+  }
   function persistCollapse(hr, collapsed) {
-    const id = hr.getAttribute("data-nodeid");
-    if (id == null) return;
+    const key = collapseKey(hr);
+    if (key == null) return;
     try {
       const state = loadCollapseState();
-      state[id] = collapsed;
+      state[key] = collapsed;
       localStorage.setItem(COLLAPSE_KEY, JSON.stringify(state));
     } catch {
     }
@@ -810,10 +826,11 @@ var RSM = (() => {
   function restoreCollapse(root2) {
     const state = loadCollapseState();
     suppressPersist = true;
-    for (const hr of (root2 || document).querySelectorAll(".hr[data-nodeid]")) {
-      const id = hr.getAttribute("data-nodeid");
-      if (!(id in state)) continue;
-      const wantCollapsed = state[id];
+    for (const hr of (root2 || document).querySelectorAll(".hr")) {
+      if (hr.closest(".rsm-source")) continue;
+      const key = collapseKey(hr);
+      if (key == null || !(key in state)) continue;
+      const wantCollapsed = state[key];
       const isCollapsed = hr.classList.contains("hr-collapsed");
       if (wantCollapsed && !isCollapsed) closeHandrail(hr);
       else if (!wantCollapsed && isCollapsed) openHandrail(hr);
@@ -1100,9 +1117,12 @@ var RSM = (() => {
     });
   }
   function focusTop(root2) {
-    const focusable = getFocusableElements(root2);
-    focusable[0].focus();
-    scrollToMiddle(focusable[0], "up");
+    location.hash = "top";
+    const top = (root2.querySelector(".manuscriptwrapper") || root2).querySelector(".hr[id]");
+    if (top) {
+      if (!top.hasAttribute("tabindex")) top.setAttribute("tabindex", "-1");
+      top.focus({ preventScroll: true });
+    }
   }
   function toggleTooltip(el) {
     if (!el.classList.contains("tooltipstered")) return;
@@ -1420,8 +1440,10 @@ var RSM = (() => {
     hr.find(".hr-info-zone").remove();
   }
   function setTooltipContent(tt, content) {
-    content = `<div class="manuscriptwrapper">${content}</div>`;
-    tt.content($(content));
+    const $content = $(`<div class="manuscriptwrapper">${content}</div>`);
+    $content.find("[id]").removeAttr("id");
+    $content.find("[data-nodeid]").removeAttr("data-nodeid");
+    tt.content($content);
   }
 
   // rsm/static/prooftree.js
@@ -1579,6 +1601,97 @@ var RSM = (() => {
       }
     } catch (e) {
     }
+    let drawerGoalEl = null;
+    if (window.matchMedia("(max-width: 1320px)").matches) {
+      const handle = document.createElement("button");
+      handle.type = "button";
+      handle.className = "rail-handle";
+      handle.setAttribute("aria-label", "Toggle the navigation drawer");
+      const peek = document.createElement("div");
+      peek.className = "rail-peek";
+      peek.innerHTML = '<span class="rail-peek-label">Prove</span><span class="rail-peek-goal"></span>';
+      rail.insertBefore(peek, rail.firstChild);
+      rail.insertBefore(handle, rail.firstChild);
+      drawerGoalEl = peek.querySelector(".rail-peek-goal");
+      const DRAWER_KEY = "rsm-drawer:" + location.pathname;
+      const setDrawer = (state, persist = true) => {
+        rail.dataset.drawer = state;
+        handle.setAttribute("aria-expanded", String(state === "open"));
+        if (persist) {
+          try {
+            localStorage.setItem(DRAWER_KEY, state);
+          } catch (e) {
+          }
+        }
+      };
+      let savedDrawer = null;
+      try {
+        savedDrawer = localStorage.getItem(DRAWER_KEY);
+      } catch (e) {
+      }
+      setDrawer(["closed", "peek", "open"].includes(savedDrawer) ? savedDrawer : "peek", false);
+      const ORDER = ["closed", "peek", "open"];
+      let dragY = null;
+      let dragged = false;
+      handle.addEventListener("pointerdown", (ev) => {
+        dragY = ev.clientY;
+        dragged = false;
+        try {
+          handle.setPointerCapture(ev.pointerId);
+        } catch (e) {
+        }
+      });
+      handle.addEventListener("pointermove", (ev) => {
+        if (dragY !== null && Math.abs(ev.clientY - dragY) > 8) dragged = true;
+      });
+      handle.addEventListener("pointerup", (ev) => {
+        if (dragY === null) return;
+        const dy = ev.clientY - dragY;
+        const i = ORDER.indexOf(rail.dataset.drawer);
+        if (!dragged) {
+          setDrawer(rail.dataset.drawer === "peek" ? "open" : "peek");
+        } else if (dy < 0) {
+          setDrawer(ORDER[Math.min(i + 1, ORDER.length - 1)]);
+        } else {
+          setDrawer(ORDER[Math.max(i - 1, 0)]);
+        }
+        dragY = null;
+        dragged = false;
+      });
+      document.addEventListener("rsm:focus-enter", () => setDrawer("peek"));
+    }
+    let peekGoalId;
+    function updatePeekGoal() {
+      if (!drawerGoalEl) return;
+      let g = null;
+      const data = current ? stateData.get(current) : null;
+      if (data && active.idx >= 0 && active.idx < data.length) g = data[active.idx].goal;
+      const gid = g && g.id != null ? String(g.id) : null;
+      if (gid === peekGoalId) return;
+      peekGoalId = gid;
+      const el = gid != null ? root2.querySelector('[data-nodeid="' + gid + '"]') : null;
+      if (!el) {
+        rail.classList.add("drawer-no-goal");
+        drawerGoalEl.textContent = "Open the navigation drawer";
+        return;
+      }
+      rail.classList.remove("drawer-no-goal");
+      const cz = el.querySelector(":scope > .hr-content-zone") || el;
+      const clone = cloneClean(cz);
+      clone.querySelectorAll(".hr-label, .construct.let, .construct.assume").forEach((n) => n.remove());
+      drawerGoalEl.innerHTML = "";
+      drawerGoalEl.appendChild(clone);
+      const tw = document.createTreeWalker(drawerGoalEl, NodeFilter.SHOW_TEXT, {
+        acceptNode: (n) => n.parentElement && n.parentElement.closest("math") ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT
+      });
+      let tn;
+      while (tn = tw.nextNode()) {
+        if (!tn.textContent.trim()) continue;
+        tn.textContent = tn.textContent.replace(/^[\s,.;:⊢]*(?:then\b[\s,]*)?/i, "");
+        break;
+      }
+      typesetMath(drawerGoalEl).then(() => reRenderAll(drawerGoalEl));
+    }
     const proofs = [...root2.querySelectorAll(".proof[data-nodeid]")];
     function proofElFor(key) {
       return key ? root2.querySelector(`.proof[data-nodeid="${key}"]`) : null;
@@ -1636,7 +1749,8 @@ var RSM = (() => {
       const el = proofElFor(btn.dataset.proof);
       if (!el) return;
       openHandrail(el);
-      el.scrollIntoView({ behavior: "smooth", block: "start" });
+      if (el.id) location.hash = el.id;
+      else el.scrollIntoView({ behavior: "smooth", block: "start" });
     });
     function setCurrentNode(node) {
       if (node === currentNode) return;
@@ -1681,6 +1795,7 @@ var RSM = (() => {
       setCurrentNode(node);
       const dag = item ? item.querySelector("svg.toc-tree") : null;
       if (dag) pinTreeCurrent(dag, idx >= 0 ? String(idx) : null);
+      updatePeekGoal();
     }
     const stepObserver = new IntersectionObserver(() => updateState(), {
       rootMargin: "-50% 0px -50% 0px",
@@ -1758,7 +1873,8 @@ var RSM = (() => {
       }
       function scrollToNode(targetId) {
         const t = root2.querySelector('[data-nodeid="' + targetId + '"]');
-        if (t) t.scrollIntoView({ block: "center", behavior: "smooth" });
+        if (t && t.id) location.hash = t.id;
+        else if (t) t.scrollIntoView({ block: "center", behavior: "smooth" });
       }
       function makeJumpable(li, targetId, tip) {
         if (targetId == null) return;
@@ -1957,6 +2073,7 @@ var RSM = (() => {
       const sel = steps[startIdx];
       active = { proofEl, svg, startIdx: String(startIdx) };
       setExitBar(sel);
+      document.dispatchEvent(new CustomEvent("rsm:focus-enter"));
       if (sel) sel.scrollIntoView({ behavior: "smooth", block: "center" });
     }
     rail.addEventListener("click", (ev) => {
@@ -2024,6 +2141,18 @@ var RSM = (() => {
         }
       } catch (err) {
         console.error("Loading keyboard.js FAILED!", err);
+      }
+      try {
+        window.addEventListener("hashchange", () => {
+          const id = decodeURIComponent(window.location.hash.slice(1));
+          if (!id) return;
+          const el = document.getElementById(id);
+          if (!el) return;
+          if (!el.hasAttribute("tabindex")) el.setAttribute("tabindex", "-1");
+          el.focus({ preventScroll: true });
+        });
+      } catch (err) {
+        console.error("Setting up hash-focus FAILED!", err);
       }
       window.__rsmInitialized = true;
       await onrender(root2);

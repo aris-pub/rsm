@@ -599,6 +599,14 @@ class AppendNodeTag(AppendOpenTag):
         id_ = node.label
         if not id_ and isinstance(node, nodes.Section) and node.full_number:
             id_ = f"sec-{node.full_number}"
+        if not id_ and node.nodeid is not None and "hr" in classes:
+            # Synthetic id so every HANDRAIL BLOCK is hash-addressable: the rail
+            # and keyboard jumps navigate by location.hash and ride the native
+            # browser Back button. Scoped to handrail blocks (the jump targets)
+            # via the "hr" class, so inline spans (Span/Math/Code, which are not
+            # jump targets) don't get ids. Stable within a built artifact;
+            # labeled blocks keep the semantic id set above.
+            id_ = f"n{node.nodeid}"
 
         super().__init__(
             tag=tag,
