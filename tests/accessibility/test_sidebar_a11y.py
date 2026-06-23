@@ -66,5 +66,10 @@ def test_sidebar_notation_pane_wcag(serve_rsm_a11y, page):
     page = serve_rsm_a11y(SIDEBAR_SRC)
     page.click('.rail-subtabs-document .rail-tab[data-view="notation"]')
     page.wait_for_selector(".rail-notation-input", timeout=5000)
+    # Clicking the sub-tab leaves its hover tooltip open; move the pointer away
+    # and let the (transient, decorative) tooltipster popup close so it isn't in
+    # the axe scan. The tooltip's own markup is not what this test checks.
+    page.mouse.move(700, 500)
+    page.wait_for_function("() => !document.querySelector('.tooltipster-base')", timeout=3000)
     v = _violations(page)
     assert not v, "\n" + _fmt(v)
