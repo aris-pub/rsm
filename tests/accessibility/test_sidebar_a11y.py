@@ -38,12 +38,7 @@ See :ref:thm-x::.
 
 
 def _violations(page):
-    # heading-order is excluded on purpose: the Abstract and Table of Contents
-    # are h3 by deliberate RSM design (placed under the h1 title), which is the
-    # document's heading structure, not a sidebar concern.
-    return Axe().run(
-        page, options={"rules": {"heading-order": {"enabled": False}}}
-    ).response["violations"]
+    return Axe().run(page).response["violations"]
 
 
 def _fmt(violations):
@@ -63,6 +58,11 @@ def test_sidebar_default_wcag(serve_rsm_a11y, page):
 
 
 def test_sidebar_notation_pane_wcag(serve_rsm_a11y, page):
+    # The notation subtab lives in the desktop sidebar's sub-tabs, which are
+    # hidden below the 1320px drawer breakpoint (the rail becomes a bottom sheet
+    # whose sub-tabs are display:none in the default peek state). Force a desktop
+    # viewport so the sub-tabs are present and clickable.
+    page.set_viewport_size({"width": 1400, "height": 900})
     page = serve_rsm_a11y(SIDEBAR_SRC)
     page.click('.rail-subtabs-document .rail-tab[data-view="notation"]')
     page.wait_for_selector(".rail-notation-input", timeout=5000)
