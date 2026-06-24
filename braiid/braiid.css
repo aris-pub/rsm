@@ -742,6 +742,54 @@ body {
 }
 
 
+/* Back pill: a transient affordance over the native browser Back button
+   (onload.js shows it after an in-document jump). Reading-first, so it stays out
+   of the way: a small floating pill, bottom-centre, that fades in on a jump and
+   out again on Back or when the reader scrolls away. */
+.rsm-back-pill {
+  position: fixed;
+  left: 50%;
+  bottom: calc(1.25rem + env(safe-area-inset-bottom, 0px));
+  z-index: 9998;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 0.95rem;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  line-height: 1;
+  color: var(--surface-page);
+  background: var(--extra-dark);
+  border: none;
+  border-radius: 999px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.18);
+  cursor: pointer;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateX(-50%) translateY(0.5rem);
+  transition: opacity 0.18s ease, transform 0.18s ease, visibility 0s linear 0.18s;
+}
+
+.rsm-back-pill.is-visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+  transition: opacity 0.18s ease, transform 0.18s ease, visibility 0s;
+}
+
+.rsm-back-pill:hover { background: var(--primary-600); }
+.rsm-back-pill:focus-visible { outline: 2px solid var(--primary-600); outline-offset: 2px; }
+.rsm-back-pill-arrow { font-size: 1.05em; }
+
+@media (prefers-reduced-motion: reduce) {
+  .rsm-back-pill,
+  .rsm-back-pill.is-visible {
+    transform: translateX(-50%);
+    transition: opacity 0.001s, visibility 0s;
+  }
+}
+
+
 /* Headings */
 .manuscriptwrapper {
 

@@ -1414,7 +1414,9 @@ var RSM = (() => {
     });
     $(".proof-rail [data-tooltip]:not(.tooltipstered)").tooltipster({
       theme: ["tooltipster-shadow", "tooltipster-shadow-rsm"],
-      delay: 200,
+      // Rail controls are glanced past constantly; a longer hover-intent delay
+      // keeps their hints from flashing up while the pointer just crosses the rail.
+      delay: 500,
       // Cap the width: setTooltipContent wraps the label in .manuscriptwrapper,
       // which is width:100% up to the document column width, so without a maxWidth
       // a control hint stretches into a full-page banner (the body/author tooltips
@@ -2149,13 +2151,21 @@ var RSM = (() => {
         console.error("Loading keyboard.js FAILED!", err);
       }
       try {
+        setupBackPill();
         window.addEventListener("hashchange", () => {
           const id = decodeURIComponent(window.location.hash.slice(1));
-          if (!id) return;
+          if (!id || id === "top") {
+            hideBackPill();
+            return;
+          }
           const el = document.getElementById(id);
-          if (!el) return;
+          if (!el) {
+            hideBackPill();
+            return;
+          }
           if (!el.hasAttribute("tabindex")) el.setAttribute("tabindex", "-1");
           el.focus({ preventScroll: true });
+          showBackPill();
         });
       } catch (err) {
         console.error("Setting up hash-focus FAILED!", err);
@@ -2218,6 +2228,36 @@ var RSM = (() => {
       console.error("An error occurred during render:", err);
     } finally {
       renderInProgress = false;
+    }
+  }
+  var __backPillScroll = null;
+  function setupBackPill() {
+    if (document.querySelector(".rsm-back-pill")) return;
+    const pill = document.createElement("button");
+    pill.type = "button";
+    pill.className = "rsm-back-pill";
+    pill.setAttribute("aria-label", "Back to where you were");
+    pill.innerHTML = '<span class="rsm-back-pill-arrow" aria-hidden="true">\u2190</span> Back';
+    pill.addEventListener("click", () => window.history.back());
+    document.body.appendChild(pill);
+  }
+  function showBackPill() {
+    const pill = document.querySelector(".rsm-back-pill");
+    if (!pill) return;
+    pill.classList.add("is-visible");
+    const landingY = window.scrollY;
+    if (__backPillScroll) window.removeEventListener("scroll", __backPillScroll);
+    __backPillScroll = () => {
+      if (Math.abs(window.scrollY - landingY) > window.innerHeight * 0.33) hideBackPill();
+    };
+    window.addEventListener("scroll", __backPillScroll, { passive: true });
+  }
+  function hideBackPill() {
+    const pill = document.querySelector(".rsm-back-pill");
+    if (pill) pill.classList.remove("is-visible");
+    if (__backPillScroll) {
+      window.removeEventListener("scroll", __backPillScroll);
+      __backPillScroll = null;
     }
   }
   return __toCommonJS(onload_exports);

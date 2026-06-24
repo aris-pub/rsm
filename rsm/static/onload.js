@@ -92,13 +92,21 @@ export async function onload(root = null, { keys = true } = {}) {
     // hash navigation restores scroll but NOT focus, so move focus to the target
     // block for keyboard / screen-reader users (and again on Back).
     try {
+      setupBackPill();
       window.addEventListener("hashchange", () => {
         const id = decodeURIComponent(window.location.hash.slice(1));
-        if (!id) return;
+        if (!id || id === "top") {
+          // Hash cleared or jumped to the top (e.g. via the pill's own Back):
+          // there is nothing to return to, so dismiss the pill.
+          hideBackPill();
+          return;
+        }
         const el = document.getElementById(id);
-        if (!el) return;
+        if (!el) { hideBackPill(); return; }
         if (!el.hasAttribute("tabindex")) el.setAttribute("tabindex", "-1");
         el.focus({ preventScroll: true });
+        // The jump moved the reader; offer a visible handle on native Back.
+        showBackPill();
       });
     } catch (err) {
       console.error("Setting up hash-focus FAILED!", err);
@@ -184,5 +192,48 @@ export async function onrender(root = null) {
     console.error("An error occurred during render:", err);
   } finally {
     renderInProgress = false;
+  }
+}
+
+
+// --- Back pill -------------------------------------------------------------
+// A transient, visible affordance over the native browser Back button. After an
+// in-document jump (a hashchange to a block) the pill appears; clicking it calls
+// history.back() to return the reader. It owns NO navigation state: native
+// history is the source of truth, this is purely a discoverable, demoable handle
+// on it. Dismisses on Back (the hash clears) or when the reader scrolls away.
+let __backPillScroll = null;
+
+function setupBackPill() {
+  if (document.querySelector(".rsm-back-pill")) return;
+  const pill = document.createElement("button");
+  pill.type = "button";
+  pill.className = "rsm-back-pill";
+  pill.setAttribute("aria-label", "Back to where you were");
+  pill.innerHTML = '<span class="rsm-back-pill-arrow" aria-hidden="true">←</span> Back';
+  pill.addEventListener("click", () => window.history.back());
+  document.body.appendChild(pill);
+}
+
+function showBackPill() {
+  const pill = document.querySelector(".rsm-back-pill");
+  if (!pill) return;
+  pill.classList.add("is-visible");
+  // Transient: once the reader resumes reading (scrolls well away from the
+  // landing point) the pill dismisses, so it never becomes pinned chrome.
+  const landingY = window.scrollY;
+  if (__backPillScroll) window.removeEventListener("scroll", __backPillScroll);
+  __backPillScroll = () => {
+    if (Math.abs(window.scrollY - landingY) > window.innerHeight * 0.33) hideBackPill();
+  };
+  window.addEventListener("scroll", __backPillScroll, { passive: true });
+}
+
+function hideBackPill() {
+  const pill = document.querySelector(".rsm-back-pill");
+  if (pill) pill.classList.remove("is-visible");
+  if (__backPillScroll) {
+    window.removeEventListener("scroll", __backPillScroll);
+    __backPillScroll = null;
   }
 }

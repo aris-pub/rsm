@@ -137,7 +137,9 @@ export function createTooltips() {
   // plain-text label taken from data-tooltip.
   $(".proof-rail [data-tooltip]:not(.tooltipstered)").tooltipster({
     theme: ['tooltipster-shadow', 'tooltipster-shadow-rsm'],
-    delay: 200,
+    // Rail controls are glanced past constantly; a longer hover-intent delay
+    // keeps their hints from flashing up while the pointer just crosses the rail.
+    delay: 500,
     // Cap the width: setTooltipContent wraps the label in .manuscriptwrapper,
     // which is width:100% up to the document column width, so without a maxWidth
     // a control hint stretches into a full-page banner (the body/author tooltips
