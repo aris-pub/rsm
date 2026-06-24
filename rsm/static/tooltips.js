@@ -138,6 +138,12 @@ export function createTooltips() {
   $(".proof-rail [data-tooltip]:not(.tooltipstered)").tooltipster({
     theme: ['tooltipster-shadow', 'tooltipster-shadow-rsm'],
     delay: 200,
+    // Cap the width: setTooltipContent wraps the label in .manuscriptwrapper,
+    // which is width:100% up to the document column width, so without a maxWidth
+    // a control hint stretches into a full-page banner (the body/author tooltips
+    // both cap at 500; these are short labels, so a touch tighter).
+    minWidth: 100,
+    maxWidth: 360,
     side: 'bottom',
     trigger: 'custom',
     triggerOpen: {
@@ -151,9 +157,12 @@ export function createTooltips() {
       touchleave: true
     },
     functionInit: function (instance, helper) {
-      // Wrap in .manuscriptwrapper like the body tooltips so the label inherits
-      // the same typography instead of the bare tooltipster default.
-      setTooltipContent(instance, $(helper.origin).attr("data-tooltip"));
+      // Rail control labels are short plain-text hints, not document content.
+      // Keep them OUT of .manuscriptwrapper: its body font-size and width:100%
+      // (up to the document column width) blow a one-line hint into a full-width
+      // banner that overflows even a capped tooltip box. A light .rail-tip
+      // wrapper carries the body font; tooltipster's maxWidth then wraps it.
+      instance.content($(`<div class="rail-tip">${$(helper.origin).attr("data-tooltip")}</div>`));
     },
   });
 }

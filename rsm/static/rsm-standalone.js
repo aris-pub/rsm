@@ -1415,6 +1415,12 @@ var RSM = (() => {
     $(".proof-rail [data-tooltip]:not(.tooltipstered)").tooltipster({
       theme: ["tooltipster-shadow", "tooltipster-shadow-rsm"],
       delay: 200,
+      // Cap the width: setTooltipContent wraps the label in .manuscriptwrapper,
+      // which is width:100% up to the document column width, so without a maxWidth
+      // a control hint stretches into a full-page banner (the body/author tooltips
+      // both cap at 500; these are short labels, so a touch tighter).
+      minWidth: 100,
+      maxWidth: 360,
       side: "bottom",
       trigger: "custom",
       triggerOpen: {
@@ -1428,7 +1434,7 @@ var RSM = (() => {
         touchleave: true
       },
       functionInit: function(instance, helper) {
-        setTooltipContent(instance, $(helper.origin).attr("data-tooltip"));
+        instance.content($(`<div class="rail-tip">${$(helper.origin).attr("data-tooltip")}</div>`));
       }
     });
   }

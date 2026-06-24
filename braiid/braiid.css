@@ -714,7 +714,27 @@ body {
     border-radius: var(--radius-xl);
 
     .manuscriptwrapper {
+      /* Neutralise the document-layout rules: inside a tooltip the wrapper must
+         fit the (maxWidth-capped) box, not the document column. Without this it
+         keeps the sidebar-clearance margin (margin-inline-start, applied to the
+         document column to clear the fixed rail) and max-width:960px, which shove
+         the cloned block sideways and overflow the box. !important on both the
+         physical and logical margin: that push wins the cascade otherwise. */
+      margin: 0 !important;
+      margin-inline: 0 !important;
+      width: auto;
+      max-width: 100%;
       padding: 0 1rem 0 1rem;
+    }
+
+    /* Short plain-text control labels (rail tabs/buttons): body font, tooltip
+       size, wrapped by the instance maxWidth. Not document content, so no
+       .manuscriptwrapper (which would size to the document column width). */
+    .rail-tip {
+      font-family: var(--font-body);
+      font-size: 0.82rem;
+      line-height: 1.35;
+      padding: 0.35rem 0.6rem;
     }
 
   }
