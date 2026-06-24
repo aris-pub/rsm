@@ -846,8 +846,8 @@ body {
 .manuscriptwrapper .calc .step > .hr-info-zone .hr-collapse::before {
   content: "";
   display: block;
-  width: var(--chunk-third);
-  height: var(--chunk-third);
+  width: calc(var(--chunk-third) * 1.1);
+  height: calc(var(--chunk-third) * 1.1);
   background-color: var(--medium);
   transition: background-color 0.12s ease;
   /* the because-sign (two dots over one) as an SVG mask, so background-color
