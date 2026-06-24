@@ -1,0 +1,12 @@
+# Reference Tooltip
+
+:theorem: {:label: thm-x}
+
+  For every graph on $n$ vertices the edge count is at most $n(n-1)/2$, with
+  equality exactly for the complete graph.
+
+::
+
+The bound above is the workhorse of the argument. We invoke it now: by
+:ref:thm-x:: the dense case is immediate, and the rest of the proof only has to
+handle the sparse remainder.

@@ -1,0 +1,35 @@
+# Back Pill Demo
+
+:toc: {
+  :view: tree
+}
+::
+
+## Introduction
+  {:label: sec-intro}
+
+This paragraph is filler so the theorem below starts off-screen on load.
+This paragraph is filler so the theorem below starts off-screen on load.
+This paragraph is filler so the theorem below starts off-screen on load.
+This paragraph is filler so the theorem below starts off-screen on load.
+This paragraph is filler so the theorem below starts off-screen on load.
+This paragraph is filler so the theorem below starts off-screen on load.
+This paragraph is filler so the theorem below starts off-screen on load.
+This paragraph is filler so the theorem below starts off-screen on load.
+This paragraph is filler so the theorem below starts off-screen on load.
+This paragraph is filler so the theorem below starts off-screen on load.
+This paragraph is filler so the theorem below starts off-screen on load.
+This paragraph is filler so the theorem below starts off-screen on load.
+
+## Results
+  {:label: sec-results}
+
+:theorem: {:label: thm-x} A claim worth jumping to.::
+
+Trailing prose so the reader can sit far below the theorem before jumping up.
+Trailing prose so the reader can sit far below the theorem before jumping up.
+Trailing prose so the reader can sit far below the theorem before jumping up.
+Trailing prose so the reader can sit far below the theorem before jumping up.
+Trailing prose so the reader can sit far below the theorem before jumping up.
+
+Jump back up to :ref:thm-x:: to see the back pill appear.
