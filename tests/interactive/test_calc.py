@@ -31,3 +31,33 @@ def test_calc_relation_shown_justification_disclosed(page: Page, interactive_ser
     marker.click()
     expect(just).to_be_visible()
     assert "hr-collapsed" not in (row.get_attribute("class") or "")
+
+
+def test_calc_because_mark_is_sprite_icon(page: Page, interactive_server: str):
+    """The disclosure marker is the because-sign sprite icon (#hr-icon-because),
+    sized a touch larger than the default icon, gray at rest and themed on hover."""
+    page.set_viewport_size({"width": 1400, "height": 900})
+    page.goto(f"{interactive_server}/calc.html")
+    page.wait_for_function(RSM_READY, timeout=10_000)
+
+    row = page.locator(".calc > .step").first
+    icon = row.locator(":scope > .hr-info-zone .icon.because").first
+    expect(icon).to_be_visible()
+    # It is the sprite icon: a <use> pointing at #hr-icon-because.
+    use = icon.locator("use")
+    assert use.get_attribute("href") == "#hr-icon-because"
+
+    svg = icon.locator("svg")
+    # Bumped to --chunk-half, larger than the default --chunk-third (~16px).
+    box = svg.bounding_box()
+    assert box is not None and box["width"] > 16, box
+
+    def fill(loc):
+        return loc.evaluate("el => getComputedStyle(el).fill")
+
+    # Gray at rest (--medium), themed on row hover (--primary-700).
+    rest = fill(svg)
+    row.hover()
+    page.wait_for_timeout(200)
+    hovered = fill(svg)
+    assert rest != hovered, (rest, hovered)

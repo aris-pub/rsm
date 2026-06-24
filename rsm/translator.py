@@ -2029,6 +2029,15 @@ class HandrailsTranslator(Translator):
           <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
           <path d="M7 4v16l13 -8l-13 -8" />
         </svg>""",
+        # The math "because" sign (U+2235): two dots over one, the apexes of a
+        # downward triangle. No Tabler glyph exists, so we author it in their
+        # filled-dot idiom (cf. "dots"): fill="currentColor" so CSS color/fill
+        # themes it. Top dots at (8,9) and (16,9), bottom dot at (12,16), r=2.3.
+        "because": """<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M8 9m-2.3 0a2.3 2.3 0 1 0 4.6 0a2.3 2.3 0 1 0 -4.6 0" />
+          <path d="M16 9m-2.3 0a2.3 2.3 0 1 0 4.6 0a2.3 2.3 0 1 0 -4.6 0" />
+          <path d="M12 16m-2.3 0a2.3 2.3 0 1 0 4.6 0a2.3 2.3 0 1 0 -4.6 0" />
+        </svg>""",
     }
 
     def __init__(
@@ -2092,11 +2101,13 @@ class HandrailsTranslator(Translator):
             else AppendOpenTagManualClose(classes=classes, is_selectable=True, **kwargs)
         )
 
-    def _hr_collapse_zone(self, collapsible: bool) -> AppendOpenCloseTag:
+    def _hr_collapse_zone(
+        self, collapsible: bool, icon: str = "collapse"
+    ) -> AppendOpenCloseTag:
         if collapsible:
             content = f"""
             <div class="hr-collapse">
-              {self._icon_ref("collapse")}
+              {self._icon_ref(icon)}
             </div>
 """
         else:
@@ -2262,9 +2273,9 @@ class HandrailsTranslator(Translator):
         # right-margin, per-row-aligned slot where an equation number would sit --
         # instead of the left gutter. The control is a real .hr-collapse inside a
         # .hr-collapse-zone, so the delegated collapse handler wires it (it resolves
-        # the enclosing step via .closest('.hr')); CSS reglyphs it as the because-
-        # sign. Presentation choice only; the collapse mechanism is unchanged.
-        control = self._hr_collapse_zone(True).make_text()
+        # the enclosing step via .closest('.hr')); its icon is the because-sign
+        # sprite. Presentation choice only; the collapse mechanism is unchanged.
+        control = self._hr_collapse_zone(True, icon="because").make_text()
         return AppendOpenCloseTag(
             tag="div",
             content=f'<div class="hr-info">{control}</div>',
