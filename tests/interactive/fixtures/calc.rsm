@@ -1,0 +1,17 @@
+# Calc chain
+
+:calc:
+
+  :step: $a = b$
+
+    :p: Because the first reason holds. ::
+
+  ::
+
+  :step: $= c$
+
+    :p: Because the second reason holds. ::
+
+  ::
+
+::

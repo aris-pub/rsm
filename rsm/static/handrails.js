@@ -182,13 +182,49 @@ function showMenuFor(hr) {
     if (textEl) textEl.textContent = isTree ? "View as list" : "View as tree";
   }
 
-  // Move singleton into the handrail's menu zone
+  // Position, then portal to <body>. An open menu can pop into the gutter where
+  // the floating proof-rail sits; an ancestor of the handrail (proof/section/
+  // figure) establishes a stacking context that paints below that fixed rail, so
+  // any z-index on the menu or handrail is trapped beneath it. Escape the trap by
+  // reparenting the singleton to <body>: first append it into the handrail's zone
+  // so the existing CSS (left/right, offset, touch variants) computes the correct
+  // on-screen spot, measure that, then move it to <body> and re-anchor it in page
+  // coordinates so it sits above the rail regardless of which ancestor trapped it.
   const zone = hr.querySelector(":scope > .hr-menu-zone");
   if (zone) {
     zone.appendChild(singletonMenu);
     singletonMenu.style.display = "";
     zone.style.display = "block";
+    portalMenuToBody();
   }
+}
+
+
+// The inner popup, whose computed rect we capture when portaling to <body>.
+function menuPopup() {
+  return singletonMenu && singletonMenu.querySelector(".hr-menu");
+}
+
+
+// Re-anchor the menu's CSS-computed screen position as page coordinates on
+// <body>, escaping every ancestor stacking context. Called only with the menu
+// already laid out inside its handrail zone (so the rect is meaningful).
+function portalMenuToBody() {
+  const popup = menuPopup();
+  if (!popup) return;
+  const rect = popup.getBoundingClientRect();
+  document.body.appendChild(singletonMenu);
+  singletonMenu.classList.add("hr-menu-portaled");
+  // The inner popup is normally position:relative inside the zone. Re-anchor it as
+  // position:absolute in PAGE coordinates (viewport rect + scroll offset) on the
+  // body: this keeps it where it opened, scrolls with the page like the in-flow
+  // menu did, and -- being a body child rather than nested in the handrail -- sits
+  // in the root stacking context, above the fixed rail. (Fixed positioning would
+  // also escape the trap but pins to the viewport: a menu opened near the bottom
+  // edge would then stay off-screen and unreachable.)
+  popup.style.position = "absolute";
+  popup.style.left = `${rect.left + window.scrollX}px`;
+  popup.style.top = `${rect.top + window.scrollY}px`;
 }
 
 
@@ -267,12 +303,27 @@ function allSubstepsCollapsed(hr) {
 function hideMenu() {
   if (!singletonMenu) return;
   singletonMenu.style.display = "none";
+  // Undo the portal: drop the inline absolute coordinates and the marker class so
+  // the next open re-measures from a clean state inside the handrail zone.
+  singletonMenu.classList.remove("hr-menu-portaled");
+  const popup = menuPopup();
+  if (popup) {
+    popup.style.position = "";
+    popup.style.left = "";
+    popup.style.top = "";
+  }
   singletonMenu.querySelectorAll(".hr-menu-item").forEach(it => it.classList.remove("active"));
   if (activeHr) {
     activeHr.classList.remove("hr-menu-open");
     const zone = activeHr.querySelector(":scope > .hr-menu-zone");
     if (zone) zone.style.display = "";
   }
+  // Return the (now hidden) singleton to its build-time home in the manuscript,
+  // rather than leaving it parented to <body>, so it stays a single element
+  // inside the manuscript subtree (where clone/strip passes and re-renders expect
+  // it) instead of an orphan on <body>.
+  const home = document.querySelector(".manuscriptwrapper");
+  if (home && singletonMenu.parentElement !== home) home.appendChild(singletonMenu);
   activeHr = null;
 }
 

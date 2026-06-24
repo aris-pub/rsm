@@ -130,12 +130,18 @@ function toggleTooltip(el) {
 }
 
 
-// The menu items live in the shared singleton, moved into the focused
-// handrail's menu zone while open. Activate the highlighted one by clicking it,
-// reusing the delegated handler in handrails.js (so data-role dispatch stays in
-// one place).
+// The menu items live in the shared singleton. While open it is portaled to
+// <body> (handrails.js, to escape ancestor stacking contexts), so locate it by
+// its id rather than under the focused handrail's zone. Activate the highlighted
+// one by clicking it, reusing the delegated handler in handrails.js (so data-role
+// dispatch stays in one place). `el` (the open-on handrail) is unused now but
+// kept so the call sites and the menuOpenOn gate stay symmetric.
+function openMenuEl() {
+  return document.querySelector("#hr-menu-singleton .hr-menu");
+}
+
 function executeActiveMenuItem(el) {
-  const menu = el.querySelector(":scope > .hr-menu-zone .hr-menu");
+  const menu = openMenuEl();
   if (!menu) return;
   const active = menu.querySelector(":scope > .hr-menu-item.active:not(.disabled)");
   if (active) active.click();
@@ -143,7 +149,7 @@ function executeActiveMenuItem(el) {
 
 
 function menuUpOrDown(el, direction) {
-  const menu = el.querySelector(":scope > .hr-menu-zone .hr-menu");
+  const menu = openMenuEl();
   if (!menu) return;
   // Only visible, enabled items participate (hidden ones are display:none).
   const items = Array.from(menu.querySelectorAll(":scope > .hr-menu-item"))

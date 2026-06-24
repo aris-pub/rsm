@@ -1635,6 +1635,14 @@ class Sketch(NodeWithChildren):
     has_handrail = True
 
 
+class Calc(NodeWithChildren):
+    """An equational/calculational proof: a chain of relation steps, each with a
+    justification. One handrail wraps the whole chain, and its steps are kept out
+    of the proof DAG -- the chain reads as a single step."""
+
+    has_handrail = True
+
+
 class Step(Paragraph):
     autonumber = True
     classreftext: ClassVar[str] = "Step ⟨{number}⟩"
@@ -1643,6 +1651,7 @@ class Step(Paragraph):
 
 
 Step.possible_parents.add(Step)
+Step.possible_parents.add(Calc)
 Step._number_within = (Proof, Step)
 
 

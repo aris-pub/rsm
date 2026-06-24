@@ -419,7 +419,10 @@ export function setup(root = document) {
     const center = window.innerHeight / 2;
     let best = -1;
     let bestTop = -Infinity;
-    proofEl.querySelectorAll(".step").forEach((s, i) => {
+    // Calc rows are .step elements but NOT proof-DAG steps (they're excluded
+    // from tree_nodes), so skip them to keep this index aligned with the nodes.
+    const steps = [...proofEl.querySelectorAll(".step")].filter((s) => !s.closest(".calc"));
+    steps.forEach((s, i) => {
       const top = s.getBoundingClientRect().top;
       if (top <= center && top > bestTop) {
         bestTop = top;
@@ -459,6 +462,7 @@ export function setup(root = document) {
     threshold: 0,
   });
   for (const s of root.querySelectorAll(".proof[data-nodeid] .step")) {
+    if (s.closest(".calc")) continue; // calc rows are not proof-DAG steps
     stepObserver.observe(s);
   }
 

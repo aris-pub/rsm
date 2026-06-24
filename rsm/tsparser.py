@@ -275,6 +275,7 @@ CST_TYPE_TO_AST_TYPE: dict[str, Callable] = {
     "prev3": nodes.PendingPrev,
     "previous": nodes.PendingPrev,
     "proof": nodes.Proof,
+    "calc": nodes.Calc,
     "proposition": nodes.Proposition,
     "ref": nodes.PendingReference,
     "remark": nodes.Remark,

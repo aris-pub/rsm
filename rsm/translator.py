@@ -1603,6 +1603,23 @@ class Translator:
         base_batch.items.insert(-1, AppendHalmos())
         return AppendBatch(base_batch.items)
 
+    def visit_calc(self, node: nodes.Calc) -> EditCommand:
+        # Each relation step starts collapsed: a collapsed step shows its claim
+        # (here the relation) and hides its proof (here the justification), so the
+        # chain reads as the bare relations with each "why" disclosed on demand.
+        # Subtractive (data-start-collapsed): JS off renders it fully open -- the
+        # complete written proof. Reuses the existing collapse; handrails untouched.
+        for step in node.children:
+            if isinstance(step, nodes.Step):
+                step.collapsed = True
+        return AppendBatchAndDefer([AppendNodeTag(node)])
+
+    @auto_leave_deferred
+    def leave_calc(self, node: nodes.Calc, base_batch) -> EditCommand:
+        # One closing tombstone for the whole chain, like a proof.
+        base_batch.items.insert(-1, AppendHalmos())
+        return AppendBatch(base_batch.items)
+
     def visit_cite(self, node: nodes.Cite) -> EditCommand:
         classes = ["cite"]
         if len(node.targets) == 1:
@@ -2237,6 +2254,20 @@ class HandrailsTranslator(Translator):
         return AppendOpenCloseTag(
             tag="div",
             content=start + middle + end,
+            classes=["hr-info-zone"],
+        )
+
+    def _hr_info_zone_disclosure(self) -> AppendOpenCloseTag:
+        # A calc relation discloses its justification from the info-zone -- the
+        # right-margin, per-row-aligned slot where an equation number would sit --
+        # instead of the left gutter. The control is a real .hr-collapse inside a
+        # .hr-collapse-zone, so the delegated collapse handler wires it (it resolves
+        # the enclosing step via .closest('.hr')); CSS reglyphs it as the because-
+        # sign. Presentation choice only; the collapse mechanism is unchanged.
+        control = self._hr_collapse_zone(True).make_text()
+        return AppendOpenCloseTag(
+            tag="div",
+            content=f'<div class="hr-info">{control}</div>',
             classes=["hr-info-zone"],
         )
 
@@ -2968,7 +2999,11 @@ class HandrailsTranslator(Translator):
 
     def leave_step(self, node: nodes.Step) -> EditCommand:
         batch = self.leave_node(node)
-        batch.items.insert(1, self._hr_info_zone_number(node.full_number, style="step"))
+        if node.first_ancestor_of_type(nodes.Calc) is not None:
+            info = self._hr_info_zone_disclosure()
+        else:
+            info = self._hr_info_zone_number(node.full_number, style="step")
+        batch.items.insert(1, info)
         batch = AppendBatch(batch.items)
         return batch
 

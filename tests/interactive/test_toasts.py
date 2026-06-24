@@ -17,9 +17,14 @@ def wait_for_rsm_in_frame(frame):
 
 
 def trigger_copy_link(page_or_frame, *, selector=".hr:not(.hr-hidden)"):
-    """Click the handrail dots to open the menu, then click the copy-link item."""
+    """Click the handrail dots to open the menu, then click the copy-link item.
+
+    The open menu is portaled to <body> out of the handrail (handrails.js), so the
+    copy-link item is reached via the singleton, not under the handrail."""
     page_or_frame.locator(f"{selector} .hr-border-dots").first.click()
-    page_or_frame.locator(f"{selector} .hr-menu-item.link:not(.disabled)").first.click()
+    page_or_frame.locator(
+        "#hr-menu-singleton .hr-menu-item.link:not(.disabled)"
+    ).first.click()
 
 
 class TestToastsDirect:
@@ -57,7 +62,7 @@ class TestToastsUnsandboxedIframe:
         frame = page.frame_locator("#rsm-frame")
         wait_for_rsm_in_frame(frame)
         frame.locator(".hr:not(.hr-hidden) .hr-border-dots").first.click()
-        frame.locator(".hr:not(.hr-hidden) .hr-menu-item.link:not(.disabled)").first.click()
+        frame.locator("#hr-menu-singleton .hr-menu-item.link:not(.disabled)").first.click()
         expect(frame.locator(".toast.success")).to_be_visible()
 
     def test_toast_renders_inside_iframe_not_in_parent(self, page: Page, interactive_server: str):
@@ -66,7 +71,7 @@ class TestToastsUnsandboxedIframe:
         frame = page.frame_locator("#rsm-frame")
         wait_for_rsm_in_frame(frame)
         frame.locator(".hr:not(.hr-hidden) .hr-border-dots").first.click()
-        frame.locator(".hr:not(.hr-hidden) .hr-menu-item.link:not(.disabled)").first.click()
+        frame.locator("#hr-menu-singleton .hr-menu-item.link:not(.disabled)").first.click()
         expect(frame.locator(".toast")).to_be_visible()
         expect(page.locator(".toast")).to_have_count(0)
 
@@ -92,7 +97,7 @@ class TestToastsSandboxedIframe:
             frame = isolated_page.frame_locator("#rsm-frame")
             wait_for_rsm_in_frame(frame)
             frame.locator(".hr:not(.hr-hidden) .hr-border-dots").first.click()
-            frame.locator(".hr:not(.hr-hidden) .hr-menu-item.link:not(.disabled)").first.click()
+            frame.locator("#hr-menu-singleton .hr-menu-item.link:not(.disabled)").first.click()
             expect(frame.locator(".toast.error")).to_be_visible()
         finally:
             context.close()
@@ -103,5 +108,5 @@ class TestToastsSandboxedIframe:
         frame = page.frame_locator("#rsm-frame")
         wait_for_rsm_in_frame(frame)
         frame.locator(".hr:not(.hr-hidden) .hr-border-dots").first.click()
-        frame.locator(".hr:not(.hr-hidden) .hr-menu-item.link:not(.disabled)").first.click()
+        frame.locator("#hr-menu-singleton .hr-menu-item.link:not(.disabled)").first.click()
         expect(frame.locator(".toast")).to_be_visible()

@@ -790,6 +790,101 @@ body {
 }
 
 
+/* Calculational proof (:calc:): the chain reads as one vertical sequence. Its
+   relation steps keep the full .hr structure -- so their content lays out and
+   aligns -- but render NONE of their own handrail chrome except the disclosure
+   control: the native collapse, rendered in the info-zone (the right-margin
+   per-row slot) and reglyphed as the math "because" sign. Collapsed shows the
+   relation, open reveals its :p: justification. No left rule, dots, menu,
+   spacer, or number. Presentation only; the handrail system is untouched. */
+.manuscriptwrapper .calc .step {
+  margin-block: 0;
+}
+.manuscriptwrapper .calc .statement,
+.manuscriptwrapper .calc .statement p {
+  margin-block: 0;
+}
+.manuscriptwrapper .calc .step .hr-menu-zone,
+.manuscriptwrapper .calc .step .hr-border-zone,
+.manuscriptwrapper .calc .step .hr-spacer-zone {
+  display: none;
+}
+/* The disclosure control lives in the info-zone (below); the left-gutter slot and
+   the nested relation/justification collapse zones carry nothing. */
+.manuscriptwrapper .calc .step > .hr-collapse-zone,
+.manuscriptwrapper .calc .step .statement .hr-collapse-zone,
+.manuscriptwrapper .calc .step .subproof .hr-collapse-zone {
+  display: none;
+}
+/* The justification toggle sits in the info-zone -- the right-margin, per-row
+   slot where an equation number would go (translator: _hr_info_zone_disclosure).
+   Reglyph the control as the because-sign (U+2235; no Tabler icon exists): quiet
+   gray at rest -- it reads "a reason exists", not a toggle -- lifting on row
+   hover/focus, and solid primary when its proof is open. */
+.manuscriptwrapper .calc .step > .hr-info-zone .icon {
+  display: none;
+}
+/* A PARENT step's info-zone (.hr-info, z-index:1) paints over this row's control
+   -- the calc sits inside the parent's content-zone -- swallowing clicks/hover.
+   Lift this info-zone above it, and make the control a solid, top-most hit target
+   aligned to the relation (cancelling the base top: chunk-sixth nudge). */
+.manuscriptwrapper .calc .step > .hr-info-zone {
+  z-index: 5;
+}
+.manuscriptwrapper .calc .step > .hr-info-zone .hr-collapse {
+  position: relative;
+  z-index: 1;
+  top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--chunk-half);
+  min-height: var(--chunk-half);
+  opacity: 1;
+  cursor: pointer;
+}
+.manuscriptwrapper .calc .step > .hr-info-zone .hr-collapse::before {
+  content: "";
+  display: block;
+  width: var(--chunk-third);
+  height: var(--chunk-third);
+  background-color: var(--medium);
+  transition: background-color 0.12s ease;
+  /* the because-sign (two dots over one) as an SVG mask, so background-color
+     still themes it (gray at rest, primary on hover/open). */
+  --calc-because: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='8' cy='9' r='2.3'/%3E%3Ccircle cx='16' cy='9' r='2.3'/%3E%3Ccircle cx='12' cy='16' r='2.3'/%3E%3C/svg%3E");
+  -webkit-mask: var(--calc-because) center / contain no-repeat;
+  mask: var(--calc-because) center / contain no-repeat;
+}
+.manuscriptwrapper .calc .step:hover > .hr-info-zone .hr-collapse::before,
+.manuscriptwrapper .calc .step:focus-within > .hr-info-zone .hr-collapse::before {
+  background-color: var(--primary-700);
+}
+.manuscriptwrapper .calc .step:not(.hr-collapsed) > .hr-info-zone .hr-collapse::before {
+  background-color: var(--primary-600);
+}
+/* Touch: give the because-mark a >=44px tap target. */
+@media (hover: none) and (pointer: coarse) {
+  .manuscriptwrapper .calc .step > .hr-info-zone .hr-collapse::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 44px;
+    height: 44px;
+    transform: translate(-50%, -50%);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .manuscriptwrapper .calc .step > .hr-info-zone .hr-collapse::before {
+    transition: none;
+  }
+}
+.manuscriptwrapper .calc .step.hr-collapsed > .hr-content-zone::after {
+  content: none !important;
+}
+
+
 /* Headings */
 .manuscriptwrapper {
 
@@ -1189,7 +1284,9 @@ body {
 }
 
 
-/* Menu positioning and interaction */
+/* Menu positioning and interaction. The in-zone z-index applies only for the
+   instant the menu sits in its handrail zone, before handrails.js measures it
+   and portals it to <body> (where the .hr-menu-portaled rules below take over). */
 .manuscriptwrapper .hr .hr-menu-zone .hr-menu {
   position: relative;
   left: calc(-2.5 * var(--chunk) + var(--hr-zone-width));
@@ -1198,6 +1295,86 @@ body {
 .manuscriptwrapper .hr.hr-offset .hr-menu-zone .hr-menu {
   position: relative;
   left: calc(-2.5 * var(--chunk));
+}
+
+/* The open menu is portaled to <body> (handrails.js) to escape ancestor stacking
+   contexts that otherwise paint it behind the fixed proof-rail (z-index 40). Once
+   on <body> it leaves .hr-menu-zone, so the zone-scoped appearance rules above no
+   longer reach it: re-state the box, position, and z-index here. The popup is
+   re-anchored with inline position:absolute + page-coordinate left/top from its
+   measured in-zone rect, so it scrolls with the page yet sits above the rail. */
+#hr-menu-singleton.hr-menu-portaled {
+  position: static;
+  /* On <body> the menu no longer inherits the manuscript's font-family, so it
+     falls back to the browser serif default. Restate the document typeface. */
+  font-family: var(--font-body);
+}
+#hr-menu-singleton.hr-menu-portaled .hr-menu {
+  /* above the fixed proof-rail (40); below the source modal (2000)/toast (2100) */
+  z-index: 1100;
+  display: flex;
+  flex-direction: column;
+  gap: var(--chunk-twelfth);
+  padding-block: var(--chunk-sixth);
+  background: var(--surface-page);
+  border: var(--border-extrathin) solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  width: calc(2.5 * var(--chunk));
+  box-shadow: var(--shadow-soft), var(--shadow-border);
+}
+/* The global icon-size rule (.manuscriptwrapper .icon svg) does not reach the
+   body-level portal, so re-state it here or the menu icons render at their
+   intrinsic (huge) size. */
+#hr-menu-singleton.hr-menu-portaled .icon svg {
+  width: var(--chunk-third);
+  height: var(--chunk-third);
+  display: block;
+}
+/* Item/label/separator layout and colors, mirroring the zone-scoped rules the
+   portal escapes (see the .hr-menu-zone blocks above and below). */
+#hr-menu-singleton.hr-menu-portaled .hr-menu-item,
+#hr-menu-singleton.hr-menu-portaled .hr-menu-label {
+  display: flex;
+  padding-inline: var(--chunk-quarter);
+  gap: var(--chunk-sixth);
+  align-items: center;
+}
+#hr-menu-singleton.hr-menu-portaled .hr-menu-item .hr-menu-item-text,
+#hr-menu-singleton.hr-menu-portaled .hr-menu-label .hr-menu-item-text {
+  font-size: 0.875rem;
+}
+#hr-menu-singleton.hr-menu-portaled .hr-menu-label .hr-menu-item-text {
+  font-weight: var(--weight-semi);
+}
+#hr-menu-singleton.hr-menu-portaled .hr-menu-separator {
+  border-top: var(--border-extrathin) solid var(--light);
+  margin-block: var(--chunk-twelfth);
+  width: calc(100% - var(--chunk-half));
+  left: var(--chunk-quarter);
+  position: relative;
+}
+/* The .manuscriptwrapper .icon svg sizing also stops reaching the portaled menu,
+   so its icons render at intrinsic (huge) size and balloon each row; re-state it.
+   Mirrors the "Icons" rule. */
+#hr-menu-singleton.hr-menu-portaled .icon svg {
+  width: var(--chunk-third);
+  height: var(--chunk-third);
+  display: block;
+}
+#hr-menu-singleton.hr-menu-portaled .hr-menu-item {
+  svg {stroke: var(--dark);}
+  .hr-menu-item-text {color: var(--gray-800);}
+
+  &.disabled {
+    svg {stroke: var(--medium);}
+    .hr-menu-item-text {color: var(--medium);}
+  }
+
+  &:hover:not(.disabled), &.active:not(.disabled) {
+    background: var(--surface-hint);
+    svg {stroke: var(--extra-dark);}
+    .hr-menu-item-text {color: var(--gray-900);}
+  }
 }
 .manuscriptwrapper .hr {
   .hr-border-dots:hover, .hr-collapse:hover {background: var(--surface-hint);}

@@ -651,7 +651,21 @@ var RSM = (() => {
       zone.appendChild(singletonMenu);
       singletonMenu.style.display = "";
       zone.style.display = "block";
+      portalMenuToBody();
     }
+  }
+  function menuPopup() {
+    return singletonMenu && singletonMenu.querySelector(".hr-menu");
+  }
+  function portalMenuToBody() {
+    const popup = menuPopup();
+    if (!popup) return;
+    const rect = popup.getBoundingClientRect();
+    document.body.appendChild(singletonMenu);
+    singletonMenu.classList.add("hr-menu-portaled");
+    popup.style.position = "absolute";
+    popup.style.left = `${rect.left + window.scrollX}px`;
+    popup.style.top = `${rect.top + window.scrollY}px`;
   }
   function configureItem(el, value) {
     if (!el) return;
@@ -715,12 +729,21 @@ var RSM = (() => {
   function hideMenu() {
     if (!singletonMenu) return;
     singletonMenu.style.display = "none";
+    singletonMenu.classList.remove("hr-menu-portaled");
+    const popup = menuPopup();
+    if (popup) {
+      popup.style.position = "";
+      popup.style.left = "";
+      popup.style.top = "";
+    }
     singletonMenu.querySelectorAll(".hr-menu-item").forEach((it) => it.classList.remove("active"));
     if (activeHr) {
       activeHr.classList.remove("hr-menu-open");
       const zone = activeHr.querySelector(":scope > .hr-menu-zone");
       if (zone) zone.style.display = "";
     }
+    const home = document.querySelector(".manuscriptwrapper");
+    if (home && singletonMenu.parentElement !== home) home.appendChild(singletonMenu);
     activeHr = null;
   }
   function toggleMenuFor(hr) {
@@ -1132,14 +1155,17 @@ var RSM = (() => {
       $(el).tooltipster("open");
     }
   }
+  function openMenuEl() {
+    return document.querySelector("#hr-menu-singleton .hr-menu");
+  }
   function executeActiveMenuItem(el) {
-    const menu = el.querySelector(":scope > .hr-menu-zone .hr-menu");
+    const menu = openMenuEl();
     if (!menu) return;
     const active = menu.querySelector(":scope > .hr-menu-item.active:not(.disabled)");
     if (active) active.click();
   }
   function menuUpOrDown(el, direction) {
-    const menu = el.querySelector(":scope > .hr-menu-zone .hr-menu");
+    const menu = openMenuEl();
     if (!menu) return;
     const items = Array.from(menu.querySelectorAll(":scope > .hr-menu-item")).filter((it) => it.offsetParent !== null && !it.classList.contains("disabled"));
     if (!items.length) return;
@@ -1775,7 +1801,8 @@ var RSM = (() => {
       const center = window.innerHeight / 2;
       let best = -1;
       let bestTop = -Infinity;
-      proofEl.querySelectorAll(".step").forEach((s, i) => {
+      const steps = [...proofEl.querySelectorAll(".step")].filter((s) => !s.closest(".calc"));
+      steps.forEach((s, i) => {
         const top = s.getBoundingClientRect().top;
         if (top <= center && top > bestTop) {
           bestTop = top;
@@ -1810,6 +1837,7 @@ var RSM = (() => {
       threshold: 0
     });
     for (const s of root2.querySelectorAll(".proof[data-nodeid] .step")) {
+      if (s.closest(".calc")) continue;
       stepObserver.observe(s);
     }
     function cloneClean(el) {

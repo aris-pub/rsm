@@ -166,7 +166,13 @@ def _compute_tree(proof) -> None:
     and the root are added by the renderer, as for the TOC. Definitions,
     equations, and cross-proof step references stay out.
     """
-    steps = list(proof.traverse(nodeclass=nodes.Step))
+    # Steps inside a :calc: chain are not proof-DAG steps (the chain reads as a
+    # single step), so keep them out of the proof's tree and state.
+    steps = [
+        s
+        for s in proof.traverse(nodeclass=nodes.Step)
+        if s.first_ancestor_of_type(nodes.Calc) is None
+    ]
     if not steps:
         return
     row_of = {id(s): i for i, s in enumerate(steps)}
@@ -402,7 +408,13 @@ def serialize_state(proof):
 
 
 def _compute_state(proof, ambient_intros=()) -> None:
-    steps = list(proof.traverse(nodeclass=nodes.Step))
+    # Steps inside a :calc: chain are not proof-DAG steps (the chain reads as a
+    # single step), so keep them out of the proof's tree and state.
+    steps = [
+        s
+        for s in proof.traverse(nodeclass=nodes.Step)
+        if s.first_ancestor_of_type(nodes.Calc) is None
+    ]
     if not steps:
         return
     # Document-wide context inherited by this proof (prose/definition intros in

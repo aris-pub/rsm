@@ -46,6 +46,8 @@ mathblock = BlockTagInfo(None)
 """Math block (a.k.a. display math)."""
 proof = BlockTagInfo(None)
 """Proof of Theorem."""
+calc = BlockTagInfo(None)
+"""Equational/calculational proof: a chain of relation steps, each with a justification."""
 proposition = BlockTagInfo(None)
 """Proposition."""
 remark = BlockTagInfo(None)

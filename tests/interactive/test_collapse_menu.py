@@ -79,13 +79,15 @@ def test_clicking_menu_item_does_not_select_block(page: Page, interactive_server
 
 def test_dot_shortcut_opens_focused_menu(page: Page, interactive_server: str):
     # The "." shortcut toggles the focused handrail's menu. It must drive the
-    # shared singleton (move it into the focused handrail's zone), not the old
-    # per-handrail menu-zone, which is empty until the singleton is moved in.
+    # shared singleton, which while open is portaled to <body> (to escape ancestor
+    # stacking contexts), so assert the singleton itself is open/visible and that
+    # the menu is configured for this handrail (activeHr drives its items).
     _load(page, interactive_server)
     step = page.locator("#stp-outer")
     step.focus()
     page.keyboard.press(".")
-    expect(step.locator(":scope > .hr-menu-zone #hr-menu-singleton")).to_be_visible()
+    expect(page.locator("#hr-menu-singleton .hr-menu")).to_be_visible()
+    expect(step).to_have_class(re.compile(r"\bhr-menu-open\b"))
 
 
 def test_escape_closes_open_menu(page: Page, interactive_server: str):
@@ -93,9 +95,28 @@ def test_escape_closes_open_menu(page: Page, interactive_server: str):
     step = page.locator("#stp-outer")
     step.focus()
     page.keyboard.press(".")
-    expect(step.locator(":scope > .hr-menu-zone #hr-menu-singleton")).to_be_visible()
+    expect(page.locator("#hr-menu-singleton .hr-menu")).to_be_visible()
     page.keyboard.press("Escape")
     expect(page.locator("#hr-menu-singleton")).to_be_hidden()
+
+
+def test_arrow_and_enter_activate_menu_item(page: Page, interactive_server: str):
+    # Keyboard menu nav (ArrowDown highlights, Enter activates) must find the
+    # singleton wherever it lives. Since the open menu is portaled to <body>,
+    # keyboard.js locates it by id, not under the focused handrail's zone.
+    _load(page, interactive_server)
+    step = page.locator("#stp-outer")
+    step.focus()
+    page.keyboard.press(".")
+    expect(page.locator("#hr-menu-singleton .hr-menu")).to_be_visible()
+    # First visible item on a substep-bearing step is "Collapse"; highlight and
+    # activate it, then the step must collapse.
+    page.keyboard.press("ArrowDown")
+    expect(
+        page.locator("#hr-menu-singleton .hr-menu-item.active").first
+    ).to_be_visible()
+    page.keyboard.press("Enter")
+    expect(step).to_have_class(re.compile(r"\bhr-collapsed\b"))
 
 
 def test_comma_collapses_focused_step(page: Page, interactive_server: str):
