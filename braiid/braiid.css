@@ -2987,7 +2987,7 @@ a.reference.external:hover::after {
    the content can no longer fit beside the min rail, so the rail becomes a
    bottom-sheet drawer and the content re-centres. */
 @media (min-width: 1321px) {
-  .manuscriptwrapper .proof-rail.active {
+  .manuscriptwrapper .proof-rail.active:not(.collapsed) {
     width: clamp(300px, calc((100vw - var(--content-max-width, var(--chunk-20))) / 2 - 2rem), 380px);
   }
   .manuscriptwrapper {
