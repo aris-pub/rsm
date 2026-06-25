@@ -2932,6 +2932,115 @@ a.reference.external:hover::after {
   z-index: 2100;
 }
 
+
+/* Print / PDF.
+
+   Browsers export PDF with JavaScript ON, so the JS-off <noscript> path never
+   fires and the screen-only chrome (floating rail, gutter controls, collapse
+   folds) would otherwise leak onto paper. This block is the real print fallback:
+   it swaps live widgets for their static images, strips interactive chrome, and
+   unfolds everything JS hid so the PDF is a complete, readable paper.
+
+   Kept inside @layer base, as the last rules in the layer, on purpose. The
+   on-screen folds use .hide { display:none !important }, and for important
+   declarations the cascade-layer order is REVERSED: an unlayered !important
+   would LOSE to that layered one. Declaring these unfold rules later in the
+   same layer lets source order (and specificity) decide, so they win. The few
+   rules that fight the unlayered desktop layout below use !important, which
+   beats any normal (non-important) unlayered declaration regardless of layer. */
+@media print {
+
+  /* Interactive widget figures: show the static image, hide the live mount.
+     The .static-fallback span carries an inline display:none (set by the JS
+     toggle, see translator._static_fallback_img), so revealing it needs
+     !important to beat that inline style. The live mount is every non-fallback
+     child of a content-zone inside the figure: the <picture>/<img> for an image
+     figure, or the widget element (and its <script>s) for a :html: figure,
+     which RSM emits as its own .paragraph block inside the same <figure>. */
+  figure[data-static] .static-fallback {
+    display: revert !important;
+  }
+  figure[data-static] .static-fallback .static-fallback-light {
+    display: revert;
+  }
+  figure[data-static] .static-fallback .static-fallback-dark {
+    display: none;
+  }
+  figure[data-static] .hr-content-zone > :not(.static-fallback):not(noscript) {
+    display: none !important;
+  }
+
+  /* Screen-only chrome: none of it belongs in a printed document. The rail
+     hides every form it takes (desktop side panel and mobile bottom-sheet
+     drawer share the .proof-rail class). The handrail gutter holds collapse
+     chevrons and the dots menu; the back-pill, focus-mode exit bar, toasts,
+     tooltips, theme toggle, and the source modal are all transient overlays. */
+  .proof-rail,
+  .hr-collapse-zone,
+  .hr-menu-zone,
+  .hr-border-zone,
+  .rsm-back-pill,
+  .proof-focus-exit,
+  .toast,
+  .tooltipster-base,
+  .rsm-theme-toggle,
+  .rsm-source-modal,
+  .rsm-source {
+    display: none !important;
+  }
+
+  /* Unfold everything JS collapsed. closeHandrail adds .hide (display:none
+     !important) to a collapsed block's body and the page shows a "steps hidden"
+     tombstone; :collapsed: proofs and focus mode do the same. A PDF reader must
+     see every step and proof, so re-show the hidden bodies and drop the
+     tombstones. The unfolded body is either a handrail block (.hr, laid out as
+     flex) or plain block content, so restore each its own display rather than
+     `revert` (which would roll back to .hide's display:none); the higher-
+     specificity .hr.hide rule then wins the flex case over the block default. */
+  .manuscriptwrapper .hide {
+    display: block !important;
+  }
+  .manuscriptwrapper .hr.hide {
+    display: flex !important;
+  }
+  .step.proof-focus-collapsed > .hr-content-zone > * {
+    display: revert !important;
+  }
+  .hr.hr-collapsed > .hr-content-zone::after,
+  .step.proof-focus-collapsed > .hr-content-zone::after {
+    content: none !important;
+  }
+
+  /* Layout: with the rail gone, reclaim the gutter the desktop layout reserves
+     for it (the >=1321px rule pushes the column right by the rail's width) and
+     re-centre the column on the page. !important is needed because that rule is
+     unlayered and would otherwise outrank this layered one. */
+  .manuscriptwrapper {
+    margin: 0 auto !important;
+    max-width: 100% !important;
+  }
+
+  @page {
+    margin: 2cm;
+  }
+
+  /* Keep mathematical units intact across page breaks, and keep a heading with
+     the content it introduces. break-inside is the modern property; the legacy
+     page-break-inside is kept for older print engines. */
+  figure,
+  .theorem,
+  .proof,
+  .mathblock,
+  .step {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+}
+
 }
 
 
