@@ -436,6 +436,7 @@ body {
 :root[data-reading-size="4"] { --font-size: 125%; }
 :root[data-reading-leading="tight"] { --body-line-height: 1.3; }
 :root[data-reading-leading="loose"] { --body-line-height: 1.85; }
+:root { --content-max-width: 54rem; }  /* default body measure; presets below override */
 :root[data-reading-measure="narrow"] { --content-max-width: 52rem; }
 :root[data-reading-measure="wide"] { --content-max-width: 68rem; }
 
@@ -848,7 +849,9 @@ body {
   display: block;
   width: calc(var(--chunk-third) * 1.1);
   height: calc(var(--chunk-third) * 1.1);
-  background-color: var(--medium);
+  /* --dark, not --medium: the rest-state sign was ~2.05; --dark clears WCAG
+     non-text (3:1) and 1.4.3 (4.5:1) while staying a quiet gray before hover. */
+  background-color: var(--dark);
   transition: background-color 0.12s ease;
   /* the because-sign (two dots over one) as an SVG mask, so background-color
      still themes it (gray at rest, primary on hover/open). */
@@ -1505,7 +1508,9 @@ body {
     position: relative;
     left: var(--chunk-twelfth);
     top: var(--chunk-sixth);
-    color: var(--medium);
+    /* >= 4.5:1 on the page (--medium was ~2.05): the tombstone stays a quiet
+       gray but meets WCAG 1.4.3 AA. */
+    color: var(--dark);
     font-style: italic;
     font-size: 0.875rem;
   }
@@ -1856,7 +1861,7 @@ body {
     border-color: var(--primary-700);
   }
   .rail-collapsed-title { font-weight: 600; font-size: 0.875rem; color: var(--text-body); }
-  .rail-collapsed-meta { font-size: 0.8rem; color: var(--text-subtle); }
+  .rail-collapsed-meta { font-size: 0.8rem; color: var(--dark); }  /* --text-subtle fails 4.5:1 on the rail surface (esp. dark); --dark passes */
   .rail-collapsed-cue { font-size: 0.8rem; color: var(--primary-700); }
 
   /* Notation pane: one rebind row per declared symbol. */
