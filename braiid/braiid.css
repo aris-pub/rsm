@@ -1953,6 +1953,25 @@ body {
     overflow: visible;
   }
 
+  /* The DAG is shrunk to fit the gutter, which drags the label type down with
+     it. Bump the label type (the section numbers and the short "Top" root
+     marker) back up to a readable size; the graph geometry (boxes, edges,
+     positions) is unchanged, so the larger glyphs sit over the small boxes. */
+  .proof-rail svg.toc-tree .toc-secnum { font-size: 32px; }
+
+  /* Make only the node boxes 10% larger so the bumped type sits in them more
+     comfortably. Scaled in place from each box's own centre (transform-box:
+     fill-box), so node positions, edges, spacing, and the text are unchanged. */
+  .proof-rail svg.toc-tree .toc-node rect {
+    transform: scale(1.1);
+    transform-origin: center;
+    transform-box: fill-box;
+  }
+
+  /* Hover tooltip type bumped to match the nodes; the JS sizes its background
+     box from getBBox, so the box re-fits the larger text automatically. */
+  .proof-rail svg.toc-tree .toc-hover-label text { font-size: 32px; }
+
   /* State view: live hypotheses and current goal, cloned from the body. */
   .rail-state {
     font-size: 0.82rem;

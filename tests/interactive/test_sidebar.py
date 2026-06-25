@@ -78,33 +78,38 @@ def test_scope_persists(page: Page, interactive_server: str):
     assert "scope-proof" in _rail_class(page), "scope choice should persist"
 
 
-def test_proof_autofollow(page: Page, interactive_server: str):
-    # Short (but still wide: the floating sidebar has a min-width) viewport, so
-    # the proof is reliably below the fold at the top.
+def test_proof_selection_follows_clicks_not_scroll(page: Page, interactive_server: str):
+    # The Proof scope follows the selected (clicked / focused) proof, not the
+    # scroll. Short (wide) viewport so the proof starts below the fold.
     page.set_viewport_size({"width": 1400, "height": 460})
     _load(page, interactive_server)
-    # At the top the proof is off-screen: no proof is "in view".
     page.evaluate("() => window.scrollTo(0, 0)")
     page.wait_for_function(
         "() => document.querySelector('.proof-rail').classList.contains('no-proof')",
         timeout=5_000,
     )
-    # Scroll the proof so its top sits ~20% down, inside the observer's reading
-    # band: its rail item becomes the shown one and the Proof scope goes live.
+    # Scrolling the proof into view must NOT select it (no scroll-spy any more).
     page.evaluate(
-        """() => {
-            const el = document.querySelector('.proof[data-nodeid]');
-            const y = el.getBoundingClientRect().top + window.scrollY
-                      - window.innerHeight * 0.2;
-            window.scrollTo(0, y);
-        }"""
+        "() => document.querySelector('.proof[data-nodeid]').scrollIntoView({block: 'center'})"
     )
+    page.wait_for_timeout(400)
+    assert page.evaluate(
+        "() => document.querySelector('.proof-rail').classList.contains('no-proof')"
+    ), "scrolling a proof into view should not select it"
+    # Clicking it selects it: its rail item becomes the shown one.
+    page.evaluate("() => document.querySelector('.proof[data-nodeid]').click()")
     page.wait_for_function(
         "() => { const r = document.querySelector('.proof-rail');"
         " return !r.classList.contains('no-proof')"
         " && !!r.querySelector('.rail-proof .proof-rail-item.shown'); }",
         timeout=5_000,
     )
+    # And the selection persists when scrolling away.
+    page.evaluate("() => window.scrollTo(0, 0)")
+    page.wait_for_timeout(300)
+    assert not page.evaluate(
+        "() => document.querySelector('.proof-rail').classList.contains('no-proof')"
+    ), "selection should persist when scrolling away"
 
 
 def test_sidebar_absent_without_js(browser, interactive_server: str):
@@ -250,11 +255,11 @@ def test_proof_state_refs_get_body_tooltips(page: Page, interactive_server: str)
     # (which include the :assume: that references thm-x) render in the panel.
     page.evaluate(
         """() => {
-            const steps = document.querySelectorAll('.proof .step');
+            const steps = [...document.querySelectorAll('.proof[data-nodeid] .step')]
+                .filter((s) => !s.closest('.calc'));
             const el = steps[steps.length - 1];
-            const y = el.getBoundingClientRect().top + window.scrollY
-                      - window.innerHeight * 0.4;
-            window.scrollTo(0, y);
+            el.scrollIntoView({ block: 'center' });
+            el.click();
         }"""
     )
     link = page.wait_for_selector(".rail-state a.reference", timeout=5_000)
@@ -293,9 +298,8 @@ def test_proof_state_shows_document_context(page: Page, interactive_server: str)
     page.evaluate(
         """() => {
             const el = document.querySelector('.proof[data-nodeid]');
-            const y = el.getBoundingClientRect().top + window.scrollY
-                      - window.innerHeight * 0.2;
-            window.scrollTo(0, y);
+            el.scrollIntoView({ block: 'center' });
+            el.click();
         }"""
     )
     block = page.wait_for_selector(".rail-state .rail-context", timeout=5_000)
@@ -316,11 +320,11 @@ def test_proof_state_math_is_typeset(page: Page, interactive_server: str):
     page.click('.rail-subtabs-proof .rail-tab[data-view="state"]')
     page.evaluate(
         """() => {
-            const steps = document.querySelectorAll('.proof .step');
+            const steps = [...document.querySelectorAll('.proof[data-nodeid] .step')]
+                .filter((s) => !s.closest('.calc'));
             const el = steps[steps.length - 1];
-            const y = el.getBoundingClientRect().top + window.scrollY
-                      - window.innerHeight * 0.4;
-            window.scrollTo(0, y);
+            el.scrollIntoView({ block: 'center' });
+            el.click();
         }"""
     )
     panel = page.wait_for_selector(".rail-state .rail-state-block", timeout=5_000)
@@ -342,9 +346,8 @@ def test_proof_state_group_keyboard_operable(page: Page, interactive_server: str
     page.evaluate(
         """() => {
             const el = document.querySelector('.proof[data-nodeid]');
-            const y = el.getBoundingClientRect().top + window.scrollY
-                      - window.innerHeight * 0.2;
-            window.scrollTo(0, y);
+            el.scrollIntoView({ block: 'center' });
+            el.click();
         }"""
     )
     head = page.wait_for_selector(".rail-state .rail-goal .rail-state-head", timeout=5_000)
@@ -376,13 +379,14 @@ _WRITE_CENTERED = """() => {
 }"""
 
 
-def _scroll_proof_into_band(page: Page) -> None:
+def _select_proof(page: Page) -> None:
+    # Selection is click/focus-driven now, not scroll: clicking the proof (as the
+    # reader would) shows it in the rail and lights up the Proof scope.
     page.evaluate(
         """() => {
             const el = document.querySelector('.proof[data-nodeid]');
-            const y = el.getBoundingClientRect().top + window.scrollY
-                      - window.innerHeight * 0.2;
-            window.scrollTo(0, y);
+            el.scrollIntoView({ block: 'center' });
+            el.click();
         }"""
     )
 
@@ -395,7 +399,7 @@ def test_proof_state_rows_are_uniform_jump_rows(page: Page, interactive_server: 
     _load(page, interactive_server)
     page.click('.rail-scope[data-scope="proof"]')
     page.click('.rail-subtabs-proof .rail-tab[data-view="state"]')
-    _scroll_proof_into_band(page)
+    _select_proof(page)
     page.wait_for_selector(".rail-state .rail-context", timeout=5_000)
     assert page.locator(".rail-state .rail-step-badge").count() == 0
     assert page.locator(".rail-state .rail-hyps .rail-jump-row").count() > 0
@@ -417,7 +421,7 @@ def test_proof_state_context_row_jumps_to_source(page: Page, interactive_server:
     _load(page, interactive_server)
     page.click('.rail-scope[data-scope="proof"]')
     page.click('.rail-subtabs-proof .rail-tab[data-view="state"]')
-    _scroll_proof_into_band(page)
+    _select_proof(page)
     row = page.wait_for_selector(
         ".rail-state .rail-context li:has-text('spectral radius')", timeout=5_000
     )
@@ -438,10 +442,10 @@ def test_proof_dag_pins_current_step_path(page: Page, interactive_server: str):
     # Make the proof's first step current: its cone is small, so later steps fade.
     page.evaluate(
         """() => {
-            const step = document.querySelector('.proof .step');
-            const y = step.getBoundingClientRect().top + window.scrollY
-                      - window.innerHeight * 0.5;
-            window.scrollTo(0, y);
+            const step = [...document.querySelectorAll('.proof[data-nodeid] .step')]
+                .find((s) => !s.closest('.calc'));
+            step.scrollIntoView({ block: 'center' });
+            step.click();
         }"""
     )
     cur = page.wait_for_selector(
@@ -468,10 +472,10 @@ def test_proof_state_setup_goal_is_a_gutter_row(page: Page, interactive_server: 
     # Center the proof's first step, an :assume: working toward the theorem.
     page.evaluate(
         """() => {
-            const step = document.querySelector('.proof .step');
-            const y = step.getBoundingClientRect().top + window.scrollY
-                      - window.innerHeight * 0.5;
-            window.scrollTo(0, y);
+            const step = [...document.querySelectorAll('.proof[data-nodeid] .step')]
+                .find((s) => !s.closest('.calc'));
+            step.scrollIntoView({ block: 'center' });
+            step.click();
         }"""
     )
     summary = page.wait_for_selector(

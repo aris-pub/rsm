@@ -1154,16 +1154,16 @@ class Translator:
             ]
         )
 
-    def _toc_tree_svg(self, node: nodes.Contents) -> str:
+    def _toc_tree_svg(self, node: nodes.Contents, root_label: str | None = None) -> str:
         return self._build_tree_svg(
             node.tree_nodes, node.toc_edges, node.tree_root_title,
-            "Section dependency graph",
+            "Section dependency graph", root_label=root_label,
         )
 
     def _build_tree_svg(
         self, tree_nodes: list[dict], ref_edges: list[dict],
         root_title: str, aria_label: str, orient: str = "vertical",
-        bracket_nums: bool = False,
+        bracket_nums: bool = False, root_label: str | None = None,
     ) -> str:
         """Pre-rendered dependency-graph SVG, shared by the TOC and proof trees.
 
@@ -1177,7 +1177,7 @@ class Translator:
         """
         from html import escape
 
-        from .toc_layout import ROOT_LABEL, layout_tree
+        from .toc_layout import layout_tree
 
         secs = tree_nodes
         if not secs:
@@ -1199,7 +1199,7 @@ class Translator:
                         break
             struct.append({"src": i, "dst": parent, "count": 1, "kind": "struct"})
 
-        layout = layout_tree(secs + [root], ref_edges + struct, orient)
+        layout = layout_tree(secs + [root], ref_edges + struct, orient, root_label=root_label)
         if layout is None:
             return '<svg class="toc-tree" aria-hidden="true"></svg>'
         horizontal = orient == "horizontal"
@@ -1249,12 +1249,12 @@ class Translator:
             full = (f'{n["num"]}. {n["title"]}' if n["num"] else n["title"])
             # The compact horizontal-rail root shows a short "Goal" marker; its
             # full statement is on hover. Other nodes show their number/title.
-            if horizontal and n["depth"] == 0:
-                inner = escape(ROOT_LABEL)
+            if root_label and n["depth"] == 0:
+                inner = escape(root_label)
             elif n["num"]:
                 # Match the State panel's step markers: ⟨X.Y⟩ for the proof DAG,
-                # "X.Y." for the document TOC.
-                inner = f"⟨{escape(n['num'])}⟩" if bracket_nums else escape(n["num"]) + "."
+                # the bare number for the document TOC.
+                inner = f"⟨{escape(n['num'])}⟩" if bracket_nums else escape(n["num"])
             else:
                 inner = escape(n["title"])
             ncls = "toc-node level-{}".format(n["depth"])
@@ -2539,7 +2539,7 @@ class HandrailsTranslator(Translator):
         doc_panels = []
         if toc.tree_nodes:
             doc_panels.append(
-                f'<div class="rail-panel rail-doc-map">{self._toc_tree_svg(toc)}</div>'
+                f'<div class="rail-panel rail-doc-map">{self._toc_tree_svg(toc, root_label="Top")}</div>'
             )
         has_notation = (
             next(iter(self.tree.traverse(nodeclass=nodes.Notation)), None) is not None
@@ -2556,7 +2556,7 @@ class HandrailsTranslator(Translator):
             svg = self._build_tree_svg(
                 proof.tree_nodes, proof.tree_edges, proof.tree_root_title,
                 "Proof step dependency graph", orient="horizontal",
-                bracket_nums=True,
+                bracket_nums=True, root_label="Goal",
             )
             proof_items.append(
                 self._rail_item(
@@ -2631,7 +2631,7 @@ class HandrailsTranslator(Translator):
         proof_section = (
             '<div class="rail-section rail-proof">'
             '<div class="rail-proof-empty">'
-            "Scroll into a proof to see its map and state.</div>"
+            "Click a proof to see its map and state.</div>"
             + "".join(proof_items) + "</div>"
         )
 

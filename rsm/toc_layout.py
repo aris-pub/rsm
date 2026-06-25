@@ -22,19 +22,20 @@ COMPONENT_GAP = 70  # horizontal gap between disconnected components
 ROOT_LABEL = "Goal"  # horizontal proof-rail root; full statement shown on hover
 
 
-def _node_width(node: dict, compact_root: bool = False) -> int:
-    # Numbered sections size to their (short) number. The unnumbered root sizes
-    # to its title so the paper title fits in the vertical TOC; in the narrow
-    # proof rail it shrinks to the short "Goal" marker (full statement on hover)
-    # so it doesn't eat the limited horizontal space.
-    if compact_root and node["depth"] == 0:
-        return int(len(ROOT_LABEL) * CHAR_W) + 2 * NODE_PAD_X
-    text = node["num"] + "." if node["num"] else node["title"]
+def _node_width(node: dict, root_label: str | None = None) -> int:
+    # When a root_label is given, the root collapses to that short marker (full
+    # title/statement on hover) so it doesn't eat the limited width. Numbered
+    # sections size to their (short) number; an unlabelled root sizes to its
+    # full title.
+    if root_label is not None and node["depth"] == 0:
+        return int(len(root_label) * CHAR_W) + 2 * NODE_PAD_X
+    text = node["num"] if node["num"] else node["title"]
     return int(len(text) * CHAR_W) + 2 * NODE_PAD_X
 
 
 def layout_tree(
-    nodes: list[dict], edges: list[dict], orient: str = "vertical"
+    nodes: list[dict], edges: list[dict], orient: str = "vertical",
+    root_label: str | None = None,
 ) -> dict | None:
     """Return positioned nodes and edges, or None if layout is unavailable.
 
@@ -57,7 +58,7 @@ def layout_tree(
         return None
 
     horizontal = orient == "horizontal"
-    nw = {i: _node_width(n, horizontal) for i, n in enumerate(nodes)}
+    nw = {i: _node_width(n, root_label) for i, n in enumerate(nodes)}
 
     verts = {i: Vertex(i) for i in range(len(nodes))}
     for i, v in verts.items():

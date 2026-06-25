@@ -343,6 +343,7 @@ export function setup(root = document) {
     if (!items.has(key)) key = null;
     if (key === current) return;
     current = key;
+    active.idx = -1; // a newly selected proof restarts step tracking from the top
     for (const [k, item] of items) item.classList.toggle("shown", k === key);
     // Outside any proof the Proof scope has nothing live to show; CSS uses this
     // to present an empty state rather than a blank panel.
@@ -352,30 +353,38 @@ export function setup(root = document) {
   }
   show(null);
 
+  // Follow the reader's selection (the focused / clicked block), not the scroll.
+  // The keyboard cursor (j/k, h/l, Tab) moves focus, and clicking anywhere in a
+  // proof selects it; either way the rail shows that proof, and a focus/click on
+  // a specific step selects that step in the State view and the DAG. The cursor
+  // clears the rail when it leaves every proof; a click never clears (so an
+  // outside click does not blank the rail).
+  function stepsOf(proofEl) {
+    return [...proofEl.querySelectorAll(".step")].filter((s) => !s.closest(".calc"));
+  }
+  function selectFrom(target, clearOutside) {
+    if (!target || !target.closest) return;
+    // The rail's own controls and the portaled handrail menu are not selections.
+    if (target.closest(".proof-rail") || target.closest("#hr-menu-singleton")) return;
+    let el = target.closest(".proof[data-nodeid]");
+    while (el && !items.has(el.getAttribute("data-nodeid"))) {
+      const p = el.parentElement;
+      el = p ? p.closest(".proof[data-nodeid]") : null;
+    }
+    if (!el) {
+      if (clearOutside) show(null);
+      return;
+    }
+    show(el.getAttribute("data-nodeid"));
+    const stepEl = target.closest(".step");
+    if (stepEl && !stepEl.closest(".calc") && el.contains(stepEl)) {
+      const idx = stepsOf(el).indexOf(stepEl);
+      if (idx >= 0) updateState(idx);
+    }
+  }
   if (proofs.length) {
-    // The active proof is the one whose box is highest while still overlapping
-    // the reading band near the top of the viewport.
-    const visible = new Set();
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const e of entries) {
-          if (e.isIntersecting) visible.add(e.target);
-          else visible.delete(e.target);
-        }
-        let best = null;
-        let bestTop = Infinity;
-        for (const p of visible) {
-          const top = p.getBoundingClientRect().top;
-          if (top < bestTop) {
-            bestTop = top;
-            best = p;
-          }
-        }
-        show(best ? best.getAttribute("data-nodeid") : null);
-      },
-      { rootMargin: "-12% 0px -55% 0px", threshold: 0 },
-    );
-    for (const p of proofs) observer.observe(p);
+    root.addEventListener("click", (ev) => selectFrom(ev.target, false));
+    root.addEventListener("focusin", (ev) => selectFrom(ev.target, true));
   }
 
   // The body's collapse control flips the rail between the step graph and the
@@ -413,39 +422,16 @@ export function setup(root = document) {
     active.idx = idx;
     renderState();
   }
-  function currentStepOf(proofEl) {
-    // The deepest step whose top has passed the viewport center: the step being
-    // read, and in a gap between steps the last one passed.
-    const center = window.innerHeight / 2;
-    let best = -1;
-    let bestTop = -Infinity;
-    // Calc rows are .step elements but NOT proof-DAG steps (they're excluded
-    // from tree_nodes), so skip them to keep this index aligned with the nodes.
-    const steps = [...proofEl.querySelectorAll(".step")].filter((s) => !s.closest(".calc"));
-    steps.forEach((s, i) => {
-      const top = s.getBoundingClientRect().top;
-      if (top <= center && top > bestTop) {
-        bestTop = top;
-        best = i;
-      }
-    });
-    return best;
-  }
-  function updateState() {
+  function updateState(idx) {
     if (rail.classList.contains("focusing")) {
       setCurrentNode(null);
       return;
     }
-    let idx = -1;
-    if (current) {
-      const proofEl = root.querySelector(`.proof[data-nodeid="${current}"]`);
-      if (proofEl) {
-        idx = currentStepOf(proofEl);
-        // Above the first step the proof's opening still shows step 1's state,
-        // so the rail is never empty while you are inside a proof.
-        if (idx < 0) idx = 0;
-      }
-    }
+    // idx is the selected step within the shown proof. When unspecified (the
+    // proof was just selected, or a collapse toggled), keep the current step,
+    // defaulting to the first so the rail is never empty inside a proof.
+    if (!current) idx = -1;
+    else if (idx == null || idx < 0) idx = active.idx >= 0 ? active.idx : 0;
     setActiveIdx(idx);
     const item = current ? items.get(current) : null;
     const node =
@@ -457,14 +443,8 @@ export function setup(root = document) {
     updatePeekGoal();
   }
 
-  const stepObserver = new IntersectionObserver(() => updateState(), {
-    rootMargin: "-50% 0px -50% 0px",
-    threshold: 0,
-  });
-  for (const s of root.querySelectorAll(".proof[data-nodeid] .step")) {
-    if (s.closest(".calc")) continue; // calc rows are not proof-DAG steps
-    stepObserver.observe(s);
-  }
+  // No step scroll-observer: the State view follows the step the reader clicks
+  // (handled by the proof click handler above), not the scroll position.
 
   function cloneClean(el) {
     const c = el.cloneNode(true);
@@ -510,7 +490,7 @@ export function setup(root = document) {
     const data = stateData.get(item.dataset.proof);
     if (!data || active.idx < 0 || active.idx >= data.length) {
       panel.innerHTML =
-        '<div class="rail-state-empty">Scroll into a proof to see its live hypotheses and current goal.</div>';
+        '<div class="rail-state-empty">Click a proof to see its live hypotheses and current goal.</div>';
       return;
     }
     const st = data[active.idx];
