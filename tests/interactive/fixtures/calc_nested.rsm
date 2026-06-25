@@ -1,0 +1,47 @@
+# Nested calc chain
+
+:theorem: {
+  :label: thm-calc-nest
+  :title: Nesting a calc inside a proof step
+}
+
+  A bound that is proved by a short calculation.
+
+::
+
+:proof: {:of: thm-calc-nest}
+
+  :step: A preliminary step so the proof has its own numbered rows around the
+  calc. ::
+
+  :step: {:label: stp-calc-host}
+
+    :claim: The calculation below establishes the bound. ::
+
+    :p:
+
+      :calc:
+
+        :step: $f(x) = a - b$
+
+          :p: Because the first reason holds. ::
+
+        ::
+
+        :step: $= a - c$
+
+          :p: Because the second reason holds. ::
+
+        ::
+
+        :step: $\le d$
+
+          :p: Because the third reason holds. ::
+
+        ::
+
+      ::
+
+    :: ::
+
+::
