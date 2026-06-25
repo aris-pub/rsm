@@ -2764,6 +2764,30 @@ a.reference.external:hover::after {
 .dark-theme .dark-only { display: revert; }
 .dark-theme .light-only { display: none; }
 
+/* Static fallback for interactive figures (:static: / :dark:).
+   The fallback (shown by the JS static-toggle and inside <noscript> when JS is
+   off) must scale to the container, not render at the image's natural pixel
+   size, which would overflow the figure. */
+.static-fallback,
+.static-fallback img,
+.static-fallback-light,
+.static-fallback-dark {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Light is the default; the dark variant only shows in dark mode. We gate on
+   both the explicit .dark-theme class and prefers-color-scheme: dark (the same
+   two mechanisms braiid uses elsewhere), with .light-theme forcing light. */
+.static-fallback-dark { display: none; }
+.dark-theme .static-fallback-light { display: none; }
+.dark-theme .static-fallback-dark { display: revert; }
+
+@media (prefers-color-scheme: dark) {
+  :root:not(.light-theme) .static-fallback-light { display: none; }
+  :root:not(.light-theme) .static-fallback-dark { display: revert; }
+}
+
 /* Accessibility: Disable transitions and animations when user prefers reduced motion */
 @media (prefers-reduced-motion: reduce) {
   *,

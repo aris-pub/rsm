@@ -1865,7 +1865,30 @@ class Translator:
             return ""
         src = self._resolve_image_src(node.static)
         alt = f"Static fallback for {node.__class__.__name__} {node.full_number}."
-        return f'<img class="static-fallback" src="{src}" alt="{alt}" style="display:none">'
+
+        if node.dark:
+            dark_src = self._resolve_image_src(node.dark)
+            # The dark variant is gated by CSS (.static-fallback-dark) under both
+            # the .dark-theme class and prefers-color-scheme: dark; the light
+            # variant is the default and is hidden by the same CSS in dark mode.
+            inner = (
+                f'<img class="static-fallback-light" src="{src}" alt="{alt}">'
+                f'<img class="static-fallback-dark" src="{dark_src}" alt="{alt}">'
+            )
+        else:
+            inner = f'<img src="{src}" alt="{alt}">'
+
+        # Two copies of the same static content:
+        #   * the .static-fallback element, hidden inline and revealed by the JS
+        #     static-toggle (toggleStaticView), and
+        #   * a <noscript> copy that browsers render only when JS is disabled,
+        #     so the static still appears with scripting off or when printing.
+        # The inline display:none must stay off the noscript copy: CSS cannot
+        # override it, which is exactly why the JS path needs it and the no-JS
+        # path must not have it.
+        toggleable = f'<span class="static-fallback" style="display:none">{inner}</span>'
+        noscript = f"<noscript>{inner}</noscript>"
+        return toggleable + noscript
 
     def visit_figure(self, node: nodes.Figure) -> EditCommand:
         return AppendBatchAndDefer(

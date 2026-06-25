@@ -1,0 +1,19 @@
+# Static Fallback Test
+
+## Figures
+
+:figure: {
+  :path: fixtures-interactive.png
+  :static: fixtures-static-light.png
+  :dark: fixtures-static-dark.png
+}
+:caption: A figure with light and dark static fallbacks.
+::
+
+:html: {
+  :static: fixtures-static-light.png
+}
+
+<div id="widget" style="width:300px;height:120px;background:#406">interactive widget</div>
+
+::
