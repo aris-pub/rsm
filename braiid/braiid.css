@@ -1441,10 +1441,6 @@ body {
     border-bottom: var(--border-thin) solid var(--handrail-default);
   }
 
-  &.hr-labeled > .hr-content-zone > .hr-label {
-    border-bottom: unset;
-  }
-
   & > .hr-collapse-zone > .hr-collapse {
     opacity: 100%;
 
@@ -2966,7 +2962,13 @@ a.reference.external:hover::after {
   figure[data-static] .static-fallback .static-fallback-dark {
     display: none;
   }
-  figure[data-static] .hr-content-zone > :not(.static-fallback):not(noscript) {
+  /* Hide the live mount but keep the caption. A :html: figure renders the static
+     image, the live widget, and the :caption: as three separate handrails (the
+     widget is its own .paragraph block), each with its own .hr-content-zone.
+     Hiding non-fallback content-zone children swaps the live image/widget for
+     the static one, but the figcaption's zone must be excluded or the printed
+     caption text would vanish and leave an empty caption box. */
+  figure[data-static] .hr-content-zone:not(figcaption *) > :not(.static-fallback):not(noscript) {
     display: none !important;
   }
 
@@ -2978,7 +2980,6 @@ a.reference.external:hover::after {
   .proof-rail,
   .hr-collapse-zone,
   .hr-menu-zone,
-  .hr-border-zone,
   .rsm-back-pill,
   .proof-focus-exit,
   .toast,
@@ -2989,6 +2990,31 @@ a.reference.external:hover::after {
     display: none !important;
   }
 
+  /* The border-zone is the gutter holding the dots and the handrail's vertical
+     rule. Hide it on every block except proofs. On a proof we keep that vertical
+     rule as a printed "proof bracket" marking the proof's extent: reveal the zone
+     (it sits at opacity:0 off-screen until hover), paint only the rule (the rect)
+     and not the dots, and clear the collapsed fold cap so it reads as one clean
+     vertical line. Only the proof's own direct rule shows; nested step rules stay
+     hidden so the bracket is not doubled. */
+  *:not(.proof) > .hr-border-zone {
+    display: none !important;
+  }
+  .proof.hr > .hr-border-zone {
+    opacity: 1 !important;
+  }
+  .proof.hr > .hr-border-zone > .hr-border-dots {
+    display: none !important;
+  }
+  .proof.hr > .hr-border-zone > .hr-border-rect {
+    /* The on-screen rect is shifted up by two gutter-zone heights to clear the
+       stacked collapse/menu zones; those are gone in print, so reset it to sit
+       flush with the proof. Also drop the collapsed fold cap (border-bottom) so
+       the bracket is a single clean vertical line. */
+    top: 0 !important;
+    border-bottom: none !important;
+  }
+
   /* Unfold everything JS collapsed. closeHandrail adds .hide (display:none
      !important) to a collapsed block's body and the page shows a "steps hidden"
      tombstone; :collapsed: proofs and focus mode do the same. A PDF reader must
@@ -2996,8 +3022,14 @@ a.reference.external:hover::after {
      tombstones. The unfolded body is either a handrail block (.hr, laid out as
      flex) or plain block content, so restore each its own display rather than
      `revert` (which would roll back to .hide's display:none); the higher-
-     specificity .hr.hide rule then wins the flex case over the block default. */
-  .manuscriptwrapper .hide {
+     specificity .hr.hide rule then wins the flex case over the block default.
+
+     Exclude .rsm-source: it is the view-source payload (the raw RSM markup the
+     build ships hidden for the copy-source feature) and it also carries .hide,
+     so without this guard the unfold would dump the literal source onto the
+     printed page. It is the one .hide element baked into the static HTML;
+     collapsed handrail bodies get .hide from JS at runtime. */
+  .manuscriptwrapper .hide:not(.rsm-source) {
     display: block !important;
   }
   .manuscriptwrapper .hr.hide {
@@ -3009,6 +3041,17 @@ a.reference.external:hover::after {
   .hr.hr-collapsed > .hr-content-zone::after,
   .step.proof-focus-collapsed > .hr-content-zone::after {
     content: none !important;
+  }
+  /* A collapsed block caps its gutter with a border-bottom on the spacer-zone
+     (the rounded foot of the fold). Print unfolds the body above but leaves the
+     .hr-collapsed class, so that cap would print as a stray ~16px dash at the
+     block's bottom-left. Drop only the border, not the zone: the 16px spacer is
+     what aligns every handrail's content onto one left column, so removing the
+     zone would shift collapsed blocks left and break that shared edge. The cap
+     is set by two branches, and the .hr-labeled/.step one (matching proofs and
+     steps) outranks a plain selector here, so use !important to beat both. */
+  .manuscriptwrapper .hr.hr-collapsed > .hr-spacer-zone {
+    border-bottom: none !important;
   }
 
   /* Layout: with the rail gone, reclaim the gutter the desktop layout reserves
