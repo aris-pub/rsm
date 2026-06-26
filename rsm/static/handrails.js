@@ -183,18 +183,30 @@ function showMenuFor(hr) {
     if (textEl) textEl.textContent = isTree ? "View as list" : "View as tree";
   }
 
-  // Reorder steps: offered on proofs only. The item label flips to reflect
-  // whether the proof is already in reorder mode.
-  const reorder = hr.classList.contains("proof") ? "true" : null;
+  // Reorder steps: offered on proofs only. It needs a pointer and the wide
+  // floating dependency rail (the constraint view), neither of which a phone
+  // affords, so on coarse-pointer touch devices it is shown disabled and
+  // labeled rather than offered as a broken affordance. On desktop the label
+  // flips to reflect the current mode.
+  const isProof = hr.classList.contains("proof");
+  const touch = window.matchMedia("(hover: none) and (pointer: coarse)").matches;
+  const reorder = isProof ? (touch ? "disabled" : "true") : null;
   const reorderEl = singletonMenu.querySelector('[data-role="reorder"]');
   const reorderSep = singletonMenu.querySelector('[data-role="reorder-sep"]');
   configureItem(reorderEl, reorder);
   if (reorderSep) reorderSep.style.display = reorder ? "" : "none";
   if (reorderEl && reorder) {
-    const on = hr.classList.contains("reorder-active");
-    reorderEl.setAttribute("aria-pressed", on ? "true" : "false");
     const textEl = reorderEl.querySelector(".hr-menu-item-text");
-    if (textEl) textEl.textContent = on ? "Done reordering" : "Reorder steps";
+    if (touch) {
+      reorderEl.setAttribute("aria-disabled", "true");
+      reorderEl.removeAttribute("aria-pressed");
+      if (textEl) textEl.textContent = "Reorder steps (desktop only)";
+    } else {
+      const on = hr.classList.contains("reorder-active");
+      reorderEl.removeAttribute("aria-disabled");
+      reorderEl.setAttribute("aria-pressed", on ? "true" : "false");
+      if (textEl) textEl.textContent = on ? "Done reordering" : "Reorder steps";
+    }
   }
 
   // Position, then portal to <body>. An open menu can pop into the gutter where

@@ -228,3 +228,40 @@ class TestReorderAccessibility:
         page.mouse.move(a["x"] + 40, a["y"] + 5, steps=10)
         page.mouse.up()
         expect(status).to_contain_text("moved to position", timeout=2000)
+
+
+class TestReorderTouch:
+    """Reorder needs a pointer and the wide dependency rail, so on coarse-pointer
+    touch devices the menu item is shown disabled and labeled, not offered."""
+
+    # Playwright cannot emulate the pointer/hover media features, so stub
+    # matchMedia to report a coarse pointer for that one query (leaving others,
+    # e.g. prefers-reduced-motion, intact). showMenuFor reads it when the menu
+    # opens, so installing the stub before the click exercises the real path.
+    _STUB = """() => {
+      const orig = window.matchMedia.bind(window);
+      window.matchMedia = (q) => /pointer:\\s*coarse/.test(q)
+        ? { matches: true, media: q, onchange: null,
+            addListener() {}, removeListener() {},
+            addEventListener() {}, removeEventListener() {},
+            dispatchEvent() { return false; } }
+        : orig(q);
+    }"""
+
+    def test_touch_disables_and_relabels_reorder(
+        self, page: Page, interactive_server: str
+    ):
+        _load(page, interactive_server)
+        page.evaluate(self._STUB)
+        proof = page.locator(".proof.hr").first
+        proof.hover()
+        proof.locator(".hr-border-dots").first.click()
+        item = page.locator('#hr-menu-singleton [data-role="reorder"]')
+        expect(item).to_be_visible()
+        expect(item).to_have_class(re.compile(r"\bdisabled\b"))
+        expect(item).to_have_attribute("aria-disabled", "true")
+        expect(item).to_contain_text("desktop only")
+        # force=True: a real user can tap a greyed item, so bypass Playwright's
+        # actionability gate to prove the click handler still refuses it.
+        item.click(force=True)
+        expect(proof).not_to_have_class(re.compile(r"\breorder-active\b"))
