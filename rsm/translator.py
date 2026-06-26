@@ -159,6 +159,11 @@ _RAIL_SIDEBAR_EXPAND_ICON = (
     '<path d="M4 4m0 2a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2z"/>'
     '<path d="M9 4v16"/><path d="M14 10l2 2l-2 2"/></svg>'
 )
+_RAIL_PIN_CLOSE_ICON = (
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" '
+    'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+    '<path d="M18 6l-12 12"/><path d="M6 6l12 12"/></svg>'
+)
 # Reader type controls in the rail's Reading scope. Each row toggles a root
 # data-reading-* attribute the stylesheet keys on (overriding a CSS variable);
 # the default value carries no attribute, so an untouched reader inherits the
@@ -2591,6 +2596,11 @@ class HandrailsTranslator(Translator):
             'aria-pressed="false" '
             'data-tooltip="Reading: typeface, size, spacing, and theme">'
             "Reading</button>"
+            # Hidden (CSS) until a reference is pinned; see .has-pin.
+            '<button class="rail-scope rail-scope-pinned" data-scope="pinned" '
+            'aria-pressed="false" '
+            'data-tooltip="Pinned: a referenced result kept open beside the proof">'
+            "Pinned</button>"
             "</div>"
         )
 
@@ -2644,6 +2654,20 @@ class HandrailsTranslator(Translator):
             "Click a proof to see its map and state.</div>"
             + "".join(proof_items) + "</div>"
         )
+        # Holds the one currently pinned reference excerpt (filled by prooftree.js
+        # from a tooltip's "pin" button). Empty in the built page.
+        pinned_section = (
+            '<div class="rail-section rail-pinned">'
+            '<div class="rail-pinned-empty">'
+            "Hover a reference and click Pin to keep it open here.</div>"
+            '<div class="rail-pinned-head">'
+            '<span class="rail-pinned-title"></span>'
+            '<button class="rail-pin-close" aria-label="Unpin" '
+            'data-tooltip="Unpin">' + _RAIL_PIN_CLOSE_ICON + "</button>"
+            "</div>"
+            '<div class="rail-pinned-body"></div>'
+            "</div>"
+        )
 
         return AppendText(
             text='<div class="proof-rail scope-document doc-view-map '
@@ -2651,7 +2675,8 @@ class HandrailsTranslator(Translator):
             'proof navigation">'
             + '<div class="rail-header">' + scopes + collapse + "</div>"
             + doc_subtabs + proof_subtabs
-            + document_section + proof_section + _make_reading_panel() + "</div>"
+            + document_section + proof_section + pinned_section
+            + _make_reading_panel() + "</div>"
         )
 
     def _rail_item(

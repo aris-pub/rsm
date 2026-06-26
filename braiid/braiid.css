@@ -1796,14 +1796,72 @@ body {
   /* Scope routing: show only the active scope's sub-tabs and section. */
   .proof-rail.scope-document .rail-subtabs-proof,
   .proof-rail.scope-document .rail-proof,
+  .proof-rail.scope-document .rail-pinned,
   .proof-rail.scope-document .rail-reading { display: none; }
   .proof-rail.scope-proof .rail-subtabs-document,
   .proof-rail.scope-proof .rail-document,
+  .proof-rail.scope-proof .rail-pinned,
   .proof-rail.scope-proof .rail-reading { display: none; }
   .proof-rail.scope-reading .rail-subtabs-document,
   .proof-rail.scope-reading .rail-subtabs-proof,
   .proof-rail.scope-reading .rail-document,
+  .proof-rail.scope-reading .rail-pinned,
   .proof-rail.scope-reading .rail-proof { display: none; }
+  /* Pinned scope: only the pinned excerpt, no sub-tabs. */
+  .proof-rail.scope-pinned .rail-subtabs-document,
+  .proof-rail.scope-pinned .rail-subtabs-proof,
+  .proof-rail.scope-pinned .rail-document,
+  .proof-rail.scope-pinned .rail-proof,
+  .proof-rail.scope-pinned .rail-reading { display: none; }
+  /* The Pinned tab is always present (like Proof); its section shows an empty
+     state until something is pinned, then swaps to the head + body. */
+  .rail-pinned-empty {
+    display: none;
+    color: var(--gray-700);
+    font-style: italic;
+    font-size: 0.8rem;
+  }
+  .proof-rail:not(.has-pin) .rail-pinned-empty { display: block; }
+  .proof-rail:not(.has-pin) .rail-pinned-head,
+  .proof-rail:not(.has-pin) .rail-pinned-body { display: none; }
+
+  .rail-pinned-head {
+    display: flex;
+    align-items: center;
+    gap: var(--chunk-sixth);
+    padding-bottom: var(--chunk-sixth);
+    border-bottom: var(--border-thin) solid var(--border-primary);
+    margin-bottom: var(--chunk-sixth);
+  }
+  .rail-pinned-title {
+    flex: 1;
+    min-width: 0;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--dark);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .rail-pin-close {
+    display: inline-flex;
+    flex-shrink: 0;
+    padding: 0;
+    width: 1.4rem;
+    height: 1.4rem;
+    color: var(--dark);
+    background: none;
+    border: none;
+    cursor: pointer;
+  }
+  .rail-pin-close:hover { color: var(--primary-700); }
+  .rail-pin-close svg { width: 1rem; height: 1rem; }
+  /* The pinned excerpt renders at rail width, no widening; long content scrolls. */
+  .rail-pinned-body {
+    min-height: 0;
+    overflow-y: auto;
+    font-size: 0.8rem;
+  }
 
   .rail-section { display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
 
@@ -2995,6 +3053,36 @@ a.reference.external:hover::after {
 }
 .reorder-indicator.illegal {
   background: var(--error-600);
+}
+
+/* "Pin" button inside a reference's hover preview: promotes the transient
+   excerpt into the rail's Pinned tab. The tooltip mounts on <body>, so this
+   lives outside the rail's media block. */
+.ref-pin-bar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: var(--chunk-sixth);
+}
+.ref-pin {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.15rem 0.5rem;
+  font-size: 0.72rem;
+  color: var(--dark);
+  background: var(--surface-page);
+  border: var(--border-thin) solid var(--border-primary);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+}
+.ref-pin:hover,
+.ref-pin:focus-visible {
+  color: var(--primary-700);
+  border-color: var(--primary-700);
+}
+.ref-pin svg {
+  width: 0.85rem;
+  height: 0.85rem;
 }
 
 /* Print / PDF.

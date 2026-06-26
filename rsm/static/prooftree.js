@@ -88,6 +88,7 @@ export function setup(root = document) {
     rail.classList.toggle("scope-document", scope === "document");
     rail.classList.toggle("scope-proof", scope === "proof");
     rail.classList.toggle("scope-reading", scope === "reading");
+    rail.classList.toggle("scope-pinned", scope === "pinned");
   }
 
   function selectTab(tab) {
@@ -126,6 +127,36 @@ export function setup(root = document) {
     collapseBtn.addEventListener("click", () => {
       rail.classList.toggle("collapsed");
       saveLayout();
+    });
+  }
+
+  // Pinned tab: a referenced excerpt kept open beside the proof. tooltips.js
+  // dispatches rail:pin from a preview's pin button. One pin at a time, so a new
+  // pin replaces the old. The pinned scope is deliberately not persisted (the
+  // excerpt is runtime-only), so a reload returns to the pre-pin scope.
+  const pinnedBody = rail.querySelector(".rail-pinned-body");
+  const pinnedTitle = rail.querySelector(".rail-pinned-title");
+  let prePinScope = null;
+  document.addEventListener("rail:pin", (ev) => {
+    if (!pinnedBody) return;
+    if (!rail.classList.contains("has-pin")) {
+      prePinScope =
+        rail.querySelector(".rail-scope.active")?.dataset.scope || "document";
+    }
+    pinnedBody.innerHTML = ev.detail.html || "";
+    if (pinnedTitle) pinnedTitle.textContent = ev.detail.title || "Pinned";
+    typesetMath(pinnedBody);
+    rail.classList.add("has-pin");
+    selectScope("pinned");
+  });
+  const pinClose = rail.querySelector(".rail-pin-close");
+  if (pinClose) {
+    pinClose.addEventListener("click", () => {
+      if (pinnedBody) pinnedBody.innerHTML = "";
+      if (pinnedTitle) pinnedTitle.textContent = "";
+      rail.classList.remove("has-pin");
+      selectScope(prePinScope || "document");
+      prePinScope = null;
     });
   }
 
