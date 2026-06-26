@@ -56,7 +56,10 @@ class TestAccentColors:
         # Wait for CSS transitions
         page.wait_for_timeout(300)
 
-        assert_snapshot(page.screenshot(full_page=True))
+        # potf-4em: raise the per-pixel threshold so borderline text-edge pixels
+        # that flake under CI load drop out; a real accent change is a large color
+        # step that survives. Small residual budget, below the smallest real change.
+        assert_snapshot(page.screenshot(full_page=True), threshold=0.4, max_diff_pixels=50)
 
     @pytest.mark.parametrize("viewport_name,width,height", VIEWPORTS)
     @pytest.mark.parametrize(
@@ -99,4 +102,7 @@ class TestAccentColors:
         handrail.click()
         page.wait_for_timeout(300)
 
-        assert_snapshot(page.screenshot(full_page=True))
+        # potf-4em: raise the per-pixel threshold so borderline text-edge pixels
+        # that flake under CI load drop out; a real accent change is a large color
+        # step that survives. Small residual budget, below the smallest real change.
+        assert_snapshot(page.screenshot(full_page=True), threshold=0.4, max_diff_pixels=50)

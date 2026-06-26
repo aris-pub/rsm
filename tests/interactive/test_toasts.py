@@ -1,4 +1,10 @@
-"""Tests for toast notification behavior in direct and iframe contexts."""
+"""Tests for toast notification behavior in direct and iframe contexts.
+
+The iframe tests navigate with wait_until="domcontentloaded", not the default
+"load": a pending iframe sub-resource can keep the parent page's load event from
+firing, which made page.goto time out at 30s (potf-d2l). Each test waits for the
+frame's own content explicitly afterward, so it never needed the load event.
+"""
 
 import pytest
 from playwright.sync_api import Page, expect
@@ -12,8 +18,14 @@ def wait_for_rsm(page):
     page.wait_for_function(RSM_READY, timeout=10_000)
 
 
-def wait_for_rsm_in_frame(frame):
-    frame.locator(".manuscriptwrapper").wait_for(timeout=10_000)
+def wait_for_rsm_in_frame(page, selector="#rsm-frame"):
+    # Wait for the iframe's OWN init signal, not just its DOM. After
+    # domcontentloaded the frame's scripts may not have wired the handrails yet,
+    # so a click would hit a menu that has not been built (potf-d2l). Returns the
+    # frame_locator for the caller to interact with.
+    handle = page.wait_for_selector(selector, state="attached")
+    handle.content_frame().wait_for_function(RSM_READY, timeout=10_000)
+    return page.frame_locator(selector)
 
 
 def trigger_copy_link(page_or_frame, *, selector=".hr:not(.hr-hidden)"):
@@ -58,18 +70,16 @@ class TestToastsUnsandboxedIframe:
     """Toast behavior when RSM document runs inside an unsandboxed iframe (mirrors Press)."""
 
     def test_success_toast_appears_in_unsandboxed_iframe(self, page: Page, interactive_server: str):
-        page.goto(f"{interactive_server}/iframe-unsandboxed.html")
-        frame = page.frame_locator("#rsm-frame")
-        wait_for_rsm_in_frame(frame)
+        page.goto(f"{interactive_server}/iframe-unsandboxed.html", wait_until="domcontentloaded")
+        frame = wait_for_rsm_in_frame(page)
         frame.locator(".hr:not(.hr-hidden) .hr-border-dots").first.click()
         frame.locator("#hr-menu-singleton .hr-menu-item.link:not(.disabled)").first.click()
         expect(frame.locator(".toast.success")).to_be_visible()
 
     def test_toast_renders_inside_iframe_not_in_parent(self, page: Page, interactive_server: str):
         """Toast must appear inside the iframe document, not escape to the parent."""
-        page.goto(f"{interactive_server}/iframe-unsandboxed.html")
-        frame = page.frame_locator("#rsm-frame")
-        wait_for_rsm_in_frame(frame)
+        page.goto(f"{interactive_server}/iframe-unsandboxed.html", wait_until="domcontentloaded")
+        frame = wait_for_rsm_in_frame(page)
         frame.locator(".hr:not(.hr-hidden) .hr-border-dots").first.click()
         frame.locator("#hr-menu-singleton .hr-menu-item.link:not(.disabled)").first.click()
         expect(frame.locator(".toast")).to_be_visible()
@@ -93,9 +103,8 @@ class TestToastsSandboxedIframe:
         context = page.context.browser.new_context()
         isolated_page = context.new_page()
         try:
-            isolated_page.goto(f"{interactive_server}/iframe-sandboxed.html")
-            frame = isolated_page.frame_locator("#rsm-frame")
-            wait_for_rsm_in_frame(frame)
+            isolated_page.goto(f"{interactive_server}/iframe-sandboxed.html", wait_until="domcontentloaded")
+            frame = wait_for_rsm_in_frame(isolated_page)
             frame.locator(".hr:not(.hr-hidden) .hr-border-dots").first.click()
             frame.locator("#hr-menu-singleton .hr-menu-item.link:not(.disabled)").first.click()
             expect(frame.locator(".toast.error")).to_be_visible()
@@ -104,9 +113,8 @@ class TestToastsSandboxedIframe:
 
     def test_no_silent_crash_in_sandboxed_iframe(self, page: Page, interactive_server: str):
         """Some toast (success or error) must always appear — never a silent crash."""
-        page.goto(f"{interactive_server}/iframe-sandboxed.html")
-        frame = page.frame_locator("#rsm-frame")
-        wait_for_rsm_in_frame(frame)
+        page.goto(f"{interactive_server}/iframe-sandboxed.html", wait_until="domcontentloaded")
+        frame = wait_for_rsm_in_frame(page)
         frame.locator(".hr:not(.hr-hidden) .hr-border-dots").first.click()
         frame.locator("#hr-menu-singleton .hr-menu-item.link:not(.disabled)").first.click()
         expect(frame.locator(".toast")).to_be_visible()

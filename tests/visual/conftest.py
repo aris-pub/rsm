@@ -29,7 +29,7 @@ def assert_snapshot(pytestconfig: Any, request: Any, browser_name: str) -> Calla
     test_name = str(Path(request.node.name))
     test_dir = str(Path(request.node.name)).split('[', 1)[0]
 
-    def compare(img: bytes, *, threshold: float = 0.2, name=f'{test_name}.png', fail_fast=False) -> None:
+    def compare(img: bytes, *, threshold: float = 0.2, name=f'{test_name}.png', fail_fast=False, max_diff_pixels: int = 0) -> None:
         update_snapshot = pytestconfig.getoption("--update-snapshots")
         test_file_name = str(os.path.basename(Path(request.node.fspath))).strip('.py')
         filepath = (
@@ -55,15 +55,20 @@ def assert_snapshot(pytestconfig: Any, request: Any, browser_name: str) -> Calla
         img_a = Image.open(BytesIO(img))
         img_b = Image.open(file)
         img_diff = Image.new("RGBA", img_a.size)
-        mismatch = pixelmatch(img_a, img_b, img_diff, threshold=threshold, fail_fast=fail_fast)
-        if mismatch == 0:
+        # fail_fast off so pixelmatch counts every differing pixel for the budget.
+        # max_diff_pixels stays 0 by default (exact match), so most tests are
+        # unchanged; callers opt into a small budget only where justified.
+        mismatch = pixelmatch(img_a, img_b, img_diff, threshold=threshold, fail_fast=False)
+        if mismatch <= max_diff_pixels:
             return
         else:
             test_results_dir.mkdir(parents=True, exist_ok=True)
             img_diff.save(f'{test_results_dir}/Diff_{name}')
             img_a.save(f'{test_results_dir}/Actual_{name}')
             img_b.save(f'{test_results_dir}/Expected_{name}')
-            pytest.fail("--> Snapshots DO NOT match!")
+            pytest.fail(
+                f"--> Snapshots DO NOT match! {mismatch} px differ (budget {max_diff_pixels})"
+            )
 
     return compare
 
