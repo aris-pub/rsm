@@ -194,6 +194,25 @@ const GRIP =
 
 const reorderState = new WeakMap(); // proof element -> { model, handles }
 
+// A single polite live region announces reorder activity to screen readers
+// (mode on/off, a step picked up, moved, dropped, or a rejected move).
+let liveRegion = null;
+function announce(msg) {
+  if (!liveRegion) {
+    liveRegion = document.createElement("div");
+    liveRegion.className = "reorder-sr-status";
+    liveRegion.setAttribute("role", "status");
+    liveRegion.setAttribute("aria-live", "polite");
+    document.body.appendChild(liveRegion);
+  }
+  // Clear then set on the next frame so a repeated identical message still
+  // re-announces (assistive tech ignores an unchanged text node).
+  liveRegion.textContent = "";
+  requestAnimationFrame(() => {
+    liveRegion.textContent = msg;
+  });
+}
+
 export function setup(root = document) {
   root.addEventListener("reorder:toggle", (ev) => {
     const proof = ev.target.closest && ev.target.closest(".proof.hr");
@@ -233,7 +252,10 @@ function activate(proof) {
     const handle = document.createElement("button");
     handle.type = "button";
     handle.className = "reorder-handle";
-    handle.setAttribute("aria-label", "Drag to reorder this step");
+    // Name each handle for its step so a screen reader navigating the gutter
+    // controls can tell them apart (otherwise all read identically).
+    const label = step.bodyEl.dataset.menuLabel || "this step";
+    handle.setAttribute("aria-label", `Reorder ${label}`);
     handle.innerHTML = GRIP;
     step.bodyEl.appendChild(handle);
     wireHandle(handle, step.id, proof, model);
@@ -244,12 +266,17 @@ function activate(proof) {
   const scopeBtn = document.querySelector('.rail-scope[data-scope="proof"]');
   if (scopeBtn) scopeBtn.click();
   reorderState.set(proof, { model, handles });
+  announce(`Reorder mode on, ${model.byId.size} steps. Drag a step's handle to reorder it.`);
 }
 
 // FLIP: record step positions, run the DOM move, then animate each step from
 // where it was to where it landed, so a reorder reads as a glide rather than a
 // jump.
 function flipMove(model, applyFn) {
+  if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    applyFn();
+    return;
+  }
   const els = [...model.byId.values()].map((s) => s.bodyEl);
   const before = new Map(els.map((el) => [el, el.getBoundingClientRect().top]));
   applyFn();
@@ -278,6 +305,7 @@ function deactivate(proof) {
   if (!st) return;
   for (const h of st.handles) h.remove();
   reorderState.delete(proof);
+  announce("Reorder mode off.");
 }
 
 // The sibling bodyEls of `id` (excluding it) in current document order.
@@ -343,6 +371,10 @@ function wireHandle(handle, id, proof, model) {
       if (model.svg) pinTreeCurrent(model.svg, prevPin);
       if (target !== start && legal.has(target)) {
         flipMove(model, () => applyToBody(model, moveTo(model, id, target)));
+        // Announce the result so a screen reader perceives the reorder.
+        const sib = model.children.get(key) || [];
+        const label = step.bodyEl.dataset.menuLabel || "Step";
+        announce(`${label} moved to position ${sib.indexOf(id) + 1} of ${sib.length}.`);
       }
     };
     document.addEventListener("pointermove", onMove);

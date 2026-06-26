@@ -191,11 +191,10 @@ function showMenuFor(hr) {
   configureItem(reorderEl, reorder);
   if (reorderSep) reorderSep.style.display = reorder ? "" : "none";
   if (reorderEl && reorder) {
+    const on = hr.classList.contains("reorder-active");
+    reorderEl.setAttribute("aria-pressed", on ? "true" : "false");
     const textEl = reorderEl.querySelector(".hr-menu-item-text");
-    if (textEl)
-      textEl.textContent = hr.classList.contains("reorder-active")
-        ? "Done reordering"
-        : "Reorder steps";
+    if (textEl) textEl.textContent = on ? "Done reordering" : "Reorder steps";
   }
 
   // Position, then portal to <body>. An open menu can pop into the gutter where

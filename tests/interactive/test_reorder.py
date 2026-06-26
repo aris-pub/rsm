@@ -169,3 +169,62 @@ class TestReorderDrag:
         page.keyboard.press("Escape")
         expect(proof).not_to_have_class(re.compile(r"\breorder-active\b"))
         assert proof.locator(".reorder-handle").count() == 0
+
+
+class TestReorderAccessibility:
+    """Screen readers must perceive reorder mode and the result of a reorder
+    even though the gesture itself is pointer/touch driven."""
+
+    def _enter_reorder(self, page: Page):
+        proof = page.locator(".proof.hr").first
+        proof.scroll_into_view_if_needed()
+        proof.hover()
+        proof.locator(".hr-border-dots").first.click()
+        page.locator('#hr-menu-singleton [data-role="reorder"]').click()
+        expect(proof).to_have_class(re.compile(r"\breorder-active\b"))
+        return proof
+
+    def test_menu_item_reflects_state_with_aria_pressed(
+        self, page: Page, interactive_server: str
+    ):
+        _load(page, interactive_server)
+        proof = page.locator(".proof.hr").first
+        proof.hover()
+        proof.locator(".hr-border-dots").first.click()
+        item = page.locator('#hr-menu-singleton [data-role="reorder"]')
+        expect(item).to_have_attribute("aria-pressed", "false")
+        item.click()
+        # Reopen the menu; the proof is now in reorder mode, so the toggle reads on.
+        proof.hover()
+        proof.locator(".hr-border-dots").first.click()
+        expect(
+            page.locator('#hr-menu-singleton [data-role="reorder"]')
+        ).to_have_attribute("aria-pressed", "true")
+
+    def test_handles_named_per_step(self, page: Page, interactive_server: str):
+        # Each gutter handle carries its step's label so a screen reader can tell
+        # them apart instead of hearing the same name on every one.
+        _load(page, interactive_server)
+        self._enter_reorder(page)
+        labels = page.locator(".proof.hr .reorder-handle").evaluate_all(
+            "els => els.map((e) => e.getAttribute('aria-label'))"
+        )
+        assert len(set(labels)) == len(labels) and len(labels) == 4, labels
+        assert all(l.startswith("Reorder Step") for l in labels), labels
+
+    def test_live_region_announces_mode_and_reorder(
+        self, page: Page, interactive_server: str
+    ):
+        _load(page, interactive_server)
+        self._enter_reorder(page)
+        status = page.locator(".reorder-sr-status")
+        expect(status).to_have_attribute("aria-live", "polite")
+        expect(status).to_contain_text("Reorder mode on", timeout=2000)
+        # A legal drag (stp-b before stp-a) is announced to the same region.
+        a = page.locator("#stp-a").bounding_box()
+        box = page.locator("#stp-b .reorder-handle").first.bounding_box()
+        page.mouse.move(box["x"] + box["width"] / 2, box["y"] + box["height"] / 2)
+        page.mouse.down()
+        page.mouse.move(a["x"] + 40, a["y"] + 5, steps=10)
+        page.mouse.up()
+        expect(status).to_contain_text("moved to position", timeout=2000)

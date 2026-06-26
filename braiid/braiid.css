@@ -2954,7 +2954,9 @@ a.reference.external:hover::after {
   width: 1.4rem;
   height: 1.4rem;
   padding: 0;
-  color: var(--medium);
+  /* --dark (gray-700), not --medium: the grip is the primary affordance and
+     must clear WCAG 1.4.11 (3:1) for non-text UI, as the collapse sign does. */
+  color: var(--dark);
   background: var(--surface-page);
   border: var(--border-thin) solid var(--border-primary);
   border-radius: var(--radius-md);
@@ -2962,14 +2964,24 @@ a.reference.external:hover::after {
   touch-action: none;
   z-index: 3;
 }
-.proof.reorder-active .reorder-handle:hover {
-  color: var(--dark);
+.proof.reorder-active .reorder-handle:hover,
+.proof.reorder-active .reorder-handle:focus-visible {
+  color: var(--primary-700);
 }
 .proof.reorder-active .reorder-handle:active {
   cursor: grabbing;
 }
 .proof.reorder-active .step.reorder-dragged {
-  opacity: 0.45;
+  opacity: 0.55;
+}
+.reorder-sr-status {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 .proof.reorder-dragging {
   user-select: none;

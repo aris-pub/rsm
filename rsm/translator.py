@@ -2523,7 +2523,7 @@ class HandrailsTranslator(Translator):
         html += '    <span class="hr-menu-item-text">View as tree</span>\n'
         html += '  </div>\n'
         html += '  <div class="hr-menu-separator" data-role="reorder-sep"></div>\n'
-        html += f'  <div class="hr-menu-item reorder" data-role="reorder">\n'
+        html += f'  <div class="hr-menu-item reorder" data-role="reorder" role="button" aria-pressed="false">\n'
         html += f'    {self._icon_ref("reorder")}\n'
         html += '    <span class="hr-menu-item-text">Reorder steps</span>\n'
         html += '  </div>\n'
