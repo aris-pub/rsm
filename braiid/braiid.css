@@ -2929,6 +2929,56 @@ a.reference.external:hover::after {
 }
 
 
+/* Reorder mode: opt-in drag reordering of a proof's steps (reorder.js). The
+   handles and the insertion marker show only while the proof is .reorder-active;
+   normal reading carries no extra chrome. */
+.reorder-handle {
+  display: none;
+}
+.proof.reorder-active .step {
+  position: relative;
+}
+.proof.reorder-active .reorder-handle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  left: calc(-1 * var(--chunk-half));
+  top: var(--chunk-sixth);
+  width: 1.4rem;
+  height: 1.4rem;
+  padding: 0;
+  color: var(--medium);
+  background: var(--surface-page);
+  border: var(--border-thin) solid var(--border-primary);
+  border-radius: var(--radius-md);
+  cursor: grab;
+  touch-action: none;
+  z-index: 3;
+}
+.proof.reorder-active .reorder-handle:hover {
+  color: var(--dark);
+}
+.proof.reorder-active .reorder-handle:active {
+  cursor: grabbing;
+}
+.proof.reorder-active .step.reorder-dragged {
+  opacity: 0.45;
+}
+.proof.reorder-dragging {
+  user-select: none;
+}
+.reorder-indicator {
+  height: var(--border-med);
+  margin: calc(-1 * var(--border-med)) 0;
+  background: var(--primary-700);
+  border-radius: var(--border-med);
+  pointer-events: none;
+}
+.reorder-indicator.illegal {
+  background: var(--error-600);
+}
+
 /* Print / PDF.
 
    Browsers export PDF with JavaScript ON, so the JS-off <noscript> path never

@@ -15,6 +15,7 @@ import * as tocarcs from './tocarcs.js';
 import * as prooftree from './prooftree.js';
 import * as focusmode from './focusmode.js';
 import * as notation from './notation.js';
+import * as reorder from './reorder.js';
 
 export async function onload(root = null, { keys = true } = {}) {
   if (!root) root = document;
@@ -76,6 +77,13 @@ export async function onload(root = null, { keys = true } = {}) {
       focusmode.setup(root);
     } catch (err) {
       console.error("Loading focusmode.js FAILED!", err);
+    }
+
+    // Reorder mode - opt-in drag reordering of a proof's steps
+    try {
+      reorder.setup(root);
+    } catch (err) {
+      console.error("Loading reorder.js FAILED!", err);
     }
 
     // Keyboard - set up event listeners once

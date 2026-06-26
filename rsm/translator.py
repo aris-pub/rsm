@@ -2052,6 +2052,11 @@ class HandrailsTranslator(Translator):
           <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
           <path d="M7 4v16l13 -8l-13 -8" />
         </svg>""",
+        "reorder": """<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3C4952" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+          <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+          <path d="M3 9l4 -4l4 4m-4 -4v14" />
+          <path d="M21 15l-4 4l-4 -4m4 4v-14" />
+        </svg>""",
     }
 
     def __init__(
@@ -2516,6 +2521,11 @@ class HandrailsTranslator(Translator):
         html += f'  <div class="hr-menu-item toc-view" data-role="toc-view">\n'
         html += f'    {self._icon_ref("tree")}\n'
         html += '    <span class="hr-menu-item-text">View as tree</span>\n'
+        html += '  </div>\n'
+        html += '  <div class="hr-menu-separator" data-role="reorder-sep"></div>\n'
+        html += f'  <div class="hr-menu-item reorder" data-role="reorder">\n'
+        html += f'    {self._icon_ref("reorder")}\n'
+        html += '    <span class="hr-menu-item-text">Reorder steps</span>\n'
         html += '  </div>\n'
         html += '</div>\n</div>'
         return AppendText(text=html)

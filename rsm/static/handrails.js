@@ -52,6 +52,7 @@ export function setup() {
       }
       else if (role === "static-toggle") toggleStaticView(activeHr, menuItem);
       else if (role === "toc-view") toggleTocView(activeHr, menuItem);
+      else if (role === "reorder") toggleReorder(activeHr);
       return;
     }
 
@@ -182,6 +183,21 @@ function showMenuFor(hr) {
     if (textEl) textEl.textContent = isTree ? "View as list" : "View as tree";
   }
 
+  // Reorder steps: offered on proofs only. The item label flips to reflect
+  // whether the proof is already in reorder mode.
+  const reorder = hr.classList.contains("proof") ? "true" : null;
+  const reorderEl = singletonMenu.querySelector('[data-role="reorder"]');
+  const reorderSep = singletonMenu.querySelector('[data-role="reorder-sep"]');
+  configureItem(reorderEl, reorder);
+  if (reorderSep) reorderSep.style.display = reorder ? "" : "none";
+  if (reorderEl && reorder) {
+    const textEl = reorderEl.querySelector(".hr-menu-item-text");
+    if (textEl)
+      textEl.textContent = hr.classList.contains("reorder-active")
+        ? "Done reordering"
+        : "Reorder steps";
+  }
+
   // Position, then portal to <body>. An open menu can pop into the gutter where
   // the floating proof-rail sits; an ancestor of the handrail (proof/section/
   // figure) establishes a stacking context that paints below that fixed rail, so
@@ -197,6 +213,17 @@ function showMenuFor(hr) {
     zone.style.display = "block";
     portalMenuToBody();
   }
+}
+
+
+// Toggle a proof into or out of reorder mode. reorder.js (set up in onload)
+// listens for the dispatched event and adds/removes the drag handles.
+function toggleReorder(hr) {
+  const active = hr.classList.toggle("reorder-active");
+  hideMenu();
+  hr.dispatchEvent(
+    new CustomEvent("reorder:toggle", { bubbles: true, detail: { active } })
+  );
 }
 
 

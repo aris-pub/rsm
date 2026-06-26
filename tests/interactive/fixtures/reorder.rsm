@@ -1,0 +1,35 @@
+# Reordering steps
+
+:toc: {
+  :view: tree
+}
+::
+
+## A reorderable proof
+  {:label: sec-reorder}
+
+Filler paragraph one, padding the section so the proof sits below the top.
+
+Filler paragraph two, more vertical room above the proof for the reading band.
+
+Filler paragraph three, still more room so scrolling can position the proof.
+
+:proof:
+
+  :step: {:label: stp-setup} Let $x$ be a fixed object to reason about. ::
+
+  :step: {:label: stp-a} By :ref:stp-setup::, the first quantity is bounded. ::
+
+  :step: {:label: stp-b} By :ref:stp-setup::, the second quantity is bounded. ::
+
+  :step: {:label: stp-c} Combining :ref:stp-a:: and :ref:stp-b:: yields the claim. ::
+
+::
+
+Trailing filler one, giving room to scroll the page past the proof.
+
+Trailing filler two, more scroll room below so positioning is unconstrained.
+
+Trailing filler three, padding padding padding padding padding padding padding.
+
+Trailing filler four, padding padding padding padding padding padding padding.

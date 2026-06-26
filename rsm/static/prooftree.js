@@ -378,7 +378,14 @@ export function setup(root = document) {
     show(el.getAttribute("data-nodeid"));
     const stepEl = target.closest(".step");
     if (stepEl && !stepEl.closest(".calc") && el.contains(stepEl)) {
-      const idx = stepsOf(el).indexOf(stepEl);
+      // A reordered proof tags each step with its build index (data-state-idx)
+      // so the State panel maps to the step's own state, not whatever step now
+      // sits at its position. Unreordered proofs have no tag and fall back to
+      // position, which equals the build index.
+      const idx =
+        stepEl.dataset.stateIdx != null
+          ? Number(stepEl.dataset.stateIdx)
+          : stepsOf(el).indexOf(stepEl);
       if (idx >= 0) updateState(idx);
     }
   }
