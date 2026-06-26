@@ -68,6 +68,30 @@ class TestReorderModel:
         assert lp["stp-b"] == [1, 2], lp
         assert lp["stp-c"] == [3], lp
 
+    def test_scope_pins_introducer_without_explicit_ref(
+        self, page: Page, interactive_server: str
+    ):
+        # A :let: step introduces a hypothesis in scope for its later siblings,
+        # so it is a prerequisite even though the later step never :ref:s it.
+        _load(page, interactive_server)
+        lp = page.evaluate(
+            """async () => {
+              const R = await import('/static/reorder.js');
+              for (const it of document.querySelectorAll('.proof-rail-item')) {
+                const m = R.extractModel(it);
+                if (!m || ![...m.byId.values()].some((s) => s.bodyEl.id === 'stp-let'))
+                  continue;
+                const out = {};
+                for (const id of m.byId.keys())
+                  out[m.byId.get(id).bodyEl.id] = R.legalPositions(m, id);
+                return out;
+              }
+              return null;
+            }"""
+        )
+        assert lp["stp-let"] == [0], lp
+        assert lp["stp-uses-y"] == [1], lp
+
 
 class TestReorderDrag:
     """Dragging a step's handle reorders the body, but only into legal orders."""
@@ -83,7 +107,7 @@ class TestReorderDrag:
 
     def _order(self, page: Page):
         return page.evaluate(
-            """() => [...document.querySelectorAll('.proof.hr .step')]
+            """() => [...document.querySelector('.proof.hr').querySelectorAll('.step')]
                      .filter(s => !s.closest('.calc')).map(s => s.id)"""
         )
 
@@ -121,7 +145,7 @@ class TestReorderDrag:
         def idxmap():
             return page.evaluate(
                 """() => Object.fromEntries(
-                     [...document.querySelectorAll('.proof.hr .step')]
+                     [...document.querySelector('.proof.hr').querySelectorAll('.step')]
                        .map((s) => [s.id, s.dataset.stateIdx]))"""
             )
 
@@ -137,3 +161,11 @@ class TestReorderDrag:
         # not its place), so the panel still shows b's own state.
         m = idxmap()
         assert m["stp-b"] == "2" and m["stp-a"] == "1", m
+
+    def test_escape_cancels_reorder_mode(self, page: Page, interactive_server: str):
+        _load(page, interactive_server)
+        proof = self._enter_reorder(page)
+        expect(proof.locator(".reorder-handle").first).to_be_visible()
+        page.keyboard.press("Escape")
+        expect(proof).not_to_have_class(re.compile(r"\breorder-active\b"))
+        assert proof.locator(".reorder-handle").count() == 0

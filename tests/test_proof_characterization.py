@@ -130,8 +130,15 @@ def test_nested_steps_synthesize_a_subproof():
 
 def test_intra_proof_dependency_edge():
     _, p = _proof()
-    # st-2b (:ref: st-2a) is the only intra-proof reference, so exactly one edge.
-    assert [(e["src"], e["dst"], e["kind"]) for e in p.tree_edges] == [(3, 2, "dep")]
+    # Edges are the explicit reference (st-2b -> st-2a) plus the scope
+    # dependencies: the :assume: in st-1 is in scope for its later top-level
+    # siblings st-2 and st-3, so each depends on it (mirrors the State panel's
+    # hypotheses), even with no explicit :ref:.
+    assert [(e["src"], e["dst"], e["kind"]) for e in p.tree_edges] == [
+        (1, 0, "dep"),
+        (3, 2, "dep"),
+        (4, 0, "dep"),
+    ]
 
 
 def test_rail_state_data_matches_model_and_resolves_in_dom():

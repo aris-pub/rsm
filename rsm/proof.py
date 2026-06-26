@@ -242,6 +242,26 @@ def _compute_tree(proof) -> None:
         key = (row_of[id(src)], dst)
         counts[key] = counts.get(key, 0) + 1
 
+    # Scope dependencies: a step that introduces a hypothesis (:let:/:assume:/
+    # :pick:/:new:) stays in scope for every later sibling (Lamport), so each
+    # later sibling depends on it even without an explicit reference. Without
+    # these edges a setup step ("LET G be ...") could be reordered after the
+    # steps that rely on it. Mirrors the in-scope hypotheses the State panel
+    # shows (HYP_KINDS in _compute_state).
+    def _introduces_hyp(step: nodes.Step) -> bool:
+        return any(
+            c.kind in HYP_KINDS and nearest_step(c) is step
+            for c in step.traverse(nodeclass=nodes.Construct)
+        )
+
+    hyp_steps = {id(s) for s in steps if _introduces_hyp(s)}
+    parent_of = {id(s): nearest_step(s) for s in steps}
+    for i, s in enumerate(steps):
+        for j in range(i):
+            t = steps[j]
+            if id(t) in hyp_steps and parent_of[id(t)] is parent_of[id(s)]:
+                counts[(i, j)] = counts.get((i, j), 0) + 1
+
     proof.tree_edges = [
         {
             "src": s,

@@ -201,6 +201,14 @@ export function setup(root = document) {
     if (ev.detail && ev.detail.active) activate(proof);
     else deactivate(proof);
   });
+  // Esc cancels reorder mode on every active proof.
+  root.addEventListener("keydown", (ev) => {
+    if (ev.key !== "Escape") return;
+    for (const proof of document.querySelectorAll(".proof.reorder-active")) {
+      proof.classList.remove("reorder-active");
+      deactivate(proof);
+    }
+  });
 }
 
 function railItemFor(proof) {

@@ -26,6 +26,16 @@ Filler paragraph three, still more room so scrolling can position the proof.
 
 ::
 
+A paragraph between the proofs so the reading band can isolate one at a time.
+
+:proof:
+
+  :step: {:label: stp-let} :let: $y$ be a second fixed object ::. ::
+
+  :step: {:label: stp-uses-y} A later bound that relies on $y$ but never cites its step. ::
+
+::
+
 Trailing filler one, giving room to scroll the page past the proof.
 
 Trailing filler two, more scroll room below so positioning is unconstrained.

@@ -2938,6 +2938,12 @@ a.reference.external:hover::after {
 .proof.reorder-active .step {
   position: relative;
 }
+/* The handle takes the step's gutter, where its dots menu sits, so hide the
+   dots while reordering (they would overlap). The proof's own dots stay, so the
+   reader can reopen the menu for "Done reordering" (Esc also cancels). */
+.proof.reorder-active .step .hr-border-dots {
+  display: none;
+}
 .proof.reorder-active .reorder-handle {
   display: inline-flex;
   align-items: center;
