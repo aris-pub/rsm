@@ -14,7 +14,15 @@ import rsm
 
 # ic.disable()
 
-sys.setrecursionlimit(100)
+
+# The rsm renderer walks document trees recursively, so tests cap the recursion
+# limit to surface runaway recursion early. Apply it only once collection is done:
+# setting it at import time also constrains pytest's assertion-rewrite import hook,
+# which under xdist imports test modules on a much deeper (execnet) call stack and
+# overflows a limit of 100 during collection (RecursionError on Python 3.13, where
+# the pathlib import path is deeper than on the 3.12 CI runners). See potf-icn.
+def pytest_collection_finish(session):
+    sys.setrecursionlimit(100)
 
 # Several tests use an empty manuscript.
 EMPTY_WANT = """\
