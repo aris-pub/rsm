@@ -48,13 +48,30 @@ export function getNotationMacros() {
   return _macros;
 }
 
+// Render a notation value to a string for validation and preview. A
+// parameterized value (one containing #1..#9, e.g. "e(#1)") only renders inside
+// a macro call, not on its own, so render it as a throwaway macro body applied
+// to a placeholder; a plain value renders directly.
+function renderNotationToString(latex) {
+  const params = latex.match(/#[1-9]/g);
+  if (params) {
+    const n = Math.max(...params.map((s) => +s[1]));
+    const args = "{\\square}".repeat(n);
+    return window.temml.renderToString("\\rsmNotationPreview" + args, {
+      throwOnError: true,
+      macros: { "\\rsmNotationPreview": latex },
+    });
+  }
+  return window.temml.renderToString(latex, { throwOnError: true });
+}
+
 // A reader's value feeds every math block at once, so one bad value would
 // corrupt the whole document.  Reject anything Temml cannot render.
 function isValid(latex) {
   if (!latex || !latex.trim()) return false;
   if (!window.temml) return true; // best-effort when the validator is unavailable
   try {
-    window.temml.renderToString(latex, { throwOnError: true });
+    renderNotationToString(latex);
     return true;
   } catch {
     return false;
@@ -172,6 +189,11 @@ function nearestOf(els) {
   let bestDist = Infinity;
   for (const el of els) {
     const r = el.getBoundingClientRect();
+    // Skip display:none uses (collapsed proofs, hidden source/static copies):
+    // they report a zero box at top 0, which can beat a real but off-screen use
+    // and make locate scroll to nothing. Off-screen rendered uses keep a real
+    // box, so they stay eligible.
+    if (r.width === 0 && r.height === 0) continue;
     const dist = Math.abs(r.top + r.height / 2 - center);
     if (dist < bestDist) {
       bestDist = dist;
@@ -249,7 +271,7 @@ export function mountNotationPanel(root = document) {
         return;
       }
       try {
-        preview.innerHTML = window.temml.renderToString(latex, { throwOnError: true });
+        preview.innerHTML = renderNotationToString(latex);
         input.classList.remove("invalid");
       } catch {
         input.classList.add("invalid");

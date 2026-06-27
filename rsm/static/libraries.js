@@ -55,7 +55,14 @@ export function loadMathJax() {
   // leading backslash; getNotationMacros() already merges reader overrides.
   const notationMacros = {};
   for (const [name, value] of Object.entries(getNotationMacros())) {
-    notationMacros[name.replace(/^\\/, '')] = value;
+    const key = name.replace(/^\\/, '');
+    // A parameterized macro (value contains #1..#9) must reach MathJax in its
+    // [definition, argCount] form; a bare string would expand #1 literally and
+    // error. Temml infers the arg count, MathJax needs it stated.
+    const params = value.match(/#[1-9]/g);
+    notationMacros[key] = params
+      ? [value, Math.max(...params.map((s) => Number(s[1])))]
+      : value;
   }
 
   const config = document.createElement('script');
