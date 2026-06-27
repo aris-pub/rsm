@@ -87,4 +87,13 @@ class TestBackPill:
 
         # The pill is position:fixed, bottom-centre, so a viewport screenshot
         # (not full_page) reliably frames it.
-        assert_snapshot(page.screenshot())
+        #
+        # potf-4em: this fixture renders a :toc: tree (a DAG) plus a full column
+        # of prose, so the frame is dense with text edges. Under CI CPU contention
+        # those edges anti-alias slightly differently run-to-run (font hinting
+        # drift), producing ~1480 borderline pixels at the default per-pixel
+        # threshold while the layout, geometry, and JS-driven DAG label size
+        # (--toc-label-px) are all bit-stable. Raising the per-pixel threshold to
+        # 0.4 collapses that AA drift to zero; the small residual budget stays far
+        # below the smallest real UI change to the pill or tree.
+        assert_snapshot(page.screenshot(), threshold=0.4, max_diff_pixels=50)
