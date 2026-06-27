@@ -53,6 +53,7 @@ export function setup() {
       else if (role === "static-toggle") toggleStaticView(activeHr, menuItem);
       else if (role === "toc-view") toggleTocView(activeHr, menuItem);
       else if (role === "reorder") toggleReorder(activeHr);
+      else if (role === "focus") triggerFocus(activeHr);
       return;
     }
 
@@ -209,6 +210,25 @@ function showMenuFor(hr) {
     }
   }
 
+  // Focus this step: offered on steps only, and only when the document ships the
+  // floating proof rail (focus mode folds the proof against the rail's
+  // dependency map; without a rail there is nothing to fold against, so the item
+  // would be a dead affordance). A step inside a :calc: chain is not a node in
+  // that map (it reads as one step, like reorder's isDagStep), so it has no cone
+  // to focus and is excluded. focusmode.js does the work on the dispatched event;
+  // here we just gate visibility.
+  const isStep = hr.classList.contains("step") && !hr.closest(".calc");
+  const hasRail = !!document.querySelector(".proof-rail");
+  // Focus mode is opt-in while under development (potf-i4g): only offer the item
+  // when the document sets <html data-focus-mode="on">. The submission paper does
+  // not, so the item never appears there. Mirrors the guard in focusmode.js.
+  const focusOn = document.documentElement.getAttribute("data-focus-mode") === "on";
+  const focus = isStep && hasRail && focusOn ? "true" : null;
+  const focusEl = singletonMenu.querySelector('[data-role="focus"]');
+  const focusSep = singletonMenu.querySelector('[data-role="focus-sep"]');
+  configureItem(focusEl, focus);
+  if (focusSep) focusSep.style.display = focus ? "" : "none";
+
   // Position, then portal to <body>. An open menu can pop into the gutter where
   // the floating proof-rail sits; an ancestor of the handrail (proof/section/
   // figure) establishes a stacking context that paints below that fixed rail, so
@@ -235,6 +255,15 @@ function toggleReorder(hr) {
   hr.dispatchEvent(
     new CustomEvent("reorder:toggle", { bubbles: true, detail: { active } })
   );
+}
+
+
+// Enter focus mode on a step. focusmode.js (set up in onload) listens for the
+// dispatched event, finds the step's proof and rail map, and folds the proof to
+// this step's prerequisite cone. Mirrors toggleReorder's menu->event handoff.
+function triggerFocus(hr) {
+  hideMenu();
+  hr.dispatchEvent(new CustomEvent("focus:step", { bubbles: true }));
 }
 
 
@@ -422,7 +451,7 @@ export function openHandrail(hr) {
 }
 
 
-function closeHandrail(hr) {
+export function closeHandrail(hr) {
   hr.classList.add("hr-collapsed");
   const rest = getRest(hr);
   rest.forEach(el => { el.classList.add("hide"); });
@@ -530,6 +559,21 @@ export function restoreCollapse(root) {
     else if (!wantCollapsed && isCollapsed) openHandrail(hr);
   }
   suppressPersist = false;
+}
+
+
+// Run open/closeHandrail calls without writing the result to the reader's
+// persisted collapse state. Focus mode folds the off-cone steps on enter and
+// restores them on exit; those are transient view changes, not disclosure
+// choices, so they must not pollute localStorage the way a manual collapse does.
+export function withoutPersist(fn) {
+  const prev = suppressPersist;
+  suppressPersist = true;
+  try {
+    fn();
+  } finally {
+    suppressPersist = prev;
+  }
 }
 
 

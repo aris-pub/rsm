@@ -2284,7 +2284,7 @@ body {
      (and come later) so they actually win over them. */
   .toc-tree .toc-node.focus-faded,
   .toc-tree .toc-edge.focus-faded {
-    opacity: 0.06;
+    opacity: 0.13;
   }
 
   .toc-tree .toc-edge.focus-lit {
@@ -2333,50 +2333,34 @@ body {
     gap: 0.55rem;
   }
 
+  /* The one way out of focus mode: a filled accent button so it reads clearly as
+     the primary action of this transient mode. Tokens flip with the theme. */
   .proof-focus-exit {
     display: flex;
     align-items: center;
-    gap: 0.35em;
+    gap: 0.4em;
     max-width: 100%;
-    padding: 0.4rem 0.7rem;
+    padding: 0.45rem 0.75rem;
     font-size: 0.8rem;
+    font-weight: var(--weight-semi);
     line-height: 1.2;
-    color: var(--primary-700);
-    background: var(--primary-50);
-    border: 1px solid var(--primary-200);
-    border-radius: 8px;
+    color: var(--almost-white);
+    background: var(--primary-600);
+    border: var(--border-thin) solid var(--primary-600);
+    border-radius: var(--radius-md);
     cursor: pointer;
     user-select: none;
   }
 
-  .proof-focus-exit:hover { background: var(--primary-100); }
+  .proof-focus-exit:hover,
+  .proof-focus-exit:focus-visible {
+    color: var(--almost-white);
+    background: var(--primary-700);
+    border-color: var(--primary-700);
+  }
 
   .proof-focus-exit .proof-focus-back { font-size: 1.05em; line-height: 1; }
-  .proof-focus-exit .proof-focus-show-all {
-    font-weight: 600;
-    text-decoration: underline;
-  }
-
-
-  /* Focus mode: a collapsed step folds to a thin line; its ⟨n⟩ stays in the
-     right margin (where expanded steps show it too), so the proof reads as a
-     clean column of right-aligned numbers with the focused path inline. */
-  .step.proof-focus-collapsed > .hr-content-zone > * { display: none; }
-
-  .step.proof-focus-collapsed > .hr-content-zone {
-    position: relative;
-    min-height: 1.3em;
-  }
-
-  /* A short, faint mark on the fold so an empty line still reads as a step. */
-  .step.proof-focus-collapsed > .hr-content-zone::after {
-    content: "";
-    position: absolute;
-    top: 50%;
-    left: 0;
-    width: 1.4rem;
-    border-top: 2px solid var(--gray-300, #d4dae3);
-  }
+  .proof-focus-exit .proof-focus-show-all { font-weight: var(--weight-semi); }
 
   .toc-wrapper, .float-minimap-wrapper {
     display: flex;
@@ -3041,7 +3025,8 @@ a.reference.external:hover::after {
 .proof.reorder-active .step.reorder-dragged {
   opacity: 0.55;
 }
-.reorder-sr-status {
+.reorder-sr-status,
+.focus-sr-status {
   position: absolute;
   width: 1px;
   height: 1px;
@@ -3200,11 +3185,7 @@ a.reference.external:hover::after {
   .manuscriptwrapper .hr.hide {
     display: flex !important;
   }
-  .step.proof-focus-collapsed > .hr-content-zone > * {
-    display: revert !important;
-  }
-  .hr.hr-collapsed > .hr-content-zone::after,
-  .step.proof-focus-collapsed > .hr-content-zone::after {
+  .hr.hr-collapsed > .hr-content-zone::after {
     content: none !important;
   }
   /* A collapsed block caps its gutter with a border-bottom on the spacer-zone

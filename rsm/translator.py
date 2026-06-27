@@ -2062,6 +2062,15 @@ class HandrailsTranslator(Translator):
           <path d="M3 9l4 -4l4 4m-4 -4v14" />
           <path d="M21 15l-4 4l-4 -4m4 4v-14" />
         </svg>""",
+        "focus-2": """<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3C4952" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+          <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+          <path d="M12 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" />
+          <path d="M12 12m-5 0a5 5 0 1 0 10 0a5 5 0 1 0 -10 0" />
+          <path d="M12 3l0 2" />
+          <path d="M3 12l2 0" />
+          <path d="M12 19l0 2" />
+          <path d="M19 12l2 0" />
+        </svg>""",
     }
 
     def __init__(
@@ -2531,6 +2540,11 @@ class HandrailsTranslator(Translator):
         html += f'  <div class="hr-menu-item reorder" data-role="reorder" role="button" aria-pressed="false">\n'
         html += f'    {self._icon_ref("reorder")}\n'
         html += '    <span class="hr-menu-item-text">Reorder steps</span>\n'
+        html += '  </div>\n'
+        html += '  <div class="hr-menu-separator" data-role="focus-sep"></div>\n'
+        html += f'  <div class="hr-menu-item focus" data-role="focus" role="button">\n'
+        html += f'    {self._icon_ref("focus-2")}\n'
+        html += '    <span class="hr-menu-item-text">Focus this step</span>\n'
         html += '  </div>\n'
         html += '</div>\n</div>'
         return AppendText(text=html)

@@ -565,6 +565,8 @@ var RSM = (() => {
           refreshCollapseLabels(activeHr);
         } else if (role === "static-toggle") toggleStaticView(activeHr, menuItem);
         else if (role === "toc-view") toggleTocView(activeHr, menuItem);
+        else if (role === "reorder") toggleReorder(activeHr);
+        else if (role === "focus") triggerFocus(activeHr);
         return;
       }
       const collapseBtn = ev.target.closest(".hr-collapse");
@@ -646,6 +648,33 @@ var RSM = (() => {
       const textEl = tocViewEl.querySelector(".hr-menu-item-text");
       if (textEl) textEl.textContent = isTree ? "View as list" : "View as tree";
     }
+    const isProof = hr.classList.contains("proof");
+    const touch = window.matchMedia("(hover: none) and (pointer: coarse)").matches;
+    const reorder = isProof ? touch ? "disabled" : "true" : null;
+    const reorderEl = singletonMenu.querySelector('[data-role="reorder"]');
+    const reorderSep = singletonMenu.querySelector('[data-role="reorder-sep"]');
+    configureItem(reorderEl, reorder);
+    if (reorderSep) reorderSep.style.display = reorder ? "" : "none";
+    if (reorderEl && reorder) {
+      const textEl = reorderEl.querySelector(".hr-menu-item-text");
+      if (touch) {
+        reorderEl.setAttribute("aria-disabled", "true");
+        reorderEl.removeAttribute("aria-pressed");
+        if (textEl) textEl.textContent = "Reorder steps (desktop only)";
+      } else {
+        const on = hr.classList.contains("reorder-active");
+        reorderEl.removeAttribute("aria-disabled");
+        reorderEl.setAttribute("aria-pressed", on ? "true" : "false");
+        if (textEl) textEl.textContent = on ? "Done reordering" : "Reorder steps";
+      }
+    }
+    const isStep = hr.classList.contains("step") && !hr.closest(".calc");
+    const hasRail = !!document.querySelector(".proof-rail");
+    const focus = isStep && hasRail ? "true" : null;
+    const focusEl = singletonMenu.querySelector('[data-role="focus"]');
+    const focusSep = singletonMenu.querySelector('[data-role="focus-sep"]');
+    configureItem(focusEl, focus);
+    if (focusSep) focusSep.style.display = focus ? "" : "none";
     const zone = hr.querySelector(":scope > .hr-menu-zone");
     if (zone) {
       zone.appendChild(singletonMenu);
@@ -653,6 +682,17 @@ var RSM = (() => {
       zone.style.display = "block";
       portalMenuToBody();
     }
+  }
+  function toggleReorder(hr) {
+    const active = hr.classList.toggle("reorder-active");
+    hideMenu();
+    hr.dispatchEvent(
+      new CustomEvent("reorder:toggle", { bubbles: true, detail: { active } })
+    );
+  }
+  function triggerFocus(hr) {
+    hideMenu();
+    hr.dispatchEvent(new CustomEvent("focus:step", { bubbles: true }));
   }
   function menuPopup() {
     return singletonMenu && singletonMenu.querySelector(".hr-menu");
@@ -859,6 +899,15 @@ var RSM = (() => {
       else if (!wantCollapsed && isCollapsed) openHandrail(hr);
     }
     suppressPersist = false;
+  }
+  function withoutPersist(fn) {
+    const prev = suppressPersist;
+    suppressPersist = true;
+    try {
+      fn();
+    } finally {
+      suppressPersist = prev;
+    }
   }
   function getRest(hr) {
     let rest;
@@ -1325,12 +1374,103 @@ var RSM = (() => {
   }
 
   // rsm/static/tooltips.js
+  var PIN_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 4.5l-4 4l-4 1.5l-1.5 1.5l7 7l1.5 -1.5l1.5 -4l4 -4"/><path d="M9 15l-4.5 4.5"/><path d="M14.5 4l5.5 5.5"/></svg>';
+  function buildExcerpt(rawHref) {
+    if (!rawHref) return { content: "", error: "no-href" };
+    const target = rawHref.replaceAll(".", "\\.").replaceAll(":", "\\:");
+    if (target === "#") return { content: "", error: "no-label" };
+    const $t = $(target);
+    if (!$t[0]) return { content: "", error: "unknown" };
+    const tag = $t.prop("tagName");
+    const classes = $t[0].classList;
+    let content = "";
+    let clone;
+    if (["P", "LI", "FIGURE"].includes(tag)) {
+      content = `<div>${$t.html()}</div>`;
+    } else if (tag === "SPAN" && classes.contains("math")) {
+      content = `<div>${$t.html()}</div>`;
+    } else if (tag === "SPAN") {
+      content = `<div>${$t.parent().html()}</div>`;
+    } else if (tag === "DT") {
+      content = $t.next().html() || "";
+    } else if (tag === "TABLE") {
+      content = $t[0].outerHTML;
+    } else if (tag === "SECTION") {
+      clone = $t.clone();
+      clone.children().slice(2).remove();
+      stripHandrail(clone);
+      clone.css("font-size", "0.7rem");
+      content = clone.html();
+    } else if (tag === "A") {
+      content = `<div>${$t.parent().html()}</div>`;
+    } else if (tag === "DIV") {
+      if (classes.contains("step")) {
+        clone = $t.find(".statement").clone();
+        stripHandrail(clone);
+        clone.css("font-size", "0.7rem");
+        content = clone.html();
+      } else if (["math", "algorithm"].some((c) => classes.contains(c))) {
+        clone = $t.clone();
+        stripHandrail(clone);
+        content = clone.html();
+      } else if ([
+        "paragraph",
+        "mathblock",
+        "theorem",
+        "lemma",
+        "corollary",
+        "example",
+        "exercise",
+        "proposition",
+        "problem",
+        "porism",
+        "remark",
+        "definition",
+        "bibitem"
+      ].some((c) => classes.contains(c))) {
+        clone = $t.clone();
+        stripHandrail(clone);
+        content = clone.html();
+      }
+    }
+    return { content: content || "", error: content ? null : "unsupported" };
+  }
+  function pinBar(href, title) {
+    const h = (href || "").replaceAll('"', "&quot;");
+    const t = (title || "").replaceAll('"', "&quot;");
+    return `<div class="ref-pin-bar"><button type="button" class="ref-pin" data-pin-target="${h}" data-pin-title="${t}" aria-label="Pin this beside the proof">` + PIN_ICON + "<span>Pin</span></button></div>";
+  }
+  var pinDelegated = false;
+  function setupPinDelegation() {
+    if (pinDelegated) return;
+    pinDelegated = true;
+    document.addEventListener("click", (ev) => {
+      const btn = ev.target.closest && ev.target.closest(".ref-pin");
+      if (!btn) return;
+      const { content } = buildExcerpt(btn.dataset.pinTarget);
+      if (!content) return;
+      const tmp = document.createElement("div");
+      tmp.innerHTML = content;
+      tmp.querySelectorAll("[id]").forEach((e) => e.removeAttribute("id"));
+      tmp.querySelectorAll("[data-nodeid]").forEach((e) => e.removeAttribute("data-nodeid"));
+      btn.dispatchEvent(
+        new CustomEvent("rail:pin", {
+          bubbles: true,
+          detail: { html: tmp.innerHTML, title: btn.dataset.pinTitle || "" }
+        })
+      );
+    });
+  }
   function createTooltips() {
+    setupPinDelegation();
     $(".manuscriptwrapper a.reference:not(.external):not(.tooltipstered)").tooltipster({
       theme: ["tooltipster-shadow", "tooltipster-shadow-rsm"],
       delay: 200,
       minWidth: 100,
       maxWidth: 500,
+      // Interactive so the reader can move into the preview to click its pin
+      // button without it closing on the way.
+      interactive: true,
       trigger: "custom",
       triggerOpen: {
         mouseenter: true,
@@ -1343,74 +1483,27 @@ var RSM = (() => {
         touchleave: true
       },
       functionInit: function(instance, helper) {
-        let target = $(helper.origin).attr("href");
-        if (!target) {
+        const rawHref = $(helper.origin).attr("href");
+        const { content, error } = buildExcerpt(rawHref);
+        if (error === "no-href") {
           console.warn("Target does not have an href attribute");
           return;
         }
-        let content = "";
-        target = target.replaceAll(".", "\\.");
-        target = target.replaceAll(":", "\\:");
-        if (target == "#") {
-          content = '<span class="error">target node has no label</span>';
-          setTooltipContent(instance, content);
+        if (error === "no-label") {
+          setTooltipContent(
+            instance,
+            '<span class="error">target node has no label</span>'
+          );
           helper.origin.classList.add("error");
           return;
         }
-        ;
-        let tag = $(target).prop("tagName");
-        if (!$(target)[0]) {
+        if (error === "unknown") return;
+        if (!content) {
+          setTooltipContent(instance, "");
           return;
         }
-        let classes = $(target)[0].classList;
-        let clone = void 0;
-        if (["P", "LI", "FIGURE"].includes(tag)) {
-          content = $(target).html();
-          content = `<div>${content}</div>`;
-        } else if (tag == "SPAN" && classes.contains("math")) {
-          content = $(target).html();
-          content = `<div>${content}</div>`;
-        } else if (tag == "SPAN") {
-          content = $(target).parent().html();
-          content = `<div>${content}</div>`;
-        } else if (tag == "DT") {
-          content = $(target).next().html();
-        } else if (tag == "TABLE") {
-          content = $(target)[0].outerHTML;
-        } else if (tag == "SECTION") {
-          clone = $(target).clone();
-          clone.children().slice(2).remove();
-          stripHandrail(clone);
-          clone.css("font-size", "0.7rem");
-          content = clone.html();
-        } else if (tag == "A") {
-          content = $(target).parent().html();
-          content = `<div>${content}</div>`;
-        } else if (tag == "DIV") {
-          switch (true) {
-            case classes.contains("step"):
-              clone = $(target).find(".statement").clone();
-              stripHandrail(clone);
-              clone.css("font-size", "0.7rem");
-              content = clone.html();
-              break;
-            case Array.from(classes).filter((cls) => ["math", "algorithm"].includes(cls)).length > 0:
-              clone = $(target).clone();
-              stripHandrail(clone);
-              content = clone.html();
-              break;
-            case Array.from(classes).filter((cls) => ["paragraph", "mathblock", "theorem", "lemma", "corollary", "example", "exercise", "proposition", "problem", "porism", "remark", "definition", "bibitem"].includes(cls)).length > 0:
-              clone = $(target).clone();
-              stripHandrail(clone);
-              content = $(clone).html();
-              break;
-            case true:
-              console.log(`tooltip target DIV with unknown class: ${classes}`);
-          }
-        } else {
-          console.log(`tooltip target with unknown tag ${tag}`);
-        }
-        setTooltipContent(instance, content);
+        const title = (helper.origin.textContent || "").trim();
+        setTooltipContent(instance, pinBar(rawHref, title) + content);
       },
       functionReady: function(instance, helper) {
         const el = instance.elementTooltip ? instance.elementTooltip() : helper.tooltip;
@@ -1536,6 +1629,7 @@ var RSM = (() => {
       rail.classList.toggle("scope-document", scope === "document");
       rail.classList.toggle("scope-proof", scope === "proof");
       rail.classList.toggle("scope-reading", scope === "reading");
+      rail.classList.toggle("scope-pinned", scope === "pinned");
     }
     function selectTab(tab) {
       const row = tab.closest(".rail-subtabs");
@@ -1572,6 +1666,30 @@ var RSM = (() => {
       collapseBtn.addEventListener("click", () => {
         rail.classList.toggle("collapsed");
         saveLayout();
+      });
+    }
+    const pinnedBody = rail.querySelector(".rail-pinned-body");
+    const pinnedTitle = rail.querySelector(".rail-pinned-title");
+    let prePinScope = null;
+    document.addEventListener("rail:pin", (ev) => {
+      if (!pinnedBody) return;
+      if (!rail.classList.contains("has-pin")) {
+        prePinScope = rail.querySelector(".rail-scope.active")?.dataset.scope || "document";
+      }
+      pinnedBody.innerHTML = ev.detail.html || "";
+      if (pinnedTitle) pinnedTitle.textContent = ev.detail.title || "Pinned";
+      typesetMath(pinnedBody);
+      rail.classList.add("has-pin");
+      selectScope("pinned");
+    });
+    const pinClose = rail.querySelector(".rail-pin-close");
+    if (pinClose) {
+      pinClose.addEventListener("click", () => {
+        if (pinnedBody) pinnedBody.innerHTML = "";
+        if (pinnedTitle) pinnedTitle.textContent = "";
+        rail.classList.remove("has-pin");
+        selectScope(prePinScope || "document");
+        prePinScope = null;
       });
     }
     const READING_KEY = "rsm-reading";
@@ -1741,34 +1859,38 @@ var RSM = (() => {
       if (!items.has(key)) key = null;
       if (key === current) return;
       current = key;
+      active.idx = -1;
       for (const [k, item] of items) item.classList.toggle("shown", k === key);
       rail.classList.toggle("no-proof", key === null);
       updateCollapsedClass();
       updateState();
     }
     show(null);
+    function stepsOf(proofEl) {
+      return [...proofEl.querySelectorAll(".step")].filter((s) => !s.closest(".calc"));
+    }
+    function selectFrom(target, clearOutside) {
+      if (!target || !target.closest) return;
+      if (target.closest(".proof-rail") || target.closest("#hr-menu-singleton")) return;
+      let el = target.closest(".proof[data-nodeid]");
+      while (el && !items.has(el.getAttribute("data-nodeid"))) {
+        const p = el.parentElement;
+        el = p ? p.closest(".proof[data-nodeid]") : null;
+      }
+      if (!el) {
+        if (clearOutside) show(null);
+        return;
+      }
+      show(el.getAttribute("data-nodeid"));
+      const stepEl = target.closest(".step");
+      if (stepEl && !stepEl.closest(".calc") && el.contains(stepEl)) {
+        const idx = stepEl.dataset.stateIdx != null ? Number(stepEl.dataset.stateIdx) : stepsOf(el).indexOf(stepEl);
+        if (idx >= 0) updateState(idx);
+      }
+    }
     if (proofs.length) {
-      const visible = /* @__PURE__ */ new Set();
-      const observer = new IntersectionObserver(
-        (entries) => {
-          for (const e of entries) {
-            if (e.isIntersecting) visible.add(e.target);
-            else visible.delete(e.target);
-          }
-          let best = null;
-          let bestTop = Infinity;
-          for (const p of visible) {
-            const top = p.getBoundingClientRect().top;
-            if (top < bestTop) {
-              bestTop = top;
-              best = p;
-            }
-          }
-          show(best ? best.getAttribute("data-nodeid") : null);
-        },
-        { rootMargin: "-12% 0px -55% 0px", threshold: 0 }
-      );
-      for (const p of proofs) observer.observe(p);
+      root2.addEventListener("click", (ev) => selectFrom(ev.target, false));
+      root2.addEventListener("focusin", (ev) => selectFrom(ev.target, true));
     }
     document.addEventListener("rsm:handrail-toggle", (ev) => {
       const hr = ev.detail && ev.detail.hr;
@@ -1797,33 +1919,13 @@ var RSM = (() => {
       active.idx = idx;
       renderState();
     }
-    function currentStepOf(proofEl) {
-      const center = window.innerHeight / 2;
-      let best = -1;
-      let bestTop = -Infinity;
-      const steps = [...proofEl.querySelectorAll(".step")].filter((s) => !s.closest(".calc"));
-      steps.forEach((s, i) => {
-        const top = s.getBoundingClientRect().top;
-        if (top <= center && top > bestTop) {
-          bestTop = top;
-          best = i;
-        }
-      });
-      return best;
-    }
-    function updateState() {
+    function updateState(idx) {
       if (rail.classList.contains("focusing")) {
         setCurrentNode(null);
         return;
       }
-      let idx = -1;
-      if (current) {
-        const proofEl = root2.querySelector(`.proof[data-nodeid="${current}"]`);
-        if (proofEl) {
-          idx = currentStepOf(proofEl);
-          if (idx < 0) idx = 0;
-        }
-      }
+      if (!current) idx = -1;
+      else if (idx == null || idx < 0) idx = active.idx >= 0 ? active.idx : 0;
       setActiveIdx(idx);
       const item = current ? items.get(current) : null;
       const node = item && idx >= 0 ? item.querySelector(`.toc-node[data-idx="${idx}"]`) : null;
@@ -1831,14 +1933,6 @@ var RSM = (() => {
       const dag = item ? item.querySelector("svg.toc-tree") : null;
       if (dag) pinTreeCurrent(dag, idx >= 0 ? String(idx) : null);
       updatePeekGoal();
-    }
-    const stepObserver = new IntersectionObserver(() => updateState(), {
-      rootMargin: "-50% 0px -50% 0px",
-      threshold: 0
-    });
-    for (const s of root2.querySelectorAll(".proof[data-nodeid] .step")) {
-      if (s.closest(".calc")) continue;
-      stepObserver.observe(s);
     }
     function cloneClean(el) {
       const c = el.cloneNode(true);
@@ -1870,7 +1964,7 @@ var RSM = (() => {
       panel.setAttribute("aria-live", "polite");
       const data = stateData.get(item.dataset.proof);
       if (!data || active.idx < 0 || active.idx >= data.length) {
-        panel.innerHTML = '<div class="rail-state-empty">Scroll into a proof to see its live hypotheses and current goal.</div>';
+        panel.innerHTML = '<div class="rail-state-empty">Click a proof to see its live hypotheses and current goal.</div>';
         return;
       }
       const st = data[active.idx];
@@ -2055,8 +2149,6 @@ var RSM = (() => {
       return seen;
     }
     const stepsOf = (proofEl) => [...proofEl.querySelectorAll(".step")];
-    const collapseStep = (st) => st.classList.add("proof-focus-collapsed");
-    const openStep = (st) => st.classList.remove("proof-focus-collapsed");
     function dimRail(svg, cone) {
       for (const n of svg.querySelectorAll(".toc-node")) {
         const lit = cone.has(n.dataset.idx);
@@ -2074,6 +2166,31 @@ var RSM = (() => {
       const el = st && st.querySelector(":scope > .hr-info-zone .step-number");
       return el ? el.textContent.trim() : "";
     }
+    let liveRegion2 = null;
+    function announce2(msg) {
+      if (!liveRegion2) {
+        liveRegion2 = document.createElement("div");
+        liveRegion2.className = "focus-sr-status";
+        liveRegion2.setAttribute("role", "status");
+        liveRegion2.setAttribute("aria-live", "polite");
+        document.body.appendChild(liveRegion2);
+      }
+      liveRegion2.textContent = "";
+      requestAnimationFrame(() => {
+        liveRegion2.textContent = msg;
+      });
+    }
+    function showProofMap() {
+      const scopeBtn = rail.querySelector('.rail-scope[data-scope="proof"]');
+      if (scopeBtn) scopeBtn.click();
+      const mapTab = rail.querySelector(
+        '.rail-subtabs-proof .rail-tab[data-view="proof-map"]'
+      );
+      if (mapTab && !mapTab.classList.contains("active")) mapTab.click();
+    }
+    function onKeydown(ev) {
+      if (ev.key === "Escape") exitFocus();
+    }
     let exitBar = null;
     function setExitBar(sel) {
       const num = stepNumber(sel);
@@ -2083,35 +2200,80 @@ var RSM = (() => {
         exitBar.setAttribute("role", "button");
         exitBar.tabIndex = 0;
         exitBar.addEventListener("click", exitFocus);
+        exitBar.addEventListener("keydown", (ev) => {
+          if (ev.key === "Enter" || ev.key === " ") {
+            ev.preventDefault();
+            exitFocus();
+          }
+        });
       }
       exitBar.innerHTML = `<span class="proof-focus-back">\u21A9</span><span>${num ? `Step ${num}` : "Focused"} \xB7 <span class="proof-focus-show-all">Show full proof</span></span>`;
       rail.insertBefore(exitBar, rail.firstChild);
       rail.classList.add("focusing");
     }
-    function exitFocus() {
+    function teardown() {
       if (!active) return;
+      document.removeEventListener("keydown", onKeydown);
       rail.classList.remove("focusing");
       if (exitBar) exitBar.remove();
-      stepsOf(active.proofEl).forEach(openStep);
+      withoutPersist(() => {
+        active.steps.forEach(
+          (st, i) => active.wasCollapsed[i] ? closeHandrail(st) : openHandrail(st)
+        );
+      });
       undimRail(active.svg);
       active.proofEl.classList.remove("proof-focused");
       active = null;
     }
+    function exitFocus() {
+      if (!active) return;
+      teardown();
+      announce2("Full proof restored.");
+    }
     function enterFocus(railItem, proofEl, startIdx) {
-      exitFocus();
       const svg = railItem.querySelector("svg.toc-tree");
       if (!svg) return;
-      const cone = coneOf(svg, startIdx);
+      teardown();
+      showProofMap();
+      const idx = Number(startIdx);
+      const cone = coneOf(svg, idx);
       const steps = stepsOf(proofEl);
-      steps.forEach((st, i) => cone.has(String(i)) ? openStep(st) : collapseStep(st));
+      const wasCollapsed = steps.map((st) => st.classList.contains("hr-collapsed"));
+      withoutPersist(() => {
+        steps.forEach(
+          (st, i) => cone.has(String(i)) ? openHandrail(st) : closeHandrail(st)
+        );
+      });
       dimRail(svg, cone);
       proofEl.classList.add("proof-focused");
-      const sel = steps[startIdx];
-      active = { proofEl, svg, startIdx: String(startIdx) };
+      const sel = steps[idx];
+      active = { proofEl, svg, startIdx: String(idx), steps, wasCollapsed };
       setExitBar(sel);
+      document.addEventListener("keydown", onKeydown);
+      const deps = steps.filter((_, i) => cone.has(String(i))).length - 1;
+      const num = stepNumber(sel);
+      announce2(
+        `Focused step ${num || idx + 1}: showing the ${Math.max(deps, 0)} steps it depends on; press Escape to show the full proof.`
+      );
       document.dispatchEvent(new CustomEvent("rsm:focus-enter"));
-      if (sel) sel.scrollIntoView({ behavior: "smooth", block: "center" });
+      if (sel) {
+        const reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        sel.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "center" });
+      }
     }
+    root2.addEventListener("focus:step", (ev) => {
+      const step = ev.target.closest && ev.target.closest(".step");
+      if (!step) return;
+      const proofEl = step.closest(".proof[data-nodeid]");
+      if (!proofEl) return;
+      const railItem = rail.querySelector(
+        `.proof-rail-item[data-proof="${proofEl.dataset.nodeid}"]`
+      );
+      if (!railItem) return;
+      const startIdx = stepsOf(proofEl).indexOf(step);
+      if (startIdx < 0) return;
+      enterFocus(railItem, proofEl, startIdx);
+    });
     rail.addEventListener("click", (ev) => {
       const node = ev.target.closest(".toc-node");
       if (!node) return;
@@ -2122,6 +2284,273 @@ var RSM = (() => {
       const proofEl = root2.querySelector(`.proof[data-nodeid="${railItem.dataset.proof}"]`);
       if (!proofEl) return;
       enterFocus(railItem, proofEl, node.dataset.idx);
+    });
+  }
+
+  // rsm/static/reorder.js
+  function isDagStep(stepEl) {
+    return !stepEl.closest(".calc");
+  }
+  function extractModel(railItem) {
+    const svg = railItem.querySelector("svg.toc-tree");
+    if (!svg) return null;
+    const svgNodes = [...svg.querySelectorAll("a.toc-node")];
+    let proofEl = null;
+    for (const n2 of svgNodes) {
+      const href = n2.getAttribute("href") || "";
+      if (href.length > 1) {
+        const el = document.getElementById(href.slice(1));
+        if (el && el.classList.contains("step")) {
+          proofEl = el.closest(".proof");
+          break;
+        }
+      }
+    }
+    if (!proofEl) return null;
+    const bodySteps = [...proofEl.querySelectorAll(".step")].filter(isDagStep);
+    const n = bodySteps.length;
+    if (!n) return null;
+    const svgByIdx = /* @__PURE__ */ new Map();
+    for (const node of svgNodes) svgByIdx.set(Number(node.getAttribute("data-idx")), node);
+    const byId = /* @__PURE__ */ new Map();
+    const idToId = /* @__PURE__ */ new Map();
+    bodySteps.forEach((el, i) => {
+      const id = el.dataset.nodeid || "idx-" + i;
+      byId.set(id, { id, idx: i, bodyEl: el, svgNode: svgByIdx.get(i) || null, parent: null });
+      idToId.set(i, id);
+    });
+    const deps = [];
+    for (const edge of svg.querySelectorAll("path.toc-edge.dep")) {
+      const s = Number(edge.getAttribute("data-from"));
+      const d = Number(edge.getAttribute("data-to"));
+      if (s < n && d < n) deps.push({ src: idToId.get(s), dst: idToId.get(d) });
+    }
+    for (const step of byId.values()) {
+      let anc = step.bodyEl.parentElement;
+      while (anc && anc !== proofEl) {
+        if (anc.classList.contains("step") && anc.dataset.nodeid && byId.has(anc.dataset.nodeid)) {
+          step.parent = anc.dataset.nodeid;
+          break;
+        }
+        anc = anc.parentElement;
+      }
+    }
+    const children = /* @__PURE__ */ new Map();
+    for (const step of byId.values()) {
+      const key = step.parent || "";
+      if (!children.has(key)) children.set(key, []);
+      children.get(key).push(step.id);
+    }
+    for (const arr of children.values()) arr.sort((a, b) => byId.get(a).idx - byId.get(b).idx);
+    return { byId, deps, children, svg, proofEl };
+  }
+  function flatten(children) {
+    const out = [];
+    const walk = (key) => {
+      for (const id of children.get(key) || []) {
+        out.push(id);
+        walk(id);
+      }
+    };
+    walk("");
+    return out;
+  }
+  function isValidOrder(model, flat) {
+    const pos = new Map(flat.map((id, i) => [id, i]));
+    return model.deps.every((e) => pos.get(e.dst) < pos.get(e.src));
+  }
+  function legalPositions(model, id) {
+    const step = model.byId.get(id);
+    if (!step) return [];
+    const key = step.parent || "";
+    const without = (model.children.get(key) || []).filter((x) => x !== id);
+    const legal = [];
+    for (let p = 0; p <= without.length; p++) {
+      const trial = new Map(model.children);
+      trial.set(key, [...without.slice(0, p), id, ...without.slice(p)]);
+      if (isValidOrder(model, flatten(trial))) legal.push(p);
+    }
+    return legal;
+  }
+  function moveTo(model, id, pos) {
+    const step = model.byId.get(id);
+    const key = step.parent || "";
+    const without = (model.children.get(key) || []).filter((x) => x !== id);
+    const next = new Map(model.children);
+    next.set(key, [...without.slice(0, pos), id, ...without.slice(pos)]);
+    return next;
+  }
+  function applyToBody(model, newChildren) {
+    for (const [key, ids] of newChildren) {
+      const current = model.children.get(key) || [];
+      if (ids.length === current.length && ids.every((id, i) => id === current[i])) continue;
+      const els = ids.map((id) => model.byId.get(id).bodyEl);
+      if (els.length < 2) continue;
+      const container = els[0].parentElement;
+      const domOrder = [...els].sort(
+        (a, b) => a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1
+      );
+      const after = domOrder[domOrder.length - 1].nextSibling;
+      for (const el of els) container.insertBefore(el, after);
+    }
+    model.children = newChildren;
+  }
+  var GRIP = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 5m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"/><path d="M9 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"/><path d="M9 19m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"/><path d="M15 5m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"/><path d="M15 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"/><path d="M15 19m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"/></svg>';
+  var reorderState = /* @__PURE__ */ new WeakMap();
+  var liveRegion = null;
+  function announce(msg) {
+    if (!liveRegion) {
+      liveRegion = document.createElement("div");
+      liveRegion.className = "reorder-sr-status";
+      liveRegion.setAttribute("role", "status");
+      liveRegion.setAttribute("aria-live", "polite");
+      document.body.appendChild(liveRegion);
+    }
+    liveRegion.textContent = "";
+    requestAnimationFrame(() => {
+      liveRegion.textContent = msg;
+    });
+  }
+  function setup6(root2 = document) {
+    root2.addEventListener("reorder:toggle", (ev) => {
+      const proof = ev.target.closest && ev.target.closest(".proof.hr");
+      if (!proof) return;
+      if (ev.detail && ev.detail.active) activate(proof);
+      else deactivate(proof);
+    });
+    root2.addEventListener("keydown", (ev) => {
+      if (ev.key !== "Escape") return;
+      for (const proof of document.querySelectorAll(".proof.reorder-active")) {
+        proof.classList.remove("reorder-active");
+        deactivate(proof);
+      }
+    });
+  }
+  function railItemFor(proof) {
+    const id = proof.dataset.nodeid;
+    return id ? document.querySelector(`.proof-rail-item[data-proof="${id}"]`) : null;
+  }
+  function activate(proof) {
+    if (reorderState.has(proof)) return;
+    const railItem = railItemFor(proof);
+    const model = railItem && extractModel(railItem);
+    if (!model || model.byId.size < 2) {
+      proof.classList.remove("reorder-active");
+      return;
+    }
+    const handles = [];
+    for (const step of model.byId.values()) {
+      step.bodyEl.dataset.stateIdx = String(step.idx);
+      const handle = document.createElement("button");
+      handle.type = "button";
+      handle.className = "reorder-handle";
+      const label = step.bodyEl.dataset.menuLabel || "this step";
+      handle.setAttribute("aria-label", `Reorder ${label}`);
+      handle.innerHTML = GRIP;
+      step.bodyEl.appendChild(handle);
+      wireHandle(handle, step.id, proof, model);
+      handles.push(handle);
+    }
+    const scopeBtn = document.querySelector('.rail-scope[data-scope="proof"]');
+    if (scopeBtn) scopeBtn.click();
+    reorderState.set(proof, { model, handles });
+    announce(`Reorder mode on, ${model.byId.size} steps. Drag a step's handle to reorder it.`);
+  }
+  function flipMove(model, applyFn) {
+    if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      applyFn();
+      return;
+    }
+    const els = [...model.byId.values()].map((s) => s.bodyEl);
+    const before = new Map(els.map((el) => [el, el.getBoundingClientRect().top]));
+    applyFn();
+    for (const el of els) {
+      const dy = before.get(el) - el.getBoundingClientRect().top;
+      if (!dy) continue;
+      el.style.transition = "transform 0s";
+      el.style.transform = `translateY(${dy}px)`;
+      requestAnimationFrame(() => {
+        el.style.transition = "transform 220ms cubic-bezier(.2,.7,.3,1)";
+        el.style.transform = "";
+      });
+      el.addEventListener(
+        "transitionend",
+        () => {
+          el.style.transition = "";
+          el.style.transform = "";
+        },
+        { once: true }
+      );
+    }
+  }
+  function deactivate(proof) {
+    const st = reorderState.get(proof);
+    if (!st) return;
+    for (const h of st.handles) h.remove();
+    reorderState.delete(proof);
+    announce("Reorder mode off.");
+  }
+  function siblingEls(model, id) {
+    const step = model.byId.get(id);
+    const key = step.parent || "";
+    return (model.children.get(key) || []).filter((x) => x !== id).map((x) => model.byId.get(x).bodyEl);
+  }
+  function slotUnderPointer(els, y) {
+    let slot = 0;
+    for (const el of els) {
+      const r = el.getBoundingClientRect();
+      if (r.top + r.height / 2 < y) slot++;
+    }
+    return slot;
+  }
+  function wireHandle(handle, id, proof, model) {
+    handle.addEventListener("pointerdown", (ev) => {
+      ev.preventDefault();
+      ev.stopPropagation();
+      const step = model.byId.get(id);
+      const key = step.parent || "";
+      const legal = new Set(legalPositions(model, id));
+      const others = siblingEls(model, id);
+      const container = step.bodyEl.parentElement;
+      const start = (model.children.get(key) || []).indexOf(id);
+      const prevPin = model.svg ? model.svg.__pinnedIdx : null;
+      let target = start;
+      const indicator = document.createElement("div");
+      indicator.className = "reorder-indicator";
+      proof.classList.add("reorder-dragging");
+      step.bodyEl.classList.add("reorder-dragged");
+      if (model.svg) pinTreeCurrent(model.svg, String(step.idx));
+      const place = (slot) => {
+        if (slot < others.length) container.insertBefore(indicator, others[slot]);
+        else container.appendChild(indicator);
+      };
+      const onMove = (e) => {
+        const slot = slotUnderPointer(others, e.clientY);
+        place(slot);
+        if (legal.has(slot)) {
+          target = slot;
+          indicator.classList.remove("illegal");
+        } else {
+          target = start;
+          indicator.classList.add("illegal");
+        }
+      };
+      const onUp = () => {
+        document.removeEventListener("pointermove", onMove);
+        document.removeEventListener("pointerup", onUp);
+        indicator.remove();
+        proof.classList.remove("reorder-dragging");
+        step.bodyEl.classList.remove("reorder-dragged");
+        if (model.svg) pinTreeCurrent(model.svg, prevPin);
+        if (target !== start && legal.has(target)) {
+          flipMove(model, () => applyToBody(model, moveTo(model, id, target)));
+          const sib = model.children.get(key) || [];
+          const label = step.bodyEl.dataset.menuLabel || "Step";
+          announce(`${label} moved to position ${sib.indexOf(id) + 1} of ${sib.length}.`);
+        }
+      };
+      document.addEventListener("pointermove", onMove);
+      document.addEventListener("pointerup", onUp);
     });
   }
 
@@ -2170,6 +2599,11 @@ var RSM = (() => {
         setup5(root2);
       } catch (err) {
         console.error("Loading focusmode.js FAILED!", err);
+      }
+      try {
+        setup6(root2);
+      } catch (err) {
+        console.error("Loading reorder.js FAILED!", err);
       }
       try {
         if (keys) {

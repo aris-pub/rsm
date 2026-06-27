@@ -1,19 +1,32 @@
 // focusmode.js
 //
-// Click a node in the floating proof rail to focus that step: the proof
-// collapses to just that step and its transitive prerequisite cone, every
-// other step shrinks to its bare "⟨n⟩" number, and the rail dims to the same
-// cone. The cone is the prerequisite closure over the rail's edges (dependency
-// + containment, never forward pointers), so a step's structural ancestors
-// come along automatically and the collapsed view stays coherent.
+// Focus a single step: the proof folds to that step and its transitive
+// prerequisite cone (every other step collapses to its statement + ⟨n⟩ number
+// via the same handrail collapse the chevron uses), and the rail dims to the
+// same cone. The cone is the prerequisite closure over the rail's edges
+// (dependency + containment, never forward pointers), so a step's structural
+// ancestors come along automatically and the folded view stays coherent.
 //
-// Restore the whole proof from the "Show full proof" bar in the rail.
+// Two ways in: the step's handrail menu ("Focus this step", the primary, dispatched
+// as a "focus:step" event by handrails.js) and a click on the step's node in the
+// rail's Proof map (the secondary). The "Show full proof" bar in the rail, the
+// Escape key, or Enter/Space on that bar all restore the whole proof.
+
+import { openHandrail, closeHandrail, withoutPersist } from "./handrails.js";
+
+// Focus mode is gated behind an opt-in flag while it remains under development
+// (potf-i4g): a document turns it on with <html data-focus-mode="on">. Without
+// the flag (the default, including the submission paper) every trigger is inert,
+// so the feature ships present but unreachable. Checked live, so tests opt in.
+const focusEnabled = () =>
+  document.documentElement.getAttribute("data-focus-mode") === "on";
 
 export function setup(root = document) {
   const rail = root.querySelector(".proof-rail");
   if (!rail) return;
 
-  let active = null; // { proofEl, svg, startIdx }
+  // { proofEl, svg, startIdx, steps, wasCollapsed } for the proof in focus.
+  let active = null;
 
   function coneOf(svg, startIdx) {
     // Prerequisite closure: an edge X->Y (not forward) means "read Y before X".
@@ -39,11 +52,6 @@ export function setup(root = document) {
 
   // Tree-node idx (document order) maps 1:1 to the proof's steps in DOM order.
   const stepsOf = (proofEl) => [...proofEl.querySelectorAll(".step")];
-
-  // Folding is pure CSS: the row collapses to a thin line, its number kept in
-  // the right margin where every expanded step also shows it.
-  const collapseStep = (st) => st.classList.add("proof-focus-collapsed");
-  const openStep = (st) => st.classList.remove("proof-focus-collapsed");
 
   // Light the cone path (focus-lit) and recede everything else (focus-faded).
   // Dedicated classes, untouched by hover, so the focus styling persists while
@@ -75,8 +83,47 @@ export function setup(root = document) {
     return el ? el.textContent.trim() : "";
   }
 
+  // A single polite live region announces entering and leaving focus to screen
+  // readers, since the fold itself is a silent visual change.
+  let liveRegion = null;
+  function announce(msg) {
+    if (!liveRegion) {
+      liveRegion = document.createElement("div");
+      liveRegion.className = "focus-sr-status";
+      liveRegion.setAttribute("role", "status");
+      liveRegion.setAttribute("aria-live", "polite");
+      document.body.appendChild(liveRegion);
+    }
+    // Clear then set on the next frame so a repeated message still re-announces
+    // (assistive tech ignores an unchanged text node).
+    liveRegion.textContent = "";
+    requestAnimationFrame(() => {
+      liveRegion.textContent = msg;
+    });
+  }
+
+  // Surface the rail's Proof scope and its step map (not State) so the dimmed
+  // cone is visible. Mirrors what reorder.js does on entering reorder mode.
+  function showProofMap() {
+    const scopeBtn = rail.querySelector('.rail-scope[data-scope="proof"]');
+    if (scopeBtn) scopeBtn.click();
+    const mapTab = rail.querySelector(
+      '.rail-subtabs-proof .rail-tab[data-view="proof-map"]',
+    );
+    if (mapTab && !mapTab.classList.contains("active")) mapTab.click();
+  }
+
+  // Escape leaves focus while it is active; bound on enter, dropped on exit so
+  // it never competes with the menu/reorder Escape handlers when not focusing.
+  function onKeydown(ev) {
+    if (ev.key === "Escape") exitFocus();
+  }
+
   // The one obvious way out lives in the rail itself, which is fixed on screen,
-  // so it is always reachable no matter how far the reader has scrolled.
+  // so it is always reachable no matter how far the reader has scrolled. It is a
+  // role=button/tabindex=0 div, so wire Enter and Space alongside the click to
+  // keep it keyboard-operable (it sits inside .proof-rail, which already paints a
+  // visible :focus-visible outline).
   let exitBar = null;
   function setExitBar(sel) {
     const num = stepNumber(sel);
@@ -86,6 +133,12 @@ export function setup(root = document) {
       exitBar.setAttribute("role", "button");
       exitBar.tabIndex = 0;
       exitBar.addEventListener("click", exitFocus);
+      exitBar.addEventListener("keydown", (ev) => {
+        if (ev.key === "Enter" || ev.key === " ") {
+          ev.preventDefault();
+          exitFocus();
+        }
+      });
     }
     exitBar.innerHTML =
       '<span class="proof-focus-back">↩</span>' +
@@ -95,34 +148,91 @@ export function setup(root = document) {
     rail.classList.add("focusing");
   }
 
-  function exitFocus() {
+  // Undo the focus view: restore each step to the collapsed state it had before
+  // focus (so a step the reader had already collapsed stays collapsed, and one
+  // focus folded is re-opened), un-dim the rail, and drop the focus chrome. Pure
+  // teardown, no announcement, so re-focusing another step does not narrate an
+  // exit it never really did.
+  function teardown() {
     if (!active) return;
+    document.removeEventListener("keydown", onKeydown);
     rail.classList.remove("focusing");
     if (exitBar) exitBar.remove();
-    stepsOf(active.proofEl).forEach(openStep);
+    withoutPersist(() => {
+      active.steps.forEach((st, i) =>
+        active.wasCollapsed[i] ? closeHandrail(st) : openHandrail(st),
+      );
+    });
     undimRail(active.svg);
     active.proofEl.classList.remove("proof-focused");
     active = null;
   }
 
-  function enterFocus(railItem, proofEl, startIdx) {
-    exitFocus();
-    const svg = railItem.querySelector("svg.toc-tree");
-    if (!svg) return;
-    const cone = coneOf(svg, startIdx);
-    const steps = stepsOf(proofEl);
-    steps.forEach((st, i) => (cone.has(String(i)) ? openStep(st) : collapseStep(st)));
-    dimRail(svg, cone);
-    proofEl.classList.add("proof-focused");
-    const sel = steps[startIdx];
-    active = { proofEl, svg, startIdx: String(startIdx) };
-    setExitBar(sel);
-    // Let the mobile drawer drop to peek so the focused cone is readable.
-    document.dispatchEvent(new CustomEvent("rsm:focus-enter"));
-    if (sel) sel.scrollIntoView({ behavior: "smooth", block: "center" });
+  function exitFocus() {
+    if (!active) return;
+    teardown();
+    announce("Full proof restored.");
   }
 
+  function enterFocus(railItem, proofEl, startIdx) {
+    const svg = railItem.querySelector("svg.toc-tree");
+    if (!svg) return;
+    teardown();
+    showProofMap();
+    const idx = Number(startIdx);
+    const cone = coneOf(svg, idx);
+    const steps = stepsOf(proofEl);
+    // Remember each step's pre-focus collapsed state so exit is non-destructive
+    // to the reader's own manual collapses.
+    const wasCollapsed = steps.map((st) => st.classList.contains("hr-collapsed"));
+    withoutPersist(() => {
+      steps.forEach((st, i) =>
+        cone.has(String(i)) ? openHandrail(st) : closeHandrail(st),
+      );
+    });
+    dimRail(svg, cone);
+    proofEl.classList.add("proof-focused");
+    const sel = steps[idx];
+    active = { proofEl, svg, startIdx: String(idx), steps, wasCollapsed };
+    setExitBar(sel);
+    document.addEventListener("keydown", onKeydown);
+    // "the K steps it depends on": the cone's body steps minus the focused one.
+    const deps = steps.filter((_, i) => cone.has(String(i))).length - 1;
+    const num = stepNumber(sel);
+    announce(
+      `Focused step ${num || idx + 1}: showing the ${Math.max(deps, 0)} ` +
+        "steps it depends on; press Escape to show the full proof.",
+    );
+    // Let the mobile drawer drop to peek so the focused cone is readable.
+    document.dispatchEvent(new CustomEvent("rsm:focus-enter"));
+    if (sel) {
+      const reduce =
+        window.matchMedia &&
+        window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      sel.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "center" });
+    }
+  }
+
+  // Primary trigger: "Focus this step" in the step's handrail menu (handrails.js
+  // dispatches focus:step from the menu item).
+  root.addEventListener("focus:step", (ev) => {
+    if (!focusEnabled()) return;
+    const step = ev.target.closest && ev.target.closest(".step");
+    if (!step) return;
+    const proofEl = step.closest(".proof[data-nodeid]");
+    if (!proofEl) return;
+    const railItem = rail.querySelector(
+      `.proof-rail-item[data-proof="${proofEl.dataset.nodeid}"]`,
+    );
+    if (!railItem) return;
+    const startIdx = stepsOf(proofEl).indexOf(step);
+    if (startIdx < 0) return;
+    enterFocus(railItem, proofEl, startIdx);
+  });
+
+  // Secondary trigger: a click on the step's node in the rail's Proof map.
   rail.addEventListener("click", (ev) => {
+    if (!focusEnabled()) return;
     const node = ev.target.closest(".toc-node");
     if (!node) return;
     const railItem = node.closest(".proof-rail-item");
