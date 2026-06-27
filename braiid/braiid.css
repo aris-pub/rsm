@@ -1580,7 +1580,9 @@ body {
   }
 
   .toc-tree .toc-node .toc-secnum {
-    font-size: 13.5px;
+    /* user-unit size is set per-SVG by tocarcs.js so the on-screen size stays
+       constant regardless of how the graph is scaled to fit. */
+    font-size: var(--toc-label-px, 13.5px);
     font-weight: 600;
     fill: var(--gray-700);
   }
@@ -1615,7 +1617,7 @@ body {
   }
 
   .toc-tree .toc-hover-label text {
-    font-size: 13px;
+    font-size: var(--toc-hover-px, 13px);
     font-weight: 600;
     fill: var(--text-body);
   }
@@ -2020,11 +2022,10 @@ body {
     overflow: visible;
   }
 
-  /* The DAG is shrunk to fit the gutter, which drags the label type down with
-     it. Bump the label type (the section numbers and the short "Top" root
-     marker) back up to a readable size; the graph geometry (boxes, edges,
-     positions) is unchanged, so the larger glyphs sit over the small boxes. */
-  .proof-rail svg.toc-tree .toc-secnum { font-size: 32px; }
+  /* Label type is stabilized to a constant on-screen size by tocarcs.js (via
+     --toc-label-px), so it stays readable whether the DAG is shrunk to fit the
+     gutter or rendered large; it no longer tracks the graph's scale. */
+  .proof-rail svg.toc-tree .toc-secnum { font-size: var(--toc-label-px, 13.5px); }
 
   /* Make only the node boxes 10% larger so the bumped type sits in them more
      comfortably. Scaled in place from each box's own centre (transform-box:
@@ -2037,7 +2038,7 @@ body {
 
   /* Hover tooltip type bumped to match the nodes; the JS sizes its background
      box from getBBox, so the box re-fits the larger text automatically. */
-  .proof-rail svg.toc-tree .toc-hover-label text { font-size: 32px; }
+  .proof-rail svg.toc-tree .toc-hover-label text { font-size: var(--toc-hover-px, 13px); }
 
   /* State view: live hypotheses and current goal, cloned from the body. */
   .rail-state {

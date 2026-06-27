@@ -5,11 +5,34 @@
 // static SVG. This module only adds hover focus: dim unrelated nodes/edges and
 // reveal the hovered section's full title. No layout runs in the browser.
 
+// Node/label type must be a constant on-screen size no matter how the SVG is
+// scaled to fit its container. The graph geometry is in user units, so a fixed
+// user-unit font grows when a small graph renders large and shrinks when a big
+// graph is squeezed. Counter-scale: font-size(user units) = TARGET_PX divided by
+// (renderedWidth / viewBoxWidth), exposed as a CSS var the type rules read.
+const LABEL_TARGET_PX = 13.5;
+const HOVER_TARGET_PX = 13;
+function stabilizeLabels(svg) {
+  const vb = svg.viewBox && svg.viewBox.baseVal;
+  const w = svg.getBoundingClientRect().width;
+  if (!vb || !vb.width || !w) return; // not laid out or hidden; observer retries
+  const perUnit = w / vb.width;
+  svg.style.setProperty("--toc-label-px", (LABEL_TARGET_PX / perUnit).toFixed(2) + "px");
+  svg.style.setProperty("--toc-hover-px", (HOVER_TARGET_PX / perUnit).toFixed(2) + "px");
+}
+
 export function wireTree(svg) {
   const nodes = [...svg.querySelectorAll(".toc-node")];
   const edges = [...svg.querySelectorAll(".toc-edge")];
   const hover = svg.querySelector(".toc-hover-label");
   if (!nodes.length) return;
+
+  stabilizeLabels(svg);
+  // Recompute when the SVG's rendered size changes: rail resize, collapse, or
+  // becoming visible after a scope switch (hidden -> shown trips this too).
+  if (typeof ResizeObserver !== "undefined") {
+    new ResizeObserver(() => stabilizeLabels(svg)).observe(svg);
+  }
   const hRect = hover && hover.querySelector("rect");
   const hText = hover && hover.querySelector("text");
 
