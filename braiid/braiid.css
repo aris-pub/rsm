@@ -1422,6 +1422,14 @@ body {
 /* Collapsible handrails */
 .manuscriptwrapper .hr.hr-collapsed  {
 
+  /* Collapsed labeled blocks (theorem/proof/...) read as a short curved gutter
+     tick, not a full-width rule. Drop the label's own underline so there is no
+     long horizontal line for the curved bracket to fail to meet. */
+  &.hr-labeled > .hr-content-zone > .hr-label {
+    border-bottom: none;
+    margin-bottom: 0;
+  }
+
   & > .hr-border-zone > .hr-border-rect {
     border-bottom-left-radius: var(--chunk-half);
   }
