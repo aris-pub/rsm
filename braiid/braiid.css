@@ -791,6 +791,89 @@ body {
 }
 
 
+/* Active dependency-lens affordance: a fixed pill, bottom-centre, that stays
+   visible wherever the reader has scrolled (the rail-side cone can be far
+   off-screen). It names the active lens, shows the counts, offers the other
+   direction so the reader can compose, and makes the exit and the Esc shortcut
+   explicit. The leading dot reads as a live "on" indicator. Top-level (not
+   nested under .manuscriptwrapper) because deplens.js portals the pill to
+   <body>, outside the wrapper, so fixed positioning is viewport-relative. */
+.deplens-bar {
+  position: fixed;
+  bottom: 1.4rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  max-width: min(92vw, 660px);
+  padding: 0.5rem 0.65rem 0.5rem 0.85rem;
+  /* Portaled to <body>, outside .manuscriptwrapper, so the brand font is not
+     inherited (same fix as the singleton menu on body): set it explicitly. */
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  line-height: 1.2;
+  color: var(--text-body);
+  background: var(--surface-primary);
+  border: var(--border-thin) solid var(--primary-600);
+  border-radius: 999px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.16);
+}
+.deplens-bar-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  font-weight: var(--weight-semi);
+  color: var(--primary-700);
+  white-space: nowrap;
+}
+.deplens-bar-badge::before {
+  content: "";
+  width: 0.55em;
+  height: 0.55em;
+  border-radius: 50%;
+  background: var(--primary-600);
+  box-shadow: 0 0 0 3px var(--primary-100);
+}
+.deplens-bar-label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.deplens-bar .deplens-add,
+.deplens-bar .deplens-exit {
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  font-weight: var(--weight-semi);
+}
+.deplens-bar .deplens-add { color: var(--text-action); }
+.deplens-bar .deplens-add:hover,
+.deplens-bar .deplens-add:focus-visible { background: var(--primary-100); }
+.deplens-bar .deplens-exit {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  color: var(--almost-white);
+  background: var(--primary-600);
+}
+.deplens-bar .deplens-exit:hover,
+.deplens-bar .deplens-exit:focus-visible { background: var(--primary-700); }
+.deplens-bar .deplens-exit-x { font-size: 1.1em; line-height: 1; }
+.deplens-kbd {
+  font: inherit;
+  font-size: 0.72em;
+  font-weight: var(--weight-semi);
+  padding: 0.05em 0.4em;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.22);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+
 /* Calculational proof (:calc:): the chain reads as one vertical sequence. Its
    relation steps keep the full .hr structure -- so their content lays out and
    aligns -- but render NONE of their own handrail chrome except the disclosure
@@ -2362,6 +2445,82 @@ body {
   .proof-focus-exit .proof-focus-back { font-size: 1.05em; line-height: 1; }
   .proof-focus-exit .proof-focus-show-all { font-weight: var(--weight-semi); }
 
+  /* Dependency lens: a sticky, prose-anchored view of one step's cone, the dual
+     of the rail's hover. Upstream ("what does this rest on") lights the route to
+     the foundations and recedes the rest; downstream ("what rests on this")
+     marks the dependents with an amber load fault-line WITHOUT dimming the rest,
+     so the reader keeps reading them in place. Both directions compose. The
+     amber is a fixed load colour (not the theme accent) so a dependent never
+     reads as just another lit step. Marks use an inset shadow rather than a
+     border so they never reflow the step or fight the offset handrail. */
+  :is(.step, .theorem, .lemma, .corollary, .proposition).deplens-faded {
+    opacity: 0.32;
+    transition: opacity 160ms ease;
+  }
+  :is(.step, .theorem, .lemma, .corollary, .proposition).deplens-up {
+    box-shadow: inset 3px 0 0 0 var(--primary-600);
+    background: var(--primary-100);
+    border-radius: var(--radius-md);
+  }
+  :is(.step, .theorem, .lemma, .corollary, .proposition).deplens-down {
+    box-shadow: inset 3px 0 0 0 var(--yellow-600, #e28800);
+    background: rgba(226, 136, 0, 0.07);
+    border-radius: var(--radius-md);
+  }
+  /* The anchor reads strongest in either direction (wins over up/down by order). */
+  :is(.step, .theorem, .lemma, .corollary, .proposition).deplens-anchor {
+    box-shadow: inset 3px 0 0 0 var(--primary-700);
+    background: var(--primary-100);
+    border-radius: var(--radius-md);
+    opacity: 1;
+  }
+  /* A downstream mark animates in once, a quiet "drain" from the anchor outward;
+     skipped under reduced motion. */
+  @media (prefers-reduced-motion: no-preference) {
+    :is(.step, .theorem, .lemma, .corollary, .proposition).deplens-down {
+      animation: deplens-drain 320ms ease both;
+    }
+  }
+  @keyframes deplens-drain {
+    from {
+      background: rgba(226, 136, 0, 0);
+      box-shadow: inset 0 0 0 0 transparent;
+    }
+  }
+
+  /* Rail echo: the proof map mirrors the body lens. Same blue for upstream as
+     focus uses, the amber load colour for downstream. */
+  .toc-tree .toc-node.deplens-faded,
+  .toc-tree .toc-edge.deplens-faded {
+    opacity: 0.13;
+  }
+  .toc-tree .toc-edge.deplens-up {
+    opacity: 1;
+    stroke: var(--primary-700);
+    stroke-dasharray: none;
+    stroke-width: 2.4;
+  }
+  .toc-tree .toc-node.deplens-up rect {
+    stroke: var(--primary-700);
+    stroke-width: 1.8;
+  }
+  .toc-tree .toc-edge.deplens-down {
+    opacity: 1;
+    stroke: var(--yellow-600, #e28800);
+    stroke-dasharray: none;
+    stroke-width: 2.4;
+  }
+  .toc-tree .toc-node.deplens-down rect {
+    stroke: var(--yellow-600, #e28800);
+    stroke-width: 1.8;
+  }
+  .toc-tree .toc-node.deplens-anchor rect {
+    fill: var(--primary-100);
+    stroke: var(--primary-700);
+    stroke-width: 2;
+  }
+
+
   .toc-wrapper, .float-minimap-wrapper {
     display: flex;
     flex-direction: row;
@@ -3026,7 +3185,8 @@ a.reference.external:hover::after {
   opacity: 0.55;
 }
 .reorder-sr-status,
-.focus-sr-status {
+.focus-sr-status,
+.deplens-sr-status {
   position: absolute;
   width: 1px;
   height: 1px;

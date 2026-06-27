@@ -12,6 +12,42 @@
 // (renderedWidth / viewBoxWidth), exposed as a CSS var the type rules read.
 const LABEL_TARGET_PX = 13.5;
 const HOVER_TARGET_PX = 13;
+
+// Directed adjacency over an svg's non-forward edges. An edge from X to Y (a
+// containment-up or a backward reference, never a forward pointer) means "read Y
+// before X": Y is a prerequisite of X. dir "up" walks toward prerequisites
+// (from -> to), dir "down" walks toward dependents (to -> from). Shared by the
+// rail's hover cone and the sticky dependency lens (deplens.js).
+export function buildAdj(svg, dir = "up") {
+  const adj = new Map();
+  for (const e of svg.querySelectorAll(".toc-edge")) {
+    if (e.classList.contains("fwd")) continue;
+    const a = dir === "down" ? e.dataset.to : e.dataset.from;
+    const b = dir === "down" ? e.dataset.from : e.dataset.to;
+    if (!adj.has(a)) adj.set(a, []);
+    adj.get(a).push(b);
+  }
+  return adj;
+}
+
+// The transitive cone of node `idx` in a direction: every node reachable over
+// non-forward edges, including `idx` itself. Returns a Set of idx strings.
+export function coneOver(svg, idx, dir = "up") {
+  const adj = buildAdj(svg, dir);
+  const start = String(idx);
+  const seen = new Set([start]);
+  const stack = [start];
+  while (stack.length) {
+    for (const next of adj.get(stack.pop()) || []) {
+      if (!seen.has(next)) {
+        seen.add(next);
+        stack.push(next);
+      }
+    }
+  }
+  return seen;
+}
+
 function stabilizeLabels(svg) {
   const vb = svg.viewBox && svg.viewBox.baseVal;
   const w = svg.getBoundingClientRect().width;
@@ -36,29 +72,8 @@ export function wireTree(svg) {
   const hRect = hover && hover.querySelector("rect");
   const hText = hover && hover.querySelector("text");
 
-  // Prerequisite adjacency: an edge from X to Y (containment up, or a backward
-  // reference) means "read Y before X". Forward pointers are not prerequisites
-  // and are excluded. The upstream closure of X is everything to read first.
-  const prereq = new Map();
-  for (const e of edges) {
-    if (e.classList.contains("fwd")) continue;
-    const f = e.dataset.from;
-    if (!prereq.has(f)) prereq.set(f, []);
-    prereq.get(f).push(e.dataset.to);
-  }
-  function closure(idx) {
-    const seen = new Set([idx]);
-    const stack = [idx];
-    while (stack.length) {
-      for (const to of prereq.get(stack.pop()) || []) {
-        if (!seen.has(to)) {
-          seen.add(to);
-          stack.push(to);
-        }
-      }
-    }
-    return seen;
-  }
+  // The upstream closure of X is everything to read first (see coneOver).
+  const closure = (idx) => coneOver(svg, idx, "up");
 
   function showLabel(node) {
     if (!hover || !hText) return;

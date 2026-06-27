@@ -16,6 +16,7 @@ import * as prooftree from './prooftree.js';
 import * as focusmode from './focusmode.js';
 import * as notation from './notation.js';
 import * as reorder from './reorder.js';
+import * as deplens from './deplens.js';
 
 export async function onload(root = null, { keys = true } = {}) {
   if (!root) root = document;
@@ -84,6 +85,13 @@ export async function onload(root = null, { keys = true } = {}) {
       reorder.setup(root);
     } catch (err) {
       console.error("Loading reorder.js FAILED!", err);
+    }
+
+    // Dependency lens - sticky upstream/downstream cone from a step's menu
+    try {
+      deplens.setup(root);
+    } catch (err) {
+      console.error("Loading deplens.js FAILED!", err);
     }
 
     // Keyboard - set up event listeners once

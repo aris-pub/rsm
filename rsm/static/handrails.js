@@ -4,6 +4,7 @@
 //
 
 import * as tocarcs from './tocarcs.js';
+import { lensConeSizes } from './deplens.js';
 
 let singletonMenu = null;
 let activeHr = null;
@@ -54,6 +55,8 @@ export function setup() {
       else if (role === "toc-view") toggleTocView(activeHr, menuItem);
       else if (role === "reorder") toggleReorder(activeHr);
       else if (role === "focus") triggerFocus(activeHr);
+      else if (role === "deplens-up") triggerDeplens(activeHr, "up");
+      else if (role === "deplens-down") triggerDeplens(activeHr, "down");
       return;
     }
 
@@ -229,6 +232,50 @@ function showMenuFor(hr) {
   configureItem(focusEl, focus);
   if (focusSep) focusSep.style.display = focus ? "" : "none";
 
+  // Dependency lens: on a proof step OR a named result (theorem/lemma/...),
+  // offer "What does this rest on?" (its upstream cone) and "What rests on
+  // this?" (its downstream cone). Each is offered only when that cone is
+  // non-empty so it is never a dead affordance. deplens.js reads the per-proof
+  // step graph for steps and an aggregated result graph for results; both need
+  // the floating rail, so the items only appear when the rail is present.
+  const isResult =
+    !!hr.id &&
+    (hr.classList.contains("theorem") ||
+      hr.classList.contains("lemma") ||
+      hr.classList.contains("corollary") ||
+      hr.classList.contains("proposition")) &&
+    !hr.classList.contains("definition");
+  let lensUp = null;
+  let lensDown = null;
+  if ((isStep || isResult) && document.querySelector(".proof-rail")) {
+    const sizes = lensConeSizes(hr);
+    // Always offer both directions; DISABLE (rather than hide) the one whose
+    // cone is empty, with a tooltip that says why, so the pair is discoverable
+    // and a missing direction is explained instead of silently absent.
+    lensUp = sizes.up > 0 ? "true" : "disabled";
+    lensDown = sizes.down > 0 ? "true" : "disabled";
+  }
+  const lensUpEl = singletonMenu.querySelector('[data-role="deplens-up"]');
+  const lensDownEl = singletonMenu.querySelector('[data-role="deplens-down"]');
+  const lensSep = singletonMenu.querySelector('[data-role="deplens-sep"]');
+  configureItem(lensUpEl, lensUp);
+  configureItem(lensDownEl, lensDown);
+  setLensHint(
+    lensUpEl,
+    lensUp,
+    isStep
+      ? "This step depends on nothing earlier in the proof."
+      : "This result depends on no other result.",
+  );
+  setLensHint(
+    lensDownEl,
+    lensDown,
+    isStep
+      ? "Nothing else in the proof uses this step."
+      : "No other result uses this one.",
+  );
+  if (lensSep) lensSep.style.display = lensUp || lensDown ? "" : "none";
+
   // Position, then portal to <body>. An open menu can pop into the gutter where
   // the floating proof-rail sits; an ancestor of the handrail (proof/section/
   // figure) establishes a stacking context that paints below that fixed rail, so
@@ -267,6 +314,17 @@ function triggerFocus(hr) {
 }
 
 
+// Light a step's dependency cone in the given direction ("up" = what it rests
+// on, "down" = what rests on it). deplens.js (set up in onload) listens for the
+// dispatched event and marks the body + rail. Mirrors triggerFocus.
+function triggerDeplens(hr, direction) {
+  hideMenu();
+  hr.dispatchEvent(
+    new CustomEvent("deplens:show", { bubbles: true, detail: { direction } })
+  );
+}
+
+
 // The inner popup, whose computed rect we capture when portaling to <body>.
 function menuPopup() {
   return singletonMenu && singletonMenu.querySelector(".hr-menu");
@@ -292,6 +350,28 @@ function portalMenuToBody() {
   popup.style.position = "absolute";
   popup.style.left = `${rect.left + window.scrollX}px`;
   popup.style.top = `${rect.top + window.scrollY}px`;
+}
+
+
+// A disabled dependency-lens item explains its absence on hover (via our
+// tooltip system, keyed off data-tooltip in tooltips.js) and to assistive tech
+// (aria-disabled, plus the reason folded into the accessible name). An enabled
+// item carries none of these.
+function setLensHint(el, value, disabledText) {
+  if (!el) return;
+  if (value === "disabled") {
+    el.setAttribute("data-tooltip", disabledText);
+    el.setAttribute("aria-disabled", "true");
+    const label = el.querySelector(".hr-menu-item-text");
+    el.setAttribute(
+      "aria-label",
+      `${label ? label.textContent.trim() + " " : ""}(unavailable: ${disabledText})`
+    );
+  } else {
+    el.removeAttribute("data-tooltip");
+    el.removeAttribute("aria-disabled");
+    el.removeAttribute("aria-label");
+  }
 }
 
 

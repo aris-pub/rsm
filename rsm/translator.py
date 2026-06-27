@@ -2071,6 +2071,20 @@ class HandrailsTranslator(Translator):
           <path d="M12 19l0 2" />
           <path d="M19 12l2 0" />
         </svg>""",
+        "deplens-up": """<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3C4952" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+          <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+          <path d="M12 4l0 10" />
+          <path d="M12 14l4 -4" />
+          <path d="M12 14l-4 -4" />
+          <path d="M4 20l16 0" />
+        </svg>""",
+        "deplens-down": """<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3C4952" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+          <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+          <path d="M4 4l16 0" />
+          <path d="M12 10l0 10" />
+          <path d="M12 10l4 4" />
+          <path d="M12 10l-4 4" />
+        </svg>""",
     }
 
     def __init__(
@@ -2349,6 +2363,7 @@ class HandrailsTranslator(Translator):
         collapse_in_hr: bool = True,
         collapse_in_menu: bool = False,
         collapse_all_in_menu: bool = False,
+        extra_attrs: dict | None = None,
     ):
         menu_zone, menu_attrs = self._hr_menu_zone(
             label=menu_label or node.reftext,
@@ -2356,7 +2371,8 @@ class HandrailsTranslator(Translator):
             collapse_all=collapse_all_in_menu,
             link=(True if node.label else "disabled"),
         )
-        handrail = self._hr_from_node(node, additional_classes, extra_attrs=menu_attrs)
+        merged_attrs = {**menu_attrs, **(extra_attrs or {})}
+        handrail = self._hr_from_node(node, additional_classes, extra_attrs=merged_attrs)
         hr_content_zone = self._hr_content_zone(True)
         newitems = [
             handrail,
@@ -2545,6 +2561,15 @@ class HandrailsTranslator(Translator):
         html += f'  <div class="hr-menu-item focus" data-role="focus" role="button">\n'
         html += f'    {self._icon_ref("focus-2")}\n'
         html += '    <span class="hr-menu-item-text">Focus this step</span>\n'
+        html += '  </div>\n'
+        html += '  <div class="hr-menu-separator" data-role="deplens-sep"></div>\n'
+        html += f'  <div class="hr-menu-item deplens-up" data-role="deplens-up" role="button">\n'
+        html += f'    {self._icon_ref("deplens-up")}\n'
+        html += '    <span class="hr-menu-item-text">Depends on</span>\n'
+        html += '  </div>\n'
+        html += f'  <div class="hr-menu-item deplens-down" data-role="deplens-down" role="button">\n'
+        html += f'    {self._icon_ref("deplens-down")}\n'
+        html += '    <span class="hr-menu-item-text">Used by</span>\n'
         html += '  </div>\n'
         html += '</div>\n</div>'
         return AppendText(text=html)
@@ -3040,11 +3065,38 @@ class HandrailsTranslator(Translator):
 
     def visit_proof(self, node: nodes.Proof) -> EditCommand:
         batch = super().visit_proof(node)
+        # Stamp the proof with the label of the result it proves, so the reader's
+        # dependency lens can aggregate a result-level graph (which result rests
+        # on which) from the per-proof citation graphs. Uses the same association
+        # the proof model uses: an explicit :of:, else the nearest preceding
+        # theorem-like sibling. Distinct from the "Proof of ..." title, which
+        # still keys only off an explicit :of: and is left unchanged.
+        of_label = self._proved_result_label(node)
+        extra_attrs = {"data-of": of_label} if of_label else None
         hr = self._replace_node_with_handrails(
-            node, additional_classes=["hr-labeled"], collapse_all_in_menu=True
+            node,
+            additional_classes=["hr-labeled"],
+            collapse_all_in_menu=True,
+            extra_attrs=extra_attrs,
         )
         hr.items += batch.items[1:]
         return hr
+
+    @staticmethod
+    def _proved_result_label(proof: nodes.Proof) -> str:
+        declared = getattr(proof, "proves", None)
+        if declared is not None:
+            return declared.label or ""
+        theorem_types = (
+            nodes.Theorem, nodes.Lemma, nodes.Corollary,
+            nodes.Proposition, nodes.Statement,
+        )
+        sib = proof.prev_sibling()
+        while sib is not None:
+            if isinstance(sib, theorem_types):
+                return sib.label or ""
+            sib = sib.prev_sibling()
+        return ""
 
     @auto_leave_deferred
     def leave_proof(self, node: nodes.Proof, base_batch) -> EditCommand:

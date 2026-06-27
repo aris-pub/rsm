@@ -214,6 +214,28 @@ export function createTooltips() {
       instance.content($(`<div class="rail-tip">${$(helper.origin).attr("data-tooltip")}</div>`));
     },
   });
+
+  // Disabled dependency-lens menu items explain their absence with one of OUR
+  // tooltips, not a native title. The items live in the singleton menu (portaled
+  // to <body> on open), so bind them by role -- they exist at load even before a
+  // reason is set -- and read the reason dynamically each open: an ENABLED item
+  // carries no data-tooltip, so functionBefore returns false and shows nothing.
+  $('#hr-menu-singleton [data-role="deplens-up"]:not(.tooltipstered), '
+    + '#hr-menu-singleton [data-role="deplens-down"]:not(.tooltipstered)').tooltipster({
+    theme: ['tooltipster-shadow', 'tooltipster-shadow-rsm'],
+    delay: 200,
+    minWidth: 100,
+    maxWidth: 280,
+    side: ['right', 'bottom', 'top'],
+    trigger: 'custom',
+    triggerOpen: { mouseenter: true, touchstart: true },
+    triggerClose: { click: true, mouseleave: true, originClick: true, touchleave: true },
+    functionBefore: function (instance, helper) {
+      const text = $(helper.origin).attr("data-tooltip");
+      if (!text) return false; // enabled item: no hint
+      instance.content($(`<div class="rail-tip">${text}</div>`));
+    },
+  });
 }
 
 

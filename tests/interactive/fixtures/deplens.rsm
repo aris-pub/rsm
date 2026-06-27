@@ -1,0 +1,81 @@
+# Dependency lens
+
+:toc: {
+  :view: tree
+}
+::
+
+## Results with cross dependencies
+  {:label: sec-dep}
+
+Filler paragraph one, padding the section so the blocks sit below the top.
+
+Filler paragraph two, more vertical room above for the reading band.
+
+:lemma: {
+  :label: lem-base
+  :title: Base lemma
+}
+
+  A base fact that depends on nothing else.
+
+::
+
+:proof:
+
+  :step: {:label: lb1} The base fact holds directly. ::
+
+::
+
+:lemma: {
+  :label: lem-other
+  :title: Unrelated lemma
+}
+
+  An independent fact, cited by nothing and citing nothing.
+
+::
+
+:proof:
+
+  :step: {:label: lo1} This unrelated fact also holds directly. ::
+
+::
+
+:theorem: {
+  :label: thm-mid
+  :title: Middle theorem
+}
+
+  A middle result that uses the base lemma.
+
+::
+
+:proof:
+
+  :step: {:label: tm1} By :ref:lem-base::, the base fact applies. ::
+
+  :step: {:label: tm2} Combining :ref:tm1::, the middle result follows. ::
+
+::
+
+:theorem: {
+  :label: thm-top
+  :title: Top theorem
+}
+
+  The top result, which uses the middle theorem.
+
+::
+
+:proof:
+
+  :step: {:label: tt1} By :ref:thm-mid::, the middle result is available, so the claim holds. ::
+
+::
+
+Trailing filler one, giving room to scroll the page past the blocks.
+
+Trailing filler two, more scroll room below so positioning is unconstrained.
+
+Trailing filler three, padding padding padding padding padding padding padding.
