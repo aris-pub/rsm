@@ -2555,7 +2555,7 @@ class HandrailsTranslator(Translator):
         html += '  <div class="hr-menu-separator" data-role="reorder-sep"></div>\n'
         html += f'  <div class="hr-menu-item reorder" data-role="reorder" role="button" aria-pressed="false">\n'
         html += f'    {self._icon_ref("reorder")}\n'
-        html += '    <span class="hr-menu-item-text">Reorder steps</span>\n'
+        html += '    <span class="hr-menu-item-text">Reorder</span>\n'
         html += '  </div>\n'
         html += '  <div class="hr-menu-separator" data-role="focus-sep"></div>\n'
         html += f'  <div class="hr-menu-item focus" data-role="focus" role="button">\n'

@@ -328,6 +328,60 @@ function slotUnderPointer(els, y) {
   return slot;
 }
 
+// A step's printed number ("4", "1.2"), read off its info zone, for naming it
+// in the rejection reason. Digits and dots only (drops the ⟨⟩ glyphs).
+function stepNum(model, id) {
+  const el = model.byId
+    .get(id)
+    .bodyEl.querySelector(":scope > .hr-info-zone .step-number");
+  return el ? el.textContent.replace(/[^0-9.]/g, "") : "";
+}
+
+// id and all of its descendant steps (the block that travels with it).
+function subtreeIds(model, id) {
+  const out = new Set([id]);
+  const walk = (k) => {
+    for (const c of model.children.get(k) || []) {
+      out.add(c);
+      walk(c);
+    }
+  };
+  walk(id);
+  return out;
+}
+
+// Why placing step `id` at sibling `slot` is illegal: the dependency edge it
+// would violate. An edge {src, dst} means src uses dst, so dst must precede src;
+// the move breaks it when it lands src before dst. Among the broken edges that
+// touch the moved block, return the tightest (endpoints closest in the trial
+// order) as the single clearest culprit. null if the slot is actually legal.
+function blockingEdge(model, id, slot) {
+  const step = model.byId.get(id);
+  const key = step.parent || "";
+  const without = (model.children.get(key) || []).filter((x) => x !== id);
+  const trial = new Map(model.children);
+  trial.set(key, [...without.slice(0, slot), id, ...without.slice(slot)]);
+  const flat = flatten(trial);
+  const pos = new Map(flat.map((x, i) => [x, i]));
+  const moved = subtreeIds(model, id);
+  let best = null;
+  for (const e of model.deps) {
+    if (pos.get(e.dst) < pos.get(e.src)) continue; // satisfied
+    if (!moved.has(e.src) && !moved.has(e.dst)) continue; // unrelated to the move
+    const gap = Math.abs(pos.get(e.src) - pos.get(e.dst));
+    if (!best || gap < best.gap) best = { e, gap };
+  }
+  return best ? best.e : null;
+}
+
+// "Step 4 uses Step 2": the human reason for a rejected drop.
+function reasonText(model, edge) {
+  const src = stepNum(model, edge.src);
+  const dst = stepNum(model, edge.dst);
+  if (!src || !dst) return "That move breaks a dependency.";
+  return `Step ${src} uses Step ${dst}`;
+}
+
 function wireHandle(handle, id, proof, model) {
   handle.addEventListener("pointerdown", (ev) => {
     ev.preventDefault();
@@ -343,6 +397,13 @@ function wireHandle(handle, id, proof, model) {
 
     const indicator = document.createElement("div");
     indicator.className = "reorder-indicator";
+    // The rejection reason rides the indicator (so it tracks the target slot)
+    // but renders in the handrail gutter to its left. Empty/hidden until a slot
+    // is illegal.
+    const reason = document.createElement("div");
+    reason.className = "reorder-reason";
+    indicator.appendChild(reason);
+    let lastReason = "";
     proof.classList.add("reorder-dragging");
     step.bodyEl.classList.add("reorder-dragged");
     if (model.svg) pinTreeCurrent(model.svg, String(step.idx));
@@ -357,14 +418,23 @@ function wireHandle(handle, id, proof, model) {
       if (legal.has(slot)) {
         target = slot;
         indicator.classList.remove("illegal");
+        reason.textContent = "";
+        lastReason = "";
       } else {
         target = start;
         indicator.classList.add("illegal");
+        const edge = blockingEdge(model, id, slot);
+        const text = edge ? reasonText(model, edge) : "";
+        reason.textContent = text;
+        lastReason = text;
       }
     };
     const onUp = () => {
       document.removeEventListener("pointermove", onMove);
       document.removeEventListener("pointerup", onUp);
+      // lastReason is set only while over an illegal slot and cleared on a legal
+      // one, so a non-empty value at drop means the drop itself was rejected.
+      const rejected = !!lastReason;
       indicator.remove();
       proof.classList.remove("reorder-dragging");
       step.bodyEl.classList.remove("reorder-dragged");
@@ -375,6 +445,9 @@ function wireHandle(handle, id, proof, model) {
         const sib = model.children.get(key) || [];
         const label = step.bodyEl.dataset.menuLabel || "Step";
         announce(`${label} moved to position ${sib.indexOf(id) + 1} of ${sib.length}.`);
+      } else if (rejected) {
+        // Dropped on an illegal slot: state the blocking dependency for SR too.
+        announce(`Move blocked: ${lastReason}.`);
       }
     };
     document.addEventListener("pointermove", onMove);

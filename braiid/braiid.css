@@ -3199,6 +3199,7 @@ a.reference.external:hover::after {
   user-select: none;
 }
 .reorder-indicator {
+  position: relative;
   height: var(--border-med);
   margin: calc(-1 * var(--border-med)) 0;
   background: var(--primary-700);
@@ -3207,6 +3208,33 @@ a.reference.external:hover::after {
 }
 .reorder-indicator.illegal {
   background: var(--error-600);
+}
+/* The rejection reason: a pill in the handrail gutter to the left of the (red)
+   indicator, naming the dependency the move would break. Rides the indicator so
+   it tracks the target slot; hidden whenever it carries no text (a legal slot).*/
+.reorder-reason {
+  position: absolute;
+  /* Anchor at the proof's handrail rule and read rightward: the left gutter has
+     no room for the text (the floating rail occupies the far-left margin, which
+     clips leftward overflow). Sit just above the red line to clear the steps. */
+  left: calc(-2 * var(--hr-zone-width));
+  bottom: calc(100% + 0.25rem);
+  white-space: nowrap;
+  padding: 0.12rem 0.55rem;
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  font-weight: var(--weight-semi);
+  line-height: 1.3;
+  color: var(--error-600);
+  background: var(--surface-page);
+  border: var(--border-thin) solid var(--error-600);
+  border-radius: 999px;
+  box-shadow: var(--shadow-soft);
+  pointer-events: none;
+  z-index: 4;
+}
+.reorder-reason:empty {
+  display: none;
 }
 
 /* "Pin" button inside a reference's hover preview: promotes the transient

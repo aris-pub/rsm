@@ -204,12 +204,12 @@ function showMenuFor(hr) {
     if (touch) {
       reorderEl.setAttribute("aria-disabled", "true");
       reorderEl.removeAttribute("aria-pressed");
-      if (textEl) textEl.textContent = "Reorder steps (desktop only)";
+      if (textEl) textEl.textContent = "Reorder (desktop only)";
     } else {
       const on = hr.classList.contains("reorder-active");
       reorderEl.removeAttribute("aria-disabled");
       reorderEl.setAttribute("aria-pressed", on ? "true" : "false");
-      if (textEl) textEl.textContent = on ? "Done reordering" : "Reorder steps";
+      if (textEl) textEl.textContent = on ? "Done" : "Reorder";
     }
   }
 

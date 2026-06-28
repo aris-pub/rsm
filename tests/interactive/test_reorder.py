@@ -265,3 +265,60 @@ class TestReorderTouch:
         # actionability gate to prove the click handler still refuses it.
         item.click(force=True)
         expect(proof).not_to_have_class(re.compile(r"\breorder-active\b"))
+
+
+class TestRejectionReason:
+    """An illegal move names the dependency it would break, in the handrail
+    gutter (and to screen readers on drop). potf-13p."""
+
+    def _enter_reorder(self, page: Page):
+        proof = page.locator(".proof.hr").first
+        proof.scroll_into_view_if_needed()
+        proof.hover()
+        proof.locator(".hr-border-dots").first.click()
+        page.locator('#hr-menu-singleton [data-role="reorder"]').click()
+
+    def _press_handle(self, page: Page, handle_sel: str):
+        box = page.locator(handle_sel).first.bounding_box()
+        page.mouse.move(box["x"] + box["width"] / 2, box["y"] + box["height"] / 2)
+        page.mouse.down()
+
+    def test_illegal_drag_names_blocking_dep(
+        self, page: Page, interactive_server: str
+    ):
+        _load(page, interactive_server)
+        self._enter_reorder(page)
+        # Drag stp-c (Step 4) up between stp-setup and stp-a: illegal, since
+        # stp-c uses stp-a (Step 2). The reason rides the indicator.
+        self._press_handle(page, "#stp-c .reorder-handle")
+        a = page.locator("#stp-a").bounding_box()
+        page.mouse.move(a["x"] + 40, a["y"] - 5, steps=12)
+        reason = page.locator(".reorder-reason")
+        expect(reason).to_be_visible()
+        expect(reason).to_contain_text("Step 4 uses Step 2")
+        page.mouse.up()
+
+    def test_legal_drag_shows_no_reason(
+        self, page: Page, interactive_server: str
+    ):
+        _load(page, interactive_server)
+        self._enter_reorder(page)
+        # stp-b (Step 3) and stp-a (Step 2) are interchangeable: a legal slot
+        # carries no reason.
+        self._press_handle(page, "#stp-b .reorder-handle")
+        a = page.locator("#stp-a").bounding_box()
+        page.mouse.move(a["x"] + 40, a["y"] + 5, steps=12)
+        expect(page.locator(".reorder-reason")).to_be_hidden()
+        page.mouse.up()
+
+    def test_illegal_drop_announces_reason(
+        self, page: Page, interactive_server: str
+    ):
+        _load(page, interactive_server)
+        self._enter_reorder(page)
+        self._press_handle(page, "#stp-c .reorder-handle")
+        a = page.locator("#stp-a").bounding_box()
+        page.mouse.move(a["x"] + 40, a["y"] - 5, steps=12)
+        page.mouse.up()
+        status = page.locator(".reorder-sr-status")
+        expect(status).to_contain_text("Move blocked: Step 4 uses Step 2", timeout=2000)
