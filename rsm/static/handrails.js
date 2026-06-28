@@ -576,7 +576,7 @@ function loadCollapseState() {
 //     the bibliography have no <section> of their own (they climb to the
 //     manuscript root), so borrowing an ancestor's nodeid would collide them
 //     all onto root nodeid 0. Their text is the only handle that stays distinct.
-function collapseKey(hr) {
+export function collapseKey(hr) {
   const nid = hr.getAttribute("data-nodeid");
   if (nid != null) return "n:" + nid;
   const sec = hr.closest("section");
@@ -771,7 +771,7 @@ function makeToast(text, style) {
 }
 
 
-function launchToast(text, style = "information") {
+export function launchToast(text, style = "information") {
   const toast = makeToast(text, style);
   document.querySelector(".manuscriptwrapper").appendChild(toast);
   setTimeout(() => { toast.remove(); }, 5000);

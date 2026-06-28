@@ -147,6 +147,13 @@ _RAIL_NOTATION_ICON = (
     '<path d="M16 7h4"/>'
     '<path d="M18 19h-13a2 2 0 1 1 0 -4h4a2 2 0 1 0 0 -4h-3"/></svg>'
 )
+_RAIL_SHARE_ICON = (
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" '
+    'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+    '<path d="M9 15l6 -6"/>'
+    '<path d="M11 6l.463 -.536a5 5 0 0 1 7.071 7.072l-.534 .464"/>'
+    '<path d="M13 18l-.397 .534a5.068 5.068 0 0 1 -7.127 0a4.972 4.972 0 0 1 0 -7.071l.524 -.463"/></svg>'
+)
 _RAIL_SIDEBAR_COLLAPSE_ICON = (
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" '
     'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
@@ -2631,15 +2638,16 @@ class HandrailsTranslator(Translator):
             '<button class="rail-scope" data-scope="proof" aria-pressed="false" '
             "data-tooltip=\"Proof: the dependency graph and live state of the proof "
             'you are reading">Proof</button>'
-            '<button class="rail-scope" data-scope="reading" '
-            'aria-pressed="false" '
-            'data-tooltip="Reading: typeface, size, spacing, and theme">'
-            "Reading</button>"
             # Hidden (CSS) until a reference is pinned; see .has-pin.
             '<button class="rail-scope rail-scope-pinned" data-scope="pinned" '
             'aria-pressed="false" '
             'data-tooltip="Pinned: a referenced result kept open beside the proof">'
             "Pinned</button>"
+            # Reading (typography) sits last: it tweaks presentation, not content.
+            '<button class="rail-scope" data-scope="reading" '
+            'aria-pressed="false" '
+            'data-tooltip="Reading: typeface, size, spacing, and theme">'
+            "Reading</button>"
             "</div>"
         )
 
@@ -2687,6 +2695,18 @@ class HandrailsTranslator(Translator):
         document_section = (
             '<div class="rail-section rail-document">' + "".join(doc_panels) + "</div>"
         )
+        # A document-global action: copy a link that reopens the paper with the
+        # reader's current view (folds, reorder, ...). Distinct from the per-block
+        # "Copy link" anchor. In the rail footer (not a scope panel); CSS shows it
+        # only in the Document and Proof scopes, where the shareable structural
+        # view is built (reordering switches the rail to Proof). (potf-44f)
+        footer = (
+            '<div class="rail-footer">'
+            '<button class="rail-share-view" type="button" '
+            'data-tooltip="Copy a link that reopens the paper arranged the way you have it">'
+            + _RAIL_SHARE_ICON + "<span>Share this view</span></button>"
+            "</div>"
+        )
         proof_section = (
             '<div class="rail-section rail-proof">'
             '<div class="rail-proof-empty">'
@@ -2715,7 +2735,7 @@ class HandrailsTranslator(Translator):
             + '<div class="rail-header">' + scopes + collapse + "</div>"
             + doc_subtabs + proof_subtabs
             + document_section + proof_section + pinned_section
-            + _make_reading_panel() + "</div>"
+            + _make_reading_panel() + footer + "</div>"
         )
 
     def _rail_item(

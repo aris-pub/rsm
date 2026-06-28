@@ -791,6 +791,84 @@ body {
 }
 
 
+/* "Share this view": a quiet rail-footer action (potf-44f). Shown only in the
+   Document and Proof scopes (where the reader builds the structural view worth
+   sharing: notation/folds and reorder); hidden in Reading and Pinned. Styled as
+   a calm secondary control, not a call to action. */
+.proof-rail .rail-footer { display: none; }
+.proof-rail.scope-document .rail-footer,
+.proof-rail.scope-proof .rail-footer {
+  display: block;
+  margin-top: var(--chunk-sixth);
+  padding-top: var(--chunk-sixth);
+  border-top: var(--border-extrathin) solid var(--border-primary);
+}
+.proof-rail .rail-share-view {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  width: 100%;
+  padding: 0.4rem 0.5rem;
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  font-weight: var(--weight-semi);
+  color: var(--text-action);
+  background: none;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+}
+.proof-rail .rail-share-view svg { width: 1.05em; height: 1.05em; }
+.proof-rail .rail-share-view:hover,
+.proof-rail .rail-share-view:focus-visible { background: var(--primary-100); }
+
+/* Shared-view pill: shown only when a ?view= link was opened (potf-44f). Same
+   calm bottom-centre language as the back pill; it names the provenance and
+   offers a one-click return to the pristine paper. Appended to <body>, so
+   top-level (outside .manuscriptwrapper). */
+.rsm-shared-pill {
+  position: fixed;
+  left: 50%;
+  bottom: calc(1.25rem + env(safe-area-inset-bottom, 0px));
+  z-index: 9998;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.45rem 0.6rem 0.45rem 0.9rem;
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  line-height: 1;
+  color: var(--surface-page);
+  background: var(--extra-dark);
+  border: none;
+  border-radius: 999px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.18);
+  transform: translateX(-50%);
+}
+.rsm-shared-pill-label { font-weight: var(--weight-semi); }
+.rsm-shared-pill-reset {
+  font: inherit;
+  font-weight: var(--weight-semi);
+  color: var(--extra-dark);
+  background: var(--surface-page);
+  border: none;
+  border-radius: 999px;
+  padding: 0.2rem 0.6rem;
+  cursor: pointer;
+}
+.rsm-shared-pill-reset:hover,
+.rsm-shared-pill-reset:focus-visible { background: var(--primary-100); }
+.rsm-shared-pill-x {
+  font: inherit;
+  font-size: 1.1em;
+  line-height: 1;
+  color: var(--surface-page);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0 0.15rem;
+}
+
 /* Active dependency-lens affordance: a fixed pill, bottom-centre, that stays
    visible wherever the reader has scrolled (the rail-side cone can be far
    off-screen). It names the active lens, shows the counts, offers the other

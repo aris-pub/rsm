@@ -17,6 +17,7 @@ import * as focusmode from './focusmode.js';
 import * as notation from './notation.js';
 import * as reorder from './reorder.js';
 import * as deplens from './deplens.js';
+import * as shareview from './shareview.js';
 
 export async function onload(root = null, { keys = true } = {}) {
   if (!root) root = document;
@@ -142,6 +143,14 @@ export async function onload(root = null, { keys = true } = {}) {
       tooltips.createTooltips();
     } catch (err) {
       console.error("Loading notation panel FAILED!", err);
+    }
+
+    // Shareable view: wire "Copy this view" and restore a ?view= link if present.
+    // Runs after the first render so the rail, folds, and layout are in place.
+    try {
+      shareview.setup(root);
+    } catch (err) {
+      console.error("Loading shareview.js FAILED!", err);
     }
 
   } catch (err) {

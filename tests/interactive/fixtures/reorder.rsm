@@ -5,6 +5,12 @@
 }
 ::
 
+:notation:
+  \eig $\lambda$ general eigenvalue
+::
+
+A paragraph using the rebindable symbol $\eig$ for the share-view tests.
+
 ## A reorderable proof
   {:label: sec-reorder}
 
