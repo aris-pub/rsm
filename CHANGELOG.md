@@ -1,5 +1,38 @@
 # Changelog
 
+## [1.5.0] - 2026-06-29
+
+### Added
+- Drag-to-reorder proof steps: logic-preserving reordering with scoped dependencies, a handle that replaces the step dots, and Esc to cancel. When a reorder would break the proof, the rejection now names the blocking dependency. Disabled on touch devices (labeled "desktop only"), with screen-reader and reduced-motion support.
+- New `:calc:` construct for calculational proofs.
+- Dependency lens: a sticky upstream/downstream cone projected from any step or result.
+- Reader-rewritable parameterized notation.
+- Shareable links that capture the current presentation state.
+- Reversible in-document jumps using the browser's native Back button, plus a "back pill" affordance over native Back.
+- Reworked focus mode (prose trigger, accessibility, native collapse), off by default.
+- Reader type controls in a new Reading sidebar tab.
+- Proof rail upgrades: a document-wide State panel with uniform jump rows and provenance markers, a more legible proof DAG with goal previews, external named-result dependencies surfaced in the DAG, and the ability to pin a referenced block into the rail.
+- Mobile bottom-drawer for the proof rail on narrow screens (1100px and below).
+- Reader collapse state now persists across visits for all blocks, including section headings.
+- Print/PDF stylesheet for clean paper export.
+- Math is now typeset in reference tooltips.
+
+### Fixed
+- DAG labels keep a constant on-screen size at any zoom.
+- Collapsed handrail shows a short curved tick instead of a misaligned rule, and proof tombstones align to a single content-edge column.
+- Static-fallback (`:static:`) sizing, no-JS reveal, and dark variant.
+- Sidebar tooltips no longer overflow into full-width banners.
+- Reference tooltips now appear on cloned State-panel entries.
+- The space between a construct keyword and a leading reference is preserved.
+- Pandoc export emits tables and figure references in a portable encoding.
+- Renamed the proof-structure sub-tab to "Steps".
+
+### Changed
+- Responsive proof rail that shrinks, then pushes content aside, then collapses to a drawer; the collapsed rail now shrinks to just the toggle handle, with handrail controls and touch-device collapse.
+- Accessibility pass: front-matter headings, a TOC navigation landmark with named links, focus-visible styles, a 54rem default measure, and WCAG-AA contrast on quiet text, keyword tags, and step chips.
+- Sidebar TOC-DAG readability, with a selection-driven (rather than scroll-driven) proof rail.
+- Step numbers stay in a single column under nesting.
+
 ## [1.4.0] - 2026-06-19
 
 ### Added
