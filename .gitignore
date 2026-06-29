@@ -140,3 +140,8 @@ node_modules/
 .beads/dolt-server.*
 .beads/embeddeddolt/
 .beads/.beads-credential-key
+
+# Beads / Dolt files (added by bd init)
+.dolt/
+*.db
+.beads-credential-key
