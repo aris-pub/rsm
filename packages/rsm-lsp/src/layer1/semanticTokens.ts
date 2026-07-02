@@ -2,7 +2,7 @@ import { Tree } from 'tree-sitter';
 import { Query, QueryCapture } from 'tree-sitter';
 import { SemanticTokensBuilder } from 'vscode-languageserver';
 import { readFileSync } from 'fs';
-import { join } from 'path';
+import { join, dirname } from 'path';
 import { logger } from '../utils/logger';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -129,15 +129,28 @@ export class SemanticTokensProvider {
    */
   private loadHighlightQuery() {
     try {
-      // Try multiple paths to support both development and production
-      const possiblePaths = [
-        // Production: compiled to dist/
-        join(__dirname, '../../../tree-sitter-rsm/queries/highlights.scm'),
+      // Try multiple paths to support both development and production.
+      const possiblePaths: string[] = [];
+
+      // Primary: resolve relative to the tree-sitter-rsm package root. This is
+      // layout-independent (works whether the package sits at the monorepo root
+      // in dev or inside node_modules in the prod/Docker image). Resolving the
+      // package.json rather than the main entry avoids the "main": "bindings/node"
+      // offset that made the older require.resolve(...)/../queries path miss.
+      try {
+        const pkgRoot = dirname(require.resolve('tree-sitter-rsm/package.json'));
+        possiblePaths.push(join(pkgRoot, 'queries/highlights.scm'));
+      } catch {
+        // package.json not resolvable in this context; fall through to relative guesses.
+      }
+
+      // Fallbacks for a tree-sitter-rsm checkout adjacent to the repo root.
+      possiblePaths.push(
         // Development: running from src/
         join(__dirname, '../../../../tree-sitter-rsm/queries/highlights.scm'),
-        // Alternative: resolve from tree-sitter-rsm package
-        join(require.resolve('tree-sitter-rsm'), '../queries/highlights.scm'),
-      ];
+        // Production: compiled to dist/
+        join(__dirname, '../../../tree-sitter-rsm/queries/highlights.scm'),
+      );
 
       let querySource: string | null = null;
       let loadedPath: string | null = null;
