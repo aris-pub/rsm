@@ -146,11 +146,16 @@ jobs:
       run: uv run pytest -vv tests/test_pandoc.py
 
   visual-tests:
-    runs-on: macos-latest
+    # Linux (amd64) instead of the scarce/slow macOS pool. gcc is present so the
+    # tree-sitter-rsm source build works at any Python (like the pytest jobs).
+    # Baselines are regenerated on this runner arch; the pinned Playwright version
+    # keeps Chromium (and its rendering) fixed.
+    runs-on: ubuntu-latest
     timeout-minutes: 30
 
     env:
       PYTEST_ADDOPTS: "--color=yes"
+      PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/.pw-browsers
 
     steps:
     - name: Checkout the repository and submodules
@@ -173,13 +178,19 @@ jobs:
         uv sync
         uv pip list
 
+    - name: Cache Playwright browsers
+      uses: actions/cache@v4
+      with:
+        path: ${{ github.workspace }}/.pw-browsers
+        key: playwright-${{ runner.os }}-${{ hashFiles('uv.lock') }}
+
     - name: Install Playwright browsers
       run: |
         uv run playwright install --with-deps chromium
 
     - name: Run visual tests
       run: |
-        uv run pytest -vv -m visual -n 2 --timeout=60 --max-worker-restart=2
+        uv run pytest -vv -m visual -n auto --timeout=60 --max-worker-restart=2
 
     - name: Upload visual test diffs
       if: failure()
