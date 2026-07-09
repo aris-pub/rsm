@@ -265,7 +265,9 @@ jobs:
       run: uv run python -m sphinx -b html -W docs/source docs/build/html
 
   accessibility-tests:
-    runs-on: macos-latest
+    # Linux (amd64) instead of the scarce macOS pool. These are axe-core rule
+    # checks (no pixel snapshots), so rendering platform doesn't matter.
+    runs-on: ubuntu-latest
     timeout-minutes: 15
 
     env:
