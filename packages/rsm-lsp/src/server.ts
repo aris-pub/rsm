@@ -124,6 +124,13 @@ async function validateSemantics(document: TextDocument): Promise<void> {
     // Cache the AST
     astCache.set(uri, ast, version);
 
+    // Announce that the nodeid<->source index is ready for this document version.
+    // Source<->preview navigation (rsm/nodePosition, rsm/nodeAtPosition) resolves
+    // against this cache, which is empty until now, so clients can await this
+    // notification instead of blind-polling on a null result. { uri, version }
+    // lets a client match the ready index to the document version it expects.
+    connection.sendNotification('rsm/indexReady', { uri, version });
+
     logger.info(`Python parse completed in ${elapsed}ms for ${uri}`);
 
     // Run semantic diagnostics on AST
@@ -278,8 +285,16 @@ connection.onDocumentSymbol((params: DocumentSymbolParams): DocumentSymbol[] => 
 import { findNodeById, findNodeAtPosition } from './layer2/ast';
 
 connection.onRequest('rsm/nodePosition', (params: { textDocument: { uri: string }; nodeid: number }) => {
-  const cached = astCache.get(params.textDocument.uri);
+  const uri = params.textDocument.uri;
+  const cached = astCache.get(uri);
   if (!cached) return null;
+  // If the document has been edited but not yet re-parsed, the cache still holds
+  // the previous version's AST. A nodeid from the freshly-rendered document could
+  // resolve to a DIFFERENT node in that stale AST — a confident wrong answer.
+  // Return null while stale so the client retries and gets the correct position
+  // once the new parse lands (and emits rsm/indexReady).
+  const liveVersion = documents.get(uri)?.version;
+  if (liveVersion != null && !astCache.isValid(uri, liveVersion)) return null;
   const node = findNodeById(cached.ast, params.nodeid);
   if (!node) return null;
   // contentStart: first child's position (after tag + meta region)
@@ -297,8 +312,13 @@ connection.onRequest('rsm/nodePosition', (params: { textDocument: { uri: string 
 });
 
 connection.onRequest('rsm/nodeAtPosition', (params: { textDocument: { uri: string }; line: number; character: number }) => {
-  const cached = astCache.get(params.textDocument.uri);
+  const uri = params.textDocument.uri;
+  const cached = astCache.get(uri);
   if (!cached) return null;
+  // Same staleness guard as rsm/nodePosition: a stale AST can map a live cursor
+  // position to the wrong node. Return null while stale so the client retries.
+  const liveVersion = documents.get(uri)?.version;
+  if (liveVersion != null && !astCache.isValid(uri, liveVersion)) return null;
   const node = findNodeAtPosition(cached.ast, params.line, params.character);
   if (!node || node.nodeid == null) return null;
   return { nodeid: node.nodeid, nodeclass: node.nodeclass };
