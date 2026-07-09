@@ -8,6 +8,12 @@ on:
     branches:
       - main
 
+# Cancel superseded runs on the same ref (e.g. a new push to a PR) so they stop
+# competing for the shared runner pool instead of piling up.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
 
   lsp-tests:
@@ -189,6 +195,7 @@ jobs:
 
     env:
       PYTEST_ADDOPTS: "--color=yes"
+      PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/.pw-browsers
 
     steps:
     - name: Checkout the repository and submodules
@@ -208,6 +215,12 @@ jobs:
 
     - name: Install rsm-lang
       run: uv sync
+
+    - name: Cache Playwright browsers
+      uses: actions/cache@v4
+      with:
+        path: ${{ github.workspace }}/.pw-browsers
+        key: playwright-${{ runner.os }}-${{ hashFiles('uv.lock') }}
 
     - name: Install Playwright browsers
       run: uv run playwright install --with-deps chromium
@@ -246,6 +259,7 @@ jobs:
 
     env:
       PYTEST_ADDOPTS: "--color=yes"
+      PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/.pw-browsers
 
     steps:
     - name: Checkout the repository and submodules
@@ -267,6 +281,12 @@ jobs:
       run: |
         uv sync
         uv pip list
+
+    - name: Cache Playwright browsers
+      uses: actions/cache@v4
+      with:
+        path: ${{ github.workspace }}/.pw-browsers
+        key: playwright-${{ runner.os }}-${{ hashFiles('uv.lock') }}
 
     - name: Install Playwright browsers
       run: |
