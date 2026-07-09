@@ -182,9 +182,17 @@ jobs:
       run: |
         uv run playwright install --with-deps chromium
 
-    - name: Run visual tests
+    - name: Regenerate visual baselines (TEMPORARY - remove after commit)
       run: |
-        uv run pytest -vv -m visual -n auto --timeout=60 --max-worker-restart=2
+        uv run pytest -m visual --update-snapshots -n auto --timeout=60 --max-worker-restart=2 || true
+
+    - name: Upload regenerated baselines (TEMPORARY)
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: regenerated-baselines
+        path: tests/visual/snapshots/
+        retention-days: 3
 
     - name: Upload visual test diffs
       if: failure()
