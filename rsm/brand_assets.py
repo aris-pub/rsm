@@ -5,10 +5,17 @@ maintaining offline build capability. See docs/source/_static/BRAND_ASSETS.md
 for the full rationale.
 """
 
+import os
 import urllib.request
 from pathlib import Path
 
-BRAND_BASE_URL = "https://raw.githubusercontent.com/leotrs/brand/main/logos"
+# Canonical brand repo is aris-pub/brand. Kept as a build-time raw fetch with a
+# committed fallback (see the functions below), so a network miss is harmless.
+# Override with RSM_BRAND_BASE_URL if the assets ever move to a dedicated host.
+BRAND_BASE_URL = os.environ.get(
+    "RSM_BRAND_BASE_URL",
+    "https://raw.githubusercontent.com/aris-pub/brand/main/logos",
+)
 
 
 def update_brand_assets_if_online(static_dir: Path) -> None:
