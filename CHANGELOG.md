@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.5.1] - 2026-07-13
+
+### Added
+
+- The language server now emits an `rsm/indexReady` notification once the document index is built, and navigation requests are guarded against a stale syntax tree so features like go-to-definition no longer act on outdated parse results.
+
+### Fixed
+
+- Brand assets are now fetched from the `aris-pub/brand` source, with support for overriding the location.
+- Syntax highlighting now resolves `highlights.scm` from the `tree-sitter-rsm` package root, so highlighting works reliably regardless of where the language server is installed.
+
 ## [1.5.0] - 2026-06-29
 
 ### Added
