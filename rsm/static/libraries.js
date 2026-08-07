@@ -15,11 +15,14 @@ export function loadTemml() {
 
   const link = document.createElement('link');
   link.rel = 'stylesheet';
-  link.href = 'https://cdn.jsdelivr.net/npm/temml/dist/Temml.css';
+  // Temml ships Temml-Latin-Modern.css (and other font variants), not Temml.css.
+  // The old href 404'd so the math CSS never loaded. Pin the version so this CSS
+  // and the temml.min.js below stay on the same release.
+  link.href = 'https://cdn.jsdelivr.net/npm/temml@0.13.4/dist/Temml-Latin-Modern.css';
   document.head.appendChild(link);
 
   const script = document.createElement('script');
-  script.src = 'https://cdn.jsdelivr.net/npm/temml/dist/temml.min.js';
+  script.src = 'https://cdn.jsdelivr.net/npm/temml@0.13.4/dist/temml.min.js';
   document.head.appendChild(script);
 
   temmlLoadPromise = new Promise((res, rej) => {

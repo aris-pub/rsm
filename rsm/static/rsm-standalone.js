@@ -56,11 +56,23 @@ var RSM = (() => {
     Object.assign(_macros, loadOverrides());
     return _macros;
   }
+  function renderNotationToString(latex) {
+    const params = latex.match(/#[1-9]/g);
+    if (params) {
+      const n = Math.max(...params.map((s) => +s[1]));
+      const args = "{\\square}".repeat(n);
+      return window.temml.renderToString("\\rsmNotationPreview" + args, {
+        throwOnError: true,
+        macros: { "\\rsmNotationPreview": latex }
+      });
+    }
+    return window.temml.renderToString(latex, { throwOnError: true });
+  }
   function isValid(latex) {
     if (!latex || !latex.trim()) return false;
     if (!window.temml) return true;
     try {
-      window.temml.renderToString(latex, { throwOnError: true });
+      renderNotationToString(latex);
       return true;
     } catch {
       return false;
@@ -150,6 +162,7 @@ var RSM = (() => {
     let bestDist = Infinity;
     for (const el of els) {
       const r = el.getBoundingClientRect();
+      if (r.width === 0 && r.height === 0) continue;
       const dist = Math.abs(r.top + r.height / 2 - center);
       if (dist < bestDist) {
         bestDist = dist;
@@ -181,7 +194,7 @@ var RSM = (() => {
           return;
         }
         try {
-          preview.innerHTML = window.temml.renderToString(latex, { throwOnError: true });
+          preview.innerHTML = renderNotationToString(latex);
           input.classList.remove("invalid");
         } catch {
           input.classList.add("invalid");
@@ -272,10 +285,10 @@ var RSM = (() => {
     if (temmlLoadPromise) return temmlLoadPromise;
     const link = document.createElement("link");
     link.rel = "stylesheet";
-    link.href = "https://cdn.jsdelivr.net/npm/temml/dist/Temml.css";
+    link.href = "https://cdn.jsdelivr.net/npm/temml@0.13.4/dist/Temml-Latin-Modern.css";
     document.head.appendChild(link);
     const script = document.createElement("script");
-    script.src = "https://cdn.jsdelivr.net/npm/temml/dist/temml.min.js";
+    script.src = "https://cdn.jsdelivr.net/npm/temml@0.13.4/dist/temml.min.js";
     document.head.appendChild(script);
     temmlLoadPromise = new Promise((res, rej) => {
       script.onload = () => {
@@ -300,7 +313,9 @@ var RSM = (() => {
     }
     const notationMacros = {};
     for (const [name, value] of Object.entries(getNotationMacros())) {
-      notationMacros[name.replace(/^\\/, "")] = value;
+      const key = name.replace(/^\\/, "");
+      const params = value.match(/#[1-9]/g);
+      notationMacros[key] = params ? [value, Math.max(...params.map((s) => Number(s[1])))] : value;
     }
     const config = document.createElement("script");
     config.innerHTML = `window.MathJax = {
@@ -435,33 +450,54 @@ var RSM = (() => {
   }
 
   // rsm/static/tocarcs.js
+  var LABEL_TARGET_PX = 13.5;
+  var HOVER_TARGET_PX = 13;
+  function buildAdj(svg, dir = "up") {
+    const adj = /* @__PURE__ */ new Map();
+    for (const e of svg.querySelectorAll(".toc-edge")) {
+      if (e.classList.contains("fwd")) continue;
+      const a = dir === "down" ? e.dataset.to : e.dataset.from;
+      const b = dir === "down" ? e.dataset.from : e.dataset.to;
+      if (!adj.has(a)) adj.set(a, []);
+      adj.get(a).push(b);
+    }
+    return adj;
+  }
+  function coneOver(svg, idx, dir = "up") {
+    const adj = buildAdj(svg, dir);
+    const start = String(idx);
+    const seen = /* @__PURE__ */ new Set([start]);
+    const stack = [start];
+    while (stack.length) {
+      for (const next of adj.get(stack.pop()) || []) {
+        if (!seen.has(next)) {
+          seen.add(next);
+          stack.push(next);
+        }
+      }
+    }
+    return seen;
+  }
+  function stabilizeLabels(svg) {
+    const vb = svg.viewBox && svg.viewBox.baseVal;
+    const w = svg.getBoundingClientRect().width;
+    if (!vb || !vb.width || !w) return;
+    const perUnit = w / vb.width;
+    svg.style.setProperty("--toc-label-px", (LABEL_TARGET_PX / perUnit).toFixed(2) + "px");
+    svg.style.setProperty("--toc-hover-px", (HOVER_TARGET_PX / perUnit).toFixed(2) + "px");
+  }
   function wireTree(svg) {
     const nodes = [...svg.querySelectorAll(".toc-node")];
     const edges = [...svg.querySelectorAll(".toc-edge")];
     const hover = svg.querySelector(".toc-hover-label");
     if (!nodes.length) return;
+    stabilizeLabels(svg);
+    if (typeof ResizeObserver !== "undefined") {
+      new ResizeObserver(() => stabilizeLabels(svg)).observe(svg);
+    }
     const hRect = hover && hover.querySelector("rect");
     const hText = hover && hover.querySelector("text");
-    const prereq = /* @__PURE__ */ new Map();
-    for (const e of edges) {
-      if (e.classList.contains("fwd")) continue;
-      const f = e.dataset.from;
-      if (!prereq.has(f)) prereq.set(f, []);
-      prereq.get(f).push(e.dataset.to);
-    }
-    function closure(idx) {
-      const seen = /* @__PURE__ */ new Set([idx]);
-      const stack = [idx];
-      while (stack.length) {
-        for (const to of prereq.get(stack.pop()) || []) {
-          if (!seen.has(to)) {
-            seen.add(to);
-            stack.push(to);
-          }
-        }
-      }
-      return seen;
-    }
+    const closure = (idx) => coneOver(svg, idx, "up");
     function showLabel(node) {
       if (!hover || !hText) return;
       hText.textContent = node.getAttribute("data-title") || "";
@@ -529,12 +565,365 @@ var RSM = (() => {
     drawAll(root2);
   }
 
+  // rsm/static/deplens.js
+  var isDagStep = (el) => !el.closest(".calc");
+  var stepsOf = (proofEl) => [...proofEl.querySelectorAll(".step")].filter(isDagStep);
+  var RESULT_SELECTOR = ".theorem[id], .lemma[id], .corollary[id], .proposition[id]";
+  var isResultEl = (el) => el.matches(RESULT_SELECTOR) && !el.classList.contains("definition");
+  var stepNumber = (st) => {
+    const el = st && st.querySelector(":scope > .hr-info-zone .step-number");
+    return el ? el.textContent.trim().replace(/[^0-9.]/g, "") : "";
+  };
+  var resultLabel = (el) => el && (el.dataset.menuLabel || el.id) || "";
+  var docMapSvg = () => document.querySelector(".rail-doc-map svg.toc-tree");
+  var railItemForProof = (proof) => {
+    const id = proof.dataset.nodeid;
+    return id ? document.querySelector(`.proof-rail-item[data-proof="${id}"]`) : null;
+  };
+  function closureMap(adj, start) {
+    const seen = /* @__PURE__ */ new Set([start]);
+    const stack = [start];
+    while (stack.length) {
+      for (const n of adj.get(stack.pop()) || []) {
+        if (!seen.has(n)) {
+          seen.add(n);
+          stack.push(n);
+        }
+      }
+    }
+    return seen;
+  }
+  var _resultGraph = null;
+  function resultGraph() {
+    if (_resultGraph) return _resultGraph;
+    const results = /* @__PURE__ */ new Map();
+    for (const el of document.querySelectorAll(RESULT_SELECTOR)) {
+      if (el.id && !el.classList.contains("definition")) results.set(el.id, el);
+    }
+    const up = /* @__PURE__ */ new Map();
+    const down = /* @__PURE__ */ new Map();
+    const add = (a, b) => {
+      if (a === b || !results.has(a) || !results.has(b)) return;
+      if (!up.has(a)) up.set(a, /* @__PURE__ */ new Set());
+      up.get(a).add(b);
+      if (!down.has(b)) down.set(b, /* @__PURE__ */ new Set());
+      down.get(b).add(a);
+    };
+    for (const proof of document.querySelectorAll(".proof[data-of]")) {
+      const r = proof.dataset.of;
+      if (!results.has(r)) continue;
+      const item = railItemForProof(proof);
+      if (item) {
+        for (const node of item.querySelectorAll("a.toc-node.toc-node-result")) {
+          const href = node.getAttribute("href") || "";
+          if (href.startsWith("#")) add(r, href.slice(1));
+        }
+      }
+      for (const a of proof.querySelectorAll('a[href^="#"]')) {
+        add(r, a.getAttribute("href").slice(1));
+      }
+    }
+    for (const [id, el] of results) {
+      for (const a of el.querySelectorAll('a[href^="#"]')) {
+        add(id, a.getAttribute("href").slice(1));
+      }
+    }
+    _resultGraph = { results, up, down };
+    return _resultGraph;
+  }
+  function stepModel(step) {
+    const proofEl = step.closest(".proof[data-nodeid]");
+    if (!proofEl) return null;
+    const rail = document.querySelector(".proof-rail");
+    if (!rail) return null;
+    const railItem = rail.querySelector(
+      `.proof-rail-item[data-proof="${proofEl.dataset.nodeid}"]`
+    );
+    const svg = railItem && railItem.querySelector("svg.toc-tree");
+    if (!svg) return null;
+    const steps = stepsOf(proofEl);
+    const idx = steps.indexOf(step);
+    if (idx < 0) return null;
+    const lim = steps.length;
+    const toIdx = (raw) => {
+      const out = /* @__PURE__ */ new Set();
+      for (const s of raw) {
+        const i = Number(s);
+        if (i !== idx && i >= 0 && i < lim) out.add(String(i));
+      }
+      return out;
+    };
+    return {
+      units: steps.map((bodyEl, i) => ({ key: String(i), bodyEl })),
+      anchorKey: String(idx),
+      coneUp: () => toIdx(coneOver(svg, idx, "up")),
+      coneDown: () => toIdx(coneOver(svg, idx, "down")),
+      railSvg: svg,
+      scope: "proof",
+      applyRail: (up, down, upActive) => applyGraphRail(svg, up, down, String(idx), upActive, (n) => n.dataset.idx),
+      label: (k) => `Step ${stepNumber(steps[Number(k)]) || Number(k) + 1}`,
+      noun: "step"
+    };
+  }
+  function resultModel(el) {
+    const g = resultGraph();
+    if (!g.results.has(el.id)) return null;
+    const exclude = (set, k) => {
+      const out = new Set(set);
+      out.delete(k);
+      return out;
+    };
+    const sectionOf = (id) => {
+      const r = g.results.get(id);
+      const sec = r && r.closest("section, .section");
+      return sec ? sec.id : null;
+    };
+    return {
+      units: [...g.results].map(([key, bodyEl]) => ({ key, bodyEl })),
+      anchorKey: el.id,
+      coneUp: () => exclude(closureMap(g.up, el.id), el.id),
+      coneDown: () => exclude(closureMap(g.down, el.id), el.id),
+      railSvg: docMapSvg(),
+      scope: "document",
+      applyRail: (up, down, upActive) => {
+        const svg = docMapSvg();
+        if (!svg) return;
+        const upSecs = new Set([...up].map(sectionOf).filter(Boolean));
+        const downSecs = new Set([...down].map(sectionOf).filter(Boolean));
+        const anchorSec = sectionOf(el.id);
+        applyGraphRail(
+          svg,
+          upSecs,
+          downSecs,
+          anchorSec,
+          upActive,
+          (node) => {
+            const h = node.getAttribute("href") || "";
+            return h.startsWith("#") ? h.slice(1) : null;
+          }
+        );
+      },
+      label: () => resultLabel(el),
+      noun: "result"
+    };
+  }
+  function buildModel(anchorEl) {
+    if (!anchorEl) return null;
+    if (anchorEl.classList.contains("step") && !anchorEl.closest(".calc")) {
+      return stepModel(anchorEl);
+    }
+    if (isResultEl(anchorEl)) return resultModel(anchorEl);
+    return null;
+  }
+  function applyGraphRail(svg, up, down, anchorKey, upActive, keyOf) {
+    for (const n of svg.querySelectorAll(".toc-node")) {
+      const k = keyOf(n);
+      const isAnchor = k != null && k === anchorKey;
+      const isUp = k != null && up.has(k);
+      const isDown = k != null && down.has(k);
+      n.classList.toggle("deplens-anchor", isAnchor);
+      n.classList.toggle("deplens-up", isUp && !isAnchor);
+      n.classList.toggle("deplens-down", isDown && !isAnchor);
+      n.classList.toggle("deplens-faded", upActive && !isAnchor && !isUp && !isDown);
+    }
+    const upSet = /* @__PURE__ */ new Set([...up, anchorKey]);
+    const downSet = /* @__PURE__ */ new Set([...down, anchorKey]);
+    for (const e of svg.querySelectorAll(".toc-edge")) {
+      const fwd = e.classList.contains("fwd");
+      const f = e.dataset.from;
+      const t = e.dataset.to;
+      const isUp = !fwd && up.size && upSet.has(f) && upSet.has(t);
+      const isDown = !fwd && down.size && downSet.has(f) && downSet.has(t);
+      e.classList.toggle("deplens-up", !!isUp);
+      e.classList.toggle("deplens-down", !!isDown);
+      e.classList.toggle("deplens-faded", upActive && !isUp && !isDown);
+    }
+  }
+  var MARK_CLASSES = [
+    "deplens-anchor",
+    "deplens-up",
+    "deplens-down",
+    "deplens-faded"
+  ];
+  function lensConeSizes(anchorEl) {
+    const m = buildModel(anchorEl);
+    if (!m) return { up: 0, down: 0 };
+    return { up: m.coneUp().size, down: m.coneDown().size };
+  }
+  function setup2(root2 = document) {
+    const rail = root2.querySelector(".proof-rail");
+    let active = null;
+    let liveRegion2 = null;
+    function announce2(msg) {
+      if (!liveRegion2) {
+        liveRegion2 = document.createElement("div");
+        liveRegion2.className = "deplens-sr-status";
+        liveRegion2.setAttribute("role", "status");
+        liveRegion2.setAttribute("aria-live", "polite");
+        document.body.appendChild(liveRegion2);
+      }
+      liveRegion2.textContent = "";
+      requestAnimationFrame(() => {
+        liveRegion2.textContent = msg;
+      });
+    }
+    function showRail(model) {
+      if (!rail) return;
+      const scopeBtn = rail.querySelector(
+        `.rail-scope[data-scope="${model.scope}"]`
+      );
+      if (scopeBtn) scopeBtn.click();
+      if (model.scope === "proof") {
+        const mapTab = rail.querySelector(
+          '.rail-subtabs-proof .rail-tab[data-view="proof-map"]'
+        );
+        if (mapTab && !mapTab.classList.contains("active")) mapTab.click();
+      }
+    }
+    function clearMarks() {
+      if (!active) return;
+      for (const u of active.model.units) u.bodyEl.classList.remove(...MARK_CLASSES);
+      const svg = active.model.railSvg;
+      if (svg) {
+        svg.querySelectorAll("." + MARK_CLASSES.join(", .")).forEach((x) => x.classList.remove(...MARK_CLASSES));
+      }
+    }
+    function applyMarks() {
+      const { model, dirs } = active;
+      const upActive = dirs.has("up");
+      const up = upActive ? model.coneUp() : /* @__PURE__ */ new Set();
+      const down = dirs.has("down") ? model.coneDown() : /* @__PURE__ */ new Set();
+      for (const u of model.units) {
+        const isAnchor = u.key === model.anchorKey;
+        const isUp = up.has(u.key);
+        const isDown = down.has(u.key);
+        u.bodyEl.classList.toggle("deplens-anchor", isAnchor);
+        u.bodyEl.classList.toggle("deplens-up", isUp);
+        u.bodyEl.classList.toggle("deplens-down", isDown);
+        u.bodyEl.classList.toggle(
+          "deplens-faded",
+          upActive && !isAnchor && !isUp && !isDown
+        );
+      }
+      model.applyRail(up, down, upActive);
+    }
+    let bar = null;
+    function setBar() {
+      if (!rail) return;
+      const { model, dirs } = active;
+      const upN = dirs.has("up") ? model.coneUp().size : 0;
+      const downN = dirs.has("down") ? model.coneDown().size : 0;
+      const sizes = { up: model.coneUp().size, down: model.coneDown().size };
+      const other = dirs.has("up") && !dirs.has("down") && sizes.down > 0 ? "down" : dirs.has("down") && !dirs.has("up") && sizes.up > 0 ? "up" : null;
+      if (!bar) {
+        bar = document.createElement("div");
+        bar.className = "deplens-bar";
+        bar.setAttribute("role", "status");
+      }
+      const noun = model.noun;
+      const parts = [];
+      if (upN) parts.push(`${upN} ${noun}${upN === 1 ? "" : "s"} it rests on`);
+      if (downN) parts.push(`${downN} rest on it`);
+      bar.innerHTML = `<span class="deplens-bar-badge">Dependency lens</span><span class="deplens-bar-label">${model.label(model.anchorKey)} \xB7 ${parts.join(", ")}</span>` + (other ? `<span class="deplens-add" role="button" tabindex="0" data-dir="${other}">${other === "up" ? "Also: what it rests on" : "Also: what rests on it"}</span>` : "") + '<span class="deplens-exit" role="button" tabindex="0" aria-label="Clear dependency lens"><kbd class="deplens-kbd">Esc</kbd> Clear <span class="deplens-exit-x" aria-hidden="true">\xD7</span></span>';
+      bar.querySelector(".deplens-exit").onclick = exit;
+      const add = bar.querySelector(".deplens-add");
+      if (add) add.onclick = () => toggleDir(add.dataset.dir);
+      bar.onkeydown = (ev) => {
+        if (ev.key !== "Enter" && ev.key !== " ") return;
+        const t = ev.target.closest(".deplens-exit, .deplens-add");
+        if (!t) return;
+        ev.preventDefault();
+        if (t.classList.contains("deplens-exit")) exit();
+        else toggleDir(t.dataset.dir);
+      };
+      if (!bar.isConnected) document.body.appendChild(bar);
+      if (rail) rail.classList.add("deplensing");
+    }
+    function render() {
+      applyMarks();
+      setBar();
+      const { model, dirs } = active;
+      const label = model.label(model.anchorKey);
+      const upN = dirs.has("up") ? model.coneUp().size : 0;
+      const downN = dirs.has("down") ? model.coneDown().size : 0;
+      const noun = model.noun;
+      let msg;
+      if (upN && downN) {
+        msg = `Showing ${label}'s dependencies: the ${upN} ${noun}s it rests on and the ${downN} that rest on it. Press Escape to clear.`;
+      } else if (upN) {
+        msg = `Showing the ${upN} ${noun}s that ${label} rests on. Press Escape to clear.`;
+      } else {
+        msg = `Showing the ${downN} ${noun}s that rest on ${label}. Press Escape to clear.`;
+      }
+      announce2(msg);
+    }
+    function teardown() {
+      if (!active) return;
+      clearMarks();
+      if (bar) bar.remove();
+      if (rail) rail.classList.remove("deplensing");
+      document.removeEventListener("keydown", onKeydown);
+      document.removeEventListener("click", onClickAway, true);
+      active = null;
+    }
+    function exit() {
+      if (!active) return;
+      teardown();
+      announce2("Dependency lens cleared.");
+    }
+    function onKeydown(ev) {
+      if (ev.key === "Escape") exit();
+    }
+    function onClickAway(ev) {
+      if (!active) return;
+      const t = ev.target;
+      if (!t.closest) return;
+      if (t.closest(".deplens-bar") || t.closest(".proof-rail") || t.closest("#hr-menu-singleton") || active.anchorEl.contains(t) || active.model.units.some((u) => u.bodyEl.contains(t))) {
+        return;
+      }
+      exit();
+    }
+    function toggleDir(dir) {
+      if (!active) return;
+      clearMarks();
+      if (active.dirs.has(dir)) active.dirs.delete(dir);
+      else active.dirs.add(dir);
+      if (!active.dirs.size) {
+        exit();
+        return;
+      }
+      render();
+    }
+    function show(anchorEl, dir) {
+      const model = buildModel(anchorEl);
+      if (!model) return;
+      if (active && active.anchorEl === anchorEl) {
+        toggleDir(dir);
+        return;
+      }
+      teardown();
+      active = { model, anchorEl, dirs: /* @__PURE__ */ new Set([dir]) };
+      showRail(model);
+      render();
+      document.addEventListener("keydown", onKeydown);
+      document.addEventListener("click", onClickAway, true);
+      document.dispatchEvent(new CustomEvent("rsm:focus-enter"));
+    }
+    root2.addEventListener("deplens:show", (ev) => {
+      const anchor = ev.target.closest && ev.target.closest(".step, " + RESULT_SELECTOR);
+      if (!anchor) return;
+      const dir = ev.detail && ev.detail.direction;
+      if (dir !== "up" && dir !== "down") return;
+      show(anchor, dir);
+    });
+  }
+
   // rsm/static/handrails.js
   var singletonMenu = null;
   var activeHr = null;
   var IS_TOUCH = typeof window !== "undefined" && typeof window.matchMedia === "function" && window.matchMedia("(hover: none) and (pointer: coarse)").matches;
   var delegationAttached = false;
-  function setup2() {
+  function setup3() {
     if (delegationAttached) return;
     delegationAttached = true;
     document.addEventListener("click", function(ev) {
@@ -567,6 +956,8 @@ var RSM = (() => {
         else if (role === "toc-view") toggleTocView(activeHr, menuItem);
         else if (role === "reorder") toggleReorder(activeHr);
         else if (role === "focus") triggerFocus(activeHr);
+        else if (role === "deplens-up") triggerDeplens(activeHr, "up");
+        else if (role === "deplens-down") triggerDeplens(activeHr, "down");
         return;
       }
       const collapseBtn = ev.target.closest(".hr-collapse");
@@ -660,21 +1051,46 @@ var RSM = (() => {
       if (touch) {
         reorderEl.setAttribute("aria-disabled", "true");
         reorderEl.removeAttribute("aria-pressed");
-        if (textEl) textEl.textContent = "Reorder steps (desktop only)";
+        if (textEl) textEl.textContent = "Reorder (desktop only)";
       } else {
         const on = hr.classList.contains("reorder-active");
         reorderEl.removeAttribute("aria-disabled");
         reorderEl.setAttribute("aria-pressed", on ? "true" : "false");
-        if (textEl) textEl.textContent = on ? "Done reordering" : "Reorder steps";
+        if (textEl) textEl.textContent = on ? "Done" : "Reorder";
       }
     }
     const isStep = hr.classList.contains("step") && !hr.closest(".calc");
     const hasRail = !!document.querySelector(".proof-rail");
-    const focus = isStep && hasRail ? "true" : null;
+    const focusOn = document.documentElement.getAttribute("data-focus-mode") === "on";
+    const focus = isStep && hasRail && focusOn ? "true" : null;
     const focusEl = singletonMenu.querySelector('[data-role="focus"]');
     const focusSep = singletonMenu.querySelector('[data-role="focus-sep"]');
     configureItem(focusEl, focus);
     if (focusSep) focusSep.style.display = focus ? "" : "none";
+    const isResult = !!hr.id && (hr.classList.contains("theorem") || hr.classList.contains("lemma") || hr.classList.contains("corollary") || hr.classList.contains("proposition")) && !hr.classList.contains("definition");
+    let lensUp = null;
+    let lensDown = null;
+    if ((isStep || isResult) && document.querySelector(".proof-rail")) {
+      const sizes = lensConeSizes(hr);
+      lensUp = sizes.up > 0 ? "true" : "disabled";
+      lensDown = sizes.down > 0 ? "true" : "disabled";
+    }
+    const lensUpEl = singletonMenu.querySelector('[data-role="deplens-up"]');
+    const lensDownEl = singletonMenu.querySelector('[data-role="deplens-down"]');
+    const lensSep = singletonMenu.querySelector('[data-role="deplens-sep"]');
+    configureItem(lensUpEl, lensUp);
+    configureItem(lensDownEl, lensDown);
+    setLensHint(
+      lensUpEl,
+      lensUp,
+      isStep ? "This step depends on nothing earlier in the proof." : "This result depends on no other result."
+    );
+    setLensHint(
+      lensDownEl,
+      lensDown,
+      isStep ? "Nothing else in the proof uses this step." : "No other result uses this one."
+    );
+    if (lensSep) lensSep.style.display = lensUp || lensDown ? "" : "none";
     const zone = hr.querySelector(":scope > .hr-menu-zone");
     if (zone) {
       zone.appendChild(singletonMenu);
@@ -694,6 +1110,12 @@ var RSM = (() => {
     hideMenu();
     hr.dispatchEvent(new CustomEvent("focus:step", { bubbles: true }));
   }
+  function triggerDeplens(hr, direction) {
+    hideMenu();
+    hr.dispatchEvent(
+      new CustomEvent("deplens:show", { bubbles: true, detail: { direction } })
+    );
+  }
   function menuPopup() {
     return singletonMenu && singletonMenu.querySelector(".hr-menu");
   }
@@ -706,6 +1128,22 @@ var RSM = (() => {
     popup.style.position = "absolute";
     popup.style.left = `${rect.left + window.scrollX}px`;
     popup.style.top = `${rect.top + window.scrollY}px`;
+  }
+  function setLensHint(el, value, disabledText) {
+    if (!el) return;
+    if (value === "disabled") {
+      el.setAttribute("data-tooltip", disabledText);
+      el.setAttribute("aria-disabled", "true");
+      const label = el.querySelector(".hr-menu-item-text");
+      el.setAttribute(
+        "aria-label",
+        `${label ? label.textContent.trim() + " " : ""}(unavailable: ${disabledText})`
+      );
+    } else {
+      el.removeAttribute("data-tooltip");
+      el.removeAttribute("aria-disabled");
+      el.removeAttribute("aria-label");
+    }
   }
   function configureItem(el, value) {
     if (!el) return;
@@ -1097,7 +1535,7 @@ var RSM = (() => {
   }
 
   // rsm/static/keyboard.js
-  function setup3(root2) {
+  function setup4(root2) {
     function ignore(event) {
       if (event.metaKey || event.ctrlKey || event.altKey) return true;
       const t = event.target;
@@ -1558,6 +1996,21 @@ var RSM = (() => {
         instance.content($(`<div class="rail-tip">${$(helper.origin).attr("data-tooltip")}</div>`));
       }
     });
+    $('#hr-menu-singleton [data-role="deplens-up"]:not(.tooltipstered), #hr-menu-singleton [data-role="deplens-down"]:not(.tooltipstered)').tooltipster({
+      theme: ["tooltipster-shadow", "tooltipster-shadow-rsm"],
+      delay: 200,
+      minWidth: 100,
+      maxWidth: 280,
+      side: ["right", "bottom", "top"],
+      trigger: "custom",
+      triggerOpen: { mouseenter: true, touchstart: true },
+      triggerClose: { click: true, mouseleave: true, originClick: true, touchleave: true },
+      functionBefore: function(instance, helper) {
+        const text = $(helper.origin).attr("data-tooltip");
+        if (!text) return false;
+        instance.content($(`<div class="rail-tip">${text}</div>`));
+      }
+    });
   }
   function stripHandrail(hr) {
     hr.find(".hr-collapse-zone").remove();
@@ -1574,7 +2027,7 @@ var RSM = (() => {
   }
 
   // rsm/static/prooftree.js
-  function setup4(root2 = document) {
+  function setup5(root2 = document) {
     const rail = root2.querySelector(".proof-rail");
     if (!rail) return;
     const lsKey = "rsm-sidebar:" + location.pathname;
@@ -1866,7 +2319,7 @@ var RSM = (() => {
       updateState();
     }
     show(null);
-    function stepsOf(proofEl) {
+    function stepsOf2(proofEl) {
       return [...proofEl.querySelectorAll(".step")].filter((s) => !s.closest(".calc"));
     }
     function selectFrom(target, clearOutside) {
@@ -1884,7 +2337,7 @@ var RSM = (() => {
       show(el.getAttribute("data-nodeid"));
       const stepEl = target.closest(".step");
       if (stepEl && !stepEl.closest(".calc") && el.contains(stepEl)) {
-        const idx = stepEl.dataset.stateIdx != null ? Number(stepEl.dataset.stateIdx) : stepsOf(el).indexOf(stepEl);
+        const idx = stepEl.dataset.stateIdx != null ? Number(stepEl.dataset.stateIdx) : stepsOf2(el).indexOf(stepEl);
         if (idx >= 0) updateState(idx);
       }
     }
@@ -2124,7 +2577,8 @@ var RSM = (() => {
   }
 
   // rsm/static/focusmode.js
-  function setup5(root2 = document) {
+  var focusEnabled = () => document.documentElement.getAttribute("data-focus-mode") === "on";
+  function setup6(root2 = document) {
     const rail = root2.querySelector(".proof-rail");
     if (!rail) return;
     let active = null;
@@ -2148,7 +2602,7 @@ var RSM = (() => {
       }
       return seen;
     }
-    const stepsOf = (proofEl) => [...proofEl.querySelectorAll(".step")];
+    const stepsOf2 = (proofEl) => [...proofEl.querySelectorAll(".step")];
     function dimRail(svg, cone) {
       for (const n of svg.querySelectorAll(".toc-node")) {
         const lit = cone.has(n.dataset.idx);
@@ -2162,7 +2616,7 @@ var RSM = (() => {
       }
     }
     const undimRail = (svg) => svg.querySelectorAll(".focus-faded, .focus-lit").forEach((x) => x.classList.remove("focus-faded", "focus-lit"));
-    function stepNumber(st) {
+    function stepNumber2(st) {
       const el = st && st.querySelector(":scope > .hr-info-zone .step-number");
       return el ? el.textContent.trim() : "";
     }
@@ -2193,7 +2647,7 @@ var RSM = (() => {
     }
     let exitBar = null;
     function setExitBar(sel) {
-      const num = stepNumber(sel);
+      const num = stepNumber2(sel);
       if (!exitBar) {
         exitBar = document.createElement("div");
         exitBar.className = "proof-focus-exit";
@@ -2237,7 +2691,7 @@ var RSM = (() => {
       showProofMap();
       const idx = Number(startIdx);
       const cone = coneOf(svg, idx);
-      const steps = stepsOf(proofEl);
+      const steps = stepsOf2(proofEl);
       const wasCollapsed = steps.map((st) => st.classList.contains("hr-collapsed"));
       withoutPersist(() => {
         steps.forEach(
@@ -2251,7 +2705,7 @@ var RSM = (() => {
       setExitBar(sel);
       document.addEventListener("keydown", onKeydown);
       const deps = steps.filter((_, i) => cone.has(String(i))).length - 1;
-      const num = stepNumber(sel);
+      const num = stepNumber2(sel);
       announce2(
         `Focused step ${num || idx + 1}: showing the ${Math.max(deps, 0)} steps it depends on; press Escape to show the full proof.`
       );
@@ -2262,6 +2716,7 @@ var RSM = (() => {
       }
     }
     root2.addEventListener("focus:step", (ev) => {
+      if (!focusEnabled()) return;
       const step = ev.target.closest && ev.target.closest(".step");
       if (!step) return;
       const proofEl = step.closest(".proof[data-nodeid]");
@@ -2270,11 +2725,12 @@ var RSM = (() => {
         `.proof-rail-item[data-proof="${proofEl.dataset.nodeid}"]`
       );
       if (!railItem) return;
-      const startIdx = stepsOf(proofEl).indexOf(step);
+      const startIdx = stepsOf2(proofEl).indexOf(step);
       if (startIdx < 0) return;
       enterFocus(railItem, proofEl, startIdx);
     });
     rail.addEventListener("click", (ev) => {
+      if (!focusEnabled()) return;
       const node = ev.target.closest(".toc-node");
       if (!node) return;
       const railItem = node.closest(".proof-rail-item");
@@ -2288,7 +2744,7 @@ var RSM = (() => {
   }
 
   // rsm/static/reorder.js
-  function isDagStep(stepEl) {
+  function isDagStep2(stepEl) {
     return !stepEl.closest(".calc");
   }
   function extractModel(railItem) {
@@ -2307,7 +2763,7 @@ var RSM = (() => {
       }
     }
     if (!proofEl) return null;
-    const bodySteps = [...proofEl.querySelectorAll(".step")].filter(isDagStep);
+    const bodySteps = [...proofEl.querySelectorAll(".step")].filter(isDagStep2);
     const n = bodySteps.length;
     if (!n) return null;
     const svgByIdx = /* @__PURE__ */ new Map();
@@ -2411,7 +2867,7 @@ var RSM = (() => {
       liveRegion.textContent = msg;
     });
   }
-  function setup6(root2 = document) {
+  function setup7(root2 = document) {
     root2.addEventListener("reorder:toggle", (ev) => {
       const proof = ev.target.closest && ev.target.closest(".proof.hr");
       if (!proof) return;
@@ -2503,6 +2959,45 @@ var RSM = (() => {
     }
     return slot;
   }
+  function stepNum(model, id) {
+    const el = model.byId.get(id).bodyEl.querySelector(":scope > .hr-info-zone .step-number");
+    return el ? el.textContent.replace(/[^0-9.]/g, "") : "";
+  }
+  function subtreeIds(model, id) {
+    const out = /* @__PURE__ */ new Set([id]);
+    const walk = (k) => {
+      for (const c of model.children.get(k) || []) {
+        out.add(c);
+        walk(c);
+      }
+    };
+    walk(id);
+    return out;
+  }
+  function blockingEdge(model, id, slot) {
+    const step = model.byId.get(id);
+    const key = step.parent || "";
+    const without = (model.children.get(key) || []).filter((x) => x !== id);
+    const trial = new Map(model.children);
+    trial.set(key, [...without.slice(0, slot), id, ...without.slice(slot)]);
+    const flat = flatten(trial);
+    const pos = new Map(flat.map((x, i) => [x, i]));
+    const moved = subtreeIds(model, id);
+    let best = null;
+    for (const e of model.deps) {
+      if (pos.get(e.dst) < pos.get(e.src)) continue;
+      if (!moved.has(e.src) && !moved.has(e.dst)) continue;
+      const gap = Math.abs(pos.get(e.src) - pos.get(e.dst));
+      if (!best || gap < best.gap) best = { e, gap };
+    }
+    return best ? best.e : null;
+  }
+  function reasonText(model, edge) {
+    const src = stepNum(model, edge.src);
+    const dst = stepNum(model, edge.dst);
+    if (!src || !dst) return "That move breaks a dependency.";
+    return `Step ${src} uses Step ${dst}`;
+  }
   function wireHandle(handle, id, proof, model) {
     handle.addEventListener("pointerdown", (ev) => {
       ev.preventDefault();
@@ -2517,6 +3012,10 @@ var RSM = (() => {
       let target = start;
       const indicator = document.createElement("div");
       indicator.className = "reorder-indicator";
+      const reason = document.createElement("div");
+      reason.className = "reorder-reason";
+      indicator.appendChild(reason);
+      let lastReason = "";
       proof.classList.add("reorder-dragging");
       step.bodyEl.classList.add("reorder-dragged");
       if (model.svg) pinTreeCurrent(model.svg, String(step.idx));
@@ -2530,14 +3029,21 @@ var RSM = (() => {
         if (legal.has(slot)) {
           target = slot;
           indicator.classList.remove("illegal");
+          reason.textContent = "";
+          lastReason = "";
         } else {
           target = start;
           indicator.classList.add("illegal");
+          const edge = blockingEdge(model, id, slot);
+          const text = edge ? reasonText(model, edge) : "";
+          reason.textContent = text;
+          lastReason = text;
         }
       };
       const onUp = () => {
         document.removeEventListener("pointermove", onMove);
         document.removeEventListener("pointerup", onUp);
+        const rejected = !!lastReason;
         indicator.remove();
         proof.classList.remove("reorder-dragging");
         step.bodyEl.classList.remove("reorder-dragged");
@@ -2547,11 +3053,213 @@ var RSM = (() => {
           const sib = model.children.get(key) || [];
           const label = step.bodyEl.dataset.menuLabel || "Step";
           announce(`${label} moved to position ${sib.indexOf(id) + 1} of ${sib.length}.`);
+        } else if (rejected) {
+          announce(`Move blocked: ${lastReason}.`);
         }
       };
       document.addEventListener("pointermove", onMove);
       document.addEventListener("pointerup", onUp);
     });
+  }
+
+  // rsm/static/shareview.js
+  var SCHEMA = 1;
+  function encodeToken(state) {
+    const json = JSON.stringify(state);
+    const utf8 = new TextEncoder().encode(json);
+    let bin = "";
+    for (const b of utf8) bin += String.fromCharCode(b);
+    return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  }
+  function decodeToken(token) {
+    let s = token.replace(/-/g, "+").replace(/_/g, "/");
+    while (s.length % 4) s += "=";
+    const bin = atob(s);
+    const bytes = Uint8Array.from(bin, (c) => c.charCodeAt(0));
+    return JSON.parse(new TextDecoder().decode(bytes));
+  }
+  var isDagStep3 = (el) => !el.closest(".calc");
+  function currentAnchorId() {
+    let best = null;
+    let bestTop = Infinity;
+    for (const hr of document.querySelectorAll(".hr[id]")) {
+      if (hr.closest(".rsm-source")) continue;
+      const top = hr.getBoundingClientRect().top;
+      if (top >= -2 && top < bestTop) {
+        best = hr.id;
+        bestTop = top;
+      }
+    }
+    return best;
+  }
+  function captureState() {
+    const state = { v: SCHEMA };
+    const folds = {};
+    for (const hr of document.querySelectorAll(".hr")) {
+      if (hr.closest(".rsm-source")) continue;
+      const key = collapseKey(hr);
+      if (!key) continue;
+      const def = hr.hasAttribute("data-start-collapsed");
+      const cur = hr.classList.contains("hr-collapsed");
+      if (cur !== def) folds[key] = cur;
+    }
+    if (Object.keys(folds).length) state.folds = folds;
+    const order = {};
+    for (const proof of document.querySelectorAll(".proof[data-nodeid]")) {
+      const steps = [...proof.querySelectorAll(".step")].filter(isDagStep3);
+      if (steps.length < 2) continue;
+      if (!steps.some((s) => s.dataset.stateIdx != null)) continue;
+      const cur = steps.map((s) => s.dataset.nodeid || "");
+      const sorted = [...steps].sort((a, b) => Number(a.dataset.stateIdx) - Number(b.dataset.stateIdx)).map((s) => s.dataset.nodeid || "");
+      if (cur.join(",") !== sorted.join(",")) order[proof.dataset.nodeid] = cur;
+    }
+    if (Object.keys(order).length) state.order = order;
+    const notation = {};
+    try {
+      for (const e of listNotation()) {
+        if (e.current !== e.default) notation[e.macro] = e.current;
+      }
+    } catch {
+    }
+    if (Object.keys(notation).length) state.notation = notation;
+    const anchor = currentAnchorId();
+    if (anchor) state.anchor = anchor;
+    return state;
+  }
+  function restoreNotation(state) {
+    if (!state.notation) return;
+    try {
+      const macros = getNotationMacros();
+      for (const [m, latex] of Object.entries(state.notation)) macros[m] = latex;
+      reRenderAll();
+    } catch {
+    }
+  }
+  function restoreFolds(state) {
+    withoutPersist(() => {
+      for (const hr of document.querySelectorAll(".hr")) {
+        if (hr.closest(".rsm-source")) continue;
+        const key = collapseKey(hr);
+        if (!key) continue;
+        const target = state.folds && key in state.folds ? state.folds[key] : hr.hasAttribute("data-start-collapsed");
+        const cur = hr.classList.contains("hr-collapsed");
+        if (target && !cur) closeHandrail(hr);
+        else if (!target && cur) openHandrail(hr);
+      }
+    });
+  }
+  function restoreOrder(state) {
+    if (!state.order) return;
+    for (const [pid, ord] of Object.entries(state.order)) {
+      try {
+        const railItem = document.querySelector(
+          `.proof-rail-item[data-proof="${pid}"]`
+        );
+        if (!railItem) continue;
+        const model = extractModel(railItem);
+        if (!model) continue;
+        const rank = new Map(ord.map((id, i) => [id, i]));
+        const at = (id) => rank.has(id) ? rank.get(id) : 1e9;
+        const newChildren = new Map(model.children);
+        for (const [k, ids] of model.children) {
+          newChildren.set(k, [...ids].sort((a, b) => at(a) - at(b)));
+        }
+        if (!isValidOrder(model, flatten(newChildren))) continue;
+        for (const s of model.byId.values()) s.bodyEl.dataset.stateIdx = String(s.idx);
+        applyToBody(model, newChildren);
+      } catch {
+      }
+    }
+  }
+  function restoreAnchor(state) {
+    if (!state.anchor) return;
+    const el = document.getElementById(state.anchor);
+    if (!el) return;
+    const reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    el.scrollIntoView({ behavior: reduce ? "auto" : "auto", block: "start" });
+  }
+  function applyState(state) {
+    if (!state || state.v !== SCHEMA) {
+      launchToast("This shared view was made for a different version.", "error");
+      return false;
+    }
+    restoreNotation(state);
+    restoreFolds(state);
+    restoreOrder(state);
+    requestAnimationFrame(() => restoreAnchor(state));
+    return true;
+  }
+  function showResetPill() {
+    if (document.querySelector(".rsm-shared-pill")) return;
+    const pill = document.createElement("div");
+    pill.className = "rsm-shared-pill is-visible";
+    pill.setAttribute("role", "status");
+    pill.setAttribute("aria-live", "polite");
+    pill.innerHTML = '<span class="rsm-shared-pill-label">Shared view</span><button type="button" class="rsm-shared-pill-reset">Reset to original</button><button type="button" class="rsm-shared-pill-x" aria-label="Dismiss">\xD7</button>';
+    pill.querySelector(".rsm-shared-pill-reset").addEventListener("click", () => {
+      window.location.reload();
+    });
+    pill.querySelector(".rsm-shared-pill-x").addEventListener("click", () => {
+      pill.remove();
+    });
+    document.body.appendChild(pill);
+  }
+  function stripViewParam() {
+    try {
+      const u = new URL(window.location.href);
+      if (!u.searchParams.has("view")) return;
+      u.searchParams.delete("view");
+      window.history.replaceState(null, "", u.pathname + u.search + u.hash);
+    } catch {
+    }
+  }
+  function shareUrlForCurrentView() {
+    let base;
+    try {
+      base = window.self !== window.parent ? window.parent.location.href : window.location.href;
+    } catch {
+      base = window.location.href;
+    }
+    const u = new URL(base);
+    u.hash = "";
+    u.searchParams.set("view", encodeToken(captureState()));
+    return u.toString();
+  }
+  async function copyView() {
+    try {
+      window.focus();
+      await navigator.clipboard.writeText(shareUrlForCurrentView());
+      launchToast("View link copied: opens the paper arranged the way you have it.", "success");
+    } catch {
+      launchToast("Could not copy the view link.", "error");
+    }
+  }
+  function setup8(root2 = document) {
+    if (!window.__shareviewWired) {
+      window.__shareviewWired = true;
+      document.addEventListener("click", (ev) => {
+        const btn = ev.target.closest && ev.target.closest(".rail-share-view");
+        if (btn) {
+          ev.preventDefault();
+          copyView();
+        }
+      });
+    }
+    let token = null;
+    try {
+      token = new URLSearchParams(window.location.search).get("view");
+    } catch {
+      token = null;
+    }
+    if (!token) return;
+    let ok = false;
+    try {
+      ok = applyState(decodeToken(token));
+    } catch {
+      ok = false;
+    }
+    stripViewParam();
+    if (ok) showResetPill();
   }
 
   // rsm/static/onload.js
@@ -2579,7 +3287,7 @@ var RSM = (() => {
         console.error("Loading pseudocode FAILED!", err);
       }
       try {
-        setup2();
+        setup3();
         collapseInitial(root2);
         restoreCollapse(root2);
       } catch (err) {
@@ -2591,23 +3299,28 @@ var RSM = (() => {
         console.error("Loading tocarcs.js FAILED!", err);
       }
       try {
-        setup4(root2);
+        setup5(root2);
       } catch (err) {
         console.error("Loading prooftree.js FAILED!", err);
       }
       try {
-        setup5(root2);
+        setup6(root2);
       } catch (err) {
         console.error("Loading focusmode.js FAILED!", err);
       }
       try {
-        setup6(root2);
+        setup7(root2);
       } catch (err) {
         console.error("Loading reorder.js FAILED!", err);
       }
       try {
+        setup2(root2);
+      } catch (err) {
+        console.error("Loading deplens.js FAILED!", err);
+      }
+      try {
         if (keys) {
-          setup3(root2);
+          setup4(root2);
         }
       } catch (err) {
         console.error("Loading keyboard.js FAILED!", err);
@@ -2639,6 +3352,11 @@ var RSM = (() => {
         createTooltips();
       } catch (err) {
         console.error("Loading notation panel FAILED!", err);
+      }
+      try {
+        setup8(root2);
+      } catch (err) {
+        console.error("Loading shareview.js FAILED!", err);
       }
     } catch (err) {
       console.error("An error occurred during initialization:", err);
