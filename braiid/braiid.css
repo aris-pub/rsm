@@ -280,9 +280,9 @@ body {
   --weight-medium: 500;
   --weight-regular: 400;
   --weight-light: 300;
-  --font-heading: 'Montserrat', 'Trebuchet MS', 'Segoe UI', Arial, sans-serif;
-  --font-body: 'Source Sans 3', 'Segoe UI', Tahoma, Arial, sans-serif;
-  --font-mono: 'Source Code Pro', Consolas, 'DejaVu Sans Mono', 'Courier New', monospace;
+  --font-heading: 'Montserrat', sans-serif;
+  --font-body: 'Source Sans 3', sans-serif;
+  --font-mono: 'Source Code Pro', monospace;
 
   /* Borders */
   --border-thick: 6px;
@@ -415,8 +415,8 @@ body {
 
 /* Typography */
 [data-typography="serif"] {
-  --font-heading: 'Source Serif 4', Georgia, Cambria, 'Times New Roman', serif;
-  --font-body: 'Source Serif 4', Georgia, Cambria, 'Times New Roman', serif;
+  --font-heading: 'Source Serif 4', serif;
+  --font-body: 'Source Serif 4', serif;
 }
 
 /* Reader type controls: the rail's Reading scope sets these data-* attributes
@@ -424,12 +424,12 @@ body {
    values (size 2, normal leading, normal width) carry no attribute. Widths are
    capped so the widest never collides with the rail in the gutter. */
 :root[data-reading-typeface="serif"] {
-  --font-heading: 'Source Serif 4', Georgia, Cambria, 'Times New Roman', serif;
-  --font-body: 'Source Serif 4', Georgia, Cambria, 'Times New Roman', serif;
+  --font-heading: 'Source Serif 4', serif;
+  --font-body: 'Source Serif 4', serif;
 }
 :root[data-reading-typeface="legible"] {
-  --font-heading: 'Atkinson Hyperlegible', 'Source Sans 3', 'Segoe UI', Tahoma, Arial, sans-serif;
-  --font-body: 'Atkinson Hyperlegible', 'Source Sans 3', 'Segoe UI', Tahoma, Arial, sans-serif;
+  --font-heading: 'Atkinson Hyperlegible', 'Source Sans 3', sans-serif;
+  --font-body: 'Atkinson Hyperlegible', 'Source Sans 3', sans-serif;
 }
 :root[data-reading-size="1"] { --font-size: 90%; }
 :root[data-reading-size="3"] { --font-size: 112%; }
