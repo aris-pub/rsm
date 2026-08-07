@@ -1,5 +1,6 @@
 """Input: HTML body -- Output: WebManuscript."""
 
+import base64
 import logging
 import re
 from abc import ABC, abstractmethod
@@ -81,7 +82,8 @@ class BaseBuilder(ABC):
 
     def find_required_assets(self) -> None:
         self.required_assets = [
-            Path(x) for x in re.findall(r'src="(.*?)"', str(self.body))
+            Path(x)
+            for x in re.findall(r'src="(.*?)"', str(self.body))
             if not x.startswith(("http://", "https://"))
             and Path(x).suffix.lower() not in self._UNBUNDLED_MEDIA_SUFFIXES
         ]
@@ -104,13 +106,13 @@ class HTMLBuilder(BaseBuilder):
 
         # Extract data-accent and data-lang from body tag and move to html tag
         accent_match = re.search(r'<body[^>]*data-accent="([^"]*)"', body)
-        accent_attr = f' data-accent="{accent_match.group(1)}"' if accent_match else ''
+        accent_attr = f' data-accent="{accent_match.group(1)}"' if accent_match else ""
 
         lang_match = re.search(r'<body[^>]*data-lang="([^"]*)"', body)
-        lang_value = lang_match.group(1) if lang_match else 'en'
+        lang_value = lang_match.group(1) if lang_match else "en"
 
         html = str(
-            f"<!DOCTYPE html>\n<html lang=\"{lang_value}\"{accent_attr}>\n\n"
+            f'<!DOCTYPE html>\n<html lang="{lang_value}"{accent_attr}>\n\n'
             + self.make_html_header()
             + "\n"
             + body
@@ -210,24 +212,79 @@ class HTMLBuilder(BaseBuilder):
 class StandaloneBuilder(HTMLBuilder):
     """Builder that produces a single self-contained HTML file.
 
-    Use this builder when the output file needs to work when opened directly
-    in a browser (file:// URLs) without a web server. All RSM JavaScript is
-    inlined directly in the HTML. Third-party libraries (jQuery, Tooltipster,
-    MathJax) are loaded from CDNs.
+    Use this builder when the output file needs to work when opened directly in
+    a browser (file:// URLs) with no web server and no network. The RSM bundle
+    and every third-party library it needs (temml, jQuery, Tooltipster,
+    pseudocode) are inlined from pinned copies vendored under static/. The math
+    font Temml.woff2 is embedded as a data URI inside the temml CSS, and the
+    Google Fonts and KaTeX @import rules that braiid.css and pseudocode.min.css
+    would otherwise pull over the network are stripped.
+
+    MathJax is deliberately not inlined. It is only an unreachable fallback once
+    temml is always present, and it weighs several megabytes. Its loader stays
+    in the RSM bundle as dead code that never runs in a standalone file.
     """
 
-    CDN_JQUERY = "https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"
-    CDN_TOOLTIPSTER_CSS = "https://cdn.jsdelivr.net/npm/tooltipster@4.2.8/dist/css/tooltipster.bundle.min.css"
-    CDN_TOOLTIPSTER_JS = "https://cdn.jsdelivr.net/npm/tooltipster@4.2.8/dist/js/tooltipster.bundle.min.js"
-    CDN_PSEUDOCODE_CSS = (
-        "https://cdn.jsdelivr.net/npm/pseudocode@2.4.1/build/pseudocode.min.css"
+    # Pinned versions of the third-party assets vendored under static/. Change a
+    # version here only together with re-vendoring the matching file.
+    TEMML_VERSION = "0.13.4"
+    JQUERY_VERSION = "3.6.0"
+    TOOLTIPSTER_VERSION = "4.2.8"
+    PSEUDOCODE_VERSION = "2.4.1"
+
+    _STATIC = Path(__file__).parent / "static"
+    _BRAIID_CSS = Path(__file__).parent.parent / "braiid" / "braiid.css"
+
+    # Each @import in braiid.css sits on its own line. Two pull Google Fonts over
+    # the network and one duplicates the pygments stylesheet this builder already
+    # inlines. Drop them all so the file needs nothing external. Text falls back
+    # to the family stacks braiid already declares.
+    _IMPORT_LINE_RE = re.compile(r"(?m)^[ \t]*@import\b[^\n]*\n?")
+    # pseudocode.min.css is minified onto one line and opens with an @import of
+    # KaTeX CSS from cdnjs. temml renders MathML, not KaTeX spans, so that CSS is
+    # unused here. This matches an external @import inside a single line.
+    _EXTERNAL_IMPORT_RE = re.compile(
+        r"@import\s+url\(\s*['\"]?\s*https?://[^)]*\)[^;]*;"
     )
-    CDN_RSM_CSS = "https://cdn.jsdelivr.net/gh/aris-pub/rsm@main/braiid/braiid.css"
+    # Temml-Latin-Modern.css declares a Latin Modern Math @font-face pointing at
+    # latinmodernmath.woff2, a file the temml package does not ship (it 404s on
+    # the CDN too). Drop the rule so the standalone file carries no dead font
+    # reference. Math renders in the browser math font, as it did online.
+    _LMM_FONTFACE_RE = re.compile(
+        r"@font-face\s*\{[^}]*latinmodernmath[^}]*\}", re.IGNORECASE
+    )
+
+    def _read_static(self, name: str) -> str:
+        return (self._STATIC / name).read_text()
+
+    @staticmethod
+    def _style(css: str) -> str:
+        return f"  <style>\n{css}\n  </style>\n"
+
+    @staticmethod
+    def _script(js: str) -> str:
+        return f"  <script>\n{js}\n  </script>\n"
 
     def _get_inline_js(self) -> str:
         """Read the bundled RSM JavaScript for inlining."""
-        bundle_path = Path(__file__).parent / "static" / "rsm-standalone.js"
-        return bundle_path.read_text()
+        return self._read_static("rsm-standalone.js")
+
+    def _get_braiid_css_inline(self) -> str:
+        return self._IMPORT_LINE_RE.sub("", self._BRAIID_CSS.read_text())
+
+    def _get_pseudocode_css_inline(self) -> str:
+        return self._EXTERNAL_IMPORT_RE.sub("", self._read_static("pseudocode.min.css"))
+
+    def _get_temml_css_inline(self) -> str:
+        """Temml's Latin-Modern CSS with the font embedded so it needs no network."""
+        css = self._read_static("Temml-Latin-Modern.css")
+        font_b64 = base64.b64encode((self._STATIC / "Temml.woff2").read_bytes()).decode(
+            "ascii"
+        )
+        css = css.replace(
+            "url('Temml.woff2')", f"url(data:font/woff2;base64,{font_b64})"
+        )
+        return self._LMM_FONTFACE_RE.sub("", css)
 
     def _get_custom_css_inline(self) -> str:
         """Read custom CSS and return as inline <style> tag."""
@@ -244,16 +301,12 @@ class StandaloneBuilder(HTMLBuilder):
 
     def _get_pygments_css_inline(self) -> str:
         """Read pygments.css for inlining in standalone output."""
-        css_path = Path(__file__).parent / "static" / "pygments.css"
+        css_path = self._STATIC / "pygments.css"
         if css_path.exists():
             return f"<style>\n{css_path.read_text()}\n  </style>\n  "
         return ""
 
     def make_html_header(self) -> str:
-        inline_js = self._get_inline_js()
-        custom_css_inline = self._get_custom_css_inline()
-        pygments_css_inline = self._get_pygments_css_inline()
-
         menu_position_style = ""
         if self.menu_position == "right":
             menu_position_style = """
@@ -289,31 +342,37 @@ class StandaloneBuilder(HTMLBuilder):
   </script>
 """
 
-        header = f"""\
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="generator" content="RSM 0.0.1 https://github.com/leotrs/rsm" />
-
-  <link rel="stylesheet" type="text/css" href="{self.CDN_RSM_CSS}" />
-  <link rel="stylesheet" type="text/css" href="{self.CDN_TOOLTIPSTER_CSS}" />
-  <link rel="stylesheet" href="{self.CDN_PSEUDOCODE_CSS}">
-  {pygments_css_inline}{custom_css_inline}{menu_position_style}
-  <script src="{self.CDN_JQUERY}"></script>
-  <script src="{self.CDN_TOOLTIPSTER_JS}"></script>
-  <script>
-{inline_js}
-  </script>
-  <script>
-    window.addEventListener('load', function() {{ RSM.onload(null, {{keys: false}}); }});
-  </script>{dark_mode_script}
-
-  <title>__TITLE_PLACEHOLDER__</title>
-</head>
-"""
-        title = self._extract_title()
-        header = header.replace("__TITLE_PLACEHOLDER__", title)
-        return header
+        # temml must define window.temml before the RSM bundle runs, and the
+        # katex alias lets pseudocode find a renderer without going through the
+        # on-demand loader (which would otherwise inject a CDN script).
+        parts = [
+            "<head>\n",
+            '  <meta charset="utf-8" />\n',
+            '  <meta name="viewport" content="width=device-width, initial-scale=1.0" />\n',
+            '  <meta name="generator" content="RSM 0.0.1 https://github.com/leotrs/rsm" />\n\n',
+            self._style(self._get_braiid_css_inline()),
+            self._style(self._read_static("tooltipster.bundle.min.css")),
+            self._style(self._get_pseudocode_css_inline()),
+            self._style(self._get_temml_css_inline()),
+            "  ",
+            self._get_pygments_css_inline(),
+            self._get_custom_css_inline(),
+            menu_position_style,
+            "\n",
+            self._script(self._read_static("jquery-3.6.0.min.js")),
+            self._script(self._read_static("tooltipster.bundle.min.js")),
+            self._script(self._read_static("temml.min.js")),
+            "  <script>window.katex = window.katex || window.temml;</script>\n",
+            self._script(self._read_static("pseudocode.min.js")),
+            self._script(self._get_inline_js()),
+            "  <script>\n"
+            "    window.addEventListener('load', function() { RSM.onload(null, {keys: false}); });\n"
+            "  </script>",
+            dark_mode_script,
+            f"\n\n  <title>{self._extract_title()}</title>\n",
+            "</head>\n",
+        ]
+        return "".join(parts)
 
 
 class FolderBuilder(HTMLBuilder):

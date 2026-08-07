@@ -355,11 +355,13 @@ class TestMakeCLIFileOutput:
         assert "<style>" in html_content
         assert custom_css in html_content
 
-        # <style> tag should come after CDN braiid.css link
-        cdn_css_pos = html_content.find("cdn.jsdelivr.net")
-        style_tag_pos = html_content.find("<style>")
-        assert cdn_css_pos < style_tag_pos, (
-            "Inline custom CSS should come after CDN braiid.css"
+        # braiid.css is now inlined rather than linked from a CDN, and the custom
+        # CSS is inlined after it so the author's overrides win in source order.
+        braiid_pos = html_content.find(".manuscriptwrapper")
+        custom_pos = html_content.find(custom_css)
+        assert braiid_pos != -1, "braiid CSS should be inlined"
+        assert braiid_pos < custom_pos, (
+            "Inline custom CSS should come after the inlined braiid CSS"
         )
 
     @pytest.mark.slow

@@ -1,14 +1,27 @@
 """Tests for standalone HTML output mode.
 
-When standalone=True, the RSM builder produces a single HTML file that can be
-opened directly in a browser without requiring a web server. This is achieved by:
-1. Using CDN URLs for third-party libraries (jQuery, Tooltipster)
-2. Using absolute URLs to the Studio backend for RSM-specific assets
+When standalone=True, the RSM builder produces a single self-contained HTML file
+that can be opened directly in a browser with no web server and no network. Every
+third-party library (temml, jQuery, Tooltipster, pseudocode) and the RSM bundle
+are inlined from pinned copies vendored under static/, and the math font is
+embedded as a data URI (see rsm-nyg). MathJax is the one exception: it stays a
+CDN fallback in the bundle as dead code, unreachable once temml is always present.
 """
 
+import re
 from pathlib import Path
 
 import rsm
+
+
+def loaded_external_urls(html: str) -> list[str]:
+    """URLs the page would actually fetch: link/script tags with an http(s) src.
+
+    This ignores http(s) strings that merely sit inside inlined JS/CSS (e.g. the
+    dead MathJax fallback URL), which never cause a network request.
+    """
+    return re.findall(r'<(?:link|script)\b[^>]*\b(?:href|src)="(https?://[^"]+)"', html)
+
 
 BUNDLE = Path(__file__).parent.parent / "rsm" / "static" / "rsm-standalone.js"
 
@@ -33,24 +46,26 @@ class TestStandaloneMode:
         assert 'src="/static/jquery-3.6.0.js"' in result
         assert 'src="/static/tooltipster.bundle.js"' in result
 
-    def test_standalone_true_uses_cdn_for_jquery(self):
-        """Test that standalone=True uses CDN URL for jQuery."""
+    def test_standalone_true_inlines_jquery(self):
+        """Test that standalone=True inlines jQuery instead of linking a CDN."""
         source = ":rsm:\n\nHello world.\n\n::"
         result = rsm.build(source, handrails=False, lint=False, standalone=True)
 
-        # Should use jsdelivr CDN for jQuery 3.6.0
-        assert "cdn.jsdelivr.net/npm/jquery@3.6.0" in result
-        # Should NOT use /static/ path
+        # jQuery source is present inline (its banner names the version)...
+        assert "jQuery v3.6.0" in result
+        # ...and there is no CDN link or /static/ path to fetch it.
+        assert 'src="https://cdn.jsdelivr.net/npm/jquery' not in result
         assert 'src="/static/jquery-3.6.0.js"' not in result
 
-    def test_standalone_true_uses_cdn_for_tooltipster(self):
-        """Test that standalone=True uses CDN URL for Tooltipster."""
+    def test_standalone_true_inlines_tooltipster(self):
+        """Test that standalone=True inlines Tooltipster instead of linking a CDN."""
         source = ":rsm:\n\nHello world.\n\n::"
         result = rsm.build(source, handrails=False, lint=False, standalone=True)
 
-        # Should use CDN for tooltipster CSS and JS
-        assert "cdn.jsdelivr.net/npm/tooltipster@4" in result
-        # Should NOT use /static/ paths
+        # Tooltipster source is present inline (its banner names the version)...
+        assert "tooltipster v4.2.8" in result
+        # ...and there is no CDN link or /static/ path to fetch it.
+        assert 'href="https://cdn.jsdelivr.net/npm/tooltipster' not in result
         assert 'href="/static/tooltipster.bundle.css"' not in result
         assert 'src="/static/tooltipster.bundle.js"' not in result
 
@@ -65,21 +80,25 @@ class TestStandaloneMode:
         # Should have some form of braiid.css reference (either CDN or inline)
         assert "braiid.css" in result or "<style" in result
 
-    def test_standalone_true_uses_cdn_for_math(self):
-        """Test that standalone=True includes CDN URLs for math rendering."""
+    def test_standalone_true_inlines_math_renderer(self):
+        """Test that standalone=True inlines temml for math rendering."""
         source = ":rsm:\n\nHello world.\n\n::"
         result = rsm.build(source, handrails=False, lint=False, standalone=True)
 
-        # temml is the primary renderer; MathJax is the fallback — both are CDN-loaded
-        assert "temml" in result.lower() or "mathjax" in result.lower()
+        # temml is the primary renderer and is inlined; the katex alias script
+        # lets pseudocode reuse it without the on-demand loader.
+        assert "temml" in result.lower()
+        assert "window.katex = window.katex || window.temml;" in result
 
-    def test_standalone_true_uses_cdn_for_pseudocode(self):
-        """Test that standalone=True preserves pseudocode.js CDN URL."""
+    def test_standalone_true_inlines_pseudocode(self):
+        """Test that standalone=True inlines pseudocode instead of linking a CDN."""
         source = ":rsm:\n\nHello world.\n\n::"
         result = rsm.build(source, handrails=False, lint=False, standalone=True)
 
-        # Pseudocode CSS should use CDN
         assert "pseudocode" in result.lower()
+        # The KaTeX CSS @import that pseudocode.min.css ships is stripped: temml
+        # renders MathML, not KaTeX spans, so it would only be a dead fetch.
+        assert "cdnjs.cloudflare.com" not in result
 
     def test_standalone_output_is_valid_html(self):
         """Test that standalone output is a complete, valid HTML document."""
@@ -131,24 +150,51 @@ class TestStandaloneBuilder:
         assert "static" not in files
 
 
-class TestStandaloneCDNVersions:
-    """Test that CDN URLs use correct library versions."""
+class TestStandaloneVendoredVersions:
+    """Test that the inlined libraries are the pinned, vendored versions."""
 
     def test_jquery_version_is_3_6_0(self):
-        """Test jQuery CDN uses exact version 3.6.0 to match bundled version."""
+        """Test the inlined jQuery is exactly 3.6.0 (matches the bundle)."""
         source = ":rsm:\n\nTest.\n\n::"
         result = rsm.build(source, handrails=False, lint=False, standalone=True)
 
-        # Must be exact version, not "latest"
-        assert "jquery@3.6.0" in result
+        assert "jQuery v3.6.0" in result
 
     def test_tooltipster_version_matches_bundled(self):
-        """Test Tooltipster CDN uses version compatible with bundled version."""
+        """Test the inlined Tooltipster is the pinned 4.2.8."""
         source = ":rsm:\n\nTest.\n\n::"
         result = rsm.build(source, handrails=False, lint=False, standalone=True)
 
-        # Tooltipster 4.x series
-        assert "tooltipster@4" in result
+        assert "tooltipster v4.2.8" in result
+
+
+class TestStandaloneSelfContained:
+    """Regression tests for rsm-nyg: standalone output loads nothing external.
+
+    A standalone file must render offline. These assert on assets the page would
+    actually fetch (link/script tags with an http(s) src), not on http(s) strings
+    that merely sit inside inlined JS or CSS.
+    """
+
+    def test_no_externally_loaded_assets(self):
+        source = ":rsm:\n\n# T\n\nLet $x = 1$.\n\n::"
+        result = rsm.build(source, handrails=True, lint=False, standalone=True)
+
+        assert loaded_external_urls(result) == []
+
+    def test_math_font_is_embedded(self):
+        source = ":rsm:\n\nLet $x = 1$.\n\n::"
+        result = rsm.build(source, handrails=False, lint=False, standalone=True)
+
+        # The temml CSS carries its font as a data URI, so no woff2 is fetched.
+        assert "data:font/woff2;base64," in result
+
+    def test_google_fonts_import_stripped(self):
+        source = ":rsm:\n\nHello world.\n\n::"
+        result = rsm.build(source, handrails=False, lint=False, standalone=True)
+
+        # braiid.css @imports Google Fonts; that would fetch over the network.
+        assert "fonts.googleapis.com" not in result
 
 
 class TestCustomCSS:

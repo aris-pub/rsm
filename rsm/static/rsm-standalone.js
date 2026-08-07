@@ -283,6 +283,11 @@ var RSM = (() => {
   function loadTemml() {
     if (temmlLoaded) return Promise.resolve();
     if (temmlLoadPromise) return temmlLoadPromise;
+    if (window.temml) {
+      temmlLoaded = true;
+      if (!window.katex) window.katex = window.temml;
+      return Promise.resolve();
+    }
     const link = document.createElement("link");
     link.rel = "stylesheet";
     link.href = "https://cdn.jsdelivr.net/npm/temml@0.13.4/dist/Temml-Latin-Modern.css";
@@ -433,6 +438,10 @@ var RSM = (() => {
     }
     if (pseudocodeLoadPromise) {
       return pseudocodeLoadPromise;
+    }
+    if (window.pseudocode) {
+      pseudocodeLoaded = true;
+      return Promise.resolve();
     }
     const script = document.createElement("script");
     script.type = "text/javascript";

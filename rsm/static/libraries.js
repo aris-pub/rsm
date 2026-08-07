@@ -13,6 +13,15 @@ export function loadTemml() {
   if (temmlLoaded) return Promise.resolve();
   if (temmlLoadPromise) return temmlLoadPromise;
 
+  // Standalone builds inline temml in the page head, so it is already present.
+  // Use it directly and set the katex alias for pseudocode, without injecting
+  // any CDN link or script.
+  if (window.temml) {
+    temmlLoaded = true;
+    if (!window.katex) window.katex = window.temml;
+    return Promise.resolve();
+  }
+
   const link = document.createElement('link');
   link.rel = 'stylesheet';
   // Temml ships Temml-Latin-Modern.css (and other font variants), not Temml.css.
@@ -215,6 +224,13 @@ export function loadPseudocode() {
   }
   if (pseudocodeLoadPromise) {
     return pseudocodeLoadPromise;
+  }
+
+  // Standalone builds inline pseudocode in the page head, so it is already
+  // present. Skip injecting the CDN script.
+  if (window.pseudocode) {
+    pseudocodeLoaded = true;
+    return Promise.resolve();
   }
 
   const script = document.createElement('script');
