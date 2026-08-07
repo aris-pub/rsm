@@ -217,8 +217,16 @@ class StandaloneBuilder(HTMLBuilder):
     and every third-party library it needs (temml, jQuery, Tooltipster,
     pseudocode) are inlined from pinned copies vendored under static/. The math
     font Temml.woff2 is embedded as a data URI inside the temml CSS, and the
-    Google Fonts and KaTeX @import rules that braiid.css and pseudocode.min.css
-    would otherwise pull over the network are stripped.
+    KaTeX @import that pseudocode.min.css would otherwise pull over the network
+    is stripped.
+
+    The five brand families braiid.css uses (Montserrat, Source Sans 3, Source
+    Serif 4, Atkinson Hyperlegible, Source Code Pro) are also embedded: the two
+    Google Fonts @import lines are replaced with @font-face rules whose src is a
+    data URI of a subsetted woff2 vendored under static/fonts/, so the file
+    renders in the brand fonts offline. A metric-matched fallback stack is added
+    as the floor, so a missing glyph or the pre-paint flash does not reflow the
+    layout.
 
     MathJax is deliberately not inlined. It is only an unreachable fallback once
     temml is always present, and it weighs several megabytes. Its loader stays
@@ -234,11 +242,110 @@ class StandaloneBuilder(HTMLBuilder):
 
     _STATIC = Path(__file__).parent / "static"
     _BRAIID_CSS = Path(__file__).parent.parent / "braiid" / "braiid.css"
+    _FONTS_DIR = _STATIC / "fonts"
+
+    # Version tag for the vendored brand-font subsets under static/fonts/. Each
+    # woff2 was subset from its upstream variable font (github.com/google/fonts,
+    # OFL) to the Google "latin" + "latin-ext" unicode ranges with pyftsubset,
+    # keeping the wght axis (and opsz for Source Serif 4) plus italics; Atkinson
+    # Hyperlegible is four static instances. Re-subset together with this tag.
+    FONT_SUBSET_VERSION = "2026-08-07"
+
+    # (family, font-style, font-weight, filename under static/fonts/). Embedded
+    # as data URIs in the default build so the brand fonts render with no
+    # network. The variable families declare a weight RANGE so one file covers
+    # every weight braiid asks for; Atkinson ships as four fixed instances.
+    _BRAND_FONT_FACES = (
+        ("Montserrat", "normal", "100 900", "montserrat-var.woff2"),
+        ("Montserrat", "italic", "100 900", "montserrat-italic-var.woff2"),
+        ("Source Sans 3", "normal", "200 900", "source-sans-3-var.woff2"),
+        ("Source Sans 3", "italic", "200 900", "source-sans-3-italic-var.woff2"),
+        ("Source Serif 4", "normal", "200 900", "source-serif-4-var.woff2"),
+        ("Source Serif 4", "italic", "200 900", "source-serif-4-italic-var.woff2"),
+        ("Source Code Pro", "normal", "200 900", "source-code-pro-var.woff2"),
+        ("Source Code Pro", "italic", "200 900", "source-code-pro-italic-var.woff2"),
+        ("Atkinson Hyperlegible", "normal", "400", "atkinson-hyperlegible-regular.woff2"),
+        ("Atkinson Hyperlegible", "normal", "700", "atkinson-hyperlegible-bold.woff2"),
+        ("Atkinson Hyperlegible", "italic", "400", "atkinson-hyperlegible-italic.woff2"),
+        ("Atkinson Hyperlegible", "italic", "700", "atkinson-hyperlegible-bolditalic.woff2"),
+    )
+
+    # Metric-matched fallback families, added in BOTH modes as the floor. Each
+    # maps a system font (Arial / Times New Roman / Courier New) to a "<brand>
+    # fallback" family with size-adjust and ascent/descent/line-gap overrides so
+    # the substitute occupies the same line box as the brand font. That keeps the
+    # offline (no-embed) layout close to the intended one, and stops any glyph
+    # outside latin/latin-ext (or the pre-paint flash) from reflowing the page.
+    # Values computed with the @capsizecss/metrics method (weighted-average
+    # lowercase advance for size-adjust, the brand font's own hhea metrics for
+    # the overrides); recompute with scratch tooling if the pinned fonts change.
+    _FONT_FALLBACK_CSS = dedent("""\
+        @font-face {
+          font-family: 'Montserrat fallback';
+          src: local('Arial');
+          size-adjust: 110.53%;
+          ascent-override: 87.58%;
+          descent-override: 22.71%;
+          line-gap-override: 0%;
+        }
+        @font-face {
+          font-family: 'Source Sans 3 fallback';
+          src: local('Arial');
+          size-adjust: 89.83%;
+          ascent-override: 113.99%;
+          descent-override: 44.53%;
+          line-gap-override: 0%;
+        }
+        @font-face {
+          font-family: 'Source Serif 4 fallback';
+          src: local('Times New Roman');
+          size-adjust: 111.52%;
+          ascent-override: 92.9%;
+          descent-override: 30.04%;
+          line-gap-override: 0%;
+        }
+        @font-face {
+          font-family: 'Source Code Pro fallback';
+          src: local('Courier New');
+          size-adjust: 99.98%;
+          ascent-override: 98.42%;
+          descent-override: 27.3%;
+          line-gap-override: 0%;
+        }
+        @font-face {
+          font-family: 'Atkinson Hyperlegible fallback';
+          src: local('Arial');
+          size-adjust: 99.81%;
+          ascent-override: 95.18%;
+          descent-override: 29.05%;
+          line-gap-override: 0%;
+        }
+        /* Insert the metric-matched fallback right after each brand family in the
+           stacks braiid declares. Same selectors as braiid, appended later, so
+           these win on equal specificity without editing braiid.css. */
+        :root {
+          --font-heading: 'Montserrat', 'Montserrat fallback', sans-serif;
+          --font-body: 'Source Sans 3', 'Source Sans 3 fallback', sans-serif;
+          --font-mono: 'Source Code Pro', 'Source Code Pro fallback', monospace;
+        }
+        [data-typography="serif"] {
+          --font-heading: 'Source Serif 4', 'Source Serif 4 fallback', serif;
+          --font-body: 'Source Serif 4', 'Source Serif 4 fallback', serif;
+        }
+        :root[data-reading-typeface="serif"] {
+          --font-heading: 'Source Serif 4', 'Source Serif 4 fallback', serif;
+          --font-body: 'Source Serif 4', 'Source Serif 4 fallback', serif;
+        }
+        :root[data-reading-typeface="legible"] {
+          --font-heading: 'Atkinson Hyperlegible', 'Atkinson Hyperlegible fallback', 'Source Sans 3', 'Source Sans 3 fallback', sans-serif;
+          --font-body: 'Atkinson Hyperlegible', 'Atkinson Hyperlegible fallback', 'Source Sans 3', 'Source Sans 3 fallback', sans-serif;
+        }
+    """)
 
     # Each @import in braiid.css sits on its own line. Two pull Google Fonts over
     # the network and one duplicates the pygments stylesheet this builder already
-    # inlines. Drop them all so the file needs nothing external. Text falls back
-    # to the family stacks braiid already declares.
+    # inlines. Drop them all so the file needs nothing external: the two font
+    # imports are superseded by the embedded @font-face rules below.
     _IMPORT_LINE_RE = re.compile(r"(?m)^[ \t]*@import\b[^\n]*\n?")
     # pseudocode.min.css is minified onto one line and opens with an @import of
     # KaTeX CSS from cdnjs. temml renders MathML, not KaTeX spans, so that CSS is
@@ -269,8 +376,33 @@ class StandaloneBuilder(HTMLBuilder):
         """Read the bundled RSM JavaScript for inlining."""
         return self._read_static("rsm-standalone.js")
 
+    def _brand_font_faces_css(self) -> str:
+        """@font-face rules embedding each subsetted brand woff2 as a data URI.
+
+        Same embedding pattern as the Temml math font: read the pinned woff2,
+        base64 it into a data: URL so the file needs no network.
+        """
+        rules = []
+        for family, style, weight, filename in self._BRAND_FONT_FACES:
+            font_b64 = base64.b64encode(
+                (self._FONTS_DIR / filename).read_bytes()
+            ).decode("ascii")
+            rules.append(
+                "@font-face {\n"
+                f"  font-family: '{family}';\n"
+                f"  font-style: {style};\n"
+                f"  font-weight: {weight};\n"
+                "  font-display: swap;\n"
+                f"  src: url(data:font/woff2;base64,{font_b64}) format('woff2');\n"
+                "}"
+            )
+        return "\n".join(rules)
+
     def _get_braiid_css_inline(self) -> str:
-        return self._IMPORT_LINE_RE.sub("", self._BRAIID_CSS.read_text())
+        css = self._IMPORT_LINE_RE.sub("", self._BRAIID_CSS.read_text())
+        return "\n".join(
+            [self._brand_font_faces_css(), css, self._FONT_FALLBACK_CSS]
+        )
 
     def _get_pseudocode_css_inline(self) -> str:
         return self._EXTERNAL_IMPORT_RE.sub("", self._read_static("pseudocode.min.css"))

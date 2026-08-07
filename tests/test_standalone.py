@@ -197,6 +197,45 @@ class TestStandaloneSelfContained:
         assert "fonts.googleapis.com" not in result
 
 
+class TestStandaloneFontEmbedding:
+    """A standalone build always embeds the brand fonts.
+
+    It carries the five brand families braiid uses (Montserrat, Source Sans 3,
+    Source Serif 4, Atkinson Hyperlegible, Source Code Pro) as subsetted woff2
+    data URIs, so it renders in the intended fonts offline, plus a metric-matched
+    fallback stack as the floor. The file loads nothing external either way.
+    """
+
+    SRC = ":rsm:\n\n# T\n\nHello world.\n\n::"
+
+    def test_brand_fonts_embedded(self):
+        result = rsm.build(self.SRC, handrails=False, lint=False, standalone=True)
+
+        # Each brand family is its own @font-face (the trailing "';" distinguishes
+        # it from the "<brand> fallback" families and the --font-* stacks).
+        assert "font-family: 'Montserrat';" in result
+        assert "font-family: 'Source Sans 3';" in result
+        assert "font-family: 'Source Serif 4';" in result
+        assert "font-family: 'Source Code Pro';" in result
+        assert "font-family: 'Atkinson Hyperlegible';" in result
+        # Embedded as data URIs (12 brand faces), not fetched.
+        assert result.count("data:font/woff2;base64,") >= 12
+
+    def test_metric_fallback_floor_present(self):
+        result = rsm.build(self.SRC, handrails=False, lint=False, standalone=True)
+
+        assert "font-family: 'Montserrat fallback';" in result
+        assert "font-family: 'Source Serif 4 fallback';" in result
+        assert "size-adjust:" in result
+        # The metric fallback sits right after the brand family in the stack.
+        assert "'Montserrat', 'Montserrat fallback', sans-serif" in result
+
+    def test_embedded_fonts_are_self_contained(self):
+        result = rsm.build(self.SRC, handrails=True, lint=False, standalone=True)
+        assert loaded_external_urls(result) == []
+        assert "fonts.googleapis.com" not in result
+
+
 class TestCustomCSS:
     """Test custom CSS support in builders."""
 
