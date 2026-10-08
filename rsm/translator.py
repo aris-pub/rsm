@@ -1216,12 +1216,13 @@ class Translator:
             return '<svg class="toc-tree" aria-hidden="true"></svg>'
         horizontal = orient == "horizontal"
 
-        pad = 12
-        w = layout["width"] + 2 * pad
+        pad = 16
+        pad_x = 40
+        w = layout["width"] + 2 * pad_x
         h = layout["height"] + 2 * pad
         parts = [
             f'<svg class="toc-tree" width="{w:.0f}" height="{h:.0f}" '
-            f'viewBox="{-pad} {-pad} {w:.0f} {h:.0f}" role="group" '
+            f'viewBox="{-pad_x} {-pad} {w:.0f} {h:.0f}" role="group" '
             f'aria-label="{escape(aria_label)}">',
             '<defs>'
             '<marker id="toc-arr-dep" viewBox="0 0 10 8" refX="8.5" refY="4" '
@@ -1277,7 +1278,7 @@ class Translator:
                 # without it the only name is the visible secnum text ("2."), so a
                 # screen reader cannot tell the section links apart.
                 f'<a href="{escape(href)}" class="{ncls}" '
-                f'data-idx="{n["idx"]}" data-title="{escape(full)}" '
+                f'data-idx="{n["idx"]}" data-tooltip="{escape(full)}" '
                 f'aria-label="{escape(full)}">'
                 f'<rect x="{n["x"]:.1f}" y="{n["y"]:.1f}" width="{n["w"]}" '
                 f'height="{n["h"]}" rx="6"></rect>'
@@ -1285,10 +1286,6 @@ class Translator:
                 f'text-anchor="middle" dominant-baseline="central">{inner}</text></a>'
             )
         parts.append('</g>')
-        parts.append(
-            '<g class="toc-hover-label" style="display:none">'
-            '<rect rx="7"></rect><text></text></g>'
-        )
         parts.append('</svg>')
         return "".join(parts)
 
@@ -2697,15 +2694,14 @@ class HandrailsTranslator(Translator):
         )
         # A document-global action: copy a link that reopens the paper with the
         # reader's current view (folds, reorder, ...). Distinct from the per-block
-        # "Copy link" anchor. In the rail footer (not a scope panel); CSS shows it
-        # only in the Document and Proof scopes, where the shareable structural
-        # view is built (reordering switches the rail to Proof). (potf-44f)
-        footer = (
-            '<div class="rail-footer">'
+        # "Copy link" anchor. An icon button in the rail header; CSS shows it only
+        # in the Document and Proof scopes, where the shareable structural view is
+        # built (reordering switches the rail to Proof). (potf-44f)
+        share = (
             '<button class="rail-share-view" type="button" '
+            'aria-label="Copy a link that reopens the paper arranged the way you have it" '
             'data-tooltip="Copy a link that reopens the paper arranged the way you have it">'
-            + _RAIL_SHARE_ICON + "<span>Share this view</span></button>"
-            "</div>"
+            + _RAIL_SHARE_ICON + "</button>"
         )
         proof_section = (
             '<div class="rail-section rail-proof">'
@@ -2732,10 +2728,10 @@ class HandrailsTranslator(Translator):
             text='<div class="proof-rail scope-document doc-view-map '
             'proof-view-map" role="complementary" aria-label="Document and '
             'proof navigation">'
-            + '<div class="rail-header">' + scopes + collapse + "</div>"
+            + '<div class="rail-header">' + scopes + share + collapse + "</div>"
             + doc_subtabs + proof_subtabs
             + document_section + proof_section + pinned_section
-            + _make_reading_panel() + footer + "</div>"
+            + _make_reading_panel() + "</div>"
         )
 
     def _rail_item(

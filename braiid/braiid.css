@@ -735,7 +735,7 @@ body {
       font-family: var(--font-body);
       font-size: 0.82rem;
       line-height: 1.35;
-      padding: 0.35rem 0.6rem;
+      padding: var(--chunk-twelfth) var(--chunk-sixth);
     }
 
   }
@@ -754,8 +754,8 @@ body {
   z-index: 9998;
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
-  padding: 0.5rem 0.95rem;
+  gap: var(--chunk-sixth);
+  padding: var(--chunk-sixth) var(--chunk-third);
   font-family: var(--font-body);
   font-size: 0.85rem;
   line-height: 1;
@@ -791,34 +791,27 @@ body {
 }
 
 
-/* "Share this view": a quiet rail-footer action (potf-44f). Shown only in the
-   Document and Proof scopes (where the reader builds the structural view worth
-   sharing: notation/folds and reorder); hidden in Reading and Pinned. Styled as
-   a calm secondary control, not a call to action. */
-.proof-rail .rail-footer { display: none; }
-.proof-rail.scope-document .rail-footer,
-.proof-rail.scope-proof .rail-footer {
-  display: block;
-  margin-top: var(--chunk-sixth);
-  padding-top: var(--chunk-sixth);
-  border-top: var(--border-extrathin) solid var(--border-primary);
+/* "Share this view": a quiet rail-header action (potf-44f), an icon button next
+   to the collapse toggle. Shown only in the Document and Proof scopes, where the
+   reader builds the structural view worth sharing (notation, folds, reorder),
+   and hidden in Reading and Pinned. A calm secondary control, not a call to
+   action. */
+.proof-rail .rail-header .rail-share-view { display: none; }
+.proof-rail.scope-document .rail-header .rail-share-view,
+.proof-rail.scope-proof .rail-header .rail-share-view {
+  display: inline-flex;
 }
 .proof-rail .rail-share-view {
-  display: inline-flex;
   align-items: center;
-  gap: 0.45rem;
-  width: 100%;
-  padding: 0.4rem 0.5rem;
-  font-family: var(--font-body);
-  font-size: 0.82rem;
-  font-weight: var(--weight-semi);
-  color: var(--text-action);
+  justify-content: center;
+  padding: var(--chunk-twelfth);
+  color: var(--gray-700);
   background: none;
   border: none;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   cursor: pointer;
 }
-.proof-rail .rail-share-view svg { width: 1.05em; height: 1.05em; }
+.proof-rail .rail-share-view svg { width: 18px; height: 18px; }
 .proof-rail .rail-share-view:hover,
 .proof-rail .rail-share-view:focus-visible { background: var(--primary-100); }
 
@@ -833,8 +826,8 @@ body {
   z-index: 9998;
   display: inline-flex;
   align-items: center;
-  gap: 0.55rem;
-  padding: 0.45rem 0.6rem 0.45rem 0.9rem;
+  gap: var(--chunk-sixth);
+  padding: var(--chunk-sixth) var(--chunk-sixth) var(--chunk-sixth) var(--chunk-third);
   font-family: var(--font-body);
   font-size: 0.82rem;
   line-height: 1;
@@ -853,7 +846,7 @@ body {
   background: var(--surface-page);
   border: none;
   border-radius: 999px;
-  padding: 0.2rem 0.6rem;
+  padding: var(--chunk-twelfth) var(--chunk-sixth);
   cursor: pointer;
 }
 .rsm-shared-pill-reset:hover,
@@ -866,7 +859,7 @@ body {
   background: none;
   border: none;
   cursor: pointer;
-  padding: 0 0.15rem;
+  padding: 0 var(--chunk-twelfth);
 }
 
 /* Active dependency-lens affordance: a fixed pill, bottom-centre, that stays
@@ -878,15 +871,15 @@ body {
    <body>, outside the wrapper, so fixed positioning is viewport-relative. */
 .deplens-bar {
   position: fixed;
-  bottom: 1.4rem;
+  bottom: var(--chunk-half);
   left: 50%;
   transform: translateX(-50%);
   z-index: 1000;
   display: flex;
   align-items: center;
-  gap: 0.55rem;
+  gap: var(--chunk-sixth);
   max-width: min(92vw, 660px);
-  padding: 0.5rem 0.65rem 0.5rem 0.85rem;
+  padding: var(--chunk-sixth) var(--chunk-quarter) var(--chunk-sixth) var(--chunk-quarter);
   /* Portaled to <body>, outside .manuscriptwrapper, so the brand font is not
      inherited (same fix as the singleton menu on body): set it explicitly. */
   font-family: var(--font-body);
@@ -910,7 +903,7 @@ body {
   content: "";
   width: 0.55em;
   height: 0.55em;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   background: var(--primary-600);
   box-shadow: 0 0 0 3px var(--primary-100);
 }
@@ -924,7 +917,7 @@ body {
   cursor: pointer;
   user-select: none;
   white-space: nowrap;
-  padding: 0.2rem 0.55rem;
+  padding: var(--chunk-twelfth) var(--chunk-sixth);
   border-radius: 999px;
   font-weight: var(--weight-semi);
 }
@@ -948,7 +941,7 @@ body {
   padding: 0.05em 0.4em;
   border-radius: var(--radius-sm);
   background: rgba(255, 255, 255, 0.22);
-  border: 1px solid rgba(255, 255, 255, 0.5);
+  border: var(--border-extrathin) solid rgba(255, 255, 255, 0.5);
 }
 
 
@@ -1839,24 +1832,24 @@ body {
     display: flex;
     flex-direction: column;
     align-items: stretch;
-    gap: 0.5rem;
+    gap: var(--chunk-sixth);
     position: fixed;
-    left: 1rem;
+    left: var(--chunk-third);
     /* Anchor the top so it doesn't drift up and down as content changes. */
     top: 5rem;
     width: min(31vw, 380px);
     max-height: calc(100vh - 7rem);
     overflow: hidden;
     z-index: 40;
-    padding: 0.85rem;
+    padding: var(--chunk-quarter);
     background: var(--surface-page);
-    border: 1px solid var(--gray-200);
+    border: var(--border-extrathin) solid var(--gray-200);
     border-radius: var(--radius-xl);
     box-shadow: 0 1px 2px rgba(40, 60, 90, 0.04), 0 4px 14px rgba(40, 60, 90, 0.07);
   }
   /* Collapsed: a compact square handle, not a tall rounded blob. */
   .proof-rail.active.collapsed {
-    padding: 0.4rem;
+    padding: var(--chunk-sixth);
     border-radius: var(--radius-lg);
     box-shadow: 0 1px 3px rgba(40, 60, 90, 0.10);
   }
@@ -1872,15 +1865,15 @@ body {
      sub-tabs below. */
   .rail-tabs,
   .rail-subtabs,
-  .rail-scopes { display: flex; gap: 0.3rem; flex-shrink: 0; }
+  .rail-scopes { display: flex; gap: var(--chunk-twelfth); flex-shrink: 0; }
   .rail-scope {
     flex: 1;
-    padding: 0.3rem 0.5rem;
+    padding: var(--chunk-twelfth);
     border: none;
-    border-bottom: 2px solid transparent;
+    border-bottom: var(--border-thin) solid transparent;
     background: none;
     cursor: pointer;
-    font-size: 0.875rem;
+    font-size: 0.7rem;
     font-weight: 600;
     letter-spacing: 0.02em;
     color: var(--gray-700);
@@ -1894,13 +1887,13 @@ body {
   .rail-tab {
     display: inline-flex;
     align-items: center;
-    gap: 0.4rem;
-    padding: 0.4rem 0.85rem;
-    border: 1px solid transparent;
+    gap: var(--chunk-sixth);
+    padding: var(--chunk-sixth) var(--chunk-quarter);
+    border: var(--border-extrathin) solid transparent;
     border-radius: var(--radius-lg);
     background: var(--gray-75);
     cursor: pointer;
-    font-size: 0.82rem;
+    font-size: 0.7rem;
     color: var(--gray-700);
   }
   .rail-tab svg { width: 18px; height: 18px; }
@@ -1912,18 +1905,19 @@ body {
 
   /* Reading scope: the type controls. */
   .rail-reading-panel {
-    display: flex; flex-direction: column; gap: 0.75rem;
-    padding: 0.5rem 0.2rem; overflow-y: auto;
+    display: flex; flex-direction: column; gap: var(--chunk-quarter);
+    padding: var(--chunk-sixth) var(--chunk-twelfth); overflow-y: auto;
   }
-  .reading-row { display: flex; flex-direction: column; gap: 0.3rem; }
+  .reading-row { display: flex; flex-direction: column; gap: var(--chunk-twelfth); }
   .reading-label {
     font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.04em;
     color: var(--gray-700);
   }
-  .reading-opts { display: flex; gap: 0.25rem; }
+  .reading-opts { display: flex; gap: var(--chunk-twelfth); }
   .reading-opt {
-    flex: 1; padding: 0.3rem 0.4rem; border: 1px solid var(--gray-300);
-    border-radius: 0.3rem; background: var(--gray-0); color: var(--gray-800);
+    flex: 1; padding: var(--chunk-twelfth) var(--chunk-sixth);
+    border: var(--border-extrathin) solid var(--gray-300);
+    border-radius: var(--radius-md); background: var(--gray-0); color: var(--gray-800);
     font-size: 0.8rem; line-height: 1; cursor: pointer;
   }
   .reading-opt:hover { border-color: var(--primary-400); }
@@ -1942,12 +1936,12 @@ body {
      document can read as just the prose. */
   /* The scope tabs and the collapse control share the top row, so the panel
      opens with no near-empty row above the tabs. */
-  .rail-header { display: flex; align-items: center; gap: 0.4rem; }
+  .rail-header { display: flex; align-items: center; gap: var(--chunk-sixth); }
   .rail-header .rail-scopes { flex: 1; }
 
   .rail-collapse {
     display: inline-flex;
-    padding: 0.2rem;
+    padding: var(--chunk-twelfth);
     border: none;
     background: none;
     cursor: pointer;
@@ -1956,8 +1950,14 @@ body {
   .rail-collapse svg { width: 18px; height: 18px; }
   .rail-collapse:hover { color: var(--primary-700); }
   .proof-rail.collapsed { width: auto; gap: 0; }
-  .proof-rail.collapsed > :not(.rail-header) { display: none; }
-  .proof-rail.collapsed .rail-scopes { display: none; }
+  /* Collapse is a desktop-only affordance: its control is hidden in the mobile
+     drawer, which uses the grip and the data-drawer states instead. Gate the
+     hiding to desktop so a collapsed flag persisted from desktop cannot blank
+     the drawer (which would otherwise show only the header's share icon). */
+  @media (min-width: 1321px) {
+    .proof-rail.collapsed > :not(.rail-header) { display: none; }
+    .proof-rail.collapsed .rail-scopes { display: none; }
+  }
   .rail-collapse-collapse,
   .rail-collapse-expand { display: inline-flex; }
   .rail-collapse-expand { display: none; }
@@ -2071,13 +2071,13 @@ body {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: 0.25rem;
+    gap: var(--chunk-twelfth);
     width: 100%;
-    padding: 0.7rem 0.8rem;
+    padding: var(--chunk-quarter);
     text-align: left;
     font: inherit;
     background: var(--gray-75);
-    border: 1px solid var(--gray-200);
+    border: var(--border-extrathin) solid var(--gray-200);
     border-radius: var(--radius-lg);
     cursor: pointer;
   }
@@ -2093,12 +2093,12 @@ body {
   .rail-notation {
     display: flex;
     flex-direction: column;
-    gap: 0.7rem;
+    gap: var(--chunk-quarter);
     min-height: 0;
     overflow-y: auto;
-    padding: 0.2rem 0;
+    padding: var(--chunk-twelfth) 0;
   }
-  .rail-notation-row { display: flex; flex-direction: column; gap: 0.25rem; }
+  .rail-notation-row { display: flex; flex-direction: column; gap: var(--chunk-twelfth); }
   .rail-notation-label {
     font-size: 0.7rem;
     text-transform: uppercase;
@@ -2106,11 +2106,11 @@ body {
     color: var(--gray-700);
     font-weight: 700;
   }
-  .rail-notation-edit { display: flex; align-items: center; gap: 0.4rem; }
-  .rail-notation-actions { display: flex; align-items: center; gap: 0.4rem; }
+  .rail-notation-edit { display: flex; align-items: center; gap: var(--chunk-sixth); }
+  .rail-notation-actions { display: flex; align-items: center; gap: var(--chunk-sixth); }
   .rail-notation-apply {
-    padding: 0.2rem 0.7rem;
-    border: 1px solid var(--primary-700);
+    padding: var(--chunk-twelfth) var(--chunk-quarter);
+    border: var(--border-extrathin) solid var(--primary-700);
     border-radius: var(--radius-lg);
     background: var(--primary-700);
     color: #fff;
@@ -2124,8 +2124,8 @@ body {
     min-width: 0;
     font-family: var(--font-mono);
     font-size: 0.82rem;
-    padding: 0.25rem 0.45rem;
-    border: 1px solid var(--gray-200);
+    padding: var(--chunk-twelfth) var(--chunk-sixth);
+    border: var(--border-extrathin) solid var(--gray-200);
     border-radius: var(--radius-lg);
     background: var(--white, #fff);
     color: var(--text-body);
@@ -2143,7 +2143,7 @@ body {
     border: none;
     background: none;
     cursor: pointer;
-    padding: 0.2rem;
+    padding: var(--chunk-twelfth);
     color: var(--gray-400);
     font-size: 1rem;
     line-height: 1;
@@ -2335,7 +2335,7 @@ body {
       max-height: 85vh;
       gap: 0;
       padding: 0;
-      border: 1px solid var(--gray-200);
+      border: var(--border-extrathin) solid var(--gray-200);
       border-bottom: none;
       border-radius: var(--radius-xl) var(--radius-xl) 0 0;
       box-shadow: 0 -2px 16px rgba(40, 60, 90, 0.12);
@@ -2370,7 +2370,7 @@ body {
        goal (with rendered math) is forced inline so it never wraps the bar. */
     .proof-rail.active .rail-peek {
       align-items: baseline;
-      gap: 0.4rem;
+      gap: var(--chunk-sixth);
       padding: 0 var(--chunk-half) var(--chunk-third);
       min-width: 0;
       font-size: 1rem;
@@ -2491,7 +2491,7 @@ body {
      on screen), stacked above the tree while focused. */
   .proof-rail.active.focusing {
     flex-direction: column;
-    gap: 0.55rem;
+    gap: var(--chunk-sixth);
   }
 
   /* The one way out of focus mode: a filled accent button so it reads clearly as
@@ -2501,7 +2501,7 @@ body {
     align-items: center;
     gap: 0.4em;
     max-width: 100%;
-    padding: 0.45rem 0.75rem;
+    padding: var(--chunk-sixth) var(--chunk-quarter);
     font-size: 0.8rem;
     font-weight: var(--weight-semi);
     line-height: 1.2;
@@ -2894,6 +2894,16 @@ body {
   display: flex;
   align-items: center;
   gap: var(--chunk-sixth);
+
+  /* The status icon is <svg class="icon">, which the global ".icon svg" rule
+     does not match (that rule targets an svg inside a .icon, not an svg that is
+     itself .icon). Size it here so every toast style, now and later, renders a
+     normal icon instead of the svg's intrinsic (huge) size. */
+  & svg.icon {
+    width: var(--chunk-third);
+    height: var(--chunk-third);
+  }
+
   color: var(--extra-dark);
   border-width: var(--border-thin);
   border-style: solid;
