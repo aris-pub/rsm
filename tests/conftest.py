@@ -69,7 +69,7 @@ def compare_have_want(have, want, handrails=False):
     """Compare obtained output (have) against the desired output (want)."""
     want = dedent(want).lstrip()
     have = dedent(have).lstrip()
-    have = rsm.render(have, handrails=handrails, add_source=False).lstrip()
+    have = rsm.render(have, handrails=handrails, source_offsets=False).lstrip()
     have = _strip_generated_blocks(have)
     want = _strip_generated_blocks(want)
 
