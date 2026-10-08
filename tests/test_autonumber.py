@@ -91,7 +91,7 @@ def test_appendix_before_references():
 
     ::
     """
-    result = rsm.render(source, handrails=False, add_source=False)
+    result = rsm.render(source, handrails=False, source_offsets=False)
     assert "A. Extra Details" in result
     assert "foo2020" in result
 

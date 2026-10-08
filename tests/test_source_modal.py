@@ -9,7 +9,7 @@ import rsm
 def test_source_offsets_on_paragraph():
     """Paragraphs should have data-source-start/end, not data-rsm-source."""
     src = "This is a test paragraph.\n"
-    html = rsm.render(dedent(src).lstrip(), handrails=True, add_source=True)
+    html = rsm.render(dedent(src).lstrip(), handrails=True, source_offsets=True)
 
     assert "data-rsm-source=" not in html
     match = re.search(
@@ -29,7 +29,7 @@ def test_source_offsets_on_heading():
 
     Some content.
     """)
-    html = rsm.render(src, handrails=True, add_source=True)
+    html = rsm.render(src, handrails=True, source_offsets=True)
 
     match = re.search(
         r'class="heading hr"[^>]*data-source-start="(\d+)"[^>]*data-source-end="(\d+)"',
@@ -48,7 +48,7 @@ def test_source_offsets_on_section():
 
     Section content.
     """)
-    html = rsm.render(src, handrails=True, add_source=True)
+    html = rsm.render(src, handrails=True, source_offsets=True)
 
     match = re.search(
         r'class="heading hr"[^>]*data-source-start="(\d+)"[^>]*data-source-end="(\d+)"',
@@ -63,14 +63,14 @@ def test_source_offsets_on_section():
 def test_tree_button_removed():
     """Tree button should not be present in handrail menu."""
     src = "This is a paragraph.\n"
-    html = rsm.render(src, handrails=True, add_source=True)
+    html = rsm.render(src, handrails=True, source_offsets=True)
     assert 'hr-menu-item-text">Tree<' not in html
 
 
 def test_source_button_present():
     """Source button should be present in handrail menu with SVG use reference."""
     src = "This is a paragraph.\n"
-    html = rsm.render(src, handrails=True, add_source=True)
+    html = rsm.render(src, handrails=True, source_offsets=True)
     assert 'hr-menu-item-text">Source<' in html
     assert 'href="#hr-icon-code"' in html
 
@@ -82,7 +82,7 @@ def test_source_offsets_multiline():
     with multiple lines
     of text.
     """)
-    html = rsm.render(src, handrails=True, add_source=True)
+    html = rsm.render(src, handrails=True, source_offsets=True)
 
     match = re.search(
         r'class="paragraph hr[^"]*"[^>]*data-source-start="(\d+)"[^>]*data-source-end="(\d+)"',
@@ -99,7 +99,7 @@ def test_source_offsets_multiline():
 def test_copy_link_still_present():
     """Copy link button should still be present with SVG use reference."""
     src = "This is a paragraph.\n"
-    html = rsm.render(src, handrails=True, add_source=True)
+    html = rsm.render(src, handrails=True, source_offsets=True)
     assert 'hr-menu-item-text">Copy link<' in html
     assert 'href="#hr-icon-link"' in html
 
@@ -111,5 +111,5 @@ def test_source_not_on_special_nodes():
     This is draft content.
     ::
     """)
-    html = rsm.render(src, handrails=True, add_source=True)
+    html = rsm.render(src, handrails=True, source_offsets=True)
     assert "data-rsm-source=" not in html

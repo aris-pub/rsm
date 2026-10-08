@@ -307,7 +307,8 @@ class ProcessorApp(ParserApp):
         log_time: bool = True,
         log_lineno: bool = True,
         handrails: bool = False,
-        add_source: bool = True,
+        source_offsets: bool = True,
+        copy_source: bool = True,
         run_linter: bool = False,
         asset_resolver=None,
         standalone: bool = False,
@@ -327,7 +328,8 @@ class ProcessorApp(ParserApp):
             tr = translator.Translator(asset_resolver=asset_resolver, standalone=standalone)
         else:
             tr = translator.HandrailsTranslator(
-                add_source=add_source, asset_resolver=asset_resolver, standalone=standalone,
+                source_offsets=source_offsets, copy_source=copy_source,
+                asset_resolver=asset_resolver, standalone=standalone,
             )
         self.add_task(Task("translator", tr, tr.translate))
 
@@ -342,7 +344,8 @@ class FullBuildApp(ProcessorApp):
         log_time: bool = True,
         log_lineno: bool = True,
         handrails: bool = True,
-        add_source: bool = True,
+        source_offsets: bool = True,
+        copy_source: bool = True,
         run_linter: bool = False,
         asset_resolver=None,
         standalone: bool = False,
@@ -363,7 +366,8 @@ class FullBuildApp(ProcessorApp):
             log_time,
             log_lineno,
             handrails,
-            add_source,
+            source_offsets,
+            copy_source,
             run_linter,
             asset_resolver,
             standalone,
@@ -446,7 +450,8 @@ def render(
     source: str = "",
     path: str = "",
     handrails: bool = False,
-    add_source: bool = False,
+    source_offsets: bool = False,
+    copy_source: bool = False,
     loglevel: int = RSMApp.default_log_level,
     log_format: str = "rsm",
     log_time: bool = True,
@@ -460,7 +465,8 @@ def render(
         srcpath=path,
         plain=source,
         handrails=handrails,
-        add_source=add_source,
+        source_offsets=source_offsets,
+        copy_source=copy_source,
         loglevel=loglevel,
         log_format=log_format,
         log_time=log_time,

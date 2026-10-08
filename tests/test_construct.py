@@ -483,7 +483,7 @@ def test_construct_keyword_keeps_space_before_reference():
         "$$ {:label: eq-x} a = b $$\n\n"
         ":p: :assume: :ref:eq-x, the bound:: holds. ::\n"
     )
-    html = rsm.render(src, handrails=False, add_source=False)
+    html = rsm.render(src, handrails=False, source_offsets=False)
     assert ">ASSUME</span>" in html
     assert 'href="#eq-x"' in html
     assert "ASSUME</span><a" not in html

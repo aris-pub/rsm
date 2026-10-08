@@ -76,7 +76,7 @@ class TagBalanceChecker(HTMLParser):
 
 
 def _render_handrails(source=RSM_WITH_CAPTION):
-    return rsm.render(source, handrails=True, add_source=False, asset_resolver=RESOLVER)
+    return rsm.render(source, handrails=True, source_offsets=False, asset_resolver=RESOLVER)
 
 
 def test_no_tag_mismatches_in_handrails_output():
@@ -153,7 +153,7 @@ def test_no_stray_p_close_for_mathblock_under_section():
     of Section (not Paragraph). The handrails translator must not emit </p> for it.
     """
     body = rsm.render(
-        RSM_MATHBLOCK_UNDER_SECTION, handrails=True, add_source=False,
+        RSM_MATHBLOCK_UNDER_SECTION, handrails=True, source_offsets=False,
     )
     checker = TagBalanceChecker()
     checker.feed(body)

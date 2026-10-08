@@ -816,11 +816,12 @@ class Translator:
             classname = self.node.__class__.__name__
             return f'Action(node={classname}(), action="{self.action}")'
 
-    def __init__(self, quiet: bool = False, asset_resolver=None, standalone: bool = False, add_source: bool = False):
+    def __init__(self, quiet: bool = False, asset_resolver=None, standalone: bool = False, source_offsets: bool = False, copy_source: bool = False):
         self.tree: nodes.Manuscript = None
         self.body: str = ""
         self.standalone = standalone
-        self.add_source = add_source
+        self.source_offsets = source_offsets
+        self.copy_source = copy_source
         # Default to disk-based asset resolver if none provided
         if asset_resolver is None:
             from .asset_resolver import AssetResolverFromDisk
@@ -831,11 +832,11 @@ class Translator:
         self.quiet = quiet
 
     def _node_tag(self, node, tag="div", **kwargs):
-        """Create an AppendNodeTag with source offsets if add_source is enabled."""
+        """Create an AppendNodeTag with source offsets if source_offsets is enabled."""
         return AppendNodeTag(
             node,
             tag,
-            include_source=self.add_source,
+            include_source=self.source_offsets,
             manuscript_source=getattr(self.tree, "src", "") or "",
             **kwargs,
         )
@@ -2097,11 +2098,14 @@ class HandrailsTranslator(Translator):
     def __init__(
         self,
         quiet: bool = False,
-        add_source: bool = True,
+        source_offsets: bool = True,
+        copy_source: bool = True,
         asset_resolver=None,
         standalone: bool = False,
     ):
-        super().__init__(quiet, asset_resolver, standalone, add_source=add_source)
+        super().__init__(
+            quiet, asset_resolver, standalone, source_offsets=source_offsets, copy_source=copy_source
+        )
 
     @staticmethod
     def _make_option_tag(name: str, svg: str) -> AppendOpenCloseTag:
@@ -2131,7 +2135,7 @@ class HandrailsTranslator(Translator):
             # Marker only: JS collapses on load, so JS-off keeps the block open.
             kwargs["data-start-collapsed"] = "true"
         if (
-            self.add_source
+            self.source_offsets
             and node
             and self.tree
             and self.tree.src
@@ -2356,7 +2360,7 @@ class HandrailsTranslator(Translator):
             node,
             additional_classes=classes,
             is_selectable=is_selectable,
-            include_source=self.add_source,
+            include_source=self.source_offsets,
             manuscript_source=self.tree.src if self.tree else "",
             extra_attrs=extra_attrs,
         )
@@ -2805,7 +2809,7 @@ class HandrailsTranslator(Translator):
         batch.items.insert(2, self._make_svg_defs())
         batch.items.insert(3, self._make_singleton_menu())
         batch.items.insert(3, self._make_proof_rail())
-        if self.add_source:
+        if self.copy_source:
             batch.items.insert(3, self._make_source_div())
         return batch
 

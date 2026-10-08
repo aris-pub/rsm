@@ -7,7 +7,7 @@ import rsm
 
 
 def _render(src):
-    return rsm.render(src, handrails=True, add_source=True)
+    return rsm.render(src, handrails=True, source_offsets=True)
 
 
 def _find_source_attrs(html, tag_pattern):
@@ -70,7 +70,7 @@ class TestCodeSourceOffsets:
 class TestNoSourceOffsetsWhenDisabled:
     def test_inline_no_source_when_disabled(self):
         src = "The *spectral signatures* here.\n"
-        html = rsm.render(src, handrails=True, add_source=False)
+        html = rsm.render(src, handrails=True, source_offsets=False)
         offsets = _find_source_attrs(html, 'span class="span"')
         assert len(offsets) == 0
 

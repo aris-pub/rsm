@@ -17,7 +17,7 @@ BRAIID_CSS = (
 
 
 def _render(src: str) -> str:
-    return rsm.render(dedent(src).lstrip(), handrails=False, add_source=False)
+    return rsm.render(dedent(src).lstrip(), handrails=False, source_offsets=False)
 
 
 def test_braiid_css_constrains_static_fallback_width():

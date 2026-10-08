@@ -8,7 +8,7 @@ import rsm
 
 
 def _render(src):
-    return rsm.render(src.strip(), handrails=False, add_source=False)
+    return rsm.render(src.strip(), handrails=False, source_offsets=False)
 
 
 def test_unlabeled_section_gets_auto_id():
@@ -106,5 +106,5 @@ def test_auto_id_appears_on_section_tag():
 
 def test_unlabeled_section_with_handrails():
     """Auto ids should also work with handrails enabled."""
-    html = rsm.render("## Intro\n\nText.\n", handrails=True, add_source=False)
+    html = rsm.render("## Intro\n\nText.\n", handrails=True, source_offsets=False)
     assert 'id="sec-1"' in html

@@ -18,12 +18,12 @@ An unlabeled paragraph.
 
 
 def test_labeled_block_keeps_semantic_id():
-    html = rsm.render(SRC, handrails=True, add_source=False)
+    html = rsm.render(SRC, handrails=True, source_offsets=False)
     assert 'id="thm-a"' in html
 
 
 def test_unlabeled_block_gets_synthetic_id():
-    html = rsm.render(SRC, handrails=True, add_source=False)
+    html = rsm.render(SRC, handrails=True, source_offsets=False)
     # The unlabeled paragraph block should be hash-addressable via n<nodeid>.
     assert re.search(r'class="paragraph[^"]*"[^>]*id="n\d+"|id="n\d+"[^>]*class="paragraph', html), (
         "expected a synthetic n<nodeid> id on the unlabeled paragraph block"
@@ -31,6 +31,6 @@ def test_unlabeled_block_gets_synthetic_id():
 
 
 def test_synthetic_ids_are_unique():
-    html = rsm.render(SRC, handrails=True, add_source=False)
+    html = rsm.render(SRC, handrails=True, source_offsets=False)
     syn = re.findall(r'id="(n\d+)"', html)
     assert len(syn) == len(set(syn)), f"synthetic ids must be unique: {syn}"
