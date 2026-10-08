@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.5.2] - 2026-10-08
+
+### Changed
+
+- `rsm.render` and the build apps no longer take `add_source`. That one flag bundled two unrelated behaviors, so it is now two independent flags. `source_offsets` stamps `data-source-start` and `data-source-end` on blocks and inline spans. `copy_source` emits the hidden full-source div that the copy-source modal reads. `render()` defaults both to False. The interactive build apps default both to True. Callers that passed `add_source=True` should pass `source_offsets=True, copy_source=True`, or just the one they need.
+
 ## [1.5.1] - 2026-07-13
 
 ### Added
