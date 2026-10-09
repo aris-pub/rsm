@@ -180,6 +180,32 @@ export function createTooltips() {
     },
   });
 
+  // DAG nodes: show the link target's rendered excerpt (math and all), the same
+  // way reference tooltips do, so the graph is not the odd one out. Falls back to
+  // the plain-text statement in data-tooltip when the target cannot be excerpted.
+  $(".proof-rail a.toc-node:not(.tooltipstered)").tooltipster({
+    theme: ['tooltipster-shadow', 'tooltipster-shadow-rsm'],
+    delay: 200,
+    maxWidth: 360,
+    side: 'bottom',
+    functionInit: function (instance, helper) {
+      const rawHref = $(helper.origin).attr("href");
+      const { content } = buildExcerpt(rawHref);
+      if (content) {
+        setTooltipContent(instance, content);
+      } else {
+        setTooltipContent(
+          instance,
+          `<div class="rail-tip">${$(helper.origin).attr("data-tooltip") || ""}</div>`
+        );
+      }
+    },
+    functionReady: function (instance, helper) {
+      const el = instance.elementTooltip ? instance.elementTooltip() : helper.tooltip;
+      if (el) typesetMath(el instanceof $ ? el[0] : el);
+    }
+  });
+
   // Sidebar control labels: the same tooltipster mechanism as the body, with a
   // plain-text label taken from data-tooltip.
   $(".proof-rail [data-tooltip]:not(.tooltipstered)").tooltipster({

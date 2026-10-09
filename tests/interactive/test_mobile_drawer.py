@@ -180,6 +180,77 @@ def test_desktop_rail_pushes_content(page: Page, interactive_server: str):
     assert g["contentLeft"] > centred + 10, f"content not pushed right of centre: {g}"
 
 
+def test_narrowing_from_desktop_wires_up_drawer(page: Page, interactive_server: str):
+    """The drawer must wire up when the viewport crosses into mobile width, not
+    only at page load. Loading on desktop then narrowing (a common devtools or
+    window-resize flow) must still produce a working grip, not a grip-less sheet.
+    """
+    _load(page, interactive_server, viewport=DESKTOP)
+    assert _state(page) in (None, ""), "desktop must start with no drawer state"
+    assert page.locator(".proof-rail .rail-handle").count() == 0, "no grip on desktop"
+    # Narrow to mobile WITHOUT reloading.
+    page.set_viewport_size(MOBILE)
+    page.wait_for_timeout(400)
+    expect(page.locator(".proof-rail .rail-handle")).to_have_count(1)
+    assert _state(page) in {"closed", "peek", "open"}, "narrowing must set a drawer state"
+
+
+def test_widening_back_to_desktop_tears_down_drawer(page: Page, interactive_server: str):
+    """Widening back to desktop must remove the drawer chrome and state so the
+    desktop rail is clean (no grip, no data-drawer)."""
+    _load(page, interactive_server, viewport=MOBILE)
+    expect(page.locator(".proof-rail .rail-handle")).to_have_count(1)
+    assert _state(page) in {"closed", "peek", "open"}
+    page.set_viewport_size(DESKTOP)
+    page.wait_for_timeout(400)
+    assert _state(page) in (None, ""), "desktop must not keep a drawer state"
+    assert (
+        page.locator(".proof-rail .rail-handle").count() == 0
+    ), "the grip must be removed on desktop"
+
+
+def test_collapsed_desktop_does_not_blank_mobile_drawer(
+    page: Page, interactive_server: str
+):
+    """Collapsing the rail on desktop persists `collapsed` in localStorage. That
+    flag must NOT carry into the mobile drawer and blank it: collapse is a
+    desktop-only affordance (its control is hidden on mobile), so an opened drawer
+    still shows its scope tabs and the active section.
+
+    Regression: `.proof-rail.collapsed` hid every non-header child and the scope
+    tabs at all widths, so a rail collapsed on desktop then narrowed opened empty,
+    only the header's share icon over blank space.
+    """
+    # Collapse on desktop; the flag persists in localStorage.
+    page.set_viewport_size(DESKTOP)
+    page.goto(f"{interactive_server}/sidebar.html")
+    page.wait_for_function(RSM_READY, timeout=10_000)
+    page.wait_for_selector(".proof-rail.active", timeout=10_000)
+    page.evaluate("() => localStorage.clear()")
+    page.reload()
+    page.wait_for_function(RSM_READY, timeout=10_000)
+    page.wait_for_selector(".proof-rail.active", timeout=10_000)
+
+    page.click(".proof-rail .rail-collapse")
+    is_collapsed = "() => document.querySelector('.proof-rail').classList.contains('collapsed')"
+    assert page.evaluate(is_collapsed), "collapse control must add the .collapsed class"
+
+    # Narrow to mobile and reload so the drawer initialises with the persisted flag.
+    page.set_viewport_size(MOBILE)
+    page.reload()
+    page.wait_for_function(RSM_READY, timeout=10_000)
+    page.wait_for_selector(".proof-rail.active", timeout=10_000)
+    assert page.evaluate(is_collapsed), "the collapsed flag must persist the reload"
+
+    # Open the drawer.
+    page.click(".proof-rail .rail-handle")
+    assert _state(page) == "open"
+
+    # The drawer must not be blanked by the stale collapsed flag.
+    expect(page.locator(".proof-rail .rail-scopes")).to_be_visible()
+    expect(page.locator(".proof-rail .rail-section.rail-document")).to_be_visible()
+
+
 def test_desktop_rail_centered_when_wide(page: Page, interactive_server: str):
     """When the margin is wide enough for the rail, the content stays centred and
     the rail does not overlap it."""

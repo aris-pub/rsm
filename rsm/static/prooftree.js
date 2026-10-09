@@ -236,23 +236,17 @@ export function setup(root = document) {
   // inject the grip and peek-goal bar, drive the transitions, persist the state,
   // and (via updatePeekGoal, called from updateState) keep the peek goal current.
   let drawerGoalEl = null;
-  if (window.matchMedia("(max-width: 1320px)").matches) {
-    const handle = document.createElement("button");
-    handle.type = "button";
-    handle.className = "rail-handle";
-    handle.setAttribute("aria-label", "Toggle the navigation drawer");
-    const peek = document.createElement("div");
-    peek.className = "rail-peek";
-    peek.innerHTML =
-      '<span class="rail-peek-label">Prove</span><span class="rail-peek-goal"></span>';
-    rail.insertBefore(peek, rail.firstChild);
-    rail.insertBefore(handle, rail.firstChild);
-    drawerGoalEl = peek.querySelector(".rail-peek-goal");
-
+  {
     const DRAWER_KEY = "rsm-drawer:" + location.pathname;
+    const mql = window.matchMedia("(max-width: 1320px)");
+    let focusHandler = null;
+
+    // Reads the handle fresh each call so it works before setup and after a
+    // resize re-creates the drawer.
     const setDrawer = (state, persist = true) => {
       rail.dataset.drawer = state;
-      handle.setAttribute("aria-expanded", String(state === "open"));
+      const handle = rail.querySelector(".rail-handle");
+      if (handle) handle.setAttribute("aria-expanded", String(state === "open"));
       if (persist) {
         try {
           localStorage.setItem(DRAWER_KEY, state);
@@ -261,49 +255,93 @@ export function setup(root = document) {
         }
       }
     };
-    let savedDrawer = null;
-    try {
-      savedDrawer = localStorage.getItem(DRAWER_KEY);
-    } catch (e) {
-      /* ignore */
-    }
-    setDrawer(["closed", "peek", "open"].includes(savedDrawer) ? savedDrawer : "peek", false);
 
-    // Drag the grip to step between states (closed <-> peek <-> open); a tap
-    // (no real drag) toggles peek<->open and reopens a closed sheet to peek.
-    // There is no separate close button: dragging down reaches closed.
-    const ORDER = ["closed", "peek", "open"];
-    let dragY = null;
-    let dragged = false;
-    handle.addEventListener("pointerdown", (ev) => {
-      dragY = ev.clientY;
-      dragged = false;
+    function setupDrawer() {
+      if (rail.querySelector(".rail-handle")) return; // idempotent
+      const handle = document.createElement("button");
+      handle.type = "button";
+      handle.className = "rail-handle";
+      handle.setAttribute("aria-label", "Toggle the navigation drawer");
+      const peek = document.createElement("div");
+      peek.className = "rail-peek";
+      peek.innerHTML =
+        '<span class="rail-peek-label">Prove</span><span class="rail-peek-goal"></span>';
+      rail.insertBefore(peek, rail.firstChild);
+      rail.insertBefore(handle, rail.firstChild);
+      drawerGoalEl = peek.querySelector(".rail-peek-goal");
+
+      let savedDrawer = null;
       try {
-        handle.setPointerCapture(ev.pointerId);
+        savedDrawer = localStorage.getItem(DRAWER_KEY);
       } catch (e) {
-        /* synthetic/uncaptured pointer */
+        /* ignore */
       }
-    });
-    handle.addEventListener("pointermove", (ev) => {
-      if (dragY !== null && Math.abs(ev.clientY - dragY) > 8) dragged = true;
-    });
-    handle.addEventListener("pointerup", (ev) => {
-      if (dragY === null) return;
-      const dy = ev.clientY - dragY;
-      const i = ORDER.indexOf(rail.dataset.drawer);
-      if (!dragged) {
-        setDrawer(rail.dataset.drawer === "peek" ? "open" : "peek");
-      } else if (dy < 0) {
-        setDrawer(ORDER[Math.min(i + 1, ORDER.length - 1)]);
+      setDrawer(
+        ["closed", "peek", "open"].includes(savedDrawer) ? savedDrawer : "peek",
+        false,
+      );
+
+      // Drag the grip to step between states (closed <-> peek <-> open); a tap
+      // (no real drag) toggles peek<->open and reopens a closed sheet to peek.
+      // There is no separate close button: dragging down reaches closed.
+      const ORDER = ["closed", "peek", "open"];
+      let dragY = null;
+      let dragged = false;
+      handle.addEventListener("pointerdown", (ev) => {
+        dragY = ev.clientY;
+        dragged = false;
+        try {
+          handle.setPointerCapture(ev.pointerId);
+        } catch (e) {
+          /* synthetic/uncaptured pointer */
+        }
+      });
+      handle.addEventListener("pointermove", (ev) => {
+        if (dragY !== null && Math.abs(ev.clientY - dragY) > 8) dragged = true;
+      });
+      handle.addEventListener("pointerup", (ev) => {
+        if (dragY === null) return;
+        const dy = ev.clientY - dragY;
+        const i = ORDER.indexOf(rail.dataset.drawer);
+        if (!dragged) {
+          setDrawer(rail.dataset.drawer === "peek" ? "open" : "peek");
+        } else if (dy < 0) {
+          setDrawer(ORDER[Math.min(i + 1, ORDER.length - 1)]);
+        } else {
+          setDrawer(ORDER[Math.max(i - 1, 0)]);
+        }
+        dragY = null;
+        dragged = false;
+      });
+      // Focusing a step drops the sheet to peek so the focused cone is readable.
+      focusHandler = () => setDrawer("peek");
+      document.addEventListener("rsm:focus-enter", focusHandler);
+    }
+
+    function teardownDrawer() {
+      rail.querySelector(".rail-handle")?.remove();
+      rail.querySelector(".rail-peek")?.remove();
+      drawerGoalEl = null;
+      rail.removeAttribute("data-drawer");
+      if (focusHandler) {
+        document.removeEventListener("rsm:focus-enter", focusHandler);
+        focusHandler = null;
+      }
+    }
+
+    // Drive the drawer off viewport width, on load AND on every crossing of the
+    // breakpoint, so narrowing a desktop window (or a devtools resize) wires up a
+    // working grip, and widening again returns a clean desktop rail (no drawer).
+    if (mql.matches) setupDrawer();
+    mql.addEventListener("change", (e) => {
+      if (e.matches) {
+        peekGoalId = undefined; // force the re-created peek bar to re-render
+        setupDrawer();
+        updatePeekGoal();
       } else {
-        setDrawer(ORDER[Math.max(i - 1, 0)]);
+        teardownDrawer();
       }
-      dragY = null;
-      dragged = false;
     });
-    // Focusing a step (a map-node click) drops the sheet to peek so the body's
-    // focused cone is readable; the exit bar in the rail restores it.
-    document.addEventListener("rsm:focus-enter", () => setDrawer("peek"));
   }
 
   // Keep the peek bar showing the current proof's goal, with rendered math, on

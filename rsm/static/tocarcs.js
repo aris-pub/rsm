@@ -55,12 +55,29 @@ function stabilizeLabels(svg) {
   const perUnit = w / vb.width;
   svg.style.setProperty("--toc-label-px", (LABEL_TARGET_PX / perUnit).toFixed(2) + "px");
   svg.style.setProperty("--toc-hover-px", (HOVER_TARGET_PX / perUnit).toFixed(2) + "px");
+  // The label font-size is in user units and grows when the graph is squeezed to
+  // fit, so a build-time rect width (a character-count estimate) can be too
+  // narrow and the text spills past the box. The root marker ("Top") is the
+  // worst case: letters, not digits. Now that the font is applied, measure each
+  // label and widen its rect to fit, keeping it centered on the same point.
+  const padXU = 5 / perUnit; // about 5px on-screen inline padding each side
+  for (const node of svg.querySelectorAll(".toc-node")) {
+    const rect = node.querySelector("rect");
+    const text = node.querySelector(".toc-secnum");
+    if (!rect || !text) continue;
+    const need = text.getBBox().width + 2 * padXU;
+    const cur = parseFloat(rect.getAttribute("width"));
+    if (need > cur) {
+      const cx = parseFloat(rect.getAttribute("x")) + cur / 2;
+      rect.setAttribute("width", need.toFixed(1));
+      rect.setAttribute("x", (cx - need / 2).toFixed(1));
+    }
+  }
 }
 
 export function wireTree(svg) {
   const nodes = [...svg.querySelectorAll(".toc-node")];
   const edges = [...svg.querySelectorAll(".toc-edge")];
-  const hover = svg.querySelector(".toc-hover-label");
   if (!nodes.length) return;
 
   stabilizeLabels(svg);
@@ -69,37 +86,9 @@ export function wireTree(svg) {
   if (typeof ResizeObserver !== "undefined") {
     new ResizeObserver(() => stabilizeLabels(svg)).observe(svg);
   }
-  const hRect = hover && hover.querySelector("rect");
-  const hText = hover && hover.querySelector("text");
 
   // The upstream closure of X is everything to read first (see coneOver).
   const closure = (idx) => coneOver(svg, idx, "up");
-
-  function showLabel(node) {
-    if (!hover || !hText) return;
-    hText.textContent = node.getAttribute("data-title") || "";
-    const rect = node.querySelector("rect");
-    const nx = parseFloat(rect.getAttribute("x"));
-    const ny = parseFloat(rect.getAttribute("y"));
-    const nw = parseFloat(rect.getAttribute("width"));
-    // place above the node, centered, flipping below if it would clip the top
-    const box = hText.getBBox();
-    const padX = 9;
-    const w = box.width + 2 * padX;
-    const h = box.height + 10;
-    let lx = nx + nw / 2 - w / 2;
-    let ly = ny - h - 8;
-    if (ly < -10) ly = ny + parseFloat(rect.getAttribute("height")) + 8;
-    hRect.setAttribute("x", lx);
-    hRect.setAttribute("y", ly);
-    hRect.setAttribute("width", w);
-    hRect.setAttribute("height", h);
-    hText.setAttribute("x", lx + padX);
-    hText.setAttribute("y", ly + h / 2);
-    hText.setAttribute("dominant-baseline", "central");
-    hover.style.display = "";
-    svg.appendChild(hover); // keep on top
-  }
 
   // Light up a node's prerequisite cone (the path to read before it) and fade
   // the rest. idx == null clears the fade entirely.
@@ -126,12 +115,10 @@ export function wireTree(svg) {
     const idx = node.getAttribute("data-idx");
     node.addEventListener("mouseenter", () => {
       applyCone(idx);
-      showLabel(node);
     });
     node.addEventListener("mouseleave", () => {
       // Revert to the pinned "current path" the tree rests in (or clear).
       applyCone(svg.__pinnedIdx != null ? svg.__pinnedIdx : null);
-      if (hover) hover.style.display = "none";
     });
   });
 

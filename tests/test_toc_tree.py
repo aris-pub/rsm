@@ -137,7 +137,7 @@ def test_svg_has_positioned_nodes_and_edges():
     assert html.count("data-idx=") == 5
     assert 'class="toc-node level-0"' in html  # the root
     assert 'class="toc-edge ' in html
-    assert "data-title=" in html  # title carried for hover
+    assert "data-tooltip=" in html  # title carried for hover
     # Each section link's accessible name is its full "num. title", not just the
     # visible secnum, so screen readers can tell the links apart (a11y).
     assert 'aria-label="1. One"' in html
