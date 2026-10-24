@@ -13,10 +13,11 @@ def extract_grammar_tags():
         contents = f.read()
     tags = set(re.findall(r":([\w-]+):", contents))
     tags = {tag.replace("-", "_") for tag in tags}
-    # :-: is the list item marker, not a traditional tag - the node type is 'item'
-    if "_" in tags:
-        tags.remove("_")
-        tags.add("item")
+    # :-:, :--:, :---: are the list item depth markers, not traditional tags;
+    # they all share the node type 'item'. (:----: appears in a grammar comment
+    # as the unsupported 4th level.) Drop every all-underscore marker.
+    tags = {tag for tag in tags if set(tag) != {"_"}}
+    tags.add("item")
     return tags
 
 

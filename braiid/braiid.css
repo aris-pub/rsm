@@ -1138,6 +1138,13 @@ body {
     margin-block-end: 0;
     padding-inline-start: 1.5em;
   }
+
+  /* Nested enumerate uses the LaTeX default marker per level: 1. then (a) then
+     i. Each sub-list is its own <ol>, so the numbering restarts automatically. */
+  ol.enumerate {list-style-type: decimal;}
+  ol.enumerate ol.enumerate {list-style-type: lower-alpha;}
+  ol.enumerate ol.enumerate ol.enumerate {list-style-type: lower-roman;}
+
   .proof .hr.statement, .proof .hr.paragraph {margin-block-end: 0.5em;}
 
   /* MathJax's runtime CSS provides `margin: 1em 0` on mjx-container[display="true"].
