@@ -444,10 +444,11 @@ def _normalize_text(root: TSNode) -> str:
         # Manage escaped characters.
         if isinstance(node, nodes.Text) and not node.asis:
             node.text = EscapedString(node.text, DELIMS).escape()
-        if isinstance(node, nodes.Section):
-            node.title = EscapedString(node.title, DELIMS).escape()
-        if isinstance(node, nodes.Manuscript):
-            node.title = EscapedString(node.title, DELIMS).escape()
+        # Any titled node (sections, theorems, titled paragraphs) unescapes its
+        # title the same way, so an escaped colon in a title renders as a colon.
+        title = getattr(node, "title", None)
+        if isinstance(title, str) and title:
+            node.title = EscapedString(title, DELIMS).escape()
 
     return ""  # This function modifies nodes in place
 

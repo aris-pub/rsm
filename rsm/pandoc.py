@@ -846,6 +846,9 @@ class PandocImporter:
         if titled is None:
             return body
         title, label = titled
+        # A meta value cannot hold a bare colon, so escape internal colons; the
+        # grammar accepts \: and it renders as a plain colon.
+        title = title.replace(":", "\\:")
         meta = f"{{:title: {title}}}" if not label else (
             f"{{:title: {title}, :label: {label}}}"
         )
