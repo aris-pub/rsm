@@ -236,10 +236,7 @@ body {
   --surface-success: light-dark(var(--success-50), var(--success-100));
   --surface-warning: var(--warning-50);
   --surface-error: light-dark(var(--error-50), var(--error-100));
-  --surface-action: light-dark(var(--primary-500), var(--primary-600));
-  --surface-action-hover: light-dark(var(--primary-600), var(--primary-500));
   --surface-disabled: light-dark(var(--gray-200), var(--gray-300));
-  --surface-hint: light-dark(var(--primary-200), var(--primary-100));
   /* Figure caption box. Dark uses gray-75 (not gray-100) so a caption link
      (--link-default) clears WCAG AA (4.93:1 vs 4.30:1); light is unchanged. */
   --surface-caption: light-dark(var(--gray-100), var(--gray-75));
@@ -249,28 +246,17 @@ body {
   --border-success: light-dark(var(--success-100), var(--success-300));
   --border-warning: light-dark(var(--warning-100), var(--warning-300));
   --border-error: light-dark(var(--error-100), var(--error-300));
-  --border-action: var(--primary-500);
-  --border-action-hover: light-dark(var(--primary-600), var(--primary-400));
   --handrail-default: var(--border-primary);
-  --handrail-active: var(--border-action);
-
-  --link-default: var(--primary-700);
-  --link-hover: var(--primary-800);
 
   --text-body: light-dark(var(--extra-dark), var(--gray-950));
   --text-subtle: light-dark(var(--gray-750), var(--gray-550));
   --text-disabled: light-dark(var(--gray-400), var(--gray-600));
-  --text-keyword: light-dark(var(--primary-700), var(--primary-600));
-  --text-hilite-bg: light-dark(var(--primary-200), var(--primary-300));
-  --text-action: light-dark(var(--primary-600), var(--primary-500));
-  --text-action-hover: light-dark(var(--primary-600), var(--primary-400));
   --text-error: var(--error-500);
 
   --icon-success: var(--success-500);
   --icon-information: var(--information-500);
   --icon-warning: var(--warning-500);
   --icon-error: var(--error-500);
-  --icon-action: light-dark(var(--information-600), var(--primary-500));
 
   /* Type */
   --body-line-height: 1.5;
@@ -418,6 +404,27 @@ body {
   --primary-200: var(--gray-200);
   --primary-100: var(--gray-100);
   --primary-50: var(--gray-50);
+}
+
+/* Semantic tokens built from the accent palette. They live on the data-accent
+   carrier, not on :root, because a custom property's var() resolves where the
+   property is declared and :root's --primary-* is always the blue default.
+   Declared here, they recompute against the carrier's own accent so links,
+   keywords and action colors follow :accent: in both themes (rsm-mwf). */
+[data-accent] {
+  --surface-action: light-dark(var(--primary-500), var(--primary-600));
+  --surface-action-hover: light-dark(var(--primary-600), var(--primary-500));
+  --surface-hint: light-dark(var(--primary-200), var(--primary-100));
+  --border-action: var(--primary-500);
+  --border-action-hover: light-dark(var(--primary-600), var(--primary-400));
+  --handrail-active: var(--border-action);
+  --link-default: var(--primary-700);
+  --link-hover: var(--primary-800);
+  --text-keyword: light-dark(var(--primary-700), var(--primary-600));
+  --text-hilite-bg: light-dark(var(--primary-200), var(--primary-300));
+  --text-action: light-dark(var(--primary-600), var(--primary-500));
+  --text-action-hover: light-dark(var(--primary-600), var(--primary-400));
+  --icon-action: light-dark(var(--information-600), var(--primary-500));
 }
 
 /* Typography */
