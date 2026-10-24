@@ -16,6 +16,10 @@ body {
 }
 
 :root {
+  /* Follow the OS by default; .dark-theme / .light-theme force a choice. */
+  color-scheme: light dark;
+  /* Dark-only palette value (no light counterpart); used by --text-subtle. */
+  --gray-550: #788188;
   /* Base font size - mobile-first responsive scaling */
   font-size: 12px;  /* Mobile default (< 640px) */
 
@@ -52,105 +56,105 @@ body {
   --halmos--ellipsis-width: 1em;
 
   /* Colors -- Primitive */
-  --gray-1000: #000000;
-  --gray-950: #13181B;
-  --gray-900: #3C4952;
-  --gray-800: #51636F;
-  --gray-700: #5F7186;
+  --gray-1000: light-dark(#000000, #E8EDF0);
+  --gray-950: light-dark(#13181B, #CED6DC);
+  --gray-900: light-dark(#3C4952, #B5BFC8);
+  --gray-800: light-dark(#51636F, #A0ACB7);
+  --gray-700: light-dark(#5F7186, #8C9BA8);
   --gray-750: #6E787F;
-  --gray-600: #8B9FAD;
-  --gray-500: #A9B7C1;
-  --gray-400: #B3BFC7;
-  --gray-300: #C2CCD3;
-  --gray-200: #DAE1E5;
-  --gray-100: #EDF0F2;
-  --gray-75: #F5F7F8;
-  --gray-50: #FCFEFE;
-  --gray-0: #FFFFFF;
+  --gray-600: light-dark(#8B9FAD, #7A8A99);
+  --gray-500: light-dark(#A9B7C1, #67798A);
+  --gray-400: light-dark(#B3BFC7, #566877);
+  --gray-300: light-dark(#C2CCD3, #475662);
+  --gray-200: light-dark(#DAE1E5, #38454F);
+  --gray-100: light-dark(#EDF0F2, #2A3740);
+  --gray-75: light-dark(#F5F7F8, #232D35);
+  --gray-50: light-dark(#FCFEFE, #1C242A);
+  --gray-0: light-dark(#FFFFFF, #13181B);
 
-  --blue-950: #082C49;
-  --blue-900: #0C456E;
-  --blue-800: #075487;
-  --blue-700: #0361A1;
-  --blue-600: #027AC7;
-  --blue-500: #0E9AE9;
-  --blue-400: #38B4F8;
-  --blue-300: #7DCDFC;
-  --blue-200: #BAE3FD;
-  --blue-100: #E0F1FE;
-  --blue-50: #F0F8FF;
+  --blue-950: light-dark(#082C49, #C2E3FD);
+  --blue-900: light-dark(#0C456E, #84CAF7);
+  --blue-800: light-dark(#075487, #55B5F1);
+  --blue-700: light-dark(#0361A1, #2BA1EA);
+  --blue-600: light-dark(#027AC7, #1A8CD4);
+  --blue-500: light-dark(#0E9AE9, #1577BA);
+  --blue-400: light-dark(#38B4F8, #1266A0);
+  --blue-300: light-dark(#7DCDFC, #0F5586);
+  --blue-200: light-dark(#BAE3FD, #0D446D);
+  --blue-100: light-dark(#E0F1FE, #0A375A);
+  --blue-50: light-dark(#F0F8FF, #082C49);
 
-  --purple-950: #370B60;
-  --purple-900: #522182;
-  --purple-800: #6427A2;
-  --purple-700: #7629C7;
-  --purple-600: #8B3BE2;
-  --purple-500: #AD71F2;
-  --purple-400: #BB89F7;
-  --purple-300: #D5B7FB;
-  --purple-200: #E7D7FD;
-  --purple-100: #F2E9FE;
-  --purple-50: #FAF5FF;
+  --purple-950: light-dark(#370B60, #E2D2F9);
+  --purple-900: light-dark(#522182, #C5A5EF);
+  --purple-800: light-dark(#6427A2, #A77CE4);
+  --purple-700: light-dark(#7629C7, #A068E0);
+  --purple-600: light-dark(#8B3BE2, #7A3BC7);
+  --purple-500: light-dark(#AD71F2, #6831AD);
+  --purple-400: light-dark(#BB89F7, #5A2997);
+  --purple-300: light-dark(#D5B7FB, #4D2181);
+  --purple-200: light-dark(#E7D7FD, #411A6C);
+  --purple-100: light-dark(#F2E9FE, #341358);
+  --purple-50: light-dark(#FAF5FF, #2A0D46);
 
-  --green-950: #072C2B;
-  --green-900: #174A46;
-  --green-800: #165954;
-  --green-700: #157067;
-  --green-600: #158C7F;
-  --green-500: #1FB5A2;
-  --green-400: #37CAB6;
-  --green-300: #66E2CC;
-  --green-200: #9FF0E0;
-  --green-100: #CFF8EE;
-  --green-50: #F1FCFA;
+  --green-950: light-dark(#072C2B, #A0E8DD);
+  --green-900: light-dark(#174A46, #5DCFC5);
+  --green-800: light-dark(#165954, #37B6AC);
+  --green-700: light-dark(#157067, #279D96);
+  --green-600: light-dark(#158C7F, #20847F);
+  --green-500: light-dark(#1FB5A2, #1B706E);
+  --green-400: light-dark(#37CAB6, #176260);
+  --green-300: light-dark(#66E2CC, #135452);
+  --green-200: light-dark(#9FF0E0, #0F4643);
+  --green-100: light-dark(#CFF8EE, #0B3937);
+  --green-50: light-dark(#F1FCFA, #072C2B);
 
-  --red-950: #450A0A;
-  --red-900: #7F1D1E;
-  --red-800: #991B1C;
-  --red-700: #B81D1E;
-  --red-600: #DB2728;
-  --red-500: #EF4B4C;
-  --red-400: #F87172;
-  --red-300: #FCA5A6;
-  --red-200: #FECACA;
-  --red-100: #FEE2E2;
-  --red-50: #FEF2F2;
+  --red-950: light-dark(#450A0A, #F7C5C1);
+  --red-900: light-dark(#7F1D1E, #EB9791);
+  --red-800: light-dark(#991B1C, #DB6C64);
+  --red-700: light-dark(#B81D1E, #D85851);
+  --red-600: light-dark(#DB2728, #B73932);
+  --red-500: light-dark(#EF4B4C, #A32E29);
+  --red-400: light-dark(#F87172, #8E2522);
+  --red-300: light-dark(#FCA5A6, #7A1E1B);
+  --red-200: light-dark(#FECACA, #671715);
+  --red-100: light-dark(#FEE2E2, #55110F);
+  --red-50: light-dark(#FEF2F2, #450A0A);
 
-  --orange-950: #421708;
-  --orange-900: #7A3214;
-  --orange-800: #973A15;
-  --orange-700: #BE4A10;
-  --orange-600: #E56211;
-  --orange-500: #F5862B;
-  --orange-400: #F79940;
-  --orange-300: #FABF77;
-  --orange-200: #FCDAAC;
-  --orange-100: #FEEFD6;
-  --orange-50: #FFF8ED;
+  --orange-950: light-dark(#421708, #FAD7B9);
+  --orange-900: light-dark(#7A3214, #F2B285);
+  --orange-800: light-dark(#973A15, #E58753);
+  --orange-700: light-dark(#BE4A10, #D06A37);
+  --orange-600: light-dark(#E56211, #B5562B);
+  --orange-500: light-dark(#F5862B, #9A4724);
+  --orange-400: light-dark(#F79940, #873C1E);
+  --orange-300: light-dark(#FABF77, #753218);
+  --orange-200: light-dark(#FCDAAC, #632913);
+  --orange-100: light-dark(#FEEFD6, #51200D);
+  --orange-50: light-dark(#FFF8ED, #421708);
 
-  --yellow-950: #481E00;
-  --yellow-900: #7C3C0B;
-  --yellow-800: #984908;
-  --yellow-700: #B85C01;
-  --yellow-600: #E28800;
-  --yellow-500: #F5AB00;
-  --yellow-400: #FFD31B;
-  --yellow-300: #FFE446;
-  --yellow-200: #FFF285;
-  --yellow-100: #FFF8C5;
-  --yellow-50: #FFFDEA;
+  --yellow-950: light-dark(#481E00, #FFD98A);
+  --yellow-900: light-dark(#7C3C0B, #FFC04F);
+  --yellow-800: light-dark(#984908, #FFA01A);
+  --yellow-700: light-dark(#B85C01, #ED8100);
+  --yellow-600: light-dark(#E28800, #D06800);
+  --yellow-500: light-dark(#F5AB00, #B45700);
+  --yellow-400: light-dark(#FFD31B, #9C4B00);
+  --yellow-300: light-dark(#FFE446, #853F00);
+  --yellow-200: light-dark(#FFF285, #6F3300);
+  --yellow-100: light-dark(#FFF8C5, #5A2800);
+  --yellow-50: light-dark(#FFFDEA, #481E00);
 
-  --pink-950: #500724;
-  --pink-900: #831843;
-  --pink-800: #9d174d;
-  --pink-700: #be185d;
-  --pink-600: #db2777;
-  --pink-500: #ec4899;
-  --pink-400: #f472b6;
-  --pink-300: #f9a8d4;
-  --pink-200: #fbcfe8;
-  --pink-100: #fce7f3;
-  --pink-50:  #fdf2f8;
+  --pink-950: light-dark(#500724, #FCC9E3);
+  --pink-900: light-dark(#831843, #FA9FCD);
+  --pink-800: light-dark(#9d174d, #F26DAE);
+  --pink-700: light-dark(#be185d, #E5488D);
+  --pink-600: light-dark(#db2777, #D13273);
+  --pink-500: light-dark(#ec4899, #B72861);
+  --pink-400: light-dark(#f472b6, #A12154);
+  --pink-300: light-dark(#f9a8d4, #8C1B47);
+  --pink-200: light-dark(#fbcfe8, #77143B);
+  --pink-100: light-dark(#fce7f3, #630E2F);
+  --pink-50: light-dark(#fdf2f8, #500724);
 
   /* Primary color defaults — mirrors [data-accent="blue"] so :root is always resolved */
   --primary-950: var(--blue-950);
@@ -225,45 +229,45 @@ body {
   --error-50: var(--red-50);
 
   /* Colors -- Semantic */
-  --surface-page: var(--white);
-  --surface-primary: var(--almost-white);
-  --surface-hover: var(--gray-75);
-  --surface-information: var(--information-50);
-  --surface-success: var(--success-50);
+  --surface-page: light-dark(var(--white), var(--gray-0));
+  --surface-primary: light-dark(var(--almost-white), var(--gray-50));
+  --surface-hover: light-dark(var(--gray-75), var(--gray-100));
+  --surface-information: light-dark(var(--information-50), var(--information-100));
+  --surface-success: light-dark(var(--success-50), var(--success-100));
   --surface-warning: var(--warning-50);
-  --surface-error: var(--error-50);
-  --surface-action: var(--primary-500);
-  --surface-action-hover: var(--primary-600);
-  --surface-disabled: var(--gray-200);
-  --surface-hint: var(--primary-200);
+  --surface-error: light-dark(var(--error-50), var(--error-100));
+  --surface-action: light-dark(var(--primary-500), var(--primary-600));
+  --surface-action-hover: light-dark(var(--primary-600), var(--primary-500));
+  --surface-disabled: light-dark(var(--gray-200), var(--gray-300));
+  --surface-hint: light-dark(var(--primary-200), var(--primary-100));
 
-  --border-primary: var(--gray-200);
-  --border-information: var(--information-100);
-  --border-success: var(--success-100);
-  --border-warning: var(--warning-100);
-  --border-error: var(--error-100);
+  --border-primary: light-dark(var(--gray-200), var(--gray-300));
+  --border-information: light-dark(var(--information-100), var(--information-300));
+  --border-success: light-dark(var(--success-100), var(--success-300));
+  --border-warning: light-dark(var(--warning-100), var(--warning-300));
+  --border-error: light-dark(var(--error-100), var(--error-300));
   --border-action: var(--primary-500);
-  --border-action-hover: var(--primary-600);
+  --border-action-hover: light-dark(var(--primary-600), var(--primary-400));
   --handrail-default: var(--border-primary);
   --handrail-active: var(--border-action);
 
   --link-default: var(--primary-700);
   --link-hover: var(--primary-800);
 
-  --text-body: var(--extra-dark);
-  --text-subtle: var(--gray-750);
-  --text-disabled: var(--gray-400);
-  --text-keyword: var(--primary-700);
-  --text-hilite-bg: var(--primary-200);
-  --text-action: var(--primary-600);
-  --text-action-hover: var(--primary-600);
+  --text-body: light-dark(var(--extra-dark), var(--gray-950));
+  --text-subtle: light-dark(var(--gray-750), var(--gray-550));
+  --text-disabled: light-dark(var(--gray-400), var(--gray-600));
+  --text-keyword: light-dark(var(--primary-700), var(--primary-600));
+  --text-hilite-bg: light-dark(var(--primary-200), var(--primary-300));
+  --text-action: light-dark(var(--primary-600), var(--primary-500));
+  --text-action-hover: light-dark(var(--primary-600), var(--primary-400));
   --text-error: var(--error-500);
 
   --icon-success: var(--success-500);
   --icon-information: var(--information-500);
   --icon-warning: var(--warning-500);
   --icon-error: var(--error-500);
-  --icon-action: var(--information-600);
+  --icon-action: light-dark(var(--information-600), var(--primary-500));
 
   /* Type */
   --body-line-height: 1.5;
@@ -441,145 +445,11 @@ body {
 :root[data-reading-measure="wide"] { --content-max-width: 68rem; }
 
 
-.dark-theme {
-  /* Inverted from light mode */
-  --gray-0: #13181B;
-  --gray-50: #1C242A;
-  --gray-75: #232D35;
-  --gray-100: #2A3740;
-  --gray-200: #38454F;
-  --gray-300: #475662;
-  --gray-400: #566877;
-  --gray-500: #67798A;
-  --gray-550: #788188;
-  --gray-600: #7A8A99;
-  --gray-700: #8C9BA8;
-  --gray-800: #A0ACB7;
-  --gray-900: #B5BFC8;
-  --gray-950: #CED6DC;
-  --gray-1000: #E8EDF0;
-
-  --blue-50: #082C49;
-  --blue-100: #0A375A;
-  --blue-200: #0D446D;
-  --blue-300: #0F5586;
-  --blue-400: #1266A0;
-  --blue-500: #1577BA;
-  --blue-600: #1A8CD4;
-  --blue-700: #2BA1EA;
-  --blue-800: #55B5F1;
-  --blue-900: #84CAF7;
-  --blue-950: #C2E3FD;
-
-  --purple-50: #2A0D46;
-  --purple-100: #341358;
-  --purple-200: #411A6C;
-  --purple-300: #4D2181;
-  --purple-400: #5A2997;
-  --purple-500: #6831AD;
-  --purple-600: #7A3BC7;
-  --purple-700: #A068E0;
-  --purple-800: #A77CE4;
-  --purple-900: #C5A5EF;
-  --purple-950: #E2D2F9;
-
-  --green-50: #072C2B;
-  --green-100: #0B3937;
-  --green-200: #0F4643;
-  --green-300: #135452;
-  --green-400: #176260;
-  --green-500: #1B706E;
-  --green-600: #20847F;
-  --green-700: #279D96;
-  --green-800: #37B6AC;
-  --green-900: #5DCFC5;
-  --green-950: #A0E8DD;
-
-  --red-50: #450A0A;
-  --red-100: #55110F;
-  --red-200: #671715;
-  --red-300: #7A1E1B;
-  --red-400: #8E2522;
-  --red-500: #A32E29;
-  --red-600: #B73932;
-  --red-700: #D85851;
-  --red-800: #DB6C64;
-  --red-900: #EB9791;
-  --red-950: #F7C5C1;
-
-  --orange-50: #421708;
-  --orange-100: #51200D;
-  --orange-200: #632913;
-  --orange-300: #753218;
-  --orange-400: #873C1E;
-  --orange-500: #9A4724;
-  --orange-600: #B5562B;
-  --orange-700: #D06A37;
-  --orange-800: #E58753;
-  --orange-900: #F2B285;
-  --orange-950: #FAD7B9;
-
-  --yellow-50: #481E00;
-  --yellow-100: #5A2800;
-  --yellow-200: #6F3300;
-  --yellow-300: #853F00;
-  --yellow-400: #9C4B00;
-  --yellow-500: #B45700;
-  --yellow-600: #D06800;
-  --yellow-700: #ED8100;
-  --yellow-800: #FFA01A;
-  --yellow-900: #FFC04F;
-  --yellow-950: #FFD98A;
-
-  --pink-50: #500724;
-  --pink-100: #630E2F;
-  --pink-200: #77143B;
-  --pink-300: #8C1B47;
-  --pink-400: #A12154;
-  --pink-500: #B72861;
-  --pink-600: #D13273;
-  --pink-700: #E5488D;
-  --pink-800: #F26DAE;
-  --pink-900: #FA9FCD;
-  --pink-950: #FCC9E3;
-
-  --surface-page: var(--gray-0);
-  --surface-primary: var(--gray-50);
-  --surface-hover: var(--gray-100);
-  --surface-information: var(--information-100);
-  --surface-success: var(--success-100);
-  --surface-error: var(--error-100);
-  --surface-action: var(--primary-600);
-  --surface-action-hover: var(--primary-500);
-  --surface-disabled: var(--gray-300);
-  --surface-hint: var(--primary-100);
-
-  --border-primary: var(--gray-300);
-  --border-information: var(--information-300);
-  --border-success: var(--success-300);
-  --border-warning: var(--warning-300);
-  --border-error: var(--error-300);
-  --border-action: var(--primary-500);
-  --border-action-hover: var(--primary-400);
-  --handrail-default: var(--border-primary);
-  --handrail-active: var(--border-action);
-
-  --link-default: var(--primary-700);
-  --link-hover: var(--primary-800);
-
-  --text-body: var(--gray-950);
-  --text-subtle: var(--gray-550);
-  --text-disabled: var(--gray-600);
-  --text-keyword: var(--primary-600);
-  --text-hilite-bg: var(--primary-300);
-  --text-action: var(--primary-500);
-  --text-action-hover: var(--primary-400);
-  --text-error: var(--error-500);
-
-  --icon-information: var(--information-500);
-  --icon-error: var(--error-500);
-  --icon-action: var(--primary-500);
-}
+/* Theme switch. Colors are single light-dark() definitions on :root; the
+   browser picks a half from color-scheme. The OS sets it by default; these
+   two classes (added by the reading controls) force an explicit choice. */
+.dark-theme { color-scheme: dark; }
+.light-theme { color-scheme: light; }
 
 /* Respect system dark mode preference (unless .light-theme class overrides) */
 
@@ -3093,10 +2963,17 @@ a.reference.external:hover::after {
   display: none;
 }
 
-/* Dark mode asset variants */
+/* Dark mode asset variants. display cannot follow color-scheme, so the OS dark
+   setting needs its own twin of the .dark-theme rules (guarded by
+   :not(.light-theme) so an explicit light choice still wins), the same pattern
+   the static fallbacks below use. */
 .dark-only { display: none; }
 .dark-theme .dark-only { display: revert; }
 .dark-theme .light-only { display: none; }
+@media (prefers-color-scheme: dark) {
+  :root:not(.light-theme) .dark-only { display: revert; }
+  :root:not(.light-theme) .light-only { display: none; }
+}
 
 /* Static fallback for interactive figures (:static: / :dark:).
    The fallback (shown by the JS static-toggle and inside <noscript> when JS is
