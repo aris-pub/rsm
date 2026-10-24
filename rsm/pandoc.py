@@ -592,6 +592,22 @@ def _strip_trailing_colon(text: str) -> str:
     return text[:-1].rstrip() if text.endswith(":") else text
 
 
+def _escape_trailing_colon(text: str) -> str:
+    # A literal colon at the end of a paragraph is mis-tokenized before a
+    # following tag block (:itemize:, :table:, ...), so emit it escaped. It
+    # still renders as a plain colon.
+    stripped = text.rstrip()
+    # A :: is a construct close (:url: ... ::, :math: ... ::), not a literal
+    # trailing colon, so leave it alone.
+    if (
+        stripped.endswith(":")
+        and not stripped.endswith("::")
+        and not stripped.endswith("\\:")
+    ):
+        return stripped[:-1] + "\\:"
+    return text
+
+
 class PandocImporter:
     """Convert a pandoc JSON AST dict to RSM source text.
 
@@ -813,7 +829,7 @@ class PandocImporter:
                 if pending:
                     text = self._render_inlines(pending)
                     if text:
-                        result.append(f"{text}\n\n")
+                        result.append(f"{_escape_trailing_colon(text)}\n\n")
                     pending = []
                 src = inline["c"][1] if len(inline["c"]) >= 2 else ""
                 src = re.sub(r"\\label\{[^}]*\}", "", src)
@@ -825,7 +841,7 @@ class PandocImporter:
         if pending:
             text = self._render_inlines(pending)
             if text:
-                result.append(f"{text}\n\n")
+                result.append(f"{_escape_trailing_colon(text)}\n\n")
         body = "".join(result)
         if titled is None:
             return body
