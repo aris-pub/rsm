@@ -1369,7 +1369,11 @@ class Translator:
             classes = ["highlight", node.lang]
             code = highlight_code(node.text, node.lang)
         else:
-            code = node.text
+            # highlight_code emits HTML-safe markup; plain code must be escaped
+            # here so a < in the source does not open a tag.
+            code = (
+                node.text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+            )
         return AppendBatchAndDefer(
             [
                 AppendOpenTag(
@@ -1423,7 +1427,19 @@ class Translator:
         )
 
     def visit_text(self, node: nodes.Text) -> EditCommand:
-        return AppendText(node.text)
+        # Raw HTML inside an :html: block is emitted verbatim. Everything else
+        # (math source especially, but also prose) is HTML-escaped so a <, > or &
+        # cannot open a tag; the client math renderer reads the DOM text content,
+        # which the browser decodes back to the original characters.
+        ancestor = node.parent
+        while ancestor is not None:
+            if isinstance(ancestor, nodes.Html):
+                return AppendText(node.text)
+            ancestor = ancestor.parent
+        text = (
+            node.text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+        )
+        return AppendText(text)
 
     def visit_error(self, node: nodes.Error) -> EditCommand:
         return AppendBatchAndDefer(

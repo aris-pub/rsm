@@ -347,11 +347,11 @@ def test_real_life_example():
         <div class="mathblock" data-nodeid="214">
         $$
         \begin{align}
-                        \sum_{u \in V(H)} \deg_H(u) &= \phantom{2} \deg_H(v) + \sum_{u \in V(H)\setminus\{v\}} \deg_H(u) \\
-                        \sum_{u \in V(H)} \deg_H(u) &= \phantom{2} \deg_H(v) + \sum_{u \in W} \deg_H(u) + \sum_{u \in V(H) \setminus W \setminus \{v\}} \deg_H(u) \\
-                        \sum_{u \in V(H)} \deg_H(u) &= \phantom{2} \deg_H(v) + \sum_{u \in W} (\deg_G(u) + 1) + \sum_{u \in V(H) \setminus W \setminus \{v\}} \deg_G(u) \\
-                        \sum_{u \in V(H)} \deg_H(u) &= 2\deg_H(v) + \sum_{u \in W} \deg_G(u) + \sum_{u \in V(H) \setminus W \setminus \{v\}} \deg_G(u) \\
-                        \sum_{u \in V(H)} \deg_H(u) &= 2\deg_H(v) + \sum_{u \in V(G)} \deg_G(u),
+                        \sum_{u \in V(H)} \deg_H(u) &amp;= \phantom{2} \deg_H(v) + \sum_{u \in V(H)\setminus\{v\}} \deg_H(u) \\
+                        \sum_{u \in V(H)} \deg_H(u) &amp;= \phantom{2} \deg_H(v) + \sum_{u \in W} \deg_H(u) + \sum_{u \in V(H) \setminus W \setminus \{v\}} \deg_H(u) \\
+                        \sum_{u \in V(H)} \deg_H(u) &amp;= \phantom{2} \deg_H(v) + \sum_{u \in W} (\deg_G(u) + 1) + \sum_{u \in V(H) \setminus W \setminus \{v\}} \deg_G(u) \\
+                        \sum_{u \in V(H)} \deg_H(u) &amp;= 2\deg_H(v) + \sum_{u \in W} \deg_G(u) + \sum_{u \in V(H) \setminus W \setminus \{v\}} \deg_G(u) \\
+                        \sum_{u \in V(H)} \deg_H(u) &amp;= 2\deg_H(v) + \sum_{u \in V(G)} \deg_G(u),
                         \end{align}
         $$
         </div>
@@ -392,9 +392,9 @@ def test_real_life_example():
         <div class="mathblock" data-nodeid="236">
         $$
         \begin{align}
-                        2 L(G) &= \sum_{u \in V(G)} \deg_G(u) \\
-                        2 L(G) + 2 \deg_H(v) &=  2 \deg_H(v) + \sum_{u \in V(G)} \deg_G(u) \\
-                        2 L(H) &=  \sum_{u \in V(H)} \deg_H(u),
+                        2 L(G) &amp;= \sum_{u \in V(G)} \deg_G(u) \\
+                        2 L(G) + 2 \deg_H(v) &amp;=  2 \deg_H(v) + \sum_{u \in V(G)} \deg_G(u) \\
+                        2 L(H) &amp;=  \sum_{u \in V(H)} \deg_H(u),
                         \end{align}
         $$
         </div>
