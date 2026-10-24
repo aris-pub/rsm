@@ -549,8 +549,12 @@ def _abstractify(cst: TSTree) -> nodes.Manuscript:
             # td tags are special because the entire contents are in the first children,
             # so we might as well add that with the current parent and ignore the
             # current node
-            stack.append((parent, cst_node.named_children[0]))
-            continue
+            if cst_node.named_children:
+                stack.append((parent, cst_node.named_children[0]))
+                continue
+            # An empty cell (:td:::) has no tdcontent child. Emit an empty
+            # TableDatum so the row keeps its columns instead of crashing.
+            ast_node_type = "td"
 
         elif cst_node.type == "paragraph":
             first = cst_node.named_children[0]

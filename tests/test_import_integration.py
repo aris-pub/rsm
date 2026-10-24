@@ -302,3 +302,28 @@ def test_import_table_ref_resolves(tmp_path):
     assert ":ref:tab-1::" in out
     html = rsm.render(out, handrails=False, source_offsets=False)
     assert 'class="error"' not in html, out
+
+
+_COLON_LIST = r"""\documentclass{article}
+\begin{document}
+The model works in three ways:
+\begin{itemize}
+\item first
+\item second
+\end{itemize}
+\end{document}
+"""
+
+
+def test_import_colon_before_block_escaped(tmp_path):
+    import rsm
+
+    (tmp_path / "main.tex").write_text(_COLON_LIST, encoding="utf-8")
+    out = app.import_project(str(tmp_path))
+    # A paragraph ending in a colon before a tag block is mis-tokenized, so the
+    # importer escapes the trailing colon.
+    assert r"three ways\:" in out
+    html = rsm.render(out, handrails=False, source_offsets=False)
+    assert 'class="error"' not in html, out
+    # The escaped colon renders as a plain colon.
+    assert "three ways:" in html

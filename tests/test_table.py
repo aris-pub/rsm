@@ -1149,3 +1149,56 @@ def test_tr_shortcut_with_escaped_colon():
         </body>
         """,
     )
+
+
+def test_empty_cell():
+    compare_have_want(
+        have="""
+        :table:
+
+        :tbody:
+
+        :tr: :td::: :td:x:: ::
+
+        ::
+
+        ::
+        """,
+        want="""
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
+
+        <main class="manuscriptwrapper">
+
+        <div class="manuscript" data-nodeid="0">
+
+        <section class="level-1">
+
+        <div class="table-wrapper">
+
+        <table class="table" data-nodeid="1">
+
+        <tbody class="tablebody" data-nodeid="2">
+
+        <tr class="tablerow" data-nodeid="3">
+
+        <td class="tabledatum" data-nodeid="4"></td>
+
+        <td class="tabledatum" data-nodeid="5">x</td>
+
+        </tr>
+
+        </tbody>
+
+        </table>
+
+        </div>
+
+        </section>
+
+        </div>
+
+        </main>
+
+        </body>
+        """,
+    )
