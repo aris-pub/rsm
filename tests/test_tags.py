@@ -46,3 +46,14 @@ def test_all_tags_are_documented():
     grammar_tags = extract_grammar_tags()
     documented_tags = extract_documented_tags()
     assert grammar_tags == documented_tags
+
+
+def test_theorem_like_tags_render_their_own_name():
+    import rsm
+
+    for tag, name in [("problem", "Problem"), ("exercise", "Exercise"),
+                      ("porism", "Porism")]:
+        src = f"# T\n\n:{tag}:\n  Some content.\n::\n"
+        h = rsm.render(src, handrails=False, source_offsets=False)
+        assert name in h, (tag, h)
+        assert "Theorem" not in h, (tag, h)
