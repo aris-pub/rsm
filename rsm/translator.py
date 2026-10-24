@@ -1897,11 +1897,33 @@ class Translator:
         else:
             return self._render_image(node)
 
+    def _fallback_alt(self, node: nodes.Asset) -> str:
+        """Alt text for a static fallback image: the author's :alt:, else the
+        caption's plain text, else empty. The old generated "Static fallback for
+        Figure N." named the mechanism, not the picture. :static: without :alt:
+        warns once, naming the asset."""
+        if node.alt:
+            return node.alt
+        ident = node.label or (
+            f"figure {node.full_number}" if node.full_number else "an asset"
+        )
+        logger.warning(f"Static fallback for {ident} has :static: but no :alt:")
+        caption = next(
+            (c for c in node.children if isinstance(c, nodes.Caption)), None
+        )
+        if caption is not None:
+            text = "".join(
+                t.text for t in caption.traverse(nodeclass=nodes.Text)
+            ).strip()
+            if text:
+                return text
+        return ""
+
     def _static_fallback_img(self, node: nodes.Asset) -> str:
         if not node.static:
             return ""
         src = self._resolve_image_src(node.static)
-        alt = f"Static fallback for {node.__class__.__name__} {node.full_number}."
+        alt = self._fallback_alt(node)
 
         if node.dark:
             dark_src = self._resolve_image_src(node.dark)
