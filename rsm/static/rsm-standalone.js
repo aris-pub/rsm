@@ -1331,6 +1331,19 @@ var RSM = (() => {
       suppressPersist = prev;
     }
   }
+  function expandAncestorsTo(el) {
+    if (!el) return false;
+    const toOpen = [];
+    for (let node = el; node && node !== document.documentElement; node = node.parentElement) {
+      if (node.classList && node.classList.contains("hr") && node.classList.contains("hr-collapsed")) {
+        toOpen.push(node);
+      }
+    }
+    if (toOpen.length === 0) return false;
+    toOpen.reverse();
+    withoutPersist(() => toOpen.forEach((hr) => openHandrail(hr)));
+    return true;
+  }
   function getRest(hr) {
     let rest;
     if (hr.classList.contains("hr-labeled")) {
@@ -3368,13 +3381,11 @@ var RSM = (() => {
             hideBackPill();
             return;
           }
-          const el = document.getElementById(id);
+          const el = revealHashTarget(id);
           if (!el) {
             hideBackPill();
             return;
           }
-          if (!el.hasAttribute("tabindex")) el.setAttribute("tabindex", "-1");
-          el.focus({ preventScroll: true });
           showBackPill();
         });
       } catch (err) {
@@ -3382,6 +3393,11 @@ var RSM = (() => {
       }
       window.__rsmInitialized = true;
       await onrender(root2);
+      try {
+        revealHashTarget(decodeURIComponent(window.location.hash.slice(1)));
+      } catch (err) {
+        console.error("Initial hash reveal FAILED!", err);
+      }
       try {
         mountNotationPanel(root2);
         createTooltips();
@@ -3444,6 +3460,16 @@ var RSM = (() => {
     } finally {
       renderInProgress = false;
     }
+  }
+  function revealHashTarget(id) {
+    if (!id || id === "top") return null;
+    const el = document.getElementById(id);
+    if (!el) return null;
+    if (!el.hasAttribute("tabindex")) el.setAttribute("tabindex", "-1");
+    const opened = expandAncestorsTo(el);
+    el.focus({ preventScroll: true });
+    if (opened) el.scrollIntoView({ block: "center" });
+    return el;
   }
   var __backPillScroll = null;
   function setupBackPill() {

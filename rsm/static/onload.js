@@ -118,10 +118,8 @@ export async function onload(root = null, { keys = true } = {}) {
           hideBackPill();
           return;
         }
-        const el = document.getElementById(id);
+        const el = revealHashTarget(id);
         if (!el) { hideBackPill(); return; }
-        if (!el.hasAttribute("tabindex")) el.setAttribute("tabindex", "-1");
-        el.focus({ preventScroll: true });
         // The jump moved the reader; offer a visible handle on native Back.
         showBackPill();
       });
@@ -133,6 +131,17 @@ export async function onload(root = null, { keys = true } = {}) {
 
     // Render initial content
     await onrender(root);
+
+    // Initial load with a hash (e.g. a shared link to #st-inner): the native
+    // anchor jump cannot reach a target that collapseInitial has folded shut,
+    // so expand its collapsed ancestors, then scroll it into view and focus it.
+    // No back pill here: the reader arrived at this hash, there is nothing to
+    // return to.
+    try {
+      revealHashTarget(decodeURIComponent(window.location.hash.slice(1)));
+    } catch (err) {
+      console.error("Initial hash reveal FAILED!", err);
+    }
 
     // Notation pane (Document scope of the sidebar) - built after the first
     // typeset so the live LaTeX preview has the math renderer available.
@@ -222,6 +231,25 @@ export async function onrender(root = null) {
 
 
 // --- Back pill -------------------------------------------------------------
+// Move focus (and, when needed, the viewport) to the block named by a URL hash,
+// opening any collapsed fold it sits inside first so focus never lands on hidden
+// content. Shared by the hashchange handler and the initial load. Returns the
+// target element, or null when the hash is empty, "top", or names no element.
+function revealHashTarget(id) {
+  if (!id || id === "top") return null;
+  const el = document.getElementById(id);
+  if (!el) return null;
+  if (!el.hasAttribute("tabindex")) el.setAttribute("tabindex", "-1");
+  const opened = handrails.expandAncestorsTo(el);
+  // Native hash navigation restores scroll but NOT focus, so move focus here.
+  el.focus({ preventScroll: true });
+  // When we had to expand a fold, the native jump scrolled while the target was
+  // still hidden, so its position is stale: reposition it into view.
+  if (opened) el.scrollIntoView({ block: "center" });
+  return el;
+}
+
+
 // A transient, visible affordance over the native browser Back button. After an
 // in-document jump (a hashchange to a block) the pill appears; clicking it calls
 // history.back() to return the reader. It owns NO navigation state: native

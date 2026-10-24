@@ -1,0 +1,33 @@
+# Reference into a collapsed block
+
+Filler paragraph one, giving vertical room above the proof so the target is
+off-screen before navigation.
+
+Filler paragraph two, more room so scrolling can actually move the viewport.
+
+Filler paragraph three, padding padding padding padding padding padding.
+
+:proof: {:collapsed:}
+
+  :step: {
+    :label: st-outer
+    :collapsed:
+  }
+
+    :claim: The outer step, collapsed on load. ::
+
+    :p:
+
+      :step: {:label: st-inner} The inner step, hidden inside the collapsed outer step. ::
+
+    :: ::
+
+::
+
+The paragraph after the proof refers to :ref:st-outer:: and :ref:st-inner::.
+
+Trailing filler one, padding padding padding padding padding padding padding.
+
+Trailing filler two, padding padding padding padding padding padding padding.
+
+Trailing filler three, padding padding padding padding padding padding padding.
