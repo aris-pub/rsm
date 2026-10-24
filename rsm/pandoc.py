@@ -860,19 +860,47 @@ class PandocImporter:
         return text if text else ""
 
     def _block_bulletlist(self, c: list) -> str:
-        items: list[str] = []
-        for item_blocks in c:
-            text = "".join(self._render_block(b).strip() for b in item_blocks)
-            items.append(f"  :-: {text}")
+        items = self._list_item_lines(c, 1)
         return ":itemize:\n\n" + "\n\n".join(items) + "\n\n::\n\n"
 
     def _block_orderedlist(self, c: list) -> str:
         _list_attrs, item_list = c
-        items: list[str] = []
-        for item_blocks in item_list:
-            text = "".join(self._render_block(b).strip() for b in item_blocks)
-            items.append(f"  :-: {text}")
+        items = self._list_item_lines(item_list, 1)
         return ":enumerate:\n\n" + "\n\n".join(items) + "\n\n::\n\n"
+
+    def _list_item_lines(self, pandoc_items: list, depth: int) -> list[str]:
+        # Emit a flat sequence of items with depth markers (:-:, :--:, :---:),
+        # recursing one level deeper into a nested list. RSM has no mixed list
+        # types and only three levels, so a nested ordered/bulleted list just
+        # continues the outer container and the marker caps at three dashes.
+        marker = ":" + "-" * min(depth, 3) + ":"
+        lines: list[str] = []
+        for item_blocks in pandoc_items:
+            text_blocks: list = []
+            sublists: list = []
+            for b in item_blocks:
+                t = b.get("t") if isinstance(b, dict) else None
+                if t == "BulletList":
+                    sublists.append(b.get("c", []))
+                elif t == "OrderedList":
+                    sublists.append(b.get("c", [None, []])[1])
+                else:
+                    text_blocks.append(b)
+            text = "".join(self._render_block(b).strip() for b in text_blocks)
+            # An item is a single inline paragraph, so fold internal paragraph or
+            # line breaks (e.g. from a \\ in the source) into spaces; otherwise
+            # the extra paragraph breaks out of the list and orphans later items.
+            text = re.sub(r"\s*\n\s*", " ", text).strip()
+            if text:
+                lines.append(f"  {marker} {text}")
+                child_depth = depth + 1
+            else:
+                # An item that is only a nested list keeps that list at this
+                # level, so it still sits under a marker above it.
+                child_depth = depth
+            for subitems in sublists:
+                lines.extend(self._list_item_lines(subitems, min(child_depth, 3)))
+        return lines
 
     def _block_codeblock(self, c: list) -> str:
         attrs, code = c

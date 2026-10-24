@@ -327,3 +327,34 @@ def test_import_colon_before_block_escaped(tmp_path):
     assert 'class="error"' not in html, out
     # The escaped colon renders as a plain colon.
     assert "three ways:" in html
+
+
+_NESTED_LIST = r"""\documentclass{article}
+\begin{document}
+We include the following:
+\begin{itemize}
+\item First point.
+\item Second point, with sub-items:
+  \begin{itemize}
+  \item Sub A.
+  \item Sub B.
+  \end{itemize}
+\item Third point.
+\end{itemize}
+\end{document}
+"""
+
+
+def test_import_nested_list(tmp_path):
+    import rsm
+
+    (tmp_path / "main.tex").write_text(_NESTED_LIST, encoding="utf-8")
+    out = app.import_project(str(tmp_path))
+    assert ":itemize:" in out
+    assert ":--: " in out           # sub-items use the depth-2 marker
+    assert "::itemize:" not in out  # not the old glued nested block
+    html = rsm.render(out, handrails=False, source_offsets=False)
+    assert 'class="error"' not in html, out
+    # Sub A nests: a <ul> opens inside Second point's <li> before it closes.
+    rest = html[html.index("Second point"):]
+    assert "<ul" in rest and rest.index("<ul") < rest.index("</li>"), out
