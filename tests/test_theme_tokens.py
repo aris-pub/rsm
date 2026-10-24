@@ -96,3 +96,90 @@ def test_every_token_keeps_its_pairing():
             if value != rec["dark"]:
                 problems.append(f"{key}: dark-only value {value!r} != {rec['dark']!r}")
     assert not problems, "token pairing drifted:\n" + "\n".join(problems)
+
+
+# --- rsm-2sx: figure caption link contrast must meet WCAG AA in both themes ---
+
+def _hex_to_rgb(h):
+    h = h.lstrip("#")
+    if len(h) == 3:
+        h = "".join(c * 2 for c in h)
+    return tuple(int(h[i:i + 2], 16) for i in (0, 2, 4))
+
+
+def _rel_luminance(hexc):
+    def lin(c):
+        c /= 255
+        return c / 12.92 if c <= 0.03928 else ((c + 0.055) / 1.055) ** 2.4
+
+    r, g, b = _hex_to_rgb(hexc)
+    return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b)
+
+
+def _contrast(h1, h2):
+    l1, l2 = _rel_luminance(h1), _rel_luminance(h2)
+    hi, lo = max(l1, l2), min(l1, l2)
+    return (hi + 0.05) / (lo + 0.05)
+
+
+def _split_top_commas(s):
+    args, depth, cur = [], 0, ""
+    for ch in s:
+        if ch == "(":
+            depth += 1
+            cur += ch
+        elif ch == ")":
+            depth -= 1
+            cur += ch
+        elif ch == "," and depth == 0:
+            args.append(cur.strip())
+            cur = ""
+        else:
+            cur += ch
+    if cur.strip():
+        args.append(cur.strip())
+    return args
+
+
+def _resolve(value, theme, tokens, seen=None):
+    seen = set() if seen is None else seen
+    v = value.strip()
+    if v.startswith("#"):
+        return v
+    m = re.fullmatch(r"light-dark\((.*)\)", v, re.S)
+    if m:
+        a = _split_top_commas(m.group(1))
+        return _resolve(a[0] if theme == "light" else a[1], theme, tokens, seen)
+    m = re.fullmatch(r"var\(\s*(--[\w-]+)\s*(?:,.*)?\)", v, re.S)
+    if m:
+        name = m.group(1)
+        assert name not in seen, f"token cycle at {name}"
+        seen.add(name)
+        return _resolve(tokens[name], theme, tokens, seen)
+    raise AssertionError(f"cannot resolve color value {v!r}")
+
+
+def _figcaption_background():
+    text = CSS.read_text()
+    m = re.search(r"figcaption > \.hr-content-zone\s*\{([^}]*)\}", text)
+    assert m, "no figcaption > .hr-content-zone rule in braiid.css"
+    bg = re.search(r"\bbackground\s*:\s*([^;]+);", m.group(1))
+    assert bg, "figcaption content zone has no background"
+    return bg.group(1).strip()
+
+
+def test_caption_link_contrast_meets_wcag_aa():
+    """A :ref: link inside a figure caption must clear 4.5:1 against the caption
+    surface in both themes (rsm-2sx). Dark mode failed at 4.30:1 on --gray-100."""
+    root, _ = _root_and_dark()
+    bg_value = _figcaption_background()
+    problems = []
+    for theme in ("light", "dark"):
+        surface = _resolve(bg_value, theme, root)
+        link = _resolve("var(--link-default)", theme, root)
+        ratio = _contrast(surface, link)
+        if ratio < 4.5:
+            problems.append(
+                f"{theme}: caption link {link} on {surface} is {ratio:.2f}:1 (< 4.5)"
+            )
+    assert not problems, "; ".join(problems)

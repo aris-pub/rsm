@@ -121,3 +121,63 @@ def test_html_block_static_fallback_has_noscript():
     assert "<noscript>" in html
     noscript = html.split("<noscript>")[1].split("</noscript>")[0]
     assert "assets/widget-static.png" in noscript
+
+
+def test_static_fallback_uses_explicit_alt():
+    """An :alt: on the asset becomes the fallback img alt, not the old generated
+    "Static fallback for Figure N." text (rsm-8i2)."""
+    html = _render(
+        """
+        :figure: {
+          :path: assets/interactive.svg
+          :dark: assets/interactive-dark.png
+          :static: assets/interactive-static.png
+          :alt: Two bars of equal height.
+        }
+        ::
+        """
+    )
+    assert 'alt="Two bars of equal height."' in html
+    assert "Static fallback for" not in html
+    # Both the light and dark fallback imgs carry the same alt.
+    assert html.count('alt="Two bars of equal height."') >= 2
+
+
+def test_static_fallback_alt_falls_back_to_caption(caplog):
+    """With no :alt: but a caption, the fallback img alt is the caption text, and
+    the build logs one warning naming the asset."""
+    import logging
+
+    with caplog.at_level(logging.WARNING, logger="RSM.tlate"):
+        html = _render(
+            """
+            :figure: {
+              :path: assets/interactive.svg
+              :static: assets/interactive-static.png
+            }
+              :caption: A bar chart of two equal values. ::
+            ::
+            """
+        )
+    assert 'alt="A bar chart of two equal values."' in html
+    assert "Static fallback for" not in html
+    warnings = [r for r in caplog.records if "no :alt:" in r.message]
+    assert len(warnings) == 1, [r.message for r in caplog.records]
+
+
+def test_static_fallback_without_alt_or_caption_is_empty(caplog):
+    import logging
+
+    with caplog.at_level(logging.WARNING, logger="RSM.tlate"):
+        html = _render(
+            """
+            :figure: {
+              :path: assets/interactive.svg
+              :static: assets/interactive-static.png
+            }
+            ::
+            """
+        )
+    assert 'alt=""' in html
+    assert "Static fallback for" not in html
+    assert any("no :alt:" in r.message for r in caplog.records)

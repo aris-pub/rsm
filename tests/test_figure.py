@@ -408,7 +408,7 @@ def test_figure_static_path():
 
         <figure class="figure" data-static="assets/interactive-static.png" data-nodeid="1">
         <img src="assets/interactive.svg" alt="Figure 1.">
-        <span class="static-fallback" style="display:none"><img src="assets/interactive-static.png" alt="Static fallback for Figure 1."></span><noscript><img src="assets/interactive-static.png" alt="Static fallback for Figure 1."></noscript>
+        <span class="static-fallback" style="display:none"><img src="assets/interactive-static.png" alt=""></span><noscript><img src="assets/interactive-static.png" alt=""></noscript>
         </figure>
 
         </section>
@@ -447,7 +447,7 @@ def test_figure_all_new_options():
         <source media="(prefers-color-scheme: dark)" srcset="assets/plot-dark.png">
         <img src="assets/plot-light.png" alt="A density plot.">
         </picture>
-        <span class="static-fallback" style="display:none"><img class="static-fallback-light" src="assets/plot-static.png" alt="Static fallback for Figure 1."><img class="static-fallback-dark" src="assets/plot-dark.png" alt="Static fallback for Figure 1."></span><noscript><img class="static-fallback-light" src="assets/plot-static.png" alt="Static fallback for Figure 1."><img class="static-fallback-dark" src="assets/plot-dark.png" alt="Static fallback for Figure 1."></noscript>
+        <span class="static-fallback" style="display:none"><img class="static-fallback-light" src="assets/plot-static.png" alt="A density plot."><img class="static-fallback-dark" src="assets/plot-dark.png" alt="A density plot."></span><noscript><img class="static-fallback-light" src="assets/plot-static.png" alt="A density plot."><img class="static-fallback-dark" src="assets/plot-dark.png" alt="A density plot."></noscript>
         </figure>
 
         </section>

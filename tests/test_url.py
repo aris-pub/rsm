@@ -1,3 +1,4 @@
+import rsm
 from conftest import compare_have_want
 
 
@@ -49,7 +50,7 @@ def test_custom_reftext():
 
         <div class="paragraph" data-nodeid="1">
 
-        <p>This is a link to <a href="https://www.apache.com"> Apache</a>.</p>
+        <p>This is a link to <a href="https://www.apache.com">Apache</a>.</p>
 
         </div>
 
@@ -122,3 +123,22 @@ def test_no_target():
         </body>
         """,
     )
+
+
+def test_url_reftext_strips_surrounding_space():
+    """The space after the comma must not end up inside the link text (rsm-bpe)."""
+    h = rsm.render(
+        "# T\n\nLink :url:https://x.org, click here  ::.\n",
+        handrails=False,
+        source_offsets=False,
+    )
+    assert '<a href="https://x.org">click here</a>' in h, h
+
+
+def test_ref_reftext_strips_surrounding_space():
+    h = rsm.render(
+        "# T\n\n:theorem: {:label: thm-x}\n  A statement. ::\n\nSee :ref:thm-x, the theorem::.\n",
+        handrails=False,
+        source_offsets=False,
+    )
+    assert '<a class="reference" href="#thm-x">the theorem</a>' in h, h

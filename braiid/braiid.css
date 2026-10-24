@@ -240,6 +240,9 @@ body {
   --surface-action-hover: light-dark(var(--primary-600), var(--primary-500));
   --surface-disabled: light-dark(var(--gray-200), var(--gray-300));
   --surface-hint: light-dark(var(--primary-200), var(--primary-100));
+  /* Figure caption box. Dark uses gray-75 (not gray-100) so a caption link
+     (--link-default) clears WCAG AA (4.93:1 vs 4.30:1); light is unchanged. */
+  --surface-caption: light-dark(var(--gray-100), var(--gray-75));
 
   --border-primary: light-dark(var(--gray-200), var(--gray-300));
   --border-information: light-dark(var(--information-100), var(--information-300));
@@ -2586,7 +2589,7 @@ body {
   text-align: left;
   margin-block: var(--h4-size); }
 .manuscriptwrapper figcaption > .hr-content-zone {
-  background: var(--gray-100);
+  background: var(--surface-caption);
   border: 1px solid var(--gray-200);
   border-radius: var(--radius-lg);
   padding: 0.75em 1em;
