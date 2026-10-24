@@ -81,3 +81,38 @@ def test_figure_empty_path_degrades_to_caption_only():
     import rsm
     html = rsm.render("# T\n\n" + out, handrails=False, source_offsets=False)
     assert 'class="error"' not in html, out
+
+
+def test_author_name_drops_thanks_footnote_and_parses():
+    # pandoc renders a \thanks footnote as a Note inline inside the author's
+    # MetaInlines. Rendered into :name: it produces an invalid multi-line value.
+    # The name must be just the plain text before the footnote.
+    ast = {
+        "meta": {
+            "title": {"t": "MetaInlines", "c": [{"t": "Str", "c": "T"}]},
+            "author": {"t": "MetaList", "c": [
+                {"t": "MetaInlines", "c": [
+                    {"t": "Str", "c": "Ashish"}, {"t": "Space"},
+                    {"t": "Str", "c": "Vaswani"},
+                    {"t": "Note", "c": [{"t": "Para", "c": [
+                        {"t": "Str", "c": "Equal"}, {"t": "Space"},
+                        {"t": "Str", "c": "contribution."},
+                    ]}]},
+                ]},
+                {"t": "MetaInlines", "c": [
+                    {"t": "Str", "c": "Noam"}, {"t": "Space"},
+                    {"t": "Str", "c": "Shazeer"},
+                ]},
+            ]},
+        },
+        "blocks": [],
+    }
+    out = PandocImporter().from_json(ast)
+    assert ":name: Ashish Vaswani" in out
+    assert ":name: Noam Shazeer" in out
+    assert ":note:" not in out
+    assert "Equal contribution" not in out
+    import rsm
+
+    html = rsm.render(out, handrails=False, source_offsets=False)
+    assert 'class="error"' not in html, out

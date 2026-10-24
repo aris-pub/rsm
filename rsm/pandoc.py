@@ -716,8 +716,10 @@ class PandocImporter:
             if iso:
                 parts.append(f":config: {{\n  :override-date: {iso}\n}}\n::\n\n")
         if "author" in meta:
-            for item in meta["author"].get("c", []):
-                name = self._meta_to_text(item)
+            av = meta["author"]
+            items = av.get("c", []) if av.get("t") == "MetaList" else [av]
+            for item in items:
+                name = self._author_name(item)
                 if name:
                     parts.append(f":author: {{\n  :name: {name}\n}} ::\n\n")
         if "abstract" in meta:
@@ -736,6 +738,18 @@ class PandocImporter:
             return ""
         body = "\n".join(f"  {line}" if line else line for line in inner.splitlines())
         return f":abstract:\n\n{body}\n\n::\n\n"
+
+    def _author_name(self, item: dict) -> str:
+        # An author's inlines carry the name, then a \thanks footnote (a Note)
+        # and sometimes affiliation text. Keep only the plain name before the
+        # footnote, whitespace collapsed, so :name: stays a valid single value.
+        inlines = item.get("c", []) if item.get("t") == "MetaInlines" else []
+        kept: list[dict] = []
+        for inl in inlines:
+            if inl.get("t") == "Note":
+                break
+            kept.append(inl)
+        return " ".join(self._render_inlines(kept).split())
 
     def _meta_to_text(self, val: dict) -> str:
         t = val.get("t", "")
