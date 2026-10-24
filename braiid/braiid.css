@@ -1392,6 +1392,15 @@ body {
   display: flex;
   align-items: center;
 }
+/* Wide display math scrolls inside its own box instead of running past the
+   right edge and overlapping the number. min-width:0 lets the flex content
+   zone shrink below the equation's width so the overflow can take effect; the
+   number lives in the sibling .hr-info-zone, outside this scroll container. */
+.manuscriptwrapper .mathblock > .hr-content-zone {
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
 .manuscriptwrapper .mathblock.hr-offset > .hr-info-zone {
   top: 0;
   bottom: 0;
