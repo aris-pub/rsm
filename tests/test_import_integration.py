@@ -358,3 +358,25 @@ def test_import_nested_list(tmp_path):
     # Sub A nests: a <ul> opens inside Second point's <li> before it closes.
     rest = html[html.index("Second point"):]
     assert "<ul" in rest and rest.index("<ul") < rest.index("</li>"), out
+
+
+_TITLE_COLON = r"""\documentclass{article}
+\begin{document}
+\section{Methods}
+\subsection{Pre-training}
+\paragraph{Task \#1: Masked LM} We mask some input tokens at random.
+\end{document}
+"""
+
+
+def test_import_paragraph_title_with_colon(tmp_path):
+    import rsm
+
+    (tmp_path / "main.tex").write_text(_TITLE_COLON, encoding="utf-8")
+    out = app.import_project(str(tmp_path))
+    # An internal colon in a title is escaped so the meta value parses.
+    assert r"\:" in out
+    html = rsm.render(out, handrails=False, source_offsets=False)
+    assert 'class="error"' not in html, out
+    # It renders as a plain colon, backslash gone.
+    assert "Task #1: Masked LM" in html
