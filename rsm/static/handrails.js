@@ -657,6 +657,29 @@ export function withoutPersist(fn) {
 }
 
 
+// Open every collapsed handrail that hides `el`: el itself if it is a collapsed
+// block, and each collapsed .hr ancestor, outermost first. A :ref:, TOC link,
+// or URL hash that points inside a fold can then reveal its target instead of
+// landing on hidden content. Expansion for navigation is transient, so it runs
+// through withoutPersist and never writes the reader's saved collapse state.
+// Returns true if anything was opened.
+export function expandAncestorsTo(el) {
+  if (!el) return false;
+  const toOpen = [];
+  for (let node = el; node && node !== document.documentElement; node = node.parentElement) {
+    if (node.classList &&
+        node.classList.contains("hr") &&
+        node.classList.contains("hr-collapsed")) {
+      toOpen.push(node);
+    }
+  }
+  if (toOpen.length === 0) return false;
+  toOpen.reverse();
+  withoutPersist(() => toOpen.forEach(hr => openHandrail(hr)));
+  return true;
+}
+
+
 function getRest(hr) {
   let rest;
   if (hr.classList.contains("hr-labeled")) {
