@@ -188,6 +188,8 @@ class TSParser:
             if self.cst is None:
                 raise RSMParserError("No CST to abstractify")
             self.ast = _abstractify(self.cst)
+            if self.ast is not None:
+                _group_nested_lists(self.ast)
         except AttributeError as ex:
             raise RSMParserError(msg="Error abstractifying.") from ex
 
@@ -450,6 +452,66 @@ def _normalize_text(root: TSNode) -> str:
     return ""  # This function modifies nodes in place
 
 
+def _group_nested_lists(root: "nodes.Node") -> None:
+    """Rebuild each itemize/enumerate so deeper items nest under the item above.
+
+    Items parse flat, each carrying a ``.depth`` from its marker (:-: = 1,
+    :--: = 2, :---: = 3). This turns that flat sequence into a tree. A depth that
+    skips the level above gets an inline Error node, consistent with how CST
+    errors are surfaced.
+    """
+    # Snapshot the original containers first: the sub-lists created below are
+    # themselves itemize/enumerate and must not be regrouped again.
+    containers = [
+        n for n in root.traverse()
+        if isinstance(n, (nodes.Itemize, nodes.Enumerate))
+    ]
+    for container in containers:
+        _regroup_list(container)
+
+
+def _regroup_list(container: "nodes.NodeWithChildren") -> None:
+    items = [c for c in container.children if isinstance(c, nodes.Item)]
+    if all(getattr(it, "depth", 1) == 1 for it in items):
+        return
+    list_type = type(container)
+    for it in items:
+        container.remove(it)
+    # stack[d-1] is the list node that accepts items at depth d.
+    stack: list = [container]
+    for item in items:
+        depth = getattr(item, "depth", 1)
+        if depth == len(stack):
+            stack[-1].append(item)
+        elif depth == len(stack) + 1:
+            parents = [c for c in stack[-1].children if isinstance(c, nodes.Item)]
+            if not parents:
+                stack[-1].append(_depth_jump_error(item))
+                stack[-1].append(item)
+                continue
+            sublist = list_type(
+                start_point=item.start_point, end_point=item.end_point
+            )
+            parents[-1].append(sublist)
+            sublist.append(item)
+            stack.append(sublist)
+        elif depth < len(stack):
+            while len(stack) > depth:
+                stack.pop()
+            stack[-1].append(item)
+        else:  # depth > len(stack) + 1: a skipped level
+            stack[-1].append(_depth_jump_error(item))
+            stack[-1].append(item)
+
+
+def _depth_jump_error(item: "nodes.Item") -> "nodes.Error":
+    return nodes.Error(
+        f"[list item at depth {getattr(item, 'depth', '?')} skips the level above]",
+        start_point=item.start_point,
+        end_point=item.end_point,
+    )
+
+
 def _abstractify(cst: TSTree) -> nodes.Manuscript:
     ast_root_node = None
     bibliography_node = None
@@ -658,6 +720,12 @@ def _abstractify(cst: TSTree) -> nodes.Manuscript:
             )
         else:
             raise RSMParserError(msg=f"not found {ast_node_type}")
+
+        # Record a list item's nesting depth from its marker (:-: = 1, :--: = 2,
+        # :---: = 3). _group_nested_lists reads it to build the nested tree.
+        if ast_node_type == "item":
+            marker = cst_node.child_by_field_name("marker")
+            ast_node.depth = marker.text.decode("utf-8").count("-") if marker else 1
 
         # process meta
         meta = cst_node.child_by_field_name("meta")

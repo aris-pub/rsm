@@ -146,3 +146,69 @@ def test_item_with_wrong_parent():
         </body>
         """,
     )
+
+
+def test_nested_itemize_renders_nested():
+    import rsm
+
+    src = "## S\n\n:itemize:\n\n  :-: One\n\n  :--: Two\n\n::\n"
+    h = rsm.render(src, handrails=False, source_offsets=False)
+    assert 'class="error"' not in h, h
+    one = h.index("One")
+    rest = h[one:]
+    # The level-2 item must nest: a <ul> opens inside One's <li>, before it closes.
+    assert "<ul" in rest and rest.index("<ul") < rest.index("</li>"), h
+    assert "Two" in h
+
+
+def test_nested_enumerate_renders_nested():
+    import rsm
+
+    src = "## S\n\n:enumerate:\n\n  :-: A\n\n  :--: B\n\n::\n"
+    h = rsm.render(src, handrails=False, source_offsets=False)
+    assert 'class="error"' not in h, h
+    rest = h[h.index("A"):]
+    assert "<ol" in rest and rest.index("<ol") < rest.index("</li>"), h
+
+
+def test_three_level_nesting():
+    import rsm
+
+    src = "## S\n\n:itemize:\n\n  :-: A\n\n  :--: B\n\n  :---: C\n\n  :-: D\n\n::\n"
+    h = rsm.render(src, handrails=False, source_offsets=False)
+    assert 'class="error"' not in h, h
+    assert h.count("<ul") == 3  # outer plus two nested levels
+
+
+def test_nesting_down_then_up():
+    import rsm
+
+    src = "## S\n\n:itemize:\n\n  :-: A\n\n  :--: B\n\n  :-: C\n\n::\n"
+    h = rsm.render(src, handrails=False, source_offsets=False)
+    assert 'class="error"' not in h, h
+    assert h.count("<ul") == 2  # outer plus one nested; C is a top-level sibling
+
+
+def test_depth_jump_is_error_node():
+    import rsm
+
+    src = "## S\n\n:itemize:\n\n  :-: A\n\n  :---: C\n\n::\n"
+    h = rsm.render(src, handrails=False, source_offsets=False)
+    assert 'class="error"' in h and "skips the level above" in h
+    assert "A" in h and "C" in h  # the rest of the document still renders
+
+
+def test_list_starting_deep_is_error():
+    import rsm
+
+    src = "## S\n\n:itemize:\n\n  :--: B\n\n::\n"
+    h = rsm.render(src, handrails=False, source_offsets=False)
+    assert 'class="error"' in h  # level 2 with no level-1 parent
+
+
+def test_four_dashes_is_not_an_item():
+    import rsm
+
+    src = "## S\n\n:itemize:\n\n  :----: X\n\n::\n"
+    h = rsm.render(src, handrails=False, source_offsets=False)
+    assert 'class="error"' in h  # 3-level cap: :----: is flagged, not silent
