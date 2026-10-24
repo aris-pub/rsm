@@ -22,6 +22,7 @@ import re
 from datetime import datetime
 
 from rsm import nodes
+from rsm.bibextract import sanitize_key
 
 logger = logging.getLogger("RSM").getChild("pandoc")
 
@@ -615,7 +616,7 @@ class PandocImporter:
         # still resolves.
         self._label_of: dict[int, str] = {}
         self._ref_map: dict[str, str] = {}
-        self._label_n = {"sec": 0, "thm": 0, "eqn": 0}
+        self._label_n = {"sec": 0, "thm": 0, "eqn": 0, "fig": 0, "tab": 0}
         self._assign_labels(blocks)
         # A LaTeX \paragraph (pandoc level 4+) is a run-in titled paragraph, not
         # a section. _block_header stashes its title here so the next paragraph
@@ -701,7 +702,16 @@ class PandocImporter:
                 for item in c[1]:
                     self._assign_labels(item)
             elif t == "Figure":
+                gen = self._next_label("fig")
+                self._label_of[id(c)] = gen
+                if c[0][0]:
+                    self._ref_map[c[0][0]] = gen
                 self._assign_labels(c[2])
+            elif t == "Table":
+                gen = self._next_label("tab")
+                self._label_of[id(c)] = gen
+                if c[0][0]:
+                    self._ref_map[c[0][0]] = gen
 
     # ── Meta ──────────────────────────────────────────────────────────────────
 
@@ -911,16 +921,19 @@ class PandocImporter:
                     self._render_block(b).strip() for b in cap_blocks
                 )
         caption_line = f"\n  :caption: {caption_text}" if caption_text else ""
-        # An empty {:path: } fails to parse. When pandoc gave no usable path
-        # (missing or a non-web format), degrade to a caption-only figure, or
-        # drop it entirely if there is nothing to show.
-        if not path:
-            if not caption_text:
-                return ""
-            return f":figure:{caption_line}\n::\n\n"
-        # A figure's :path: lives in a multi-line block meta, not an inline
-        # {:path: ...}; the inline form does not parse as a block.
-        return f":figure: {{\n  :path: {path}\n}}{caption_line}\n::\n\n"
+        # A figure's :path: and :label: live in a multi-line block meta, not an
+        # inline {...}; the inline form does not parse as a block. An empty path
+        # (missing or a non-web image) is dropped so no broken {:path: } is left.
+        label = self._label_of.get(id(c))
+        meta_lines = []
+        if path:
+            meta_lines.append(f"  :path: {path}")
+        if label:
+            meta_lines.append(f"  :label: {label}")
+        block_meta = " {\n" + "\n".join(meta_lines) + "\n}" if meta_lines else ""
+        if not block_meta and not caption_text:
+            return ""
+        return f":figure:{block_meta}{caption_line}\n::\n\n"
 
     def _block_table(self, c: list) -> str:
         # pandoc Table: [attr, caption, colspecs, head, [bodies], foot].
@@ -935,7 +948,9 @@ class PandocImporter:
             if isinstance(body, list) and len(body) >= 4:
                 body_rows.extend(body[2])
                 body_rows.extend(body[3])
-        parts = [":table:\n\n"]
+        label = self._label_of.get(id(c))
+        meta = f" {{\n  :label: {label}\n}}" if label else ""
+        parts = [f":table:{meta}\n\n"]
         if head_rows:
             parts.append("  :thead:\n\n" + self._table_rows(head_rows) + "  ::\n\n")
         if body_rows:
@@ -1022,7 +1037,7 @@ class PandocImporter:
         # RSM :ref: to the generated label instead of a URL link.
         if "reference-type" in kv:
             tgt = kv.get("reference") or target[0].lstrip("#")
-            return f":ref:{self._ref_map.get(tgt, tgt)}::"
+            return f":ref:{sanitize_key(self._ref_map.get(tgt, tgt))}::"
         return f":url: {target[0]} ::"
 
     def _inline_image(self, c: list) -> str:
@@ -1034,7 +1049,9 @@ class PandocImporter:
 
     def _inline_cite(self, c: list) -> str:
         citations, _fallback = c
-        return "".join(f":cite:{cite['citationId']}::" for cite in citations)
+        return "".join(
+            f":cite:{sanitize_key(cite['citationId'])}::" for cite in citations
+        )
 
     def _inline_note(self, c: list) -> str:
         inner = "".join(self._render_block(b).strip() for b in c)
