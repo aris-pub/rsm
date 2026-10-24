@@ -25,6 +25,14 @@ from rsm import bibtools
 
 logger = logging.getLogger("RSM").getChild("import")
 
+
+def sanitize_key(key: str) -> str:
+    # A colon is RSM's inline delimiter, so it cannot appear in a cite key or a
+    # label. Replace it with a hyphen, the same way on the cite and the bibitem
+    # side so the two still match (e.g. DBLP:journals/corr/X -> DBLP-journals/corr/X).
+    return key.replace(":", "-")
+
+
 # Any \cite-family command: \cite, \citep, \citet, \nocite, \autocite, ...
 # with an optional star and up to two optional [..] arguments, then {keys}.
 _CITE = re.compile(r"\\[a-zA-Z]*cite[a-zA-Z]*\*?\s*(?:\[[^\]]*\]\s*)*\{([^}]+)\}")

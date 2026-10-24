@@ -16,7 +16,7 @@ import re
 from pathlib import Path
 
 from rsm import anystyle, bibtools
-from rsm.bibextract import _find_bib_files, cited_keys, extract_references
+from rsm.bibextract import _find_bib_files, cited_keys, extract_references, sanitize_key
 
 # AnyStyle's CSL type to the RSM bibitem kind. Anything else becomes misc.
 _RSM_KIND = {
@@ -162,7 +162,7 @@ def _bib_fields_fallback(raw: str) -> tuple[str, dict]:
 
 
 def _entry(kind: str, key: str, pairs: list[tuple[str, str]]) -> str:
-    lines = [f"@{kind}{{{key},"]
+    lines = [f"@{kind}{{{sanitize_key(key)},"]
     lines += [f"  {field}={{{value}}}," for field, value in pairs]
     lines.append("}")
     return "\n".join(lines)

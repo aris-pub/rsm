@@ -243,3 +243,62 @@ def test_import_title_and_sibling_sections(tmp_path):
     assert "## Background" in out
     html = rsm.render(out, handrails=False, source_offsets=False)
     assert 'class="error"' not in html, out
+
+
+_CITE_COLON = (
+    r"\documentclass{article}" "\n\\begin{document}\n"
+    r"Prior work \cite{DBLP:journals/corr/X}." "\n"
+    r"\bibliography{refs}" "\n\\end{document}\n"
+)
+
+_FIG_REF = r"""\documentclass{article}
+\begin{document}
+\begin{figure}\caption{The model architecture.}\label{fig:x}\end{figure}
+As shown in Figure \ref{fig:x}, it works.
+\end{document}
+"""
+
+_TABLE_REF = r"""\documentclass{article}
+\begin{document}
+\begin{table}\caption{Results.}\begin{tabular}{cc}a&b\end{tabular}\label{tab:y}\end{table}
+See Table \ref{tab:y} for results.
+\end{document}
+"""
+
+
+def test_import_cite_key_with_colon_resolves(tmp_path):
+    import rsm
+
+    (tmp_path / "main.tex").write_text(_CITE_COLON, encoding="utf-8")
+    (tmp_path / "refs.bib").write_text(
+        "@article{DBLP:journals/corr/X, title={A Title}, author={Writer, A}, year={2020}}",
+        encoding="utf-8",
+    )
+    out = app.import_project(str(tmp_path))
+    # The colon is sanitized on both the cite and the bibitem key, so they match.
+    assert ":cite:DBLP-journals/corr/X::" in out
+    assert "@article{DBLP-journals/corr/X" in out
+    html = rsm.render(out, handrails=False, source_offsets=False)
+    assert 'class="error"' not in html, out
+
+
+def test_import_figure_ref_resolves(tmp_path):
+    import rsm
+
+    (tmp_path / "main.tex").write_text(_FIG_REF, encoding="utf-8")
+    out = app.import_project(str(tmp_path))
+    assert ":label: fig-1" in out
+    assert ":ref:fig-1::" in out
+    html = rsm.render(out, handrails=False, source_offsets=False)
+    assert 'class="error"' not in html, out
+
+
+def test_import_table_ref_resolves(tmp_path):
+    import rsm
+
+    (tmp_path / "main.tex").write_text(_TABLE_REF, encoding="utf-8")
+    out = app.import_project(str(tmp_path))
+    assert ":label: tab-1" in out
+    assert ":ref:tab-1::" in out
+    html = rsm.render(out, handrails=False, source_offsets=False)
+    assert 'class="error"' not in html, out
