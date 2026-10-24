@@ -69,12 +69,15 @@ def test_no_duplicated_dark_token_block():
 
 def test_every_token_keeps_its_pairing():
     root, _ = _root_and_dark()
+    # Accent-derived tokens moved from :root onto the [data-accent] carrier
+    # (rsm-mwf); the pairing invariant holds across both single-definition homes.
+    tokens = {**root, **_bare_data_accent_block()}
     problems = []
     for key, rec in BASELINE.items():
-        if key not in root:
-            problems.append(f"{key}: missing from :root")
+        if key not in tokens:
+            problems.append(f"{key}: missing from :root and [data-accent]")
             continue
-        value = root[key]
+        value = tokens[key]
         cat = rec["category"]
         if cat in ("raw-pair", "ref-pair"):
             ld = _split_light_dark(value)
@@ -171,15 +174,120 @@ def _figcaption_background():
 def test_caption_link_contrast_meets_wcag_aa():
     """A :ref: link inside a figure caption must clear 4.5:1 against the caption
     surface in both themes (rsm-2sx). Dark mode failed at 4.30:1 on --gray-100."""
-    root, _ = _root_and_dark()
+    scope = _carrier_scope("blue")
     bg_value = _figcaption_background()
     problems = []
     for theme in ("light", "dark"):
-        surface = _resolve(bg_value, theme, root)
-        link = _resolve("var(--link-default)", theme, root)
+        surface = _resolve(bg_value, theme, scope)
+        link = _resolve("var(--link-default)", theme, scope)
         ratio = _contrast(surface, link)
         if ratio < 4.5:
             problems.append(
                 f"{theme}: caption link {link} on {surface} is {ratio:.2f}:1 (< 4.5)"
             )
     assert not problems, "; ".join(problems)
+
+
+# --- rsm-mwf: accent-derived semantic tokens must follow :accent: both themes ---
+
+ACCENTS = ("blue", "purple", "red", "green", "yellow", "orange", "pink", "gray")
+
+
+def _named_block(selector_regex):
+    """{var: value} for the first top-level rule whose selector line matches."""
+    lines = CSS.read_text().splitlines()
+    for i, line in enumerate(lines):
+        if re.fullmatch(selector_regex, line.strip()):
+            return _block_vars(lines, i)
+    return {}
+
+
+def _accent_palette(accent):
+    return _named_block(rf'\[data-accent="{accent}"\]\s*\{{')
+
+
+def _bare_data_accent_block():
+    """Vars from the bare `[data-accent] {` rule (not `[data-accent="x"]`)."""
+    return _named_block(r"\[data-accent\]\s*\{")
+
+
+def _carrier_scope(accent):
+    """Tokens as resolved on the element that carries data-accent: the :root
+    defaults, this accent's --primary-* palette, and any semantic tokens moved
+    onto the carrier via the bare [data-accent] rule."""
+    root, _ = _root_and_dark()
+    return {**root, **_accent_palette(accent), **_bare_data_accent_block()}
+
+
+def _accent_derived(tokens):
+    """Transitive closure of token names whose value reaches a --primary-* ref."""
+    derived = set()
+    changed = True
+    while changed:
+        changed = False
+        for name, value in tokens.items():
+            if name in derived:
+                continue
+            refs = set(re.findall(r"var\(\s*(--[\w-]+)", value))
+            if any(r.startswith("--primary-") for r in refs) or (refs & derived):
+                derived.add(name)
+                changed = True
+    return derived
+
+
+def _computed_on_carrier(token, accent, theme):
+    """Computed value of a semantic token on the data-accent carrier. A token
+    declared on the carrier (bare [data-accent]) resolves --primary-* there (the
+    accent). A token declared only on :root was already computed at :root, where
+    --primary-* is always blue, and the carrier only inherits that value."""
+    root, _ = _root_and_dark()
+    bare = _bare_data_accent_block()
+    if token in bare:
+        return _resolve(f"var({token})", theme, _carrier_scope(accent))
+    return _resolve(f"var({token})", theme, root)
+
+
+def _accent_primary(accent, level, theme):
+    root, _ = _root_and_dark()
+    return _resolve(_accent_palette(accent)[f"--primary-{level}"], theme, root)
+
+
+def test_accent_changes_link_color_in_both_themes():
+    """A :ref: link on an element carrying data-accent must take that accent's
+    --primary-700, not the blue default (rsm-mwf)."""
+    problems = []
+    for accent in ACCENTS:
+        for theme in ("light", "dark"):
+            got = _computed_on_carrier("--link-default", accent, theme)
+            want = _accent_primary(accent, 700, theme)
+            if got != want:
+                problems.append(f"{accent}/{theme}: link {got} != --primary-700 {want}")
+    assert not problems, "accent not applied to links:\n" + "\n".join(problems)
+
+
+def test_accent_changes_keyword_color_in_both_themes():
+    """Proof keywords (SUFFICES/ASSUME/QED) use --text-keyword, which is
+    --primary-700 in light and --primary-600 in dark; both must follow the
+    accent (rsm-mwf)."""
+    problems = []
+    for accent in ACCENTS:
+        for theme, level in (("light", 700), ("dark", 600)):
+            got = _computed_on_carrier("--text-keyword", accent, theme)
+            want = _accent_primary(accent, level, theme)
+            if got != want:
+                problems.append(
+                    f"{accent}/{theme}: keyword {got} != --primary-{level} {want}"
+                )
+    assert not problems, "accent not applied to keywords:\n" + "\n".join(problems)
+
+
+def test_no_accent_derived_token_stranded_on_root():
+    """A token that reaches --primary-* must not live on :root, where --primary-*
+    is always blue; it belongs on the [data-accent] carrier so it recomputes per
+    accent. Covers the transitive case too (--handrail-active via --border-action).
+    """
+    root, _ = _root_and_dark()
+    bare = _bare_data_accent_block()
+    derived = _accent_derived({**root, **bare})
+    stranded = sorted(k for k in derived if k in root and k not in bare)
+    assert not stranded, f"accent-derived tokens still on :root (render blue): {stranded}"
