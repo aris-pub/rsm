@@ -173,8 +173,12 @@ export function setup(root = document) {
   }
   function applyReading(control, value) {
     const el = document.documentElement;
-    if (control === "theme") el.classList.toggle("dark-theme", value === "dark");
-    else el.setAttribute("data-reading-" + control, value);
+    if (control === "theme") {
+      // Explicit choice forces color-scheme via one class; the other is cleared
+      // so the reader can switch between light and dark both ways.
+      el.classList.toggle("dark-theme", value === "dark");
+      el.classList.toggle("light-theme", value === "light");
+    } else el.setAttribute("data-reading-" + control, value);
   }
   const readingPanel = rail.querySelector(".rail-reading");
   if (readingPanel) {

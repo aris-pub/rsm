@@ -162,10 +162,9 @@ class HTMLBuilder(BaseBuilder):
                 if (prefs[c]) root.setAttribute('data-reading-' + c, prefs[c]);
               });
               var theme = prefs.theme || localStorage.getItem('rsm-theme');
-              var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-              if (theme === 'dark' || (!theme && prefersDark)) {
-                root.classList.add('dark-theme');
-              }
+              // No stored choice: follow the OS via CSS color-scheme, no class.
+              if (theme === 'dark') root.classList.add('dark-theme');
+              else if (theme === 'light') root.classList.add('light-theme');
             })();
           </script>
         """)
@@ -281,10 +280,9 @@ class StandaloneBuilder(HTMLBuilder):
         if (prefs[c]) root.setAttribute('data-reading-' + c, prefs[c]);
       });
       var theme = prefs.theme || localStorage.getItem('rsm-theme');
-      var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      if (theme === 'dark' || (!theme && prefersDark)) {
-        root.classList.add('dark-theme');
-      }
+      // No stored choice: follow the OS via CSS color-scheme, no class.
+      if (theme === 'dark') root.classList.add('dark-theme');
+      else if (theme === 'light') root.classList.add('light-theme');
     })();
   </script>
 """
