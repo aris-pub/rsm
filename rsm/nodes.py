@@ -1625,6 +1625,9 @@ class Proof(NodeWithChildren):
         # {"goal": nodeid, "hyps": [nodeid, ...]} indexed like tree_nodes, where
         # goal is the step's claim and hyps is the full in-scope context.
         self.step_state: list[dict] = []
+        # Count of top-level steps, set by the proof model's step numbering. The
+        # collapsed proof header shows it so the reader sees how much is folded.
+        self.num_steps: int = 0
 
 
 class Subproof(NodeWithChildren):  # importantly, NOT a subclass of Proof!

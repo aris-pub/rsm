@@ -1574,6 +1574,24 @@ body {
     font-size: 0.875rem;
   }
 
+  /* The folded step count ("N steps") is a muted suffix on the proof label. It
+     shows only once the proof is collapsed, when the reader cannot otherwise
+     tell how much is hidden, and is gone while the proof is open. Its own span
+     carries the words, so a screen reader announces "N steps" as part of the
+     label. The leading separator is drawn here so hiding the span hides the
+     separator too. --dark matches the sibling "steps hidden" tombstone and
+     clears WCAG 1.4.3 AA on the page in both themes. */
+  &.proof .proof-step-count { display: none; }
+  &.proof.hr-collapsed .proof-step-count {
+    display: inline;
+    color: var(--dark);
+    font-weight: var(--weight-regular);
+  }
+  &.proof.hr-collapsed .proof-step-count::before {
+    content: "\00B7";
+    margin-inline: 0.4ch;
+  }
+
 }
 
 

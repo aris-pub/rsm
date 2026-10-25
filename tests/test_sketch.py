@@ -37,11 +37,11 @@ def test_simple_no_handrails():
 
         </div>
 
-        <div class="proof" data-nodeid="4">
+        <div class="proof" data-steps="1" data-nodeid="4">
 
         <div class="paragraph hr-label">
 
-        <p><span class="span label">Proof.</span></p>
+        <p><span class="span label">Proof.</span><span class="span proof-step-count">1 step</span></p>
 
         </div>
 

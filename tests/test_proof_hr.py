@@ -1,3 +1,6 @@
+import re
+
+import rsm
 from conftest import compare_have_want_handrails
 
 
@@ -62,7 +65,7 @@ def test_two_steps():
 
         </div>
 
-        <div class="proof hr hr-labeled" tabindex=0 data-nodeid="1">
+        <div class="proof hr hr-labeled" data-steps="2" tabindex=0 data-nodeid="1">
 
         <div class="hr-collapse-zone">
 
@@ -93,7 +96,7 @@ def test_two_steps():
 
         <div class="paragraph hr-label">
 
-        <p><span class="span label">Proof.</span></p>
+        <p><span class="span label">Proof.</span><span class="span proof-step-count">2 steps</span></p>
 
         </div>
 
@@ -326,7 +329,7 @@ def test_sub_step():
 
         </div>
 
-        <div class="proof hr hr-labeled" tabindex=0 data-nodeid="1">
+        <div class="proof hr hr-labeled" data-steps="1" tabindex=0 data-nodeid="1">
 
         <div class="hr-collapse-zone">
 
@@ -357,7 +360,7 @@ def test_sub_step():
 
         <div class="paragraph hr-label">
 
-        <p><span class="span label">Proof.</span></p>
+        <p><span class="span label">Proof.</span><span class="span proof-step-count">1 step</span></p>
 
         </div>
 
@@ -781,7 +784,7 @@ def test_proof():
 
         </div>
 
-        <div class="proof hr hr-labeled" tabindex=0 data-nodeid="1">
+        <div class="proof hr hr-labeled" data-steps="1" tabindex=0 data-nodeid="1">
 
         <div class="hr-collapse-zone">
 
@@ -812,7 +815,7 @@ def test_proof():
 
         <div class="paragraph hr-label">
 
-        <p><span class="span label">Proof.</span></p>
+        <p><span class="span label">Proof.</span><span class="span proof-step-count">1 step</span></p>
 
         </div>
 
@@ -1046,7 +1049,7 @@ def test_proof_with_sketch():
 
         </div>
 
-        <div class="proof hr hr-labeled" tabindex=0 data-nodeid="4">
+        <div class="proof hr hr-labeled" data-steps="1" tabindex=0 data-nodeid="4">
 
         <div class="hr-collapse-zone">
 
@@ -1077,7 +1080,7 @@ def test_proof_with_sketch():
 
         <div class="paragraph hr-label">
 
-        <p><span class="span label">Proof.</span></p>
+        <p><span class="span label">Proof.</span><span class="span proof-step-count">1 step</span></p>
 
         </div>
 
@@ -1170,3 +1173,67 @@ def test_proof_with_sketch():
         </body>
         """,
     )
+
+
+# A collapsed structured proof shows how many top-level steps are folded away,
+# so the reader knows how much is hidden before expanding it. The count rides a
+# data attribute and a muted suffix span, kept out of the label text so a
+# document can hide or restyle it. See bead rsm-2df.
+
+
+def _render_proof(body):
+    return rsm.render("# T\n\n" + body, handrails=True, source_offsets=False)
+
+
+def test_proof_step_count_multiple():
+    html = _render_proof(
+        """
+        :proof:
+          :step: First.::
+          :step: Second.::
+          :step: Third.::
+        ::
+        """
+    )
+    assert 'data-steps="3"' in html
+    assert re.search(r'proof-step-count">\s*3 steps\s*<', html)
+
+
+def test_proof_step_count_singular():
+    html = _render_proof(
+        """
+        :proof:
+          :step: Only one.::
+        ::
+        """
+    )
+    assert 'data-steps="1"' in html
+    assert re.search(r'proof-step-count">\s*1 step\s*<', html)
+
+
+def test_proof_step_count_only_top_level():
+    # A single top-level step whose body holds two sub-steps still counts as one.
+    html = _render_proof(
+        """
+        :proof:
+          :step: Outer.
+            :step: Inner a.::
+            :step: Inner b.::
+          ::
+        ::
+        """
+    )
+    assert 'data-steps="1"' in html
+    assert re.search(r'proof-step-count">\s*1 step\s*<', html)
+
+
+def test_proof_step_count_none():
+    html = _render_proof(
+        """
+        :proof:
+          Just prose, no steps at all.
+        ::
+        """
+    )
+    assert "data-steps=" not in html
+    assert "proof-step-count" not in html

@@ -145,11 +145,11 @@ def test_real_life_example():
 
         </div>
 
-        <div class="proof" data-nodeid="38">
+        <div class="proof" data-steps="7" data-nodeid="38">
 
         <div class="paragraph hr-label">
 
-        <p><span class="span label">Proof.</span></p>
+        <p><span class="span label">Proof.</span><span class="span proof-step-count">7 steps</span></p>
 
         </div>
 

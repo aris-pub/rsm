@@ -1620,6 +1620,14 @@ class Translator:
             ]
         )
 
+    @staticmethod
+    def _proof_step_count_text(node: nodes.Proof) -> str:
+        """The "N steps" suffix text, or "" when the proof has no top-level steps."""
+        count = getattr(node, "num_steps", 0)
+        if not count:
+            return ""
+        return "1 step" if count == 1 else f"{count} steps"
+
     def visit_proof(self, node: nodes.Proof) -> EditCommandBatch:
         last = node.last_of_type(nodes.Step)
         if last:
@@ -1637,9 +1645,21 @@ class Translator:
         else:
             classname = node.__class__.__name__.lower()
             title = self._make_title_node(label=f"{classname.capitalize()}.")
+
+        # A muted suffix (its own span, not baked into the label text, so a
+        # document can hide or restyle it) names the folded step count. CSS shows
+        # it only while the proof is collapsed and draws the leading separator.
+        count_text = self._proof_step_count_text(node)
+        extra_attrs = None
+        if count_text:
+            count_span = nodes.Span(classes=["proof-step-count"])
+            count_span.append(nodes.Text(text=count_text))
+            title.append(count_span)
+            extra_attrs = {"data-steps": str(node.num_steps)}
+
         return AppendBatchAndDefer(
             [
-                AppendNodeTag(node),
+                AppendNodeTag(node, extra_attrs=extra_attrs),
                 AppendExternalTree(title),
             ]
         )
@@ -3177,12 +3197,18 @@ class HandrailsTranslator(Translator):
         # theorem-like sibling. Distinct from the "Proof of ..." title, which
         # still keys only off an explicit :of: and is left unchanged.
         of_label = self._proved_result_label(node)
-        extra_attrs = {"data-of": of_label} if of_label else None
+        extra_attrs = {}
+        if of_label:
+            extra_attrs["data-of"] = of_label
+        # The folded step count lives on the handrail box here. The base tag it
+        # would otherwise ride is dropped when handrails wrap the node.
+        if node.num_steps:
+            extra_attrs["data-steps"] = str(node.num_steps)
         hr = self._replace_node_with_handrails(
             node,
             additional_classes=["hr-labeled"],
             collapse_all_in_menu=True,
-            extra_attrs=extra_attrs,
+            extra_attrs=extra_attrs or None,
         )
         hr.items += batch.items[1:]
         return hr

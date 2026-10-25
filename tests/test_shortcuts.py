@@ -403,11 +403,11 @@ def test_prev_shortcut():
 
         </div>
 
-        <div class="proof" data-nodeid="10">
+        <div class="proof" data-steps="2" data-nodeid="10">
 
         <div class="paragraph hr-label">
 
-        <p><span class="span label">Proof.</span></p>
+        <p><span class="span label">Proof.</span><span class="span proof-step-count">2 steps</span></p>
 
         </div>
 
@@ -517,11 +517,11 @@ def test_prev2_shortcut():
 
         </div>
 
-        <div class="proof" data-nodeid="10">
+        <div class="proof" data-steps="3" data-nodeid="10">
 
         <div class="paragraph hr-label">
 
-        <p><span class="span label">Proof.</span></p>
+        <p><span class="span label">Proof.</span><span class="span proof-step-count">3 steps</span></p>
 
         </div>
 
@@ -645,11 +645,11 @@ def test_prev_and_prev2_shortcut():
 
         </div>
 
-        <div class="proof" data-nodeid="10">
+        <div class="proof" data-steps="3" data-nodeid="10">
 
         <div class="paragraph hr-label">
 
-        <p><span class="span label">Proof.</span></p>
+        <p><span class="span label">Proof.</span><span class="span proof-step-count">3 steps</span></p>
 
         </div>
 
