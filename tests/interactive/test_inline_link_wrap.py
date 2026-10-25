@@ -92,6 +92,20 @@ def test_long_inline_link_wraps_like_text(page: Page, tmp_path):
     )
 
 
+def test_in_text_link_is_semibold(page: Page, tmp_path):
+    """In-text links have no underline, so without a non-color cue they fail
+    WCAG 1.4.1 (axe link-in-text-block). Semi-bold is that cue; guard it so the
+    distinguisher cannot be dropped silently (rsm-1ue)."""
+    page.set_viewport_size({"width": 375, "height": 900})
+    page.goto(_build(REF_SENTENCE, tmp_path), wait_until="load")
+    page.wait_for_timeout(200)
+
+    weight = page.eval_on_selector(
+        "a[href*='springer']", "e => parseInt(getComputedStyle(e).fontWeight)"
+    )
+    assert weight >= 600, f"in-text link weight {weight} is not at least semi-bold"
+
+
 @pytest.mark.parametrize("width", [375, 1280])
 @pytest.mark.parametrize("scheme", ["light", "dark"])
 def test_bare_url_never_scrolls_horizontally(page: Page, tmp_path, width, scheme):

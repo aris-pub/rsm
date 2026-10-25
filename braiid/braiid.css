@@ -2758,6 +2758,10 @@ body {
     text-decoration: none;
     color: var(--link-default);
     cursor: pointer;
+    /* In-text links carry no underline, so without a second cue they rely on color
+    alone to stand out from body text, which fails WCAG 1.4.1 (the link-vs-text
+    contrast is under 3:1). Semi-bold is that non-color cue (rsm-1ue). */
+    font-weight: 600;
     /* Links stay inline so a long link wraps between words along with the surrounding
     text instead of moving to its own line as one box (rsm-1ue). The padding grows the
     hit area to a 24px touch target and the matching negative margin keeps that padding
