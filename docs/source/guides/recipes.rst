@@ -103,6 +103,13 @@ Include images in your manuscript:
 
 Reference the figure with ``:ref:fig-example::``.
 
+A raw image path (``.png``, ``.jpg``, ``.svg``) is embedded as an ``<img>``. For an
+SVG figure that should follow the page theme (dark mode, accent color), put the SVG
+in an HTML fragment file and use ``:path: fig.html`` (where ``fig.html`` contains
+``<svg>...</svg>``). RSM inlines the markup so it picks up the page CSS variables, and
+the figure is still labelled "Figure". Use ``:html:`` only for non-figure interactive
+widgets.
+
 
 Add inline math
 ***************
