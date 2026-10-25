@@ -1268,33 +1268,15 @@ class Translator:
             ]
         )
 
-    def _toc_tree_svg(self, node: nodes.Contents, root_label: str | None = None) -> str:
-        # The body TOC's root node carries the whole manuscript title. Its label
-        # is drawn at a constant on-screen size (tocarcs.js counter-scales the
-        # font), so a long title is physically wider than a narrow screen and
-        # spills out of the tree's box (rsm-tj7). When the title is wider than the
-        # space a narrow screen gives the tree, collapse the root to the "Top"
-        # marker exactly as the rail does, keeping the full title in the tooltip
-        # and accessible name. The rail passes root_label explicitly, so this only
-        # affects the body TOC.
-        if root_label is None and self._root_title_overflows(node.tree_root_title):
-            root_label = "Top"
+    def _toc_tree_svg(self, node: nodes.Contents) -> str:
+        # The TOC graph root stands in for the title/abstract and is drawn as a
+        # small muted dot with no label, so the manuscript title no longer sizes
+        # or overflows the drawing. The full title stays the dot's accessible name
+        # and hover tooltip.
         return self._build_tree_svg(
             node.tree_nodes, node.toc_edges, node.tree_root_title,
-            "Section dependency graph", root_label=root_label,
+            "Section dependency graph",
         )
-
-    # The usable width of the body TOC drawing on the narrowest supported screen
-    # (375px) is about 315px, so a root label wider than this budget is clipped.
-    # Measured in the same build-time user units layout_tree uses for node widths,
-    # which match on-screen px because the label font is held at a constant size.
-    _ROOT_LABEL_MAX_W = 300
-
-    def _root_title_overflows(self, title: str) -> bool:
-        from .toc_layout import CHAR_W, NODE_PAD_X
-
-        full_width = int(len(title) * CHAR_W) + 2 * NODE_PAD_X
-        return full_width > self._ROOT_LABEL_MAX_W
 
     def _build_tree_svg(
         self, tree_nodes: list[dict], ref_edges: list[dict],
@@ -1313,7 +1295,7 @@ class Translator:
         """
         from html import escape
 
-        from .toc_layout import layout_tree
+        from .toc_layout import ROOT_DOT_R, layout_tree
 
         secs = tree_nodes
         if not secs:
@@ -1384,6 +1366,28 @@ class Translator:
             cx = n["x"] + n["w"] / 2
             cy = n["y"] + n["h"] / 2
             full = (f'{n["num"]}. {n["title"]}' if n["num"] else n["title"])
+            ncls = "toc-node level-{}".format(n["depth"])
+            if n.get("type") == "result":
+                ncls += " toc-node-result"
+            # aria-label gives the link its full "num. title" accessible name;
+            # without it the only name is the visible secnum text ("2."), so a
+            # screen reader cannot tell the section links apart. The root's name
+            # is the manuscript title.
+            open_a = (
+                f'<a href="{escape(href)}" class="{ncls}" '
+                f'data-idx="{n["idx"]}" data-tooltip="{escape(full)}" '
+                f'aria-label="{escape(full)}">'
+            )
+            if n["depth"] == 0 and not root_label:
+                # The TOC root is a small muted dot, not a box with a label. It is
+                # drawn at the point where the structural edges meet it (the bottom
+                # of its slot, since the root leads at the top), so the edges touch
+                # the dot instead of ending in empty space.
+                parts.append(
+                    f'{open_a}<circle class="toc-root-dot" cx="{cx:.1f}" '
+                    f'cy="{n["y"] + n["h"]:.1f}" r="{ROOT_DOT_R:.0f}"></circle></a>'
+                )
+                continue
             # The compact horizontal-rail root shows a short "Goal" marker; its
             # full statement is on hover. Other nodes show their number/title.
             if root_label and n["depth"] == 0:
@@ -1394,16 +1398,8 @@ class Translator:
                 inner = f"⟨{escape(n['num'])}⟩" if bracket_nums else escape(n["num"])
             else:
                 inner = escape(n["title"])
-            ncls = "toc-node level-{}".format(n["depth"])
-            if n.get("type") == "result":
-                ncls += " toc-node-result"
             parts.append(
-                # aria-label gives the link its full "num. title" accessible name;
-                # without it the only name is the visible secnum text ("2."), so a
-                # screen reader cannot tell the section links apart.
-                f'<a href="{escape(href)}" class="{ncls}" '
-                f'data-idx="{n["idx"]}" data-tooltip="{escape(full)}" '
-                f'aria-label="{escape(full)}">'
+                f'{open_a}'
                 f'<rect x="{n["x"]:.1f}" y="{n["y"]:.1f}" width="{n["w"]}" '
                 f'height="{n["h"]}" rx="6"></rect>'
                 f'<text class="toc-secnum" x="{cx:.1f}" y="{cy:.1f}" '
@@ -2957,7 +2953,7 @@ class HandrailsTranslator(Translator):
         if has_contents:
             doc_panels.append(
                 '<div class="rail-panel rail-doc-map">'
-                f'{self._toc_tree_svg(graph, root_label="Top")}</div>'
+                f'{self._toc_tree_svg(graph)}</div>'
             )
         if has_notation:
             doc_panels.append('<div class="rail-panel rail-notation"></div>')

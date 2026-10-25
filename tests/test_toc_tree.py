@@ -152,14 +152,31 @@ def test_root_node_carries_manuscript_title():
     assert 'class="toc-edge struct"' in html
 
 
+def test_root_node_is_muted_dot():
+    # The TOC graph root stands in for the title/abstract but must be quiet: a
+    # small dot, not a filled accent box. It carries no visible label and no box,
+    # yet stays a link to the top of the manuscript whose accessible name is the
+    # manuscript title.
+    html = rsm.render("# My Paper\n\n" + SRC, handrails=False)
+    svg = re.search(r'<svg class="toc-tree".*?</svg>', html, re.S).group(0)
+    root = re.search(
+        r'<a [^>]*class="toc-node level-0"[^>]*>.*?</a>', svg, re.S
+    ).group(0)
+    assert "<circle" in root  # drawn as a dot
+    assert "<rect" not in root  # no box
+    assert "<text" not in root  # no label text
+    assert 'href="#"' in root  # links to the top of the manuscript
+    assert 'aria-label="My Paper"' in root  # title is the accessible name
+    assert 'data-tooltip="My Paper"' in root
+
+
 def _root_node(html):
-    """Return (visible_label, tooltip, aria_label) for the TOC tree's root node."""
+    """Return (tooltip, aria_label) for the TOC tree's root dot."""
     svg = re.search(r'<svg class="toc-tree".*?</svg>', html, re.S).group(0)
     a = re.search(r'<a [^>]*class="toc-node level-0"[^>]*>.*?</a>', svg, re.S).group(0)
-    visible = re.search(r'<text[^>]*>([^<]*)</text>', a).group(1)
     tooltip = re.search(r'data-tooltip="([^"]*)"', a).group(1)
     aria = re.search(r'aria-label="([^"]*)"', a).group(1)
-    return visible, tooltip, aria
+    return tooltip, aria
 
 
 def _svg_width(html):
@@ -170,28 +187,25 @@ LONG_TITLE = "A Very Long Manuscript Title That Overruns the Narrow Tree Drawing
 TREE = "\n\n:toc: {\n  :view: tree\n}\n::\n\n## One\n  {:label: s1}\n\nx\n\n## Two\n  {:label: s2}\n\ny\n"
 
 
-def test_long_root_title_collapses_to_top():
-    # A long manuscript title, drawn at a constant on-screen size, is wider than a
-    # narrow screen and spills out of the tree's box (rsm-tj7). The root collapses
-    # to the "Top" marker like the rail does, with the full title kept in the
-    # tooltip and accessible name.
-    html = rsm.render(f"# {LONG_TITLE}" + TREE, handrails=False)
-    visible, tooltip, aria = _root_node(html)
-    assert visible == "Top"
+def test_root_title_does_not_widen_the_drawing():
+    # The root is a small dot, not a title box, so even a very long manuscript
+    # title no longer sizes the drawing (rsm-kay, superseding the rsm-tj7 "Top"
+    # collapse). A long and a short title give the same narrow graph.
+    long_html = rsm.render(f"# {LONG_TITLE}" + TREE, handrails=False)
+    short_html = rsm.render("# My Paper" + TREE, handrails=False)
+    assert _svg_width(long_html) == _svg_width(short_html)
+    assert _svg_width(long_html) < 200
+
+
+def test_root_dot_keeps_full_title_as_name_whatever_its_length():
+    # No visible label, but the full title stays the dot's tooltip and accessible
+    # name however long it is: there is no "Top" collapse any more.
+    tooltip, aria = _root_node(rsm.render(f"# {LONG_TITLE}" + TREE, handrails=False))
     assert tooltip == LONG_TITLE
     assert aria == LONG_TITLE
-    # With the root collapsed, the drawing is no longer sized to the full title.
-    # It stays close to what the short section markers need.
-    assert _svg_width(html) < 200
-
-
-def test_short_root_title_kept_in_full():
-    # A short title fits a narrow screen, so it is shown in full rather than hidden
-    # behind the "Top" marker.
-    html = rsm.render("# My Paper" + TREE, handrails=False)
-    visible, tooltip, aria = _root_node(html)
-    assert visible == "My Paper"
+    tooltip, aria = _root_node(rsm.render("# My Paper" + TREE, handrails=False))
     assert tooltip == "My Paper"
+    assert aria == "My Paper"
 
 
 def test_handrails_menu_wiring():

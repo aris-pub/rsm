@@ -1694,6 +1694,9 @@ body {
     opacity: 0.85;
   }
 
+  /* A labelled root (the proof rail's "Goal") keeps the filled accent box. The
+     TOC root carries no label and is a dot instead (see below), so these rules
+     only reach the proof rail now. */
   .toc-tree .toc-node.level-0 rect {
     fill: var(--primary-700);
     stroke: var(--primary-700);
@@ -1702,6 +1705,19 @@ body {
   .toc-tree .toc-node.level-0 .toc-secnum {
     fill: var(--white, #fff);
     font-weight: 700;
+  }
+
+  /* The TOC graph root is a small muted dot, no box and no label. It is a UI
+     control, so --text-subtle keeps it >= 3:1 against the page in both themes;
+     it takes the accent colour on hover and keyboard focus. */
+  .toc-tree .toc-node.level-0 circle.toc-root-dot {
+    fill: var(--text-subtle);
+    transition: fill 0.12s;
+  }
+
+  .toc-tree .toc-node.level-0:hover circle.toc-root-dot,
+  .toc-tree .toc-node.level-0:focus-visible circle.toc-root-dot {
+    fill: var(--primary-700);
   }
 
   .toc-tree .toc-arrowhead.dep { fill: var(--primary-700); }
