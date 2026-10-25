@@ -516,10 +516,27 @@ def _depth_jump_error(item: "nodes.Item") -> "nodes.Error":
     )
 
 
+def _flatten_reftext(reftext_nodes: "list[nodes.Node]") -> str:
+    """Plain-text version of a marked-up reftext, for string contexts (the link
+    title / accessible name / fallback). Collects the text of every Text node in
+    order, so *emph* and $math$ contribute their contents without the markup."""
+    parts: list[str] = []
+    for node in reftext_nodes:
+        if isinstance(node, nodes.Text):
+            parts.append(node.text)
+        elif isinstance(node, nodes.NodeWithChildren):
+            parts.append(_flatten_reftext(list(node.children)))
+    return "".join(parts)
+
+
 def _abstractify(cst: TSTree) -> nodes.Manuscript:
     ast_root_node = None
     bibliography_node = None
     seen_config = False  # Track if we've seen a config block
+    # (reference node, holder) pairs whose reftext carries inline markup. The
+    # holder collects the inline children as the main loop builds them; after the
+    # loop they move onto the reference node's reftext_nodes.
+    reftext_builds: list[tuple[nodes.Node, nodes.Span]] = []
     stack = [(None, cst.root_node)]
     while stack:
         parent, cst_node = stack.pop()
@@ -781,12 +798,28 @@ def _abstractify(cst: TSTree) -> nodes.Manuscript:
             ast_node.target = target_node.text.decode("utf-8")
             skip_these_ids.add(target_node.id)
 
-            reftext_node = cst_node.child_by_field_name("reftext")
-            if reftext_node:
-                # The grammar keeps the space after the comma in the reftext
-                # token; strip it so the link text has no leading/trailing space.
-                ast_node.overwrite_reftext = reftext_node.text.decode("utf-8").strip()
-                skip_these_ids.add(reftext_node.id)
+            # The reftext of :ref: and :url: may hold several inline children
+            # (text plus *emph*, $math$, code, :span:); :previous: keeps a single
+            # text node. children_by_field_name returns them all in order.
+            reftext_children = cst_node.children_by_field_name("reftext")
+            for c in reftext_children:
+                skip_these_ids.add(c.id)
+            if reftext_children:
+                has_markup = any(c.type != "text" for c in reftext_children)
+                if has_markup:
+                    # Build the inline nodes through the main loop (a throwaway
+                    # holder collects them), then move them onto the reference
+                    # after the loop. overwrite_reftext is filled then too, from
+                    # the built nodes, so it is the plain-text flattening.
+                    holder = nodes.Span()
+                    reftext_builds.append((ast_node, holder))
+                    stack += reversed([(holder, c) for c in reftext_children])
+                else:
+                    # The grammar keeps the space after the comma in the reftext
+                    # token; strip it so the link text has no surrounding space.
+                    ast_node.overwrite_reftext = (
+                        reftext_children[0].text.decode("utf-8").strip()
+                    )
 
             meta = cst_node.child_by_field_name("meta")
             if meta:
@@ -829,6 +862,18 @@ def _abstractify(cst: TSTree) -> nodes.Manuscript:
                 if c.type in PUSH_THESE_TYPES and c.id not in skip_these_ids
             ]
         )
+
+    # Move the inline reftext nodes off their holders and onto the references.
+    # Reparent directly (not via append, which rejects a node that already has a
+    # parent) so the reference becomes their parent for any upward walk during
+    # rendering.
+    for ref_node, holder in reftext_builds:
+        children = list(holder.children)
+        holder._children = []
+        for c in children:
+            c.parent = ref_node
+        ref_node.reftext_nodes = children
+        ref_node.overwrite_reftext = _flatten_reftext(children).strip()
 
     _normalize_text(ast_root_node)
     return ast_root_node
