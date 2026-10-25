@@ -66,11 +66,17 @@ export function loadMathJax() {
   }
 
   const config = document.createElement('script');
+  // Load the html extension and add it to the active package list so MathJax
+  // honors \class the same way Temml does. tex-mml-chtml ships without it.
   config.innerHTML = `window.MathJax = {
+      loader: {
+        load: ['[tex]/html']
+      },
       startup: {
         typeset: false
       },
       tex: {
+        packages: {'[+]': ['html']},
         macros: ${JSON.stringify(notationMacros)},
         inlineMath: [['$', '$'], ['\\\\(', '\\\\)']],
         displayMath: [['$$', '$$'], ['\\\\[', '\\\\]']],
