@@ -1005,7 +1005,14 @@ var RSM = (() => {
       collapseSep.style.display = anyCollapse ? "" : "none";
     }
     configureItem(singletonMenu.querySelector('[data-role="link"]'), link);
-    configureItem(singletonMenu.querySelector('[data-role="code"]'), code);
+    const codeEl = singletonMenu.querySelector('[data-role="code"]');
+    if (code && code !== "disabled" && !hrHasSource(hr)) {
+      configureItem(codeEl, "disabled");
+      setDisabledHint(codeEl, "disabled", "no source available");
+    } else {
+      configureItem(codeEl, code);
+      setDisabledHint(codeEl, null, "no source available");
+    }
     const staticToggle = hr.getAttribute("data-menu-static-toggle");
     const staticToggleEl = singletonMenu.querySelector('[data-role="static-toggle"]');
     const staticSep = singletonMenu.querySelector('[data-role="static-sep"]');
@@ -1071,12 +1078,12 @@ var RSM = (() => {
     const lensSep = singletonMenu.querySelector('[data-role="deplens-sep"]');
     configureItem(lensUpEl, lensUp);
     configureItem(lensDownEl, lensDown);
-    setLensHint(
+    setDisabledHint(
       lensUpEl,
       lensUp,
       isStep ? "This step depends on nothing earlier in the proof." : "This result depends on no other result."
     );
-    setLensHint(
+    setDisabledHint(
       lensDownEl,
       lensDown,
       isStep ? "Nothing else in the proof uses this step." : "No other result uses this one."
@@ -1120,7 +1127,7 @@ var RSM = (() => {
     popup.style.left = `${rect.left + window.scrollX}px`;
     popup.style.top = `${rect.top + window.scrollY}px`;
   }
-  function setLensHint(el, value, disabledText) {
+  function setDisabledHint(el, value, disabledText) {
     if (!el) return;
     if (value === "disabled") {
       el.setAttribute("data-tooltip", disabledText);
@@ -1448,14 +1455,17 @@ var RSM = (() => {
       toast.remove();
     }, 5e3);
   }
+  function hrHasSource(hr) {
+    return !!(hr.getAttribute("data-source-start") && hr.getAttribute("data-source-end") && document.querySelector(".rsm-source"));
+  }
   function showSource(hr) {
-    const start = hr.getAttribute("data-source-start");
-    const end = hr.getAttribute("data-source-end");
-    const sourceDiv = document.querySelector(".rsm-source");
-    if (!start || !end || !sourceDiv) {
+    if (!hrHasSource(hr)) {
       launchToast("No source available for this element.", "error");
       return;
     }
+    const start = hr.getAttribute("data-source-start");
+    const end = hr.getAttribute("data-source-end");
+    const sourceDiv = document.querySelector(".rsm-source");
     const source = sourceDiv.textContent.slice(parseInt(start), parseInt(end));
     const modal = document.createElement("div");
     modal.className = "rsm-source-modal";
