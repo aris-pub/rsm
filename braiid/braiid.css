@@ -2758,9 +2758,14 @@ body {
     text-decoration: none;
     color: var(--link-default);
     cursor: pointer;
-    /* by default, links do weird things with line heights, so if we want a single line
-    inside an <a> tag to be 24px tall, we need to change its display */
-    display: inline-block;
+    /* Links stay inline so a long link wraps between words along with the surrounding
+    text instead of moving to its own line as one box (rsm-1ue). The padding grows the
+    hit area to a 24px touch target and the matching negative margin keeps that padding
+    from pushing the neighbouring lines apart. overflow-wrap lets a bare URL break
+    mid-string instead of overflowing the line. */
+    padding-block: 0.15em;
+    margin-block: -0.15em;
+    overflow-wrap: anywhere;
 
     &.reference.backlink, &.reference.cite {padding-inline: 0.05em;}
     &.reference.backlink {font-size: 0.875rem;}
