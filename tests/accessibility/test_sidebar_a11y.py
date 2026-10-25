@@ -276,6 +276,27 @@ def test_strip_icons_meet_ui_contrast_in_every_state(serve_rsm_a11y, page, theme
 
 
 @pytest.mark.parametrize("theme", ["light", "dark"])
+def test_notation_controls_meet_contrast(serve_rsm_a11y, page, theme):
+    """The Notation pane's locate/reset icons keep >= 3:1 against the rail (WCAG
+    1.4.11, icon is the control's only label) and the Apply button's label keeps
+    >= 4.5:1 on its fill, in both themes. axe leaves these as incomplete rather
+    than violations, so read the computed colours directly."""
+    page.set_viewport_size({"width": 1400, "height": 900})
+    page = serve_rsm_a11y(SIDEBAR_SRC, sidebar=True)
+    _force_theme(page, theme)
+    page.click('.rail-strip-btn[data-view="notation"]')
+    page.wait_for_selector(".rail-notation-input", timeout=5000)
+    page.mouse.move(900, 600)
+    for sel in [".rail-notation-locate", ".rail-notation-reset"]:
+        c = page.evaluate(_ICON_COLORS, sel)
+        ratio = _contrast(_rgb(c["fg"]), _rgb(c["bg"]))
+        assert ratio >= 3.0, f"{theme} icon {sel}: {ratio:.2f}:1 ({c})"
+    c = page.evaluate(_ICON_COLORS, ".rail-notation-apply")
+    ratio = _contrast(_rgb(c["fg"]), _rgb(c["bg"]))
+    assert ratio >= 4.5, f"{theme} apply label: {ratio:.2f}:1 ({c})"
+
+
+@pytest.mark.parametrize("theme", ["light", "dark"])
 def test_pin_control_contrast_in_every_state(serve_rsm_a11y, page, theme):
     """The pin control in a reference preview keeps >= 4.5:1 at rest, hovered
     and pinned, in both themes."""

@@ -1071,6 +1071,10 @@ var RSM = (() => {
     tmp.innerHTML = content;
     tmp.querySelectorAll("[id]").forEach((e) => e.removeAttribute("id"));
     tmp.querySelectorAll("[data-nodeid]").forEach((e) => e.removeAttribute("data-nodeid"));
+    if (title) {
+      const leadLabel = tmp.querySelector(".hr-label");
+      if (leadLabel) leadLabel.remove();
+    }
     pinnedTarget = href;
     origin.dispatchEvent(
       new CustomEvent("rail:pin", {
@@ -2569,6 +2573,9 @@ var RSM = (() => {
         } catch (e) {
         }
         if (legacy === "light" || legacy === "dark") prefs.theme = legacy;
+      }
+      if (!prefs.typeface) {
+        prefs.typeface = document.body && document.body.getAttribute("data-typography") === "serif" ? "serif" : "sans";
       }
       for (const row of readingPanel.querySelectorAll(".reading-row")) {
         const value = prefs[row.dataset.control];

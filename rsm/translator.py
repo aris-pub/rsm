@@ -246,10 +246,15 @@ def _reading_tile(control: str, value: str) -> str:
     return _READING_TILES[(control, value)]
 
 
-def _make_reading_panel() -> str:
+def _make_reading_panel(typeface_default: str = "sans") -> str:
     from html import escape
     rows = []
     for control, label, options, default in _READING_CONTROLS:
+        # The Typeface row's resting tile is the manuscript's built-in
+        # typography, not a fixed constant, so a serif document opens with Serif
+        # pressed. Mirrors how the Theme row rests on System.
+        if control == "typeface":
+            default = typeface_default
         opts = []
         for value, name in options:
             active = " active" if value == default else ""
@@ -3056,7 +3061,11 @@ class HandrailsTranslator(Translator):
             f'proof-view-map{"" if has_proofs else " no-proofs"}" role="complementary" '
             'aria-label="Sidebar">'
             + head + document_section + proof_section + pinned_section
-            + _make_reading_panel() + "</div>"
+            + _make_reading_panel(
+                "serif"
+                if getattr(self.tree, "typography", "sans-serif") == "serif"
+                else "sans"
+            ) + "</div>"
         )
         return AppendText(text=strip + panel)
 

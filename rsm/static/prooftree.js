@@ -218,6 +218,15 @@ export function setup(root = document) {
       }
       if (legacy === "light" || legacy === "dark") prefs.theme = legacy;
     }
+    // With no stored typeface choice, rest on the manuscript's built-in default
+    // (the body carries it as data-typography) so the pressed tile matches what
+    // the document actually renders, with no flash of the wrong tile.
+    if (!prefs.typeface) {
+      prefs.typeface =
+        document.body && document.body.getAttribute("data-typography") === "serif"
+          ? "serif"
+          : "sans";
+    }
     for (const row of readingPanel.querySelectorAll(".reading-row")) {
       const value = prefs[row.dataset.control];
       if (!value || !row.querySelector(`.reading-opt[data-value="${value}"]`)) continue;
