@@ -152,7 +152,9 @@ class HTMLBuilder(BaseBuilder):
           <script>
             // Apply saved reading preferences before first paint (typeface,
             // size, line height, width, and light/dark). The interactive
-            // controls live in the sidebar's Reading tab.
+            // controls live in the sidebar's Reading tab. With no stored value
+            // for a control we set nothing, so the document keeps its built-in
+            // default (typeface comes from the body's data-typography).
             (function() {
               var prefs = {};
               try { prefs = JSON.parse(localStorage.getItem('rsm-reading') || '{}') || {}; } catch (e) {}
@@ -308,7 +310,9 @@ class StandaloneBuilder(HTMLBuilder):
             dark_mode_script = """
   <script>
     // Apply saved reading preferences before first paint; controls live in the
-    // sidebar's Reading tab.
+    // sidebar's Reading tab. With no stored value for a control we set nothing,
+    // so the document keeps its built-in default (typeface comes from the
+    // body's data-typography).
     (function() {
       var prefs = {};
       try { prefs = JSON.parse(localStorage.getItem('rsm-reading') || '{}') || {}; } catch (e) {}

@@ -173,3 +173,19 @@ class TestPinProofsAndTitles:
         _pin(page, "#st-1")
         # Titled like the block's own label, not the link text.
         expect(page.locator(".rail-pinned-title")).to_have_text(re.compile(r"^Step"))
+
+    def test_pinned_labelled_block_shows_its_label_once(self, page: Page, interactive_server: str):
+        # The pinned card's header carries the block's label ("Theorem 2.1"), so
+        # the cloned body must not repeat it as its first line.
+        _load(page, interactive_server)
+        _pin(page, "#thm-x")
+        expect(page.locator(".rail-pinned-title")).to_have_text("Theorem 2.1")
+        body = page.locator(".rail-pinned-body")
+        expect(body).to_contain_text("A claim about")
+        # The block's own rendered label is gone from the body.
+        expect(body.locator(".hr-label")).to_have_count(0)
+        # "Theorem 2.1" shows once across the whole card: in the header only.
+        count = page.locator(".rail-pinned").evaluate(
+            "el => (el.innerText.match(/Theorem 2\\.1/g) || []).length"
+        )
+        assert count == 1

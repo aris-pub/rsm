@@ -202,6 +202,31 @@ def test_reading_tiles_and_system_theme():
     assert 'class="reading-a" data-size="4"' in html
 
 
+def _with_typography(value):
+    return RAIL_SRC.replace(
+        "# Demo\n\n",
+        f"# Demo\n\n:config: {{\n  :typography: {value}\n}}\n::\n\n",
+    )
+
+
+def test_typeface_tile_reflects_manuscript_typography():
+    # With no stored preference the pressed Typeface tile must match the
+    # manuscript's built-in :typography:, the way the Theme row defaults to
+    # System. A serif manuscript presses Serif, a sans one presses Sans.
+    serif = _sidebar(_with_typography("serif"))
+    assert 'data-value="serif" aria-pressed="true" aria-label="Serif"' in serif
+    assert 'data-value="sans" aria-pressed="true"' not in serif
+
+    sans = _sidebar(_with_typography("sans-serif"))
+    assert 'data-value="sans" aria-pressed="true" aria-label="Sans"' in sans
+    assert 'data-value="serif" aria-pressed="true"' not in sans
+
+    # The default (no :typography: set at all) is sans.
+    default = _sidebar(RAIL_SRC)
+    assert 'data-value="sans" aria-pressed="true" aria-label="Sans"' in default
+    assert 'data-value="serif" aria-pressed="true"' not in default
+
+
 def test_handrail_menu_has_pin_item():
     assert 'data-role="pin"' in _sidebar(RAIL_SRC)
 

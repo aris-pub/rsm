@@ -136,6 +136,14 @@ export function pinTarget(href, title, origin = document) {
   tmp
     .querySelectorAll("[data-nodeid]")
     .forEach((e) => e.removeAttribute("data-nodeid"));
+  // The Pinned card shows the block's label as its header, so drop the block's
+  // own rendered label from the body to avoid showing it twice. Only the
+  // leading one (this block's label). Nested labels stay. Mirrors the State
+  // view, which likewise strips .hr-label from its clone.
+  if (title) {
+    const leadLabel = tmp.querySelector(".hr-label");
+    if (leadLabel) leadLabel.remove();
+  }
   pinnedTarget = href;
   origin.dispatchEvent(
     new CustomEvent("rail:pin", {

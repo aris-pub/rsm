@@ -2056,15 +2056,20 @@ body {
   .rail-notation-actions { display: flex; align-items: center; gap: var(--chunk-sixth); }
   .rail-notation-apply {
     padding: var(--chunk-twelfth) var(--chunk-quarter);
-    border: var(--border-extrathin) solid var(--primary-700);
+    border: var(--border-extrathin) solid var(--primary-800);
     border-radius: var(--radius-lg);
-    background: var(--primary-700);
-    color: #fff;
+    /* primary-50 on primary-800 so the label keeps WCAG AA in both themes: in
+       dark mode primary-800 is a light accent, so a hard-coded #fff failed. */
+    background: var(--primary-800);
+    color: var(--primary-50);
     font-size: 0.82rem;
     font-weight: 600;
     cursor: pointer;
   }
-  .rail-notation-apply:hover { background: var(--primary-800); }
+  .rail-notation-apply:hover {
+    background: var(--primary-900);
+    border-color: var(--primary-900);
+  }
   .rail-notation-input {
     flex: 1;
     min-width: 0;
@@ -2077,6 +2082,13 @@ body {
     color: var(--text-body);
   }
   .rail-notation-input:focus { outline: none; border-color: var(--primary-700); }
+  /* Keyboard focus gets the same visible ring as the other rail controls. A
+     bare border-color change is not a sufficient focus indicator (WCAG 2.4.7).
+     Comes after the :focus rule so it wins for keyboard focus. */
+  .rail-notation-input:focus-visible {
+    outline: var(--border-thin) solid var(--border-action);
+    outline-offset: 2px;
+  }
   .rail-notation-input.invalid { border-color: var(--error-500); }
   .rail-notation-preview {
     min-width: 1.8em;
@@ -2090,7 +2102,9 @@ body {
     background: none;
     cursor: pointer;
     padding: var(--chunk-twelfth);
-    color: var(--gray-400);
+    /* These icons are the control's only label, so they need >= 3:1 against the
+       rail (WCAG 1.4.11). gray-400 measured 1.88:1 in light mode. */
+    color: var(--text-subtle);
     font-size: 1rem;
     line-height: 1;
   }
