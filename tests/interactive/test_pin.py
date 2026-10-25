@@ -74,6 +74,10 @@ class TestPinToSidebar:
         expect(pin).to_have_attribute("aria-pressed", "true")
         assert pin.get_attribute("aria-label") == "Pinned in the sidebar"
         assert pin.get_attribute("data-pinned") is not None
+        # Clicking it again shows the excerpt rather than pinning it anew.
+        pin.click()
+        expect(page.locator(".proof-rail")).to_have_class(re.compile(r"\bscope-pinned\b"))
+        expect(page.locator(".proof-rail")).to_have_class(re.compile(r"\bopen\b"))
 
     def test_pin_replaces_previous(self, page: Page, interactive_server: str):
         _load(page, interactive_server)
@@ -112,3 +116,31 @@ class TestPinToSidebar:
         rail = page.locator(".proof-rail")
         expect(rail).to_have_class(re.compile(r"\bscope-pinned\b"))
         expect(page.locator(".rail-pinned")).to_contain_text("A claim about")
+
+
+class TestPinFigures:
+    """Figures can be pinned too: from a reference's preview and from the
+    figure's own handrail menu."""
+
+    def _load(self, page: Page, server: str) -> None:
+        page.set_viewport_size({"width": 1400, "height": 900})
+        page.goto(f"{server}/sidebar_figure.html")
+        page.wait_for_function(RSM_READY, timeout=10_000)
+
+    def test_figure_reference_preview_pins_figure(self, page: Page, interactive_server: str):
+        self._load(page, interactive_server)
+        _pin(page, "#fig-a")
+        expect(page.locator(".rail-pinned-body img")).to_have_count(1)
+
+    def test_figure_handrail_menu_has_pin(self, page: Page, interactive_server: str):
+        self._load(page, interactive_server)
+        fig = page.locator("figure#fig-a")
+        fig.scroll_into_view_if_needed()
+        fig.hover()
+        fig.locator(".hr-border-dots").first.click()
+        item = page.locator('#hr-menu-singleton [data-role="pin"]')
+        expect(item).to_be_visible()
+        item.click()
+        expect(page.locator(".proof-rail")).to_have_class(re.compile(r"\bscope-pinned\b"))
+        expect(page.locator(".rail-pinned-body img")).to_have_count(1)
+        expect(page.locator(".rail-pinned-title")).to_have_text("Figure 1.1")

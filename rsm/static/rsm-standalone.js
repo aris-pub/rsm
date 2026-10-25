@@ -1218,6 +1218,11 @@ var RSM = (() => {
     "definition",
     "proof"
   ];
+  function pinnableOf(hr) {
+    if (hr.id && PINNABLE.some((c) => hr.classList.contains(c))) return hr;
+    if (hr.matches("figcaption")) return hr.closest("figure[id]");
+    return null;
+  }
   var singletonMenu = null;
   var activeHr = null;
   var IS_TOUCH = typeof window !== "undefined" && typeof window.matchMedia === "function" && window.matchMedia("(hover: none) and (pointer: coarse)").matches;
@@ -1313,7 +1318,7 @@ var RSM = (() => {
       const anyCollapse = collapse || collapseAll2;
       collapseSep.style.display = anyCollapse ? "" : "none";
     }
-    const pinnable = !!hr.id && !!document.querySelector(".proof-rail .rail-pinned") && PINNABLE.some((c) => hr.classList.contains(c));
+    const pinnable = !!document.querySelector(".proof-rail .rail-pinned") && !!pinnableOf(hr);
     configureItem(singletonMenu.querySelector('[data-role="pin"]'), pinnable ? "true" : null);
     configureItem(singletonMenu.querySelector('[data-role="link"]'), link);
     configureItem(singletonMenu.querySelector('[data-role="code"]'), code);
@@ -1409,9 +1414,11 @@ var RSM = (() => {
     );
   }
   function pinBlock(hr) {
-    const label = (hr.getAttribute("data-menu-label") || "").replace(/\.$/, "").trim();
+    const block = pinnableOf(hr);
+    if (!block) return;
+    const label = block.matches("figure") ? block.querySelector("figcaption .label")?.textContent || "Figure" : hr.getAttribute("data-menu-label") || "";
     hideMenu();
-    pinTarget("#" + hr.id, label, hr);
+    pinTarget("#" + block.id, label.trim().replace(/\.$/, ""), block);
   }
   function triggerFocus(hr) {
     hideMenu();
@@ -2263,7 +2270,26 @@ var RSM = (() => {
       html.style.setProperty("--rail-ml", ml + "px");
       html.style.setProperty("--rail-mw", width + "px");
     }
-    window.addEventListener("resize", layout);
+    function fitGraphs() {
+      if (!open) return;
+      const cs = getComputedStyle(rail);
+      const box = rail.getBoundingClientRect();
+      const maxH = parseFloat(cs.maxHeight);
+      const bottom = box.top + (Number.isFinite(maxH) ? Math.max(maxH, box.height) : box.height);
+      for (const svg of rail.querySelectorAll("svg.toc-tree")) {
+        if (!svg.getClientRects().length) continue;
+        svg.style.maxHeight = "";
+        const section = svg.closest(".rail-section");
+        const pad = parseFloat(cs.paddingBottom) + (section ? parseFloat(getComputedStyle(section).paddingBottom) : 0) + parseFloat(cs.borderBottomWidth);
+        const top = section ? section.getBoundingClientRect().top + parseFloat(getComputedStyle(section).paddingTop) : svg.getBoundingClientRect().top;
+        const room = bottom - pad - top;
+        if (room > 0) svg.style.maxHeight = Math.floor(room) + "px";
+      }
+    }
+    window.addEventListener("resize", () => {
+      layout();
+      requestAnimationFrame(fitGraphs);
+    });
     new MutationObserver(layout).observe(html, {
       attributes: true,
       attributeFilter: ["data-reading-measure"]
@@ -2275,6 +2301,7 @@ var RSM = (() => {
       rail.classList.toggle("open", on);
       paintStrip();
       layout();
+      requestAnimationFrame(fitGraphs);
       holdAnchor(anchor);
       if (persist && !isPhone()) api.saveLayout({ open: on, view });
     }
@@ -2285,6 +2312,7 @@ var RSM = (() => {
       view = id;
       paintHead();
       paintStrip();
+      requestAnimationFrame(fitGraphs);
     }
     function openView(id, { toggle = true } = {}) {
       id = translate(id);
@@ -2312,9 +2340,13 @@ var RSM = (() => {
     rail.addEventListener("rail:subview", () => {
       paintHead();
       paintStrip();
+      requestAnimationFrame(fitGraphs);
     });
     document.addEventListener("rail:show", (ev) => {
       const d = ev.detail || {};
+      const sub = VIEWS[d.view] && VIEWS[d.view][1];
+      if (sub && has(d.view) === false && !isPhone()) return;
+      if (sub) api.selectSubview(sub);
       const id = translate(d.view);
       if (!VIEWS[id] || !has(id)) return;
       if (d.open) openView(id, { toggle: false });
@@ -3475,7 +3507,7 @@ var RSM = (() => {
     try {
       window.focus();
       await navigator.clipboard.writeText(shareUrlForCurrentView());
-      launchToast("View link copied: opens the paper arranged the way you have it.", "success");
+      launchToast("View link copied: it opens the manuscript arranged the way you have it.", "success");
     } catch {
       launchToast("Could not copy the view link.", "error");
     }

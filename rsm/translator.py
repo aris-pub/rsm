@@ -3037,7 +3037,7 @@ class HandrailsTranslator(Translator):
         pinned_section = (
             '<div class="rail-section rail-pinned">'
             '<div class="rail-pinned-empty">'
-            "Pin a result from a reference preview, or from a block’s menu, "
+            "Pin a reference\u2019s preview, or a block from its menu, "
             "to keep it open here.</div>"
             '<div class="rail-pinned-head">'
             '<span class="rail-pinned-title"></span>'

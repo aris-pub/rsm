@@ -13,6 +13,14 @@ const PINNABLE = [
   "exercise", "proposition", "problem", "porism", "remark", "definition", "proof",
 ];
 
+// The block a handrail's Pin acts on: the block itself, or, for a figure (whose
+// handrail sits on its caption), the figure. Null when it cannot be pinned.
+function pinnableOf(hr) {
+  if (hr.id && PINNABLE.some((c) => hr.classList.contains(c))) return hr;
+  if (hr.matches("figcaption")) return hr.closest("figure[id]");
+  return null;
+}
+
 let singletonMenu = null;
 let activeHr = null;
 
@@ -165,9 +173,7 @@ function showMenuFor(hr) {
 
   // Pin: only with the sidebar, on blocks a reader can pin.
   const pinnable =
-    !!hr.id &&
-    !!document.querySelector(".proof-rail .rail-pinned") &&
-    PINNABLE.some((c) => hr.classList.contains(c));
+    !!document.querySelector(".proof-rail .rail-pinned") && !!pinnableOf(hr);
   configureItem(singletonMenu.querySelector('[data-role="pin"]'), pinnable ? "true" : null);
 
   // Configure link and code items
@@ -337,9 +343,13 @@ function toggleReorder(hr) {
 // this step's prerequisite cone. Mirrors toggleReorder's menu->event handoff.
 // Keep this block open in the sidebar's Pinned view, titled by its label.
 function pinBlock(hr) {
-  const label = (hr.getAttribute("data-menu-label") || "").replace(/\.$/, "").trim();
+  const block = pinnableOf(hr);
+  if (!block) return;
+  const label = block.matches("figure")
+    ? (block.querySelector("figcaption .label")?.textContent || "Figure")
+    : hr.getAttribute("data-menu-label") || "";
   hideMenu();
-  pinTarget("#" + hr.id, label, hr);
+  pinTarget("#" + block.id, label.trim().replace(/\.$/, ""), block);
 }
 
 function triggerFocus(hr) {

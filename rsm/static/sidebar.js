@@ -173,7 +173,35 @@ export function setupStrip(strip, rail, api) {
     html.style.setProperty("--rail-ml", ml + "px");
     html.style.setProperty("--rail-mw", width + "px");
   }
-  window.addEventListener("resize", layout);
+  // A graph (Contents, Proof steps) scales down to fit what is left of the
+  // panel below its head, so it is never cut off.
+  function fitGraphs() {
+    if (!open) return;
+    const cs = getComputedStyle(rail);
+    const box = rail.getBoundingClientRect();
+    const maxH = parseFloat(cs.maxHeight);
+    const bottom = box.top + (Number.isFinite(maxH) ? Math.max(maxH, box.height) : box.height);
+    for (const svg of rail.querySelectorAll("svg.toc-tree")) {
+      if (!svg.getClientRects().length) continue;
+      svg.style.maxHeight = "";
+      const section = svg.closest(".rail-section");
+      const pad =
+        parseFloat(cs.paddingBottom) +
+        (section ? parseFloat(getComputedStyle(section).paddingBottom) : 0) +
+        parseFloat(cs.borderBottomWidth);
+      // Measured from the top of the graph's section (just below the head),
+      // not the graph itself, which may already overflow it.
+      const top = section
+        ? section.getBoundingClientRect().top + parseFloat(getComputedStyle(section).paddingTop)
+        : svg.getBoundingClientRect().top;
+      const room = bottom - pad - top;
+      if (room > 0) svg.style.maxHeight = Math.floor(room) + "px";
+    }
+  }
+  window.addEventListener("resize", () => {
+    layout();
+    requestAnimationFrame(fitGraphs);
+  });
   // The reading width changes the column.
   new MutationObserver(layout).observe(html, {
     attributes: true,
@@ -187,6 +215,7 @@ export function setupStrip(strip, rail, api) {
     rail.classList.toggle("open", on);
     paintStrip();
     layout();
+    requestAnimationFrame(fitGraphs);
     holdAnchor(anchor);
     if (persist && !isPhone()) api.saveLayout({ open: on, view: view });
   }
@@ -198,6 +227,7 @@ export function setupStrip(strip, rail, api) {
     view = id;
     paintHead();
     paintStrip();
+    requestAnimationFrame(fitGraphs);
   }
 
   // Open a view; the open view's own button closes it.
@@ -232,6 +262,7 @@ export function setupStrip(strip, rail, api) {
   rail.addEventListener("rail:subview", () => {
     paintHead();
     paintStrip();
+    requestAnimationFrame(fitGraphs);
   });
 
   // Other modules ask for a view: { view, open }. Without open, the view is
@@ -239,6 +270,11 @@ export function setupStrip(strip, rail, api) {
   // reader did not ask for.
   document.addEventListener("rail:show", (ev) => {
     const d = ev.detail || {};
+    // A specific view (Notation, say) picks its sub-view first, so a phone's
+    // Document sheet opens on that tab.
+    const sub = VIEWS[d.view] && VIEWS[d.view][1];
+    if (sub && has(d.view) === false && !isPhone()) return;
+    if (sub) api.selectSubview(sub);
     const id = translate(d.view);
     if (!VIEWS[id] || !has(id)) return;
     if (d.open) openView(id, { toggle: false });

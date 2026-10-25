@@ -1814,6 +1814,7 @@ body {
     gap: var(--chunk-twelfth);
     flex-shrink: 0;
     padding: var(--chunk-twelfth) 0 var(--chunk-quarter);
+    margin-bottom: var(--chunk-sixth);
     border-bottom: var(--border-extrathin) solid var(--border-primary);
   }
   .rail-title {
@@ -1860,7 +1861,7 @@ body {
     display: flex;
     flex-direction: column;
     gap: var(--chunk-quarter);
-    padding: var(--chunk-sixth) 0;
+    padding: var(--chunk-sixth) var(--chunk-twelfth);
     overflow-y: auto;
   }
   .reading-row {
@@ -3521,9 +3522,10 @@ a.reference.external:hover::after {
     padding: 0 var(--chunk-half) var(--chunk-half);
   }
   .manuscriptwrapper .proof-rail .rail-head {
-    margin: 0 var(--chunk-half);
+    margin: 0 var(--chunk-half) var(--chunk-quarter);
     padding: var(--chunk-quarter) 0;
   }
+  .manuscriptwrapper .proof-rail .rail-reading-panel { padding-left: 0; padding-right: 0; }
   /* The two graph views keep a usable height; the others fit their content. */
   .manuscriptwrapper .proof-rail.active.open.scope-document.doc-view-map,
   .manuscriptwrapper .proof-rail.active.open.scope-proof.proof-view-map:not(.no-proof) {

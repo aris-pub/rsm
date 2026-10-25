@@ -742,3 +742,134 @@ def test_phone_jump_to_bottom_target_clears_bar(page: Page, interactive_server: 
         " return {barTop: bar.top, lastBottom: last.bottom}; }"
     )
     assert geom["lastBottom"] <= geom["barTop"] - 8, geom
+
+
+# ---- keyboard and interface tooltips ----
+
+
+def test_keyboard_opens_and_escape_returns_focus(page: Page, interactive_server: str):
+    _load(page, interactive_server)
+    page.evaluate("() => localStorage.clear()")
+    page.reload()
+    page.wait_for_function(RSM_READY, timeout=10_000)
+    btn = page.locator('.rail-strip-btn[data-view="reading"]')
+    btn.focus()
+    page.keyboard.press("Enter")
+    assert _is_open(page)
+    assert btn.get_attribute("aria-pressed") == "true"
+    # Tab moves into the panel's controls.
+    page.keyboard.press("Tab")
+    in_panel_or_strip = page.evaluate(
+        "() => !!document.activeElement.closest('.proof-rail, .rail-strip')"
+    )
+    assert in_panel_or_strip
+    page.locator('.reading-opt[data-value="serif"]').focus()
+    page.keyboard.press("Escape")
+    assert not _is_open(page)
+    # Focus goes back to the strip button that opened the view.
+    assert page.evaluate(
+        "() => document.activeElement.matches('.rail-strip-btn[data-view=\"reading\"]')"
+    )
+
+
+def test_interface_tooltip_on_hover_and_keyboard_focus(page: Page, interactive_server: str):
+    _load(page, interactive_server)
+    page.evaluate("() => localStorage.clear()")
+    page.reload()
+    page.wait_for_function(RSM_READY, timeout=10_000)
+    tip = page.locator("#rsm-ui-tip")
+    assert tip.is_hidden()
+    page.hover('.rail-strip-btn[data-view="contents"]')
+    expect_tip = page.wait_for_function(
+        "() => { const t = document.getElementById('rsm-ui-tip');"
+        " return !t.hidden && t.textContent === 'Contents'; }",
+        timeout=3_000,
+    )
+    assert expect_tip
+    assert (
+        page.locator('.rail-strip-btn[data-view="contents"]').get_attribute("aria-describedby")
+        == "rsm-ui-tip"
+    )
+    # Beside the strip, not over it.
+    g = page.evaluate(
+        "() => ({tip: document.getElementById('rsm-ui-tip').getBoundingClientRect().left,"
+        " strip: document.querySelector('.rail-strip').getBoundingClientRect().right})"
+    )
+    assert g["tip"] >= g["strip"], g
+    # Keyboard focus shows it at once.
+    page.mouse.move(900, 600)
+    page.locator('.rail-strip-btn[data-view="contents"]').focus()
+    page.keyboard.press("Tab")
+    page.wait_for_function(
+        "() => { const t = document.getElementById('rsm-ui-tip');"
+        " return !t.hidden && t.textContent === 'Notation'; }",
+        timeout=1_000,
+    )
+    # The open view's own button needs no label.
+    page.keyboard.press("Enter")
+    page.mouse.move(900, 600)
+    page.hover('.rail-strip-btn[data-view="notation"]')
+    page.wait_for_timeout(600)
+    assert tip.is_hidden()
+
+
+def test_reading_settings_apply_and_persist(page: Page, interactive_server: str):
+    _load(page, interactive_server)
+    page.evaluate("() => localStorage.clear()")
+    page.reload()
+    page.wait_for_function(RSM_READY, timeout=10_000)
+    _show(page, "reading")
+    width_before = page.evaluate(
+        "() => document.querySelector('main.manuscriptwrapper').getBoundingClientRect().width"
+    )
+    for control, value in [("typeface", "serif"), ("size", "4"), ("leading", "loose"), ("measure", "narrow")]:
+        page.click(f'.reading-row[data-control="{control}"] .reading-opt[data-value="{value}"]')
+        assert page.evaluate(
+            f"() => document.documentElement.getAttribute('data-reading-{control}')"
+        ) == value
+    page.wait_for_timeout(400)
+    width_after = page.evaluate(
+        "() => document.querySelector('main.manuscriptwrapper').getBoundingClientRect().width"
+    )
+    assert width_after < width_before, (width_before, width_after)
+    page.reload()
+    page.wait_for_function(RSM_READY, timeout=10_000)
+    assert page.evaluate("() => document.documentElement.getAttribute('data-reading-size')") == "4"
+    _show(page, "reading")
+    assert (
+        page.locator('.reading-row[data-control="size"] .reading-opt[data-value="4"]').get_attribute("aria-pressed")
+        == "true"
+    )
+
+
+def test_phone_sheet_carries_over_to_desktop(page: Page, interactive_server: str):
+    _load_phone(page, interactive_server)
+    page.click('.rail-strip-btn[data-view="document"]')
+    page.click('.rail-subtabs-document .rail-tab[data-view="notation"]')
+    page.set_viewport_size({"width": 1400, "height": 900})
+    page.wait_for_timeout(300)
+    assert _is_open(page)
+    assert page.locator('.rail-strip-btn[data-view="notation"]').get_attribute("aria-pressed") == "true"
+    assert page.locator(".rail-title").inner_text() == "Notation"
+
+
+def test_phone_symbol_opens_notation_tab(page: Page, interactive_server: str):
+    _load_phone(page, interactive_server)
+    page.locator(".manuscript .paragraph .nt-eig").first.click()
+    page.wait_for_function(
+        "() => document.activeElement && document.activeElement.classList.contains('rail-notation-input')",
+        timeout=5_000,
+    )
+    assert page.locator('.rail-strip-btn[data-view="document"]').get_attribute("aria-pressed") == "true"
+    assert (
+        page.locator('.rail-subtabs-document .rail-tab[data-view="notation"]').get_attribute("aria-selected")
+        == "true"
+    )
+
+
+def test_desktop_strip_is_icon_only(page: Page, interactive_server: str):
+    """Regression (prototype): the strip's labels show only on the phone bar."""
+    _load(page, interactive_server)
+    assert page.locator(".rail-strip .rail-strip-label:visible").count() == 0
+    for b in page.locator(".rail-strip-btn:visible").all():
+        assert b.get_attribute("aria-label")

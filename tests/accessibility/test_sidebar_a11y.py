@@ -59,10 +59,12 @@ def test_sidebar_default_wcag(serve_rsm_a11y, page):
     assert not v, "\n" + _fmt(v)
 
 
+@pytest.mark.parametrize("theme", ["light", "dark"])
 @pytest.mark.parametrize("view", ["contents", "notation", "steps", "state", "pinned", "reading"])
-def test_sidebar_view_wcag(serve_rsm_a11y, page, view):
+def test_sidebar_view_wcag(serve_rsm_a11y, page, view, theme):
     page.set_viewport_size({"width": 1400, "height": 900})
     page = serve_rsm_a11y(SIDEBAR_SRC, sidebar=True)
+    _force_theme(page, theme)
     page.click(f'.rail-strip-btn[data-view="{view}"]')
     page.wait_for_selector(".proof-rail.open", timeout=5000)
     page.mouse.move(900, 600)
@@ -70,10 +72,12 @@ def test_sidebar_view_wcag(serve_rsm_a11y, page, view):
     assert not v, "\n" + _fmt(v)
 
 
-@pytest.mark.parametrize("view", ["document", "reading"])
-def test_sidebar_phone_wcag(serve_rsm_a11y, page, view):
+@pytest.mark.parametrize("theme", ["light", "dark"])
+@pytest.mark.parametrize("view", ["document", "proof", "pinned", "reading"])
+def test_sidebar_phone_wcag(serve_rsm_a11y, page, view, theme):
     page.set_viewport_size({"width": 375, "height": 812})
     page = serve_rsm_a11y(SIDEBAR_SRC, sidebar=True)
+    _force_theme(page, theme)
     page.click(f'.rail-strip-btn[data-view="{view}"]')
     page.wait_for_selector(".proof-rail.open", timeout=5000)
     v = _violations(page)
@@ -171,6 +175,8 @@ def _force_theme(page, theme):
         " c.remove('light-theme', 'dark-theme'); c.add(t + '-theme'); }",
         theme,
     )
+    # The page's colours transition (0.3s); scan the settled theme.
+    page.wait_for_timeout(400)
 
 
 def _pin_first_step(page):
@@ -235,3 +241,90 @@ def test_sidebar_notation_pane_wcag(serve_rsm_a11y, page):
     page.mouse.move(900, 600)
     v = _violations(page)
     assert not v, "\n" + _fmt(v)
+
+
+# ---- the strip's icons, the pin control and touch targets ----
+
+_ICON_COLORS = """(sel) => {
+    const el = document.querySelector(sel);
+    const cs = getComputedStyle(el);
+    let bg = cs.backgroundColor, n = el;
+    while (bg === 'rgba(0, 0, 0, 0)' && n.parentElement) {
+        n = n.parentElement; bg = getComputedStyle(n).backgroundColor;
+    }
+    return { fg: cs.color, bg };
+}"""
+
+
+@pytest.mark.parametrize("theme", ["light", "dark"])
+def test_strip_icons_meet_ui_contrast_in_every_state(serve_rsm_a11y, page, theme):
+    """WCAG 1.4.11: a strip icon keeps >= 3:1 against what is behind it at
+    rest, hovered and pressed (its view open)."""
+    page.set_viewport_size({"width": 1400, "height": 900})
+    page = serve_rsm_a11y(SIDEBAR_SRC, sidebar=True)
+    _force_theme(page, theme)
+    rest = '.rail-strip-btn[data-view="reading"]'
+    hover = '.rail-strip-btn[data-view="pinned"]'
+    pressed = '.rail-strip-btn[data-view="contents"]'
+    page.click(pressed)
+    page.hover(hover)
+    page.wait_for_timeout(200)
+    for state, sel in [("rest", rest), ("hover", hover), ("pressed", pressed)]:
+        c = page.evaluate(_ICON_COLORS, sel)
+        ratio = _contrast(_rgb(c["fg"]), _rgb(c["bg"]))
+        assert ratio >= 3.0, f"{theme} {state}: {ratio:.2f}:1 ({c})"
+
+
+@pytest.mark.parametrize("theme", ["light", "dark"])
+def test_pin_control_contrast_in_every_state(serve_rsm_a11y, page, theme):
+    """The pin control in a reference preview keeps >= 4.5:1 at rest, hovered
+    and pinned, in both themes."""
+    page.set_viewport_size({"width": 1400, "height": 900})
+    page = serve_rsm_a11y(SIDEBAR_SRC, sidebar=True)
+    _force_theme(page, theme)
+
+    def hover_pin():
+        ref = page.locator('.manuscript a.reference[href="#thm-x"]').first
+        ref.scroll_into_view_if_needed()
+        page.mouse.move(5, 5)
+        ref.hover()
+        pin = page.locator('.tooltipster-base .ref-pin[data-pin-target="#thm-x"]').last
+        pin.wait_for(state="visible", timeout=3000)
+        return pin
+
+    pin = hover_pin()
+    rest = page.evaluate(_ICON_COLORS, ".tooltipster-base .ref-pin")
+    pin.hover()
+    page.wait_for_timeout(150)
+    hovered = page.evaluate(_ICON_COLORS, ".tooltipster-base .ref-pin")
+    pin.click()
+    page.keyboard.press("Escape")
+    hover_pin()
+    pinned = page.evaluate(_ICON_COLORS, ".tooltipster-base .ref-pin[data-pinned]")
+    for state, c in [("rest", rest), ("hover", hovered), ("pinned", pinned)]:
+        ratio = _contrast(_rgb(c["fg"]), _rgb(c["bg"]))
+        assert ratio >= 4.5, f"{theme} {state}: {ratio:.2f}:1 ({c})"
+
+
+def test_phone_touch_targets(serve_rsm_a11y, page):
+    """Phones: bar buttons >= 48px, Reading tiles >= 44px, sheet tabs >= 24px
+    tall (WCAG 2.5.8)."""
+    page.set_viewport_size({"width": 375, "height": 812})
+    page = serve_rsm_a11y(SIDEBAR_SRC, sidebar=True)
+    sizes = page.evaluate(
+        "() => [...document.querySelectorAll('.rail-strip-btn')].filter(b => b.offsetParent)"
+        ".map(b => { const r = b.getBoundingClientRect(); return [r.width, r.height]; })"
+    )
+    assert sizes and all(w >= 48 and h >= 48 for w, h in sizes), sizes
+    page.click('.rail-strip-btn[data-view="reading"]')
+    tiles = page.evaluate(
+        "() => [...document.querySelectorAll('.reading-opt')].filter(b => b.offsetParent)"
+        ".map(b => { const r = b.getBoundingClientRect(); return [r.width, r.height]; })"
+    )
+    assert tiles and all(w >= 44 and h >= 44 for w, h in tiles), tiles
+    page.click('.rail-strip-btn[data-view="document"]')
+    tabs = page.evaluate(
+        "() => [...document.querySelectorAll('.rail-subtabs-document .rail-tab')]"
+        ".map(b => b.getBoundingClientRect().height)"
+    )
+    assert tabs and all(h >= 24 for h in tabs), tabs

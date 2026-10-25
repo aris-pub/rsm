@@ -102,3 +102,22 @@ def test_phone_sheet_sits_above_the_bar(page: Page, interactive_server: str):
         " bar: document.querySelector('.rail-strip').getBoundingClientRect().top})"
     )
     assert g["sheet"] <= g["bar"], g
+
+
+_GRAPH_FITS = """() => {
+    const panel = document.querySelector('.proof-rail').getBoundingClientRect();
+    const svg = document.querySelector('.proof-rail .rail-doc-map svg.toc-tree').getBoundingClientRect();
+    return {panelTop: panel.top, panelBottom: panel.bottom, svgTop: svg.top, svgBottom: svg.bottom,
+            svgLeft: svg.left, svgRight: svg.right, panelLeft: panel.left, panelRight: panel.right};
+}"""
+
+
+@pytest.mark.parametrize("viewport", [{"width": 1280, "height": 800}, PHONE], ids=["desktop", "phone"])
+def test_contents_graph_fits_its_panel(page: Page, interactive_server: str, viewport):
+    """A tall section graph scales down to fit the panel or sheet; it is never
+    cut off at the top or bottom."""
+    _load(page, interactive_server, page_name="sidebar_long", viewport=viewport)
+    _open(page, "document" if viewport is PHONE else "contents")
+    g = page.evaluate(_GRAPH_FITS)
+    assert g["svgTop"] >= g["panelTop"] - 1 and g["svgBottom"] <= g["panelBottom"] + 1, g
+    assert g["svgLeft"] >= g["panelLeft"] - 1 and g["svgRight"] <= g["panelRight"] + 1, g
