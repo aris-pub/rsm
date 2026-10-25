@@ -355,12 +355,11 @@ class TestMakeCLIFileOutput:
         assert "<style>" in html_content
         assert custom_css in html_content
 
-        # <style> tag should come after CDN braiid.css link
-        cdn_css_pos = html_content.find("cdn.jsdelivr.net")
-        style_tag_pos = html_content.find("<style>")
-        assert cdn_css_pos < style_tag_pos, (
-            "Inline custom CSS should come after CDN braiid.css"
-        )
+        # Custom CSS must come after braiid.css (now inlined) so it can override it.
+        braiid_pos = html_content.find("--primary-700")
+        custom_pos = html_content.find(custom_css)
+        assert braiid_pos != -1, "braiid.css should be inlined"
+        assert braiid_pos < custom_pos, "Inline custom CSS should come after braiid.css"
 
     @pytest.mark.slow
     def test_make_cli_custom_css_nonexistent_file(self, tmp_path):
