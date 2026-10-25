@@ -217,7 +217,7 @@ export function setupStrip(strip, rail, api) {
     layout();
     requestAnimationFrame(fitGraphs);
     holdAnchor(anchor);
-    if (persist && !isPhone()) api.saveLayout({ open: on, view: view });
+    if (persist && !isPhone()) api.saveLayout({ view: view });
   }
 
   function select(id) {
@@ -306,8 +306,8 @@ export function setupStrip(strip, rail, api) {
     ? translate(saved.view)
     : first && first.dataset.view;
   if (restore) select(restore);
-  if (saved.open && !isPhone() && restore) setOpen(true, { persist: false });
-  else layout();
+  // The panel always starts closed; only the view is remembered.
+  layout();
   paintHead();
   paintStrip();
   requestAnimationFrame(() =>

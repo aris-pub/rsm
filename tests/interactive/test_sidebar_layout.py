@@ -84,15 +84,6 @@ def test_crossing_the_phone_breakpoint(page: Page, interactive_server: str):
     expect(page.locator('.rail-strip-btn[data-view="document"]')).to_be_hidden()
 
 
-def test_phone_never_reopens_the_sheet(page: Page, interactive_server: str):
-    _load(page, interactive_server)
-    _open(page, "contents")  # persisted as open on desktop
-    page.set_viewport_size(PHONE)
-    page.reload()
-    page.wait_for_function(RSM_READY, timeout=10_000)
-    assert not page.evaluate("() => document.documentElement.classList.contains('rail-open')")
-
-
 def test_phone_sheet_sits_above_the_bar(page: Page, interactive_server: str):
     _load(page, interactive_server, viewport=PHONE)
     page.click('.rail-strip-btn[data-view="reading"]')

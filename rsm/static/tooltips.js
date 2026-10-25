@@ -54,6 +54,10 @@ function buildExcerpt(rawHref) {
       stripHandrail(clone);
       clone.css("font-size", "0.7rem");
       content = clone.html();
+    } else if (classes.contains("proof")) {
+      clone = $t.clone();
+      stripHandrail(clone);
+      content = clone.html();
     } else if (["math", "algorithm"].some((c) => classes.contains(c))) {
       clone = $t.clone();
       stripHandrail(clone);
@@ -194,7 +198,14 @@ export function createTooltips() {
         setTooltipContent(instance, "");
         return;
       }
-      const title = (helper.origin.textContent || "").trim();
+      // Title the excerpt like the block names itself ("Equation (1)"), not by
+      // the link text ("(1)"), falling back to the link text.
+      const target = document.getElementById((rawHref || "").replace(/^#/, ""));
+      const title = (
+        (target && target.getAttribute("data-menu-label")) ||
+        helper.origin.textContent ||
+        ""
+      ).trim().replace(/\.$/, "");
       setTooltipContent(instance, pinBar(rawHref, title) + content);
     },
     functionReady: function (instance, helper) {

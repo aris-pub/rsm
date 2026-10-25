@@ -2888,8 +2888,10 @@ class HandrailsTranslator(Translator):
                   "The steps of the proof in view and which earlier steps each one uses."),
         "state": ("Proof state", "proof", "state",
                   "What is assumed and what is left to prove at the step you are on."),
-        "pinned": ("Pinned", "pinned", "", ""),
-        "reading": ("Reading", "reading", "", ""),
+        "pinned": ("Pinned", "pinned", "",
+                   "A block you pinned, kept open beside the text."),
+        "reading": ("Reading", "reading", "",
+                    "How the manuscript looks: typeface, size, spacing and theme."),
     }
 
     def _make_proof_rail(self):

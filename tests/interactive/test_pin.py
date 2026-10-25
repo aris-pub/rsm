@@ -144,3 +144,21 @@ class TestPinFigures:
         expect(page.locator(".proof-rail")).to_have_class(re.compile(r"\bscope-pinned\b"))
         expect(page.locator(".rail-pinned-body img")).to_have_count(1)
         expect(page.locator(".rail-pinned-title")).to_have_text("Figure 1.1")
+
+
+class TestPinProofsAndTitles:
+    def test_handrail_menu_pins_a_proof(self, page: Page, interactive_server: str):
+        _load(page, interactive_server)
+        proof = page.locator(".manuscript .proof.hr").first
+        proof.scroll_into_view_if_needed()
+        proof.hover()
+        proof.locator(":scope > .hr-border-zone .hr-border-dots").click()
+        page.locator('#hr-menu-singleton [data-role="pin"]').click()
+        expect(page.locator(".proof-rail")).to_have_class(re.compile(r"\bscope-pinned\b"))
+        expect(page.locator(".rail-pinned-body")).to_contain_text("First")
+
+    def test_preview_pin_is_titled_by_the_block(self, page: Page, interactive_server: str):
+        _load(page, interactive_server)
+        _pin(page, "#st-1")
+        # Titled like the block's own label, not the link text.
+        expect(page.locator(".rail-pinned-title")).to_have_text(re.compile(r"^Step"))

@@ -342,3 +342,9 @@ def test_pick_introduces_a_hypothesis():
     p = _proof(src)
     # the later step's hypotheses include the pick'd symbol from the first step
     assert any(h["node"].kind == "pick" for h in p.step_state[1]["hyps"])
+
+
+def test_render_sidebar_implies_handrails():
+    # The sidebar is built on the handrails markup; asking for it is enough.
+    html = rsm.render(RAIL_SRC, sidebar=True)
+    assert 'class="rail-strip"' in html

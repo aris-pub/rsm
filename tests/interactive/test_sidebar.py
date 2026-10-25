@@ -82,6 +82,11 @@ def test_panel_head_names_the_view(page: Page, interactive_server: str):
     _show(page, "notation")
     assert page.locator(".rail-title").inner_text() == "Notation"
     assert "Rename one" in page.locator(".rail-hint").inner_text()
+    # Every view says what it shows.
+    for view in ("steps", "state", "pinned", "reading"):
+        _show(page, view)
+        assert page.locator(".rail-hint").is_visible(), view
+        assert page.locator(".rail-hint").inner_text().strip(), view
 
 
 def test_document_notation_view(page: Page, interactive_server: str):
@@ -99,18 +104,15 @@ def test_proof_state_view(page: Page, interactive_server: str):
     assert "proof-view-map" not in _rail_class(page)
 
 
-def test_open_view_persists(page: Page, interactive_server: str):
+def test_panel_starts_closed_but_remembers_the_view(page: Page, interactive_server: str):
+    """The panel always starts closed; the reader's last view is remembered for
+    the next time they open it."""
     _load(page, interactive_server)
     _show(page, "state")
     page.reload()
     page.wait_for_function(RSM_READY, timeout=10_000)
-    assert _is_open(page), "an open panel should stay open across a reload"
-    assert "proof-view-state" in _rail_class(page), "the view should persist"
-    # Closing persists too.
-    page.click('.rail-strip-btn[data-view="state"]')
-    page.reload()
-    page.wait_for_function(RSM_READY, timeout=10_000)
-    assert not _is_open(page)
+    assert not _is_open(page), "the panel must start closed"
+    assert "proof-view-state" in _rail_class(page), "the last view should persist"
 
 
 def test_panel_never_covers_the_text(page: Page, interactive_server: str):

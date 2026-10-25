@@ -325,6 +325,9 @@ class ProcessorApp(ParserApp):
                 Task("linter", linter_instance := linter.Linter(), linter_instance.lint)
             )
 
+        # The sidebar is built on the handrails markup, so asking for it is enough.
+        if sidebar:
+            handrails = True
         if not handrails:
             tr = translator.Translator(asset_resolver=asset_resolver, standalone=standalone)
         else:

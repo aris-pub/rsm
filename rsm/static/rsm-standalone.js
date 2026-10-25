@@ -998,6 +998,10 @@ var RSM = (() => {
         stripHandrail(clone);
         clone.css("font-size", "0.7rem");
         content = clone.html();
+      } else if (classes.contains("proof")) {
+        clone = $t.clone();
+        stripHandrail(clone);
+        content = clone.html();
       } else if (["math", "algorithm"].some((c) => classes.contains(c))) {
         clone = $t.clone();
         stripHandrail(clone);
@@ -1121,7 +1125,8 @@ var RSM = (() => {
           setTooltipContent(instance, "");
           return;
         }
-        const title = (helper.origin.textContent || "").trim();
+        const target = document.getElementById((rawHref || "").replace(/^#/, ""));
+        const title = (target && target.getAttribute("data-menu-label") || helper.origin.textContent || "").trim().replace(/\.$/, "");
         setTooltipContent(instance, pinBar(rawHref, title) + content);
       },
       functionReady: function(instance, helper) {
@@ -2303,7 +2308,7 @@ var RSM = (() => {
       layout();
       requestAnimationFrame(fitGraphs);
       holdAnchor(anchor);
-      if (persist && !isPhone()) api.saveLayout({ open: on, view });
+      if (persist && !isPhone()) api.saveLayout({ view });
     }
     function select(id) {
       const [scope, sub] = VIEWS[id];
@@ -2369,8 +2374,7 @@ var RSM = (() => {
     const first = buttons().find(visible);
     const restore = saved.view && VIEWS[translate(saved.view)] && has(translate(saved.view)) ? translate(saved.view) : first && first.dataset.view;
     if (restore) select(restore);
-    if (saved.open && !isPhone() && restore) setOpen(true, { persist: false });
-    else layout();
+    layout();
     paintHead();
     paintStrip();
     requestAnimationFrame(
