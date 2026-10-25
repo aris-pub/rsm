@@ -29,7 +29,8 @@ class TestStandaloneMode:
         result = rsm.build(source, handrails=False, lint=False, standalone=False)
 
         assert 'href="/static/braiid.css"' in result
-        assert 'href="/static/tooltipster.bundle.css"' in result
+        # tooltipster CSS is imported into the vendor cascade layer (rsm-3y7).
+        assert 'url("/static/tooltipster.bundle.css") layer(vendor)' in result
         assert 'src="/static/jquery-3.6.0.js"' in result
         assert 'src="/static/tooltipster.bundle.js"' in result
 
@@ -43,16 +44,15 @@ class TestStandaloneMode:
         assert 'src="/static/jquery-3.6.0.js"' not in result
         assert "jQuery" in result
 
-    def test_standalone_true_uses_cdn_for_tooltipster(self):
-        """Test that standalone=True uses CDN URL for Tooltipster."""
+    def test_standalone_true_inlines_tooltipster_in_vendor_layer(self):
+        """Standalone inlines tooltipster CSS in the vendor cascade layer (not a
+        CDN), so BRAIID's base-layer tooltip theme wins (rsm-3y7)."""
         source = ":rsm:\n\nHello world.\n\n::"
         result = rsm.build(source, handrails=False, lint=False, standalone=True)
 
-        # Should use CDN for tooltipster CSS and JS
-        assert "cdn.jsdelivr.net/npm/tooltipster@4" in result
-        # Should NOT use /static/ paths
-        assert 'href="/static/tooltipster.bundle.css"' not in result
-        assert 'src="/static/tooltipster.bundle.js"' not in result
+        assert "cdn.jsdelivr.net/npm/tooltipster" not in result
+        assert "@layer vendor" in result
+        assert "tooltipster-sidetip" in result  # the vendored CSS is inlined
 
     def test_standalone_true_uses_studio_url_for_rsm_assets(self):
         """Test that standalone=True uses Studio backend URL for RSM assets."""
@@ -180,13 +180,13 @@ class TestStandaloneCDNVersions:
         assert "/npm/jquery@" not in result  # not loaded from a CDN
         assert 'version = "3.6.0"' in result  # the inlined jQuery source is v3.6.0
 
-    def test_tooltipster_version_matches_bundled(self):
-        """Test Tooltipster CDN uses version compatible with bundled version."""
+    def test_tooltipster_is_the_vendored_bundle(self):
+        """Standalone inlines the vendored tooltipster bundle, not a CDN copy."""
         source = ":rsm:\n\nTest.\n\n::"
         result = rsm.build(source, handrails=False, lint=False, standalone=True)
 
-        # Tooltipster 4.x series
-        assert "tooltipster@4" in result
+        assert "/npm/tooltipster@" not in result
+        assert "tooltipster-base" in result  # vendored CSS content is present
 
 
 class TestCustomCSS:

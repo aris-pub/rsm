@@ -176,7 +176,7 @@ class HTMLBuilder(BaseBuilder):
           <meta name="generator" content="RSM 0.0.1 https://github.com/leotrs/rsm" />
 
           <link rel="stylesheet" type="text/css" href="/static/braiid.css" />
-          <link rel="stylesheet" type="text/css" href="/static/tooltipster.bundle.css" />
+          <style>@import url("/static/tooltipster.bundle.css") layer(vendor);</style>
           <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pseudocode@latest/build/pseudocode.min.css">
 {custom_css_link}{menu_position_style}
           <script src="/static/jquery-3.6.0.js"></script>
@@ -270,9 +270,21 @@ class StandaloneBuilder(HTMLBuilder):
             return ""
         return f"<script>\n{path.read_text()}\n  </script>"
 
+    def _get_tooltipster_css_inline(self) -> str:
+        """Inline the vendored tooltipster CSS in the vendor cascade layer, so
+        BRAIID's base-layer tooltip theme wins (rsm-3y7). Both build modes use
+        this same vendored file, so they cannot diverge (the CDN build used to
+        ship no theme and the local build the shadow theme)."""
+        path = Path(__file__).parent / "static" / "tooltipster.bundle.css"
+        if not path.exists():
+            logger.warning(f"tooltipster CSS not found: {path}")
+            return f'<link rel="stylesheet" href="{self.CDN_TOOLTIPSTER_CSS}" />'
+        return f"<style>\n@layer vendor {{\n{path.read_text()}\n}}\n  </style>"
+
     def make_html_header(self) -> str:
         inline_js = self._get_inline_js()
         braiid_css_inline = self._get_braiid_css_inline()
+        tooltipster_css_inline = self._get_tooltipster_css_inline()
         jquery_inline = self._get_inline_script("jquery-3.6.0.js")
         tooltipster_js_inline = self._get_inline_script("tooltipster.bundle.js")
         custom_css_inline = self._get_custom_css_inline()
@@ -319,7 +331,7 @@ class StandaloneBuilder(HTMLBuilder):
   <meta name="generator" content="RSM 0.0.1 https://github.com/leotrs/rsm" />
 
   {braiid_css_inline}
-  <link rel="stylesheet" type="text/css" href="{self.CDN_TOOLTIPSTER_CSS}" />
+  {tooltipster_css_inline}
   <link rel="stylesheet" href="{self.CDN_PSEUDOCODE_CSS}">
   {pygments_css_inline}{custom_css_inline}{menu_position_style}
   {jquery_inline}
