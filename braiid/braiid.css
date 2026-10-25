@@ -2588,7 +2588,13 @@ body {
   margin-block: var(--h2-size);
   text-align: center;
   max-width: 100%;
-  overflow-x: auto; }
+  overflow-x: auto;
+  /* Clip the vertical axis so overflow-x:auto does not force overflow-y to auto
+     and grow a spurious vertical scrollbar on a 1px overflow (a tall inline
+     fraction in the caption, a child margin, a focus ring). overflow-x stays so
+     the figure keeps its block formatting context (dropping it collapses the
+     child margins and shifts the layout) and wide content can still scroll. */
+  overflow-y: hidden; }
 .manuscriptwrapper figure > *:not(figcaption) {
   max-width: 100%;
   overflow-x: auto; }
@@ -2710,6 +2716,11 @@ body {
 .manuscriptwrapper .table-wrapper {
   margin-block: 1em;
   overflow-x: auto;
+  /* Clip the vertical axis so overflow-x:auto does not force overflow-y to auto
+     and grow a spurious vertical scrollbar; wide tables still scroll sideways.
+     (As on the mathblock zone: alongside overflow-x:auto, this is the hidden the
+     spec downgrades clip to.) */
+  overflow-y: hidden;
   text-align: center; }
 .manuscriptwrapper .table-wrapper > table {
   display: inline-table; }
