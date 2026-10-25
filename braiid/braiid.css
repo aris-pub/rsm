@@ -2187,6 +2187,14 @@ body {
     font-variant-numeric: tabular-nums;
     user-select: none;
   }
+  /* A §n section marker is secondary provenance, not a step count: set it
+     smaller and muted so it never reads as a stray ⟨n⟩ step number. The marker
+     is aria-hidden, so the quieter --text-subtle color is fine here even though
+     it would miss AA as body text. */
+  .rail-state-num-section {
+    font-size: 0.62em;
+    color: var(--text-subtle);
+  }
   .rail-jump-row > :not(.rail-state-num) {
     padding: var(--chunk-twelfth) 0 var(--chunk-twelfth) var(--chunk-sixth);
   }

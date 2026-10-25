@@ -609,14 +609,24 @@ export function setup(root = document) {
       return { block, body };
     }
 
-    // The provenance number in a row's left gutter, bracketed by kind: ⟨n⟩ for a
-    // step, (n) for a section. Decorative: the same fact is in the keyword
-    // control's tooltip/aria-label, so it is hidden from screen readers.
+    // The provenance number in a row's left gutter, by kind: ⟨n⟩ for a step,
+    // §n for a section. The section marker gets its own class so CSS can render
+    // it small and muted: beside the ⟨n⟩ step glyphs a bracketed "(n)" read as a
+    // stray step number, so sections are set apart in form and in weight.
+    // Decorative: the same fact is in the keyword control's tooltip/aria-label,
+    // so it is hidden from screen readers.
     function numCell(num, kind) {
       const s = document.createElement("span");
       s.className = "rail-state-num";
       s.setAttribute("aria-hidden", "true");
-      if (num) s.textContent = kind === "section" ? "(" + num + ")" : "⟨" + num + "⟩";
+      if (num) {
+        if (kind === "section") {
+          s.classList.add("rail-state-num-section");
+          s.textContent = "§" + num;
+        } else {
+          s.textContent = "⟨" + num + "⟩";
+        }
+      }
       return s;
     }
 
