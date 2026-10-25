@@ -294,7 +294,7 @@ class Node:
         Output meta for even more debugging information.
 
         >>> print(msc.sexp(meta=True))
-        (Manuscript { :accent: blue, :lang: en, :numbering: section, :reftext: Manuscript, :typography: sans-serif }
+        (Manuscript { :accent: blue, :citation_style: numeric, :lang: en, :numbering: section, :reftext: Manuscript, :typography: sans-serif }
           (Section { :reftext: Section }
             (Paragraph { :reftext: Paragraph }
               (Text { :reftext: Text })))
@@ -312,7 +312,7 @@ class Node:
         Use `ignore_meta_keys` for a less verbose output.
 
         >>> print(msc.sexp(meta=True, ignore_meta_keys={"reftext"}))
-        (Manuscript { :accent: blue, :lang: en, :numbering: section, :typography: sans-serif }
+        (Manuscript { :accent: blue, :citation_style: numeric, :lang: en, :numbering: section, :typography: sans-serif }
           (Section {  }
             (Paragraph {  }
               (Text {  })))
@@ -1102,6 +1102,7 @@ class Heading(NodeWithChildren):
 class Manuscript(Heading):
     newmetakeys: ClassVar[set] = {
         "accent",
+        "citation_style",
         "date",
         "lang",
         "numbering",
@@ -1116,7 +1117,7 @@ class Manuscript(Heading):
         return super().reftext
 
     def __init__(
-        self, src: str = "", date: datetime | None = None, numbering: str = "section", accent: str = "blue", lang: str = "en", typography: str = "sans-serif", **kwargs: Any
+        self, src: str = "", date: datetime | None = None, numbering: str = "section", accent: str = "blue", lang: str = "en", typography: str = "sans-serif", citation_style: str = "numeric", **kwargs: Any
     ) -> None:
         super().__init__(**kwargs)
         self.src = src
@@ -1125,6 +1126,7 @@ class Manuscript(Heading):
         self.accent = accent
         self.lang = lang
         self.typography = typography
+        self.citation_style = citation_style
 
     @property
     def full_number(self) -> str:
@@ -1789,6 +1791,26 @@ class Bibitem(Node):
         self.url = url
         self.verbatim = verbatim
         self.backlinks = []
+        # Set during transform for author-year citations: "a", "b", ... when
+        # this work shares an author and year with another cited work, else "".
+        self.year_suffix = ""
+
+    def short_author(self) -> str:
+        """The author display for an author-year citation: one, two, or three
+        surnames spelled out, four or more collapsed to the first surname plus
+        "et al." The author field is bibtex-style "Family, Given and Family,
+        Given", so the surname is the text before the first comma."""
+        authors = [a.strip() for a in (self.author or "").split(" and ") if a.strip()]
+        surnames = [a.split(",")[0].strip() for a in authors]
+        if not surnames:
+            return ""
+        if len(surnames) == 1:
+            return surnames[0]
+        if len(surnames) == 2:
+            return f"{surnames[0]} and {surnames[1]}"
+        if len(surnames) == 3:
+            return f"{surnames[0]}, {surnames[1]} and {surnames[2]}"
+        return f"{surnames[0]} et al."
 
 
 class UnknownBibitem(Bibitem):

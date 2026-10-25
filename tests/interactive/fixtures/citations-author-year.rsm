@@ -1,0 +1,34 @@
+# Author-year citations
+
+:config: {
+  :citation-style: parens-author-year
+}
+::
+
+An embedding result :cite:bourgainA:: and its companion :cite:bourgainB::, beside
+a multi-author work :cite:arora::.
+
+:references:
+
+@article{bourgainA,
+      title={Aaa embedding},
+      author={Bourgain, Jean},
+      year={1985},
+      journal={Israel J. Math.},
+     }
+
+@article{bourgainB,
+      title={Bbb embedding},
+      author={Bourgain, Jean},
+      year={1985},
+      journal={Israel J. Math.},
+     }
+
+@article{arora,
+      title={Expander flows},
+      author={Arora, Sanjeev and Lee, James R and Naor, Assaf},
+      year={2008},
+      journal={J. ACM},
+     }
+
+::

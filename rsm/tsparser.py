@@ -678,6 +678,15 @@ def _abstractify(cst: TSTree) -> nodes.Manuscript:
                                     f"Must be one of: {', '.join(valid_typography)}"
                             )
 
+                    # Validate citation-style value
+                    if "citation_style" in config_dict:
+                        valid_styles = ["numeric", "parens-author-year", "author-parens-year"]
+                        if config_dict["citation_style"] not in valid_styles:
+                            raise RSMParserError(
+                                msg=f"Invalid citation-style value: {config_dict['citation_style']}. "
+                                    f"Must be one of: {', '.join(valid_styles)}"
+                            )
+
                     # Validate lang value (basic format check for language codes)
                     if "lang" in config_dict:
                         import re

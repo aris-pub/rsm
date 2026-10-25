@@ -30,7 +30,7 @@ from collections import defaultdict
 from collections.abc import Generator
 from itertools import count
 from pathlib import Path
-from string import ascii_uppercase
+from string import ascii_lowercase, ascii_uppercase
 
 from . import nodes
 from . import proof
@@ -153,6 +153,7 @@ class Transformer:
         self.assign_author_note_symbols()
         self.build_author_block()
         self.autonumber_nodes()
+        self.sort_author_year_bibliography()
         self.make_toc()
         self.analyze_proofs()
         self.add_keywords_to_constructs()
@@ -574,6 +575,53 @@ class Transformer:
                     node.reftext_template = node.reftext_template.replace(
                         "{nodeclass}", "Appendix"
                     )
+
+    def sort_author_year_bibliography(self) -> None:
+        """In author-year citation modes, order the bibliography by author then
+        year (not citation order) and assign a/b/c year suffixes to works that
+        would otherwise cite identically (same displayed author and year). The
+        suffix follows the sorted order and is reused in the citation text."""
+        style = getattr(self.tree, "citation_style", "numeric")
+        if style not in ("parens-author-year", "author-parens-year"):
+            return
+
+        bib = None
+        for node in self.tree.traverse(nodeclass=nodes.Bibliography):
+            bib = node
+            break
+        if bib is None:
+            return
+
+        items = [c for c in bib.children if isinstance(c, nodes.Bibitem)]
+
+        def sort_key(item: nodes.Bibitem) -> tuple:
+            surnames = [
+                a.split(",")[0].strip().lower()
+                for a in (item.author or "").split(" and ")
+                if a.strip()
+            ]
+            return (
+                surnames[0] if surnames else "",
+                str(item.year or ""),
+                (item.title or "").lower(),
+                item.label or "",
+            )
+
+        items.sort(key=sort_key)
+        # Node equality is value-based, so order the real children by identity.
+        order = {id(item): i for i, item in enumerate(items)}
+        bib._children.sort(key=lambda c: order.get(id(c), -1))
+
+        # Group the sorted items by what the reader sees (author plus year). A
+        # group of more than one needs a/b/c to tell its members apart.
+        groups: dict[tuple, list[nodes.Bibitem]] = defaultdict(list)
+        for item in items:
+            groups[(item.short_author(), str(item.year or ""))].append(item)
+        for members in groups.values():
+            if len(members) < 2:
+                continue
+            for suffix, item in zip(ascii_lowercase, members):
+                item.year_suffix = suffix
 
     def make_toc(self) -> None:
         toc = None

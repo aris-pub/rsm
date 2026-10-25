@@ -39,7 +39,17 @@ Citing sources
 --------------
 
 Use ``:cite:<key>::`` to cite a bibliography entry anywhere in your manuscript.
-The citation renders as a numbered link with a tooltip preview.
+By default the citation renders as a numbered link (``[1]``) with a tooltip preview.
+
+
+Citation style
+--------------
+
+Every citation in a document renders the same way. Set ``:citation-style:`` in a
+``:config:`` block to switch the whole document from the default numeric style to
+author-year, either ``parens-author-year`` (``(Knuth, 2014)``) or ``author-parens-year``
+(``Knuth (2014)``). In author-year mode the bibliography is unnumbered and sorted by author
+then year. See the configuration reference for the full list of values.
 
 
 Multiple citations

@@ -127,6 +127,34 @@ Controls how theorems, lemmas, and other numbered environments are numbered.
    ::
 
 
+citation-style
+--------------
+
+Controls how every ``:cite:`` in the document is rendered. The choice is document-wide, so
+all citations render the same way.
+
+**Valid values:**
+
+- ``numeric`` (default): a bracketed number, e.g. ``[5]``. The bibliography is numbered and
+  kept in source order.
+- ``parens-author-year``: author and year in parentheses, e.g. ``(Bourgain, 1985)``.
+- ``author-parens-year``: author outside, year in parentheses, e.g. ``Bourgain (1985)``.
+
+In the two author-year modes, one, two, or three authors are spelled out and four or more
+collapse to the first surname plus "et al." The bibliography is unnumbered and sorted by
+author then year, and works that would otherwise cite identically get ``a``/``b`` year
+suffixes, e.g. ``(Bourgain, 1985a)`` and ``(Bourgain, 1985b)``.
+
+**Example:**
+
+.. code-block:: text
+
+   :config: {
+     :citation-style: parens-author-year
+   }
+   ::
+
+
 override-date
 -------------
 
