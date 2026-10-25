@@ -130,10 +130,17 @@ def add_necessary_subproofs(tree) -> None:
 
 def number_steps(proof) -> None:
     """Assign per-proof step numbers (the ``1.1`` scheme). Accepts a Proof or a
-    Subproof, numbering its direct Step children."""
+    Subproof, numbering its direct Step children.
+
+    The last index is the count of top-level steps, recorded on the node so the
+    collapsed proof header can show how much is folded without recounting.
+    """
     step_gen = (s for s in proof.children if isinstance(s, nodes.Step))
+    count = 0
     for idx, step in enumerate(step_gen, start=1):
         step.number = idx
+        count = idx
+    proof.num_steps = count
 
 
 def _number_all_steps(tree) -> None:

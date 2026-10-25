@@ -27,11 +27,11 @@ def test_works_with_no_reftext_and_label():
 
         <section class="level-1">
 
-        <div class="proof" data-nodeid="1">
+        <div class="proof" data-steps="2" data-nodeid="1">
 
         <div class="paragraph hr-label">
 
-        <p><span class="span label">Proof.</span></p>
+        <p><span class="span label">Proof.</span><span class="span proof-step-count">2 steps</span></p>
 
         </div>
 
@@ -98,11 +98,11 @@ def test_works_with_no_reftext_and_no_label():
 
         <section class="level-1">
 
-        <div class="proof" data-nodeid="1">
+        <div class="proof" data-steps="2" data-nodeid="1">
 
         <div class="paragraph hr-label">
 
-        <p><span class="span label">Proof.</span></p>
+        <p><span class="span label">Proof.</span><span class="span proof-step-count">2 steps</span></p>
 
         </div>
 
@@ -171,11 +171,11 @@ def test_works_with_reftext_and_label():
 
         <section class="level-1">
 
-        <div class="proof" data-nodeid="1">
+        <div class="proof" data-steps="2" data-nodeid="1">
 
         <div class="paragraph hr-label">
 
-        <p><span class="span label">Proof.</span></p>
+        <p><span class="span label">Proof.</span><span class="span proof-step-count">2 steps</span></p>
 
         </div>
 
@@ -242,11 +242,11 @@ def test_works_with_reftext_and_no_label(caplog):
 
         <section class="level-1">
 
-        <div class="proof" data-nodeid="1">
+        <div class="proof" data-steps="2" data-nodeid="1">
 
         <div class="paragraph hr-label">
 
-        <p><span class="span label">Proof.</span></p>
+        <p><span class="span label">Proof.</span><span class="span proof-step-count">2 steps</span></p>
 
         </div>
 
