@@ -294,7 +294,7 @@ class Node:
         Output meta for even more debugging information.
 
         >>> print(msc.sexp(meta=True))
-        (Manuscript { :accent: blue, :lang: en, :numbering: section, :reftext: Manuscript, :typography: sans-serif }
+        (Manuscript { :accent: blue, :citation_style: numeric, :lang: en, :numbering: section, :reftext: Manuscript, :typography: sans-serif }
           (Section { :reftext: Section }
             (Paragraph { :reftext: Paragraph }
               (Text { :reftext: Text })))
@@ -312,7 +312,7 @@ class Node:
         Use `ignore_meta_keys` for a less verbose output.
 
         >>> print(msc.sexp(meta=True, ignore_meta_keys={"reftext"}))
-        (Manuscript { :accent: blue, :lang: en, :numbering: section, :typography: sans-serif }
+        (Manuscript { :accent: blue, :citation_style: numeric, :lang: en, :numbering: section, :typography: sans-serif }
           (Section {  }
             (Paragraph {  }
               (Text {  })))
