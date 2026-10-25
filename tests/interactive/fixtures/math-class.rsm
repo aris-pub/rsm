@@ -1,0 +1,15 @@
+# Annotated Equations
+
+A labelled annotated equation binds a part of the formula to a class:
+:mathblock:
+  {:label: eqn-ann}
+  \class{lk lk-a}{a} \le b
+::
+
+We refer to :ref:eqn-ann::.
+
+A trust-gated command other than \class stays untrusted:
+:mathblock:
+  {:label: eqn-href}
+  \href{https://example.com}{a}
+::

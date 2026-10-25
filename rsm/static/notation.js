@@ -10,6 +10,14 @@
 
 let _macros = null;
 
+// Temml refuses "trusted" commands (\class, \href, \cssId, \style, \url,
+// \includegraphics) unless the caller opts in, and renders them as a red error
+// otherwise. Interactive figures bind to parts of an equation with
+// \class{name}{...}, so we trust \class alone. The others can inject links or
+// arbitrary markup, so they stay untrusted. Shared so every render path (first
+// typeset and notation re-render) agrees.
+export const mathTrust = (ctx) => ctx.command === "\\class";
+
 function storageKey() {
   return "rsm-notation:" + location.pathname;
 }
@@ -88,6 +96,7 @@ export function reRenderAll(root = document) {
     try {
       window.temml.render(el.dataset.latex, el, {
         throwOnError: false,
+        trust: mathTrust,
         macros: { ...macros },
       });
     } catch (err) {
@@ -100,6 +109,7 @@ export function reRenderAll(root = document) {
       window.temml.render(el.dataset.latex, target, {
         displayMode: true,
         throwOnError: false,
+        trust: mathTrust,
         macros: { ...macros },
       });
     } catch (err) {

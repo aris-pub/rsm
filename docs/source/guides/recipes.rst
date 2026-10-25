@@ -133,6 +133,27 @@ Use double dollar signs for display equations:
    $$
 
 
+Annotate parts of an equation
+*****************************
+
+Wrap part of a formula in ``\class{name}{...}`` to tag it with one or more CSS
+classes. The rendered math carries those classes, so an interactive figure or a
+stylesheet can target that part of the equation. Separate several classes with
+spaces, the same way you would in HTML.
+
+.. rsm::
+
+   $$
+   \class{lk lk-a}{a} \le b
+   $$
+
+The equation is still numbered and referenceable like any other display
+equation, and ``\class`` works in inline math too. Only ``\class`` is enabled.
+Other LaTeX commands that emit raw HTML or links (``\href``, ``\url``,
+``\includegraphics``, ``\style``, ``\cssId``) stay disabled and render as an
+error. KaTeX's ``\htmlClass`` is not supported, so use ``\class``.
+
+
 Add cross-references
 ********************
 
