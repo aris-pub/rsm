@@ -57,6 +57,38 @@ class TestReferenceTooltip:
 
         assert_snapshot(page.screenshot())
 
+    def test_reference_tooltip_open_dark(
+        self,
+        serve_rsm_html: callable,
+        page: Page,
+        assert_snapshot: callable,
+    ) -> None:
+        """Dark-mode twin of test_reference_tooltip_open.
+
+        In light mode the card's border and pointer are --border-primary, which
+        is near-white, so pixelmatch's per-pixel threshold cannot see them: the
+        light snapshot is blind to a missing or extra pointer. In dark mode the
+        same tokens have real contrast against the page, so this snapshot is the
+        one that actually guards the tooltip chrome, including that no pointer
+        reappears (rsm-3y7).
+        """
+        page.set_viewport_size({"width": 1280, "height": 720})
+        serve_rsm_html(TOOLTIP_FIXTURE.read_text())
+        page.wait_for_function(RSM_READY, timeout=10_000)
+        # The serve_rsm_html dark_theme flag string-replaces "<html>", which the
+        # build does not emit (it is "<html lang=.. data-accent=..>"), so toggle
+        # the class directly here.
+        page.eval_on_selector("html", "h => h.classList.add('dark-theme')")
+
+        ref = page.locator('.manuscript a.reference[href="#thm-x"]').first
+        ref.scroll_into_view_if_needed()
+        ref.hover()
+
+        page.wait_for_selector(".tooltipster-base", state="visible", timeout=3000)
+        page.wait_for_timeout(300)
+
+        assert_snapshot(page.screenshot())
+
 
 @pytest.mark.visual
 class TestBackPill:
