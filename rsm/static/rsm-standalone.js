@@ -58,8 +58,15 @@ var RSM = (() => {
     return _macros;
   }
   var MARK_PREFIX = "nt-";
+  var _markingCache = null;
   function markingOn() {
-    return !!document.querySelector(".proof-rail .rail-notation");
+    if (_markingCache === null) {
+      _markingCache = !!document.querySelector(".proof-rail .rail-notation");
+      queueMicrotask(() => {
+        _markingCache = null;
+      });
+    }
+    return _markingCache;
   }
   function mathOptions(extra = {}) {
     const macros = { ...getNotationMacros() };
@@ -979,8 +986,13 @@ var RSM = (() => {
     const classes = $t[0].classList;
     let content = "";
     let clone;
-    if (["P", "LI", "FIGURE"].includes(tag)) {
+    if (["P", "LI"].includes(tag)) {
       content = `<div>${$t.html()}</div>`;
+    } else if (tag === "FIGURE") {
+      clone = $t.clone();
+      stripHandrail(clone);
+      clone.find("[data-menu-label]").removeAttr("data-menu-label data-menu-link data-menu-code data-menu-static-toggle tabindex");
+      content = `<div>${clone.html()}</div>`;
     } else if (tag === "SPAN" && classes.contains("math")) {
       content = `<div>${$t.html()}</div>`;
     } else if (tag === "SPAN") {
@@ -2365,10 +2377,9 @@ var RSM = (() => {
     document.addEventListener("rail:show", (ev) => {
       const d = ev.detail || {};
       const sub = VIEWS[d.view] && VIEWS[d.view][1];
-      if (sub && has(d.view) === false && !isPhone()) return;
-      if (sub) api.selectSubview(sub);
       const id = translate(d.view);
       if (!VIEWS[id] || !has(id)) return;
+      if (sub) api.selectSubview(sub);
       if (d.open) openView(id, { toggle: false });
       else select(id);
     });
@@ -3625,8 +3636,13 @@ var RSM = (() => {
     const eligible = (el) => el && !(el.closest(".rail-strip") && el.getAttribute("aria-pressed") === "true");
     document.addEventListener("mouseover", (ev) => {
       const el = ev.target.closest && ev.target.closest(SCOPE);
-      if (el && eligible(el)) show(el, false);
-      else if (owner && !owner.contains(ev.target)) hide();
+      if (el && eligible(el)) {
+        show(el, false);
+      } else if (owner) {
+        if (!owner.contains(ev.target)) hide();
+      } else {
+        clearTimeout(timer);
+      }
     });
     document.addEventListener("focusin", (ev) => {
       const el = ev.target.closest && ev.target.closest(SCOPE);
