@@ -3494,3 +3494,21 @@ a.reference.external:hover::after {
     margin-right: auto;
   }
 }
+
+/* Below the drawer breakpoint the proof-rail rests as a fixed bar at the
+   viewport bottom (the grip plus a one-line peek goal). It is out of flow, so
+   the page adds no space for it and the last lines of the document stay stuck
+   under it. Reserve bottom space equal to the bar plus a clearing gap, and set
+   the same scroll-padding so a jump to a near-bottom target lands above the bar.
+   The resting bar measures ~51px at the 12px mobile root and ~61px at the 16px
+   root, which --rail-rest-height tracks; the extra 1rem is the gap. Scoped with
+   :has() so it applies only when the drawer is actually present. */
+@media (max-width: 1320px) {
+  :root { --rail-rest-height: calc(2.5rem + 20px); }
+  .manuscriptwrapper:has(.proof-rail.active) {
+    padding-bottom: calc(var(--rail-rest-height) + 1rem);
+  }
+  html:has(.proof-rail.active) {
+    scroll-padding-bottom: calc(var(--rail-rest-height) + 1rem);
+  }
+}

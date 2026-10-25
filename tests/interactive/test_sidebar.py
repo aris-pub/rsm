@@ -488,3 +488,75 @@ def test_proof_state_setup_goal_is_a_gutter_row(page: Page, interactive_server: 
     assert page.locator(".rail-state .rail-goal .rail-goal-toggle").count() == 1
     num = page.locator(".rail-state .rail-goal .rail-state-num").first.inner_text()
     assert num.startswith("(") and num.endswith(")")
+
+
+# ---- bottom-drawer clearance (rsm-3gp) ----
+# Below 1320px the proof-rail rests as a fixed bottom bar (peek state). The page
+# must reserve space for it so the end of the document is not stuck under the bar,
+# and jumps to a near-bottom target must land above it.
+
+_DRAWER_SIZES = [{"width": 375, "height": 844}, {"width": 1200, "height": 800}]
+
+
+def _load_drawer(page: Page, server: str, size: dict) -> None:
+    page.set_viewport_size(size)
+    page.goto(f"{server}/sidebar.html")
+    page.wait_for_function(RSM_READY, timeout=10_000)
+    page.wait_for_selector(".proof-rail.active", timeout=10_000)
+    # Clear any layout a sibling test persisted so the drawer starts at its
+    # default resting (peek) state.
+    page.evaluate("() => localStorage.clear()")
+    page.reload()
+    page.wait_for_function(RSM_READY, timeout=10_000)
+    page.wait_for_selector(".proof-rail.active", timeout=10_000)
+    page.wait_for_function(
+        "() => document.querySelector('.proof-rail').getAttribute('data-drawer') === 'peek'",
+        timeout=5_000,
+    )
+
+
+_LAST_PARAGRAPH = (
+    "[...document.querySelectorAll('.manuscriptwrapper p')]"
+    ".filter(e => !e.closest('.proof-rail')).pop()"
+)
+
+
+@pytest.mark.parametrize("size", _DRAWER_SIZES, ids=["375", "1200"])
+def test_drawer_rest_bar_clears_document_end(page: Page, interactive_server: str, size):
+    """Scrolled to the very bottom, the last line of the document must end at
+    least 8px above the resting drawer bar (the page reserves bottom padding)."""
+    _load_drawer(page, interactive_server, size)
+    page.evaluate("() => window.scrollTo(0, document.documentElement.scrollHeight)")
+    page.wait_for_timeout(200)
+    geom = page.evaluate(
+        "() => {"
+        " const bar = document.querySelector('.proof-rail.active').getBoundingClientRect();"
+        f" const last = ({_LAST_PARAGRAPH}).getBoundingClientRect();"
+        " const d = document.documentElement;"
+        " return {barTop: bar.top, barHeight: bar.height, lastBottom: last.bottom,"
+        " overflowX: d.scrollWidth - d.clientWidth}; }"
+    )
+    assert geom["lastBottom"] <= geom["barTop"] - 8, (
+        f"last line must clear the resting drawer bar by >=8px: {geom}"
+    )
+    assert geom["overflowX"] <= 1, f"page must not scroll horizontally: {geom}"
+
+
+@pytest.mark.parametrize("size", _DRAWER_SIZES, ids=["375", "1200"])
+def test_drawer_jump_to_bottom_target_clears_bar(
+    page: Page, interactive_server: str, size
+):
+    """Bringing a near-bottom target into view (scroll-padding-bottom) must land
+    it above the resting bar, not under it."""
+    _load_drawer(page, interactive_server, size)
+    page.evaluate(f"() => ({_LAST_PARAGRAPH}).scrollIntoView({{block: 'end'}})")
+    page.wait_for_timeout(200)
+    geom = page.evaluate(
+        "() => {"
+        " const bar = document.querySelector('.proof-rail.active').getBoundingClientRect();"
+        f" const last = ({_LAST_PARAGRAPH}).getBoundingClientRect();"
+        " return {barTop: bar.top, lastBottom: last.bottom}; }"
+    )
+    assert geom["lastBottom"] <= geom["barTop"] - 8, (
+        f"jumped-to target must clear the resting drawer bar by >=8px: {geom}"
+    )
