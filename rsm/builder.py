@@ -60,7 +60,7 @@ class BaseBuilder(ABC):
         self.web.body = self.body
 
         logger.debug("Searching required static assets...")
-        self.required_assets: list[Path] = []
+        self.required_assets: list[str] = []
         self.find_required_assets()
 
         logger.debug("Building main file...")
@@ -71,20 +71,19 @@ class BaseBuilder(ABC):
     def make_main_file(self) -> None:
         pass
 
-    # Binary media (images, video) is referenced by relative path and left in
-    # place rather than bundled into static/ (see test_multiple_files_assets).
-    # Excluding it here keeps it out of mount_required_assets, which would
-    # otherwise read the bytes only to write them back as text.
-    _UNBUNDLED_MEDIA_SUFFIXES = frozenset(
-        {".png", ".jpg", ".jpeg", ".gif", ".mp4", ".webm", ".avi", ".mov"}
-    )
-
     def find_required_assets(self) -> None:
-        self.required_assets = [
-            Path(x) for x in re.findall(r'src="(.*?)"', str(self.body))
-            if not x.startswith(("http://", "https://"))
-            and Path(x).suffix.lower() not in self._UNBUNDLED_MEDIA_SUFFIXES
-        ]
+        """Collect the user assets the document references by a relative path
+        (figure images and video, from src and srcset). http(s) and data: URLs
+        are external, and absolute /static/ paths are framework files, so both
+        are skipped. FolderBuilder copies these into the output folder so it is
+        self-contained and can be moved."""
+        refs = re.findall(r'(?:src|srcset)="(.*?)"', str(self.body))
+        seen: dict[str, None] = {}
+        for ref in refs:
+            if not ref or ref.startswith(("http://", "https://", "data:", "/")):
+                continue
+            seen[ref] = None  # dedupe, preserve document order
+        self.required_assets = list(seen)
 
 
 class HTMLBuilder(BaseBuilder):
@@ -322,8 +321,8 @@ class FolderBuilder(HTMLBuilder):
         logger.debug("Moving default RSM assets...")
         self.mount_static()
         if self.required_assets:
-            logger.debug("Moving user assets...")
-            self.mount_required_assets()
+            logger.debug("Registering user assets for copy...")
+            self.register_asset_copies()
         return self.web
 
     def mount_static(self) -> None:
@@ -352,17 +351,12 @@ class FolderBuilder(HTMLBuilder):
             else:
                 logger.warning(f"Custom CSS file not found: {self.custom_css}")
 
-    def mount_required_assets(self) -> None:
-        """Mount required assets using the asset resolver.
-
-        Technical Debt Note: This method demonstrates the architectural inconsistency
-        where assets use the resolver system but the main RSM file still uses
-        direct filesystem access via Reader class. This should be unified in future
-        refactoring.
+    def register_asset_copies(self) -> None:
+        """Record each referenced user asset so the Writer copies it into the
+        output folder at its authored relative path. Keeping the reference and
+        copying the file (rather than bundling into static/) makes the output
+        folder self-contained and movable without rewriting any src attribute.
+        The source is the path as resolved from the build's working directory.
         """
-        for fn in self.required_assets:
-            asset_content = self.asset_resolver.resolve_asset(str(fn))
-            if asset_content is not None:
-                self.web.writetext(f"static/{fn.name}", asset_content)
-            else:
-                logger.warning(f"Unable to resolve required asset: {fn}")
+        for ref in self.required_assets:
+            self.web.copy_asset(Path(ref).resolve(), ref)

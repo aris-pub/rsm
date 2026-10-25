@@ -22,6 +22,11 @@ class WebManuscript:
         self.html: str = ""
         self._files: dict[str, str] = {}
         self._dirs: set[str] = set()
+        # (source file on disk, destination path relative to the output root).
+        # The Writer copies these into the output folder so it is self-contained.
+        # Binary media is copied as a file rather than stored here, because this
+        # tree holds text only.
+        self.assets: list[tuple[Path, str]] = []
 
     def __str__(self) -> str:
         return self.__repr__()
@@ -35,6 +40,10 @@ class WebManuscript:
 
     def writetext(self, path: str, contents: str) -> None:
         self._files[path] = contents
+
+    def copy_asset(self, source: Path, dest: str) -> None:
+        """Record a file to copy verbatim into the output folder at ``dest``."""
+        self.assets.append((Path(source), dest))
 
     def readtext(self, path: str) -> str:
         return self._files[path]

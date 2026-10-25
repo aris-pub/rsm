@@ -1,8 +1,76 @@
 """Test that multiple RSM files in the same directory handle assets correctly."""
 
+import os
 import subprocess
 
 import pytest
+
+import rsm
+
+
+def _write_figure_doc(src_dir, with_webp=True):
+    assets = src_dir / "assets"
+    assets.mkdir()
+    (assets / "fig.svg").write_text(
+        '<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10">'
+        '<circle cx="5" cy="5" r="4"/></svg>'
+    )
+    # Non-UTF-8 bytes, as real binary images are: the resolver returns bytes,
+    # which is the path that crashed the build when routed through write_text.
+    (assets / "fig.png").write_bytes(b"\x89PNG\r\n\x1a\n\xff\xd8\xff\x00png")
+    body = (
+        "# Doc\n\n"
+        ":figure: {\n  :path: assets/fig.svg\n}\n:caption: Vector.\n::\n\n"
+        ":figure: {\n  :path: assets/fig.png\n}\n:caption: Raster.\n::\n"
+    )
+    if with_webp:
+        (assets / "fig.webp").write_bytes(b"RIFF\xff\x00\x00\x00WEBPVP8 \xff\xd8")
+        body += "\n:figure: {\n  :path: assets/fig.webp\n}\n:caption: Webp.\n::\n"
+    (src_dir / "doc.rsm").write_text(body)
+
+
+def test_folder_build_relocated_is_self_contained(tmp_path):
+    """A non-standalone build into a separate output directory copies every
+    referenced figure asset into that folder at its relative path, so the folder
+    can be moved and still render. Binary formats (png, webp) must not crash the
+    build (rsm-en4)."""
+    src_dir = tmp_path / "src"
+    src_dir.mkdir()
+    _write_figure_doc(src_dir, with_webp=True)
+    out_dir = tmp_path / "out"
+
+    cwd = os.getcwd()
+    os.chdir(src_dir)
+    try:
+        rsm.build(
+            path="doc.rsm",
+            output_dir=str(out_dir),
+            output_filename="doc.html",
+            write_output=True,
+            handrails=True,
+            standalone=False,
+            strict=True,
+        )
+    finally:
+        os.chdir(cwd)
+
+    html = (out_dir / "doc.html").read_text()
+    assert 'src="assets/fig.svg"' in html
+    assert 'src="assets/fig.png"' in html
+    assert 'src="assets/fig.webp"' in html
+
+    # Every asset copied into the output folder at its authored relative path.
+    assert (out_dir / "assets" / "fig.svg").exists()
+    assert (out_dir / "assets" / "fig.png").exists()
+    assert (out_dir / "assets" / "fig.webp").exists()
+
+    # User media is not dumped into static/ (only framework files live there).
+    assert not (out_dir / "static" / "fig.svg").exists()
+    assert not (out_dir / "static" / "fig.png").exists()
+
+    # Originals are copied, not moved.
+    assert (src_dir / "assets" / "fig.svg").exists()
+    assert (src_dir / "assets" / "fig.png").exists()
 
 
 @pytest.mark.slow
