@@ -403,6 +403,24 @@ def _make_tag(
     return text
 
 
+def _section_anchor_id(section: "nodes.Section") -> str:
+    """The id the table of contents and deep links use to reach a section.
+
+    A labelled section keeps its label. An unlabelled section still needs a
+    stable anchor so the table of contents can link to it: a numbered section
+    uses its section number, and an unnumbered one (:nonum:) falls back to its
+    build-time node id. Without this fallback such a section has no anchor and
+    its TOC entry links to "#", which goes nowhere.
+    """
+    if section.label:
+        return section.label
+    if section.full_number:
+        return f"sec-{section.full_number}"
+    if section.nodeid is not None:
+        return f"sec-n{section.nodeid}"
+    return ""
+
+
 # FOR DOCUMENTATION: Classes that inherit from EditCommand are meant to encapsulate
 # _reusable_ operations that convert a node into HTML text.  If an operation is not
 # reusable on multiple node classes and is particular to just one node class, it should
@@ -629,8 +647,8 @@ class AppendNodeTag(AppendOpenTag):
                 kwargs["data-source-end"] = str(end_offset)
 
         id_ = node.label
-        if not id_ and isinstance(node, nodes.Section) and node.full_number:
-            id_ = f"sec-{node.full_number}"
+        if not id_ and isinstance(node, nodes.Section):
+            id_ = _section_anchor_id(node)
         if not id_ and node.nodeid is not None and "hr" in classes:
             # Synthetic id so every HANDRAIL BLOCK is hash-addressable: the rail
             # and keyboard jumps navigate by location.hash and ride the native
@@ -1540,10 +1558,15 @@ class Translator:
 
             tag_text = self._make_ahref_tag_text(node, node.target, href)
         else:
-            # Internal reference (existing behavior)
-            tag_text = self._make_ahref_tag_text(
-                node, node.target, f"#{node.target.label}"
-            )
+            # Internal reference. A section target may have no explicit label
+            # (an unnumbered one in particular), so resolve it to the section's
+            # generated anchor instead of the empty label, which would make the
+            # table of contents link it to "#".
+            if isinstance(node.target, nodes.Section):
+                href = f"#{_section_anchor_id(node.target)}"
+            else:
+                href = f"#{node.target.label}"
+            tag_text = self._make_ahref_tag_text(node, node.target, href)
 
         # Wrap ref + trailing punctuation to prevent line break between them.
         # Also pull in a preceding opening bracket if present.

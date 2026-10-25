@@ -134,7 +134,7 @@ def test_nonum():
 
         </section>
 
-        <section class="section level-2" data-nodeid="4">
+        <section id="sec-n4" class="section level-2" data-nodeid="4">
 
         <h2>Second</h2>
 
