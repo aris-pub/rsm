@@ -247,8 +247,34 @@ class StandaloneBuilder(HTMLBuilder):
             return f"<style>\n{css_path.read_text()}\n  </style>\n  "
         return ""
 
+    def _get_braiid_css_inline(self) -> str:
+        """Inline braiid.css so the standalone does not depend on the @main CDN
+        copy. The relative @import of pygments.css is dropped (pygments is
+        inlined separately, and its unlayered copy already wins the cascade);
+        the Google Fonts @imports are kept, since embedding fonts is a later
+        step."""
+        css_path = Path(__file__).parent.parent / "braiid" / "braiid.css"
+        if not css_path.exists():
+            logger.warning(f"BRAIID CSS not found at: {css_path}")
+            return f'<link rel="stylesheet" type="text/css" href="{self.CDN_RSM_CSS}" />'
+        css = css_path.read_text().replace(
+            "@import url('pygments.css') layer(base);", ""
+        )
+        return f"<style>\n{css}\n  </style>"
+
+    def _get_inline_script(self, filename: str) -> str:
+        """Inline a vendored library from static/ as a <script> block."""
+        path = Path(__file__).parent / "static" / filename
+        if not path.exists():
+            logger.warning(f"Vendored library not found: {path}")
+            return ""
+        return f"<script>\n{path.read_text()}\n  </script>"
+
     def make_html_header(self) -> str:
         inline_js = self._get_inline_js()
+        braiid_css_inline = self._get_braiid_css_inline()
+        jquery_inline = self._get_inline_script("jquery-3.6.0.js")
+        tooltipster_js_inline = self._get_inline_script("tooltipster.bundle.js")
         custom_css_inline = self._get_custom_css_inline()
         pygments_css_inline = self._get_pygments_css_inline()
 
@@ -292,12 +318,12 @@ class StandaloneBuilder(HTMLBuilder):
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="generator" content="RSM 0.0.1 https://github.com/leotrs/rsm" />
 
-  <link rel="stylesheet" type="text/css" href="{self.CDN_RSM_CSS}" />
+  {braiid_css_inline}
   <link rel="stylesheet" type="text/css" href="{self.CDN_TOOLTIPSTER_CSS}" />
   <link rel="stylesheet" href="{self.CDN_PSEUDOCODE_CSS}">
   {pygments_css_inline}{custom_css_inline}{menu_position_style}
-  <script src="{self.CDN_JQUERY}"></script>
-  <script src="{self.CDN_TOOLTIPSTER_JS}"></script>
+  {jquery_inline}
+  {tooltipster_js_inline}
   <script>
 {inline_js}
   </script>

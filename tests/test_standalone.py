@@ -33,15 +33,15 @@ class TestStandaloneMode:
         assert 'src="/static/jquery-3.6.0.js"' in result
         assert 'src="/static/tooltipster.bundle.js"' in result
 
-    def test_standalone_true_uses_cdn_for_jquery(self):
-        """Test that standalone=True uses CDN URL for jQuery."""
+    def test_standalone_true_inlines_jquery(self):
+        """Standalone inlines jQuery instead of loading it from a CDN (rsm-nyg)."""
         source = ":rsm:\n\nHello world.\n\n::"
         result = rsm.build(source, handrails=False, lint=False, standalone=True)
 
-        # Should use jsdelivr CDN for jQuery 3.6.0
-        assert "cdn.jsdelivr.net/npm/jquery@3.6.0" in result
-        # Should NOT use /static/ path
+        # No longer loaded from a CDN or a /static/ path; the source is inlined.
+        assert "cdn.jsdelivr.net/npm/jquery" not in result
         assert 'src="/static/jquery-3.6.0.js"' not in result
+        assert "jQuery" in result
 
     def test_standalone_true_uses_cdn_for_tooltipster(self):
         """Test that standalone=True uses CDN URL for Tooltipster."""
@@ -102,6 +102,44 @@ class TestStandaloneMode:
         assert 'href="/static/braiid.css"' in result
 
 
+import re as _re
+
+
+def _live_asset_refs(html: str) -> list[str]:
+    """href/src from actual <link>/<script> tags, ignoring http strings that
+    live inside inlined CSS/JS (those are not tag attributes)."""
+    return _re.findall(r'<(?:link|script)[^>]*\b(?:href|src)="([^"]*)"', html)
+
+
+class TestStandaloneSelfContained:
+    """rsm-nyg piece 1: the standalone inlines the already-vendored assets
+    (braiid.css, jQuery, tooltipster JS) instead of loading them from a CDN."""
+
+    def _build(self):
+        return rsm.build(
+            ":rsm:\n\nHello world.\n\n::", handrails=False, lint=False, standalone=True
+        )
+
+    def test_braiid_css_is_inlined_not_at_main(self):
+        result = self._build()
+        # The @main ref makes every file depend on live main; it must be gone.
+        assert "cdn.jsdelivr.net/gh/aris-pub/rsm@main" not in result
+        assert not any("braiid.css" in ref for ref in _live_asset_refs(result))
+        # braiid's own tokens are present inline.
+        assert "--primary-700" in result
+        assert ".manuscriptwrapper" in result
+
+    def test_jquery_is_inlined(self):
+        result = self._build()
+        assert not any("jquery" in ref.lower() for ref in _live_asset_refs(result))
+        assert "jQuery" in result  # the library source is inlined
+
+    def test_tooltipster_js_is_inlined(self):
+        result = self._build()
+        srcs = [r for r in _live_asset_refs(result) if r.endswith(".js") or "/js/" in r]
+        assert not any("tooltipster" in s.lower() for s in srcs)
+
+
 class TestStandaloneBuilder:
     """Test the StandaloneBuilder class directly."""
 
@@ -135,12 +173,12 @@ class TestStandaloneCDNVersions:
     """Test that CDN URLs use correct library versions."""
 
     def test_jquery_version_is_3_6_0(self):
-        """Test jQuery CDN uses exact version 3.6.0 to match bundled version."""
+        """jQuery is inlined (not from a CDN) and is the vendored 3.6.0 (rsm-nyg)."""
         source = ":rsm:\n\nTest.\n\n::"
         result = rsm.build(source, handrails=False, lint=False, standalone=True)
 
-        # Must be exact version, not "latest"
-        assert "jquery@3.6.0" in result
+        assert "/npm/jquery@" not in result  # not loaded from a CDN
+        assert 'version = "3.6.0"' in result  # the inlined jQuery source is v3.6.0
 
     def test_tooltipster_version_matches_bundled(self):
         """Test Tooltipster CDN uses version compatible with bundled version."""
