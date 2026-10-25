@@ -128,7 +128,7 @@ key. Section-form tags do not need a Halmos — they close implicitly.
 | `:example:` | Example |
 | `:exercise:` | Exercise |
 | `:figure:` | Figure float |
-| `:html:` | HTML asset |
+| `:html:` | Non-figure interactive widget |
 | `:itemize:` | Unnumbered list |
 | `:lemma:` | Lemma |
 | `:mathblock:` | Display math (as-is content) |
@@ -751,6 +751,8 @@ Key properties of the operator:
   :caption: Interactive visualization of the data.
 
 ::
+
+**Figures vs. widgets.** Use `:figure:` for any figure, including one drawn as inline SVG or HTML. Point `:path:` at an HTML fragment file (for example a `fig.html` that contains `<svg>...</svg>`), and its markup is inlined into the page, so it picks up the page CSS variables (dark mode, accent color) and is labelled "Figure". A raw image file (`.png`, `.jpg`, `.svg`) is embedded as an `<img>` and cannot see those variables. Reserve `:html:` for non-figure interactive widgets. Its reference label is "Widget", not "Figure".
 
 :table: {:label: tbl-results}
 
