@@ -1582,6 +1582,30 @@ class Translator:
     def visit_construct(self, node: nodes.Construct) -> EditCommand:
         return self._node_tag(node, tag="span", newline_inner=False, newline_outer=False)
 
+    def _render_inline_nodes(self, inline_nodes: list[nodes.Node]) -> str:
+        """Render a list of inline nodes to an HTML string using this
+        translator's own visit methods, so markup inside a link's reftext comes
+        out exactly as it would in body text. Runs the normal visit/leave loop
+        against a scratch body and restores the real one afterwards."""
+        saved_body, saved_deferred = self.body, self.deferred
+        self.body, self.deferred = "", []
+        try:
+            stack: list = []
+            for child in reversed(inline_nodes):
+                self.push_visit(stack, child)
+            while stack:
+                node, action, method = stack.pop()
+                command = method(self, node)
+                if action == "visit":
+                    if command.defers:
+                        self.push_leave(stack, node)
+                    for child in reversed(node.children):
+                        self.push_visit(stack, child)
+                command.execute(self)
+            return self.body
+        finally:
+            self.body, self.deferred = saved_body, saved_deferred
+
     def _make_ahref_tag_text(
         self,
         node: nodes.BaseReference | nodes.Cite,
@@ -1594,7 +1618,15 @@ class Translator:
         if not target:
             raise RSMTranslatorError(f"Found a {node.__class__} without a target")
         tgt = target
-        if hasattr(node, "overwrite_reftext") and node.overwrite_reftext:
+        reftext_nodes = getattr(node, "reftext_nodes", None)
+        if reftext_nodes:
+            # The reftext carries inline markup (emphasis, math, code, span).
+            # Render those nodes as the link's inner HTML. overwrite_reftext still
+            # holds the plain-text flattening for any bare-string context. strip()
+            # drops the space the grammar keeps after the comma, matching the
+            # plain-reftext path.
+            reftext = self._render_inline_nodes(reftext_nodes).strip()
+        elif hasattr(node, "overwrite_reftext") and node.overwrite_reftext:
             reftext = node.overwrite_reftext
         else:
             reftext = getattr(tgt, "reftext", tgt)

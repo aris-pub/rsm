@@ -42,6 +42,19 @@ class RSMTransformerError(Exception):
     pass
 
 
+def _carry_reftext_nodes(pending: "nodes.BaseReference", ref: "nodes.Reference") -> None:
+    """Move a pending reference's inline reftext nodes onto the resolved
+    Reference so a marked-up :ref: display text survives resolution. Reparent
+    directly since the nodes already have the pending node as parent."""
+    nodes_list = getattr(pending, "reftext_nodes", None)
+    if not nodes_list:
+        return
+    for child in nodes_list:
+        child.parent = ref
+    ref.reftext_nodes = nodes_list
+    pending.reftext_nodes = []
+
+
 class Transformer:
     """Apply transformations to the abstract syntax tree.
 
@@ -335,14 +348,14 @@ class Transformer:
                             )
                         except Exception:
                             pass
-                    pending.replace_self(
-                        nodes.Reference(
-                            target=target,
-                            external_file=pending.external_file,
-                            external_manuscript=ext_ms,
-                            overwrite_reftext=pending.overwrite_reftext,
-                        )
+                    ref = nodes.Reference(
+                        target=target,
+                        external_file=pending.external_file,
+                        external_manuscript=ext_ms,
+                        overwrite_reftext=pending.overwrite_reftext,
                     )
+                    _carry_reftext_nodes(pending, ref)
+                    pending.replace_self(ref)
             elif isinstance(pending, nodes.PendingCite):
                 targets = [
                     self._label_to_node(label, default=nodes.UnknownBibitem)
@@ -373,11 +386,11 @@ class Transformer:
                     logger.warning(
                         ":prev: references un-labeled step, link will not work"
                     )
-                pending.replace_self(
-                    nodes.Reference(
-                        target=target, overwrite_reftext=pending.overwrite_reftext
-                    )
+                ref = nodes.Reference(
+                    target=target, overwrite_reftext=pending.overwrite_reftext
                 )
+                _carry_reftext_nodes(pending, ref)
+                pending.replace_self(ref)
 
         for _pending in self.tree.traverse(condition=lambda n: type(n) in classes):
             raise RSMTransformerError("Found unresolved pending reference")

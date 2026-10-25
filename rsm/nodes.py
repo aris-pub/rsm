@@ -1528,6 +1528,12 @@ class BaseReference(Node):
         super().__init__(**kwargs)
         self.overwrite_reftext = overwrite_reftext
         self.target = target
+        # Inline nodes for the display text when the reftext of :ref: or :url:
+        # carries markup (emphasis, math, code, span). Empty for a plain-text
+        # reftext, which still uses overwrite_reftext. Kept off this node's
+        # children so a reference stays a leaf for traversal and equality;
+        # overwrite_reftext holds the plain-text flattening for string contexts.
+        self.reftext_nodes: list[Node] = []
 
     def _attrs_for_repr_and_eq(self) -> list[str]:
         return super()._attrs_for_repr_and_eq() + ["target", "overwrite_reftext"]

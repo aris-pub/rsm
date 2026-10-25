@@ -1,5 +1,6 @@
 import rsm
 from conftest import compare_have_want
+from rsm.transformer import Transformer
 
 
 def test_reftext():
@@ -98,6 +99,34 @@ def test_overwrite_reftext():
         </body>
         """,
     )
+
+
+def test_ref_reftext_inline_markup(caplog):
+    """The display text of :ref: accepts inline markup, which survives
+    reference resolution and renders as real HTML (rsm-z1e)."""
+    src = (
+        "# T\n\n:theorem: {:label: thm-x}\n  A statement. ::\n\n"
+        "See :ref:thm-x, the **main** result::.\n"
+    )
+    h = rsm.render(src, handrails=False, source_offsets=False)
+    assert "The CST contains errors." not in caplog.text, caplog.text
+    assert "[CST error" not in h, h
+    assert (
+        '<a class="reference" href="#thm-x">the <span class="span">'
+        "<strong>main</strong></span> result</a>" in h
+    ), h
+
+    tree = rsm.tsparser.TSParser().parse(src)
+    transformed = Transformer().transform(tree)
+    ref = next(
+        n for n in transformed.traverse() if n.__class__.__name__ == "Reference"
+    )
+    assert ref.overwrite_reftext == "the main result"
+    assert [n.__class__.__name__ for n in ref.reftext_nodes] == [
+        "Text",
+        "Span",
+        "Text",
+    ]
 
 
 def test_ref_to_unknown_label(caplog):
