@@ -67,7 +67,7 @@ def _select_collapsed_proof(page: Page) -> None:
 def test_collapsed_proof_shows_card_not_dag(page: Page, interactive_server: str):
     _load(page, interactive_server)
     page.wait_for_selector(".proof-rail.active", timeout=10_000)
-    page.click('.rail-scope[data-scope="proof"]')
+    page.click('.rail-strip-btn[data-view="steps"]')
     _select_collapsed_proof(page)
     expect(page.locator(".proof-rail")).to_have_class(re.compile(r"\bproof-collapsed\b"))
     expect(page.locator(".proof-rail-item.shown .rail-collapsed-card")).to_be_visible()
@@ -77,7 +77,7 @@ def test_collapsed_proof_shows_card_not_dag(page: Page, interactive_server: str)
 def test_card_expands_proof_and_restores_map(page: Page, interactive_server: str):
     _load(page, interactive_server)
     page.wait_for_selector(".proof-rail.active", timeout=10_000)
-    page.click('.rail-scope[data-scope="proof"]')
+    page.click('.rail-strip-btn[data-view="steps"]')
     _select_collapsed_proof(page)
     card = page.locator(".proof-rail-item.shown .rail-collapsed-card")
     expect(card).to_be_visible()

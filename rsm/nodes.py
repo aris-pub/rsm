@@ -1127,6 +1127,9 @@ class Manuscript(Heading):
         self.lang = lang
         self.typography = typography
         self.citation_style = citation_style
+        # The document's section graph (a Contents node, attached to the tree
+        # only when the author wrote :toc:). Set by the transformer.
+        self.section_graph = None
 
     @property
     def full_number(self) -> str:

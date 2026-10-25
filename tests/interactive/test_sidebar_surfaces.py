@@ -65,7 +65,7 @@ def _setup_collapsed_card(page: Page, server: str, dark: bool) -> None:
     # Select the proof so its rail item is the shown one, then put the rail in
     # the collapsed-proof state the way prooftree.js does when the followed proof
     # is collapsed: the single-node card replaces the step graph.
-    page.click('.rail-scope[data-scope="proof"]')
+    page.click('.rail-strip-btn[data-view="steps"]')
     page.evaluate(
         """() => {
             const el = document.querySelector('.proof[data-nodeid]');

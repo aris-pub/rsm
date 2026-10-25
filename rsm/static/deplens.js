@@ -267,16 +267,12 @@ export function setup(root = document) {
   // a result's document map.
   function showRail(model) {
     if (!rail) return;
-    const scopeBtn = rail.querySelector(
-      `.rail-scope[data-scope="${model.scope}"]`,
+    // Switches the sidebar's view; it opens nothing the reader did not open.
+    document.dispatchEvent(
+      new CustomEvent("rail:show", {
+        detail: { view: model.scope === "proof" ? "steps" : "contents" },
+      }),
     );
-    if (scopeBtn) scopeBtn.click();
-    if (model.scope === "proof") {
-      const mapTab = rail.querySelector(
-        '.rail-subtabs-proof .rail-tab[data-view="proof-map"]',
-      );
-      if (mapTab && !mapTab.classList.contains("active")) mapTab.click();
-    }
   }
 
   function clearMarks() {

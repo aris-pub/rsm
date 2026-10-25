@@ -1,8 +1,9 @@
-"""Interactive tests for the two-scope floating sidebar.
+"""Interactive tests for the reader sidebar (`rsm build --sidebar`).
 
-Document scope (TOC tree + Notation) and Proof scope (proof-DAG + State), with a
-collapse control and localStorage-persisted layout. These assert the class/state
-transitions, which are independent of the (separately built) CSS.
+An icon strip opens one view at a time (Contents, Notation, Proof steps, Proof
+state, Pinned, Reading) in a panel that pushes the column instead of covering
+it; on phones the strip is a bottom bar with one button per scope and the views
+open as a sheet. The open view persists in localStorage.
 """
 
 import pytest
@@ -14,68 +15,132 @@ RSM_READY = "() => window.__rsmInitialized === true"
 
 
 def _load(page: Page, server: str) -> None:
-    # The proof-rail is a fixed sidebar only above the 1320px responsive drawer
-    # breakpoint; below it the rail becomes a bottom drawer whose controls are
-    # hidden in the default peek state (clicks then time out). These tests
-    # exercise the desktop sidebar, so ensure a desktop-width viewport. Tests
-    # that need a specific size set it before calling _load (width stays >=1321).
-    if page.viewport_size["width"] < 1321:
+    # Desktop width: the strip is in the left margin and each view has its own
+    # icon. Tests that need a specific size set it before calling _load.
+    if page.viewport_size["width"] < 768:
         page.set_viewport_size({"width": 1400, "height": 900})
     page.goto(f"{server}/sidebar.html")
     page.wait_for_function(RSM_READY, timeout=10_000)
-    page.wait_for_selector(".proof-rail.active", timeout=10_000)
+    page.wait_for_selector(".proof-rail.active", state="attached", timeout=10_000)
 
 
 def _rail_class(page: Page) -> str:
     return page.locator(".proof-rail").get_attribute("class")
 
 
-def test_scope_switch(page: Page, interactive_server: str):
-    _load(page, interactive_server)
-    assert "scope-document" in _rail_class(page)
-    page.click('.rail-scope[data-scope="proof"]')
-    assert "scope-proof" in _rail_class(page)
-    assert "scope-document" not in _rail_class(page)
-    page.click('.rail-scope[data-scope="document"]')
-    assert "scope-document" in _rail_class(page)
-    assert "scope-proof" not in _rail_class(page)
+def _is_open(page: Page) -> bool:
+    return page.evaluate("() => document.documentElement.classList.contains('rail-open')")
 
 
-def test_document_notation_subtab(page: Page, interactive_server: str):
+def _show(page: Page, view: str) -> None:
+    """Open a view from the strip (a no-op if it is already the open view)."""
+    btn = page.locator(f'.rail-strip-btn[data-view="{view}"]')
+    if btn.get_attribute("aria-pressed") != "true":
+        btn.click()
+    page.wait_for_selector(".proof-rail.open", timeout=5_000)
+
+
+def test_panel_starts_closed(page: Page, interactive_server: str):
     _load(page, interactive_server)
-    # Document scope is active by default; switch its sub-tab to Notation.
+    page.evaluate("() => localStorage.clear()")
+    page.reload()
+    page.wait_for_function(RSM_READY, timeout=10_000)
+    assert not _is_open(page)
+    assert not page.locator(".proof-rail").is_visible()
+    assert page.locator(".rail-strip").is_visible()
+
+
+def test_strip_opens_switches_and_closes(page: Page, interactive_server: str):
+    _load(page, interactive_server)
+    _show(page, "contents")
+    assert _is_open(page)
+    assert "scope-document" in _rail_class(page)
     assert "doc-view-map" in _rail_class(page)
-    page.click('.rail-subtabs-document .rail-tab[data-view="notation"]')
+    assert page.locator('.rail-strip-btn[data-view="contents"]').get_attribute("aria-pressed") == "true"
+    page.click('.rail-strip-btn[data-view="steps"]')
+    assert "scope-proof" in _rail_class(page)
+    assert "proof-view-map" in _rail_class(page)
+    assert page.locator('.rail-strip-btn[data-view="contents"]').get_attribute("aria-pressed") == "false"
+    # The open view's own icon closes the panel.
+    page.click('.rail-strip-btn[data-view="steps"]')
+    assert not _is_open(page)
+    assert not page.locator(".proof-rail").is_visible()
+
+
+def test_escape_closes_panel(page: Page, interactive_server: str):
+    _load(page, interactive_server)
+    _show(page, "reading")
+    page.keyboard.press("Escape")
+    assert not _is_open(page)
+
+
+def test_panel_head_names_the_view(page: Page, interactive_server: str):
+    _load(page, interactive_server)
+    _show(page, "contents")
+    assert page.locator(".rail-title").inner_text() == "Contents"
+    assert "dependency graph" in page.locator(".rail-hint").inner_text()
+    _show(page, "notation")
+    assert page.locator(".rail-title").inner_text() == "Notation"
+    assert "Rename one" in page.locator(".rail-hint").inner_text()
+
+
+def test_document_notation_view(page: Page, interactive_server: str):
+    _load(page, interactive_server)
+    _show(page, "notation")
+    assert "scope-document" in _rail_class(page)
     assert "doc-view-notation" in _rail_class(page)
     assert "doc-view-map" not in _rail_class(page)
 
 
-def test_proof_state_subtab(page: Page, interactive_server: str):
+def test_proof_state_view(page: Page, interactive_server: str):
     _load(page, interactive_server)
-    page.click('.rail-scope[data-scope="proof"]')
-    page.click('.rail-subtabs-proof .rail-tab[data-view="state"]')
+    _show(page, "state")
     assert "proof-view-state" in _rail_class(page)
     assert "proof-view-map" not in _rail_class(page)
 
 
-def test_collapse_persists(page: Page, interactive_server: str):
+def test_open_view_persists(page: Page, interactive_server: str):
     _load(page, interactive_server)
-    assert "collapsed" not in _rail_class(page)
-    page.click(".rail-collapse")
-    assert "collapsed" in _rail_class(page)
+    _show(page, "state")
     page.reload()
     page.wait_for_function(RSM_READY, timeout=10_000)
-    page.wait_for_selector(".proof-rail.active", timeout=10_000)
-    assert "collapsed" in _rail_class(page), "collapse state should persist"
-
-
-def test_scope_persists(page: Page, interactive_server: str):
-    _load(page, interactive_server)
-    page.click('.rail-scope[data-scope="proof"]')
+    assert _is_open(page), "an open panel should stay open across a reload"
+    assert "proof-view-state" in _rail_class(page), "the view should persist"
+    # Closing persists too.
+    page.click('.rail-strip-btn[data-view="state"]')
     page.reload()
     page.wait_for_function(RSM_READY, timeout=10_000)
-    page.wait_for_selector(".proof-rail.active", timeout=10_000)
-    assert "scope-proof" in _rail_class(page), "scope choice should persist"
+    assert not _is_open(page)
+
+
+def test_panel_never_covers_the_text(page: Page, interactive_server: str):
+    """Opening a view moves the column right of the panel instead of under it,
+    and the block at the top of the window keeps its place."""
+    page.set_viewport_size({"width": 1280, "height": 800})
+    _load(page, interactive_server)
+    page.evaluate("() => localStorage.clear()")
+    page.reload()
+    page.wait_for_function(RSM_READY, timeout=10_000)
+    page.evaluate("() => document.querySelector('#sec-results').scrollIntoView()")
+    page.wait_for_timeout(200)
+    top_before = page.evaluate(
+        "() => document.querySelector('#sec-results').getBoundingClientRect().top"
+    )
+    _show(page, "contents")
+    page.wait_for_timeout(600)  # the column's transition
+    geom = page.evaluate(
+        """() => {
+            const panel = document.querySelector('.proof-rail').getBoundingClientRect();
+            const text = document.querySelector('.manuscript p').getBoundingClientRect();
+            const d = document.documentElement;
+            return { panelRight: panel.right, textLeft: text.left,
+                     overflowX: d.scrollWidth - d.clientWidth,
+                     top: document.querySelector('#sec-results').getBoundingClientRect().top };
+        }"""
+    )
+    assert geom["textLeft"] >= geom["panelRight"], geom
+    assert geom["overflowX"] <= 1, geom
+    assert abs(geom["top"] - top_before) <= 2, (top_before, geom)
 
 
 def test_proof_selection_follows_clicks_not_scroll(page: Page, interactive_server: str):
@@ -128,8 +193,7 @@ def test_sidebar_absent_without_js(browser, interactive_server: str):
 
 
 def _open_notation(page: Page) -> None:
-    # Document scope is active by default; reveal its Notation sub-tab.
-    page.click('.rail-subtabs-document .rail-tab[data-view="notation"]')
+    _show(page, "notation")
     page.wait_for_selector(".rail-notation-input", timeout=10_000)
 
 
@@ -188,7 +252,8 @@ def test_notation_apply_button_commits(page: Page, interactive_server: str):
     assert "λ" in page.locator("span.math").first.text_content()
     _open_notation(page)
     page.locator(".rail-notation-input").first.fill("\\mu")
-    # The explicit Apply button effectuates the change (no Enter needed).
+    # The explicit Rename button effectuates the change (no Enter needed).
+    assert page.locator(".rail-notation-apply").first.inner_text() == "Rename"
     page.click(".rail-notation-apply")
     assert "μ" in page.locator("span.math").first.text_content()
 
@@ -249,8 +314,7 @@ def test_proof_state_refs_get_body_tooltips(page: Page, interactive_server: str)
     page.set_viewport_size({"width": 1400, "height": 460})
     _load(page, interactive_server)
     # Go live: Proof scope, State sub-tab.
-    page.click('.rail-scope[data-scope="proof"]')
-    page.click('.rail-subtabs-proof .rail-tab[data-view="state"]')
+    _show(page, "state")
     # Scroll a late step into the reading band so its accumulated hypotheses
     # (which include the :assume: that references thm-x) render in the panel.
     page.evaluate(
@@ -292,8 +356,7 @@ def test_proof_state_shows_document_context(page: Page, interactive_server: str)
     defines the spectral radius), distinct from the proof's own hypotheses."""
     page.set_viewport_size({"width": 1400, "height": 460})
     _load(page, interactive_server)
-    page.click('.rail-scope[data-scope="proof"]')
-    page.click('.rail-subtabs-proof .rail-tab[data-view="state"]')
+    _show(page, "state")
     # Scroll the proof into the reading band so the State panel renders live.
     page.evaluate(
         """() => {
@@ -316,8 +379,7 @@ def test_proof_state_math_is_typeset(page: Page, interactive_server: str):
     and real MathML is present (also an a11y requirement)."""
     page.set_viewport_size({"width": 1400, "height": 460})
     _load(page, interactive_server)
-    page.click('.rail-scope[data-scope="proof"]')
-    page.click('.rail-subtabs-proof .rail-tab[data-view="state"]')
+    _show(page, "state")
     page.evaluate(
         """() => {
             const steps = [...document.querySelectorAll('.proof[data-nodeid] .step')]
@@ -341,8 +403,7 @@ def test_proof_state_group_keyboard_operable(page: Page, interactive_server: str
     Tab can focus it and Enter toggles its band collapsed/expanded."""
     page.set_viewport_size({"width": 1400, "height": 460})
     _load(page, interactive_server)
-    page.click('.rail-scope[data-scope="proof"]')
-    page.click('.rail-subtabs-proof .rail-tab[data-view="state"]')
+    _show(page, "state")
     page.evaluate(
         """() => {
             const el = document.querySelector('.proof[data-nodeid]');
@@ -397,8 +458,7 @@ def test_proof_state_rows_are_uniform_jump_rows(page: Page, interactive_server: 
     rows, which previously had no jump action at all."""
     page.set_viewport_size({"width": 1400, "height": 460})
     _load(page, interactive_server)
-    page.click('.rail-scope[data-scope="proof"]')
-    page.click('.rail-subtabs-proof .rail-tab[data-view="state"]')
+    _show(page, "state")
     _select_proof(page)
     page.wait_for_selector(".rail-state .rail-context", timeout=5_000)
     assert page.locator(".rail-state .rail-step-badge").count() == 0
@@ -419,8 +479,7 @@ def test_proof_state_context_row_jumps_to_source(page: Page, interactive_server:
     the Introduction well above the proof."""
     page.set_viewport_size({"width": 1400, "height": 460})
     _load(page, interactive_server)
-    page.click('.rail-scope[data-scope="proof"]')
-    page.click('.rail-subtabs-proof .rail-tab[data-view="state"]')
+    _show(page, "state")
     _select_proof(page)
     row = page.wait_for_selector(
         ".rail-state .rail-context li:has-text('spectral radius')", timeout=5_000
@@ -438,7 +497,7 @@ def test_proof_dag_pins_current_step_path(page: Page, interactive_server: str):
     the whole tree is not lit at once."""
     page.set_viewport_size({"width": 1400, "height": 460})
     _load(page, interactive_server)
-    page.click('.rail-scope[data-scope="proof"]')  # Steps (map) is the default proof view
+    _show(page, "steps")
     # Make the proof's first step current: its cone is small, so later steps fade.
     page.evaluate(
         """() => {
@@ -467,8 +526,7 @@ def test_proof_state_setup_goal_is_a_gutter_row(page: Page, interactive_server: 
     hover), a (section) marker, and a "show more" toggle."""
     page.set_viewport_size({"width": 1400, "height": 460})
     _load(page, interactive_server)
-    page.click('.rail-scope[data-scope="proof"]')
-    page.click('.rail-subtabs-proof .rail-tab[data-view="state"]')
+    _show(page, "state")
     # Center the proof's first step, an :assume: working toward the theorem.
     page.evaluate(
         """() => {
@@ -499,8 +557,7 @@ def test_proof_state_goal_section_marker_reads_as_section(
     rows keep their glyph."""
     page.set_viewport_size({"width": 1400, "height": 460})
     _load(page, interactive_server)
-    page.click('.rail-scope[data-scope="proof"]')
-    page.click('.rail-subtabs-proof .rail-tab[data-view="state"]')
+    _show(page, "state")
     # The proof's first step is a setup :assume: with no own claim, so PROVE
     # renders the goal summary whose gutter marker is the goal's section
     # provenance (the theorem lives in section 2, "Results").
@@ -540,29 +597,77 @@ def test_proof_state_goal_section_marker_reads_as_section(
     assert sizes["goal"] < sizes["hyp"], f"section marker must be smaller: {sizes}"
 
 
-# ---- bottom-drawer clearance (rsm-3gp) ----
-# Below 1320px the proof-rail rests as a fixed bottom bar (peek state). The page
-# must reserve space for it so the end of the document is not stuck under the bar,
-# and jumps to a near-bottom target must land above it.
-
-_DRAWER_SIZES = [{"width": 375, "height": 844}, {"width": 1200, "height": 800}]
-
-
-def _load_drawer(page: Page, server: str, size: dict) -> None:
-    page.set_viewport_size(size)
-    page.goto(f"{server}/sidebar.html")
-    page.wait_for_function(RSM_READY, timeout=10_000)
-    page.wait_for_selector(".proof-rail.active", timeout=10_000)
-    # Clear any layout a sibling test persisted so the drawer starts at its
-    # default resting (peek) state.
+def test_symbol_opens_notation(page: Page, interactive_server: str):
+    """A symbol declared in :notation: is marked in the math; clicking it opens
+    Notation with that symbol's field selected."""
+    _load(page, interactive_server)
     page.evaluate("() => localStorage.clear()")
     page.reload()
     page.wait_for_function(RSM_READY, timeout=10_000)
-    page.wait_for_selector(".proof-rail.active", timeout=10_000)
+    sym = page.locator(".manuscript .paragraph .nt-eig").first
+    sym.click()
     page.wait_for_function(
-        "() => document.querySelector('.proof-rail').getAttribute('data-drawer') === 'peek'",
+        "() => document.activeElement && document.activeElement.classList.contains('rail-notation-input')",
         timeout=5_000,
     )
+    assert _is_open(page)
+    assert "doc-view-notation" in _rail_class(page)
+    # The field is selected, ready to type the new symbol.
+    assert page.evaluate(
+        "() => { const i = document.activeElement; return i.selectionStart === 0 && i.selectionEnd === i.value.length; }"
+    )
+
+
+def test_symbols_are_marked(page: Page, interactive_server: str):
+    """Every use of a declared symbol carries its mark (nt-<name>), in the
+    body's inline and display math alike."""
+    _load(page, interactive_server)
+    uses = page.evaluate(
+        "() => [...document.querySelectorAll('.manuscript span.math[data-latex]')]"
+        ".filter(e => /\\\\eig(?![a-zA-Z])/.test(e.dataset.latex)).length"
+    )
+    marked = page.evaluate(
+        "() => [...document.querySelectorAll('.manuscript span.math[data-latex]')]"
+        ".filter(e => e.querySelector('.nt-eig')).length"
+    )
+    assert uses > 0 and marked == uses, (uses, marked)
+
+
+def test_reading_theme_offers_system(page: Page, interactive_server: str):
+    _load(page, interactive_server)
+    page.evaluate("() => localStorage.clear()")
+    page.reload()
+    page.wait_for_function(RSM_READY, timeout=10_000)
+    _show(page, "reading")
+    row = page.locator('.reading-row[data-control="theme"]')
+    values = [row.locator(".reading-opt").nth(i).get_attribute("data-value") for i in range(3)]
+    assert values == ["system", "light", "dark"]
+    # With no stored choice, System is the active one.
+    assert row.locator('.reading-opt[data-value="system"]').get_attribute("aria-pressed") == "true"
+    row.locator('.reading-opt[data-value="dark"]').click()
+    assert page.evaluate("() => document.documentElement.classList.contains('dark-theme')")
+    row.locator('.reading-opt[data-value="system"]').click()
+    assert page.evaluate(
+        "() => !document.documentElement.classList.contains('dark-theme')"
+        " && !document.documentElement.classList.contains('light-theme')"
+    )
+
+
+# ---- phones: the bottom bar ----
+# Below 768px the strip is a bottom bar. The page must reserve space for it so
+# the end of the document is not stuck under the bar, and jumps to a near-bottom
+# target must land above it.
+
+_PHONE = {"width": 375, "height": 844}
+
+
+def _load_phone(page: Page, server: str) -> None:
+    page.set_viewport_size(_PHONE)
+    page.goto(f"{server}/sidebar.html")
+    page.wait_for_function(RSM_READY, timeout=10_000)
+    page.evaluate("() => localStorage.clear()")
+    page.reload()
+    page.wait_for_function(RSM_READY, timeout=10_000)
 
 
 _LAST_PARAGRAPH = (
@@ -571,42 +676,69 @@ _LAST_PARAGRAPH = (
 )
 
 
-@pytest.mark.parametrize("size", _DRAWER_SIZES, ids=["375", "1200"])
-def test_drawer_rest_bar_clears_document_end(page: Page, interactive_server: str, size):
+def test_phone_bar_has_one_button_per_scope(page: Page, interactive_server: str):
+    _load_phone(page, interactive_server)
+    views = page.evaluate(
+        "() => [...document.querySelectorAll('.rail-strip-btn')]"
+        ".filter(b => b.offsetParent).map(b => b.dataset.view || 'link')"
+    )
+    assert views == ["document", "proof", "pinned", "reading", "link"]
+    # Labelled, and at least 48px.
+    for b in page.locator(".rail-strip-btn").all():
+        if not b.is_visible():
+            continue
+        box = b.bounding_box()
+        assert box["width"] >= 48 and box["height"] >= 48, box
+        assert b.locator(".rail-strip-label").is_visible()
+
+
+def test_phone_sheet_switches_views_with_tabs(page: Page, interactive_server: str):
+    _load_phone(page, interactive_server)
+    page.click('.rail-strip-btn[data-view="document"]')
+    page.wait_for_selector(".proof-rail.open", timeout=5_000)
+    tabs = page.locator(".rail-subtabs-document [role=tab]")
+    assert tabs.count() == 2
+    assert not page.locator(".rail-title").is_visible()  # the tabs replace it
+    tabs.nth(1).click()
+    assert "doc-view-notation" in _rail_class(page)
+    assert tabs.nth(1).get_attribute("aria-selected") == "true"
+    assert "Rename one" in page.locator(".rail-hint").inner_text()
+    # Arrow keys move between the tabs.
+    tabs.nth(1).press("ArrowLeft")
+    assert "doc-view-map" in _rail_class(page)
+    # No Width setting on a phone.
+    page.click('.rail-strip-btn[data-view="reading"]')
+    assert not page.locator('.reading-row[data-control="measure"]').is_visible()
+
+
+def test_phone_bar_clears_document_end(page: Page, interactive_server: str):
     """Scrolled to the very bottom, the last line of the document must end at
-    least 8px above the resting drawer bar (the page reserves bottom padding)."""
-    _load_drawer(page, interactive_server, size)
+    least 8px above the bar (the page reserves bottom padding)."""
+    _load_phone(page, interactive_server)
     page.evaluate("() => window.scrollTo(0, document.documentElement.scrollHeight)")
     page.wait_for_timeout(200)
     geom = page.evaluate(
         "() => {"
-        " const bar = document.querySelector('.proof-rail.active').getBoundingClientRect();"
+        " const bar = document.querySelector('.rail-strip').getBoundingClientRect();"
         f" const last = ({_LAST_PARAGRAPH}).getBoundingClientRect();"
         " const d = document.documentElement;"
-        " return {barTop: bar.top, barHeight: bar.height, lastBottom: last.bottom,"
+        " return {barTop: bar.top, lastBottom: last.bottom,"
         " overflowX: d.scrollWidth - d.clientWidth}; }"
     )
-    assert geom["lastBottom"] <= geom["barTop"] - 8, (
-        f"last line must clear the resting drawer bar by >=8px: {geom}"
-    )
-    assert geom["overflowX"] <= 1, f"page must not scroll horizontally: {geom}"
+    assert geom["lastBottom"] <= geom["barTop"] - 8, geom
+    assert geom["overflowX"] <= 1, geom
 
 
-@pytest.mark.parametrize("size", _DRAWER_SIZES, ids=["375", "1200"])
-def test_drawer_jump_to_bottom_target_clears_bar(
-    page: Page, interactive_server: str, size
-):
+def test_phone_jump_to_bottom_target_clears_bar(page: Page, interactive_server: str):
     """Bringing a near-bottom target into view (scroll-padding-bottom) must land
-    it above the resting bar, not under it."""
-    _load_drawer(page, interactive_server, size)
+    it above the bar, not under it."""
+    _load_phone(page, interactive_server)
     page.evaluate(f"() => ({_LAST_PARAGRAPH}).scrollIntoView({{block: 'end'}})")
     page.wait_for_timeout(200)
     geom = page.evaluate(
         "() => {"
-        " const bar = document.querySelector('.proof-rail.active').getBoundingClientRect();"
+        " const bar = document.querySelector('.rail-strip').getBoundingClientRect();"
         f" const last = ({_LAST_PARAGRAPH}).getBoundingClientRect();"
         " return {barTop: bar.top, lastBottom: last.bottom}; }"
     )
-    assert geom["lastBottom"] <= geom["barTop"] - 8, (
-        f"jumped-to target must clear the resting drawer bar by >=8px: {geom}"
-    )
+    assert geom["lastBottom"] <= geom["barTop"] - 8, geom

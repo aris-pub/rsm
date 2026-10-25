@@ -102,15 +102,12 @@ export function setup(root = document) {
     });
   }
 
-  // Surface the rail's Proof scope and its step map (not State) so the dimmed
-  // cone is visible. Mirrors what reorder.js does on entering reorder mode.
+  // Open the sidebar's Proof steps view so the dimmed cone is visible; the
+  // way out of focus mode lives in that panel.
   function showProofMap() {
-    const scopeBtn = rail.querySelector('.rail-scope[data-scope="proof"]');
-    if (scopeBtn) scopeBtn.click();
-    const mapTab = rail.querySelector(
-      '.rail-subtabs-proof .rail-tab[data-view="proof-map"]',
+    document.dispatchEvent(
+      new CustomEvent("rail:show", { detail: { view: "steps", open: true } }),
     );
-    if (mapTab && !mapTab.classList.contains("active")) mapTab.click();
   }
 
   // Escape leaves focus while it is active; bound on enter, dropped on exit so

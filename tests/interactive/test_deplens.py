@@ -138,9 +138,8 @@ class TestUpstream:
         _lens(page, "stp-a", "up")
         expect(page.locator(".proof-rail")).to_have_class(re.compile(r"\bdeplensing\b"))
         expect(page.locator(".deplens-bar")).to_be_visible()
-        expect(
-            page.locator('.proof-rail .rail-scope[data-scope="proof"]')
-        ).to_have_class(re.compile(r"\bactive\b"))
+        # The sidebar switches to the proof's steps (without opening).
+        expect(page.locator(".proof-rail")).to_have_class(re.compile(r"\bscope-proof\b"))
 
 
 class TestDownstream:
@@ -304,9 +303,7 @@ class TestResultUpstream:
     def test_switches_to_document_scope(self, page: Page, interactive_server: str):
         _load_dep(page, interactive_server)
         _lens_block(page, "thm-top", "up")
-        expect(
-            page.locator('.proof-rail .rail-scope[data-scope="document"]')
-        ).to_have_class(re.compile(r"\bactive\b"))
+        expect(page.locator(".proof-rail")).to_have_class(re.compile(r"\bscope-document\b"))
         expect(page.locator(".deplens-bar")).to_be_visible()
 
 

@@ -79,10 +79,9 @@ class TestFocusEnter:
         expect(proof).to_have_class(re.compile(r"\bproof-focused\b"))
         expect(page.locator(".proof-rail")).to_have_class(re.compile(r"\bfocusing\b"))
         expect(page.locator(".proof-focus-exit")).to_be_visible()
-        # The rail flips to the Proof scope so the dimmed cone is visible.
-        expect(
-            page.locator('.proof-rail .rail-scope[data-scope="proof"]')
-        ).to_have_class(re.compile(r"\bactive\b"))
+        # The sidebar opens on Proof steps so the dimmed cone is visible.
+        expect(page.locator(".proof-rail")).to_have_class(re.compile(r"\bscope-proof\b"))
+        expect(page.locator(".proof-rail")).to_have_class(re.compile(r"\bopen\b"))
 
     def test_noncone_steps_collapse_cone_steps_stay_open(
         self, page: Page, interactive_server: str

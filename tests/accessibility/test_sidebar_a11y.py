@@ -155,7 +155,7 @@ def _force_theme(page, theme):
 def _pin_first_step(page):
     # Steps (map) is the default proof view; clicking the proof's first step pins
     # its (small) prerequisite cone, so the later steps rest faded.
-    page.click('.rail-scope[data-scope="proof"]')
+    page.click('.rail-strip-btn[data-view="steps"]')
     page.evaluate(
         """() => {
             const step = [...document.querySelectorAll('.proof[data-nodeid] .step')]

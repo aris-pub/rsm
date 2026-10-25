@@ -92,6 +92,8 @@ def _run_app(func: Callable, args: Namespace, print_output: bool = True) -> int:
         "log_lineno": args.log_lineno,
         "strict": args.strict,
     }
+    if getattr(args, "sidebar", False):
+        kwargs["sidebar"] = True
     if args.string:
         kwargs["source"] = args.src
     else:
@@ -268,6 +270,7 @@ def _cmd_build(args: Namespace) -> int:
         "theme_toggle": not args.no_theme_toggle,
         "menu_position": "right" if args.menu_right else "left",
         "strict": args.strict,
+        "sidebar": args.sidebar,
     }
     if args.string:
         kwargs["source"] = args.src
@@ -629,6 +632,8 @@ def _cmd_serve(args: Namespace) -> int:
             cmd_parts.extend(["--css", custom_css])
         if args.menu_right:
             cmd_parts.append("--menu-right")
+        if args.sidebar:
+            cmd_parts.append("--sidebar")
         if args.no_theme_toggle:
             cmd_parts.append("--no-theme-toggle")
         if args.strict:
@@ -658,6 +663,7 @@ def _cmd_serve(args: Namespace) -> int:
             "custom_css": custom_css,
             "theme_toggle": not args.no_theme_toggle,
             "menu_position": "right" if args.menu_right else "left",
+            "sidebar": args.sidebar,
             "strict": args.strict,
         }
         if args.string:
@@ -693,6 +699,8 @@ def _cmd_serve(args: Namespace) -> int:
                     build_cmd += f" --css {args.css}"
                 if args.menu_right:
                     build_cmd += " --menu-right"
+                if args.sidebar:
+                    build_cmd += " --sidebar"
                 if args.no_theme_toggle:
                     build_cmd += " --no-theme-toggle"
                 if args.strict:
@@ -739,6 +747,8 @@ def _cmd_serve(args: Namespace) -> int:
                             cmd += f" --css {args.css}"
                         if args.menu_right:
                             cmd += " --menu-right"
+                        if args.sidebar:
+                            cmd += " --sidebar"
                         if args.no_theme_toggle:
                             cmd += " --no-theme-toggle"
                         if args.strict:
@@ -896,6 +906,11 @@ def main() -> int:
         help="disable dark mode toggle button",
         action="store_true",
     )
+    build_parser.add_argument(
+        "--sidebar",
+        help="add the reader sidebar (contents, notation, proofs, pinned, reading)",
+        action="store_true",
+    )
     build_parser.set_defaults(handrails=True, func=_cmd_build)
 
     # Render subcommand
@@ -908,6 +923,11 @@ def main() -> int:
         "-s",
         "--silent",
         help="do not show output, only the logs",
+        action="store_true",
+    )
+    render_parser.add_argument(
+        "--sidebar",
+        help="add the reader sidebar (contents, notation, proofs, pinned, reading)",
         action="store_true",
     )
     render_parser.set_defaults(func=_cmd_render)
@@ -1070,6 +1090,11 @@ def main() -> int:
     output_opts.add_argument(
         "--no-browser",
         help="do not automatically open browser",
+        action="store_true",
+    )
+    output_opts.add_argument(
+        "--sidebar",
+        help="add the reader sidebar (contents, notation, proofs, pinned, reading)",
         action="store_true",
     )
     output_opts.add_argument(

@@ -25,7 +25,7 @@ def _load(page: Page, server: str, query: str = "") -> None:
 
 
 def _copy_view_url(page: Page) -> str:
-    page.locator(".proof-rail .rail-share-view").click()
+    page.locator(".rail-strip .rail-share-view").click()
     # Clipboard permissions are granted in conftest's browser_context_args.
     return page.evaluate("() => navigator.clipboard.readText()")
 
@@ -45,7 +45,7 @@ def _collapsed(page: Page, block_id: str) -> bool:
 class TestCopyAction:
     def test_button_in_document_scope(self, page: Page, interactive_server: str):
         _load(page, interactive_server)
-        expect(page.locator(".proof-rail .rail-share-view")).to_be_visible()
+        expect(page.locator(".rail-strip .rail-share-view")).to_be_visible()
 
     def test_copy_writes_view_url(self, page: Page, interactive_server: str):
         _load(page, interactive_server)

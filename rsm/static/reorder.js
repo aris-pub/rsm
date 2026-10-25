@@ -263,8 +263,7 @@ function activate(proof) {
   }
   // Surface the proof's dependency graph (the rail's Proof scope) so the cone
   // lit during a drag shows the constraints the reorder is respecting.
-  const scopeBtn = document.querySelector('.rail-scope[data-scope="proof"]');
-  if (scopeBtn) scopeBtn.click();
+  document.dispatchEvent(new CustomEvent("rail:show", { detail: { view: "steps" } }));
   reorderState.set(proof, { model, handles });
   announce(`Reorder mode on, ${model.byId.size} steps. Drag a step's handle to reorder it.`);
 }

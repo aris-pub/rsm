@@ -53,6 +53,10 @@ def _write_iframe_hosts(serve_dir: Path) -> None:
     )
 
 
+# Fixtures built with the reader sidebar (`rsm build --sidebar`).
+SIDEBAR_FIXTURES = {"sidebar", "collapsed", "deplens", "reorder"}
+
+
 @pytest.fixture(scope="session")
 def interactive_server(tmp_path_factory: Any):
     """Build RSM fixtures, start rsm serve, yield base URL, tear down on exit."""
@@ -68,6 +72,7 @@ def interactive_server(tmp_path_factory: Any):
             handrails=True,
             standalone=False,
             strict=True,
+            sidebar=rsm_file.stem in SIDEBAR_FIXTURES,
         )
 
     # Copy image assets so figures can render

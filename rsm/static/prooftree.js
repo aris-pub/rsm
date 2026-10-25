@@ -1,17 +1,22 @@
 // prooftree.js
 //
-// Floating sidebar with two scopes:
-//   Document - the whole-paper TOC tree, and the Notation panel
-//   Proof    - the step-dependency tree and live State of the proof in view
-// Both DAGs are pre-rendered SVGs (laid out at build time); this module routes
-// scope/sub-tab clicks, auto-follows the proof you are reading, handles the
-// collapse control, and remembers your layout in localStorage.
+// The reader sidebar's panel. Scopes and views:
+//   Document - the whole-manuscript section graph (Contents), and Notation
+//   Proof    - the step graph (Steps) and live State of the proof in view
+//   Pinned   - an excerpt kept open beside the text
+//   Reading  - typeface, size, line height, width and theme
+// The graphs are pre-rendered SVGs (laid out at build time). This module routes
+// views, auto-follows the proof you are reading, keeps the pinned excerpt and
+// the reading settings, and remembers the open view in localStorage. The strip
+// that opens and closes the panel, and the page layout around it, live in
+// sidebar.js.
 
 import { wireTree, pinTreeCurrent } from "./tocarcs.js";
 import { openHandrail } from "./handrails.js";
 import { createTooltips } from "./tooltips.js";
 import { reRenderAll } from "./notation.js";
 import { typesetMath } from "./libraries.js";
+import { setupStrip } from "./sidebar.js";
 
 export function setup(root = document) {
   const rail = root.querySelector(".proof-rail");
@@ -54,24 +59,57 @@ export function setup(root = document) {
 
   rail.classList.add("active");
 
-  // ---- layout: scope, sub-tabs, collapse (persisted) ----
+  // ---- views: scope + sub-view ----
 
-  // Map a sub-tab button to the rail class that selects its panel. The class is
-  // scoped (doc-view-* vs proof-view-*) so Document and Proof can both have a
-  // "map" sub-tab without colliding.
-  function railClassFor(tab) {
-    const inDoc = !!tab.closest(".rail-subtabs-document");
-    const suffix = tab.dataset.view.replace(/^(doc|proof)-/, "");
-    return (inDoc ? "doc-view-" : "proof-view-") + suffix;
+  const SCOPES = ["document", "proof", "pinned", "reading"];
+  function currentScope() {
+    return SCOPES.find((s) => rail.classList.contains("scope-" + s)) || "document";
   }
 
-  function saveLayout() {
-    const layout = {
-      scope: rail.querySelector(".rail-scope.active")?.dataset.scope || "document",
+  function selectScope(scope) {
+    for (const s of SCOPES) rail.classList.toggle("scope-" + s, s === scope);
+  }
+
+  // A sub-view is a rail-tab data-view: doc-map / notation (Document) or
+  // proof-map / state (Proof). The rail class is scoped (doc-view-* vs
+  // proof-view-*) so both scopes can have a "map" view without colliding. The
+  // sub-tabs (text tabs on phones) are kept in sync when present.
+  function selectSubview(view) {
+    const inDoc = view === "doc-map" || view === "notation";
+    const prefix = inDoc ? "doc-view-" : "proof-view-";
+    const suffix = view.replace(/^(doc|proof)-/, "");
+    for (const c of [...rail.classList]) {
+      if (c.startsWith(prefix)) rail.classList.remove(c);
+    }
+    rail.classList.add(prefix + suffix);
+    const row = rail.querySelector(
+      inDoc ? ".rail-subtabs-document" : ".rail-subtabs-proof",
+    );
+    if (row) {
+      for (const t of row.querySelectorAll(".rail-tab")) {
+        const on = t.dataset.view === view;
+        t.classList.toggle("active", on);
+        t.setAttribute("aria-selected", String(on));
+        t.tabIndex = on ? 0 : -1;
+      }
+    }
+    if (!inDoc) {
+      proofView = view === "state" ? "state" : "map";
+      renderState();
+    }
+  }
+
+  function saveLayout(extra) {
+    let saved = {};
+    try {
+      saved = JSON.parse(localStorage.getItem(lsKey) || "{}") || {};
+    } catch (e) {
+      saved = {};
+    }
+    const layout = Object.assign(saved, {
       docView: rail.classList.contains("doc-view-notation") ? "notation" : "doc-map",
       proofView: rail.classList.contains("proof-view-state") ? "state" : "proof-map",
-      collapsed: rail.classList.contains("collapsed"),
-    };
+    }, extra || {});
     try {
       localStorage.setItem(lsKey, JSON.stringify(layout));
     } catch (e) {
@@ -79,75 +117,39 @@ export function setup(root = document) {
     }
   }
 
-  function selectScope(scope) {
-    for (const s of rail.querySelectorAll(".rail-scope")) {
-      const on = s.dataset.scope === scope;
-      s.classList.toggle("active", on);
-      s.setAttribute("aria-pressed", String(on));
-    }
-    rail.classList.toggle("scope-document", scope === "document");
-    rail.classList.toggle("scope-proof", scope === "proof");
-    rail.classList.toggle("scope-reading", scope === "reading");
-    rail.classList.toggle("scope-pinned", scope === "pinned");
-  }
-
-  function selectTab(tab) {
-    const row = tab.closest(".rail-subtabs");
-    for (const t of row.querySelectorAll(".rail-tab")) {
-      t.classList.toggle("active", t === tab);
-      t.setAttribute("aria-pressed", String(t === tab));
-      rail.classList.remove(railClassFor(t));
-    }
-    rail.classList.add(railClassFor(tab));
-    if (row.classList.contains("rail-subtabs-proof")) {
-      proofView = tab.dataset.view === "state" ? "state" : "map";
-      renderState();
-    }
-  }
-
-  const scopeRow = rail.querySelector(".rail-scopes");
-  if (scopeRow) {
-    scopeRow.addEventListener("click", (ev) => {
-      const s = ev.target.closest(".rail-scope");
-      if (!s) return;
-      selectScope(s.dataset.scope);
-      saveLayout();
-    });
-  }
+  // The phone sheet's text tabs switch a scope's two views.
   for (const row of rail.querySelectorAll(".rail-subtabs")) {
     row.addEventListener("click", (ev) => {
       const t = ev.target.closest(".rail-tab");
       if (!t) return;
-      selectTab(t);
+      selectSubview(t.dataset.view);
       saveLayout();
+      rail.dispatchEvent(new CustomEvent("rail:subview", { bubbles: true }));
     });
-  }
-  const collapseBtn = rail.querySelector(".rail-collapse");
-  if (collapseBtn) {
-    collapseBtn.addEventListener("click", () => {
-      rail.classList.toggle("collapsed");
-      saveLayout();
+    row.addEventListener("keydown", (ev) => {
+      if (ev.key !== "ArrowLeft" && ev.key !== "ArrowRight") return;
+      const tabs = [...row.querySelectorAll(".rail-tab")];
+      const i = tabs.indexOf(document.activeElement);
+      if (i < 0) return;
+      ev.preventDefault();
+      const next = tabs[(i + (ev.key === "ArrowRight" ? 1 : tabs.length - 1)) % tabs.length];
+      next.click();
+      next.focus();
     });
   }
 
-  // Pinned tab: a referenced excerpt kept open beside the proof. tooltips.js
-  // dispatches rail:pin from a preview's pin button. One pin at a time, so a new
-  // pin replaces the old. The pinned scope is deliberately not persisted (the
-  // excerpt is runtime-only), so a reload returns to the pre-pin scope.
+  // Pinned: a referenced excerpt kept open beside the text. tooltips.js
+  // dispatches rail:pin from a preview's pin control or a block's handrail menu.
+  // One pin at a time, so a new pin replaces the old. The excerpt is
+  // runtime-only (not persisted).
   const pinnedBody = rail.querySelector(".rail-pinned-body");
   const pinnedTitle = rail.querySelector(".rail-pinned-title");
-  let prePinScope = null;
   document.addEventListener("rail:pin", (ev) => {
     if (!pinnedBody) return;
-    if (!rail.classList.contains("has-pin")) {
-      prePinScope =
-        rail.querySelector(".rail-scope.active")?.dataset.scope || "document";
-    }
     pinnedBody.innerHTML = ev.detail.html || "";
     if (pinnedTitle) pinnedTitle.textContent = ev.detail.title || "Pinned";
     typesetMath(pinnedBody);
     rail.classList.add("has-pin");
-    selectScope("pinned");
   });
   const pinClose = rail.querySelector(".rail-pin-close");
   if (pinClose) {
@@ -155,14 +157,13 @@ export function setup(root = document) {
       if (pinnedBody) pinnedBody.innerHTML = "";
       if (pinnedTitle) pinnedTitle.textContent = "";
       rail.classList.remove("has-pin");
-      selectScope(prePinScope || "document");
-      prePinScope = null;
+      document.dispatchEvent(new CustomEvent("rail:unpin"));
     });
   }
 
   // ---- reading controls (typeface, size, line height, width, theme) ----
-  // Each button sets a root data-reading-* attribute (or the dark-theme class)
-  // and persists it; the inline boot script pre-applies them before first paint.
+  // Each button sets a root data-reading-* attribute (or the theme class) and
+  // persists it; the inline boot script pre-applies them before first paint.
   const READING_KEY = "rsm-reading";
   function readReadingPrefs() {
     try {
@@ -174,11 +175,18 @@ export function setup(root = document) {
   function applyReading(control, value) {
     const el = document.documentElement;
     if (control === "theme") {
-      // Explicit choice forces color-scheme via one class; the other is cleared
-      // so the reader can switch between light and dark both ways.
+      // Light or Dark forces the color-scheme with one class; System clears
+      // both, so the page follows the operating system again.
       el.classList.toggle("dark-theme", value === "dark");
       el.classList.toggle("light-theme", value === "light");
     } else el.setAttribute("data-reading-" + control, value);
+  }
+  function syncReadingRow(row, value) {
+    for (const o of row.querySelectorAll(".reading-opt")) {
+      const on = o.dataset.value === value;
+      o.classList.toggle("active", on);
+      o.setAttribute("aria-pressed", String(on));
+    }
   }
   const readingPanel = rail.querySelector(".rail-reading");
   if (readingPanel) {
@@ -187,11 +195,7 @@ export function setup(root = document) {
       if (!btn) return;
       const row = btn.closest(".reading-row");
       const control = row.dataset.control;
-      for (const o of row.querySelectorAll(".reading-opt")) {
-        const on = o === btn;
-        o.classList.toggle("active", on);
-        o.setAttribute("aria-pressed", String(on));
-      }
+      syncReadingRow(row, btn.dataset.value);
       applyReading(control, btn.dataset.value);
       const prefs = readReadingPrefs();
       prefs[control] = btn.dataset.value;
@@ -201,198 +205,56 @@ export function setup(root = document) {
         /* localStorage unavailable; preference stays session-only */
       }
     });
-    // Apply saved prefs (idempotent with the boot script) and sync the buttons.
+    // Apply saved prefs (idempotent with the boot script) and show the reader's
+    // real choice. The theme also honours the older rsm-theme key, and with no
+    // stored choice at all it is System.
     const prefs = readReadingPrefs();
+    if (!prefs.theme) {
+      let legacy = null;
+      try {
+        legacy = localStorage.getItem("rsm-theme");
+      } catch (e) {
+        /* ignore */
+      }
+      if (legacy === "light" || legacy === "dark") prefs.theme = legacy;
+    }
     for (const row of readingPanel.querySelectorAll(".reading-row")) {
       const value = prefs[row.dataset.control];
-      if (!value) continue;
+      if (!value || !row.querySelector(`.reading-opt[data-value="${value}"]`)) continue;
       applyReading(row.dataset.control, value);
-      for (const o of row.querySelectorAll(".reading-opt")) {
-        const on = o.dataset.value === value;
-        o.classList.toggle("active", on);
-        o.setAttribute("aria-pressed", String(on));
-      }
+      syncReadingRow(row, value);
     }
   }
 
-  // Restore a previously saved layout.
+  // Restore the reader's last views.
   try {
     const saved = JSON.parse(localStorage.getItem(lsKey) || "null");
     if (saved) {
-      selectScope(saved.scope || "document");
-      const docTab = rail.querySelector(
-        `.rail-subtabs-document .rail-tab[data-view="${saved.docView}"]`,
-      );
-      if (docTab) selectTab(docTab);
-      const proofTab = rail.querySelector(
-        `.rail-subtabs-proof .rail-tab[data-view="${saved.proofView}"]`,
-      );
-      if (proofTab) selectTab(proofTab);
-      rail.classList.toggle("collapsed", !!saved.collapsed);
+      if (saved.docView && rail.querySelector(".rail-doc-map") && rail.querySelector(".rail-notation")) {
+        selectSubview(saved.docView === "notation" ? "notation" : "doc-map");
+      }
+      if (saved.proofView) selectSubview(saved.proofView === "state" ? "state" : "proof-map");
     }
   } catch (e) {
     /* ignore malformed saved layout */
   }
 
-  // ---- mobile bottom-drawer (<=1100px) ----
-  // Below the desktop breakpoint the rail re-skins as a bottom sheet with three
-  // states (data-drawer: closed | peek | open). CSS owns the layout; here we
-  // inject the grip and peek-goal bar, drive the transitions, persist the state,
-  // and (via updatePeekGoal, called from updateState) keep the peek goal current.
-  let drawerGoalEl = null;
-  {
-    const DRAWER_KEY = "rsm-drawer:" + location.pathname;
-    const mql = window.matchMedia("(max-width: 1320px)");
-    let focusHandler = null;
-
-    // Reads the handle fresh each call so it works before setup and after a
-    // resize re-creates the drawer.
-    const setDrawer = (state, persist = true) => {
-      rail.dataset.drawer = state;
-      const handle = rail.querySelector(".rail-handle");
-      if (handle) handle.setAttribute("aria-expanded", String(state === "open"));
-      if (persist) {
+  // The strip (desktop) / bottom bar (phones) that opens this panel.
+  const strip = root.querySelector(".rail-strip");
+  if (strip) {
+    setupStrip(strip, rail, {
+      selectScope,
+      selectSubview,
+      currentScope,
+      saveLayout,
+      savedLayout: () => {
         try {
-          localStorage.setItem(DRAWER_KEY, state);
+          return JSON.parse(localStorage.getItem(lsKey) || "null");
         } catch (e) {
-          /* localStorage unavailable; state stays session-only */
+          return null;
         }
-      }
-    };
-
-    function setupDrawer() {
-      if (rail.querySelector(".rail-handle")) return; // idempotent
-      const handle = document.createElement("button");
-      handle.type = "button";
-      handle.className = "rail-handle";
-      handle.setAttribute("aria-label", "Toggle the navigation drawer");
-      const peek = document.createElement("div");
-      peek.className = "rail-peek";
-      peek.innerHTML =
-        '<span class="rail-peek-label">Prove</span><span class="rail-peek-goal"></span>';
-      rail.insertBefore(peek, rail.firstChild);
-      rail.insertBefore(handle, rail.firstChild);
-      drawerGoalEl = peek.querySelector(".rail-peek-goal");
-
-      let savedDrawer = null;
-      try {
-        savedDrawer = localStorage.getItem(DRAWER_KEY);
-      } catch (e) {
-        /* ignore */
-      }
-      setDrawer(
-        ["closed", "peek", "open"].includes(savedDrawer) ? savedDrawer : "peek",
-        false,
-      );
-
-      // Drag the grip to step between states (closed <-> peek <-> open); a tap
-      // (no real drag) toggles peek<->open and reopens a closed sheet to peek.
-      // There is no separate close button: dragging down reaches closed.
-      const ORDER = ["closed", "peek", "open"];
-      let dragY = null;
-      let dragged = false;
-      handle.addEventListener("pointerdown", (ev) => {
-        dragY = ev.clientY;
-        dragged = false;
-        try {
-          handle.setPointerCapture(ev.pointerId);
-        } catch (e) {
-          /* synthetic/uncaptured pointer */
-        }
-      });
-      handle.addEventListener("pointermove", (ev) => {
-        if (dragY !== null && Math.abs(ev.clientY - dragY) > 8) dragged = true;
-      });
-      handle.addEventListener("pointerup", (ev) => {
-        if (dragY === null) return;
-        const dy = ev.clientY - dragY;
-        const i = ORDER.indexOf(rail.dataset.drawer);
-        if (!dragged) {
-          setDrawer(rail.dataset.drawer === "peek" ? "open" : "peek");
-        } else if (dy < 0) {
-          setDrawer(ORDER[Math.min(i + 1, ORDER.length - 1)]);
-        } else {
-          setDrawer(ORDER[Math.max(i - 1, 0)]);
-        }
-        dragY = null;
-        dragged = false;
-      });
-      // Focusing a step drops the sheet to peek so the focused cone is readable.
-      focusHandler = () => setDrawer("peek");
-      document.addEventListener("rsm:focus-enter", focusHandler);
-    }
-
-    function teardownDrawer() {
-      rail.querySelector(".rail-handle")?.remove();
-      rail.querySelector(".rail-peek")?.remove();
-      drawerGoalEl = null;
-      rail.removeAttribute("data-drawer");
-      if (focusHandler) {
-        document.removeEventListener("rsm:focus-enter", focusHandler);
-        focusHandler = null;
-      }
-    }
-
-    // Drive the drawer off viewport width, on load AND on every crossing of the
-    // breakpoint, so narrowing a desktop window (or a devtools resize) wires up a
-    // working grip, and widening again returns a clean desktop rail (no drawer).
-    if (mql.matches) setupDrawer();
-    mql.addEventListener("change", (e) => {
-      if (e.matches) {
-        peekGoalId = undefined; // force the re-created peek bar to re-render
-        setupDrawer();
-        updatePeekGoal();
-      } else {
-        teardownDrawer();
-      }
+      },
     });
-  }
-
-  // Keep the peek bar showing the current proof's goal, with rendered math, on
-  // one clamped line (no-op off mobile). Re-render only when the goal changes,
-  // since typesetting is not free.
-  let peekGoalId;
-  function updatePeekGoal() {
-    if (!drawerGoalEl) return;
-    let g = null;
-    const data = current ? stateData.get(current) : null;
-    if (data && active.idx >= 0 && active.idx < data.length) g = data[active.idx].goal;
-    const gid = g && g.id != null ? String(g.id) : null;
-    if (gid === peekGoalId) return;
-    peekGoalId = gid;
-    const el = gid != null ? root.querySelector('[data-nodeid="' + gid + '"]') : null;
-    if (!el) {
-      rail.classList.add("drawer-no-goal");
-      drawerGoalEl.textContent = "Open the navigation drawer";
-      return;
-    }
-    rail.classList.remove("drawer-no-goal");
-    // Show just the goal statement: clone the content, drop its label and any
-    // let/assume preamble, then typeset the cloned math.
-    const cz = el.querySelector(":scope > .hr-content-zone") || el;
-    const clone = cloneClean(cz);
-    clone
-      .querySelectorAll(".hr-label, .construct.let, .construct.assume")
-      .forEach((n) => n.remove());
-    drawerGoalEl.innerHTML = "";
-    drawerGoalEl.appendChild(clone);
-    // Drop a leading connective ("⊢", a dangling ", then"/"Then") left behind by
-    // removing the let/assume preamble, so the peek reads as a clean statement.
-    // Skip text inside math (never rewrite rendered formulas), clean the first
-    // prose text node, then stop.
-    const tw = document.createTreeWalker(drawerGoalEl, NodeFilter.SHOW_TEXT, {
-      acceptNode: (n) =>
-        n.parentElement && n.parentElement.closest("math")
-          ? NodeFilter.FILTER_REJECT
-          : NodeFilter.FILTER_ACCEPT,
-    });
-    let tn;
-    while ((tn = tw.nextNode())) {
-      if (!tn.textContent.trim()) continue;
-      tn.textContent = tn.textContent.replace(/^[\s,.;:⊢]*(?:then\b[\s,]*)?/i, "");
-      break;
-    }
-    typesetMath(drawerGoalEl).then(() => reRenderAll(drawerGoalEl));
   }
 
   // ---- proof auto-follow ----
@@ -437,8 +299,12 @@ export function setup(root = document) {
   }
   function selectFrom(target, clearOutside) {
     if (!target || !target.closest) return;
-    // The rail's own controls and the portaled handrail menu are not selections.
-    if (target.closest(".proof-rail") || target.closest("#hr-menu-singleton")) return;
+    // The sidebar's own controls and the portaled handrail menu are not selections.
+    if (
+      target.closest(".proof-rail") ||
+      target.closest(".rail-strip") ||
+      target.closest("#hr-menu-singleton")
+    ) return;
     let el = target.closest(".proof[data-nodeid]");
     while (el && !items.has(el.getAttribute("data-nodeid"))) {
       const p = el.parentElement;
@@ -520,7 +386,6 @@ export function setup(root = document) {
     // Keep the proof DAG resting on the current step's prerequisite path.
     const dag = item ? item.querySelector("svg.toc-tree") : null;
     if (dag) pinTreeCurrent(dag, idx >= 0 ? String(idx) : null);
-    updatePeekGoal();
   }
 
   // No step scroll-observer: the State view follows the step the reader clicks
@@ -658,7 +523,7 @@ export function setup(root = document) {
       host.setAttribute("role", "button");
       host.setAttribute("tabindex", "0");
       host.setAttribute("aria-label", tip || "jump to source");
-      if (tip) host.setAttribute("data-tooltip", tip);
+      if (tip) host.setAttribute("data-tip", tip);
       host.addEventListener("keydown", (ev) => {
         if (ev.key === "Enter" || ev.key === " ") {
           ev.preventDefault();
@@ -788,7 +653,7 @@ export function setup(root = document) {
     // (each skips what the other handles), so running both covers all clones.
     typesetMath(panel).then(() => reRenderAll(panel));
     // Cloned references carry no live tooltip, and the markers carry a
-    // data-tooltip; bind both with the body's initializer (idempotent).
+    // data-tip (interface tooltip); bind the references with the body's initializer (idempotent).
     createTooltips();
   }
 }

@@ -1,11 +1,12 @@
-"""Regression: an open handrail menu must paint ABOVE the floating proof-rail.
+"""Regression: an open handrail menu must paint ABOVE the sidebar's panel.
 
-The menu pops into the left gutter where the fixed `.proof-rail` (z-index 40)
-sits. An ancestor of the handrail establishes a stacking context that paints
-below that rail, so a z-index on the menu (or the handrail) is trapped beneath
-it and the rail occludes the open menu. handrails.js portals the open menu to
-<body> (absolutely positioned in page coordinates) to escape every such ancestor
-context. This test asserts the rail no longer wins the paint order at the menu.
+The menu pops into the left gutter, next to which the fixed `.proof-rail` panel
+(z-index 40) sits when a view is open. An ancestor of the handrail establishes a
+stacking context that paints below that panel, so a z-index on the menu (or the
+handrail) is trapped beneath it and the panel occludes the open menu.
+handrails.js portals the open menu to <body> (absolutely positioned in page
+coordinates) to escape every such ancestor context. This test asserts the panel
+no longer wins the paint order at the menu.
 """
 
 import pytest
@@ -17,11 +18,16 @@ RSM_READY = "() => window.__rsmInitialized === true"
 
 
 def _load_sidebar(page: Page, server: str) -> None:
-    # The proof-rail is a fixed sidebar only above the 1320px drawer breakpoint.
+    # Desktop width, with the sidebar's panel open (Proof steps): the column
+    # then sits right next to the panel, so a step's menu pops out over it.
     page.set_viewport_size({"width": 1400, "height": 900})
     page.goto(f"{server}/sidebar.html")
     page.wait_for_function(RSM_READY, timeout=10_000)
-    page.wait_for_selector(".proof-rail.active", timeout=10_000)
+    btn = page.locator('.rail-strip-btn[data-view="steps"]')
+    if btn.get_attribute("aria-pressed") != "true":
+        btn.click()
+    page.wait_for_selector(".proof-rail.active.open", timeout=10_000)
+    page.wait_for_timeout(400)  # the column's transition
 
 
 def test_open_menu_paints_above_proof_rail(page: Page, interactive_server: str):

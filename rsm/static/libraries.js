@@ -3,7 +3,7 @@
 // Load external libraries dynamically
 //
 
-import { getNotationMacros, mathTrust } from './notation.js';
+import { getNotationMacros, mathOptions } from './notation.js';
 
 let temmlLoaded = false;
 let temmlLoadPromise = null;
@@ -66,17 +66,11 @@ export function loadMathJax() {
   }
 
   const config = document.createElement('script');
-  // Load the html extension and add it to the active package list so MathJax
-  // honors \class the same way Temml does. tex-mml-chtml ships without it.
   config.innerHTML = `window.MathJax = {
-      loader: {
-        load: ['[tex]/html']
-      },
       startup: {
         typeset: false
       },
       tex: {
-        packages: {'[+]': ['html']},
         macros: ${JSON.stringify(notationMacros)},
         inlineMath: [['$', '$'], ['\\\\(', '\\\\)']],
         displayMath: [['$$', '$$'], ['\\\\[', '\\\\]']],
@@ -157,7 +151,7 @@ export async function typesetMath(root = document) {
       const latex = src.slice(2, -2);
       el.dataset.latex = latex;
       try {
-        temml.render(latex, el, { throwOnError: false, trust: mathTrust, macros: { ...getNotationMacros() } });
+        temml.render(latex, el, mathOptions());
       } catch (err) {
         console.error('temml inline error:', err);
       }
@@ -178,7 +172,7 @@ export async function typesetMath(root = document) {
       const latex = src.slice(2, -2).trim();
       el.dataset.latex = latex;
       try {
-        temml.render(latex, contentEl, { displayMode: true, throwOnError: false, trust: mathTrust, macros: { ...getNotationMacros() } });
+        temml.render(latex, contentEl, mathOptions({ displayMode: true }));
       } catch (err) {
         console.error('temml display error:', err);
       }

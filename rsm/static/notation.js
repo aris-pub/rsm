@@ -56,6 +56,31 @@ export function getNotationMacros() {
   return _macros;
 }
 
+// With the sidebar's Notation view on the page, every use of a declared symbol
+// is marked in the rendered math (\class{nt-<name>}), so a reader can click a
+// symbol to rename it. The marks ride on the same \class trust interactive
+// figures already rely on (mathTrust), so \class stays trusted on every render
+// path whether or not the Notation view is present.
+const MARK_PREFIX = "nt-";
+
+function markingOn() {
+  return !!document.querySelector(".proof-rail .rail-notation");
+}
+
+// The options every math render uses: the current notation (a fresh copy per
+// call, so a stray author \gdef cannot leak between blocks), the \class trust
+// figures and marks depend on, and, with the Notation view present, the marks
+// on each use.
+export function mathOptions(extra = {}) {
+  const macros = { ...getNotationMacros() };
+  if (markingOn()) {
+    for (const k of Object.keys(macros)) {
+      macros[k] = `\\class{${MARK_PREFIX}${k.slice(1)}}{${macros[k]}}`;
+    }
+  }
+  return { throwOnError: false, ...extra, macros, trust: mathTrust };
+}
+
 // Render a notation value to a string for validation and preview. A
 // parameterized value (one containing #1..#9, e.g. "e(#1)") only renders inside
 // a macro call, not on its own, so render it as a throwaway macro body applied
@@ -91,14 +116,9 @@ function isValid(latex) {
 // cannot leak into the canonical set or between blocks.
 export function reRenderAll(root = document) {
   if (!window.temml) return;
-  const macros = getNotationMacros();
   root.querySelectorAll("span.math[data-latex]").forEach((el) => {
     try {
-      window.temml.render(el.dataset.latex, el, {
-        throwOnError: false,
-        trust: mathTrust,
-        macros: { ...macros },
-      });
+      window.temml.render(el.dataset.latex, el, mathOptions());
     } catch (err) {
       console.error("notation re-render (inline):", err);
     }
@@ -106,12 +126,7 @@ export function reRenderAll(root = document) {
   root.querySelectorAll("div.mathblock[data-latex]").forEach((el) => {
     const target = el.querySelector(".hr-content-zone") || el;
     try {
-      window.temml.render(el.dataset.latex, target, {
-        displayMode: true,
-        throwOnError: false,
-        trust: mathTrust,
-        macros: { ...macros },
-      });
+      window.temml.render(el.dataset.latex, target, mathOptions({ displayMode: true }));
     } catch (err) {
       console.error("notation re-render (display):", err);
     }
@@ -229,7 +244,7 @@ export function mountNotationPanel(root = document) {
   if (!entries.length) {
     const empty = document.createElement("div");
     empty.className = "rail-notation-empty";
-    empty.textContent = "This paper declares no rebindable notation.";
+    empty.textContent = "This manuscript declares no rebindable notation.";
     panel.appendChild(empty);
     return;
   }
@@ -237,6 +252,7 @@ export function mountNotationPanel(root = document) {
   for (const e of entries) {
     const row = document.createElement("div");
     row.className = "rail-notation-row";
+    row.dataset.macro = e.macro;
 
     const label = document.createElement("div");
     label.className = "rail-notation-label";
@@ -258,21 +274,21 @@ export function mountNotationPanel(root = document) {
     const apply = document.createElement("button");
     apply.type = "button";
     apply.className = "rail-notation-apply";
-    apply.textContent = "Apply";
-    apply.setAttribute("data-tooltip", "Apply this symbol throughout the paper");
+    apply.textContent = "Rename";
+    apply.setAttribute("data-tip", "Rename this symbol everywhere in the manuscript");
 
     const locate = document.createElement("button");
     locate.type = "button";
     locate.className = "rail-notation-locate";
     locate.setAttribute("aria-label", "Scroll to the nearest occurrence of this symbol");
-    locate.setAttribute("data-tooltip", "Scroll to the nearest occurrence of this symbol");
+    locate.setAttribute("data-tip", "Scroll to the nearest occurrence of this symbol");
     locate.innerHTML = _LOCATE_ICON;
 
     const reset = document.createElement("button");
     reset.type = "button";
     reset.className = "rail-notation-reset";
     reset.setAttribute("aria-label", "Reset to the author's default");
-    reset.setAttribute("data-tooltip", "Reset to the author's default");
+    reset.setAttribute("data-tip", "Reset to the author's default");
     reset.textContent = "↺";
 
     function renderPreview(latex) {
@@ -343,4 +359,63 @@ export function mountNotationPanel(root = document) {
     row.append(label, edit, actions);
     panel.appendChild(row);
   }
+}
+
+// A symbol in the text is a way into Notation: clicking one opens the view with
+// that symbol's field selected, and briefly marks where else it is used.
+let entryWired = false;
+export function setupSymbolEntry() {
+  if (entryWired || !markingOn()) return;
+  entryWired = true;
+  const SEL = `.manuscript [class^="${MARK_PREFIX}"], .manuscript [class*=" ${MARK_PREFIX}"]`;
+  const macroOf = (el) => {
+    const c = [...el.classList].find((k) => k.startsWith(MARK_PREFIX));
+    return c ? "\\" + c.slice(MARK_PREFIX.length) : null;
+  };
+  // Keep the click from selecting text or focusing the block underneath.
+  document.addEventListener(
+    "mousedown",
+    (ev) => {
+      if (ev.target.closest && ev.target.closest(SEL)) ev.preventDefault();
+    },
+    true,
+  );
+  document.addEventListener(
+    "click",
+    (ev) => {
+      const sym = ev.target.closest && ev.target.closest(SEL);
+      if (!sym) return;
+      const macro = macroOf(sym);
+      if (!macro) return;
+      ev.preventDefault();
+      ev.stopPropagation();
+      document.dispatchEvent(
+        new CustomEvent("rail:show", { detail: { view: "notation", open: true } }),
+      );
+      requestAnimationFrame(() =>
+        requestAnimationFrame(() => {
+          const row = [...document.querySelectorAll(".rail-notation-row")].find(
+            (r) => r.dataset.macro === macro,
+          );
+          if (!row) return;
+          row.scrollIntoView({ block: "nearest" });
+          row.classList.remove("rail-notation-row-hi");
+          void row.offsetWidth;
+          row.classList.add("rail-notation-row-hi");
+          const input = row.querySelector(".rail-notation-input");
+          if (input) {
+            input.focus({ preventScroll: true });
+            input.select();
+          }
+        }),
+      );
+      const cls = MARK_PREFIX + macro.slice(1);
+      for (const use of document.querySelectorAll(".manuscript ." + cls)) {
+        use.classList.remove("notation-located");
+        void use.getBoundingClientRect();
+        flash(use);
+      }
+    },
+    true,
+  );
 }

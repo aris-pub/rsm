@@ -5,6 +5,13 @@
 
 import * as tocarcs from './tocarcs.js';
 import { lensConeSizes } from './deplens.js';
+import { pinTarget } from './tooltips.js';
+
+// Blocks a reader can keep open in the sidebar's Pinned view.
+const PINNABLE = [
+  "paragraph", "mathblock", "theorem", "lemma", "corollary", "example",
+  "exercise", "proposition", "problem", "porism", "remark", "definition", "proof",
+];
 
 let singletonMenu = null;
 let activeHr = null;
@@ -57,6 +64,7 @@ export function setup() {
       else if (role === "focus") triggerFocus(activeHr);
       else if (role === "deplens-up") triggerDeplens(activeHr, "up");
       else if (role === "deplens-down") triggerDeplens(activeHr, "down");
+      else if (role === "pin") pinBlock(activeHr);
       return;
     }
 
@@ -154,6 +162,13 @@ function showMenuFor(hr) {
     const anyCollapse = collapse || collapseAll;
     collapseSep.style.display = anyCollapse ? "" : "none";
   }
+
+  // Pin: only with the sidebar, on blocks a reader can pin.
+  const pinnable =
+    !!hr.id &&
+    !!document.querySelector(".proof-rail .rail-pinned") &&
+    PINNABLE.some((c) => hr.classList.contains(c));
+  configureItem(singletonMenu.querySelector('[data-role="pin"]'), pinnable ? "true" : null);
 
   // Configure link and code items
   configureItem(singletonMenu.querySelector('[data-role="link"]'), link);
@@ -320,6 +335,13 @@ function toggleReorder(hr) {
 // Enter focus mode on a step. focusmode.js (set up in onload) listens for the
 // dispatched event, finds the step's proof and rail map, and folds the proof to
 // this step's prerequisite cone. Mirrors toggleReorder's menu->event handoff.
+// Keep this block open in the sidebar's Pinned view, titled by its label.
+function pinBlock(hr) {
+  const label = (hr.getAttribute("data-menu-label") || "").replace(/\.$/, "").trim();
+  hideMenu();
+  pinTarget("#" + hr.id, label, hr);
+}
+
 function triggerFocus(hr) {
   hideMenu();
   hr.dispatchEvent(new CustomEvent("focus:step", { bubbles: true }));

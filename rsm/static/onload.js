@@ -18,6 +18,7 @@ import * as notation from './notation.js';
 import * as reorder from './reorder.js';
 import * as deplens from './deplens.js';
 import * as shareview from './shareview.js';
+import * as uitip from './uitip.js';
 
 export async function onload(root = null, { keys = true } = {}) {
   if (!root) root = document;
@@ -147,11 +148,20 @@ export async function onload(root = null, { keys = true } = {}) {
     // typeset so the live LaTeX preview has the math renderer available.
     try {
       notation.mountNotationPanel(root);
+      // A symbol in the text opens Notation with that symbol selected.
+      notation.setupSymbolEntry();
       // The notation buttons are created here, after the initial createTooltips
       // pass, so bind tooltips again (idempotent via :not(.tooltipstered)).
       tooltips.createTooltips();
     } catch (err) {
       console.error("Loading notation panel FAILED!", err);
+    }
+
+    // Interface tooltips for the sidebar's controls.
+    try {
+      uitip.setup();
+    } catch (err) {
+      console.error("Loading interface tooltips FAILED!", err);
     }
 
     // Shareable view: wire "Copy this view" and restore a ?view= link if present.

@@ -26,7 +26,6 @@ var RSM = (() => {
 
   // rsm/static/notation.js
   var _macros = null;
-  var mathTrust = (ctx) => ctx.command === "\\class";
   function storageKey() {
     return "rsm-notation:" + location.pathname;
   }
@@ -57,6 +56,19 @@ var RSM = (() => {
     Object.assign(_macros, loadOverrides());
     return _macros;
   }
+  var MARK_PREFIX = "nt-";
+  var markTrust = (ctx) => ctx.command === "\\class" && /^nt-[A-Za-z]+$/.test(ctx.class || "");
+  function markingOn() {
+    return !!document.querySelector(".proof-rail .rail-notation");
+  }
+  function mathOptions(extra = {}) {
+    const macros = { ...getNotationMacros() };
+    if (!markingOn()) return { throwOnError: false, ...extra, macros };
+    for (const k of Object.keys(macros)) {
+      macros[k] = `\\class{${MARK_PREFIX}${k.slice(1)}}{${macros[k]}}`;
+    }
+    return { throwOnError: false, ...extra, macros, trust: markTrust };
+  }
   function renderNotationToString(latex) {
     const params = latex.match(/#[1-9]/g);
     if (params) {
@@ -81,14 +93,9 @@ var RSM = (() => {
   }
   function reRenderAll(root2 = document) {
     if (!window.temml) return;
-    const macros = getNotationMacros();
     root2.querySelectorAll("span.math[data-latex]").forEach((el) => {
       try {
-        window.temml.render(el.dataset.latex, el, {
-          throwOnError: false,
-          trust: mathTrust,
-          macros: { ...macros }
-        });
+        window.temml.render(el.dataset.latex, el, mathOptions());
       } catch (err) {
         console.error("notation re-render (inline):", err);
       }
@@ -96,12 +103,7 @@ var RSM = (() => {
     root2.querySelectorAll("div.mathblock[data-latex]").forEach((el) => {
       const target = el.querySelector(".hr-content-zone") || el;
       try {
-        window.temml.render(el.dataset.latex, target, {
-          displayMode: true,
-          throwOnError: false,
-          trust: mathTrust,
-          macros: { ...macros }
-        });
+        window.temml.render(el.dataset.latex, target, mathOptions({ displayMode: true }));
       } catch (err) {
         console.error("notation re-render (display):", err);
       }
@@ -186,7 +188,7 @@ var RSM = (() => {
     if (!entries.length) {
       const empty = document.createElement("div");
       empty.className = "rail-notation-empty";
-      empty.textContent = "This paper declares no rebindable notation.";
+      empty.textContent = "This manuscript declares no rebindable notation.";
       panel.appendChild(empty);
       return;
     }
@@ -216,6 +218,7 @@ var RSM = (() => {
       };
       const row = document.createElement("div");
       row.className = "rail-notation-row";
+      row.dataset.macro = e.macro;
       const label = document.createElement("div");
       label.className = "rail-notation-label";
       label.textContent = e.label;
@@ -232,19 +235,19 @@ var RSM = (() => {
       const apply = document.createElement("button");
       apply.type = "button";
       apply.className = "rail-notation-apply";
-      apply.textContent = "Apply";
-      apply.setAttribute("data-tooltip", "Apply this symbol throughout the paper");
+      apply.textContent = "Rename";
+      apply.setAttribute("data-tip", "Rename this symbol everywhere in the manuscript");
       const locate = document.createElement("button");
       locate.type = "button";
       locate.className = "rail-notation-locate";
       locate.setAttribute("aria-label", "Scroll to the nearest occurrence of this symbol");
-      locate.setAttribute("data-tooltip", "Scroll to the nearest occurrence of this symbol");
+      locate.setAttribute("data-tip", "Scroll to the nearest occurrence of this symbol");
       locate.innerHTML = _LOCATE_ICON;
       const reset = document.createElement("button");
       reset.type = "button";
       reset.className = "rail-notation-reset";
       reset.setAttribute("aria-label", "Reset to the author's default");
-      reset.setAttribute("data-tooltip", "Reset to the author's default");
+      reset.setAttribute("data-tip", "Reset to the author's default");
       reset.textContent = "\u21BA";
       renderPreview(input.value);
       let lastApplied = e.current;
@@ -278,6 +281,61 @@ var RSM = (() => {
       row.append(label, edit, actions);
       panel.appendChild(row);
     }
+  }
+  var entryWired = false;
+  function setupSymbolEntry() {
+    if (entryWired || !markingOn()) return;
+    entryWired = true;
+    const SEL = `.manuscript [class^="${MARK_PREFIX}"], .manuscript [class*=" ${MARK_PREFIX}"]`;
+    const macroOf = (el) => {
+      const c = [...el.classList].find((k) => k.startsWith(MARK_PREFIX));
+      return c ? "\\" + c.slice(MARK_PREFIX.length) : null;
+    };
+    document.addEventListener(
+      "mousedown",
+      (ev) => {
+        if (ev.target.closest && ev.target.closest(SEL)) ev.preventDefault();
+      },
+      true
+    );
+    document.addEventListener(
+      "click",
+      (ev) => {
+        const sym = ev.target.closest && ev.target.closest(SEL);
+        if (!sym) return;
+        const macro = macroOf(sym);
+        if (!macro) return;
+        ev.preventDefault();
+        ev.stopPropagation();
+        document.dispatchEvent(
+          new CustomEvent("rail:show", { detail: { view: "notation", open: true } })
+        );
+        requestAnimationFrame(
+          () => requestAnimationFrame(() => {
+            const row = [...document.querySelectorAll(".rail-notation-row")].find(
+              (r) => r.dataset.macro === macro
+            );
+            if (!row) return;
+            row.scrollIntoView({ block: "nearest" });
+            row.classList.remove("rail-notation-row-hi");
+            void row.offsetWidth;
+            row.classList.add("rail-notation-row-hi");
+            const input = row.querySelector(".rail-notation-input");
+            if (input) {
+              input.focus({ preventScroll: true });
+              input.select();
+            }
+          })
+        );
+        const cls = MARK_PREFIX + macro.slice(1);
+        for (const use of document.querySelectorAll(".manuscript ." + cls)) {
+          use.classList.remove("notation-located");
+          void use.getBoundingClientRect();
+          flash(use);
+        }
+      },
+      true
+    );
   }
 
   // rsm/static/libraries.js
@@ -322,14 +380,10 @@ var RSM = (() => {
     }
     const config = document.createElement("script");
     config.innerHTML = `window.MathJax = {
-      loader: {
-        load: ['[tex]/html']
-      },
       startup: {
         typeset: false
       },
       tex: {
-        packages: {'[+]': ['html']},
         macros: ${JSON.stringify(notationMacros)},
         inlineMath: [['$', '$'], ['\\\\(', '\\\\)']],
         displayMath: [['$$', '$$'], ['\\\\[', '\\\\]']],
@@ -392,7 +446,7 @@ var RSM = (() => {
         const latex = src.slice(2, -2);
         el.dataset.latex = latex;
         try {
-          temml.render(latex, el, { throwOnError: false, trust: mathTrust, macros: { ...getNotationMacros() } });
+          temml.render(latex, el, mathOptions());
         } catch (err) {
           console.error("temml inline error:", err);
         }
@@ -409,7 +463,7 @@ var RSM = (() => {
         const latex = src.slice(2, -2).trim();
         el.dataset.latex = latex;
         try {
-          temml.render(latex, contentEl, { displayMode: true, throwOnError: false, trust: mathTrust, macros: { ...getNotationMacros() } });
+          temml.render(latex, contentEl, mathOptions({ displayMode: true }));
         } catch (err) {
           console.error("temml display error:", err);
         }
@@ -760,16 +814,11 @@ var RSM = (() => {
     }
     function showRail(model) {
       if (!rail) return;
-      const scopeBtn = rail.querySelector(
-        `.rail-scope[data-scope="${model.scope}"]`
+      document.dispatchEvent(
+        new CustomEvent("rail:show", {
+          detail: { view: model.scope === "proof" ? "steps" : "contents" }
+        })
       );
-      if (scopeBtn) scopeBtn.click();
-      if (model.scope === "proof") {
-        const mapTab = rail.querySelector(
-          '.rail-subtabs-proof .rail-tab[data-view="proof-map"]'
-        );
-        if (mapTab && !mapTab.classList.contains("active")) mapTab.click();
-      }
     }
     function clearMarks() {
       if (!active) return;
@@ -909,7 +958,266 @@ var RSM = (() => {
     });
   }
 
+  // rsm/static/tooltips.js
+  var PIN_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 4.5l-4 4l-4 1.5l-1.5 1.5l7 7l1.5 -1.5l1.5 -4l4 -4"/><path d="M9 15l-4.5 4.5"/><path d="M14.5 4l5.5 5.5"/></svg>';
+  var PIN_FILLED_ICON = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M15.113 3.21l.094 .083l5.5 5.5a1 1 0 0 1 -1.175 1.59l-3.172 3.171l-1.424 3.797a1 1 0 0 1 -.158 .277l-.07 .08l-1.5 1.5a1 1 0 0 1 -1.32 .082l-.095 -.083l-2.793 -2.792l-3.793 3.792a1 1 0 0 1 -1.497 -1.32l.083 -.094l3.792 -3.793l-2.792 -2.793a1 1 0 0 1 -.083 -1.32l.083 -.094l1.5 -1.5a1 1 0 0 1 .258 -.187l.098 -.042l3.796 -1.425l3.171 -3.17a1 1 0 0 1 1.497 -1.26z"/></svg>';
+  var PIN_LABEL = "Pin to the sidebar";
+  var PINNED_LABEL = "Pinned in the sidebar";
+  var pinnedTarget = null;
+  function buildExcerpt(rawHref) {
+    if (!rawHref) return { content: "", error: "no-href" };
+    const target = rawHref.replaceAll(".", "\\.").replaceAll(":", "\\:");
+    if (target === "#") return { content: "", error: "no-label" };
+    const $t = $(target);
+    if (!$t[0]) return { content: "", error: "unknown" };
+    const tag = $t.prop("tagName");
+    const classes = $t[0].classList;
+    let content = "";
+    let clone;
+    if (["P", "LI", "FIGURE"].includes(tag)) {
+      content = `<div>${$t.html()}</div>`;
+    } else if (tag === "SPAN" && classes.contains("math")) {
+      content = `<div>${$t.html()}</div>`;
+    } else if (tag === "SPAN") {
+      content = `<div>${$t.parent().html()}</div>`;
+    } else if (tag === "DT") {
+      content = $t.next().html() || "";
+    } else if (tag === "TABLE") {
+      content = $t[0].outerHTML;
+    } else if (tag === "SECTION") {
+      clone = $t.clone();
+      clone.children().slice(2).remove();
+      stripHandrail(clone);
+      clone.css("font-size", "0.7rem");
+      content = clone.html();
+    } else if (tag === "A") {
+      content = `<div>${$t.parent().html()}</div>`;
+    } else if (tag === "DIV") {
+      if (classes.contains("step")) {
+        clone = $t.find(".statement").clone();
+        stripHandrail(clone);
+        clone.css("font-size", "0.7rem");
+        content = clone.html();
+      } else if (["math", "algorithm"].some((c) => classes.contains(c))) {
+        clone = $t.clone();
+        stripHandrail(clone);
+        content = clone.html();
+      } else if ([
+        "paragraph",
+        "mathblock",
+        "theorem",
+        "lemma",
+        "corollary",
+        "example",
+        "exercise",
+        "proposition",
+        "problem",
+        "porism",
+        "remark",
+        "definition",
+        "bibitem"
+      ].some((c) => classes.contains(c))) {
+        clone = $t.clone();
+        stripHandrail(clone);
+        content = clone.html();
+      }
+    }
+    return { content: content || "", error: content ? null : "unsupported" };
+  }
+  function pinBar(href, title) {
+    if (!document.querySelector(".proof-rail")) return "";
+    const h = (href || "").replaceAll('"', "&quot;");
+    const t = (title || "").replaceAll('"', "&quot;");
+    const on = !!pinnedTarget && href === pinnedTarget;
+    const label = on ? PINNED_LABEL : PIN_LABEL;
+    return `<div class="ref-pin-bar"><button type="button" class="ref-pin" data-pin-target="${h}" data-pin-title="${t}" aria-label="${label}" data-tip="${label}" aria-pressed="${on}"${on ? " data-pinned" : ""}>` + (on ? PIN_FILLED_ICON : PIN_ICON) + "</button></div>";
+  }
+  function paintPins() {
+    for (const btn of document.querySelectorAll(".ref-pin")) {
+      const on = !!pinnedTarget && btn.dataset.pinTarget === pinnedTarget;
+      const label = on ? PINNED_LABEL : PIN_LABEL;
+      btn.toggleAttribute("data-pinned", on);
+      btn.setAttribute("aria-pressed", String(on));
+      btn.setAttribute("aria-label", label);
+      btn.dataset.tip = label;
+      btn.innerHTML = on ? PIN_FILLED_ICON : PIN_ICON;
+    }
+  }
+  function pinTarget(href, title, origin = document) {
+    const { content } = buildExcerpt(href);
+    if (!content) return false;
+    const tmp = document.createElement("div");
+    tmp.innerHTML = content;
+    tmp.querySelectorAll("[id]").forEach((e) => e.removeAttribute("id"));
+    tmp.querySelectorAll("[data-nodeid]").forEach((e) => e.removeAttribute("data-nodeid"));
+    pinnedTarget = href;
+    origin.dispatchEvent(
+      new CustomEvent("rail:pin", {
+        bubbles: true,
+        detail: { html: tmp.innerHTML, title: title || "", target: href }
+      })
+    );
+    paintPins();
+    return true;
+  }
+  var pinDelegated = false;
+  function setupPinDelegation() {
+    if (pinDelegated) return;
+    pinDelegated = true;
+    document.addEventListener("click", (ev) => {
+      const btn = ev.target.closest && ev.target.closest(".ref-pin");
+      if (!btn) return;
+      if (btn.hasAttribute("data-pinned")) {
+        document.dispatchEvent(
+          new CustomEvent("rail:show", { detail: { view: "pinned", open: true } })
+        );
+        return;
+      }
+      pinTarget(btn.dataset.pinTarget, btn.dataset.pinTitle || "", btn);
+    });
+    document.addEventListener("rail:unpin", () => {
+      pinnedTarget = null;
+      paintPins();
+    });
+  }
+  function createTooltips() {
+    setupPinDelegation();
+    $(".manuscriptwrapper a.reference:not(.external):not(.tooltipstered)").tooltipster({
+      theme: ["tooltipster-shadow", "tooltipster-shadow-rsm"],
+      delay: 200,
+      minWidth: 100,
+      maxWidth: 500,
+      // Interactive so the reader can move into the preview to click its pin
+      // button without it closing on the way.
+      interactive: true,
+      trigger: "custom",
+      triggerOpen: {
+        mouseenter: true,
+        touchstart: true
+      },
+      triggerClose: {
+        click: true,
+        mouseleave: true,
+        originClick: true,
+        touchleave: true
+      },
+      functionInit: function(instance, helper) {
+        const rawHref = $(helper.origin).attr("href");
+        const { content, error } = buildExcerpt(rawHref);
+        if (error === "no-href") {
+          console.warn("Target does not have an href attribute");
+          return;
+        }
+        if (error === "no-label") {
+          setTooltipContent(
+            instance,
+            '<span class="error">target node has no label</span>'
+          );
+          helper.origin.classList.add("error");
+          return;
+        }
+        if (error === "unknown") return;
+        if (!content) {
+          setTooltipContent(instance, "");
+          return;
+        }
+        const title = (helper.origin.textContent || "").trim();
+        setTooltipContent(instance, pinBar(rawHref, title) + content);
+      },
+      functionReady: function(instance, helper) {
+        const el = instance.elementTooltip ? instance.elementTooltip() : helper.tooltip;
+        if (el) typesetMath(el instanceof $ ? el[0] : el);
+      }
+    });
+    $(".manuscriptwrapper .author-names sup[data-tooltip]:not(.tooltipstered)").tooltipster({
+      theme: ["tooltipster-shadow", "tooltipster-shadow-rsm"],
+      delay: 200,
+      minWidth: 100,
+      maxWidth: 500,
+      trigger: "custom",
+      triggerOpen: {
+        mouseenter: true,
+        touchstart: true
+      },
+      triggerClose: {
+        click: true,
+        mouseleave: true,
+        originClick: true,
+        touchleave: true
+      },
+      functionInit: function(instance, helper) {
+        let text = $(helper.origin).attr("data-tooltip");
+        setTooltipContent(instance, text);
+      }
+    });
+    $(".proof-rail a.toc-node:not(.tooltipstered)").tooltipster({
+      theme: ["tooltipster-shadow", "tooltipster-shadow-rsm"],
+      delay: 200,
+      maxWidth: 360,
+      side: "bottom",
+      functionInit: function(instance, helper) {
+        const rawHref = $(helper.origin).attr("href");
+        const { content } = buildExcerpt(rawHref);
+        if (content) {
+          setTooltipContent(instance, content);
+        } else {
+          setTooltipContent(
+            instance,
+            `<div class="rail-tip">${$(helper.origin).attr("data-tooltip") || ""}</div>`
+          );
+        }
+      },
+      functionReady: function(instance, helper) {
+        const el = instance.elementTooltip ? instance.elementTooltip() : helper.tooltip;
+        if (el) typesetMath(el instanceof $ ? el[0] : el);
+      }
+    });
+    $('#hr-menu-singleton [data-role="deplens-up"]:not(.tooltipstered), #hr-menu-singleton [data-role="deplens-down"]:not(.tooltipstered)').tooltipster({
+      theme: ["tooltipster-shadow", "tooltipster-shadow-rsm"],
+      delay: 200,
+      minWidth: 100,
+      maxWidth: 280,
+      side: ["right", "bottom", "top"],
+      trigger: "custom",
+      triggerOpen: { mouseenter: true, touchstart: true },
+      triggerClose: { click: true, mouseleave: true, originClick: true, touchleave: true },
+      functionBefore: function(instance, helper) {
+        const text = $(helper.origin).attr("data-tooltip");
+        if (!text) return false;
+        instance.content($(`<div class="rail-tip">${text}</div>`));
+      }
+    });
+  }
+  function stripHandrail(hr) {
+    hr.find(".hr-collapse-zone").remove();
+    hr.find(".hr-menu-zone").remove();
+    hr.find(".hr-border-zone").remove();
+    hr.find(".hr-spacer-zone").remove();
+    hr.find(".hr-info-zone").remove();
+  }
+  function setTooltipContent(tt, content) {
+    const $content = $(`<div class="manuscriptwrapper">${content}</div>`);
+    $content.find("[id]").removeAttr("id");
+    $content.find("[data-nodeid]").removeAttr("data-nodeid");
+    tt.content($content);
+  }
+
   // rsm/static/handrails.js
+  var PINNABLE = [
+    "paragraph",
+    "mathblock",
+    "theorem",
+    "lemma",
+    "corollary",
+    "example",
+    "exercise",
+    "proposition",
+    "problem",
+    "porism",
+    "remark",
+    "definition",
+    "proof"
+  ];
   var singletonMenu = null;
   var activeHr = null;
   var IS_TOUCH = typeof window !== "undefined" && typeof window.matchMedia === "function" && window.matchMedia("(hover: none) and (pointer: coarse)").matches;
@@ -949,6 +1257,7 @@ var RSM = (() => {
         else if (role === "focus") triggerFocus(activeHr);
         else if (role === "deplens-up") triggerDeplens(activeHr, "up");
         else if (role === "deplens-down") triggerDeplens(activeHr, "down");
+        else if (role === "pin") pinBlock(activeHr);
         return;
       }
       const collapseBtn = ev.target.closest(".hr-collapse");
@@ -1004,15 +1313,10 @@ var RSM = (() => {
       const anyCollapse = collapse || collapseAll2;
       collapseSep.style.display = anyCollapse ? "" : "none";
     }
+    const pinnable = !!hr.id && !!document.querySelector(".proof-rail .rail-pinned") && PINNABLE.some((c) => hr.classList.contains(c));
+    configureItem(singletonMenu.querySelector('[data-role="pin"]'), pinnable ? "true" : null);
     configureItem(singletonMenu.querySelector('[data-role="link"]'), link);
-    const codeEl = singletonMenu.querySelector('[data-role="code"]');
-    if (code && code !== "disabled" && !hrHasSource(hr)) {
-      configureItem(codeEl, "disabled");
-      setDisabledHint(codeEl, "disabled", "no source available");
-    } else {
-      configureItem(codeEl, code);
-      setDisabledHint(codeEl, null, "no source available");
-    }
+    configureItem(singletonMenu.querySelector('[data-role="code"]'), code);
     const staticToggle = hr.getAttribute("data-menu-static-toggle");
     const staticToggleEl = singletonMenu.querySelector('[data-role="static-toggle"]');
     const staticSep = singletonMenu.querySelector('[data-role="static-sep"]');
@@ -1078,12 +1382,12 @@ var RSM = (() => {
     const lensSep = singletonMenu.querySelector('[data-role="deplens-sep"]');
     configureItem(lensUpEl, lensUp);
     configureItem(lensDownEl, lensDown);
-    setDisabledHint(
+    setLensHint(
       lensUpEl,
       lensUp,
       isStep ? "This step depends on nothing earlier in the proof." : "This result depends on no other result."
     );
-    setDisabledHint(
+    setLensHint(
       lensDownEl,
       lensDown,
       isStep ? "Nothing else in the proof uses this step." : "No other result uses this one."
@@ -1103,6 +1407,11 @@ var RSM = (() => {
     hr.dispatchEvent(
       new CustomEvent("reorder:toggle", { bubbles: true, detail: { active } })
     );
+  }
+  function pinBlock(hr) {
+    const label = (hr.getAttribute("data-menu-label") || "").replace(/\.$/, "").trim();
+    hideMenu();
+    pinTarget("#" + hr.id, label, hr);
   }
   function triggerFocus(hr) {
     hideMenu();
@@ -1127,7 +1436,7 @@ var RSM = (() => {
     popup.style.left = `${rect.left + window.scrollX}px`;
     popup.style.top = `${rect.top + window.scrollY}px`;
   }
-  function setDisabledHint(el, value, disabledText) {
+  function setLensHint(el, value, disabledText) {
     if (!el) return;
     if (value === "disabled") {
       el.setAttribute("data-tooltip", disabledText);
@@ -1455,17 +1764,14 @@ var RSM = (() => {
       toast.remove();
     }, 5e3);
   }
-  function hrHasSource(hr) {
-    return !!(hr.getAttribute("data-source-start") && hr.getAttribute("data-source-end") && document.querySelector(".rsm-source"));
-  }
   function showSource(hr) {
-    if (!hrHasSource(hr)) {
-      launchToast("No source available for this element.", "error");
-      return;
-    }
     const start = hr.getAttribute("data-source-start");
     const end = hr.getAttribute("data-source-end");
     const sourceDiv = document.querySelector(".rsm-source");
+    if (!start || !end || !sourceDiv) {
+      launchToast("No source available for this element.", "error");
+      return;
+    }
     const source = sourceDiv.textContent.slice(parseInt(start), parseInt(end));
     const modal = document.createElement("div");
     modal.className = "rsm-source-modal";
@@ -1825,241 +2131,217 @@ var RSM = (() => {
     });
   }
 
-  // rsm/static/tooltips.js
-  var PIN_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 4.5l-4 4l-4 1.5l-1.5 1.5l7 7l1.5 -1.5l1.5 -4l4 -4"/><path d="M9 15l-4.5 4.5"/><path d="M14.5 4l5.5 5.5"/></svg>';
-  function buildExcerpt(rawHref) {
-    if (!rawHref) return { content: "", error: "no-href" };
-    const target = rawHref.replaceAll(".", "\\.").replaceAll(":", "\\:");
-    if (target === "#") return { content: "", error: "no-label" };
-    const $t = $(target);
-    if (!$t[0]) return { content: "", error: "unknown" };
-    const tag = $t.prop("tagName");
-    const classes = $t[0].classList;
-    let content = "";
-    let clone;
-    if (["P", "LI", "FIGURE"].includes(tag)) {
-      content = `<div>${$t.html()}</div>`;
-    } else if (tag === "SPAN" && classes.contains("math")) {
-      content = `<div>${$t.html()}</div>`;
-    } else if (tag === "SPAN") {
-      content = `<div>${$t.parent().html()}</div>`;
-    } else if (tag === "DT") {
-      content = $t.next().html() || "";
-    } else if (tag === "TABLE") {
-      content = $t[0].outerHTML;
-    } else if (tag === "SECTION") {
-      clone = $t.clone();
-      clone.children().slice(2).remove();
-      stripHandrail(clone);
-      clone.css("font-size", "0.7rem");
-      content = clone.html();
-    } else if (tag === "A") {
-      content = `<div>${$t.parent().html()}</div>`;
-    } else if (tag === "DIV") {
-      if (classes.contains("step")) {
-        clone = $t.find(".statement").clone();
-        stripHandrail(clone);
-        clone.css("font-size", "0.7rem");
-        content = clone.html();
-      } else if (["math", "algorithm"].some((c) => classes.contains(c))) {
-        clone = $t.clone();
-        stripHandrail(clone);
-        content = clone.html();
-      } else if ([
-        "paragraph",
-        "mathblock",
-        "theorem",
-        "lemma",
-        "corollary",
-        "example",
-        "exercise",
-        "proposition",
-        "problem",
-        "porism",
-        "remark",
-        "definition",
-        "bibitem"
-      ].some((c) => classes.contains(c))) {
-        clone = $t.clone();
-        stripHandrail(clone);
-        content = clone.html();
+  // rsm/static/sidebar.js
+  var PHONE = "(max-width: 767px)";
+  var STRIP_REM = 1 + 3 + 0.5;
+  var PANEL_REM = 17;
+  var RIGHT_REM = 1.5;
+  var VIEWS = {
+    contents: ["document", "doc-map"],
+    notation: ["document", "notation"],
+    steps: ["proof", "proof-map"],
+    state: ["proof", "state"],
+    document: ["document", null],
+    proof: ["proof", null],
+    pinned: ["pinned", null],
+    reading: ["reading", null]
+  };
+  function setupStrip(strip, rail, api) {
+    const html = document.documentElement;
+    const mql = window.matchMedia(PHONE);
+    html.classList.add("has-rail");
+    let view = null;
+    let open = false;
+    const buttons = () => [...strip.querySelectorAll(".rail-strip-btn[data-view]")];
+    const isPhone = () => mql.matches;
+    const mode = () => isPhone() ? "grouped" : "split";
+    const visible = (b) => b.dataset.mode === "both" || b.dataset.mode === mode();
+    const has = (id) => buttons().some((b) => b.dataset.view === id && visible(b));
+    function subviewNow(scope) {
+      if (scope === "document") {
+        return rail.classList.contains("doc-view-notation") ? "notation" : "doc-map";
+      }
+      if (scope === "proof") {
+        return rail.classList.contains("proof-view-state") ? "state" : "proof-map";
+      }
+      return null;
+    }
+    function translate(id) {
+      if (!id) return id;
+      if (isPhone()) {
+        if (id === "contents" || id === "notation") return "document";
+        if (id === "steps" || id === "state") return "proof";
+        return id;
+      }
+      if (id === "document") {
+        const wantsNotation = subviewNow("document") === "notation";
+        if (wantsNotation && has("notation")) return "notation";
+        return has("contents") ? "contents" : "notation";
+      }
+      if (id === "proof") return subviewNow("proof") === "state" ? "state" : "steps";
+      return id;
+    }
+    const title = rail.querySelector(".rail-title");
+    const hint = rail.querySelector(".rail-hint");
+    function paintHead() {
+      const scope = api.currentScope();
+      const sub = subviewNow(scope);
+      const row = rail.querySelector(".rail-subtabs-" + scope);
+      rail.classList.toggle("has-tabs", !!row && isPhone());
+      let name = "";
+      let text = "";
+      const btn = buttons().find((b) => b.dataset.view === view && visible(b));
+      if (btn) name = btn.getAttribute("aria-label") || "";
+      if (sub) {
+        const tab = row && row.querySelector(`.rail-tab[data-view="${sub}"]`);
+        const split = buttons().find(
+          (b) => b.dataset.mode === "split" && VIEWS[b.dataset.view][1] === sub
+        );
+        text = tab && tab.dataset.hint || split && split.dataset.hint || "";
+        if (split && isPhone() && !row) name = split.getAttribute("aria-label") || name;
+      } else if (btn) {
+        text = btn.dataset.hint || "";
+      }
+      if (title) title.textContent = name;
+      if (hint) {
+        hint.textContent = text;
+        hint.hidden = !text;
       }
     }
-    return { content: content || "", error: content ? null : "unsupported" };
-  }
-  function pinBar(href, title) {
-    const h = (href || "").replaceAll('"', "&quot;");
-    const t = (title || "").replaceAll('"', "&quot;");
-    return `<div class="ref-pin-bar"><button type="button" class="ref-pin" data-pin-target="${h}" data-pin-title="${t}" aria-label="Pin this beside the proof">` + PIN_ICON + "<span>Pin</span></button></div>";
-  }
-  var pinDelegated = false;
-  function setupPinDelegation() {
-    if (pinDelegated) return;
-    pinDelegated = true;
-    document.addEventListener("click", (ev) => {
-      const btn = ev.target.closest && ev.target.closest(".ref-pin");
-      if (!btn) return;
-      const { content } = buildExcerpt(btn.dataset.pinTarget);
-      if (!content) return;
-      const tmp = document.createElement("div");
-      tmp.innerHTML = content;
-      tmp.querySelectorAll("[id]").forEach((e) => e.removeAttribute("id"));
-      tmp.querySelectorAll("[data-nodeid]").forEach((e) => e.removeAttribute("data-nodeid"));
-      btn.dispatchEvent(
-        new CustomEvent("rail:pin", {
-          bubbles: true,
-          detail: { html: tmp.innerHTML, title: btn.dataset.pinTitle || "" }
-        })
+    function paintStrip() {
+      const scope = api.currentScope();
+      const sub = subviewNow(scope);
+      for (const b of buttons()) {
+        const [bScope, bSub] = VIEWS[b.dataset.view] || [];
+        const on = open && visible(b) && bScope === scope && (!bSub || bSub === sub);
+        b.setAttribute("aria-pressed", String(on));
+      }
+    }
+    function anchorTop() {
+      const els = document.querySelectorAll(
+        ".manuscript .hr, .manuscript h2, .manuscript figure"
       );
-    });
-  }
-  function createTooltips() {
-    setupPinDelegation();
-    $(".manuscriptwrapper a.reference:not(.external):not(.tooltipstered)").tooltipster({
-      theme: ["tooltipster-shadow", "tooltipster-shadow-rsm"],
-      delay: 200,
-      minWidth: 100,
-      maxWidth: 500,
-      // Interactive so the reader can move into the preview to click its pin
-      // button without it closing on the way.
-      interactive: true,
-      trigger: "custom",
-      triggerOpen: {
-        mouseenter: true,
-        touchstart: true
-      },
-      triggerClose: {
-        click: true,
-        mouseleave: true,
-        originClick: true,
-        touchleave: true
-      },
-      functionInit: function(instance, helper) {
-        const rawHref = $(helper.origin).attr("href");
-        const { content, error } = buildExcerpt(rawHref);
-        if (error === "no-href") {
-          console.warn("Target does not have an href attribute");
-          return;
+      let best = null;
+      let bestTop = Infinity;
+      for (const el of els) {
+        const r = el.getBoundingClientRect();
+        if (!r.height) continue;
+        if (r.bottom > 0 && r.top > -40 && r.top < bestTop) {
+          bestTop = r.top;
+          best = el;
         }
-        if (error === "no-label") {
-          setTooltipContent(
-            instance,
-            '<span class="error">target node has no label</span>'
-          );
-          helper.origin.classList.add("error");
-          return;
-        }
-        if (error === "unknown") return;
-        if (!content) {
-          setTooltipContent(instance, "");
-          return;
-        }
-        const title = (helper.origin.textContent || "").trim();
-        setTooltipContent(instance, pinBar(rawHref, title) + content);
-      },
-      functionReady: function(instance, helper) {
-        const el = instance.elementTooltip ? instance.elementTooltip() : helper.tooltip;
-        if (el) typesetMath(el instanceof $ ? el[0] : el);
       }
-    });
-    $(".manuscriptwrapper .author-names sup[data-tooltip]:not(.tooltipstered)").tooltipster({
-      theme: ["tooltipster-shadow", "tooltipster-shadow-rsm"],
-      delay: 200,
-      minWidth: 100,
-      maxWidth: 500,
-      trigger: "custom",
-      triggerOpen: {
-        mouseenter: true,
-        touchstart: true
-      },
-      triggerClose: {
-        click: true,
-        mouseleave: true,
-        originClick: true,
-        touchleave: true
-      },
-      functionInit: function(instance, helper) {
-        let text = $(helper.origin).attr("data-tooltip");
-        setTooltipContent(instance, text);
+      return best ? { el: best, top: bestTop } : null;
+    }
+    function holdAnchor(a) {
+      if (!a) return;
+      const t0 = performance.now();
+      const step = () => {
+        const d = a.el.getBoundingClientRect().top - a.top;
+        if (Math.abs(d) > 0.5) window.scrollBy(0, d);
+        if (performance.now() - t0 < 450) requestAnimationFrame(step);
+      };
+      step();
+    }
+    function layout() {
+      if (isPhone()) {
+        html.style.removeProperty("--rail-ml");
+        html.style.removeProperty("--rail-mw");
+        return;
       }
+      const rem = parseFloat(getComputedStyle(html).fontSize) || 16;
+      const vw = html.clientWidth;
+      const colRem = parseFloat(getComputedStyle(html).getPropertyValue("--content-max-width")) || 54;
+      const left = (open ? STRIP_REM + PANEL_REM : STRIP_REM + 1) * rem;
+      const right = RIGHT_REM * rem;
+      const avail = vw - left - right;
+      const width = Math.min(colRem * rem, avail);
+      const ml = left + (open ? 0 : Math.max(0, (avail - width) / 2));
+      html.style.setProperty("--rail-ml", ml + "px");
+      html.style.setProperty("--rail-mw", width + "px");
+    }
+    window.addEventListener("resize", layout);
+    new MutationObserver(layout).observe(html, {
+      attributes: true,
+      attributeFilter: ["data-reading-measure"]
     });
-    $(".proof-rail a.toc-node:not(.tooltipstered)").tooltipster({
-      theme: ["tooltipster-shadow", "tooltipster-shadow-rsm"],
-      delay: 200,
-      maxWidth: 360,
-      side: "bottom",
-      functionInit: function(instance, helper) {
-        const rawHref = $(helper.origin).attr("href");
-        const { content } = buildExcerpt(rawHref);
-        if (content) {
-          setTooltipContent(instance, content);
-        } else {
-          setTooltipContent(
-            instance,
-            `<div class="rail-tip">${$(helper.origin).attr("data-tooltip") || ""}</div>`
-          );
-        }
-      },
-      functionReady: function(instance, helper) {
-        const el = instance.elementTooltip ? instance.elementTooltip() : helper.tooltip;
-        if (el) typesetMath(el instanceof $ ? el[0] : el);
+    function setOpen(on, { persist = true } = {}) {
+      const anchor = !isPhone() && on !== open ? anchorTop() : null;
+      open = on;
+      html.classList.toggle("rail-open", on);
+      rail.classList.toggle("open", on);
+      paintStrip();
+      layout();
+      holdAnchor(anchor);
+      if (persist && !isPhone()) api.saveLayout({ open: on, view });
+    }
+    function select(id) {
+      const [scope, sub] = VIEWS[id];
+      api.selectScope(scope);
+      if (sub) api.selectSubview(sub);
+      view = id;
+      paintHead();
+      paintStrip();
+    }
+    function openView(id, { toggle = true } = {}) {
+      id = translate(id);
+      if (!VIEWS[id] || !has(id)) return;
+      if (toggle && open && id === view) {
+        setOpen(false);
+        return;
       }
+      select(id);
+      setOpen(true);
+      if (isPhone()) rail.scrollTop = 0;
+    }
+    strip.addEventListener("click", (ev) => {
+      const b = ev.target.closest(".rail-strip-btn");
+      if (!b || !b.dataset.view) return;
+      openView(b.dataset.view);
     });
-    $(".proof-rail [data-tooltip]:not(.tooltipstered)").tooltipster({
-      theme: ["tooltipster-shadow", "tooltipster-shadow-rsm"],
-      // Rail controls are glanced past constantly; a longer hover-intent delay
-      // keeps their hints from flashing up while the pointer just crosses the rail.
-      delay: 500,
-      // Cap the width: setTooltipContent wraps the label in .manuscriptwrapper,
-      // which is width:100% up to the document column width, so without a maxWidth
-      // a control hint stretches into a full-page banner (the body/author tooltips
-      // both cap at 500; these are short labels, so a touch tighter).
-      minWidth: 100,
-      maxWidth: 360,
-      side: "bottom",
-      trigger: "custom",
-      triggerOpen: {
-        mouseenter: true,
-        touchstart: true
-      },
-      triggerClose: {
-        click: true,
-        mouseleave: true,
-        originClick: true,
-        touchleave: true
-      },
-      functionInit: function(instance, helper) {
-        instance.content($(`<div class="rail-tip">${$(helper.origin).attr("data-tooltip")}</div>`));
-      }
+    document.addEventListener("keydown", (ev) => {
+      if (ev.key !== "Escape" || !open || ev.defaultPrevented) return;
+      if (document.querySelector(".hr-menu-open, .proof-rail.focusing")) return;
+      const inside = rail.contains(document.activeElement);
+      setOpen(false);
+      if (inside) strip.querySelector(`.rail-strip-btn[data-view="${view}"]`)?.focus();
     });
-    $('#hr-menu-singleton [data-role="deplens-up"]:not(.tooltipstered), #hr-menu-singleton [data-role="deplens-down"]:not(.tooltipstered)').tooltipster({
-      theme: ["tooltipster-shadow", "tooltipster-shadow-rsm"],
-      delay: 200,
-      minWidth: 100,
-      maxWidth: 280,
-      side: ["right", "bottom", "top"],
-      trigger: "custom",
-      triggerOpen: { mouseenter: true, touchstart: true },
-      triggerClose: { click: true, mouseleave: true, originClick: true, touchleave: true },
-      functionBefore: function(instance, helper) {
-        const text = $(helper.origin).attr("data-tooltip");
-        if (!text) return false;
-        instance.content($(`<div class="rail-tip">${text}</div>`));
-      }
+    rail.addEventListener("rail:subview", () => {
+      paintHead();
+      paintStrip();
     });
-  }
-  function stripHandrail(hr) {
-    hr.find(".hr-collapse-zone").remove();
-    hr.find(".hr-menu-zone").remove();
-    hr.find(".hr-border-zone").remove();
-    hr.find(".hr-spacer-zone").remove();
-    hr.find(".hr-info-zone").remove();
-  }
-  function setTooltipContent(tt, content) {
-    const $content = $(`<div class="manuscriptwrapper">${content}</div>`);
-    $content.find("[id]").removeAttr("id");
-    $content.find("[data-nodeid]").removeAttr("data-nodeid");
-    tt.content($content);
+    document.addEventListener("rail:show", (ev) => {
+      const d = ev.detail || {};
+      const id = translate(d.view);
+      if (!VIEWS[id] || !has(id)) return;
+      if (d.open) openView(id, { toggle: false });
+      else select(id);
+    });
+    document.addEventListener("rail:pin", () => {
+      requestAnimationFrame(() => openView("pinned", { toggle: false }));
+    });
+    function arrange() {
+      html.classList.toggle("rail-phone", isPhone());
+      view = translate(view);
+      if (isPhone() && open) setOpen(false, { persist: false });
+      layout();
+      paintHead();
+      paintStrip();
+    }
+    mql.addEventListener("change", arrange);
+    const saved = api.savedLayout() || {};
+    html.classList.toggle("rail-phone", isPhone());
+    const first = buttons().find(visible);
+    const restore = saved.view && VIEWS[translate(saved.view)] && has(translate(saved.view)) ? translate(saved.view) : first && first.dataset.view;
+    if (restore) select(restore);
+    if (saved.open && !isPhone() && restore) setOpen(true, { persist: false });
+    else layout();
+    paintHead();
+    paintStrip();
+    requestAnimationFrame(
+      () => requestAnimationFrame(() => html.classList.add("rail-ready"))
+    );
+    return { open: (id) => openView(id, { toggle: false }), close: () => setOpen(false) };
   }
 
   // rsm/static/prooftree.js
@@ -2092,84 +2374,80 @@ var RSM = (() => {
     let currentNode = null;
     const active = { idx: -1 };
     rail.classList.add("active");
-    function railClassFor(tab) {
-      const inDoc = !!tab.closest(".rail-subtabs-document");
-      const suffix = tab.dataset.view.replace(/^(doc|proof)-/, "");
-      return (inDoc ? "doc-view-" : "proof-view-") + suffix;
+    const SCOPES = ["document", "proof", "pinned", "reading"];
+    function currentScope() {
+      return SCOPES.find((s) => rail.classList.contains("scope-" + s)) || "document";
     }
-    function saveLayout() {
-      const layout = {
-        scope: rail.querySelector(".rail-scope.active")?.dataset.scope || "document",
+    function selectScope(scope) {
+      for (const s of SCOPES) rail.classList.toggle("scope-" + s, s === scope);
+    }
+    function selectSubview(view) {
+      const inDoc = view === "doc-map" || view === "notation";
+      const prefix = inDoc ? "doc-view-" : "proof-view-";
+      const suffix = view.replace(/^(doc|proof)-/, "");
+      for (const c of [...rail.classList]) {
+        if (c.startsWith(prefix)) rail.classList.remove(c);
+      }
+      rail.classList.add(prefix + suffix);
+      const row = rail.querySelector(
+        inDoc ? ".rail-subtabs-document" : ".rail-subtabs-proof"
+      );
+      if (row) {
+        for (const t of row.querySelectorAll(".rail-tab")) {
+          const on = t.dataset.view === view;
+          t.classList.toggle("active", on);
+          t.setAttribute("aria-selected", String(on));
+          t.tabIndex = on ? 0 : -1;
+        }
+      }
+      if (!inDoc) {
+        proofView = view === "state" ? "state" : "map";
+        renderState();
+      }
+    }
+    function saveLayout(extra) {
+      let saved = {};
+      try {
+        saved = JSON.parse(localStorage.getItem(lsKey) || "{}") || {};
+      } catch (e) {
+        saved = {};
+      }
+      const layout = Object.assign(saved, {
         docView: rail.classList.contains("doc-view-notation") ? "notation" : "doc-map",
-        proofView: rail.classList.contains("proof-view-state") ? "state" : "proof-map",
-        collapsed: rail.classList.contains("collapsed")
-      };
+        proofView: rail.classList.contains("proof-view-state") ? "state" : "proof-map"
+      }, extra || {});
       try {
         localStorage.setItem(lsKey, JSON.stringify(layout));
       } catch (e) {
       }
     }
-    function selectScope(scope) {
-      for (const s of rail.querySelectorAll(".rail-scope")) {
-        const on = s.dataset.scope === scope;
-        s.classList.toggle("active", on);
-        s.setAttribute("aria-pressed", String(on));
-      }
-      rail.classList.toggle("scope-document", scope === "document");
-      rail.classList.toggle("scope-proof", scope === "proof");
-      rail.classList.toggle("scope-reading", scope === "reading");
-      rail.classList.toggle("scope-pinned", scope === "pinned");
-    }
-    function selectTab(tab) {
-      const row = tab.closest(".rail-subtabs");
-      for (const t of row.querySelectorAll(".rail-tab")) {
-        t.classList.toggle("active", t === tab);
-        t.setAttribute("aria-pressed", String(t === tab));
-        rail.classList.remove(railClassFor(t));
-      }
-      rail.classList.add(railClassFor(tab));
-      if (row.classList.contains("rail-subtabs-proof")) {
-        proofView = tab.dataset.view === "state" ? "state" : "map";
-        renderState();
-      }
-    }
-    const scopeRow = rail.querySelector(".rail-scopes");
-    if (scopeRow) {
-      scopeRow.addEventListener("click", (ev) => {
-        const s = ev.target.closest(".rail-scope");
-        if (!s) return;
-        selectScope(s.dataset.scope);
-        saveLayout();
-      });
-    }
     for (const row of rail.querySelectorAll(".rail-subtabs")) {
       row.addEventListener("click", (ev) => {
         const t = ev.target.closest(".rail-tab");
         if (!t) return;
-        selectTab(t);
+        selectSubview(t.dataset.view);
         saveLayout();
+        rail.dispatchEvent(new CustomEvent("rail:subview", { bubbles: true }));
       });
-    }
-    const collapseBtn = rail.querySelector(".rail-collapse");
-    if (collapseBtn) {
-      collapseBtn.addEventListener("click", () => {
-        rail.classList.toggle("collapsed");
-        saveLayout();
+      row.addEventListener("keydown", (ev) => {
+        if (ev.key !== "ArrowLeft" && ev.key !== "ArrowRight") return;
+        const tabs = [...row.querySelectorAll(".rail-tab")];
+        const i = tabs.indexOf(document.activeElement);
+        if (i < 0) return;
+        ev.preventDefault();
+        const next = tabs[(i + (ev.key === "ArrowRight" ? 1 : tabs.length - 1)) % tabs.length];
+        next.click();
+        next.focus();
       });
     }
     const pinnedBody = rail.querySelector(".rail-pinned-body");
     const pinnedTitle = rail.querySelector(".rail-pinned-title");
-    let prePinScope = null;
     document.addEventListener("rail:pin", (ev) => {
       if (!pinnedBody) return;
-      if (!rail.classList.contains("has-pin")) {
-        prePinScope = rail.querySelector(".rail-scope.active")?.dataset.scope || "document";
-      }
       pinnedBody.innerHTML = ev.detail.html || "";
       if (pinnedTitle) pinnedTitle.textContent = ev.detail.title || "Pinned";
       typesetMath(pinnedBody);
       rail.classList.add("has-pin");
-      selectScope("pinned");
     });
     const pinClose = rail.querySelector(".rail-pin-close");
     if (pinClose) {
@@ -2177,8 +2455,7 @@ var RSM = (() => {
         if (pinnedBody) pinnedBody.innerHTML = "";
         if (pinnedTitle) pinnedTitle.textContent = "";
         rail.classList.remove("has-pin");
-        selectScope(prePinScope || "document");
-        prePinScope = null;
+        document.dispatchEvent(new CustomEvent("rail:unpin"));
       });
     }
     const READING_KEY = "rsm-reading";
@@ -2196,6 +2473,13 @@ var RSM = (() => {
         el.classList.toggle("light-theme", value === "light");
       } else el.setAttribute("data-reading-" + control, value);
     }
+    function syncReadingRow(row, value) {
+      for (const o of row.querySelectorAll(".reading-opt")) {
+        const on = o.dataset.value === value;
+        o.classList.toggle("active", on);
+        o.setAttribute("aria-pressed", String(on));
+      }
+    }
     const readingPanel = rail.querySelector(".rail-reading");
     if (readingPanel) {
       readingPanel.addEventListener("click", (ev) => {
@@ -2203,11 +2487,7 @@ var RSM = (() => {
         if (!btn) return;
         const row = btn.closest(".reading-row");
         const control = row.dataset.control;
-        for (const o of row.querySelectorAll(".reading-opt")) {
-          const on = o === btn;
-          o.classList.toggle("active", on);
-          o.setAttribute("aria-pressed", String(on));
-        }
+        syncReadingRow(row, btn.dataset.value);
         applyReading(control, btn.dataset.value);
         const prefs2 = readReadingPrefs();
         prefs2[control] = btn.dataset.value;
@@ -2217,152 +2497,46 @@ var RSM = (() => {
         }
       });
       const prefs = readReadingPrefs();
+      if (!prefs.theme) {
+        let legacy = null;
+        try {
+          legacy = localStorage.getItem("rsm-theme");
+        } catch (e) {
+        }
+        if (legacy === "light" || legacy === "dark") prefs.theme = legacy;
+      }
       for (const row of readingPanel.querySelectorAll(".reading-row")) {
         const value = prefs[row.dataset.control];
-        if (!value) continue;
+        if (!value || !row.querySelector(`.reading-opt[data-value="${value}"]`)) continue;
         applyReading(row.dataset.control, value);
-        for (const o of row.querySelectorAll(".reading-opt")) {
-          const on = o.dataset.value === value;
-          o.classList.toggle("active", on);
-          o.setAttribute("aria-pressed", String(on));
-        }
+        syncReadingRow(row, value);
       }
     }
     try {
       const saved = JSON.parse(localStorage.getItem(lsKey) || "null");
       if (saved) {
-        selectScope(saved.scope || "document");
-        const docTab = rail.querySelector(
-          `.rail-subtabs-document .rail-tab[data-view="${saved.docView}"]`
-        );
-        if (docTab) selectTab(docTab);
-        const proofTab = rail.querySelector(
-          `.rail-subtabs-proof .rail-tab[data-view="${saved.proofView}"]`
-        );
-        if (proofTab) selectTab(proofTab);
-        rail.classList.toggle("collapsed", !!saved.collapsed);
+        if (saved.docView && rail.querySelector(".rail-doc-map") && rail.querySelector(".rail-notation")) {
+          selectSubview(saved.docView === "notation" ? "notation" : "doc-map");
+        }
+        if (saved.proofView) selectSubview(saved.proofView === "state" ? "state" : "proof-map");
       }
     } catch (e) {
     }
-    let drawerGoalEl = null;
-    {
-      let setupDrawer = function() {
-        if (rail.querySelector(".rail-handle")) return;
-        const handle = document.createElement("button");
-        handle.type = "button";
-        handle.className = "rail-handle";
-        handle.setAttribute("aria-label", "Toggle the navigation drawer");
-        const peek = document.createElement("div");
-        peek.className = "rail-peek";
-        peek.innerHTML = '<span class="rail-peek-label">Prove</span><span class="rail-peek-goal"></span>';
-        rail.insertBefore(peek, rail.firstChild);
-        rail.insertBefore(handle, rail.firstChild);
-        drawerGoalEl = peek.querySelector(".rail-peek-goal");
-        let savedDrawer = null;
-        try {
-          savedDrawer = localStorage.getItem(DRAWER_KEY);
-        } catch (e) {
-        }
-        setDrawer(
-          ["closed", "peek", "open"].includes(savedDrawer) ? savedDrawer : "peek",
-          false
-        );
-        const ORDER = ["closed", "peek", "open"];
-        let dragY = null;
-        let dragged = false;
-        handle.addEventListener("pointerdown", (ev) => {
-          dragY = ev.clientY;
-          dragged = false;
+    const strip = root2.querySelector(".rail-strip");
+    if (strip) {
+      setupStrip(strip, rail, {
+        selectScope,
+        selectSubview,
+        currentScope,
+        saveLayout,
+        savedLayout: () => {
           try {
-            handle.setPointerCapture(ev.pointerId);
+            return JSON.parse(localStorage.getItem(lsKey) || "null");
           } catch (e) {
+            return null;
           }
-        });
-        handle.addEventListener("pointermove", (ev) => {
-          if (dragY !== null && Math.abs(ev.clientY - dragY) > 8) dragged = true;
-        });
-        handle.addEventListener("pointerup", (ev) => {
-          if (dragY === null) return;
-          const dy = ev.clientY - dragY;
-          const i = ORDER.indexOf(rail.dataset.drawer);
-          if (!dragged) {
-            setDrawer(rail.dataset.drawer === "peek" ? "open" : "peek");
-          } else if (dy < 0) {
-            setDrawer(ORDER[Math.min(i + 1, ORDER.length - 1)]);
-          } else {
-            setDrawer(ORDER[Math.max(i - 1, 0)]);
-          }
-          dragY = null;
-          dragged = false;
-        });
-        focusHandler = () => setDrawer("peek");
-        document.addEventListener("rsm:focus-enter", focusHandler);
-      }, teardownDrawer = function() {
-        rail.querySelector(".rail-handle")?.remove();
-        rail.querySelector(".rail-peek")?.remove();
-        drawerGoalEl = null;
-        rail.removeAttribute("data-drawer");
-        if (focusHandler) {
-          document.removeEventListener("rsm:focus-enter", focusHandler);
-          focusHandler = null;
-        }
-      };
-      const DRAWER_KEY = "rsm-drawer:" + location.pathname;
-      const mql = window.matchMedia("(max-width: 1320px)");
-      let focusHandler = null;
-      const setDrawer = (state, persist = true) => {
-        rail.dataset.drawer = state;
-        const handle = rail.querySelector(".rail-handle");
-        if (handle) handle.setAttribute("aria-expanded", String(state === "open"));
-        if (persist) {
-          try {
-            localStorage.setItem(DRAWER_KEY, state);
-          } catch (e) {
-          }
-        }
-      };
-      if (mql.matches) setupDrawer();
-      mql.addEventListener("change", (e) => {
-        if (e.matches) {
-          peekGoalId = void 0;
-          setupDrawer();
-          updatePeekGoal();
-        } else {
-          teardownDrawer();
         }
       });
-    }
-    let peekGoalId;
-    function updatePeekGoal() {
-      if (!drawerGoalEl) return;
-      let g = null;
-      const data = current ? stateData.get(current) : null;
-      if (data && active.idx >= 0 && active.idx < data.length) g = data[active.idx].goal;
-      const gid = g && g.id != null ? String(g.id) : null;
-      if (gid === peekGoalId) return;
-      peekGoalId = gid;
-      const el = gid != null ? root2.querySelector('[data-nodeid="' + gid + '"]') : null;
-      if (!el) {
-        rail.classList.add("drawer-no-goal");
-        drawerGoalEl.textContent = "Open the navigation drawer";
-        return;
-      }
-      rail.classList.remove("drawer-no-goal");
-      const cz = el.querySelector(":scope > .hr-content-zone") || el;
-      const clone = cloneClean(cz);
-      clone.querySelectorAll(".hr-label, .construct.let, .construct.assume").forEach((n) => n.remove());
-      drawerGoalEl.innerHTML = "";
-      drawerGoalEl.appendChild(clone);
-      const tw = document.createTreeWalker(drawerGoalEl, NodeFilter.SHOW_TEXT, {
-        acceptNode: (n) => n.parentElement && n.parentElement.closest("math") ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT
-      });
-      let tn;
-      while (tn = tw.nextNode()) {
-        if (!tn.textContent.trim()) continue;
-        tn.textContent = tn.textContent.replace(/^[\s,.;:⊢]*(?:then\b[\s,]*)?/i, "");
-        break;
-      }
-      typesetMath(drawerGoalEl).then(() => reRenderAll(drawerGoalEl));
     }
     const proofs = [...root2.querySelectorAll(".proof[data-nodeid]")];
     function proofElFor(key) {
@@ -2391,7 +2565,7 @@ var RSM = (() => {
     }
     function selectFrom(target, clearOutside) {
       if (!target || !target.closest) return;
-      if (target.closest(".proof-rail") || target.closest("#hr-menu-singleton")) return;
+      if (target.closest(".proof-rail") || target.closest(".rail-strip") || target.closest("#hr-menu-singleton")) return;
       let el = target.closest(".proof[data-nodeid]");
       while (el && !items.has(el.getAttribute("data-nodeid"))) {
         const p = el.parentElement;
@@ -2452,7 +2626,6 @@ var RSM = (() => {
       setCurrentNode(node);
       const dag = item ? item.querySelector("svg.toc-tree") : null;
       if (dag) pinTreeCurrent(dag, idx >= 0 ? String(idx) : null);
-      updatePeekGoal();
     }
     function cloneClean(el) {
       const c = el.cloneNode(true);
@@ -2546,7 +2719,7 @@ var RSM = (() => {
         host.setAttribute("role", "button");
         host.setAttribute("tabindex", "0");
         host.setAttribute("aria-label", tip || "jump to source");
-        if (tip) host.setAttribute("data-tooltip", tip);
+        if (tip) host.setAttribute("data-tip", tip);
         host.addEventListener("keydown", (ev) => {
           if (ev.key === "Enter" || ev.key === " ") {
             ev.preventDefault();
@@ -2709,12 +2882,9 @@ var RSM = (() => {
       });
     }
     function showProofMap() {
-      const scopeBtn = rail.querySelector('.rail-scope[data-scope="proof"]');
-      if (scopeBtn) scopeBtn.click();
-      const mapTab = rail.querySelector(
-        '.rail-subtabs-proof .rail-tab[data-view="proof-map"]'
+      document.dispatchEvent(
+        new CustomEvent("rail:show", { detail: { view: "steps", open: true } })
       );
-      if (mapTab && !mapTab.classList.contains("active")) mapTab.click();
     }
     function onKeydown(ev) {
       if (ev.key === "Escape") exitFocus();
@@ -2981,8 +3151,7 @@ var RSM = (() => {
       wireHandle(handle, step.id, proof, model);
       handles.push(handle);
     }
-    const scopeBtn = document.querySelector('.rail-scope[data-scope="proof"]');
-    if (scopeBtn) scopeBtn.click();
+    document.dispatchEvent(new CustomEvent("rail:show", { detail: { view: "steps" } }));
     reorderState.set(proof, { model, handles });
     announce(`Reorder mode on, ${model.byId.size} steps. Drag a step's handle to reorder it.`);
   }
@@ -3336,6 +3505,85 @@ var RSM = (() => {
     if (ok) showResetPill();
   }
 
+  // rsm/static/uitip.js
+  var SCOPE = [
+    ".rail-strip [data-tip]",
+    ".proof-rail [data-tip]",
+    ".tooltipster-content .ref-pin[data-tip]"
+  ].join(", ");
+  var wired = false;
+  function setup9() {
+    if (wired) return;
+    if (!document.querySelector(".rail-strip, .proof-rail")) return;
+    wired = true;
+    const tip = document.createElement("div");
+    tip.className = "ui-tip";
+    tip.id = "rsm-ui-tip";
+    tip.setAttribute("role", "tooltip");
+    document.body.appendChild(tip);
+    let timer = null;
+    let owner = null;
+    function place(el) {
+      const b = el.getBoundingClientRect();
+      tip.style.left = "0px";
+      tip.style.top = "0px";
+      tip.classList.add("on");
+      const w = tip.offsetWidth;
+      const h = tip.offsetHeight;
+      let x;
+      let y;
+      const inStrip = el.closest(".rail-strip");
+      if (inStrip && !document.documentElement.classList.contains("rail-phone")) {
+        x = b.right + 10;
+        y = b.top + (b.height - h) / 2;
+      } else {
+        x = b.left + (b.width - w) / 2;
+        y = b.top - h - 8;
+        if (y < 8) y = b.bottom + 8;
+      }
+      x = Math.max(8, Math.min(x, window.innerWidth - w - 8));
+      tip.style.left = x + "px";
+      tip.style.top = y + "px";
+    }
+    function show(el, now) {
+      clearTimeout(timer);
+      timer = setTimeout(
+        () => {
+          const text = el.dataset.tip;
+          if (!text || !el.isConnected) return;
+          tip.textContent = text;
+          owner = el;
+          el.setAttribute("aria-describedby", tip.id);
+          place(el);
+        },
+        now ? 0 : 350
+      );
+    }
+    function hide() {
+      clearTimeout(timer);
+      tip.classList.remove("on");
+      if (owner) owner.removeAttribute("aria-describedby");
+      owner = null;
+    }
+    const eligible = (el) => el && !(el.closest(".rail-strip") && el.getAttribute("aria-pressed") === "true");
+    document.addEventListener("mouseover", (ev) => {
+      const el = ev.target.closest && ev.target.closest(SCOPE);
+      if (el && eligible(el)) show(el, false);
+      else if (owner && !owner.contains(ev.target)) hide();
+    });
+    document.addEventListener("focusin", (ev) => {
+      const el = ev.target.closest && ev.target.closest(SCOPE);
+      if (el && eligible(el) && el.matches(":focus-visible")) show(el, true);
+      else hide();
+    });
+    document.addEventListener("focusout", hide);
+    document.addEventListener("click", hide, true);
+    document.addEventListener("keydown", (ev) => {
+      if (ev.key === "Escape") hide();
+    });
+    window.addEventListener("scroll", hide, { passive: true });
+  }
+
   // rsm/static/onload.js
   async function onload(root2 = null, { keys = true } = {}) {
     if (!root2) root2 = document;
@@ -3426,9 +3674,15 @@ var RSM = (() => {
       }
       try {
         mountNotationPanel(root2);
+        setupSymbolEntry();
         createTooltips();
       } catch (err) {
         console.error("Loading notation panel FAILED!", err);
+      }
+      try {
+        setup9();
+      } catch (err) {
+        console.error("Loading interface tooltips FAILED!", err);
       }
       try {
         setup8(root2);
