@@ -1,0 +1,16 @@
+# A Very Long Manuscript Title That Overruns the Narrow Tree Drawing Area
+
+:toc: {
+  :view: tree
+}
+::
+
+## First section
+  {:label: sec-one}
+
+Filler paragraph so the section has some body text.
+
+## Second section
+  {:label: sec-two}
+
+More filler so the tree has a couple of nodes to hang off the root.

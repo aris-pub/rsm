@@ -1206,10 +1206,32 @@ class Translator:
         )
 
     def _toc_tree_svg(self, node: nodes.Contents, root_label: str | None = None) -> str:
+        # The body TOC's root node carries the whole manuscript title. Its label
+        # is drawn at a constant on-screen size (tocarcs.js counter-scales the
+        # font), so a long title is physically wider than a narrow screen and
+        # spills out of the tree's box (rsm-tj7). When the title is wider than the
+        # space a narrow screen gives the tree, collapse the root to the "Top"
+        # marker exactly as the rail does, keeping the full title in the tooltip
+        # and accessible name. The rail passes root_label explicitly, so this only
+        # affects the body TOC.
+        if root_label is None and self._root_title_overflows(node.tree_root_title):
+            root_label = "Top"
         return self._build_tree_svg(
             node.tree_nodes, node.toc_edges, node.tree_root_title,
             "Section dependency graph", root_label=root_label,
         )
+
+    # The usable width of the body TOC drawing on the narrowest supported screen
+    # (375px) is about 315px, so a root label wider than this budget is clipped.
+    # Measured in the same build-time user units layout_tree uses for node widths,
+    # which match on-screen px because the label font is held at a constant size.
+    _ROOT_LABEL_MAX_W = 300
+
+    def _root_title_overflows(self, title: str) -> bool:
+        from .toc_layout import CHAR_W, NODE_PAD_X
+
+        full_width = int(len(title) * CHAR_W) + 2 * NODE_PAD_X
+        return full_width > self._ROOT_LABEL_MAX_W
 
     def _build_tree_svg(
         self, tree_nodes: list[dict], ref_edges: list[dict],

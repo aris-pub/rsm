@@ -1,6 +1,7 @@
 """Tests for the TOC tree view: edge derivation, build-time layout, markup."""
 
 import logging
+import re
 
 import rsm
 import rsm.nodes as nodes
@@ -149,6 +150,48 @@ def test_root_node_carries_manuscript_title():
     assert "My Paper" in html
     # every top-level section is linked to the root by a structural edge
     assert 'class="toc-edge struct"' in html
+
+
+def _root_node(html):
+    """Return (visible_label, tooltip, aria_label) for the TOC tree's root node."""
+    svg = re.search(r'<svg class="toc-tree".*?</svg>', html, re.S).group(0)
+    a = re.search(r'<a [^>]*class="toc-node level-0"[^>]*>.*?</a>', svg, re.S).group(0)
+    visible = re.search(r'<text[^>]*>([^<]*)</text>', a).group(1)
+    tooltip = re.search(r'data-tooltip="([^"]*)"', a).group(1)
+    aria = re.search(r'aria-label="([^"]*)"', a).group(1)
+    return visible, tooltip, aria
+
+
+def _svg_width(html):
+    return float(re.search(r'<svg class="toc-tree" width="([\d.]+)"', html).group(1))
+
+
+LONG_TITLE = "A Very Long Manuscript Title That Overruns the Narrow Tree Drawing Area"
+TREE = "\n\n:toc: {\n  :view: tree\n}\n::\n\n## One\n  {:label: s1}\n\nx\n\n## Two\n  {:label: s2}\n\ny\n"
+
+
+def test_long_root_title_collapses_to_top():
+    # A long manuscript title, drawn at a constant on-screen size, is wider than a
+    # narrow screen and spills out of the tree's box (rsm-tj7). The root collapses
+    # to the "Top" marker like the rail does, with the full title kept in the
+    # tooltip and accessible name.
+    html = rsm.render(f"# {LONG_TITLE}" + TREE, handrails=False)
+    visible, tooltip, aria = _root_node(html)
+    assert visible == "Top"
+    assert tooltip == LONG_TITLE
+    assert aria == LONG_TITLE
+    # With the root collapsed, the drawing is no longer sized to the full title.
+    # It stays close to what the short section markers need.
+    assert _svg_width(html) < 200
+
+
+def test_short_root_title_kept_in_full():
+    # A short title fits a narrow screen, so it is shown in full rather than hidden
+    # behind the "Top" marker.
+    html = rsm.render("# My Paper" + TREE, handrails=False)
+    visible, tooltip, aria = _root_node(html)
+    assert visible == "My Paper"
+    assert tooltip == "My Paper"
 
 
 def test_handrails_menu_wiring():
