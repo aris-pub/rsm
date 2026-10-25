@@ -92,8 +92,9 @@ meta, then body content:
 `:label:` and `:title:`.
 
 **`:config:`** is a block tag for document-wide settings: `:theme:`, `:accent:`,
-`:typography:`, `:numbering:`, `:override-date:`, `:toc-depth:`, `:author-display-first:`,
-`:author-display-last:`. It appears as a top-level block, closed with `::`.
+`:typography:`, `:numbering:`, `:citation-style:`, `:override-date:`, `:toc-depth:`,
+`:author-display-first:`, `:author-display-last:`. It appears as a top-level block, closed
+with `::`.
 
 **Section shortcuts:** `##`, `###`, `####` work like Markdown headings. They can also be
 written as `:section:`, `:subsection:`, `:subsubsection:` with a `{:title: ...}` meta
@@ -474,11 +475,13 @@ A multi-level proof showing nested subproofs and step references:
 :ref:label, display text:: % renders "display text" as the link
 ```
 
-`:cite:` references a bibliography entry:
+`:cite:` references one or more bibliography entries, keys separated by commas. It has no
+display text: every `:cite:` in a document renders the same way, set document-wide by
+`:citation-style:` (numeric `[1]` by default, or author-year).
 
 ```
 :cite:atiyah2018::
-:cite:key1 key2, see also::  % multiple keys, optional display text
+:cite:knuth,euler::  % multiple keys, comma-separated
 ```
 
 `:url:` links to an external address:

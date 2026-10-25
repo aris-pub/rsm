@@ -1732,6 +1732,9 @@ class Translator:
         return AppendBatch(base_batch.items)
 
     def visit_cite(self, node: nodes.Cite) -> EditCommand:
+        style = getattr(self.tree, "citation_style", "numeric")
+        if style in ("parens-author-year", "author-parens-year"):
+            return self._visit_cite_author_year(node, style)
         classes = ["cite"]
         if len(node.targets) == 1:
             t = node.targets[0]
@@ -1770,26 +1773,87 @@ class Translator:
             text = f'<span id="{node.label}">{text}</span>'
         return AppendText(f'<span class="nowrap">[{text}]</span>')
 
+    @staticmethod
+    def _author_year_parts(bibitem: nodes.Bibitem) -> tuple[str, str]:
+        """The author display and the (possibly suffixed) year for an
+        author-year citation. The year carries the a/b/c suffix assigned during
+        transform when another cited work shares this author and year. An
+        unknown citation (no author) shows "?" so the link is not blank
+        (rsm-3ez)."""
+        name = bibitem.short_author() or "?"
+        year = str(bibitem.year or "")
+        suffix = getattr(bibitem, "year_suffix", "")
+        return name, (f"{year}{suffix}" if year else year)
+
+    def _visit_cite_author_year(self, node: nodes.Cite, style: str) -> EditCommand:
+        # parens-author-year keeps one outer paren around all keys (the author
+        # and year sit bare inside the link); author-parens-year puts the year
+        # in parens inside each link and joins the keys with commas.
+        #
+        # A non-breaking space keeps each year glued to its author so the pair
+        # never splits across a line. The parens and the inter-citation
+        # separators carry no adjacent space on their binding side, so they
+        # glue to their citation on their own. The author list and the gaps
+        # between citations stay breakable, so a long multi-author citation
+        # wraps instead of overflowing a narrow column. This is the care the
+        # numeric style gives its brackets, adapted so a spelled-out author
+        # list cannot force a horizontal overflow.
+        nbsp = " "
+        multiple = len(node.targets) > 1
+        parts = []
+        for idx, target in enumerate(node.targets):
+            classes = ["cite"]
+            if isinstance(target, nodes.UnknownBibitem):
+                classes.append("unknown")
+            name, year = self._author_year_parts(target)
+            if style == "parens-author-year":
+                inner = f"{name},{nbsp}{year}" if year else name
+            else:
+                inner = f"{name}{nbsp}({year})" if year else name
+            node.overwrite_reftext = inner
+            id_ = f"{node.label}-{idx}" if multiple else node.label
+            parts.append(
+                self._make_ahref_tag_text(
+                    node, target, f"#{target.label}", id_=id_, additional_classes=classes
+                )
+            )
+        if style == "parens-author-year":
+            text = "(" + "; ".join(parts) + ")"
+        else:
+            text = ", ".join(parts)
+        if multiple:
+            text = f'<span id="{node.label}">{text}</span>'
+        return AppendText(text)
+
     def visit_bibliography(self, node: nodes.Bibliography) -> EditCommand:
+        # Author-year bibliographies are unnumbered (the citation carries the
+        # author and year), so they use an unordered list; numeric stays an <ol>.
+        style = getattr(self.tree, "citation_style", "numeric")
+        list_tag = "ul" if style in ("parens-author-year", "author-parens-year") else "ol"
         return AppendBatchAndDefer(
             [
                 AppendOpenTag("section", classes=["level-2"]),
                 AppendHeading(2, "References"),
-                AppendNodeTag(node, "ol"),
+                AppendNodeTag(node, list_tag),
             ]
         )
 
     def visit_bibitem(self, node: nodes.Bibitem) -> EditCommand:
+        # Author-year bibliographies are unnumbered and the year carries the
+        # a/b/c disambiguation suffix assigned during transform.
+        style = getattr(self.tree, "citation_style", "numeric")
+        ay = style in ("parens-author-year", "author-parens-year")
+        year_text = f"{node.year}{node.year_suffix}" if (ay and node.year) else node.year
         if node.verbatim:
             # A verbatim reference is unstructured, so render its text as-is and
             # warn once here instead of emitting the per-field warnings below.
             logger.warning(f"Bibitem {node.label} is a verbatim (unparsed) reference")
             items = [node.verbatim]
-            if node.number:
+            if node.number and not ay:
                 items.insert(0, f"{node.number}.")
         else:
             items = [node.author, f'"{node.title}"']
-            if node.number:
+            if node.number and not ay:
                 items.insert(0, f"{node.number}.")
             if node.kind == "article":
                 if node.journal:
@@ -1805,7 +1869,7 @@ class Translator:
                         if node.issue:
                             journal_part += f"({node.issue})"
                     if node.year:
-                        journal_part += f" ({node.year})"
+                        journal_part += f" ({year_text})"
                     items.append(journal_part)
                 else:
                     logger.warning(f"Bibitem {node.label} has no journal")
@@ -1841,7 +1905,7 @@ class Translator:
                 # separately only for other kinds, or for an article that had no
                 # journal to attach it to.
                 if not (node.kind == "article" and node.journal):
-                    items.append(node.year)
+                    items.append(year_text)
             else:
                 logger.warning(f"Bibitem {node.label} has no year")
         text = ". ".join([str(i).strip(".") for i in items]) + "."
