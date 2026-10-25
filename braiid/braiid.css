@@ -1,5 +1,7 @@
-/* Declare layer order first - unlayered styles will have highest priority */
-@layer base;
+/* Declare layer order first. vendor is lowest, so BRAIID's base layer overrides
+   third-party CSS (e.g. tooltipster) loaded into the vendor layer, regardless of
+   the vendor selector's specificity. Unlayered styles still win over both. */
+@layer vendor, base;
 
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Source+Sans+3:ital,wght@0,200..900;1,200..900&family=Source+Serif+4:ital,opsz,wght@0,8..60,200..900;1,8..60,200..900&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Source+Code+Pro:ital,wght@0,200..900;1,200..900&display=swap');

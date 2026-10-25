@@ -1,0 +1,9 @@
+# Tooltip theme
+
+:theorem: {:label: thm-x}
+
+  For every graph on $n$ vertices the edge count is at most $n(n-1)/2$.
+
+::
+
+See :ref:thm-x:: for the bound.
