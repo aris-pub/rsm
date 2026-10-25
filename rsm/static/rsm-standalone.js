@@ -2501,7 +2501,14 @@ var RSM = (() => {
         const s = document.createElement("span");
         s.className = "rail-state-num";
         s.setAttribute("aria-hidden", "true");
-        if (num) s.textContent = kind === "section" ? "(" + num + ")" : "\u27E8" + num + "\u27E9";
+        if (num) {
+          if (kind === "section") {
+            s.classList.add("rail-state-num-section");
+            s.textContent = "\xA7" + num;
+          } else {
+            s.textContent = "\u27E8" + num + "\u27E9";
+          }
+        }
         return s;
       }
       function scrollToNode(targetId) {

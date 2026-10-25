@@ -405,12 +405,12 @@ def test_proof_state_rows_are_uniform_jump_rows(page: Page, interactive_server: 
     assert page.locator(".rail-state .rail-hyps .rail-jump-row").count() > 0
     assert page.locator(".rail-state .rail-context .rail-jump-row").count() > 0
     # The provenance number is back, in the left gutter: a ⟨n⟩ step number in
-    # ASSUME, a (n) section number in IN SCOPE.
+    # ASSUME, a §n section number in IN SCOPE.
     hyp_nums = page.locator(".rail-state .rail-hyps .rail-state-num")
     hyp_texts = [hyp_nums.nth(i).inner_text().strip() for i in range(hyp_nums.count())]
     assert any(t.startswith("⟨") and t.endswith("⟩") for t in hyp_texts)
     ctx_num = page.locator(".rail-state .rail-context .rail-state-num").first.inner_text()
-    assert ctx_num.startswith("(") and ctx_num.endswith(")")
+    assert ctx_num.strip().startswith("§")
 
 
 def test_proof_state_context_row_jumps_to_source(page: Page, interactive_server: str):
@@ -487,7 +487,57 @@ def test_proof_state_setup_goal_is_a_gutter_row(page: Page, interactive_server: 
     assert preview.strip()
     assert page.locator(".rail-state .rail-goal .rail-goal-toggle").count() == 1
     num = page.locator(".rail-state .rail-goal .rail-state-num").first.inner_text()
-    assert num.startswith("(") and num.endswith(")")
+    assert num.strip().startswith("§")
+
+
+def test_proof_state_goal_section_marker_reads_as_section(
+    page: Page, interactive_server: str
+):
+    """rsm-8u3: the PROVE row for a goal introduced in a section shows a small,
+    muted section marker (here "§2"), not "(2)". Next to the ⟨n⟩ step glyphs,
+    "(2)" read as a stray step number; "§" marks it as a section instead. Step
+    rows keep their glyph."""
+    page.set_viewport_size({"width": 1400, "height": 460})
+    _load(page, interactive_server)
+    page.click('.rail-scope[data-scope="proof"]')
+    page.click('.rail-subtabs-proof .rail-tab[data-view="state"]')
+    # The proof's first step is a setup :assume: with no own claim, so PROVE
+    # renders the goal summary whose gutter marker is the goal's section
+    # provenance (the theorem lives in section 2, "Results").
+    page.evaluate(
+        """() => {
+            const step = [...document.querySelectorAll('.proof[data-nodeid] .step')]
+                .find((s) => !s.closest('.calc'));
+            step.scrollIntoView({ block: 'center' });
+            step.click();
+        }"""
+    )
+    goal_num = page.wait_for_selector(
+        ".rail-state .rail-goal .rail-goal-summary .rail-state-num", timeout=5_000
+    )
+    text = goal_num.inner_text().strip()
+    assert text.startswith("§"), f"section marker should lead with the section sign: {text!r}"
+    assert "(" not in text and ")" not in text, f"no step-like brackets: {text!r}"
+    # Tagged as a section marker so CSS renders it small and muted.
+    assert "rail-state-num-section" in (goal_num.get_attribute("class") or "")
+    # Step rows (ASSUME) keep the ⟨n⟩ glyph, visibly unlike the goal marker.
+    hyp_num = (
+        page.locator(".rail-state .rail-hyps .rail-state-num").first.inner_text().strip()
+    )
+    assert hyp_num.startswith("⟨") and hyp_num.endswith("⟩"), hyp_num
+    # "Tiny": the section marker renders smaller than the step glyph. Both are
+    # 0.78em of the same .rail-state base, so they match until the section rule
+    # shrinks the marker.
+    sizes = page.evaluate(
+        """() => {
+            const g = document.querySelector(
+                '.rail-state .rail-goal .rail-goal-summary .rail-state-num');
+            const h = document.querySelector('.rail-state .rail-hyps .rail-state-num');
+            const px = (el) => parseFloat(getComputedStyle(el).fontSize);
+            return { goal: px(g), hyp: px(h) };
+        }"""
+    )
+    assert sizes["goal"] < sizes["hyp"], f"section marker must be smaller: {sizes}"
 
 
 # ---- bottom-drawer clearance (rsm-3gp) ----
