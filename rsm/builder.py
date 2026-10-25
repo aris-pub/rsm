@@ -125,6 +125,21 @@ class HTMLBuilder(BaseBuilder):
         standalone chrome button. Kept so existing call sites stay valid."""
         return body
 
+    def _sidebar_preload_script(self) -> str:
+        """A pre-paint script that reserves the sidebar's column space, for pages
+        built with the sidebar only. sidebar.js sets html.has-rail on load, but
+        that is after first paint, so the reserved margin would appear late and
+        shift the column. Setting it here, before paint, keeps the column in
+        place. With scripting off it never runs, so nothing is reserved and the
+        strip stays hidden (braiid.css keys both on has-rail)."""
+        if 'class="rail-strip"' not in (self.body or ""):
+            return ""
+        return (
+            "\n  <script>\n"
+            "    document.documentElement.classList.add('has-rail');\n"
+            "  </script>\n"
+        )
+
     def make_html_header(self) -> str:
         custom_css_link = ""
         if self.custom_css:
@@ -168,6 +183,8 @@ class HTMLBuilder(BaseBuilder):
           </script>
         """)
 
+        sidebar_preload = self._sidebar_preload_script()
+
         header = dedent(
             f"""\
         <head>
@@ -184,7 +201,7 @@ class HTMLBuilder(BaseBuilder):
           <script type="module">
             import {{ onload }} from '/static/onload.js';
             window.addEventListener('load', (ev) => {{window.lsp_ws = onload();}});
-          </script>{dark_mode_script}
+          </script>{dark_mode_script}{sidebar_preload}
 
           <title>__TITLE_PLACEHOLDER__</title>
         </head>
@@ -324,6 +341,8 @@ class StandaloneBuilder(HTMLBuilder):
   </script>
 """
 
+        sidebar_preload = self._sidebar_preload_script()
+
         header = f"""\
 <head>
   <meta charset="utf-8" />
@@ -341,7 +360,7 @@ class StandaloneBuilder(HTMLBuilder):
   </script>
   <script>
     window.addEventListener('load', function() {{ RSM.onload(null, {{keys: false}}); }});
-  </script>{dark_mode_script}
+  </script>{dark_mode_script}{sidebar_preload}
 
   <title>__TITLE_PLACEHOLDER__</title>
 </head>

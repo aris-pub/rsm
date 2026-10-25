@@ -84,6 +84,24 @@ export function setup() {
     }
   });
 
+  // Open a folded block from the keyboard. This lives here, not in keyboard.js,
+  // so it works in the standalone build too (that build loads onload with
+  // keys:false, so keyboard.js never runs). Enter or Space acts only when the
+  // handrail block ITSELF is focused and currently folded: it opens the block
+  // and keeps focus on it. An open block, or focus on an inner control or
+  // widget, is left alone, so Enter stays free for the block's menu and typing
+  // is never hijacked. Re-folding is done with the fold button (a real button,
+  // reachable by Tab). The fold button handles its own Enter/Space natively, so
+  // it is excluded here by the "block itself" check.
+  document.addEventListener("keydown", function (ev) {
+    if (ev.key !== "Enter" && ev.key !== " " && ev.key !== "Spacebar") return;
+    const hr = ev.target;
+    if (!hr || !hr.classList || !hr.classList.contains("hr")) return;
+    if (!hr.classList.contains("hr-collapsed")) return;
+    ev.preventDefault();
+    openHandrail(hr);
+  });
+
   // A click on the handrail's controls (collapse chevron, the dots, or any menu
   // item) must not focus (and so visually select) the enclosing handrail.
   // Suppressing the default on mousedown prevents that focus without blurring
@@ -566,6 +584,7 @@ export function openHandrail(hr) {
   const rest = getRest(hr);
   rest.forEach(el => { el.classList.remove("hide"); });
   notifyHandrailToggle(hr, false);
+  syncCollapseButton(hr);
   const icon = hr.querySelector(":scope > .hr-collapse-zone .icon.expand");
   if (!icon) return;
   icon.classList.remove("expand");
@@ -580,12 +599,49 @@ export function closeHandrail(hr) {
   const rest = getRest(hr);
   rest.forEach(el => { el.classList.add("hide"); });
   notifyHandrailToggle(hr, true);
+  syncCollapseButton(hr);
   const icon = hr.querySelector(":scope > .hr-collapse-zone .icon.collapse");
   if (!icon) return;
   icon.classList.remove("collapse");
   icon.classList.add("expand");
   const use = icon.querySelector("use");
   if (use) use.setAttribute("href", "#hr-icon-expand");
+}
+
+
+// Keep a block's fold button in step with its state: aria-expanded reflects
+// whether the content is open, the name says which way the button will move it,
+// and aria-controls points at the content zone it opens (given an id here, on
+// first sync, so the markup needs none). The button lives directly in the
+// block's own collapse zone; a nested block's button is skipped via :scope.
+// Blocks with no menu label (plain folds) fall back to a generic word so the
+// name is never empty.
+function syncCollapseButton(hr) {
+  const btn = hr.querySelector(":scope > .hr-collapse-zone > .hr-collapse");
+  if (!btn || btn.tagName !== "BUTTON") return;
+  const collapsed = hr.classList.contains("hr-collapsed");
+  const name = (hr.getAttribute("data-menu-label") || "").trim() || "this block";
+  btn.setAttribute("aria-expanded", collapsed ? "false" : "true");
+  btn.setAttribute("aria-label", (collapsed ? "Show " : "Hide ") + name);
+  const zone = hr.querySelector(":scope > .hr-content-zone");
+  if (zone) {
+    if (!zone.id) {
+      const nid = hr.getAttribute("data-nodeid");
+      zone.id = "hr-content-" + (nid != null ? nid : Math.random().toString(36).slice(2));
+    }
+    btn.setAttribute("aria-controls", zone.id);
+  }
+}
+
+// Initialise every fold button's aria state and id wiring once, before the
+// load-time collapse passes run. Collapsing a block re-syncs its own button.
+export function initCollapseButtons(root) {
+  (root || document)
+    .querySelectorAll(".hr > .hr-collapse-zone > .hr-collapse")
+    .forEach(btn => {
+      const hr = btn.closest(".hr");
+      if (hr) syncCollapseButton(hr);
+    });
 }
 
 

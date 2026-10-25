@@ -1055,6 +1055,19 @@ body {
 /* Handrails: individual elements -- collapse-zone */
 .manuscriptwrapper .hr .hr-collapse-zone {
   .hr-collapse {
+    /* A <button> for the keyboard and assistive tech; stripped back to the
+       plain chevron the div used to be. */
+    display: block;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+    text-align: inherit;
+    cursor: pointer;
+
     position: relative;
     top: var(--chunk-sixth);
     border-radius: var(--radius-lg);
@@ -1062,6 +1075,13 @@ body {
 
     .icon {padding-top: var(--chunk-sixth); padding-bottom: var(--chunk-sixth);}
 
+  }
+  /* Tabbing to the fold button reveals it (the hover/active reveals key off the
+     block, not this descendant) and marks it like the other keyboard targets. */
+  .hr-collapse:focus-visible {
+    opacity: 100%;
+    outline: var(--border-thin) solid var(--border-action);
+    outline-offset: 1px;
   }
 }
 /* Handrails: individual elements -- border-zone */
@@ -3441,13 +3461,55 @@ a.reference.external:hover::after {
   --rail-panel-width: 17rem;
 }
 
+/* The strip and the phone bottom bar are rendered by the HTML but only work
+   once sidebar.js has wired them, so hide them until it marks the page with
+   html.has-rail. With scripting off they never show, so there is no dead strip
+   and no bottom bar eating the screen. The specificity clears the base and
+   phone .rail-strip rules. */
+html:not(.has-rail) .manuscriptwrapper .rail-strip { display: none; }
+
+/* Skip link: the first focusable element on a --sidebar page, so a keyboard
+   reader can jump past the strip to the text. Hidden until focused, then shown
+   as a small chip at the top left, in either theme. */
+.rsm-skip-link {
+  position: fixed;
+  top: var(--chunk-sixth);
+  left: var(--chunk-sixth);
+  z-index: 100;
+  padding: var(--chunk-sixth) var(--chunk-third);
+  background: var(--surface-page);
+  color: var(--text-body);
+  border: var(--border-thin) solid var(--border-action);
+  border-radius: var(--radius-md);
+  font: var(--weight-semi) 0.95rem/1.2 var(--font-body);
+  text-decoration: none;
+  box-shadow: var(--shadow-soft);
+  transform: translateY(-150%);
+  opacity: 0;
+  pointer-events: none;
+}
+.rsm-skip-link:focus,
+.rsm-skip-link:focus-visible {
+  transform: translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+  outline: var(--border-thin) solid var(--border-action);
+  outline-offset: 2px;
+}
+/* The skip target is focusable only so focus can move to it; it is not a
+   control, so it shows no focus ring of its own. */
+#rsm-content:focus { outline: none; }
+
 /* Wide windows: the column sits right of the strip, centred in the space left
    when that space allows; with a view open it moves next to the panel instead
    of under it. sidebar.js sets --rail-ml / --rail-mw (the column's left edge
    and width); the fallbacks hold until it runs. */
 @media (min-width: 768px) {
-  html.has-rail main.manuscriptwrapper,
-  main.manuscriptwrapper:has(> .rail-strip) {
+  /* Keyed only on has-rail, which the inline head script sets before first
+     paint when scripting is on, so the column is placed from the start and
+     never jumps. With scripting off has-rail is absent, so no margin is
+     reserved and the text uses the full column. */
+  html.has-rail main.manuscriptwrapper {
     margin-left: var(--rail-ml, max(calc(var(--chunk) + 2 * var(--chunk-third) + var(--chunk-sixth)),
       calc((100vw - var(--content-max-width, var(--chunk-20))) / 2)));
     margin-right: 0;
@@ -3547,12 +3609,14 @@ a.reference.external:hover::after {
   .manuscriptwrapper .proof-rail .reading-opt { width: 44px; height: 44px; }
   .manuscriptwrapper .proof-rail .reading-row[data-control="measure"] { display: none; }
 
-  /* Keep the end of the manuscript, and the transient pills, clear of the bar. */
-  body:has(.rail-strip) {
+  /* Keep the end of the manuscript, and the transient pills, clear of the bar.
+     Only when the bar is live (has-rail): with scripting off there is no bar,
+     so no space is reserved at the bottom. */
+  html.has-rail body:has(.rail-strip) {
     padding-bottom: calc(48px + 2 * var(--chunk-sixth) + var(--chunk-half) + env(safe-area-inset-bottom, 0px));
   }
-  html:has(.rail-strip) { scroll-padding-bottom: calc(48px + 2 * var(--chunk-sixth) + var(--chunk-half)); }
-  body:has(.rail-strip) :is(.rsm-back-pill, .rsm-shared-pill) {
+  html.has-rail:has(.rail-strip) { scroll-padding-bottom: calc(48px + 2 * var(--chunk-sixth) + var(--chunk-half)); }
+  html.has-rail body:has(.rail-strip) :is(.rsm-back-pill, .rsm-shared-pill) {
     bottom: calc(48px + 2 * var(--chunk-sixth) + var(--chunk-third) + env(safe-area-inset-bottom, 0px));
   }
 }

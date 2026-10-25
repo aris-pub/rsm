@@ -2475,10 +2475,17 @@ class HandrailsTranslator(Translator):
 
     def _hr_collapse_zone(self, collapsible: bool) -> AppendOpenCloseTag:
         if collapsible:
+            # A real button so the fold can be worked from the keyboard (Enter or
+            # Space when focused) and named for assistive tech, in any build. The
+            # standalone build never loads the single-key shortcuts, so this is
+            # the only keyboard path to the fold there. The static name is a
+            # generic fallback; handrails.js replaces it with the block's own
+            # "Show X" / "Hide X" and sets aria-expanded and aria-controls from
+            # the live state (it also gives the content zone an id to point at).
             content = f"""
-            <div class="hr-collapse">
+            <button type="button" class="hr-collapse" aria-expanded="true" aria-label="Show or hide this block">
               {self._icon_ref("collapse")}
-            </div>
+            </button>
 """
         else:
             content = """<div class="hr-spacer"></div>"""
@@ -3022,8 +3029,15 @@ class HandrailsTranslator(Translator):
             + '<span class="rail-strip-label" aria-hidden="true">Copy link</span></button>'
         )
         groups.append(share)
+        # The strip's buttons are the first tab stops on the page, before any
+        # text. A skip link, hidden until focused, is placed ahead of them so a
+        # keyboard reader can jump straight to the manuscript (WCAG 2.4.1). It
+        # targets the content wrapper (id rsm-content, tabindex=-1), which sits
+        # after the strip, so focus lands in the text. Works with scripting off.
+        skip = '<a class="rsm-skip-link" href="#rsm-content">Skip to the text</a>'
         strip = (
-            '<nav class="rail-strip" aria-label="Sidebar">' + sep.join(groups) + "</nav>"
+            skip
+            + '<nav class="rail-strip" aria-label="Sidebar">' + sep.join(groups) + "</nav>"
         )
 
         # ---- the panel ----
@@ -3156,6 +3170,13 @@ class HandrailsTranslator(Translator):
             batch = self._wrap_batch_item_with_handrails(
                 4, batch, classes=["heading"], menu_label="Title", link=True, node=node
             )
+        if getattr(self, "sidebar", False):
+            # The skip link (emitted by _make_proof_rail, before the strip) lands
+            # the reader here, past the strip's buttons. tabindex=-1 lets focus
+            # move to this wrapper without adding it to the tab order.
+            content_tag = batch.items[2]
+            content_tag.id = "rsm-content"
+            content_tag.custom_attrs["tabindex"] = "-1"
         batch.items.insert(2, self._make_svg_defs())
         batch.items.insert(3, self._make_singleton_menu())
         batch.items.insert(3, self._make_proof_rail())

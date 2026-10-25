@@ -1293,6 +1293,14 @@ var RSM = (() => {
         return;
       }
     });
+    document.addEventListener("keydown", function(ev) {
+      if (ev.key !== "Enter" && ev.key !== " " && ev.key !== "Spacebar") return;
+      const hr = ev.target;
+      if (!hr || !hr.classList || !hr.classList.contains("hr")) return;
+      if (!hr.classList.contains("hr-collapsed")) return;
+      ev.preventDefault();
+      openHandrail(hr);
+    });
     document.addEventListener("mousedown", function(ev) {
       if (!ev.target.closest) return;
       if (ev.target.closest(".hr-collapse-zone") || ev.target.closest(".hr-border-zone") || ev.target.closest("#hr-menu-singleton")) {
@@ -1607,6 +1615,7 @@ var RSM = (() => {
       el.classList.remove("hide");
     });
     notifyHandrailToggle(hr, false);
+    syncCollapseButton(hr);
     const icon = hr.querySelector(":scope > .hr-collapse-zone .icon.expand");
     if (!icon) return;
     icon.classList.remove("expand");
@@ -1621,12 +1630,35 @@ var RSM = (() => {
       el.classList.add("hide");
     });
     notifyHandrailToggle(hr, true);
+    syncCollapseButton(hr);
     const icon = hr.querySelector(":scope > .hr-collapse-zone .icon.collapse");
     if (!icon) return;
     icon.classList.remove("collapse");
     icon.classList.add("expand");
     const use = icon.querySelector("use");
     if (use) use.setAttribute("href", "#hr-icon-expand");
+  }
+  function syncCollapseButton(hr) {
+    const btn = hr.querySelector(":scope > .hr-collapse-zone > .hr-collapse");
+    if (!btn || btn.tagName !== "BUTTON") return;
+    const collapsed = hr.classList.contains("hr-collapsed");
+    const name = (hr.getAttribute("data-menu-label") || "").trim() || "this block";
+    btn.setAttribute("aria-expanded", collapsed ? "false" : "true");
+    btn.setAttribute("aria-label", (collapsed ? "Show " : "Hide ") + name);
+    const zone = hr.querySelector(":scope > .hr-content-zone");
+    if (zone) {
+      if (!zone.id) {
+        const nid = hr.getAttribute("data-nodeid");
+        zone.id = "hr-content-" + (nid != null ? nid : Math.random().toString(36).slice(2));
+      }
+      btn.setAttribute("aria-controls", zone.id);
+    }
+  }
+  function initCollapseButtons(root2) {
+    (root2 || document).querySelectorAll(".hr > .hr-collapse-zone > .hr-collapse").forEach((btn) => {
+      const hr = btn.closest(".hr");
+      if (hr) syncCollapseButton(hr);
+    });
   }
   var COLLAPSE_KEY = "rsm-collapse:" + location.pathname;
   var suppressPersist = false;
@@ -2109,7 +2141,7 @@ var RSM = (() => {
     return Array.from(
       root2.querySelectorAll(`
       a[href]:not([tabindex="-1"]),
-      button:not([disabled]):not([tabindex="-1"]),
+      button:not([disabled]):not([tabindex="-1"]):not(.hr-collapse),
       textarea:not([disabled]):not([tabindex="-1"]),
       input:not([disabled]):not([tabindex="-1"]),
       select:not([disabled]):not([tabindex="-1"]),
@@ -3683,6 +3715,7 @@ var RSM = (() => {
       }
       try {
         setup3();
+        initCollapseButtons(root2);
         collapseInitial(root2);
         restoreCollapse(root2);
       } catch (err) {

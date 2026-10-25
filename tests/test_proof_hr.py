@@ -30,9 +30,9 @@ def test_two_steps():
 
         <div class="hr-collapse-zone">
 
-                    <div class="hr-collapse">
+                    <button type="button" class="hr-collapse" aria-expanded="true" aria-label="Show or hide this block">
                       <div class="icon collapse"><svg overflow="visible"><use href="#hr-icon-collapse" width="100%" height="100%"/></svg></div>
-                    </div>
+                    </button>
 
         </div>
 
@@ -69,9 +69,9 @@ def test_two_steps():
 
         <div class="hr-collapse-zone">
 
-                    <div class="hr-collapse">
+                    <button type="button" class="hr-collapse" aria-expanded="true" aria-label="Show or hide this block">
                       <div class="icon collapse"><svg overflow="visible"><use href="#hr-icon-collapse" width="100%" height="100%"/></svg></div>
-                    </div>
+                    </button>
 
         </div>
 
@@ -294,9 +294,9 @@ def test_sub_step():
 
         <div class="hr-collapse-zone">
 
-                    <div class="hr-collapse">
+                    <button type="button" class="hr-collapse" aria-expanded="true" aria-label="Show or hide this block">
                       <div class="icon collapse"><svg overflow="visible"><use href="#hr-icon-collapse" width="100%" height="100%"/></svg></div>
-                    </div>
+                    </button>
 
         </div>
 
@@ -333,9 +333,9 @@ def test_sub_step():
 
         <div class="hr-collapse-zone">
 
-                    <div class="hr-collapse">
+                    <button type="button" class="hr-collapse" aria-expanded="true" aria-label="Show or hide this block">
                       <div class="icon collapse"><svg overflow="visible"><use href="#hr-icon-collapse" width="100%" height="100%"/></svg></div>
-                    </div>
+                    </button>
 
         </div>
 
@@ -640,9 +640,9 @@ def test_theorem():
 
         <div class="hr-collapse-zone">
 
-                    <div class="hr-collapse">
+                    <button type="button" class="hr-collapse" aria-expanded="true" aria-label="Show or hide this block">
                       <div class="icon collapse"><svg overflow="visible"><use href="#hr-icon-collapse" width="100%" height="100%"/></svg></div>
-                    </div>
+                    </button>
 
         </div>
 
@@ -749,9 +749,9 @@ def test_proof():
 
         <div class="hr-collapse-zone">
 
-                    <div class="hr-collapse">
+                    <button type="button" class="hr-collapse" aria-expanded="true" aria-label="Show or hide this block">
                       <div class="icon collapse"><svg overflow="visible"><use href="#hr-icon-collapse" width="100%" height="100%"/></svg></div>
-                    </div>
+                    </button>
 
         </div>
 
@@ -788,9 +788,9 @@ def test_proof():
 
         <div class="hr-collapse-zone">
 
-                    <div class="hr-collapse">
+                    <button type="button" class="hr-collapse" aria-expanded="true" aria-label="Show or hide this block">
                       <div class="icon collapse"><svg overflow="visible"><use href="#hr-icon-collapse" width="100%" height="100%"/></svg></div>
-                    </div>
+                    </button>
 
         </div>
 
@@ -936,9 +936,9 @@ def test_proof_with_sketch():
 
         <div class="hr-collapse-zone">
 
-                    <div class="hr-collapse">
+                    <button type="button" class="hr-collapse" aria-expanded="true" aria-label="Show or hide this block">
                       <div class="icon collapse"><svg overflow="visible"><use href="#hr-icon-collapse" width="100%" height="100%"/></svg></div>
-                    </div>
+                    </button>
 
         </div>
 
@@ -975,9 +975,9 @@ def test_proof_with_sketch():
 
         <div class="hr-collapse-zone">
 
-                    <div class="hr-collapse">
+                    <button type="button" class="hr-collapse" aria-expanded="true" aria-label="Show or hide this block">
                       <div class="icon collapse"><svg overflow="visible"><use href="#hr-icon-collapse" width="100%" height="100%"/></svg></div>
-                    </div>
+                    </button>
 
         </div>
 
@@ -1053,9 +1053,9 @@ def test_proof_with_sketch():
 
         <div class="hr-collapse-zone">
 
-                    <div class="hr-collapse">
+                    <button type="button" class="hr-collapse" aria-expanded="true" aria-label="Show or hide this block">
                       <div class="icon collapse"><svg overflow="visible"><use href="#hr-icon-collapse" width="100%" height="100%"/></svg></div>
-                    </div>
+                    </button>
 
         </div>
 
