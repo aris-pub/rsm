@@ -135,9 +135,13 @@ def serve_rsm_html(page: Any, tmp_path: Path) -> Callable[[str, bool], Any]:
         html_file = output_dir / "test.html"
         html_content = html_file.read_text()
 
-        # Add dark theme class if requested
+        # Add dark theme class if requested. The build emits "<html lang=..
+        # data-accent=..>", not a bare "<html>", so inject the class into the
+        # real opening tag instead of matching "<html>" literally (rsm-si1).
         if dark_theme:
-            html_content = html_content.replace("<html>", '<html class="dark-theme">')
+            html_content = html_content.replace(
+                "<html", '<html class="dark-theme"', 1
+            )
             html_file.write_text(html_content)
 
         # Start HTTP server in background thread

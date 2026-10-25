@@ -262,6 +262,56 @@ class TestWCAGCompliance:
             server.shutdown()
             os.chdir(original_dir)
 
+    @pytest.mark.parametrize("dark_theme", [False, True])
+    def test_active_handrail_background_contrast(
+        self,
+        serve_rsm_a11y: callable,
+        page: Page,
+        dark_theme: bool,
+    ) -> None:
+        """rsm-vv3: body text on the active handrail background keeps >= 4.5:1.
+
+        The active background follows :accent: (--primary-50). On a green-accented
+        proof and theorem, mark every handrail active so axe measures the block
+        body text against that accent wash in both light and dark themes.
+
+        The info zone is excluded: its step-index glyphs use --text-subtle, a
+        muted affordance that already falls below 4.5:1 on the old fixed blue (and
+        more so there than on --primary-50), so it is a separate pre-existing
+        issue, not part of this background-color fix.
+        """
+        src = (
+            "# Handrail accent contrast\n\n"
+            ":config: {\n  :accent: green\n}\n::\n\n"
+            ":theorem:\n\n"
+            "  Every bounded monotone sequence converges to its supremum.\n\n"
+            "::\n\n"
+            ":proof:\n\n"
+            "  :step: Let the sequence be bounded above by a least upper bound. ::\n\n"
+            "  :step: For any positive tolerance a term lies within it of the bound. ::\n\n"
+            "  :step: Beyond that term every later term stays within the tolerance. ::\n\n"
+            "::\n"
+        )
+        page = serve_rsm_a11y(src, dark_theme)
+
+        # Clicking or focusing a block adds .active and paints its zones. Mark
+        # every handrail active so axe checks the block text against the wash.
+        page.evaluate(
+            "() => document.querySelectorAll('.manuscriptwrapper .hr')"
+            ".forEach(el => el.classList.add('active'))"
+        )
+
+        axe = Axe()
+        results = axe.run(
+            page,
+            context={"exclude": [[".hr-info-zone"]]},
+            options={"runOnly": {"type": "rule", "values": ["color-contrast"]}},
+        )
+
+        assert len(results.response["violations"]) == 0, self._format_violations(
+            results.response["violations"]
+        )
+
     def _format_violations(self, violations: list) -> str:
         """Format axe violations into readable error message."""
         if not violations:
