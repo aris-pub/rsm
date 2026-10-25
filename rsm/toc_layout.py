@@ -12,7 +12,8 @@ from __future__ import annotations
 NODE_H = 30
 NODE_PAD_X = 11
 CHAR_W = 7.0  # approx advance of the number glyphs at the TOC font size
-LABEL_CHAR_W = 10.0  # the root marker ("Top"/"Goal") is letters, wider than digits
+LABEL_CHAR_W = 10.0  # the root marker ("Goal") is letters, wider than digits
+ROOT_DOT_R = 5.0  # radius of the unlabelled TOC root dot, in user units
 LAYER_GAP = 58  # vertical gap between layers (grandalf yspace)
 HORIZ_LAYER_GAP = 38  # tighter depth gap when laid out left-to-right
 GUTTER_ASPECT = 0.62  # target width/height for the horizontal rail tree
@@ -24,12 +25,15 @@ ROOT_LABEL = "Goal"  # horizontal proof-rail root; full statement shown on hover
 
 
 def _node_width(node: dict, root_label: str | None = None) -> int:
-    # When a root_label is given, the root collapses to that short marker (full
-    # title/statement on hover) so it doesn't eat the limited width. Numbered
-    # sections size to their (short) number; an unlabelled root sizes to its
-    # full title.
-    if root_label is not None and node["depth"] == 0:
-        return int(len(root_label) * LABEL_CHAR_W) + 2 * NODE_PAD_X
+    if node["depth"] == 0:
+        # A labelled root (the proof rail's "Goal") sizes to that short marker,
+        # full statement on hover. An unlabelled root is the TOC dot: it reserves
+        # a small fixed slot for the dot, not a title, so a long title cannot
+        # widen the drawing.
+        if root_label is not None:
+            return int(len(root_label) * LABEL_CHAR_W) + 2 * NODE_PAD_X
+        return int(2 * ROOT_DOT_R) + 2 * NODE_PAD_X
+    # Numbered sections size to their (short) number.
     text = node["num"] if node["num"] else node["title"]
     return int(len(text) * CHAR_W) + 2 * NODE_PAD_X
 
