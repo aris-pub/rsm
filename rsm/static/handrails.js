@@ -157,7 +157,19 @@ function showMenuFor(hr) {
 
   // Configure link and code items
   configureItem(singletonMenu.querySelector('[data-role="link"]'), link);
-  configureItem(singletonMenu.querySelector('[data-role="code"]'), code);
+  // The build enables the Source item on every handrail, but the element may
+  // have no captured source (missing offsets, or no .rsm-source div to slice
+  // from). Disable it up front with a reason so a click cannot reach showSource
+  // and raise an error toast. The else branch clears any stale hint, since the
+  // menu is a singleton reused across handrails.
+  const codeEl = singletonMenu.querySelector('[data-role="code"]');
+  if (code && code !== "disabled" && !hrHasSource(hr)) {
+    configureItem(codeEl, "disabled");
+    setDisabledHint(codeEl, "disabled", "no source available");
+  } else {
+    configureItem(codeEl, code);
+    setDisabledHint(codeEl, null, "no source available");
+  }
 
   // Configure static toggle
   const staticToggle = hr.getAttribute("data-menu-static-toggle");
@@ -260,14 +272,14 @@ function showMenuFor(hr) {
   const lensSep = singletonMenu.querySelector('[data-role="deplens-sep"]');
   configureItem(lensUpEl, lensUp);
   configureItem(lensDownEl, lensDown);
-  setLensHint(
+  setDisabledHint(
     lensUpEl,
     lensUp,
     isStep
       ? "This step depends on nothing earlier in the proof."
       : "This result depends on no other result.",
   );
-  setLensHint(
+  setDisabledHint(
     lensDownEl,
     lensDown,
     isStep
@@ -353,11 +365,11 @@ function portalMenuToBody() {
 }
 
 
-// A disabled dependency-lens item explains its absence on hover (via our
-// tooltip system, keyed off data-tooltip in tooltips.js) and to assistive tech
-// (aria-disabled, plus the reason folded into the accessible name). An enabled
-// item carries none of these.
-function setLensHint(el, value, disabledText) {
+// A disabled menu item explains its absence on hover (via our tooltip system,
+// keyed off data-tooltip in tooltips.js) and to assistive tech (aria-disabled,
+// plus the reason folded into the accessible name). An enabled item carries
+// none of these. Used for the dependency-lens items and the Source item.
+function setDisabledHint(el, value, disabledText) {
   if (!el) return;
   if (value === "disabled") {
     el.setAttribute("data-tooltip", disabledText);
@@ -801,16 +813,27 @@ export function launchToast(text, style = "information") {
 };
 
 
-function showSource(hr) {
-  const start = hr.getAttribute("data-source-start");
-  const end = hr.getAttribute("data-source-end");
-  const sourceDiv = document.querySelector(".rsm-source");
+// A handrail has source to show only when it carries both offsets and the
+// document has a .rsm-source div to slice from. showMenuFor uses this to decide
+// whether to disable the Source item, and showSource to guard the modal.
+function hrHasSource(hr) {
+  return !!(
+    hr.getAttribute("data-source-start") &&
+    hr.getAttribute("data-source-end") &&
+    document.querySelector(".rsm-source")
+  );
+}
 
-  if (!start || !end || !sourceDiv) {
+
+function showSource(hr) {
+  if (!hrHasSource(hr)) {
     launchToast("No source available for this element.", "error");
     return;
   }
 
+  const start = hr.getAttribute("data-source-start");
+  const end = hr.getAttribute("data-source-end");
+  const sourceDiv = document.querySelector(".rsm-source");
   const source = sourceDiv.textContent.slice(parseInt(start), parseInt(end));
 
   const modal = document.createElement("div");
