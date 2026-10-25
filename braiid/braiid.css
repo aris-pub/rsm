@@ -1713,8 +1713,19 @@ body {
   .toc-tree .toc-arrowhead.dep { fill: var(--primary-700); }
   .toc-tree .toc-arrowhead.fwd { fill: var(--gold, #b08a3e); }
 
-  .toc-tree .toc-faded {
-    opacity: 0.1;
+  /* Off the current path, edges fade to a faint web but node labels must stay
+     readable. Fading the whole node group dropped the labels far below the 3:1
+     UI-contrast floor (WCAG 1.4.11), so keep the node at full opacity and mute
+     only its box, which still reads as off the path. */
+  .toc-tree .toc-edge.toc-faded {
+    opacity: 0.15;
+    transition: opacity 0.15s;
+  }
+  .toc-tree .toc-node.toc-faded {
+    opacity: 1;
+  }
+  .toc-tree .toc-node.toc-faded rect {
+    opacity: 0.2;
     transition: opacity 0.15s;
   }
 
@@ -2383,9 +2394,17 @@ body {
     stroke: var(--primary-600);
     opacity: 0.9;
   }
-  .rail-map .toc-tree .toc-edge.toc-faded,
+  /* Same split in the rail maps, where the acceptance is measured against the
+     panel: faint edges, but off-path node labels stay at full opacity so they
+     keep >= 3:1, with only the box muted. */
+  .rail-map .toc-tree .toc-edge.toc-faded {
+    opacity: 0.15;
+  }
   .rail-map .toc-tree .toc-node.toc-faded {
-    opacity: 0.12;
+    opacity: 1;
+  }
+  .rail-map .toc-tree .toc-node.toc-faded rect {
+    opacity: 0.2;
   }
 
   /* The one way out of focus mode: a clickable bar in the rail (which is fixed
