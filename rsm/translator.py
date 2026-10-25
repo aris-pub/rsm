@@ -1934,9 +1934,13 @@ class Translator:
     def _render_image(self, node: nodes.Asset) -> str:
         alt_text = node.alt if node.alt else f"{node.__class__.__name__} {node.full_number}."
         src = self._resolve_image_src(node.path)
+        # No id on the <img>: the asset's label already becomes the id on the
+        # enclosing <figure> (via AppendNodeTag), and putting it here too gave
+        # the document two elements with the same id. Every call to this method
+        # renders inside that figure wrapper, so the figure keeps the id.
         img = _make_tag(
             "img",
-            id_=node.label,
+            id_=None,
             classes=[],
             src=src,
             alt=alt_text,

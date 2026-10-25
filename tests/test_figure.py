@@ -461,6 +461,43 @@ def test_figure_all_new_options():
     )
 
 
+def test_labelled_figure_emits_id_once_on_figure():
+    """A labelled image figure must carry its id only on the <figure>, not also
+    on the inner <img>. Two elements with the same id is invalid HTML and makes
+    getElementById, hash navigation, and label selectors ambiguous."""
+    html = rsm.render(
+        dedent("""\
+        :figure: {
+          :path: assets/example.png
+          :label: fig-a
+        }
+        :caption: The caption.
+        ::
+        """)
+    )
+    assert html.count('id="fig-a"') == 1
+    assert '<figure id="fig-a"' in html
+    assert '<img id="fig-a"' not in html
+
+
+def test_labelled_dark_figure_emits_id_once_on_figure():
+    """Same invariant for the dark-mode (<picture>) branch: the id belongs to
+    the <figure> wrapper only, not the inner <img>."""
+    html = rsm.render(
+        dedent("""\
+        :figure: {
+          :path: assets/chart-light.png
+          :dark: assets/chart-dark.png
+          :label: fig-b
+        }
+        ::
+        """)
+    )
+    assert html.count('id="fig-b"') == 1
+    assert '<figure id="fig-b"' in html
+    assert '<img id="fig-b"' not in html
+
+
 class MockAssetResolver:
     """Asset resolver that returns predefined content for specific filenames."""
 
