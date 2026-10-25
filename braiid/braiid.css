@@ -1755,7 +1755,7 @@ body {
     z-index: 40;
     padding: var(--chunk-quarter);
     background: var(--surface-page);
-    border: var(--border-extrathin) solid var(--gray-200);
+    border: var(--border-extrathin) solid var(--border-primary);
     border-radius: var(--radius-xl);
     box-shadow: 0 1px 2px rgba(40, 60, 90, 0.04), 0 4px 14px rgba(40, 60, 90, 0.07);
   }
@@ -1828,8 +1828,8 @@ body {
   .reading-opts { display: flex; gap: var(--chunk-twelfth); }
   .reading-opt {
     flex: 1; padding: var(--chunk-twelfth) var(--chunk-sixth);
-    border: var(--border-extrathin) solid var(--gray-300);
-    border-radius: var(--radius-md); background: var(--gray-0); color: var(--gray-800);
+    border: var(--border-extrathin) solid var(--border-primary);
+    border-radius: var(--radius-md); background: var(--surface-page); color: var(--gray-800);
     font-size: 0.8rem; line-height: 1; cursor: pointer;
   }
   .reading-opt:hover { border-color: var(--primary-400); }
@@ -1988,8 +1988,8 @@ body {
     padding: var(--chunk-quarter);
     text-align: left;
     font: inherit;
-    background: var(--gray-75);
-    border: var(--border-extrathin) solid var(--gray-200);
+    background: var(--surface-primary);
+    border: var(--border-extrathin) solid var(--border-primary);
     border-radius: var(--radius-lg);
     cursor: pointer;
   }
@@ -2037,9 +2037,9 @@ body {
     font-family: var(--font-mono);
     font-size: 0.82rem;
     padding: var(--chunk-twelfth) var(--chunk-sixth);
-    border: var(--border-extrathin) solid var(--gray-200);
+    border: var(--border-extrathin) solid var(--border-primary);
     border-radius: var(--radius-lg);
-    background: var(--white, #fff);
+    background: var(--surface-page);
     color: var(--text-body);
   }
   .rail-notation-input:focus { outline: none; border-color: var(--primary-700); }
@@ -2183,8 +2183,10 @@ body {
     align-items: baseline;
   }
   .rail-jump-control { cursor: pointer; }
+  /* The hover/focus wash is the semantic hover surface, so it follows a
+     document that recolors its surfaces instead of a fixed gray. */
   .rail-jump-row:hover,
-  .rail-jump-row:focus-within { background: var(--gray-100); }
+  .rail-jump-row:focus-within { background: var(--surface-hover); }
   /* justify-self:end keeps the marker content-sized (not stretched to the
      column), so it stays right-aligned against the rule AND its measured
      scrollWidth is the true text width, letting the gutter shrink again after a
@@ -2247,7 +2249,7 @@ body {
       max-height: 85vh;
       gap: 0;
       padding: 0;
-      border: var(--border-extrathin) solid var(--gray-200);
+      border: var(--border-extrathin) solid var(--border-primary);
       border-bottom: none;
       border-radius: var(--radius-xl) var(--radius-xl) 0 0;
       box-shadow: 0 -2px 16px rgba(40, 60, 90, 0.12);
