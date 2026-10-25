@@ -75,6 +75,10 @@ class TestSidebarDesktop:
 
 
 @pytest.mark.visual
+@pytest.mark.skip(
+    reason="rsm-4ip: element-screenshot pixel size differs macOS vs ubuntu, so the "
+    "baseline round-trip cannot land these; generate on a matching Linux env"
+)
 class TestPinControl:
     @pytest.mark.parametrize("state", ["rest", "pinned"])
     @pytest.mark.parametrize("dark", [False, True], ids=["light", "dark"])
