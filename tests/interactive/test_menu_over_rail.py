@@ -43,7 +43,7 @@ def test_open_menu_paints_above_proof_rail(page: Page, interactive_server: str):
             window.scrollTo(0, y);
         }"""
     )
-    page.wait_for_selector(".proof-rail.active", timeout=5_000)
+    page.wait_for_selector(".proof-rail.active", state="attached", timeout=5_000)
 
     # Open the menu on a proof step (its dots sit in the left gutter, so the
     # menu opens leftward, over the rail region).

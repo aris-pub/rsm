@@ -1,4 +1,4 @@
-"""WCAG 2.1 AA checks for the two-scope floating sidebar and notation pane."""
+"""WCAG 2.1 AA checks for the reader sidebar (strip, panel views, phone bar)."""
 
 import re
 
@@ -54,7 +54,28 @@ def _fmt(violations):
 
 
 def test_sidebar_default_wcag(serve_rsm_a11y, page):
-    page = serve_rsm_a11y(SIDEBAR_SRC)
+    page = serve_rsm_a11y(SIDEBAR_SRC, sidebar=True)
+    v = _violations(page)
+    assert not v, "\n" + _fmt(v)
+
+
+@pytest.mark.parametrize("view", ["contents", "notation", "steps", "state", "pinned", "reading"])
+def test_sidebar_view_wcag(serve_rsm_a11y, page, view):
+    page.set_viewport_size({"width": 1400, "height": 900})
+    page = serve_rsm_a11y(SIDEBAR_SRC, sidebar=True)
+    page.click(f'.rail-strip-btn[data-view="{view}"]')
+    page.wait_for_selector(".proof-rail.open", timeout=5000)
+    page.mouse.move(900, 600)
+    v = _violations(page)
+    assert not v, "\n" + _fmt(v)
+
+
+@pytest.mark.parametrize("view", ["document", "reading"])
+def test_sidebar_phone_wcag(serve_rsm_a11y, page, view):
+    page.set_viewport_size({"width": 375, "height": 812})
+    page = serve_rsm_a11y(SIDEBAR_SRC, sidebar=True)
+    page.click(f'.rail-strip-btn[data-view="{view}"]')
+    page.wait_for_selector(".proof-rail.open", timeout=5000)
     v = _violations(page)
     assert not v, "\n" + _fmt(v)
 
@@ -180,7 +201,7 @@ def test_proof_steps_faded_node_labels_meet_ui_contrast(serve_rsm_a11y, page, th
     <1> current, steps <2>..<8> fade but stay clickable controls, so every faded
     node label must keep >= 3:1 against the panel, in both themes."""
     page.set_viewport_size({"width": 1400, "height": 900})
-    page = serve_rsm_a11y(STEPS_SRC)
+    page = serve_rsm_a11y(STEPS_SRC, sidebar=True)
     _force_theme(page, theme)
     _pin_first_step(page)
 
@@ -207,18 +228,10 @@ def test_proof_steps_faded_node_labels_meet_ui_contrast(serve_rsm_a11y, page, th
 
 
 def test_sidebar_notation_pane_wcag(serve_rsm_a11y, page):
-    # The notation subtab lives in the desktop sidebar's sub-tabs, which are
-    # hidden below the 1320px drawer breakpoint (the rail becomes a bottom sheet
-    # whose sub-tabs are display:none in the default peek state). Force a desktop
-    # viewport so the sub-tabs are present and clickable.
     page.set_viewport_size({"width": 1400, "height": 900})
-    page = serve_rsm_a11y(SIDEBAR_SRC)
-    page.click('.rail-subtabs-document .rail-tab[data-view="notation"]')
+    page = serve_rsm_a11y(SIDEBAR_SRC, sidebar=True)
+    page.click('.rail-strip-btn[data-view="notation"]')
     page.wait_for_selector(".rail-notation-input", timeout=5000)
-    # Clicking the sub-tab leaves its hover tooltip open; move the pointer away
-    # and let the (transient, decorative) tooltipster popup close so it isn't in
-    # the axe scan. The tooltip's own markup is not what this test checks.
-    page.mouse.move(700, 500)
-    page.wait_for_function("() => !document.querySelector('.tooltipster-base')", timeout=3000)
+    page.mouse.move(900, 600)
     v = _violations(page)
     assert not v, "\n" + _fmt(v)

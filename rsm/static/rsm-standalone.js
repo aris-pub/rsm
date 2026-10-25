@@ -2236,9 +2236,12 @@ var RSM = (() => {
     function holdAnchor(a) {
       if (!a) return;
       const t0 = performance.now();
+      let expected = window.scrollY;
       const step = () => {
+        if (Math.abs(window.scrollY - expected) > 1) return;
         const d = a.el.getBoundingClientRect().top - a.top;
         if (Math.abs(d) > 0.5) window.scrollBy(0, d);
+        expected = window.scrollY;
         if (performance.now() - t0 < 450) requestAnimationFrame(step);
       };
       step();
@@ -3520,6 +3523,7 @@ var RSM = (() => {
     tip.className = "ui-tip";
     tip.id = "rsm-ui-tip";
     tip.setAttribute("role", "tooltip");
+    tip.hidden = true;
     document.body.appendChild(tip);
     let timer = null;
     let owner = null;
@@ -3527,6 +3531,7 @@ var RSM = (() => {
       const b = el.getBoundingClientRect();
       tip.style.left = "0px";
       tip.style.top = "0px";
+      tip.hidden = false;
       tip.classList.add("on");
       const w = tip.offsetWidth;
       const h = tip.offsetHeight;
@@ -3562,6 +3567,7 @@ var RSM = (() => {
     function hide() {
       clearTimeout(timer);
       tip.classList.remove("on");
+      tip.hidden = true;
       if (owner) owner.removeAttribute("aria-describedby");
       owner = null;
     }

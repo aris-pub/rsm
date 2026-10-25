@@ -45,7 +45,8 @@ def test_closed_column_is_centred_when_wide(page: Page, interactive_server: str)
     _load(page, interactive_server, viewport={"width": 1920, "height": 900})
     g = page.evaluate(_GEOM)
     assert g["contentLeft"] >= g["stripRight"], g
-    left, right = g["contentLeft"], g["vw"] - g["contentRight"]
+    # Centred in the space right of the strip.
+    left, right = g["contentLeft"] - g["stripRight"], g["vw"] - g["contentRight"]
     assert abs(left - right) < 12, f"column not centred when wide: {g}"
 
 

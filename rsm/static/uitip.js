@@ -26,6 +26,8 @@ export function setup() {
   tip.className = "ui-tip";
   tip.id = "rsm-ui-tip";
   tip.setAttribute("role", "tooltip");
+  // Out of the accessibility tree (and the page) until it has a label to show.
+  tip.hidden = true;
   document.body.appendChild(tip);
 
   let timer = null;
@@ -35,6 +37,7 @@ export function setup() {
     const b = el.getBoundingClientRect();
     tip.style.left = "0px";
     tip.style.top = "0px";
+    tip.hidden = false;
     tip.classList.add("on");
     const w = tip.offsetWidth;
     const h = tip.offsetHeight;
@@ -73,6 +76,7 @@ export function setup() {
   function hide() {
     clearTimeout(timer);
     tip.classList.remove("on");
+    tip.hidden = true;
     if (owner) owner.removeAttribute("aria-describedby");
     owner = null;
   }

@@ -43,7 +43,7 @@ def test_no_duplicate_ids_after_tooltip_and_state_panel(page: Page, interactive_
     page.set_viewport_size({"width": 1400, "height": 900})
     page.goto(f"{interactive_server}/sidebar.html")
     page.wait_for_function(RSM_READY, timeout=10_000)
-    page.wait_for_selector(".proof-rail.active", timeout=10_000)
+    page.wait_for_selector(".proof-rail.active", state="attached", timeout=10_000)
 
     assert _duplicate_ids(page) == [], "duplicate ids on initial load"
 

@@ -65,19 +65,21 @@ class TestPrintStaticFallback:
 class TestPrintChromeHidden:
 
     def test_proof_rail_hidden_under_print(self, page: Page, interactive_server: str):
-        """The floating proof-rail is screen-only and must not appear in the PDF."""
-        # Desktop width so the rail is the active side panel (see test_collapsed).
-        if page.viewport_size["width"] < 1321:
+        """The sidebar (strip and open panel) is screen-only and must not appear
+        in the PDF."""
+        if page.viewport_size["width"] < 768:
             page.set_viewport_size({"width": 1400, "height": 900})
         page.goto(f"{interactive_server}/collapsed.html")
         page.wait_for_function(RSM_READY, timeout=10_000)
-        page.wait_for_selector(".proof-rail.active", timeout=10_000)
+        page.click('.rail-strip-btn[data-view="contents"]')
 
         expect(page.locator(".proof-rail")).to_be_visible()
+        expect(page.locator(".rail-strip")).to_be_visible()
 
         page.emulate_media(media="print")
 
         expect(page.locator(".proof-rail")).to_be_hidden()
+        expect(page.locator(".rail-strip")).to_be_hidden()
 
 
 class TestPrintUnfoldsCollapsed:

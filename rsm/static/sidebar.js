@@ -137,12 +137,17 @@ export function setupStrip(strip, rail, api) {
     }
     return best ? { el: best, top: bestTop } : null;
   }
+  // Follow the anchor while the column animates. Anything else that scrolls
+  // the page meanwhile (the reader, a jump) wins: holding stops.
   function holdAnchor(a) {
     if (!a) return;
     const t0 = performance.now();
+    let expected = window.scrollY;
     const step = () => {
+      if (Math.abs(window.scrollY - expected) > 1) return;
       const d = a.el.getBoundingClientRect().top - a.top;
       if (Math.abs(d) > 0.5) window.scrollBy(0, d);
+      expected = window.scrollY;
       if (performance.now() - t0 < 450) requestAnimationFrame(step);
     };
     step();

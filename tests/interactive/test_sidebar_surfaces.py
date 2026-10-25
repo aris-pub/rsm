@@ -1,4 +1,4 @@
-"""The floating sidebar must paint its panel and cards from the document's
+"""The sidebar must paint its strip, panel and cards from the document's
 semantic surface tokens, not raw palette grays.
 
 A document that overrides --surface-page / --surface-primary / --border-primary
@@ -31,8 +31,10 @@ _READ_COLORS = """() => {
         '.proof-rail.proof-collapsed .proof-rail-item.shown .rail-collapsed-card');
     const rs = getComputedStyle(rail);
     const cs = getComputedStyle(card);
+    const ss = getComputedStyle(document.querySelector('.rail-strip'));
     return {
         display: cs.display,
+        stripBg: ss.backgroundColor, stripBorder: ss.borderTopColor,
         panelBg: rs.backgroundColor, panelBorder: rs.borderTopColor,
         cardBg: cs.backgroundColor, cardBorder: cs.borderTopColor,
     };
@@ -59,7 +61,7 @@ def _setup_collapsed_card(page: Page, server: str, dark: bool) -> None:
     page.set_viewport_size({"width": 1440, "height": 900})
     page.goto(f"{server}/sidebar.html")
     page.wait_for_function(RSM_READY, timeout=10_000)
-    page.wait_for_selector(".proof-rail.active", timeout=10_000)
+    page.wait_for_selector(".proof-rail.active", state="attached", timeout=10_000)
     if dark:
         page.evaluate("() => document.documentElement.classList.add('dark-theme')")
     # Select the proof so its rail item is the shown one, then put the rail in
@@ -101,6 +103,8 @@ def test_sidebar_surfaces_follow_semantic_tokens(
 
     assert colors["panelBg"] == surface_page
     assert colors["panelBorder"] == border_primary
+    assert colors["stripBg"] == surface_page
+    assert colors["stripBorder"] == border_primary
     assert colors["cardBg"] == surface_primary
     assert colors["cardBorder"] == border_primary
 
@@ -118,5 +122,7 @@ def test_sidebar_surfaces_follow_document_override(
     colors = page.evaluate(_READ_COLORS)
     assert colors["panelBg"] == OVERRIDE["--surface-page"]
     assert colors["panelBorder"] == OVERRIDE["--border-primary"]
+    assert colors["stripBg"] == OVERRIDE["--surface-page"]
+    assert colors["stripBorder"] == OVERRIDE["--border-primary"]
     assert colors["cardBg"] == OVERRIDE["--surface-primary"]
     assert colors["cardBorder"] == OVERRIDE["--border-primary"]
