@@ -114,14 +114,12 @@ def test_locate_skips_hidden_uses(page: Page, interactive_server: str):
     # zero box at top 0, which could beat a real but off-screen use and make
     # locate scroll to nothing ("works only sometimes"). It must flash a visible
     # use. sidebar.html carries the rail + notation panel (the \eig macro).
-    if page.viewport_size["width"] < 1321:
+    if page.viewport_size["width"] < 768:
         page.set_viewport_size({"width": 1400, "height": 900})
     page.goto(f"{interactive_server}/sidebar.html")
     page.wait_for_function(RSM_READY, timeout=10_000)
-    page.wait_for_selector(".proof-rail.active", timeout=10_000)
     page.wait_for_timeout(800)
-    page.click('.rail-scope[data-scope="document"]')
-    page.click('.rail-subtabs-document .rail-tab[data-view="notation"]')
+    page.click('.rail-strip-btn[data-view="notation"]')
     # Deterministic bug setup: hide every real \eig use (so the only non-zero-box
     # candidate is one we append far down the page). Pre-fix, a hidden use (zero
     # box, distance == half the viewport) beats the far real one and locate flashes

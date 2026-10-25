@@ -631,8 +631,15 @@ class Transformer:
             else:
                 logger.warning("Multiple Tables of Content found, using only first one")
                 node.remove_self()
+        # The section graph is computed whether or not the author asked for a
+        # table of contents: the sidebar's Contents view draws it too, and the
+        # sidebar is a build option independent of :toc:.
         if toc is None:
+            graph = nodes.Contents()
+            self._compute_toc_edges(graph)
+            self.tree.section_graph = graph
             return
+        self.tree.section_graph = toc
 
         # :toc: is a standard block grammatically, but its contents are
         # auto-generated here; author-written content is not allowed.

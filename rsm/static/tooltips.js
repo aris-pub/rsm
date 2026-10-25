@@ -5,8 +5,16 @@
 
 import { typesetMath } from "./libraries.js";
 
+// Tabler pin, outline (not pinned) and filled (pinned).
 const PIN_ICON =
   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 4.5l-4 4l-4 1.5l-1.5 1.5l7 7l1.5 -1.5l1.5 -4l4 -4"/><path d="M9 15l-4.5 4.5"/><path d="M14.5 4l5.5 5.5"/></svg>';
+const PIN_FILLED_ICON =
+  '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M15.113 3.21l.094 .083l5.5 5.5a1 1 0 0 1 -1.175 1.59l-3.172 3.171l-1.424 3.797a1 1 0 0 1 -.158 .277l-.07 .08l-1.5 1.5a1 1 0 0 1 -1.32 .082l-.095 -.083l-2.793 -2.792l-3.793 3.792a1 1 0 0 1 -1.497 -1.32l.083 -.094l3.792 -3.793l-2.792 -2.793a1 1 0 0 1 -.083 -1.32l.083 -.094l1.5 -1.5a1 1 0 0 1 .258 -.187l.098 -.042l3.796 -1.425l3.171 -3.17a1 1 0 0 1 1.497 -1.26z"/></svg>';
+const PIN_LABEL = "Pin to the sidebar";
+const PINNED_LABEL = "Pinned in the sidebar";
+
+// The href of the excerpt currently pinned in the sidebar, or null.
+let pinnedTarget = null;
 
 // Build the inert excerpt shown for a reference: a clone of the target with
 // handrails stripped. Shared by the hover tooltip and the pin action so both
@@ -46,6 +54,10 @@ function buildExcerpt(rawHref) {
       stripHandrail(clone);
       clone.css("font-size", "0.7rem");
       content = clone.html();
+    } else if (classes.contains("proof")) {
+      clone = $t.clone();
+      stripHandrail(clone);
+      content = clone.html();
     } else if (["math", "algorithm"].some((c) => classes.contains(c))) {
       clone = $t.clone();
       stripHandrail(clone);
@@ -63,20 +75,67 @@ function buildExcerpt(rawHref) {
   return { content: content || "", error: content ? null : "unsupported" };
 }
 
+// The pin control in a reference preview: an icon in the preview's top-right
+// corner. Offered only when the page has the sidebar (`--sidebar`), the place a
+// pinned excerpt goes.
 function pinBar(href, title) {
+  if (!document.querySelector(".proof-rail")) return "";
   const h = (href || "").replaceAll('"', "&quot;");
   const t = (title || "").replaceAll('"', "&quot;");
+  const on = !!pinnedTarget && href === pinnedTarget;
+  const label = on ? PINNED_LABEL : PIN_LABEL;
   return (
     '<div class="ref-pin-bar">' +
     `<button type="button" class="ref-pin" data-pin-target="${h}" ` +
-    `data-pin-title="${t}" aria-label="Pin this beside the proof">` +
-    PIN_ICON + "<span>Pin</span></button></div>"
+    `data-pin-title="${t}" aria-label="${label}" data-tip="${label}" ` +
+    `aria-pressed="${on}"${on ? " data-pinned" : ""}>` +
+    (on ? PIN_FILLED_ICON : PIN_ICON) + "</button></div>"
   );
 }
 
-// One delegated handler: a click on any reference tooltip's pin button rebuilds
-// the excerpt from the target (so it does not depend on the closing tooltip DOM)
-// and dispatches rail:pin, which prooftree.js (owner of the rail) handles.
+// Repaint every visible preview's pin control after the pinned excerpt changes.
+function paintPins() {
+  for (const btn of document.querySelectorAll(".ref-pin")) {
+    const on = !!pinnedTarget && btn.dataset.pinTarget === pinnedTarget;
+    const label = on ? PINNED_LABEL : PIN_LABEL;
+    btn.toggleAttribute("data-pinned", on);
+    btn.setAttribute("aria-pressed", String(on));
+    btn.setAttribute("aria-label", label);
+    btn.dataset.tip = label;
+    btn.innerHTML = on ? PIN_FILLED_ICON : PIN_ICON;
+  }
+}
+
+// Pin the block an href points at: rebuild its excerpt from the target (so it
+// does not depend on a closing tooltip's DOM) and dispatch rail:pin, which
+// prooftree.js (owner of the rail) handles. Used by the preview's pin control
+// and by the handrail menu's Pin item. Returns false if nothing could be pinned.
+export function pinTarget(href, title, origin = document) {
+  const { content } = buildExcerpt(href);
+  if (!content) return false;
+  // The excerpt lands in the live rail, so strip ids/data-nodeid (as the
+  // tooltip path does) or it duplicates the source block's id and breaks
+  // getElementById and hash navigation.
+  const tmp = document.createElement("div");
+  tmp.innerHTML = content;
+  tmp.querySelectorAll("[id]").forEach((e) => e.removeAttribute("id"));
+  tmp
+    .querySelectorAll("[data-nodeid]")
+    .forEach((e) => e.removeAttribute("data-nodeid"));
+  pinnedTarget = href;
+  origin.dispatchEvent(
+    new CustomEvent("rail:pin", {
+      bubbles: true,
+      detail: { html: tmp.innerHTML, title: title || "", target: href },
+    })
+  );
+  paintPins();
+  return true;
+}
+
+// One delegated handler for every preview's pin control. A click on the control
+// of the excerpt that is already pinned shows it (opens the Pinned view)
+// rather than pinning it again.
 let pinDelegated = false;
 function setupPinDelegation() {
   if (pinDelegated) return;
@@ -84,23 +143,17 @@ function setupPinDelegation() {
   document.addEventListener("click", (ev) => {
     const btn = ev.target.closest && ev.target.closest(".ref-pin");
     if (!btn) return;
-    const { content } = buildExcerpt(btn.dataset.pinTarget);
-    if (!content) return;
-    // The excerpt lands in the live rail, so strip ids/data-nodeid (as the
-    // tooltip path does) or it duplicates the source block's id and breaks
-    // getElementById and hash navigation.
-    const tmp = document.createElement("div");
-    tmp.innerHTML = content;
-    tmp.querySelectorAll("[id]").forEach((e) => e.removeAttribute("id"));
-    tmp
-      .querySelectorAll("[data-nodeid]")
-      .forEach((e) => e.removeAttribute("data-nodeid"));
-    btn.dispatchEvent(
-      new CustomEvent("rail:pin", {
-        bubbles: true,
-        detail: { html: tmp.innerHTML, title: btn.dataset.pinTitle || "" },
-      })
-    );
+    if (btn.hasAttribute("data-pinned")) {
+      document.dispatchEvent(
+        new CustomEvent("rail:show", { detail: { view: "pinned", open: true } })
+      );
+      return;
+    }
+    pinTarget(btn.dataset.pinTarget, btn.dataset.pinTitle || "", btn);
+  });
+  document.addEventListener("rail:unpin", () => {
+    pinnedTarget = null;
+    paintPins();
   });
 }
 
@@ -145,7 +198,14 @@ export function createTooltips() {
         setTooltipContent(instance, "");
         return;
       }
-      const title = (helper.origin.textContent || "").trim();
+      // Title the excerpt like the block names itself ("Equation (1)"), not by
+      // the link text ("(1)"), falling back to the link text.
+      const target = document.getElementById((rawHref || "").replace(/^#/, ""));
+      const title = (
+        (target && target.getAttribute("data-menu-label")) ||
+        helper.origin.textContent ||
+        ""
+      ).trim().replace(/\.$/, "");
       setTooltipContent(instance, pinBar(rawHref, title) + content);
     },
     functionReady: function (instance, helper) {
@@ -206,40 +266,8 @@ export function createTooltips() {
     }
   });
 
-  // Sidebar control labels: the same tooltipster mechanism as the body, with a
-  // plain-text label taken from data-tooltip.
-  $(".proof-rail [data-tooltip]:not(.tooltipstered)").tooltipster({
-    theme: ['tooltipster-shadow', 'tooltipster-shadow-rsm'],
-    // Rail controls are glanced past constantly; a longer hover-intent delay
-    // keeps their hints from flashing up while the pointer just crosses the rail.
-    delay: 500,
-    // Cap the width: setTooltipContent wraps the label in .manuscriptwrapper,
-    // which is width:100% up to the document column width, so without a maxWidth
-    // a control hint stretches into a full-page banner (the body/author tooltips
-    // both cap at 500; these are short labels, so a touch tighter).
-    minWidth: 100,
-    maxWidth: 360,
-    side: 'bottom',
-    trigger: 'custom',
-    triggerOpen: {
-      mouseenter: true,
-      touchstart: true
-    },
-    triggerClose: {
-      click: true,
-      mouseleave: true,
-      originClick: true,
-      touchleave: true
-    },
-    functionInit: function (instance, helper) {
-      // Rail control labels are short plain-text hints, not document content.
-      // Keep them OUT of .manuscriptwrapper: its body font-size and width:100%
-      // (up to the document column width) blow a one-line hint into a full-width
-      // banner that overflows even a capped tooltip box. A light .rail-tip
-      // wrapper carries the body font; tooltipster's maxWidth then wraps it.
-      instance.content($(`<div class="rail-tip">${$(helper.origin).attr("data-tooltip")}</div>`));
-    },
-  });
+  // Sidebar controls carry data-tip and use the interface tooltip (uitip.js),
+  // not these reference previews.
 
   // Disabled dependency-lens menu items explain their absence with one of OUR
   // tooltips, not a native title. The items live in the singleton menu (portaled

@@ -1,0 +1,13 @@
+# Sidebar Figure Demo
+
+## Figures
+  {:label: sec-figs}
+
+:figure: {
+  :label: fig-a
+  :path: figure-light.png
+}
+:caption: A figure a reader can pin.
+::
+
+As :ref:fig-a:: shows, figures can be pinned beside the text.

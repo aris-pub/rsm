@@ -314,6 +314,7 @@ class ProcessorApp(ParserApp):
         standalone: bool = False,
         strict: bool = False,
         root_dir: Path | None = None,
+        sidebar: bool = False,
     ):
         super().__init__(
             srcpath, plain, loglevel, log_format, log_time, log_lineno, strict, root_dir
@@ -324,12 +325,16 @@ class ProcessorApp(ParserApp):
                 Task("linter", linter_instance := linter.Linter(), linter_instance.lint)
             )
 
+        # The sidebar is built on the handrails markup, so asking for it is enough.
+        if sidebar:
+            handrails = True
         if not handrails:
             tr = translator.Translator(asset_resolver=asset_resolver, standalone=standalone)
         else:
             tr = translator.HandrailsTranslator(
                 source_offsets=source_offsets, copy_source=copy_source,
                 asset_resolver=asset_resolver, standalone=standalone,
+                sidebar=sidebar,
             )
         self.add_task(Task("translator", tr, tr.translate))
 
@@ -357,6 +362,7 @@ class FullBuildApp(ProcessorApp):
         menu_position: str = "left",
         strict: bool = False,
         root_dir: Path | None = None,
+        sidebar: bool = False,
     ):
         super().__init__(
             srcpath,
@@ -373,6 +379,7 @@ class FullBuildApp(ProcessorApp):
             standalone,
             strict,
             root_dir,
+            sidebar,
         )
         self.write_output = write_output
         if standalone:
@@ -460,6 +467,7 @@ def render(
     standalone: bool = False,
     strict: bool = False,
     root_dir: Path | None = None,
+    sidebar: bool = False,
 ) -> str:
     return ProcessorApp(
         srcpath=path,
@@ -475,6 +483,7 @@ def render(
         standalone=standalone,
         strict=strict,
         root_dir=root_dir,
+        sidebar=sidebar,
     ).run()
 
 
@@ -518,6 +527,7 @@ def build(
     menu_position: str = "left",
     strict: bool = False,
     root_dir: Path | None = None,
+    sidebar: bool = False,
 ) -> str | dict:
     """Process RSM source and optionally write output files.
 
@@ -559,6 +569,9 @@ def build(
         Position of handrail context menus: "left" or "right" (default: "left")
     strict : bool
         Raise exception if CST errors are detected after transformation (default: False)
+    sidebar : bool
+        Add the reader sidebar: contents, notation, proofs, pinned excerpts and
+        reading settings (default: False). Independent of ``:toc:``.
 
     Returns
     -------
@@ -583,6 +596,7 @@ def build(
         menu_position=menu_position,
         strict=strict,
         root_dir=root_dir,
+        sidebar=sidebar,
     ).run()
 
     if not structured:

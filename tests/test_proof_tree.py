@@ -1,4 +1,4 @@
-"""Tests for the proof step-tree derivation and the floating proof rail."""
+"""Tests for the proof step-tree derivation and the reader sidebar markup."""
 
 import rsm
 import rsm.nodes as nodes
@@ -118,62 +118,115 @@ RAIL_SRC_NOTATION = RAIL_SRC.replace(
 )
 
 
-def test_rail_emitted_with_tree_toc():
-    html = rsm.render(RAIL_SRC, handrails=True)
-    assert 'class="proof-rail' in html
-    # two scope tabs: Document and Proof
-    assert 'data-scope="document"' in html
-    assert 'data-scope="proof"' in html
-    # Proof scope sub-tabs: the proof-DAG ("map") and the State
-    assert 'data-view="proof-map"' in html
-    assert 'data-view="state"' in html
-    # Document scope sub-tab: the whole-document TOC tree
-    assert 'data-view="doc-map"' in html
-    # the proof's own step-tree lives under the Proof scope
-    assert html.count('class="proof-rail-item"') >= 1
-    proof = _proof(RAIL_SRC)
-    assert f'data-proof="{proof.nodeid}"' in html
+def _sidebar(src):
+    return rsm.render(src, handrails=True, sidebar=True)
 
 
-def test_toc_tree_lives_under_document_scope():
-    html = rsm.render(RAIL_SRC, handrails=True)
-    # The TOC tree is a Document-scope panel now, not a per-proof item keyed "toc".
+def _strip_views(html):
+    import re
+
+    strip = html[html.index('<nav class="rail-strip"'):html.index("</nav>", html.index('<nav class="rail-strip"'))]
+    return re.findall(r'class="rail-strip-btn" data-view="([a-z]+)" data-mode="(split|grouped|both)"', strip)
+
+
+def test_sidebar_is_a_build_option():
+    # The sidebar comes from the build option, not from the TOC view.
+    assert 'class="proof-rail' in _sidebar(RAIL_SRC)
+    assert "proof-rail" not in rsm.render(RAIL_SRC, handrails=True)
+    no_tree = RAIL_SRC.replace("  :view: tree\n", "")
+    assert 'class="proof-rail' in _sidebar(no_tree)
+
+
+def test_sidebar_without_toc_still_has_contents():
+    # The section graph is computed even when the author wrote no :toc:.
+    src = RAIL_SRC.replace(":toc: {\n  :view: tree\n}\n::\n\n", "")
+    assert ":toc:" not in src
+    html = _sidebar(src)
     assert 'class="rail-panel rail-doc-map"' in html
-    assert 'data-proof="toc"' not in html
+    assert ("contents", "split") in _strip_views(html)
 
 
-def test_collapse_control_present():
-    html = rsm.render(RAIL_SRC, handrails=True)
-    assert 'class="rail-collapse"' in html
+def test_strip_has_one_icon_per_view():
+    html = _sidebar(RAIL_SRC_NOTATION)
+    assert _strip_views(html) == [
+        ("contents", "split"), ("notation", "split"), ("document", "grouped"),
+        ("steps", "split"), ("state", "split"), ("proof", "grouped"),
+        ("pinned", "both"), ("reading", "both"),
+    ]
+    # Copy link, and no old header, scope tabs or collapse control.
+    assert 'class="rail-strip-btn rail-strip-action rail-share-view"' in html
+    for old in ('class="rail-header', 'class="rail-scope', 'class="rail-collapse"'):
+        assert old not in html
 
 
-def test_notation_tab_present_when_declared():
-    html = rsm.render(RAIL_SRC_NOTATION, handrails=True)
-    assert 'data-view="notation"' in html
-    assert 'class="rail-panel rail-notation"' in html
+def test_strip_buttons_are_named_with_hints():
+    html = _sidebar(RAIL_SRC_NOTATION)
+    assert 'aria-label="Contents" data-tip="Contents" data-hint="The contents of the manuscript as a dependency graph."' in html
+    assert "Rename one and it changes everywhere." in html
 
 
-def test_no_notation_tab_without_notation():
-    html = rsm.render(RAIL_SRC, handrails=True)
+def test_no_notation_without_notation():
+    html = _sidebar(RAIL_SRC)
     assert 'data-view="notation"' not in html
     assert "rail-notation" not in html
 
 
-def test_rail_absent_without_tree_toc():
-    # No tree view directive (the default list view): no floating sidebar.
-    html = rsm.render(RAIL_SRC.replace("  :view: tree\n", ""), handrails=True)
-    assert "proof-rail" not in html
+def test_no_proof_views_without_structured_proofs():
+    # A proof with no steps has no step graph, so no Steps / State / Proof.
+    src = "# S\n\n## A\n\n:theorem: {:label: t} X.::\n\n:proof:\n  Plain prose proof.\n::\n"
+    views = [v for v, _ in _strip_views(_sidebar(src))]
+    assert "steps" not in views and "state" not in views and "proof" not in views
+    assert "contents" in views and "pinned" in views and "reading" in views
 
 
-def test_rail_absent_without_toc():
-    html = rsm.render("# S\n\n:proof:\n  :step: Foo.::\n::\n", handrails=True)
-    assert "proof-rail" not in html
+def test_proof_items_live_under_proof_scope():
+    html = _sidebar(RAIL_SRC)
+    assert html.count('class="proof-rail-item"') >= 1
+    proof = _proof(RAIL_SRC)
+    assert f'data-proof="{proof.nodeid}"' in html
+    assert 'data-proof="toc"' not in html
 
 
-def test_proofless_tree_toc_has_no_rail():
-    html = rsm.render(":toc: {\n  :view: tree\n}\n::\n\n# A\n\nx\n", handrails=True)
-    # No proofs, so no rail at all.
-    assert "proof-rail" not in html
+def test_phone_tabs_only_for_two_views():
+    # Document has two views only with notation; Proof always has Steps/State.
+    assert "rail-subtabs-document" not in _sidebar(RAIL_SRC)
+    html = _sidebar(RAIL_SRC_NOTATION)
+    assert 'class="rail-subtabs rail-subtabs-document" role="tablist"' in html
+    assert 'class="rail-subtabs rail-subtabs-proof" role="tablist"' in html
+
+
+def test_reading_tiles_and_system_theme():
+    html = _sidebar(RAIL_SRC)
+    assert 'data-value="system" aria-pressed="true" aria-label="System"' in html
+    assert 'class="reading-ag" data-face="serif"' in html
+    assert 'class="reading-a" data-size="4"' in html
+
+
+def test_handrail_menu_has_pin_item():
+    assert 'data-role="pin"' in _sidebar(RAIL_SRC)
+
+
+def test_interface_says_manuscript_not_paper():
+    import re
+
+    html = _sidebar(RAIL_SRC_NOTATION)
+    rail = html[html.index('<nav class="rail-strip"'):]
+    rail = rail[: rail.index('<div class="hr-menu')]
+    assert not re.search(r"\bpaper\b", rail, re.I)
+
+
+def test_cli_build_sidebar_flag(tmp_path):
+    import subprocess, sys
+
+    src = tmp_path / "doc.rsm"
+    src.write_text(RAIL_SRC)
+    out = tmp_path / "out.html"
+    run = "import sys; from rsm.cli import main; sys.argv[0] = 'rsm'; sys.exit(main())"
+    cmd = [sys.executable, "-c", run, "build", str(src), "--standalone", "-o", str(out)]
+    subprocess.run(cmd + ["--sidebar"], check=True, capture_output=True)
+    assert 'class="proof-rail' in out.read_text()
+    subprocess.run(cmd, check=True, capture_output=True)
+    assert 'class="proof-rail' not in out.read_text()
 
 
 def test_prose_introduction_enters_proof_context():
@@ -269,7 +322,7 @@ def test_section_marker_uses_subsection_precision():
 def test_proof_dag_step_labels_are_bracketed():
     # Proof DAG step nodes render ⟨X⟩ to match the State panel markers; the
     # document section tree keeps the plain "X." format (bracket_nums default).
-    html = rsm.render(SRC, handrails=True)
+    html = _sidebar(SRC)
     assert ">⟨1⟩<" in html  # ⟨1⟩ appears as a proof-DAG node label
     # nothing before the proof rail-map (the document tree) is bracketed
     assert "⟨" not in html.split('class="rail-panel rail-map"')[0]
@@ -289,3 +342,9 @@ def test_pick_introduces_a_hypothesis():
     p = _proof(src)
     # the later step's hypotheses include the pick'd symbol from the first step
     assert any(h["node"].kind == "pick" for h in p.step_state[1]["hyps"])
+
+
+def test_render_sidebar_implies_handrails():
+    # The sidebar is built on the handrails markup; asking for it is enough.
+    html = rsm.render(RAIL_SRC, sidebar=True)
+    assert 'class="rail-strip"' in html

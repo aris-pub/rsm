@@ -25,7 +25,7 @@ def _load(page: Page, server: str, query: str = "") -> None:
 
 
 def _copy_view_url(page: Page) -> str:
-    page.locator(".proof-rail .rail-share-view").click()
+    page.locator(".rail-strip .rail-share-view").click()
     # Clipboard permissions are granted in conftest's browser_context_args.
     return page.evaluate("() => navigator.clipboard.readText()")
 
@@ -43,15 +43,22 @@ def _collapsed(page: Page, block_id: str) -> bool:
 
 
 class TestCopyAction:
-    def test_button_in_document_scope(self, page: Page, interactive_server: str):
+    def test_button_in_strip(self, page: Page, interactive_server: str):
         _load(page, interactive_server)
-        expect(page.locator(".proof-rail .rail-share-view")).to_be_visible()
+        expect(page.locator(".rail-strip .rail-share-view")).to_be_visible()
 
     def test_copy_writes_view_url(self, page: Page, interactive_server: str):
         _load(page, interactive_server)
         url = _copy_view_url(page)
         assert "view=" in url
         assert "view" in parse_qs(urlparse(url).query)
+
+    def test_copy_confirms_in_manuscript_terms(self, page: Page, interactive_server: str):
+        _load(page, interactive_server)
+        _copy_view_url(page)
+        toast = page.locator(".toast").last
+        expect(toast).to_contain_text("manuscript")
+        expect(toast).not_to_contain_text("paper")
 
     def test_plain_copy_link_stays_anchor(self, page: Page, interactive_server: str):
         # The per-block "Copy link" must NOT become a view link.

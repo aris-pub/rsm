@@ -43,7 +43,7 @@ def test_no_duplicate_ids_after_tooltip_and_state_panel(page: Page, interactive_
     page.set_viewport_size({"width": 1400, "height": 900})
     page.goto(f"{interactive_server}/sidebar.html")
     page.wait_for_function(RSM_READY, timeout=10_000)
-    page.wait_for_selector(".proof-rail.active", timeout=10_000)
+    page.wait_for_selector(".proof-rail.active", state="attached", timeout=10_000)
 
     assert _duplicate_ids(page) == [], "duplicate ids on initial load"
 
@@ -55,6 +55,6 @@ def test_no_duplicate_ids_after_tooltip_and_state_panel(page: Page, interactive_
     assert _duplicate_ids(page) == [], "duplicate ids after opening a reference tooltip"
 
     # Switch to Proof scope: the State panel clones blocks via cloneClean.
-    page.click('.rail-scope[data-scope="proof"]')
+    page.click('.rail-strip-btn[data-view="steps"]')
     page.wait_for_timeout(400)
     assert _duplicate_ids(page) == [], "duplicate ids after populating the proof State panel"

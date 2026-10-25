@@ -1,4 +1,4 @@
-"""WCAG 2.1 AA checks for the two-scope floating sidebar and notation pane."""
+"""WCAG 2.1 AA checks for the reader sidebar (strip, panel views, phone bar)."""
 
 import re
 
@@ -54,7 +54,32 @@ def _fmt(violations):
 
 
 def test_sidebar_default_wcag(serve_rsm_a11y, page):
-    page = serve_rsm_a11y(SIDEBAR_SRC)
+    page = serve_rsm_a11y(SIDEBAR_SRC, sidebar=True)
+    v = _violations(page)
+    assert not v, "\n" + _fmt(v)
+
+
+@pytest.mark.parametrize("theme", ["light", "dark"])
+@pytest.mark.parametrize("view", ["contents", "notation", "steps", "state", "pinned", "reading"])
+def test_sidebar_view_wcag(serve_rsm_a11y, page, view, theme):
+    page.set_viewport_size({"width": 1400, "height": 900})
+    page = serve_rsm_a11y(SIDEBAR_SRC, sidebar=True)
+    _force_theme(page, theme)
+    page.click(f'.rail-strip-btn[data-view="{view}"]')
+    page.wait_for_selector(".proof-rail.open", timeout=5000)
+    page.mouse.move(900, 600)
+    v = _violations(page)
+    assert not v, "\n" + _fmt(v)
+
+
+@pytest.mark.parametrize("theme", ["light", "dark"])
+@pytest.mark.parametrize("view", ["document", "proof", "pinned", "reading"])
+def test_sidebar_phone_wcag(serve_rsm_a11y, page, view, theme):
+    page.set_viewport_size({"width": 375, "height": 812})
+    page = serve_rsm_a11y(SIDEBAR_SRC, sidebar=True)
+    _force_theme(page, theme)
+    page.click(f'.rail-strip-btn[data-view="{view}"]')
+    page.wait_for_selector(".proof-rail.open", timeout=5000)
     v = _violations(page)
     assert not v, "\n" + _fmt(v)
 
@@ -150,12 +175,14 @@ def _force_theme(page, theme):
         " c.remove('light-theme', 'dark-theme'); c.add(t + '-theme'); }",
         theme,
     )
+    # The page's colours transition (0.3s); scan the settled theme.
+    page.wait_for_timeout(400)
 
 
 def _pin_first_step(page):
     # Steps (map) is the default proof view; clicking the proof's first step pins
     # its (small) prerequisite cone, so the later steps rest faded.
-    page.click('.rail-scope[data-scope="proof"]')
+    page.click('.rail-strip-btn[data-view="steps"]')
     page.evaluate(
         """() => {
             const step = [...document.querySelectorAll('.proof[data-nodeid] .step')]
@@ -180,7 +207,7 @@ def test_proof_steps_faded_node_labels_meet_ui_contrast(serve_rsm_a11y, page, th
     <1> current, steps <2>..<8> fade but stay clickable controls, so every faded
     node label must keep >= 3:1 against the panel, in both themes."""
     page.set_viewport_size({"width": 1400, "height": 900})
-    page = serve_rsm_a11y(STEPS_SRC)
+    page = serve_rsm_a11y(STEPS_SRC, sidebar=True)
     _force_theme(page, theme)
     _pin_first_step(page)
 
@@ -207,18 +234,97 @@ def test_proof_steps_faded_node_labels_meet_ui_contrast(serve_rsm_a11y, page, th
 
 
 def test_sidebar_notation_pane_wcag(serve_rsm_a11y, page):
-    # The notation subtab lives in the desktop sidebar's sub-tabs, which are
-    # hidden below the 1320px drawer breakpoint (the rail becomes a bottom sheet
-    # whose sub-tabs are display:none in the default peek state). Force a desktop
-    # viewport so the sub-tabs are present and clickable.
     page.set_viewport_size({"width": 1400, "height": 900})
-    page = serve_rsm_a11y(SIDEBAR_SRC)
-    page.click('.rail-subtabs-document .rail-tab[data-view="notation"]')
+    page = serve_rsm_a11y(SIDEBAR_SRC, sidebar=True)
+    page.click('.rail-strip-btn[data-view="notation"]')
     page.wait_for_selector(".rail-notation-input", timeout=5000)
-    # Clicking the sub-tab leaves its hover tooltip open; move the pointer away
-    # and let the (transient, decorative) tooltipster popup close so it isn't in
-    # the axe scan. The tooltip's own markup is not what this test checks.
-    page.mouse.move(700, 500)
-    page.wait_for_function("() => !document.querySelector('.tooltipster-base')", timeout=3000)
+    page.mouse.move(900, 600)
     v = _violations(page)
     assert not v, "\n" + _fmt(v)
+
+
+# ---- the strip's icons, the pin control and touch targets ----
+
+_ICON_COLORS = """(sel) => {
+    const el = document.querySelector(sel);
+    const cs = getComputedStyle(el);
+    let bg = cs.backgroundColor, n = el;
+    while (bg === 'rgba(0, 0, 0, 0)' && n.parentElement) {
+        n = n.parentElement; bg = getComputedStyle(n).backgroundColor;
+    }
+    return { fg: cs.color, bg };
+}"""
+
+
+@pytest.mark.parametrize("theme", ["light", "dark"])
+def test_strip_icons_meet_ui_contrast_in_every_state(serve_rsm_a11y, page, theme):
+    """WCAG 1.4.11: a strip icon keeps >= 3:1 against what is behind it at
+    rest, hovered and pressed (its view open)."""
+    page.set_viewport_size({"width": 1400, "height": 900})
+    page = serve_rsm_a11y(SIDEBAR_SRC, sidebar=True)
+    _force_theme(page, theme)
+    rest = '.rail-strip-btn[data-view="reading"]'
+    hover = '.rail-strip-btn[data-view="pinned"]'
+    pressed = '.rail-strip-btn[data-view="contents"]'
+    page.click(pressed)
+    page.hover(hover)
+    page.wait_for_timeout(200)
+    for state, sel in [("rest", rest), ("hover", hover), ("pressed", pressed)]:
+        c = page.evaluate(_ICON_COLORS, sel)
+        ratio = _contrast(_rgb(c["fg"]), _rgb(c["bg"]))
+        assert ratio >= 3.0, f"{theme} {state}: {ratio:.2f}:1 ({c})"
+
+
+@pytest.mark.parametrize("theme", ["light", "dark"])
+def test_pin_control_contrast_in_every_state(serve_rsm_a11y, page, theme):
+    """The pin control in a reference preview keeps >= 4.5:1 at rest, hovered
+    and pinned, in both themes."""
+    page.set_viewport_size({"width": 1400, "height": 900})
+    page = serve_rsm_a11y(SIDEBAR_SRC, sidebar=True)
+    _force_theme(page, theme)
+
+    def hover_pin():
+        ref = page.locator('.manuscript a.reference[href="#thm-x"]').first
+        ref.scroll_into_view_if_needed()
+        page.mouse.move(5, 5)
+        ref.hover()
+        pin = page.locator('.tooltipster-base .ref-pin[data-pin-target="#thm-x"]').last
+        pin.wait_for(state="visible", timeout=3000)
+        return pin
+
+    pin = hover_pin()
+    rest = page.evaluate(_ICON_COLORS, ".tooltipster-base .ref-pin")
+    pin.hover()
+    page.wait_for_timeout(150)
+    hovered = page.evaluate(_ICON_COLORS, ".tooltipster-base .ref-pin")
+    pin.click()
+    page.keyboard.press("Escape")
+    hover_pin()
+    pinned = page.evaluate(_ICON_COLORS, ".tooltipster-base .ref-pin[data-pinned]")
+    for state, c in [("rest", rest), ("hover", hovered), ("pinned", pinned)]:
+        ratio = _contrast(_rgb(c["fg"]), _rgb(c["bg"]))
+        assert ratio >= 4.5, f"{theme} {state}: {ratio:.2f}:1 ({c})"
+
+
+def test_phone_touch_targets(serve_rsm_a11y, page):
+    """Phones: bar buttons >= 48px, Reading tiles >= 44px, sheet tabs >= 24px
+    tall (WCAG 2.5.8)."""
+    page.set_viewport_size({"width": 375, "height": 812})
+    page = serve_rsm_a11y(SIDEBAR_SRC, sidebar=True)
+    sizes = page.evaluate(
+        "() => [...document.querySelectorAll('.rail-strip-btn')].filter(b => b.offsetParent)"
+        ".map(b => { const r = b.getBoundingClientRect(); return [r.width, r.height]; })"
+    )
+    assert sizes and all(w >= 48 and h >= 48 for w, h in sizes), sizes
+    page.click('.rail-strip-btn[data-view="reading"]')
+    tiles = page.evaluate(
+        "() => [...document.querySelectorAll('.reading-opt')].filter(b => b.offsetParent)"
+        ".map(b => { const r = b.getBoundingClientRect(); return [r.width, r.height]; })"
+    )
+    assert tiles and all(w >= 44 and h >= 44 for w, h in tiles), tiles
+    page.click('.rail-strip-btn[data-view="document"]')
+    tabs = page.evaluate(
+        "() => [...document.querySelectorAll('.rail-subtabs-document .rail-tab')]"
+        ".map(b => b.getBoundingClientRect().height)"
+    )
+    assert tabs and all(h >= 24 for h in tabs), tabs

@@ -1,0 +1,24 @@
+# Sidebar
+
+:notation:
+  \eig $\lambda$ eigenvalue
+::
+
+## Introduction
+  {:label: sec-intro}
+
+We :write: $\eig$ for the spectral radius :: of the matrix throughout.
+
+## Results
+  {:label: sec-results}
+
+:theorem: {:label: thm-x} A claim about $\eig$.::
+
+:proof:
+  :step: :assume: $\eig$ is the spectral radius of :ref:thm-x::.::
+  :step: {:label: st-1} First, $\eig$ is real.::
+  :step: {:label: st-2} Then it is bounded, by :ref:st-1::.::
+  :step: :qed: Done by :ref:st-2::.::
+::
+
+As :ref:thm-x:: shows, the claim holds.

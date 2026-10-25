@@ -105,7 +105,12 @@ def serve_rsm_html(page: Any, tmp_path: Path) -> Callable[[str, bool], Any]:
     # Start HTTP server on random available port
     handler = http.server.SimpleHTTPRequestHandler
 
-    def _serve(rsm_source: str, dark_theme: bool = False, image_dir: Path | None = None) -> Any:
+    def _serve(
+        rsm_source: str,
+        dark_theme: bool = False,
+        image_dir: Path | None = None,
+        sidebar: bool = False,
+    ) -> Any:
         # Write RSM source to temp file
         rsm_file = tmp_path / "test.rsm"
         rsm_file.write_text(rsm_source, encoding="utf-8")
@@ -122,6 +127,7 @@ def serve_rsm_html(page: Any, tmp_path: Path) -> Callable[[str, bool], Any]:
             handrails=True,
             standalone=False,
             strict=True,
+            sidebar=sidebar,
         )
 
         # Copy extra asset files (e.g. images) so the HTTP server can serve them

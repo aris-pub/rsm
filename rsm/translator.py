@@ -124,69 +124,126 @@ from .util import highlight_code
 
 logger = logging.getLogger("RSM").getChild("tlate")
 
-# Tabler icons (hierarchy-3, list-details) for the proof rail's Map/State tabs.
-_RAIL_MAP_ICON = (
-    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" '
-    'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+def _tabler(paths: str, filled: bool = False) -> str:
+    """A Tabler icon (24px grid) as inline SVG; *paths* is its inner markup."""
+    if filled:
+        attrs = 'fill="currentColor"'
+    else:
+        attrs = (
+            'fill="none" stroke="currentColor" stroke-width="2" '
+            'stroke-linecap="round" stroke-linejoin="round"'
+        )
+    return f'<svg viewBox="0 0 24 24" {attrs} aria-hidden="true">{paths}</svg>'
+
+
+# Sidebar icons, all Tabler: hierarchy-3 (contents), writing-sign (notation),
+# binary-tree-2 (proof steps), list-details (proof state), pin, typography
+# (reading), link (copy a link to this view).
+_RAIL_CONTENTS_ICON = _tabler(
     '<path d="M12 5m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/>'
-    '<path d="M6 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/>'
-    '<path d="M18 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/>'
-    '<path d="M6 17v-2a6 6 0 0 1 12 0v2"/><path d="M12 7v4"/></svg>'
+    '<path d="M8 12m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/>'
+    '<path d="M12 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/>'
+    '<path d="M20 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/>'
+    '<path d="M4 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/>'
+    '<path d="M16 12m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/>'
+    '<path d="M5 17l2 -3"/><path d="M9 10l2 -3"/><path d="M13 7l2 3"/>'
+    '<path d="M17 14l2 3"/><path d="M15 14l-2 3"/><path d="M9 14l2 3"/>'
 )
-_RAIL_STATE_ICON = (
-    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" '
-    'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
-    '<path d="M13 5h8"/><path d="M13 9h5"/><path d="M13 15h8"/><path d="M13 19h5"/>'
-    '<path d="M3 4m0 1a1 1 0 0 1 1 -1h2a1 1 0 0 1 1 1v2a1 1 0 0 1 -1 1h-2a1 1 0 0 1 -1 -1z"/>'
-    '<path d="M3 14m0 1a1 1 0 0 1 1 -1h2a1 1 0 0 1 1 1v2a1 1 0 0 1 -1 1h-2a1 1 0 0 1 -1 -1z"/></svg>'
-)
-_RAIL_NOTATION_ICON = (
-    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" '
-    'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+_RAIL_NOTATION_ICON = _tabler(
+    '<path d="M3 19c3.333 -2 5 -4 5 -6c0 -3 -1 -3 -2 -3s-2.032 1.085 -2 3c.034 '
+    '2.048 1.658 2.877 2.5 4c1.5 2 2.5 2.5 3.5 1c.667 -1 1.167 -1.833 1.5 -2.5c1 '
+    '2.333 2.333 3.5 4 3.5h2.5"/>'
     '<path d="M20 17v-12c0 -1.121 -.879 -2 -2 -2s-2 .879 -2 2v12l2 2l2 -2z"/>'
     '<path d="M16 7h4"/>'
-    '<path d="M18 19h-13a2 2 0 1 1 0 -4h4a2 2 0 1 0 0 -4h-3"/></svg>'
 )
-_RAIL_SHARE_ICON = (
-    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" '
-    'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+_RAIL_STEPS_ICON = _tabler(
+    '<path d="M14 6a2 2 0 1 0 -4 0a2 2 0 0 0 4 0z"/>'
+    '<path d="M7 14a2 2 0 1 0 -4 0a2 2 0 0 0 4 0z"/>'
+    '<path d="M21 14a2 2 0 1 0 -4 0a2 2 0 0 0 4 0z"/>'
+    '<path d="M14 18a2 2 0 1 0 -4 0a2 2 0 0 0 4 0z"/>'
+    '<path d="M12 8v8"/><path d="M6.316 12.496l4.368 -4.992"/>'
+    '<path d="M17.684 12.496l-4.366 -4.99"/>'
+)
+_RAIL_STATE_ICON = _tabler(
+    '<path d="M13 5h8"/><path d="M13 9h5"/><path d="M13 15h8"/><path d="M13 19h5"/>'
+    '<path d="M3 4m0 1a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v4a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1z"/>'
+    '<path d="M3 14m0 1a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v4a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1z"/>'
+)
+_RAIL_PIN_ICON = _tabler(
+    '<path d="M15 4.5l-4 4l-4 1.5l-1.5 1.5l7 7l1.5 -1.5l1.5 -4l4 -4"/>'
+    '<path d="M9 15l-4.5 4.5"/><path d="M14.5 4l5.5 5.5"/>'
+)
+_RAIL_READING_ICON = _tabler(
+    '<path d="M4 20l3 0"/><path d="M14 20l7 0"/><path d="M6.9 15l6.9 0"/>'
+    '<path d="M10.2 6.3l5.8 13.7"/><path d="M5 20l6 -16l2 0l7 16"/>'
+)
+_RAIL_SHARE_ICON = _tabler(
     '<path d="M9 15l6 -6"/>'
     '<path d="M11 6l.463 -.536a5 5 0 0 1 7.071 7.072l-.534 .464"/>'
-    '<path d="M13 18l-.397 .534a5.068 5.068 0 0 1 -7.127 0a4.972 4.972 0 0 1 0 -7.071l.524 -.463"/></svg>'
-)
-_RAIL_SIDEBAR_COLLAPSE_ICON = (
-    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" '
-    'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
-    '<path d="M4 4m0 2a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2z"/>'
-    '<path d="M9 4v16"/><path d="M15 10l-2 2l2 2"/></svg>'
-)
-_RAIL_SIDEBAR_EXPAND_ICON = (
-    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" '
-    'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
-    '<path d="M4 4m0 2a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2z"/>'
-    '<path d="M9 4v16"/><path d="M14 10l2 2l-2 2"/></svg>'
+    '<path d="M13 18l-.397 .534a5.068 5.068 0 0 1 -7.127 0a4.972 4.972 0 0 1 0 -7.071l.524 -.463"/>'
 )
 _RAIL_PIN_CLOSE_ICON = (
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" '
     'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
     '<path d="M18 6l-12 12"/><path d="M6 6l12 12"/></svg>'
 )
-# Reader type controls in the rail's Reading scope. Each row toggles a root
+# Reader type controls in the sidebar's Reading view. Each row toggles a root
 # data-reading-* attribute the stylesheet keys on (overriding a CSS variable);
 # the default value carries no attribute, so an untouched reader inherits the
-# author's build defaults. Theme reuses the existing .dark-theme class.
+# author's build defaults. Theme sets .dark-theme / .light-theme, or neither
+# for System (follow the operating system). Every option is a small preview
+# tile; its name is the button's accessible name and interface tooltip.
 _READING_CONTROLS = [
     ("typeface", "Typeface",
      [("sans", "Sans"), ("serif", "Serif"), ("legible", "Legible")], "sans"),
     ("size", "Size",
-     [("1", "A"), ("2", "A"), ("3", "A"), ("4", "A")], "2"),
+     [("1", "Small"), ("2", "Default"), ("3", "Large"), ("4", "Larger")], "2"),
     ("leading", "Line height",
      [("tight", "Tight"), ("normal", "Normal"), ("loose", "Loose")], "normal"),
     ("measure", "Width",
      [("narrow", "Narrow"), ("normal", "Normal"), ("wide", "Wide")], "normal"),
     ("theme", "Theme",
-     [("light", "Light"), ("dark", "Dark")], "light"),
+     [("system", "System"), ("light", "Light"), ("dark", "Dark")], "system"),
 ]
+
+
+def _lines_glyph(ys: tuple, x0: float = 5, x1: float = 19, last: float = 14) -> str:
+    """Text lines drawn on the Tabler grid: a preview of line height or width."""
+    d = "".join(
+        f"M{x0} {y}h{(last if i == len(ys) - 1 else x1) - x0}" for i, y in enumerate(ys)
+    )
+    return _tabler(f'<path d="{d}"/>')
+
+
+_READING_TILES = {
+    ("leading", "tight"): _lines_glyph((8, 11, 14, 17)),
+    ("leading", "normal"): _lines_glyph((6, 10, 14, 18)),
+    ("leading", "loose"): _lines_glyph((4, 9.33, 14.67, 20)),
+    ("measure", "narrow"): _tabler('<path d="M3 4v16M21 4v16M9 8h6M9 12h6M9 16h4"/>'),
+    ("measure", "normal"): _tabler('<path d="M3 4v16M21 4v16M7 8h10M7 12h10M7 16h6"/>'),
+    ("measure", "wide"): _tabler('<path d="M3 4v16M21 4v16M5.5 8h13M5.5 12h13M5.5 16h8"/>'),
+    ("theme", "system"): _tabler(
+        '<path d="M3 5a1 1 0 0 1 1 -1h16a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-16a1 1 0 0 1 -1 -1v-10z"/>'
+        '<path d="M7 20h10"/><path d="M9 16v4"/><path d="M15 16v4"/>'
+    ),
+    ("theme", "light"): _tabler(
+        '<path d="M12 12m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0"/>'
+        '<path d="M3 12h1m8 -9v1m8 8h1m-9 8v1m-6.4 -15.4l.7 .7m12.1 -.7l-.7 .7m0 '
+        '11.4l.7 .7m-12.1 -.7l-.7 .7"/>'
+    ),
+    ("theme", "dark"): _tabler(
+        '<path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 '
+        '-8.313 -12.454z"/>'
+    ),
+}
+
+
+def _reading_tile(control: str, value: str) -> str:
+    if control == "typeface":
+        return f'<span class="reading-ag" data-face="{value}" aria-hidden="true">Ag</span>'
+    if control == "size":
+        return f'<span class="reading-a" data-size="{value}" aria-hidden="true">A</span>'
+    return _READING_TILES[(control, value)]
 
 
 def _make_reading_panel() -> str:
@@ -194,12 +251,13 @@ def _make_reading_panel() -> str:
     rows = []
     for control, label, options, default in _READING_CONTROLS:
         opts = []
-        for value, text in options:
+        for value, name in options:
             active = " active" if value == default else ""
             pressed = "true" if value == default else "false"
             opts.append(
-                f'<button class="reading-opt{active}" data-value="{value}" '
-                f'aria-pressed="{pressed}">{escape(text)}</button>'
+                f'<button type="button" class="reading-opt{active}" data-value="{value}" '
+                f'aria-pressed="{pressed}" aria-label="{escape(name)}" '
+                f'data-tip="{escape(name)}">{_reading_tile(control, value)}</button>'
             )
         rows.append(
             f'<div class="reading-row" data-control="{control}">'
@@ -2285,6 +2343,11 @@ class HandrailsTranslator(Translator):
           <path d="M3 9l4 -4l4 4m-4 -4v14" />
           <path d="M21 15l-4 4l-4 -4m4 4v-14" />
         </svg>""",
+        "pin": """<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3C4952" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+          <path d="M15 4.5l-4 4l-4 1.5l-1.5 1.5l7 7l1.5 -1.5l1.5 -4l4 -4" />
+          <path d="M9 15l-4.5 4.5" />
+          <path d="M14.5 4l5.5 5.5" />
+        </svg>""",
         "focus-2": """<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3C4952" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
           <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
           <path d="M12 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" />
@@ -2317,10 +2380,14 @@ class HandrailsTranslator(Translator):
         copy_source: bool = True,
         asset_resolver=None,
         standalone: bool = False,
+        sidebar: bool = False,
     ):
         super().__init__(
             quiet, asset_resolver, standalone, source_offsets=source_offsets, copy_source=copy_source
         )
+        # The reader sidebar is a build option (`rsm build --sidebar`),
+        # independent of whether the author wrote :toc:.
+        self.sidebar = sidebar
 
     @staticmethod
     def _make_option_tag(name: str, svg: str) -> AppendOpenCloseTag:
@@ -2760,6 +2827,12 @@ class HandrailsTranslator(Translator):
         html += '    <span class="hr-menu-item-text">Collapse all</span>\n'
         html += '  </div>\n'
         html += '  <div class="hr-menu-separator" data-role="collapse-sep"></div>\n'
+        # Keep a block open in the sidebar's Pinned view (only with --sidebar;
+        # handrails.js shows it on pinnable blocks).
+        html += f'  <div class="hr-menu-item pin" data-role="pin">\n'
+        html += f'    {self._icon_ref("pin")}\n'
+        html += '    <span class="hr-menu-item-text">Pin</span>\n'
+        html += '  </div>\n'
         html += f'  <div class="hr-menu-item link" data-role="link">\n'
         html += f'    {self._icon_ref("link")}\n'
         html += '    <span class="hr-menu-item-text">Copy link</span>\n'
@@ -2803,27 +2876,52 @@ class HandrailsTranslator(Translator):
     def _make_source_div(self):
         return AppendText(text=f'<div class="rsm-source hide">{self.tree.src}</div>')
 
-    def _make_proof_rail(self):
-        """A document-level container holding one pre-rendered step-tree SVG per
-        proof, tagged by proof nodeid. prooftree.js floats it on the left and
-        shows the tree of whichever proof is in view as the reader scrolls."""
-        # The floating proof-tree rail is part of the graph-navigation
-        # experience opted into by `:toc: {:view: tree}`; without it the
-        # document's HTML is unchanged.
-        toc = next(iter(self.tree.traverse(nodeclass=nodes.Contents)), None)
-        if toc is None or getattr(toc, "view", "list") != "tree":
-            return AppendText(text="")
+    # The sidebar's views: (id, name, scope, sub-tab, hint). The scope and
+    # sub-tab select the rail's panel (prooftree.js keys its classes off them);
+    # the hint says what the view shows.
+    _RAIL_VIEWS = {
+        "contents": ("Contents", "document", "doc-map",
+                     "The contents of the manuscript as a dependency graph."),
+        "notation": ("Notation", "document", "notation",
+                     "The manuscript’s main symbols. Rename one and it changes everywhere."),
+        "steps": ("Proof steps", "proof", "proof-map",
+                  "The steps of the proof in view and which earlier steps each one uses."),
+        "state": ("Proof state", "proof", "state",
+                  "What is assumed and what is left to prove at the step you are on."),
+        "pinned": ("Pinned", "pinned", "",
+                   "A block you pinned, kept open beside the text."),
+        "reading": ("Reading", "reading", "",
+                    "How the manuscript looks: typeface, size, spacing and theme."),
+    }
 
-        # Document scope: the whole-document TOC tree, plus a notation pane when
-        # the author declared rebindable notation.
-        doc_panels = []
-        if toc.tree_nodes:
-            doc_panels.append(
-                f'<div class="rail-panel rail-doc-map">{self._toc_tree_svg(toc, root_label="Top")}</div>'
-            )
+    def _make_proof_rail(self):
+        """The reader sidebar: an icon strip in the left margin and the panel it
+        opens. The panel holds the section graph and Notation (Document scope),
+        one pre-rendered step graph and state per proof (Proof scope, followed by
+        prooftree.js as the reader scrolls), a pinned excerpt, and the Reading
+        settings.
+
+        The sidebar is a build option (`rsm build --sidebar`), independent of
+        :toc:. On wide windows the strip holds one icon per view; on phones it
+        becomes a bottom bar with one button per scope, and a scope with two
+        views switches between them with text tabs.
+        """
+        if not getattr(self, "sidebar", False):
+            return AppendText(text="")
+        from html import escape
+
+        graph = getattr(self.tree, "section_graph", None)
+        has_contents = bool(graph is not None and graph.tree_nodes)
         has_notation = (
             next(iter(self.tree.traverse(nodeclass=nodes.Notation)), None) is not None
         )
+
+        doc_panels = []
+        if has_contents:
+            doc_panels.append(
+                '<div class="rail-panel rail-doc-map">'
+                f'{self._toc_tree_svg(graph, root_label="Top")}</div>'
+            )
         if has_notation:
             doc_panels.append('<div class="rail-panel rail-notation"></div>')
 
@@ -2844,117 +2942,123 @@ class HandrailsTranslator(Translator):
                     proof.tree_root_title, len(proof.tree_nodes),
                 )
             )
+        has_proofs = bool(proof_items)
 
-        if not doc_panels and not proof_items:
-            return AppendText(text="")
-
-        scopes = (
-            '<div class="rail-scopes">'
-            '<button class="rail-scope active" data-scope="document" '
-            'aria-pressed="true" '
-            'data-tooltip="Document: structure and notation for the whole paper">'
-            "Document</button>"
-            '<button class="rail-scope" data-scope="proof" aria-pressed="false" '
-            "data-tooltip=\"Proof: the dependency graph and live state of the proof "
-            'you are reading">Proof</button>'
-            # Hidden (CSS) until a reference is pinned; see .has-pin.
-            '<button class="rail-scope rail-scope-pinned" data-scope="pinned" '
-            'aria-pressed="false" '
-            'data-tooltip="Pinned: a referenced result kept open beside the proof">'
-            "Pinned</button>"
-            # Reading (typography) sits last: it tweaks presentation, not content.
-            '<button class="rail-scope" data-scope="reading" '
-            'aria-pressed="false" '
-            'data-tooltip="Reading: typeface, size, spacing, and theme">'
-            "Reading</button>"
-            "</div>"
-        )
-
-        # Document sub-tabs: the TOC map, and Notation when present.
-        doc_tabs = [
-            '<button class="rail-tab active" data-view="doc-map" '
-            'aria-pressed="true" data-tooltip="Map of the document\'s structure">'
-            + _RAIL_MAP_ICON + "<span>TOC</span></button>"
-        ]
-        if has_notation:
-            doc_tabs.append(
-                '<button class="rail-tab" data-view="notation" '
-                'aria-pressed="false" data-tooltip="Rename the symbols used in this paper">'
-                + _RAIL_NOTATION_ICON + "<span>Notation</span></button>"
+        # ---- the strip ----
+        def strip_btn(view: str, icon: str, mode: str, name: str | None = None) -> str:
+            name = name or self._RAIL_VIEWS[view][0]
+            hint = self._RAIL_VIEWS[view][3] if view in self._RAIL_VIEWS else ""
+            hint_attr = f' data-hint="{escape(hint)}"' if hint else ""
+            return (
+                f'<button type="button" class="rail-strip-btn" data-view="{view}" '
+                f'data-mode="{mode}" aria-pressed="false" aria-controls="rsm-sidebar" '
+                f'aria-label="{escape(name)}" data-tip="{escape(name)}"{hint_attr}>{icon}'
+                f'<span class="rail-strip-label" aria-hidden="true">{escape(name)}</span>'
+                "</button>"
             )
-        doc_subtabs = (
-            '<div class="rail-subtabs rail-subtabs-document">'
-            + "".join(doc_tabs) + "</div>"
+
+        sep = '<span class="rail-strip-sep" data-mode="split" aria-hidden="true"></span>'
+        groups = []
+        doc_btns = []
+        if has_contents:
+            doc_btns.append(strip_btn("contents", _RAIL_CONTENTS_ICON, "split"))
+        if has_notation:
+            doc_btns.append(strip_btn("notation", _RAIL_NOTATION_ICON, "split"))
+        if doc_btns:
+            doc_btns.append(
+                strip_btn("document", _RAIL_CONTENTS_ICON if has_contents
+                          else _RAIL_NOTATION_ICON, "grouped", "Document")
+            )
+            groups.append("".join(doc_btns))
+        if has_proofs:
+            groups.append(
+                strip_btn("steps", _RAIL_STEPS_ICON, "split")
+                + strip_btn("state", _RAIL_STATE_ICON, "split")
+                + strip_btn("proof", _RAIL_STEPS_ICON, "grouped", "Proof")
+            )
+        groups.append(
+            strip_btn("pinned", _RAIL_PIN_ICON, "both")
+            + strip_btn("reading", _RAIL_READING_ICON, "both")
+        )
+        # A document-global action: copy a link that reopens the manuscript with
+        # the reader's current view (folds, reorder, ...). Distinct from the
+        # per-block "Copy link" anchor; shareview.js binds .rail-share-view.
+        share = (
+            '<button type="button" class="rail-strip-btn rail-strip-action rail-share-view" '
+            'data-mode="both" aria-label="Copy a link to this view" '
+            'data-tip="Copy a link to this view">' + _RAIL_SHARE_ICON
+            + '<span class="rail-strip-label" aria-hidden="true">Copy link</span></button>'
+        )
+        groups.append(share)
+        strip = (
+            '<nav class="rail-strip" aria-label="Sidebar">' + sep.join(groups) + "</nav>"
         )
 
-        # Proof sub-tabs: Steps (where you are) and State (what you must show).
-        # The view's internal name stays "proof-map" (JS state + persisted layout
-        # key off it); only the visible label reads "Steps" to avoid colliding
-        # with the "Proof" scope tab above it.
-        proof_subtabs = (
-            '<div class="rail-subtabs rail-subtabs-proof">'
-            '<button class="rail-tab active" data-view="proof-map" '
-            'aria-pressed="true" '
-            'data-tooltip="Steps: where you are in the proof\'s dependency structure">'
-            + _RAIL_MAP_ICON + "<span>Steps</span></button>"
-            '<button class="rail-tab" data-view="state" aria-pressed="false" '
-            'data-tooltip="State: the hypotheses in force and the goal you must show">'
-            + _RAIL_STATE_ICON + "<span>State</span></button>"
-            "</div>"
-        )
+        # ---- the panel ----
+        def subtabs(scope: str, views: list[str], labels: list[str]) -> str:
+            if len(views) < 2:
+                return ""
+            tabs = []
+            for i, (view, label) in enumerate(zip(views, labels)):
+                tab = self._RAIL_VIEWS[view][2]
+                hint = self._RAIL_VIEWS[view][3]
+                on = "true" if i == 0 else "false"
+                tabs.append(
+                    f'<button type="button" role="tab" class="rail-tab{" active" if i == 0 else ""}" '
+                    f'data-view="{tab}" aria-selected="{on}" tabindex="{0 if i == 0 else -1}" '
+                    f'data-hint="{escape(hint)}">{escape(label)}</button>'
+                )
+            return (
+                f'<div class="rail-subtabs rail-subtabs-{scope}" role="tablist" '
+                f'aria-label="{scope.capitalize()}">' + "".join(tabs) + "</div>"
+            )
 
-        collapse = (
-            '<button class="rail-collapse" data-tooltip="Collapse" '
-            'aria-label="Collapse sidebar">'
-            '<span class="rail-collapse-collapse">'
-            + _RAIL_SIDEBAR_COLLAPSE_ICON + "</span>"
-            '<span class="rail-collapse-expand">'
-            + _RAIL_SIDEBAR_EXPAND_ICON + "</span></button>"
+        doc_views = (["contents"] if has_contents else []) + (
+            ["notation"] if has_notation else []
+        )
+        head = (
+            '<div class="rail-head">'
+            + subtabs("document", doc_views,
+                      [self._RAIL_VIEWS[v][0] for v in doc_views])
+            + (subtabs("proof", ["steps", "state"], ["Steps", "State"])
+               if has_proofs else "")
+            + '<p class="rail-title" role="heading" aria-level="2"></p>'
+            '<p class="rail-hint"></p></div>'
         )
         document_section = (
             '<div class="rail-section rail-document">' + "".join(doc_panels) + "</div>"
         )
-        # A document-global action: copy a link that reopens the paper with the
-        # reader's current view (folds, reorder, ...). Distinct from the per-block
-        # "Copy link" anchor. An icon button in the rail header; CSS shows it only
-        # in the Document and Proof scopes, where the shareable structural view is
-        # built (reordering switches the rail to Proof). (potf-44f)
-        share = (
-            '<button class="rail-share-view" type="button" '
-            'aria-label="Copy a link that reopens the paper arranged the way you have it" '
-            'data-tooltip="Copy a link that reopens the paper arranged the way you have it">'
-            + _RAIL_SHARE_ICON + "</button>"
-        )
         proof_section = (
             '<div class="rail-section rail-proof">'
             '<div class="rail-proof-empty">'
-            "Click a proof to see its map and state.</div>"
+            "Click a proof to see its steps and state.</div>"
             + "".join(proof_items) + "</div>"
         )
-        # Holds the one currently pinned reference excerpt (filled by prooftree.js
-        # from a tooltip's "pin" button). Empty in the built page.
+        # Holds the one currently pinned excerpt (filled by prooftree.js from a
+        # reference preview's pin, or a block's handrail menu). Empty when built.
         pinned_section = (
             '<div class="rail-section rail-pinned">'
             '<div class="rail-pinned-empty">'
-            "Hover a reference and click Pin to keep it open here.</div>"
+            "Pin a reference\u2019s preview, or a block from its menu, "
+            "to keep it open here.</div>"
             '<div class="rail-pinned-head">'
             '<span class="rail-pinned-title"></span>'
-            '<button class="rail-pin-close" aria-label="Unpin" '
-            'data-tooltip="Unpin">' + _RAIL_PIN_CLOSE_ICON + "</button>"
+            '<button type="button" class="rail-pin-close" aria-label="Unpin" '
+            'data-tip="Unpin">' + _RAIL_PIN_CLOSE_ICON + "</button>"
             "</div>"
             '<div class="rail-pinned-body"></div>'
             "</div>"
         )
-
-        return AppendText(
-            text='<div class="proof-rail scope-document doc-view-map '
-            'proof-view-map" role="complementary" aria-label="Document and '
-            'proof navigation">'
-            + '<div class="rail-header">' + scopes + share + collapse + "</div>"
-            + doc_subtabs + proof_subtabs
-            + document_section + proof_section + pinned_section
+        doc_view = "map" if has_contents else "notation"
+        scope = "document" if doc_panels else ("proof" if has_proofs else "reading")
+        panel = (
+            f'<div id="rsm-sidebar" class="proof-rail scope-{scope} doc-view-{doc_view} '
+            f'proof-view-map{"" if has_proofs else " no-proofs"}" role="complementary" '
+            'aria-label="Sidebar">'
+            + head + document_section + proof_section + pinned_section
             + _make_reading_panel() + "</div>"
         )
+        return AppendText(text=strip + panel)
 
     def _rail_item(
         self, key: str, svg: str, step_state, root_title: str, step_count: int
@@ -2975,7 +3079,7 @@ class HandrailsTranslator(Translator):
         collapsed_card = (
             f'<button class="rail-panel rail-collapsed-card rail-expand-proof" '
             f'type="button" data-proof="{key}" aria-expanded="false" '
-            f'data-tooltip="Expand this proof to navigate its steps">'
+            f'data-tip="Expand this proof to navigate its steps">'
             f'<span class="rail-collapsed-title">{escape(root_title)}</span>'
             f'<span class="rail-collapsed-meta">{step_count} step{plural} hidden</span>'
             f'<span class="rail-collapsed-cue">Expand to navigate</span>'

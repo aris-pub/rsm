@@ -243,7 +243,7 @@ async function copyView() {
   try {
     window.focus(); // clipboard.writeText needs a focused document (see copyLink)
     await navigator.clipboard.writeText(shareUrlForCurrentView());
-    launchToast("View link copied: opens the paper arranged the way you have it.", "success");
+    launchToast("View link copied: it opens the manuscript arranged the way you have it.", "success");
   } catch {
     launchToast("Could not copy the view link.", "error");
   }

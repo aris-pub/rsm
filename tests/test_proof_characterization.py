@@ -142,7 +142,7 @@ def test_intra_proof_dependency_edge():
 
 
 def test_rail_state_data_matches_model_and_resolves_in_dom():
-    html = rsm.render(SRC, handrails=True)
+    html = rsm.render(SRC, handrails=True, sidebar=True)
     m = re.search(
         r'<script[^>]*class="rail-state-data"[^>]*>(.*?)</script>', html, re.S
     )

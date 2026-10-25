@@ -1,0 +1,61 @@
+# Long Contents
+
+## Part 1
+  {:label: sec-1}
+
+The first part.
+
+## Part 2
+  {:label: sec-2}
+
+This part builds on :ref:sec-1::.
+
+## Part 3
+  {:label: sec-3}
+
+This part builds on :ref:sec-2::.
+
+## Part 4
+  {:label: sec-4}
+
+This part builds on :ref:sec-3::.
+
+## Part 5
+  {:label: sec-5}
+
+This part builds on :ref:sec-4::.
+
+## Part 6
+  {:label: sec-6}
+
+This part builds on :ref:sec-5::.
+
+## Part 7
+  {:label: sec-7}
+
+This part builds on :ref:sec-6::.
+
+## Part 8
+  {:label: sec-8}
+
+This part builds on :ref:sec-7::.
+
+## Part 9
+  {:label: sec-9}
+
+This part builds on :ref:sec-8::.
+
+## Part 10
+  {:label: sec-10}
+
+This part builds on :ref:sec-9::.
+
+## Part 11
+  {:label: sec-11}
+
+This part builds on :ref:sec-10::.
+
+## Part 12
+  {:label: sec-12}
+
+This part builds on :ref:sec-11::.

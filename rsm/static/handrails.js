@@ -5,6 +5,21 @@
 
 import * as tocarcs from './tocarcs.js';
 import { lensConeSizes } from './deplens.js';
+import { pinTarget } from './tooltips.js';
+
+// Blocks a reader can keep open in the sidebar's Pinned view.
+const PINNABLE = [
+  "paragraph", "mathblock", "theorem", "lemma", "corollary", "example",
+  "exercise", "proposition", "problem", "porism", "remark", "definition", "proof",
+];
+
+// The block a handrail's Pin acts on: the block itself, or, for a figure (whose
+// handrail sits on its caption), the figure. Null when it cannot be pinned.
+function pinnableOf(hr) {
+  if (hr.id && PINNABLE.some((c) => hr.classList.contains(c))) return hr;
+  if (hr.matches("figcaption")) return hr.closest("figure[id]");
+  return null;
+}
 
 let singletonMenu = null;
 let activeHr = null;
@@ -57,6 +72,7 @@ export function setup() {
       else if (role === "focus") triggerFocus(activeHr);
       else if (role === "deplens-up") triggerDeplens(activeHr, "up");
       else if (role === "deplens-down") triggerDeplens(activeHr, "down");
+      else if (role === "pin") pinBlock(activeHr);
       return;
     }
 
@@ -154,6 +170,11 @@ function showMenuFor(hr) {
     const anyCollapse = collapse || collapseAll;
     collapseSep.style.display = anyCollapse ? "" : "none";
   }
+
+  // Pin: only with the sidebar, on blocks a reader can pin.
+  const pinnable =
+    !!document.querySelector(".proof-rail .rail-pinned") && !!pinnableOf(hr);
+  configureItem(singletonMenu.querySelector('[data-role="pin"]'), pinnable ? "true" : null);
 
   // Configure link and code items
   configureItem(singletonMenu.querySelector('[data-role="link"]'), link);
@@ -320,6 +341,17 @@ function toggleReorder(hr) {
 // Enter focus mode on a step. focusmode.js (set up in onload) listens for the
 // dispatched event, finds the step's proof and rail map, and folds the proof to
 // this step's prerequisite cone. Mirrors toggleReorder's menu->event handoff.
+// Keep this block open in the sidebar's Pinned view, titled by its label.
+function pinBlock(hr) {
+  const block = pinnableOf(hr);
+  if (!block) return;
+  const label = block.matches("figure")
+    ? (block.querySelector("figcaption .label")?.textContent || "Figure")
+    : hr.getAttribute("data-menu-label") || "";
+  hideMenu();
+  pinTarget("#" + block.id, label.trim().replace(/\.$/, ""), block);
+}
+
 function triggerFocus(hr) {
   hideMenu();
   hr.dispatchEvent(new CustomEvent("focus:step", { bubbles: true }));

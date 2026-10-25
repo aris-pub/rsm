@@ -673,30 +673,6 @@ body {
 }
 
 
-/* "Share this view": a quiet rail-header action (potf-44f), an icon button next
-   to the collapse toggle. Shown only in the Document and Proof scopes, where the
-   reader builds the structural view worth sharing (notation, folds, reorder),
-   and hidden in Reading and Pinned. A calm secondary control, not a call to
-   action. */
-.proof-rail .rail-header .rail-share-view { display: none; }
-.proof-rail.scope-document .rail-header .rail-share-view,
-.proof-rail.scope-proof .rail-header .rail-share-view {
-  display: inline-flex;
-}
-.proof-rail .rail-share-view {
-  align-items: center;
-  justify-content: center;
-  padding: var(--chunk-twelfth);
-  color: var(--gray-700);
-  background: none;
-  border: none;
-  border-radius: var(--radius-lg);
-  cursor: pointer;
-}
-.proof-rail .rail-share-view svg { width: 18px; height: 18px; }
-.proof-rail .rail-share-view:hover,
-.proof-rail .rail-share-view:focus-visible { background: var(--primary-100); }
-
 /* Shared-view pill: shown only when a ?view= link was opened (potf-44f). Same
    calm bottom-centre language as the back pill; it names the provenance and
    offers a one-click return to the pristine paper. Appended to <body>, so
@@ -1751,148 +1727,188 @@ body {
     transition: opacity 0.15s;
   }
 
-  /* Floating proof-tree rail: shows the in-view proof's step tree (or the
-     section TOC between proofs), pinned to the left as the reader scrolls. */
-  .proof-rail { display: none; }
+  /* ---- Reader sidebar (rsm build --sidebar) ----
+     An icon strip in the left margin opens one view at a time in a panel beside
+     it. The panel never covers the text: the column moves right (see the page
+     layout rules at the end of this file). On phones the strip is a bottom bar
+     and a view opens as a sheet above it. sidebar.js drives html.rail-open,
+     html.rail-phone and the column geometry; prooftree.js the panel content. */
+  .rail-strip {
+    position: fixed;
+    left: var(--rail-strip-left);
+    top: var(--rail-top);
+    z-index: 41;
+    display: flex;
+    flex-direction: column;
+    gap: var(--chunk-twelfth);
+    padding: var(--chunk-sixth) var(--chunk-twelfth);
+    background: var(--surface-page);
+    border: var(--border-extrathin) solid var(--border-primary);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-soft);
+  }
+  .rail-strip-btn {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: calc(var(--chunk) - 2 * var(--chunk-twelfth) - 2 * var(--border-extrathin));
+    height: calc(var(--chunk) - var(--chunk-quarter));
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-lg);
+    background: none;
+    color: var(--text-subtle);
+    font-family: var(--font-body);
+    cursor: pointer;
+  }
+  .rail-strip-btn svg { width: 1.25rem; height: 1.25rem; }
+  .rail-strip-btn:hover { color: var(--primary-700); background: var(--surface-hover); }
+  .rail-strip-btn[aria-pressed="true"] { color: var(--primary-800); background: var(--primary-100); }
+  .rail-strip-btn:focus-visible {
+    outline: var(--border-thin) solid var(--border-action);
+    outline-offset: 1px;
+  }
+  .rail-strip-action { height: calc(var(--chunk) - var(--chunk-half)); }
+  .rail-strip-action svg { width: 1rem; height: 1rem; }
+  .rail-strip-sep {
+    display: block;
+    margin: var(--chunk-twelfth) var(--chunk-sixth);
+    border-top: var(--border-extrathin) solid var(--border-primary);
+  }
+  /* Desktop: one icon per view, icon only (the name is the tooltip). */
+  .rail-strip-label { display: none; }
+  .rail-strip-btn[data-mode="grouped"] { display: none; }
 
-  .proof-rail.active {
-    /* A contained floating panel in the gutter: a clear surface with its own
-       border and shadow, not loose controls hovering in the margin. Scope/
-       sub-tabs on top, the shown panel below; the Map tree is capped to fit. */
+  /* The panel. Hidden until a view is open. */
+  .proof-rail { display: none; }
+  .proof-rail.active.open {
     display: flex;
     flex-direction: column;
     align-items: stretch;
     gap: var(--chunk-sixth);
     position: fixed;
-    left: var(--chunk-third);
-    /* Anchor the top so it doesn't drift up and down as content changes. */
-    top: 5rem;
-    width: min(31vw, 380px);
-    max-height: calc(100vh - 7rem);
+    left: calc(var(--rail-strip-left) + var(--chunk) + var(--chunk-sixth));
+    top: var(--rail-top);
+    width: var(--rail-panel-width);
+    max-height: calc(100vh - var(--rail-top) - var(--chunk-third));
     overflow: hidden;
     z-index: 40;
     padding: var(--chunk-quarter);
     background: var(--surface-page);
     border: var(--border-extrathin) solid var(--border-primary);
     border-radius: var(--radius-xl);
-    box-shadow: 0 1px 2px rgba(40, 60, 90, 0.04), 0 4px 14px rgba(40, 60, 90, 0.07);
-  }
-  /* Collapsed: a compact square handle, not a tall rounded blob. */
-  .proof-rail.active.collapsed {
-    padding: var(--chunk-sixth);
-    border-radius: var(--radius-lg);
-    box-shadow: 0 1px 3px rgba(40, 60, 90, 0.10);
+    box-shadow: var(--shadow-soft);
   }
 
-  /* Visible keyboard focus for the sidebar controls and the tree-DAG nodes. */
+  /* Visible keyboard focus for the panel's controls and the graph nodes. */
   .proof-rail :focus-visible,
   .toc-tree a:focus-visible {
-    outline: 2px solid var(--primary-700);
+    outline: var(--border-thin) solid var(--border-action);
     outline-offset: 2px;
   }
 
-  /* Tab rows: the scope axis (Document / Proof) on top, then the active scope's
-     sub-tabs below. */
-  .rail-tabs,
-  .rail-subtabs,
-  .rail-scopes { display: flex; gap: var(--chunk-twelfth); flex-shrink: 0; }
-  .rail-scope {
-    flex: 1;
-    padding: var(--chunk-twelfth);
-    border: none;
+  /* Head: the view's name and what it shows. */
+  .rail-head {
+    display: flex;
+    flex-direction: column;
+    gap: var(--chunk-twelfth);
+    flex-shrink: 0;
+    padding: var(--chunk-twelfth) 0 var(--chunk-quarter);
+    margin-bottom: var(--chunk-sixth);
+    border-bottom: var(--border-extrathin) solid var(--border-primary);
+  }
+  .rail-title {
+    margin: 0;
+    font-family: var(--font-body);
+    font-size: 1rem;
+    font-weight: var(--weight-semi);
+    line-height: 1.25;
+    color: var(--text-body);
+  }
+  .rail-hint {
+    margin: 0;
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    color: var(--text-subtle);
+  }
+  .rail-hint[hidden] { display: none; }
+
+  /* A scope's two views switch with text tabs, used on phones only (the
+     desktop strip has one icon per view). */
+  .rail-subtabs { display: none; gap: var(--chunk-half); align-items: flex-end; }
+  .rail-tab {
+    min-height: 32px;
+    padding: 0 0 var(--chunk-twelfth);
+    border: 0;
     border-bottom: var(--border-thin) solid transparent;
     background: none;
+    font-family: var(--font-body);
+    font-size: 0.9375rem;
+    font-weight: var(--weight-semi);
+    color: var(--text-subtle);
     cursor: pointer;
-    font-size: 0.7rem;
-    font-weight: 600;
-    letter-spacing: 0.02em;
-    color: var(--gray-700);
   }
-  .rail-scope.active {
-    color: var(--primary-700);
+  .rail-tab[aria-selected="true"] {
+    color: var(--primary-800);
     border-bottom-color: var(--primary-700);
   }
-  .rail-scope:hover { color: var(--primary-700); }
+  .rail-tab:focus-visible { border-radius: var(--radius-md); }
 
-  .rail-tab {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--chunk-sixth);
-    padding: var(--chunk-sixth) var(--chunk-quarter);
-    border: var(--border-extrathin) solid transparent;
-    border-radius: var(--radius-lg);
-    background: var(--gray-75);
-    cursor: pointer;
-    font-size: 0.7rem;
-    color: var(--gray-700);
-  }
-  .rail-tab svg { width: 18px; height: 18px; }
-  .rail-tab.active {
-    color: var(--primary-700);
-    background: var(--primary-50);
-  }
-  .rail-tab:hover { color: var(--primary-700); }
-
-  /* Reading scope: the type controls. */
+  /* Reading: every option is a small preview tile. In the narrow desktop
+     panel each label sits above its tiles; the phone sheet puts them side by
+     side. */
   .rail-reading-panel {
-    display: flex; flex-direction: column; gap: var(--chunk-quarter);
-    padding: var(--chunk-sixth) var(--chunk-twelfth); overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: var(--chunk-quarter);
+    padding: var(--chunk-sixth) var(--chunk-twelfth);
+    overflow-y: auto;
   }
-  .reading-row { display: flex; flex-direction: column; gap: var(--chunk-twelfth); }
+  .reading-row {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--chunk-twelfth);
+  }
   .reading-label {
-    font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.04em;
-    color: var(--gray-700);
+    font-size: 0.75rem;
+    font-weight: var(--weight-semi);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-subtle);
   }
-  .reading-opts { display: flex; gap: var(--chunk-twelfth); }
+  .reading-opts { display: flex; flex-wrap: nowrap; gap: var(--chunk-twelfth); }
   .reading-opt {
-    flex: 1; padding: var(--chunk-twelfth) var(--chunk-sixth);
+    display: grid;
+    place-items: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    padding: 0;
     border: var(--border-extrathin) solid var(--border-primary);
-    border-radius: var(--radius-md); background: var(--surface-page); color: var(--gray-800);
-    font-size: 0.8rem; line-height: 1; cursor: pointer;
-  }
-  .reading-opt:hover { border-color: var(--primary-400); }
-  .reading-opt.active {
-    background: var(--primary-100); border-color: var(--primary-500);
-    color: var(--primary-800);
-  }
-  /* Size row: the four A's grow to preview the step. */
-  .reading-row[data-control="size"] .reading-opt { font-family: var(--font-body); }
-  .reading-row[data-control="size"] .reading-opt:nth-child(1) { font-size: 0.7rem; }
-  .reading-row[data-control="size"] .reading-opt:nth-child(2) { font-size: 0.85rem; }
-  .reading-row[data-control="size"] .reading-opt:nth-child(3) { font-size: 1rem; }
-  .reading-row[data-control="size"] .reading-opt:nth-child(4) { font-size: 1.2rem; }
-
-  /* Collapse control: shrinks the sidebar to a single re-open affordance so the
-     document can read as just the prose. */
-  /* The scope tabs and the collapse control share the top row, so the panel
-     opens with no near-empty row above the tabs. */
-  .rail-header { display: flex; align-items: center; gap: var(--chunk-sixth); }
-  .rail-header .rail-scopes { flex: 1; }
-
-  .rail-collapse {
-    display: inline-flex;
-    padding: var(--chunk-twelfth);
-    border: none;
+    border-radius: var(--radius-lg);
     background: none;
+    color: var(--text-subtle);
+    font-family: var(--font-body);
+    line-height: 1;
     cursor: pointer;
-    color: var(--gray-700);
   }
-  .rail-collapse svg { width: 18px; height: 18px; }
-  .rail-collapse:hover { color: var(--primary-700); }
-  .proof-rail.collapsed { width: auto; gap: 0; }
-  /* Collapse is a desktop-only affordance: its control is hidden in the mobile
-     drawer, which uses the grip and the data-drawer states instead. Gate the
-     hiding to desktop so a collapsed flag persisted from desktop cannot blank
-     the drawer (which would otherwise show only the header's share icon). */
-  @media (min-width: 1321px) {
-    .proof-rail.collapsed > :not(.rail-header) { display: none; }
-    .proof-rail.collapsed .rail-scopes { display: none; }
+  .reading-opt svg { width: 1.25rem; height: 1.25rem; }
+  .reading-opt:hover { color: var(--text-body); background: var(--surface-hover); }
+  .reading-opt.active {
+    color: var(--primary-800);
+    background: var(--primary-50);
+    border-color: var(--primary-700);
+    box-shadow: inset 0 0 0 var(--border-extrathin) var(--primary-700);
   }
-  .rail-collapse-collapse,
-  .rail-collapse-expand { display: inline-flex; }
-  .rail-collapse-expand { display: none; }
-  .proof-rail.collapsed .rail-collapse-collapse { display: none; }
-  .proof-rail.collapsed .rail-collapse-expand { display: inline-flex; }
+  .reading-opt:focus-visible { outline-offset: 1px; }
+  .reading-ag { font-size: 1rem; }
+  .reading-ag[data-face="sans"] { font-family: 'Source Sans 3', sans-serif; }
+  .reading-ag[data-face="serif"] { font-family: 'Source Serif 4', serif; }
+  .reading-ag[data-face="legible"] { font-family: 'Atkinson Hyperlegible', 'Source Sans 3', sans-serif; }
+  .reading-a[data-size="1"] { font-size: 0.75rem; }
+  .reading-a[data-size="2"] { font-size: 0.9375rem; }
+  .reading-a[data-size="3"] { font-size: 1.125rem; }
+  .reading-a[data-size="4"] { font-size: 1.375rem; }
 
   /* Scope routing: show only the active scope's sub-tabs and section. */
   .proof-rail.scope-document .rail-subtabs-proof,
@@ -2256,125 +2272,6 @@ body {
   }
 
   .rail-state-empty { color: var(--gray-700); font-style: italic; font-size: 0.8rem; }
-
-  /* Below the desktop breakpoint there is no room to float the rail beside the
-     column, so the same .proof-rail re-skins as a bottom-sheet DRAWER with three
-     states driven by data-drawer (closed | peek | open). prooftree.js injects the
-     .rail-handle grip and the .rail-peek goal bar and drives the transitions. */
-  .rail-handle, .rail-peek { display: none; }
-
-  @media (max-width: 1320px) {
-    .proof-rail.active {
-      position: fixed;
-      left: 0; right: 0; bottom: 0; top: auto;
-      /* Match the reading column, not the whole viewport: same width as the
-         text content (manuscript max-width minus the side padding), centered. */
-      margin-inline: auto;
-      width: calc(100% - 2 * var(--side-padding));
-      max-width: calc(var(--content-max-width, var(--chunk-20)) - 2 * var(--side-padding));
-      max-height: 85vh;
-      gap: 0;
-      padding: 0;
-      border: var(--border-extrathin) solid var(--border-primary);
-      border-bottom: none;
-      border-radius: var(--radius-xl) var(--radius-xl) 0 0;
-      box-shadow: 0 -2px 16px rgba(40, 60, 90, 0.12);
-    }
-
-    /* The grip: a slim pill, present in every state (it raises/lowers the
-       sheet). Kept compact so peek is a thin bar, not a tall blank panel. */
-    .proof-rail.active .rail-handle {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 100%;
-      min-height: 20px;
-      padding: 6px 0 2px;
-      flex-shrink: 0;
-      border: none;
-      background: transparent;
-      cursor: pointer;
-    }
-    .proof-rail.active .rail-handle::before {
-      content: "";
-      width: 2rem; height: 4px;
-      border-radius: 999px;
-      background: var(--gray-300);
-    }
-
-    /* The desktop collapse control is redundant on the drawer: the grip lowers
-       it (drag down to close), so hide the "close sidebar" button on mobile. */
-    .proof-rail.active .rail-collapse { display: none; }
-
-    /* Peek bar: a one-line, clamped current goal at reading size. The cloned
-       goal (with rendered math) is forced inline so it never wraps the bar. */
-    .proof-rail.active .rail-peek {
-      align-items: baseline;
-      gap: var(--chunk-sixth);
-      padding: 0 var(--chunk-half) var(--chunk-third);
-      min-width: 0;
-      font-size: 1rem;
-    }
-    /* Flatten the cloned goal onto one line: inline its block containers and let
-       a display equation sit inline-block. Do NOT touch MathML internals (they
-       need their own display), so only the block wrappers are overridden. */
-    .proof-rail.active .rail-peek-goal :is(div, p, .paragraph, .mathblock, ul, ol, li) {
-      display: inline;
-      margin: 0;
-    }
-    /* The goal can contain a display equation, which temml hard-codes to
-       `display: block math` via an inline style (so it pops out big and centered
-       on its own line). In the one-line peek, override that to flow inline and
-       render text-style (compact), like inline math in a sentence. */
-    .proof-rail.active .rail-peek-goal math[display="block"] {
-      display: inline-block !important;
-      math-style: compact;
-      font-size: 0.95em;
-      vertical-align: middle;
-      margin: 0;
-    }
-    .proof-rail.drawer-no-goal .rail-peek { justify-content: center; }
-    .rail-peek-label {
-      flex-shrink: 0;
-      font-weight: 600;
-      font-size: 0.7rem;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      color: var(--primary-700);
-    }
-    .proof-rail.drawer-no-goal .rail-peek-label { display: none; }
-    .rail-peek-goal {
-      min-width: 0;
-      overflow: hidden;
-      white-space: nowrap;
-      text-overflow: ellipsis;
-      color: var(--text-body);
-    }
-    .proof-rail.drawer-no-goal .rail-peek-goal { color: var(--gray-700); font-style: italic; }
-
-    /* ---- states ---- */
-    .proof-rail.active[data-drawer="closed"] { height: 44px; }
-    .proof-rail.active[data-drawer="closed"] > .rail-header,
-    .proof-rail.active[data-drawer="closed"] > .rail-subtabs,
-    .proof-rail.active[data-drawer="closed"] > .rail-section { display: none; }
-
-    .proof-rail.active[data-drawer="peek"] { height: auto; }
-    .proof-rail.active[data-drawer="peek"] > .rail-header,
-    .proof-rail.active[data-drawer="peek"] > .rail-subtabs,
-    .proof-rail.active[data-drawer="peek"] > .rail-section { display: none; }
-    .proof-rail.active[data-drawer="peek"] > .rail-peek { display: flex; }
-
-    .proof-rail.active[data-drawer="open"] { height: 75vh; }
-    .proof-rail.active[data-drawer="open"] > .rail-header,
-    .proof-rail.active[data-drawer="open"] > .rail-subtabs { padding: 0 var(--chunk-half); }
-    .proof-rail.active[data-drawer="open"] > .rail-header { padding-top: var(--chunk-third); }
-    .proof-rail.active[data-drawer="open"] > .rail-section {
-      padding: 0 var(--chunk-half) var(--chunk-half);
-      flex: 1 1 auto;
-      min-height: 0;
-      overflow-y: auto;
-    }
-  }
 
   /* Rail nodes are clickable (focus mode), so signal it. */
   .proof-rail-item .toc-node { cursor: pointer; }
@@ -3379,6 +3276,8 @@ a.reference.external:hover::after {
      chevrons and the dots menu; the back-pill, focus-mode exit bar, toasts,
      tooltips, theme toggle, and the source modal are all transient overlays. */
   .proof-rail,
+  .rail-strip,
+  .ui-tip,
   .hr-collapse-zone,
   .hr-menu-zone,
   .rsm-back-pill,
@@ -3451,13 +3350,14 @@ a.reference.external:hover::after {
     border-bottom: none !important;
   }
 
-  /* Layout: with the rail gone, reclaim the gutter the desktop layout reserves
-     for it (the >=1321px rule pushes the column right by the rail's width) and
-     re-centre the column on the page. !important is needed because that rule is
-     unlayered and would otherwise outrank this layered one. */
+  /* Layout: with the sidebar gone, reclaim the margin the screen layout keeps
+     for its strip and panel and re-centre the column on the page. !important
+     is needed because those rules are unlayered and would otherwise outrank
+     this layered one. */
   .manuscriptwrapper {
     margin: 0 auto !important;
     max-width: 100% !important;
+    width: auto !important;
   }
 
   @page {
@@ -3530,41 +3430,199 @@ a.reference.external:hover::after {
 /* Preamble math nodes contain macro definitions and should be invisible */
 .math-preamble { display: none; }
 
-/* Desktop side-rail responsive behavior: the rail shrinks 380px -> 300px as the
-   margin tightens (content stays centred); at the 300px min it pushes the
-   content to the right so it never overlaps. Below ~1320px (the @media above)
-   the content can no longer fit beside the min rail, so the rail becomes a
-   bottom-sheet drawer and the content re-centres. */
-@media (min-width: 1321px) {
-  .manuscriptwrapper .proof-rail.active:not(.collapsed) {
-    width: clamp(300px, calc((100vw - var(--content-max-width, var(--chunk-20))) / 2 - 2rem), 380px);
-  }
-  .manuscriptwrapper {
-    /* The rail supplies the left margin, so trim the column's own side padding;
-       otherwise the text sits ~104px inside the box, far from the rail. */
+
+
+/* ---- Reader sidebar: page layout (rsm build --sidebar) ----
+   Geometry of the strip and panel, shared with sidebar.js (which reads the
+   same numbers to place the column). */
+:root {
+  --rail-strip-left: var(--chunk-third);   /* strip offset from the window edge */
+  --rail-top: calc(var(--chunk) + 2 * var(--chunk-third));
+  --rail-panel-width: 17rem;
+}
+
+/* Wide windows: the column sits right of the strip, centred in the space left
+   when that space allows; with a view open it moves next to the panel instead
+   of under it. sidebar.js sets --rail-ml / --rail-mw (the column's left edge
+   and width); the fallbacks hold until it runs. */
+@media (min-width: 768px) {
+  html.has-rail main.manuscriptwrapper,
+  main.manuscriptwrapper:has(> .rail-strip) {
+    margin-left: var(--rail-ml, max(calc(var(--chunk) + 2 * var(--chunk-third) + var(--chunk-sixth)),
+      calc((100vw - var(--content-max-width, var(--chunk-20))) / 2)));
+    margin-right: 0;
+    width: var(--rail-mw, auto);
+    max-width: var(--rail-mw, var(--content-max-width, var(--chunk-20)));
     --side-padding: 2rem;
-    margin-left: max(
-      calc((100vw - var(--content-max-width, var(--chunk-20))) / 2),
-      calc(1rem + clamp(300px, calc((100vw - var(--content-max-width, var(--chunk-20))) / 2 - 2rem), 380px) + 1rem)
-    );
-    margin-right: auto;
+  }
+  /* Animate only the reader's own open/close, not the first placement. */
+  html.rail-ready main.manuscriptwrapper {
+    transition: margin-left 0.22s ease, width 0.22s ease, max-width 0.22s ease;
+  }
+  html.rail-open main.manuscriptwrapper { --side-padding: var(--chunk-third); }
+}
+@media (prefers-reduced-motion: reduce) {
+  html.rail-ready main.manuscriptwrapper { transition: none; }
+}
+
+/* Phones: the strip is a bottom bar of labelled buttons, one per scope, and a
+   view opens as a sheet above it. */
+@media (max-width: 767px) {
+  .manuscriptwrapper .rail-strip {
+    top: auto;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    flex-direction: row;
+    justify-content: stretch;
+    gap: 0;
+    padding: var(--chunk-sixth) max(var(--chunk-sixth), env(safe-area-inset-left, 0px))
+      calc(var(--chunk-sixth) + env(safe-area-inset-bottom, 0px))
+      max(var(--chunk-sixth), env(safe-area-inset-right, 0px));
+    border-width: var(--border-extrathin) 0 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+  .manuscriptwrapper .rail-strip-sep,
+  .manuscriptwrapper .rail-strip-btn[data-mode="split"] { display: none; }
+  .manuscriptwrapper .rail-strip-btn[data-mode="grouped"],
+  .manuscriptwrapper .rail-strip-btn {
+    display: flex;
+    flex: 1 1 0;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    width: auto;
+    min-width: 48px;
+    min-height: 48px;
+    height: auto;
+  }
+  .manuscriptwrapper .rail-strip-btn[data-mode="split"] { display: none; }
+  .manuscriptwrapper .rail-strip-btn svg { width: 24px; height: 24px; }
+  .manuscriptwrapper .rail-strip-label {
+    display: block;
+    font: var(--weight-semi) 11px/1.1 var(--font-body);
+  }
+
+  .manuscriptwrapper .proof-rail.active.open {
+    left: var(--chunk-sixth);
+    right: var(--chunk-sixth);
+    top: auto;
+    bottom: calc(48px + 3 * var(--chunk-sixth) + var(--border-extrathin) + env(safe-area-inset-bottom, 0px));
+    width: auto;
+    height: auto;
+    max-height: 62vh;
+    padding: 0;
+    overflow: auto;
+    z-index: 42;
+  }
+  /* One inset for the head and the content. */
+  .manuscriptwrapper .proof-rail.active.open > .rail-section {
+    padding: 0 var(--chunk-half) var(--chunk-half);
+  }
+  .manuscriptwrapper .proof-rail .rail-head {
+    margin: 0 var(--chunk-half) var(--chunk-quarter);
+    padding: var(--chunk-quarter) 0;
+  }
+  .manuscriptwrapper .proof-rail .rail-reading-panel { padding-left: 0; padding-right: 0; }
+  /* The two graph views keep a usable height; the others fit their content. */
+  .manuscriptwrapper .proof-rail.active.open.scope-document.doc-view-map,
+  .manuscriptwrapper .proof-rail.active.open.scope-proof.proof-view-map:not(.no-proof) {
+    height: 62vh;
+  }
+  /* Text tabs replace the title for a scope with two views. */
+  .manuscriptwrapper .proof-rail.scope-document .rail-subtabs-document,
+  .manuscriptwrapper .proof-rail.scope-proof .rail-subtabs-proof { display: flex; }
+  .manuscriptwrapper .proof-rail.has-tabs .rail-title { display: none; }
+
+  /* Reading in the sheet: label beside its tiles; no Width (the column already
+     fills the screen). */
+  .manuscriptwrapper .proof-rail .reading-row {
+    display: grid;
+    grid-template-columns: 4.75rem minmax(0, 1fr);
+    align-items: center;
+    column-gap: var(--chunk-sixth);
+  }
+  .manuscriptwrapper .proof-rail .reading-opt { width: 44px; height: 44px; }
+  .manuscriptwrapper .proof-rail .reading-row[data-control="measure"] { display: none; }
+
+  /* Keep the end of the manuscript, and the transient pills, clear of the bar. */
+  body:has(.rail-strip) {
+    padding-bottom: calc(48px + 2 * var(--chunk-sixth) + var(--chunk-half) + env(safe-area-inset-bottom, 0px));
+  }
+  html:has(.rail-strip) { scroll-padding-bottom: calc(48px + 2 * var(--chunk-sixth) + var(--chunk-half)); }
+  body:has(.rail-strip) :is(.rsm-back-pill, .rsm-shared-pill) {
+    bottom: calc(48px + 2 * var(--chunk-sixth) + var(--chunk-third) + env(safe-area-inset-bottom, 0px));
   }
 }
 
-/* Below the drawer breakpoint the proof-rail rests as a fixed bar at the
-   viewport bottom (the grip plus a one-line peek goal). It is out of flow, so
-   the page adds no space for it and the last lines of the document stay stuck
-   under it. Reserve bottom space equal to the bar plus a clearing gap, and set
-   the same scroll-padding so a jump to a near-bottom target lands above the bar.
-   The resting bar measures ~51px at the 12px mobile root and ~61px at the 16px
-   root, which --rail-rest-height tracks; the extra 1rem is the gap. Scoped with
-   :has() so it applies only when the drawer is actually present. */
-@media (max-width: 1320px) {
-  :root { --rail-rest-height: calc(2.5rem + 20px); }
-  .manuscriptwrapper:has(.proof-rail.active) {
-    padding-bottom: calc(var(--rail-rest-height) + 1rem);
-  }
-  html:has(.proof-rail.active) {
-    scroll-padding-bottom: calc(var(--rail-rest-height) + 1rem);
-  }
+/* Interface tooltip (uitip.js): a small label for the reader interface's
+   controls, deliberately unlike the previews of manuscript content. */
+.ui-tip {
+  position: fixed;
+  z-index: 10000001;
+  max-width: 16rem;
+  padding: var(--chunk-twelfth) var(--chunk-sixth);
+  border-radius: var(--radius-md);
+  background: var(--text-body);
+  color: var(--surface-page);
+  font: var(--weight-semi) 0.75rem/1.35 var(--font-body);
+  box-shadow: var(--shadow-soft);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.12s;
+}
+.ui-tip.on { opacity: 1; }
+@media (prefers-reduced-motion: reduce) { .ui-tip { transition: none; } }
+
+/* The pin control in a reference preview: an icon in the corner. Quiet at
+   rest, a surface on hover, the accent while pressed, filled once pinned. */
+.tooltipster-content > .manuscriptwrapper:has(> .ref-pin-bar) {
+  position: relative;
+  padding-right: calc(var(--chunk-half) + var(--chunk-sixth));
+}
+.tooltipster-content .ref-pin-bar {
+  position: absolute;
+  top: 0;
+  right: 0;
+  margin: 0;
+}
+.tooltipster-content .ref-pin {
+  display: grid;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-lg);
+  background: none;
+  color: var(--text-subtle);
+  cursor: pointer;
+}
+.tooltipster-content .ref-pin svg { width: 1rem; height: 1rem; }
+.tooltipster-content .ref-pin:hover { background: var(--surface-primary); color: var(--text-body); }
+.tooltipster-content .ref-pin:active { background: var(--primary-50); color: var(--primary-800); }
+.tooltipster-content .ref-pin:focus-visible {
+  outline: var(--border-thin) solid var(--border-action);
+  outline-offset: -2px;
+}
+.tooltipster-content .ref-pin[data-pinned] { color: var(--primary-700); }
+.tooltipster-content .ref-pin[data-pinned]:hover { background: var(--primary-50); color: var(--primary-800); }
+
+/* Notation: every use of a declared symbol is marked in the math (only with
+   the sidebar); clicking one opens Notation with that symbol selected. */
+.manuscript :is([class^="nt-"], [class*=" nt-"]) {
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  transition: background-color 0.15s;
+}
+.manuscript :is([class^="nt-"], [class*=" nt-"]):hover { background: var(--primary-100); }
+.rail-notation-row.rail-notation-row-hi { animation: rail-notation-row 1.8s ease-out; }
+@keyframes rail-notation-row {
+  0%, 50% { background: var(--primary-50); box-shadow: 0 0 0 var(--chunk-twelfth) var(--primary-50); }
+  100% { background: transparent; box-shadow: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rail-notation-row.rail-notation-row-hi { animation: none; }
 }
