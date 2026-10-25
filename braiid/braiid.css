@@ -1322,7 +1322,10 @@ body {
   & > .hr-spacer-zone,
   & > .hr-content-zone,
   & > .hr-info-zone {
-    background: var(--blue-100);
+    /* Follow the accent (--primary-50) instead of a fixed blue. The 50 shade is
+       the lightest in light mode and the darkest in dark mode, so a whole proof
+       stays a quiet wash and text keeps its contrast in both themes. */
+    background: var(--primary-50);
   }
 
   /* Most active areas include the info zone, except if the active area is a proof step statement */
