@@ -132,6 +132,17 @@ class TestPinFigures:
         _pin(page, "#fig-a")
         expect(page.locator(".rail-pinned-body img")).to_have_count(1)
 
+    def test_pinned_figure_has_no_handrail_chrome(self, page: Page, interactive_server: str):
+        # A figure keeps its handrail chrome inside itself (the figcaption is its
+        # own hr with menu dots and data-menu-* attributes), so the pinned
+        # excerpt must be stripped like other blocks, not copied raw.
+        self._load(page, interactive_server)
+        _pin(page, "#fig-a")
+        body = page.locator(".rail-pinned-body")
+        expect(body.locator(".hr-border-zone")).to_have_count(0)
+        expect(body.locator(".hr-border-dots")).to_have_count(0)
+        expect(body.locator("[data-menu-label]")).to_have_count(0)
+
     def test_figure_handrail_menu_has_pin(self, page: Page, interactive_server: str):
         self._load(page, interactive_server)
         fig = page.locator("figure#fig-a")

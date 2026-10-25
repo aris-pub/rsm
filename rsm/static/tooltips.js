@@ -30,8 +30,22 @@ function buildExcerpt(rawHref) {
   const classes = $t[0].classList;
   let content = "";
   let clone;
-  if (["P", "LI", "FIGURE"].includes(tag)) {
+  if (["P", "LI"].includes(tag)) {
+    // A paragraph's or list item's handrail wraps it from OUTSIDE the element,
+    // so its own innerHTML carries no handrail chrome to strip.
     content = `<div>${$t.html()}</div>`;
+  } else if (tag === "FIGURE") {
+    // A figure keeps its handrail chrome INSIDE itself: the figcaption is its
+    // own hr, with the menu dots (in .hr-border-zone) and data-menu-*
+    // attributes. Take the HTML from a stripped clone, like the block branches
+    // below, so a pinned or previewed figure is just the image and caption,
+    // with no interactive menu dots or leftover menu metadata.
+    clone = $t.clone();
+    stripHandrail(clone);
+    clone
+      .find("[data-menu-label]")
+      .removeAttr("data-menu-label data-menu-link data-menu-code data-menu-static-toggle tabindex");
+    content = `<div>${clone.html()}</div>`;
   } else if (tag === "SPAN" && classes.contains("math")) {
     content = `<div>${$t.html()}</div>`;
   } else if (tag === "SPAN") {

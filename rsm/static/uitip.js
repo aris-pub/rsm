@@ -86,8 +86,17 @@ export function setup() {
 
   document.addEventListener("mouseover", (ev) => {
     const el = ev.target.closest && ev.target.closest(SCOPE);
-    if (el && eligible(el)) show(el, false);
-    else if (owner && !owner.contains(ev.target)) hide();
+    if (el && eligible(el)) {
+      show(el, false);
+    } else if (owner) {
+      if (!owner.contains(ev.target)) hide();
+    } else {
+      // No tip is showing yet, but a hover-intent timer may be pending for a
+      // control the pointer has now left: its owner is still null, so the
+      // branch above cannot catch it. Cancel it, or the tip pops up 350ms later
+      // beside a control the cursor already left.
+      clearTimeout(timer);
+    }
   });
   document.addEventListener("focusin", (ev) => {
     const el = ev.target.closest && ev.target.closest(SCOPE);

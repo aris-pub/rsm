@@ -270,13 +270,15 @@ export function setupStrip(strip, rail, api) {
   // reader did not ask for.
   document.addEventListener("rail:show", (ev) => {
     const d = ev.detail || {};
-    // A specific view (Notation, say) picks its sub-view first, so a phone's
-    // Document sheet opens on that tab.
     const sub = VIEWS[d.view] && VIEWS[d.view][1];
-    if (sub && has(d.view) === false && !isPhone()) return;
-    if (sub) api.selectSubview(sub);
     const id = translate(d.view);
     if (!VIEWS[id] || !has(id)) return;
+    // A specific view (Notation, say) picks its sub-view first, so a phone's
+    // Document sheet opens on that tab. Done only after the target panel is
+    // known to exist: otherwise a rail:show for an absent view flips the
+    // subview class toward a panel that was never built. On a phone the panel
+    // check above used to be skipped (the old bail was desktop-only).
+    if (sub) api.selectSubview(sub);
     if (d.open) openView(id, { toggle: false });
     else select(id);
   });

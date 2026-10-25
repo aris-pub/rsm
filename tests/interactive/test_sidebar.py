@@ -74,6 +74,27 @@ def test_escape_closes_panel(page: Page, interactive_server: str):
     assert not _is_open(page)
 
 
+def test_phone_rail_show_for_absent_view_does_not_flip_subview(
+    page: Page, interactive_server: str
+):
+    # The figure fixture has no proof, so no proof panel is built. On a phone a
+    # rail:show for a proof sub-view (state) must not open a sheet or flip the
+    # proof subview class toward the missing panel.
+    page.set_viewport_size({"width": 375, "height": 720})
+    page.goto(f"{interactive_server}/sidebar_figure.html")
+    page.wait_for_function(RSM_READY, timeout=10_000)
+    page.wait_for_selector(".proof-rail.active", state="attached", timeout=10_000)
+    assert "no-proofs" in _rail_class(page)
+    assert "proof-view-map" in _rail_class(page)
+    page.evaluate(
+        "() => document.dispatchEvent(new CustomEvent('rail:show',"
+        " { detail: { view: 'state', open: true } }))"
+    )
+    assert not _is_open(page)
+    assert "proof-view-state" not in _rail_class(page)
+    assert "proof-view-map" in _rail_class(page)
+
+
 def test_panel_head_names_the_view(page: Page, interactive_server: str):
     _load(page, interactive_server)
     _show(page, "contents")

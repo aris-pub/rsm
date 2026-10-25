@@ -63,8 +63,21 @@ export function getNotationMacros() {
 // path whether or not the Notation view is present.
 const MARK_PREFIX = "nt-";
 
+// mathOptions() runs this for every math element, and a render pass (typesetMath
+// or reRenderAll) loops over them, so querying the DOM per element is wasteful:
+// renaming a symbol re-renders the whole document. Cache the answer for the
+// current tick and clear it on the next microtask, so the query runs once per
+// synchronous render pass, not once per element. The marking state only changes
+// when the Notation panel is built or torn down, never mid-pass.
+let _markingCache = null;
 function markingOn() {
-  return !!document.querySelector(".proof-rail .rail-notation");
+  if (_markingCache === null) {
+    _markingCache = !!document.querySelector(".proof-rail .rail-notation");
+    queueMicrotask(() => {
+      _markingCache = null;
+    });
+  }
+  return _markingCache;
 }
 
 // The options every math render uses: the current notation (a fresh copy per
