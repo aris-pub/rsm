@@ -26,6 +26,7 @@ var RSM = (() => {
 
   // rsm/static/notation.js
   var _macros = null;
+  var mathTrust = (ctx) => ctx.command === "\\class";
   function storageKey() {
     return "rsm-notation:" + location.pathname;
   }
@@ -85,6 +86,7 @@ var RSM = (() => {
       try {
         window.temml.render(el.dataset.latex, el, {
           throwOnError: false,
+          trust: mathTrust,
           macros: { ...macros }
         });
       } catch (err) {
@@ -97,6 +99,7 @@ var RSM = (() => {
         window.temml.render(el.dataset.latex, target, {
           displayMode: true,
           throwOnError: false,
+          trust: mathTrust,
           macros: { ...macros }
         });
       } catch (err) {
@@ -319,10 +322,14 @@ var RSM = (() => {
     }
     const config = document.createElement("script");
     config.innerHTML = `window.MathJax = {
+      loader: {
+        load: ['[tex]/html']
+      },
       startup: {
         typeset: false
       },
       tex: {
+        packages: {'[+]': ['html']},
         macros: ${JSON.stringify(notationMacros)},
         inlineMath: [['$', '$'], ['\\\\(', '\\\\)']],
         displayMath: [['$$', '$$'], ['\\\\[', '\\\\]']],
@@ -385,7 +392,7 @@ var RSM = (() => {
         const latex = src.slice(2, -2);
         el.dataset.latex = latex;
         try {
-          temml.render(latex, el, { throwOnError: false, macros: { ...getNotationMacros() } });
+          temml.render(latex, el, { throwOnError: false, trust: mathTrust, macros: { ...getNotationMacros() } });
         } catch (err) {
           console.error("temml inline error:", err);
         }
@@ -402,7 +409,7 @@ var RSM = (() => {
         const latex = src.slice(2, -2).trim();
         el.dataset.latex = latex;
         try {
-          temml.render(latex, contentEl, { displayMode: true, throwOnError: false, macros: { ...getNotationMacros() } });
+          temml.render(latex, contentEl, { displayMode: true, throwOnError: false, trust: mathTrust, macros: { ...getNotationMacros() } });
         } catch (err) {
           console.error("temml display error:", err);
         }

@@ -150,3 +150,102 @@ class TestMathOnDemandLoading:
             f"typesetMath emitted spurious 'Neither temml nor MathJax' "
             f"warnings on a math-less page: {warnings}"
         )
+
+
+class TestAnnotatedEquations:
+    """Temml must keep \\class in math so interactive figures can bind to parts
+    of an equation.  \\class is trust-gated in Temml, so without opting in it
+    errors and renders a red temml-error node instead of carrying the class.
+    Other trust-gated commands (\\href, \\cssId, ...) must stay untrusted.
+    """
+
+    def test_class_renders_carrying_the_class(
+        self, page: Page, interactive_server: str
+    ):
+        """\\class{lk lk-a}{a} must render an element carrying classes lk lk-a,
+        not a red parse error."""
+        page.goto(f"{interactive_server}/math-class.html")
+        wait_for_rsm(page)
+
+        block = page.locator("#eqn-ann")
+        expect(block).to_be_visible()
+
+        # The annotated atom carries both classes from \class{lk lk-a}{a}.
+        annotated = page.locator("#eqn-ann .lk.lk-a")
+        expect(annotated).to_have_count(1)
+        assert annotated.text_content().strip() == "a"
+
+        # No leftover raw LaTeX and no trust error.
+        text = block.text_content()
+        assert "\\class" not in text, f"raw \\class left unrendered: {text[:120]}"
+        assert "not trusted" not in text.lower(), (
+            f"\\class rendered a trust error: {text[:120]}"
+        )
+        assert page.locator("#eqn-ann .temml-error").count() == 0
+
+    def test_class_equation_still_numbered_and_referenceable(
+        self, page: Page, interactive_server: str
+    ):
+        """Trusting \\class must not touch numbering or :ref: resolution."""
+        page.goto(f"{interactive_server}/math-class.html")
+        wait_for_rsm(page)
+
+        ref = page.locator("a.reference[href='#eqn-ann']")
+        expect(ref).to_have_count(1)
+        # The reference resolved to a number like (1).
+        assert any(ch.isdigit() for ch in ref.text_content())
+
+    def test_other_trust_gated_commands_stay_untrusted(
+        self, page: Page, interactive_server: str
+    ):
+        """\\href must not be trusted by the \\class-only predicate: it stays a
+        red literal, never a rendered link."""
+        page.goto(f"{interactive_server}/math-class.html")
+        wait_for_rsm(page)
+
+        block = page.locator("#eqn-href")
+        expect(block).to_be_visible()
+        # Untrusted \\href is echoed as a red literal, not consumed into a link.
+        assert "\\href" in block.text_content()
+        assert page.locator("#eqn-href a").count() == 0
+
+    def test_class_survives_notation_rerender(
+        self, page: Page, interactive_server: str
+    ):
+        """Rebinding a notation macro re-renders every equation from its stored
+        data-latex. The annotated atom must keep its classes, not revert to a
+        red error on that path too."""
+        page.goto(f"{interactive_server}/math-class.html")
+        wait_for_rsm(page)
+        expect(page.locator("#eqn-ann .lk.lk-a")).to_have_count(1)
+
+        page.evaluate(
+            """async () => {
+            const n = await import('/static/notation.js');
+            n.reRenderAll(document);
+        }"""
+        )
+
+        annotated = page.locator("#eqn-ann .lk.lk-a")
+        expect(annotated).to_have_count(1)
+        assert annotated.text_content().strip() == "a"
+
+    def test_class_renders_via_mathjax_fallback(
+        self, page: Page, interactive_server: str
+    ):
+        """With Temml blocked, the MathJax fallback (html extension enabled)
+        must also carry the class, so both renderers agree."""
+        page.route("**/temml*", lambda route: route.abort())
+        page.goto(f"{interactive_server}/math-class.html")
+        wait_for_rsm(page)
+
+        assert page.evaluate("() => !window.temml && !!window.MathJax")
+        # The html extension is in MathJax's active package list (resolved to a
+        # flat array after startup).
+        assert page.evaluate(
+            "() => window.MathJax.config.tex.packages.includes('html')"
+        )
+
+        annotated = page.locator("#eqn-ann .lk.lk-a")
+        expect(annotated.first).to_be_visible(timeout=15_000)
+        assert annotated.count() >= 1
