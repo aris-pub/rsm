@@ -348,7 +348,7 @@ def test_theorem_inside_section_with_nonum():
 
         <section class="level-1">
 
-        <section class="section level-2" data-nodeid="1">
+        <section id="sec-n1" class="section level-2" data-nodeid="1">
 
         <h2>Section</h2>
 
