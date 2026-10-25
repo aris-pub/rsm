@@ -560,7 +560,7 @@ entries can often be pasted in with minimal adjustment:
   journal={Journal of Things},
   volume={42},
   number={3},
-  doi={https://doi.org/10.1234/example},
+  doi={10.1234/example},
 }
 
 @software{numpy2024,
@@ -573,8 +573,17 @@ entries can often be pasted in with minimal adjustment:
 ::
 ```
 
-Supported entry types: `book`, `article`, `software`.
-Supported fields: `title`, `author`, `year`, `publisher`, `journal`, `volume`, `number`, `doi`, `url`, `edition`.
+Supported entry types: `article`, `book`, `inproceedings`, `incollection`, `phdthesis`,
+`mastersthesis`, `techreport`, `misc`, and `webpage`. Any other type (such as `software`)
+still renders with its author, title, year, and any link, just without type-specific fields.
+
+Supported fields: `title`, `author`, `year`, `publisher`, `journal`, `volume`, `number`,
+`booktitle`, `howpublished`, `institution`, `school`, `doi`, `url`.
+
+An article renders as `Author. "Title". Journal Volume(Number) (Year).`. The issue
+`number` prints in parentheses next to the volume, and any absent field is omitted. A
+`pages` field is accepted but never rendered. A `doi` may be written bare (`10.1234/x`) or
+as a resolver URL (`https://doi.org/10.1234/x`): either way it produces a single link.
 
 
 ## Common Mistakes

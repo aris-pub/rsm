@@ -350,6 +350,25 @@ class RSMTranslatorError(Exception):
     pass
 
 
+_DOI_RESOLVER_PREFIXES = (
+    "https://doi.org/",
+    "http://doi.org/",
+    "https://dx.doi.org/",
+    "http://dx.doi.org/",
+)
+
+
+def _normalize_doi(doi: str) -> str:
+    # A DOI may be written bare (10.1234/x) or as a resolver URL. Strip a known
+    # resolver prefix so a single correct link gets built, never a doubled one.
+    doi = doi.strip()
+    lowered = doi.lower()
+    for prefix in _DOI_RESOLVER_PREFIXES:
+        if lowered.startswith(prefix):
+            return doi[len(prefix):]
+    return doi
+
+
 def _make_tag(
     tag: str,
     id_: str,
@@ -1709,7 +1728,20 @@ class Translator:
                 items.insert(0, f"{node.number}.")
             if node.kind == "article":
                 if node.journal:
-                    items.append(node.journal)
+                    # Article references read "Journal Volume(Number) (Year)".
+                    # Volume, issue, and year are joined here as one clause so
+                    # the year sits in parentheses next to the journal instead
+                    # of becoming its own sentence. Any absent field is omitted.
+                    journal_part = node.journal
+                    if node.volume:
+                        journal_part += f" {node.volume}"
+                        # The issue number only makes sense beside a volume, so
+                        # skip it when there is no volume to attach it to.
+                        if node.issue:
+                            journal_part += f"({node.issue})"
+                    if node.year:
+                        journal_part += f" ({node.year})"
+                    items.append(journal_part)
                 else:
                     logger.warning(f"Bibitem {node.label} has no journal")
             elif node.kind == "book":
@@ -1740,7 +1772,11 @@ class Translator:
                 if node.howpublished:
                     items.append(node.howpublished)
             if node.year:
-                items.append(node.year)
+                # An article prints the year next to its journal, so append it
+                # separately only for other kinds, or for an article that had no
+                # journal to attach it to.
+                if not (node.kind == "article" and node.journal):
+                    items.append(node.year)
             else:
                 logger.warning(f"Bibitem {node.label} has no year")
         text = ". ".join([str(i).strip(".") for i in items]) + "."
@@ -1749,7 +1785,7 @@ class Translator:
                 "a",
                 id_=f"{node.label}-doi",
                 classes=["bibitem-doi"],
-                href=f"https://doi.org/{node.doi}",
+                href=f"https://doi.org/{_normalize_doi(node.doi)}",
                 target="_blank",
             )
             text = f"{text} {a_tag}[link]</a>"

@@ -1727,7 +1727,7 @@ class Bibitem(Node):
         "year",
         "journal",
         "volume",
-        "number",
+        "issue",
         "publisher",
         "doi",
         "booktitle",
@@ -1749,7 +1749,7 @@ class Bibitem(Node):
         year: int | None = None,
         journal: str = "",
         volume: int | None = None,
-        number: int | None = None,
+        issue: int | None = None,
         publisher: str = "",
         doi: str = "",
         booktitle: str = "",
@@ -1770,7 +1770,10 @@ class Bibitem(Node):
         self.year = year
         self.journal = journal
         self.volume = volume
-        self.number = number
+        # The BibTeX issue number is kept as `issue`, not `number`, because
+        # `number` is the autonumber citation index set during transform and
+        # would otherwise overwrite it.
+        self.issue = issue
         self.publisher = publisher
         self.doi = doi
         self.booktitle = booktitle

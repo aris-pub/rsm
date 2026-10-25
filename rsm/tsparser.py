@@ -552,6 +552,11 @@ def _abstractify(cst: TSTree) -> nodes.Manuscript:
                 key, value = pair.named_children
                 key = key.text.decode("utf-8").split("=")[0].strip()
                 value = value.text.decode("utf-8")
+                # BibTeX calls the issue number "number", but on a node `number`
+                # is the citation index assigned by autonumbering, so store the
+                # issue under `issue` to keep it from being overwritten.
+                if key == "number":
+                    key = "issue"
                 setattr(bib_node, key, value)
 
             parent.append(bib_node)

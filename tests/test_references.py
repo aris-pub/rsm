@@ -201,7 +201,7 @@ def test_bibitem_without_doi(caplog):
         <ol class="bibliography" data-nodeid="5">
 
         <li id="smith2024" class="bibitem" data-nodeid="6">
-        1. Jane Smith. "My Paper". Nature. 2024.<br />[<a class="reference backlink" href="#cite-0">↖1</a>]
+        1. Jane Smith. "My Paper". Nature (2024).<br />[<a class="reference backlink" href="#cite-0">↖1</a>]
         </li>
 
         </ol>
@@ -297,7 +297,7 @@ def test_bibitem_with_doi():
         <ol class="bibliography" data-nodeid="5">
 
         <li id="smith2024" class="bibitem" data-nodeid="6">
-        1. Jane Smith. "My Paper". Nature. 2024. <a id="smith2024-doi" class="bibitem-doi" href="https://doi.org/10.1234/example" target="_blank">[link]</a><br />[<a class="reference backlink" href="#cite-0">↖1</a>]
+        1. Jane Smith. "My Paper". Nature (2024). <a id="smith2024-doi" class="bibitem-doi" href="https://doi.org/10.1234/example" target="_blank">[link]</a><br />[<a class="reference backlink" href="#cite-0">↖1</a>]
         </li>
 
         </ol>

@@ -75,7 +75,7 @@ def test_duplicate_bibtex_item_warning(caplog):
         <ol class="bibliography" data-nodeid="1">
 
         <li id="torres2020" class="bibitem" data-nodeid="2">
-        1. Torres, Leo and Chan, Kevin S and Tong, Hanghang and Eliassi-Rad, Tina. "Nonbacktracking eigenvalues under node removal: X-centrality and targeted immunization". SIAM Journal on Mathematics of Data Science. 2021.
+        1. Torres, Leo and Chan, Kevin S and Tong, Hanghang and Eliassi-Rad, Tina. "Nonbacktracking eigenvalues under node removal: X-centrality and targeted immunization". SIAM Journal on Mathematics of Data Science (2021).
         </li>
 
         <li class="bibitem" data-nodeid="3">

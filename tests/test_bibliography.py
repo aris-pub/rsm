@@ -171,7 +171,7 @@ def test_many():
         <ol class="bibliography" data-nodeid="4">
 
         <li id="torres2020" class="bibitem" data-nodeid="5">
-        1. Torres, Leo and Chan, Kevin S and Tong, Hanghang and Eliassi-Rad, Tina. "Nonbacktracking eigenvalues under node removal: X-centrality and targeted immunization". SIAM Journal on Mathematics of Data Science. 2021.<br />[<a class="reference backlink" href="#cite-0">↖1</a>]
+        1. Torres, Leo and Chan, Kevin S and Tong, Hanghang and Eliassi-Rad, Tina. "Nonbacktracking eigenvalues under node removal: X-centrality and targeted immunization". SIAM Journal on Mathematics of Data Science 3(2) (2021).<br />[<a class="reference backlink" href="#cite-0">↖1</a>]
         </li>
 
         <li id="knuth" class="bibitem" data-nodeid="6">
@@ -242,7 +242,7 @@ def test_order():
         <ol class="bibliography" data-nodeid="4">
 
         <li id="torres2020" class="bibitem" data-nodeid="5">
-        1. Torres, Leo and Chan, Kevin S and Tong, Hanghang and Eliassi-Rad, Tina. "Nonbacktracking eigenvalues under node removal: X-centrality and targeted immunization". SIAM Journal on Mathematics of Data Science. 2021.<br />[<a class="reference backlink" href="#cite-0">↖1</a>]
+        1. Torres, Leo and Chan, Kevin S and Tong, Hanghang and Eliassi-Rad, Tina. "Nonbacktracking eigenvalues under node removal: X-centrality and targeted immunization". SIAM Journal on Mathematics of Data Science 3(2) (2021).<br />[<a class="reference backlink" href="#cite-0">↖1</a>]
         </li>
 
         <li id="knuth" class="bibitem" data-nodeid="6">
@@ -333,6 +333,154 @@ def test_webpage_kind_renders():
     )
     assert "A web resource" in item
     assert "https://example.com/x" in item
+
+
+def test_article_volume_only():
+    # Volume prints right after the journal, with the year in parentheses.
+    item = _bibitem_html(
+        """
+        # T
+
+        :references:
+        @article{a1,
+          author={Torres, Leo},
+          title={A paper},
+          journal={Israel J. Math.},
+          volume={52},
+          year={1985}
+        }
+        ::
+        """
+    )
+    assert "Israel J. Math. 52 (1985)." in item
+
+
+def test_article_volume_and_number():
+    # Issue number prints in parentheses attached to the volume.
+    item = _bibitem_html(
+        """
+        # T
+
+        :references:
+        @article{a1,
+          author={Torres, Leo},
+          title={A paper},
+          journal={Israel J. Math.},
+          volume={52},
+          number={3},
+          year={1985}
+        }
+        ::
+        """
+    )
+    assert "Israel J. Math. 52(3) (1985)." in item
+
+
+def test_article_no_volume_no_number():
+    # With neither volume nor issue the journal is followed by the year alone.
+    item = _bibitem_html(
+        """
+        # T
+
+        :references:
+        @article{a1,
+          author={Torres, Leo},
+          title={A paper},
+          journal={Israel J. Math.},
+          year={1985}
+        }
+        ::
+        """
+    )
+    assert "Israel J. Math. (1985)." in item
+    # no volume digits leak in when volume is absent
+    assert "52" not in item
+
+
+def test_article_pages_not_rendered():
+    # A pages field is parsed but must never appear in the reference.
+    item = _bibitem_html(
+        """
+        # T
+
+        :references:
+        @article{a1,
+          author={Torres, Leo},
+          title={A paper},
+          journal={Israel J. Math.},
+          volume={52},
+          number={3},
+          year={1985},
+          pages={123--145}
+        }
+        ::
+        """
+    )
+    assert "123" not in item
+    assert "145" not in item
+
+
+def test_doi_given_bare_yields_one_link():
+    item = _bibitem_html(
+        """
+        # T
+
+        :references:
+        @article{a1,
+          author={Torres, Leo},
+          title={A paper},
+          journal={Israel J. Math.},
+          year={1985},
+          doi={10.1234/abc}
+        }
+        ::
+        """
+    )
+    assert 'href="https://doi.org/10.1234/abc"' in item
+    assert item.count("https://doi.org/") == 1
+
+
+def test_doi_given_as_url_yields_one_link():
+    # A DOI already written as a resolver URL must not be prefixed again.
+    item = _bibitem_html(
+        """
+        # T
+
+        :references:
+        @article{a1,
+          author={Torres, Leo},
+          title={A paper},
+          journal={Israel J. Math.},
+          year={1985},
+          doi={https://doi.org/10.1234/abc}
+        }
+        ::
+        """
+    )
+    assert 'href="https://doi.org/10.1234/abc"' in item
+    assert "https://doi.org/https://doi.org/" not in item
+    assert item.count("https://doi.org/") == 1
+
+
+def test_doi_given_as_dx_url_is_normalized():
+    item = _bibitem_html(
+        """
+        # T
+
+        :references:
+        @article{a1,
+          author={Torres, Leo},
+          title={A paper},
+          journal={Israel J. Math.},
+          year={1985},
+          doi={http://dx.doi.org/10.1234/abc}
+        }
+        ::
+        """
+    )
+    assert 'href="https://doi.org/10.1234/abc"' in item
+    assert "dx.doi.org" not in item
+    assert item.count("https://doi.org/") == 1
 
 
 def test_verbatim_bibitem_warns_once(caplog):
