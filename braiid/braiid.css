@@ -572,23 +572,23 @@ body {
 
 
 
-/* Tooltipster styles */
+/* Tooltipster styles.
+   BRAIID renders the tooltip as a plain card with no pointer. The vendored
+   shadow theme reserves a margin for an arrow and draws one; hide the arrow and
+   zero that reserved margin so the card sits at tooltipster's normal distance
+   from the trigger. The vendored arrow rules load in @layer vendor, so these
+   base-layer rules win regardless of specificity (rsm-3y7). */
 .tooltipster-sidetip.tooltipster-shadow.tooltipster-shadow-rsm {
 
   .tooltipster-box {
     background: var(--surface-page);
     border-radius: var(--radius-xl);
     border: var(--border-thin) solid var(--border-primary);
+    margin: 0;
   }
 
-  .tooltipster-arrow-border {
-    border-top-color: var(--border-primary);
-    border-bottom-color: var(--border-primary);
-  }
-
-  .tooltipster-arrow-background {
-    border-top-color: var(--surface-page);
-    border-bottom-color: var(--surface-page);
+  .tooltipster-arrow {
+    display: none;
   }
 
   .tooltipster-content {

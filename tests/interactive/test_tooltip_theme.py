@@ -42,6 +42,15 @@ BOX_JS = """() => {
           bc: cs.borderTopColor, br: cs.borderTopLeftRadius};
 }"""
 
+# BRAIID renders the tooltip as a plain card with no pointer. The vendored shadow
+# theme would draw one, so guard against it coming back (rsm-3y7).
+ARROW_JS = """() => {
+  const a = document.querySelector('.tooltipster-arrow');
+  if (!a) return {present: false, display: null, h: 0};
+  const r = a.getBoundingClientRect();
+  return {present: true, display: getComputedStyle(a).display, h: Math.round(r.height)};
+}"""
+
 
 def _open_tooltip(page: Page):
     ref = page.locator('.manuscript a.reference[href="#thm-x"]').first
@@ -64,6 +73,9 @@ def test_tooltip_box_uses_braiid_card(page: Page, interactive_server: str, dark:
     got = page.evaluate(BOX_JS)
     assert got == want, f"dark={dark}: tooltip box {got} != BRAIID card {want}"
 
+    arrow = page.evaluate(ARROW_JS)
+    assert arrow["display"] == "none", f"dark={dark}: tooltip should have no pointer, got {arrow}"
+
 
 @pytest.mark.parametrize("dark", [False, True])
 def test_tooltip_box_uses_braiid_card_standalone(page: Page, tmp_path, dark: bool):
@@ -83,3 +95,6 @@ def test_tooltip_box_uses_braiid_card_standalone(page: Page, tmp_path, dark: boo
     want = page.evaluate(PROBE_JS)
     got = page.evaluate(BOX_JS)
     assert got == want, f"dark={dark}: standalone tooltip box {got} != BRAIID card {want}"
+
+    arrow = page.evaluate(ARROW_JS)
+    assert arrow["display"] == "none", f"dark={dark}: standalone tooltip should have no pointer, got {arrow}"
