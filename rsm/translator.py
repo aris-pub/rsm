@@ -2617,6 +2617,9 @@ class HandrailsTranslator(Translator):
         body: its direct steps, else the whole block, named by its kind.
         """
         if isinstance(node, nodes.Step):
+            # Calc rows start folded, so a label under every relation is noise.
+            if node.first_ancestor_of_type(nodes.Calc) is not None:
+                return ""
             body = node.first_of_type(nodes.Subproof)
             if body is None:
                 return ""

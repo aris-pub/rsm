@@ -1281,7 +1281,9 @@ def test_fold_label_step_with_nothing_to_hide():
     assert _labels(body) == [("paragraph hr-label", "1 step hidden")]
 
 
-def test_fold_label_calc_step():
+def test_no_fold_label_on_calc_step():
+    # Calc rows start folded, so they show no label. The proof around the calc
+    # has no steps of its own, so it reads "proof hidden".
     body = """
         :proof:
           :calc:
@@ -1295,7 +1297,7 @@ def test_fold_label_calc_step():
           ::
         ::
         """
-    assert ("hr-content-zone", "justification hidden") in _labels(body)
+    assert _labels(body) == [("paragraph hr-label", "proof hidden")]
 
 
 def test_fold_label_sketch():

@@ -148,18 +148,14 @@ def test_step_with_only_justification_label(page: Page, interactive_server: str)
     assert _label_text(page, "#stp-just > .hr-content-zone") == "justification hidden"
 
 
-def test_calc_step_label(page: Page, interactive_server: str):
+def test_calc_step_has_no_label(page: Page, interactive_server: str):
+    # Calc rows start folded, so a label under every relation would be noise.
     _load(page, interactive_server)
     row = page.locator(".calc > .step").first
     expect(row).to_have_class(re.compile(r"\bhr-collapsed\b"))
-    text = page.evaluate(
-        """() => {
-            const zone = document.querySelector(".calc > .step > .hr-content-zone");
-            return [zone.getAttribute("data-fold-label"), getComputedStyle(zone, "::after").content];
-        }"""
-    )
-    assert text[0] == "justification hidden"
-    assert text[1] != "none"
+    zone = ".calc > .step > .hr-content-zone"
+    assert page.locator(zone).first.get_attribute("data-fold-label") is None
+    assert _label_text(page, zone) is None
 
 
 @pytest.mark.parametrize("block,word", [(".sketch.hr", "sketch hidden"), (".lemma.hr", "lemma hidden")])
@@ -181,6 +177,11 @@ def test_collapse_button_names_what_is_hidden(page: Page, interactive_server: st
 
 def test_print_drops_labels(page: Page, interactive_server: str):
     _load(page, interactive_server)
+    _unfold_proof(page)
+    _fold_step(page, "stp-just")
+    page.locator(FOLDED + " > .hr-collapse-zone .hr-collapse").click()
+    assert _label_text(page, PROOF_HEAD) == "3 steps hidden"
+    assert _label_text(page, "#stp-just > .hr-content-zone") == "justification hidden"
     page.emulate_media(media="print")
     assert _label_text(page, PROOF_HEAD) is None
-    assert _label_text(page, ".calc > .step > .hr-content-zone") is None
+    assert _label_text(page, "#stp-just > .hr-content-zone") is None
