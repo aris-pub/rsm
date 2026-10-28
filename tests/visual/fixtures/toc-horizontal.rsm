@@ -22,7 +22,7 @@ note follows the standard random construction.
 ### Random subsets
   {:label: sec-random}
 
-We pick subsets of the points at random, as in :ref:sec-intro::.
+We pick subsets of the points at random.
 
 ## The embedding
   {:label: sec-embedding}
@@ -37,12 +37,7 @@ We pick subsets of the points at random, as in :ref:sec-intro::.
 
 Each coordinate is 1-Lipschitz, using :ref:sec-random::.
 
-### Lower bound
-  {:label: sec-lower}
-
-This is the hard direction. It completes :ref:thm-main::.
-
 ## Discussion
   {:label: sec-discussion}
 
-The bound in :ref:thm-main:: is tight, see :ref:sec-lower::.
+The bound in :ref:thm-main:: is tight.
