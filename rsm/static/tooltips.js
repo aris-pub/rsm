@@ -13,8 +13,14 @@ const PIN_FILLED_ICON =
 const PIN_LABEL = "Pin to the sidebar";
 const PINNED_LABEL = "Pinned in the sidebar";
 
-// The href of the excerpt currently pinned in the sidebar, or null.
+// The href and title of the excerpt currently pinned in the sidebar, or null.
 let pinnedTarget = null;
+let pinnedTitle = "";
+
+// What is pinned now, for shareview.js to put in a view link.
+export function currentPin() {
+  return pinnedTarget ? { target: pinnedTarget, title: pinnedTitle } : null;
+}
 
 // Build the inert excerpt shown for a reference: a clone of the target with
 // handrails stripped. Shared by the hover tooltip and the pin action so both
@@ -124,7 +130,9 @@ function paintPins() {
 // does not depend on a closing tooltip's DOM) and dispatch rail:pin, which
 // prooftree.js (owner of the rail) handles. Used by the preview's pin control
 // and by the handrail menu's Pin item. Returns false if nothing could be pinned.
-export function pinTarget(href, title, origin = document) {
+// A transient pin (from a shared view link) does not save the open sidebar
+// view, so the recipient's own settings stay as they were.
+export function pinTarget(href, title, origin = document, { transient = false } = {}) {
   const { content } = buildExcerpt(href);
   if (!content) return false;
   // The excerpt lands in the live rail, so strip ids/data-nodeid (as the
@@ -145,10 +153,11 @@ export function pinTarget(href, title, origin = document) {
     if (leadLabel) leadLabel.remove();
   }
   pinnedTarget = href;
+  pinnedTitle = title || "";
   origin.dispatchEvent(
     new CustomEvent("rail:pin", {
       bubbles: true,
-      detail: { html: tmp.innerHTML, title: title || "", target: href },
+      detail: { html: tmp.innerHTML, title: title || "", target: href, transient },
     })
   );
   paintPins();
@@ -175,6 +184,7 @@ function setupPinDelegation() {
   });
   document.addEventListener("rail:unpin", () => {
     pinnedTarget = null;
+    pinnedTitle = "";
     paintPins();
   });
 }
