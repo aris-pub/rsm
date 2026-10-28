@@ -141,6 +141,7 @@ export function pinTarget(href, title, origin = document, { transient = false } 
   const tmp = document.createElement("div");
   tmp.innerHTML = content;
   tmp.querySelectorAll("[id]").forEach((e) => e.removeAttribute("id"));
+  tmp.querySelectorAll(".aside").forEach((e) => e.remove());
   tmp
     .querySelectorAll("[data-nodeid]")
     .forEach((e) => e.removeAttribute("data-nodeid"));
@@ -340,6 +341,8 @@ function setTooltipContent(tt, content) {
   // subtree: otherwise it duplicates the source block's id, which breaks
   // getElementById and hash-based navigation to that block.
   $content.find("[id]").removeAttr("id");
+  // Asides sit inside the block that calls them but are not part of its excerpt.
+  $content.find(".aside").remove();
   $content.find("[data-nodeid]").removeAttr("data-nodeid");
   tt.content($content);
 }

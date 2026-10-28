@@ -288,7 +288,9 @@ def _step_title(step: nodes.Step) -> str:
 
     def walk(node: nodes.Node) -> None:
         for child in node.children:
-            if isinstance(child, nodes.Step):
+            # An aside sits at the end of the paragraph that calls it, but it is
+            # not part of the step's claim.
+            if isinstance(child, (nodes.Step, nodes.Aside)):
                 continue
             if isinstance(child, nodes.Text):
                 parts.append(child.text)

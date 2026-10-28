@@ -169,5 +169,5 @@ export function previewWanted(marker) {
 
 export function previewContent(marker) {
   const aside = asideOf(marker);
-  return aside ? `<div class="aside aside-preview">${aside.innerHTML}</div>` : "";
+  return aside ? `<div class="aside-preview">${aside.innerHTML}</div>` : "";
 }

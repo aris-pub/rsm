@@ -468,3 +468,21 @@ def test_no_prepaint_script_without_asides(tmp_path):
         tmp_path,
     )
     assert "has-asides" not in html[: html.index("</head>")]
+
+
+def test_step_summary_in_the_sidebar_leaves_out_the_aside(tmp_path):
+    html = build_html(
+        """\
+        :theorem: {:label: thm} A theorem. ::
+
+        :proof:
+          :step: A step :aside:a1:: here.::
+          :step: Another step.::
+        ::
+
+        :aside: {:label: a1} the aside text ::
+        """,
+        tmp_path,
+        sidebar=True,
+    )
+    assert 'data-tooltip="1. A step here."' in html

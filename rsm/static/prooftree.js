@@ -415,6 +415,8 @@ export function setup(root = document) {
     c.querySelectorAll(".tooltipstered").forEach((n) =>
       n.classList.remove("tooltipstered"),
     );
+    // Asides sit inside the block that calls them but are not part of it.
+    c.querySelectorAll(".aside").forEach((n) => n.remove());
     // Strip handrail scaffolding so the clone reads as plain prose, not a mini
     // handrail (its offset zones also overflow the narrow rail).
     c.querySelectorAll(
