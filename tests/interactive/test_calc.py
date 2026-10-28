@@ -15,7 +15,7 @@ def test_calc_relation_shown_justification_disclosed(page: Page, interactive_ser
     page.goto(f"{interactive_server}/calc.html")
     page.wait_for_function(RSM_READY, timeout=10_000)
 
-    row = page.locator(".calc > .step").first
+    row = page.locator(".calc > .hr-content-zone > .step").first
     # At rest: the relation (math) is visible; its justification is hidden
     # (the step starts collapsed).
     expect(row.locator(".statement .math").first).to_be_visible()

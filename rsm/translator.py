@@ -1461,10 +1461,13 @@ class Translator:
         # \( ... \) are the standard TeX inline-math delimiters read by the client renderer
         if node.preamble:
             node.classes.append("math-preamble")
+        # A calc relation sits on its own row like display math, so it takes
+        # display size while staying left-aligned in the row.
+        opening = r"\(\displaystyle " if self._is_calc_relation(node) else r"\("
         return AppendBatchAndDefer(
             [
                 self._node_tag(node, "span", newline_inner=False, newline_outer=False),
-                AppendTextAndDefer(r"\(", r"\)"),
+                AppendTextAndDefer(opening, r"\)"),
             ]
         )
 
@@ -1819,22 +1822,39 @@ class Translator:
         base_batch.items.insert(-1, AppendHalmos())
         return AppendBatch(base_batch.items)
 
-    def visit_calc(self, node: nodes.Calc) -> EditCommand:
+    @staticmethod
+    def _fold_calc_rows(node: nodes.Calc) -> None:
         # Each relation step starts collapsed: a collapsed step shows its claim
         # (here the relation) and hides its proof (here the justification), so the
         # chain reads as the bare relations with each "why" disclosed on demand.
-        # Subtractive (data-start-collapsed): JS off renders it fully open -- the
-        # complete written proof. Reuses the existing collapse; handrails untouched.
+        # Subtractive (data-start-collapsed): JS off renders it fully open, the
+        # complete written proof.
         for step in node.children:
-            if isinstance(step, nodes.Step):
-                step.collapsed = True
+            step.collapsed = True
+
+    def visit_calc(self, node: nodes.Calc) -> EditCommand:
+        self._fold_calc_rows(node)
         return AppendBatchAndDefer([AppendNodeTag(node)])
 
     @auto_leave_deferred
     def leave_calc(self, node: nodes.Calc, base_batch) -> EditCommand:
-        # One closing tombstone for the whole chain, like a proof.
-        base_batch.items.insert(-1, AppendHalmos())
+        # Inside a proof the chain reads as one step and closes with its own
+        # tombstone. Outside a proof it is a display equation and has none.
+        if node.first_ancestor_of_type(nodes.Proof) is not None:
+            base_batch.items.insert(-1, AppendHalmos())
         return AppendBatch(base_batch.items)
+
+    @staticmethod
+    def _is_calc_relation(node: nodes.Math) -> bool:
+        """Whether this math is the relation of a calc row, not part of its reason."""
+        anc = node.parent
+        while anc is not None:
+            if isinstance(anc, nodes.Subproof):
+                return False
+            if isinstance(anc, nodes.Step) and anc.in_calc:
+                return True
+            anc = anc.parent
+        return False
 
     def visit_cite(self, node: nodes.Cite) -> EditCommand:
         style = getattr(self.tree, "citation_style", "numeric")
@@ -3591,6 +3611,30 @@ class HandrailsTranslator(Translator):
         batch.items.insert(1, self._hr_info_zone_icon(getattr(node, "icon", None)))
         batch = AppendBatch(batch.items)
         return batch
+
+    def visit_calc(self, node: nodes.Calc) -> EditCommand:
+        # The chain gets a handrail of its own, like a display equation. At the
+        # top level that puts it on the text column. Inside a proof its depth
+        # makes it an offset handrail, which keeps its place among the steps.
+        self._fold_calc_rows(node)
+        batch = self._replace_node_with_handrails(
+            node,
+            collapse_in_hr=False,
+            menu_label="Equation" if node.nonum else node.long_reftext,
+        )
+        batch.items[0].classes.append("hr-hidden")
+        return batch
+
+    @auto_leave_deferred
+    def leave_calc(self, node: nodes.Calc, base_batch) -> EditCommand:
+        if node.first_ancestor_of_type(nodes.Proof) is not None:
+            base_batch.items.insert(0, AppendHalmos())
+            idx = 2
+        else:
+            idx = 1
+        number = None if node.nonum else node.full_number
+        base_batch.items.insert(idx, self._hr_info_zone_number(number, style="eqn"))
+        return AppendBatch(base_batch.items)
 
     def visit_step(self, node: nodes.Step) -> EditCommand:
         hr = self._step_handrails(node)
