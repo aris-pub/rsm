@@ -1287,7 +1287,51 @@ class Paragraph(BaseParagraph):
 
 
 class Note(BaseParagraph):
-    pass
+    """Definition of a footnote, written as ``:note: {:label: lbl} content ::``.
+
+    The definition holds the content. It is shown where a :class:`NoteCall` with the
+    same label appears. Its number is the number of that call, assigned by the
+    transformer in call order.
+    """
+
+    kind: ClassVar[str] = "note"
+
+    def __init__(self, **kwargs: Any) -> None:
+        super().__init__(**kwargs)
+        self.call: NoteCall | None = None
+        """The call that points to this definition, set by the transformer."""
+
+
+class Aside(Note):
+    """Definition of an aside, written as ``:aside: {:label: lbl} content ::``."""
+
+    kind: ClassVar[str] = "aside"
+
+
+class NoteCall(Node):
+    """Call site of a note or aside, written as ``:note:lbl::`` or ``:aside:lbl::``.
+
+    Whether the call is shown as a footnote or as an aside is decided by the tag of
+    the definition it points to, not by the tag of the call.
+    """
+
+    def __init__(self, target: str = "", tag: str = "note", **kwargs: Any) -> None:
+        super().__init__(**kwargs)
+        self.target = target
+        """Label of the definition."""
+        self.tag = tag
+        """Tag used at the call site, either ``"note"`` or ``"aside"``."""
+        self.definition: Note | None = None
+        """The definition this call points to, set by the transformer."""
+        self.malformed = False
+        """Whether the call holds more than a label, which is a parse error."""
+
+    @property
+    def kind(self) -> str:
+        return self.definition.kind if self.definition is not None else self.tag
+
+    def _attrs_for_repr_and_eq(self) -> list[str]:
+        return super()._attrs_for_repr_and_eq() + ["target", "tag"]
 
 
 class Enumerate(NodeWithChildren):

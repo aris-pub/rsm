@@ -138,6 +138,24 @@ def test_inline_math():
     assert m["c"][1] == "x^2"
 
 
+@pytest.mark.parametrize("tag", ["note", "aside"])
+def test_note_call_exports_as_pandoc_note(tag):
+    blocks = _blocks(
+        f"""
+        Some text. :{tag}:n1:: More.
+
+        :{tag}: {{:label: n1}} The note text. ::
+        """
+    )
+    paras = [b for b in blocks if b["t"] == "Para"]
+    # the definition is not exported where it is written, only at its call
+    assert len(paras) == 1
+    (note,) = [i for i in paras[0]["c"] if i.get("t") == "Note"]
+    (inner,) = note["c"]
+    assert inner["t"] == "Para"
+    assert {"t": "Str", "c": "note"} in inner["c"]
+
+
 def test_display_math():
     blocks = _blocks(
         """
