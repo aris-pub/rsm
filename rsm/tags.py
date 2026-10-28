@@ -47,7 +47,10 @@ mathblock = BlockTagInfo(None)
 proof = BlockTagInfo(None)
 """Proof of Theorem."""
 calc = BlockTagInfo(None)
-"""Equational/calculational proof: a chain of relation steps, each with a justification."""
+"""Calculation: a chain of relations, each a ``:step:`` with its reason in a ``:p:``.
+
+Allowed anywhere display math is. Holds only ``:step:`` rows. A labelled calc takes
+an equation number from the display math counter."""
 proposition = BlockTagInfo(None)
 """Proposition."""
 remark = BlockTagInfo(None)
