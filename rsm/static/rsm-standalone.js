@@ -914,7 +914,7 @@ var RSM = (() => {
       clearMarks();
       if (bar) bar.remove();
       if (rail) rail.classList.remove("deplensing");
-      document.removeEventListener("keydown", onKeydown);
+      document.removeEventListener("keydown", onKeydown2);
       document.removeEventListener("click", onClickAway, true);
       active = null;
     }
@@ -923,7 +923,7 @@ var RSM = (() => {
       teardown();
       announce2("Dependency lens cleared.");
     }
-    function onKeydown(ev) {
+    function onKeydown2(ev) {
       if (ev.key === "Escape") exit();
     }
     function onClickAway(ev) {
@@ -957,7 +957,7 @@ var RSM = (() => {
       active = { model, anchorEl, dirs: /* @__PURE__ */ new Set([dir]) };
       showRail(model);
       render();
-      document.addEventListener("keydown", onKeydown);
+      document.addEventListener("keydown", onKeydown2);
       document.addEventListener("click", onClickAway, true);
       document.dispatchEvent(new CustomEvent("rsm:focus-enter"));
     }
@@ -2505,10 +2505,10 @@ var RSM = (() => {
       paintStrip();
       requestAnimationFrame(fitGraphs);
     }
-    function openView(id, { toggle = true, persist = true } = {}) {
+    function openView(id, { toggle: toggle2 = true, persist = true } = {}) {
       id = translate(id);
       if (!VIEWS[id] || !has(id)) return;
-      if (toggle && open && id === view) {
+      if (toggle2 && open && id === view) {
         setOpen(false);
         return;
       }
@@ -2971,15 +2971,15 @@ var RSM = (() => {
         clone.querySelectorAll(".hr-label, .construct.let, .construct.assume").forEach((n) => n.remove());
         text.appendChild(clone);
         preview.appendChild(text);
-        const toggle = document.createElement("button");
-        toggle.type = "button";
-        toggle.className = "rail-goal-toggle";
-        toggle.textContent = "show more";
-        toggle.addEventListener("click", () => {
+        const toggle2 = document.createElement("button");
+        toggle2.type = "button";
+        toggle2.className = "rail-goal-toggle";
+        toggle2.textContent = "show more";
+        toggle2.addEventListener("click", () => {
           const clamped = text.classList.toggle("clamped");
-          toggle.textContent = clamped ? "show more" : "show less";
+          toggle2.textContent = clamped ? "show more" : "show less";
         });
-        preview.appendChild(toggle);
+        preview.appendChild(toggle2);
         summary.appendChild(preview);
         goalB.body.appendChild(summary);
       } else if (goalEl) {
@@ -3114,7 +3114,7 @@ var RSM = (() => {
         new CustomEvent("rail:show", { detail: { view: "steps", open: true } })
       );
     }
-    function onKeydown(ev) {
+    function onKeydown2(ev) {
       if (ev.key === "Escape") exitFocus();
     }
     let exitBar = null;
@@ -3139,7 +3139,7 @@ var RSM = (() => {
     }
     function teardown() {
       if (!active) return;
-      document.removeEventListener("keydown", onKeydown);
+      document.removeEventListener("keydown", onKeydown2);
       rail.classList.remove("focusing");
       if (exitBar) exitBar.remove();
       withoutPersist(() => {
@@ -3175,7 +3175,7 @@ var RSM = (() => {
       const sel = steps[idx];
       active = { proofEl, svg, startIdx: String(idx), steps, wasCollapsed };
       setExitBar(sel);
-      document.addEventListener("keydown", onKeydown);
+      document.addEventListener("keydown", onKeydown2);
       const deps = steps.filter((_, i) => cone.has(String(i))).length - 1;
       const num = stepNumber2(sel);
       announce2(
@@ -3915,6 +3915,126 @@ var RSM = (() => {
     }
   }
 
+  // rsm/static/asides.js
+  var READY_CLASS = "has-asides";
+  var OPEN = "rsm-aside-open";
+  var LIT = "rsm-aside-lit";
+  var MARKERS = '.manuscriptwrapper a.note-marker[data-note-kind="aside"]';
+  var listening2 = false;
+  function asideOf(marker) {
+    const id = (marker.getAttribute("href") || "").replace(/^#/, "");
+    const el = id && document.getElementById(id);
+    return el && el.matches(".aside") ? el : null;
+  }
+  function markerOf(aside) {
+    return document.getElementById("call-" + aside.id);
+  }
+  function setup12(root2 = document) {
+    document.documentElement.classList.add(READY_CLASS);
+    for (const marker of root2.querySelectorAll(MARKERS)) {
+      const aside = asideOf(marker);
+      if (!aside) continue;
+      marker.setAttribute("aria-controls", aside.id);
+      addMarginItem(marker, aside);
+    }
+    syncExpanded();
+    if (listening2) return;
+    listening2 = true;
+    document.addEventListener("click", onClick);
+    document.addEventListener("keydown", onKeydown);
+    document.addEventListener("mouseover", onPointer);
+    document.addEventListener("mouseout", onPointer);
+    document.addEventListener("focusin", onFocus);
+    document.addEventListener("focusout", onFocus);
+    window.addEventListener("hashchange", openHashTarget);
+    openHashTarget();
+    new MutationObserver(syncExpanded).observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"]
+    });
+  }
+  function syncExpanded() {
+    const toggles = !marginOn();
+    for (const marker of document.querySelectorAll(MARKERS)) {
+      const aside = asideOf(marker);
+      if (!aside) continue;
+      if (toggles) {
+        marker.setAttribute("aria-expanded", String(aside.classList.contains(OPEN)));
+      } else {
+        marker.removeAttribute("aria-expanded");
+      }
+    }
+  }
+  function toggle(marker, open) {
+    const aside = asideOf(marker);
+    if (!aside) return;
+    const now = open === void 0 ? !aside.classList.contains(OPEN) : open;
+    aside.classList.toggle(OPEN, now);
+    if (!marginOn()) marker.setAttribute("aria-expanded", String(now));
+    if (now) closePreview(marker);
+  }
+  function closestMarker(target) {
+    return target && target.closest ? target.closest(MARKERS) : null;
+  }
+  function onClick(ev) {
+    const marker = closestMarker(ev.target);
+    if (!marker || !asideOf(marker)) return;
+    ev.preventDefault();
+    if (!marginOn()) toggle(marker);
+  }
+  function onKeydown(ev) {
+    if (ev.key !== " " && ev.key !== "Spacebar") return;
+    const marker = closestMarker(ev.target);
+    if (!marker || !asideOf(marker)) return;
+    ev.preventDefault();
+    ev.stopPropagation();
+    if (!marginOn()) toggle(marker);
+  }
+  function light(marker, aside, on) {
+    marker.classList.toggle(LIT, on);
+    aside.classList.toggle(LIT, on);
+  }
+  function pairFrom(target) {
+    if (!target || !target.closest) return null;
+    const marker = target.closest(MARKERS);
+    if (marker) {
+      const aside2 = asideOf(marker);
+      return aside2 ? { marker, aside: aside2 } : null;
+    }
+    const aside = target.closest(".manuscriptwrapper .aside");
+    if (!aside) return null;
+    const m = markerOf(aside);
+    return m ? { marker: m, aside } : null;
+  }
+  function onPointer(ev) {
+    const pair = pairFrom(ev.target);
+    if (!pair) return;
+    const into = pairFrom(ev.relatedTarget);
+    if (into && into.aside === pair.aside) return;
+    light(pair.marker, pair.aside, ev.type === "mouseover");
+  }
+  function onFocus(ev) {
+    const marker = closestMarker(ev.target);
+    if (!marker) return;
+    const aside = asideOf(marker);
+    if (aside) light(marker, aside, ev.type === "focusin");
+  }
+  function openHashTarget() {
+    const id = decodeURIComponent((location.hash || "").slice(1));
+    const aside = id && document.getElementById(id);
+    if (!aside || !aside.matches(".aside")) return;
+    const marker = markerOf(aside);
+    if (marker) toggle(marker, true);
+  }
+  function closePreview(marker) {
+    const $2 = window.jQuery;
+    if (!$2 || !marker.classList.contains("tooltipstered")) return;
+    try {
+      $2(marker).tooltipster("close");
+    } catch (err) {
+    }
+  }
+
   // rsm/static/onload.js
   async function onload(root2 = null, { keys = true } = {}) {
     if (!root2) root2 = document;
@@ -4071,6 +4191,11 @@ var RSM = (() => {
         setup11(root2);
       } catch (err) {
         console.error("Placing captions FAILED!", err);
+      }
+      try {
+        setup12(root2);
+      } catch (err) {
+        console.error("Setting up asides FAILED!", err);
       }
       try {
         createTooltips();
