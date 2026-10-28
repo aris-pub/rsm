@@ -26,11 +26,14 @@ LABELS = [
     "Figure 1.1",
     "2. Results",
     "Widget 2.1",
+    "Widget 2.2",
     "3. Discussion",
     "Figure 3.1",
     "3.1. Outlook",
 ]
-TYPES = ["section", "section", "figure", "section", "figure", "section", "figure", "section"]
+TYPES = [
+    "section", "section", "figure", "section", "figure", "figure", "section", "figure", "section",
+]
 
 
 def _load(page: Page, server: str, size=DESKTOP, theme="light", reduced=False) -> None:
@@ -189,17 +192,29 @@ def test_marks_list(page: Page, interactive_server: str):
     }
 
 
-def test_uncaptioned_widgets_and_figures_inside_widgets_get_no_mark(
+def test_unnumbered_widgets_and_figures_inside_widgets_get_no_mark(
     page: Page, interactive_server: str
 ):
     _load(page, interactive_server)
-    # The fixture has an uncaptioned :nonum: widget (an ornament), and the
+    # The fixture has a :nonum: widget with no caption (an ornament), and the
     # widget HTML holds a <figure> of its own.
     assert page.locator("#wid-ornament").count() == 1
-    assert page.locator("figure.mm-inner-figure").count() == 2
+    assert page.locator("figure.mm-inner-figure").count() == 3
     ids = [m["id"] for m in _marks(page)]
     assert "wid-ornament" not in ids
     assert len(ids) == len(LABELS)
+
+
+def test_numbered_widget_without_a_caption_gets_a_mark_named_by_its_number(
+    page: Page, interactive_server: str
+):
+    _load(page, interactive_server)
+    assert page.locator("#wid-bare > figcaption").count() == 0
+    m = next(m for m in _marks(page) if m["id"] == "wid-bare")
+    assert m["type"] == "figure"
+    assert m["label"] == "Widget 2.2"
+    page.mouse.move(_strip_x(page), _track(page)["y"] + m["y"])
+    assert page.locator(".rsm-minimap-tip").inner_text() == "Widget 2.2"
 
 
 @pytest.mark.parametrize("size", [DESKTOP, PHONE], ids=["1280", "375"])

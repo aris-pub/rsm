@@ -692,6 +692,19 @@ class AppendOpenTag(AppendTextAndDefer):
         return self._edit_command_repr(["tag", "id", "classes", "newline_inner"])
 
 
+def _figure_number(node: nodes.Node) -> str | None:
+    """The number of a :figure: or :html: block, or None when it has none."""
+    if not isinstance(node, nodes.Asset) or node.number_as is not nodes.Figure:
+        return None
+    if node.nonum or not getattr(node, "number", None):
+        return None
+    # Outside any section full_number logs a warning before falling back to the
+    # bare number, so take that fallback directly.
+    if node.first_ancestor_of_type(node.number_within) is None:
+        return str(node.number)
+    return node.full_number
+
+
 class AppendNodeTag(AppendOpenTag):
     def __init__(
         self,
@@ -717,6 +730,11 @@ class AppendNodeTag(AppendOpenTag):
         if isinstance(node, nodes.Asset) and node.static:
             static_src = self._resolve_image_src(node.static) if hasattr(self, '_resolve_image_src') else str(node.static)
             kwargs["data-static"] = static_src
+        # Blocks in the figure counter carry their number, so the minimap can
+        # label one that has no caption (and so no visible "Widget 4.3" label).
+        figure_number = _figure_number(node)
+        if figure_number:
+            kwargs["data-number"] = figure_number
         # tree-sitter 0.26.0's Point.row/.column getters over-decref the returned
         # int and corrupt memory (py-tree-sitter #472); read row/column by index
         # instead. A default (-1, -1) point means no source position, so skip it.

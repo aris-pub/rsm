@@ -89,6 +89,57 @@ def test_minimap_enabled_helper():
     assert minimap_enabled(t)
 
 
+FIGURES_SRC = """\
+# Map
+
+:figure: {
+  :label: fig-top
+  :path: missing.png
+}
+::
+
+## One
+
+:figure: {
+  :label: fig-cap
+  :path: missing.png
+}
+:caption: A caption.
+::
+
+:html: {
+  :label: wid-bare
+  :path: missing.html
+}
+::
+
+:html: {
+  :label: wid-orn
+  :path: missing.html
+  :nonum:
+}
+::
+"""
+
+
+@pytest.mark.parametrize("sidebar", [True, False], ids=["handrails", "plain"])
+def test_figure_counter_blocks_carry_their_number(sidebar):
+    tree = rsm.app.ParserApp(plain=FIGURES_SRC).run()
+    tr = HandrailsTranslator(sidebar=True) if sidebar else rsm.translator.Translator()
+    html = tr.translate(tree)
+
+    def tag(id_):
+        return re.search(rf'<figure id="{id_}"[^>]*>', html).group(0)
+
+    # Figures and widgets share one counter, captioned or not.
+    assert 'data-number="1.1"' in tag("fig-cap")
+    assert 'data-number="1.2"' in tag("wid-bare")
+    # Outside any section the bare number is used.
+    assert 'data-number="1"' in tag("fig-top")
+    # An unnumbered block (an ornament) has none.
+    assert "data-number" not in tag("wid-orn")
+
+
 @pytest.mark.skip(
     reason="rsm-3am: :minimap: is not yet a meta key in the tree-sitter-rsm grammar "
     "(metakey_any). Enable once the grammar change lands."

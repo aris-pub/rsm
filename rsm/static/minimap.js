@@ -75,11 +75,13 @@ function headingText(section) {
   return h ? h.textContent.replace(/\s+/g, " ").trim() : "";
 }
 
-function figureLabel(fig, n) {
-  const label = fig.querySelector("figcaption .label, .label");
+// The caption's label ("Widget 4.2"), or for a block with no caption the same
+// words built from its number.
+function figureLabel(fig) {
+  const label = fig.querySelector(":scope > figcaption .label");
   const text = label ? label.textContent.replace(/\s+/g, " ").trim().replace(/\.$/, "") : "";
   if (text) return text;
-  return (fig.classList.contains("html") ? "Widget " : "Figure ") + n;
+  return (fig.classList.contains("html") ? "Widget " : "Figure ") + fig.getAttribute("data-number");
 }
 
 // Elements inside the sidebar, previews or the strip itself are not part of the
@@ -121,16 +123,13 @@ function collectMarks(main) {
     });
   }
 
-  // Captioned figure blocks only (:figure: and :html: alike). An uncaptioned
-  // widget is usually an ornament, and a <figure> inside a widget's own HTML is
-  // part of that widget.
-  let n = 0;
-  for (const fig of main.querySelectorAll("figure[data-nodeid]")) {
+  // Every block numbered in the figure counter (:figure: and :html: alike, the
+  // translator writes data-number), captioned or not. A block with no number is
+  // an ornament, and a <figure> inside a widget's own HTML is part of that widget.
+  for (const fig of main.querySelectorAll("figure[data-number]")) {
     if (inChrome(fig) || fig.parentElement.closest("figure")) continue;
-    if (!fig.querySelector(":scope > figcaption")) continue;
-    n += 1;
     if (!laidOut(fig)) continue;
-    out.push({ el: fig, type: "figure", label: figureLabel(fig, n), pos: fraction(fig) });
+    out.push({ el: fig, type: "figure", label: figureLabel(fig), pos: fraction(fig) });
   }
 
   out.sort((a, b) => a.pos - b.pos);

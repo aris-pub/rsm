@@ -3809,11 +3809,11 @@ var RSM = (() => {
     const h = section.querySelector(":scope > .heading.hr .hr-content-zone :is(h1,h2,h3,h4,h5,h6)") || section.querySelector(":scope > :is(h1,h2,h3,h4,h5,h6)") || section.querySelector(":scope > .heading :is(h1,h2,h3,h4,h5,h6)");
     return h ? h.textContent.replace(/\s+/g, " ").trim() : "";
   }
-  function figureLabel(fig, n) {
-    const label = fig.querySelector("figcaption .label, .label");
+  function figureLabel(fig) {
+    const label = fig.querySelector(":scope > figcaption .label");
     const text = label ? label.textContent.replace(/\s+/g, " ").trim().replace(/\.$/, "") : "";
     if (text) return text;
-    return (fig.classList.contains("html") ? "Widget " : "Figure ") + n;
+    return (fig.classList.contains("html") ? "Widget " : "Figure ") + fig.getAttribute("data-number");
   }
   function inChrome(el) {
     return !!el.closest(".proof-rail, .rail-strip, .rsm-minimap, .tooltipster-base");
@@ -3846,13 +3846,10 @@ var RSM = (() => {
         pos: fraction(s)
       });
     }
-    let n = 0;
-    for (const fig of main.querySelectorAll("figure[data-nodeid]")) {
+    for (const fig of main.querySelectorAll("figure[data-number]")) {
       if (inChrome(fig) || fig.parentElement.closest("figure")) continue;
-      if (!fig.querySelector(":scope > figcaption")) continue;
-      n += 1;
       if (!laidOut(fig)) continue;
-      out.push({ el: fig, type: "figure", label: figureLabel(fig, n), pos: fraction(fig) });
+      out.push({ el: fig, type: "figure", label: figureLabel(fig), pos: fraction(fig) });
     }
     out.sort((a, b) => a.pos - b.pos);
     return out;
