@@ -2698,24 +2698,32 @@ class HandrailsTranslator(Translator):
             classes=["hr-info-zone"],
         )
 
-    def _hr_info_zone_number(
-        self, number: int | str, style: Literal["eqn", "step"]
-    ) -> AppendOpenCloseTag:
-        start = """<div class="hr-info">"""
-        middle = ""
-        if number is not None:
-            if style == "step":
-                middle = f"""<div class="step-number"><p>⟨{number}⟩</p></div>"""
-            elif style == "eqn":
-                middle = f"""<div class="eqn-number"><p>({number})</p></div>"""
-        end = "</div>"
+    @staticmethod
+    def _info_number(number: int | str | None, style: Literal["eqn", "step"]) -> str:
+        if number is None:
+            return ""
+        if style == "step":
+            return f"""<div class="step-number"><p>⟨{number}⟩</p></div>"""
+        return f"""<div class="eqn-number"><p>({number})</p></div>"""
+
+    @staticmethod
+    def _hr_info_zone(*items: str) -> AppendOpenCloseTag:
+        """An info zone holding one cell. Two or more items in one cell stack
+        vertically, centred in the column, so nothing on that line overlaps."""
+        items = tuple(i for i in items if i)
+        classes = "hr-info hr-info-stack" if len(items) > 1 else "hr-info"
         return AppendOpenCloseTag(
             tag="div",
-            content=start + middle + end,
+            content=f'<div class="{classes}">{"".join(items)}</div>',
             classes=["hr-info-zone"],
         )
 
-    def _hr_info_zone_disclosure(self) -> AppendOpenCloseTag:
+    def _hr_info_zone_number(
+        self, number: int | str | None, style: Literal["eqn", "step"]
+    ) -> AppendOpenCloseTag:
+        return self._hr_info_zone(self._info_number(number, style))
+
+    def _hr_info_zone_disclosure(self, above: str = "") -> AppendOpenCloseTag:
         # A calc relation discloses its justification from the info-zone -- the
         # right-margin, per-row-aligned slot where an equation number would sit --
         # instead of the left gutter. The control is a real .hr-collapse inside a
@@ -2723,11 +2731,22 @@ class HandrailsTranslator(Translator):
         # the enclosing step via .closest('.hr')); CSS reglyphs it as the because-
         # sign. Presentation choice only; the collapse mechanism is unchanged.
         control = self._hr_collapse_zone(True).make_text()
-        return AppendOpenCloseTag(
-            tag="div",
-            content=f'<div class="hr-info">{control}</div>',
-            classes=["hr-info-zone"],
-        )
+        return self._hr_info_zone(above, control)
+
+    @staticmethod
+    def _leading_mathblock(step: nodes.Step) -> nodes.MathBlock | None:
+        """The numbered display equation a step starts with, if any.
+
+        Its number shares the step's info cell, stacked under the step number,
+        because both would otherwise sit on the same line of the column.
+        """
+        statement = step.children[0] if step.children else None
+        if not isinstance(statement, nodes.Statement) or not statement.children:
+            return None
+        first = statement.children[0]
+        if isinstance(first, nodes.MathBlock) and not first.preamble and not first.nonum:
+            return first
+        return None
 
     def _hr_from_node(
         self,
@@ -3632,20 +3651,31 @@ class HandrailsTranslator(Translator):
             idx = 2
         else:
             idx = 1
-        number = None if node.nonum else node.full_number
-        base_batch.items.insert(idx, self._hr_info_zone_number(number, style="eqn"))
+        # The chain's number is shown in its first row's info cell (leave_step),
+        # so the chain's own cell stays empty.
+        base_batch.items.insert(idx, self._hr_info_zone())
         return AppendBatch(base_batch.items)
 
     def visit_step(self, node: nodes.Step) -> EditCommand:
+        if mathblock := self._leading_mathblock(node):
+            mathblock._number_in_step = True
         hr = self._step_handrails(node)
         return hr
 
     def leave_step(self, node: nodes.Step) -> EditCommand:
         batch = self.leave_node(node)
         if node.first_ancestor_of_type(nodes.Calc) is not None:
-            info = self._hr_info_zone_disclosure()
+            calc = node.parent
+            above = ""
+            if node.in_calc and not calc.nonum and calc.children[0] is node:
+                above = self._info_number(calc.full_number, "eqn")
+            info = self._hr_info_zone_disclosure(above)
         else:
-            info = self._hr_info_zone_number(node.full_number, style="step")
+            mathblock = self._leading_mathblock(node)
+            info = self._hr_info_zone(
+                self._info_number(node.full_number, "step"),
+                self._info_number(mathblock.full_number, "eqn") if mathblock else "",
+            )
         batch.items.insert(1, info)
         batch = AppendBatch(batch.items)
         return batch
@@ -3702,7 +3732,9 @@ class HandrailsTranslator(Translator):
 
     def leave_mathblock(self, node: nodes.MathBlock) -> EditCommand:
         batch = super().leave_mathblock(node)
-        batch.items.insert(2, self._hr_info_zone_number(node.full_number, style="eqn"))
+        # A step that starts with this equation shows its number (leave_step).
+        number = None if getattr(node, "_number_in_step", False) else node.full_number
+        batch.items.insert(2, self._hr_info_zone_number(number, style="eqn"))
         return batch
 
     def visit_bibitem(self, node: nodes.Bibitem) -> EditCommand:

@@ -390,3 +390,86 @@ def test_calc_outside_a_proof_has_no_tombstone():
 
 def test_calc_without_handrails_keeps_its_label_as_id():
     assert 'id="eq-c" class="calc"' in ProcessorApp(plain=TOP_LEVEL).run()
+
+
+@pytest.mark.parametrize("src", [TOP_LEVEL, IN_STEP_P], ids=["top", "step-p"])
+def test_calc_number_stacks_above_the_first_rows_mark(src):
+    html = _build(src)
+    # The first row's cell holds the number, then the mark, in one stack.
+    stack = re.search(
+        r'<div class="hr-info hr-info-stack">'
+        r'<div class="eqn-number"><p>\(1\.1\)</p></div>'
+        r'\s*<div class="hr-collapse-zone">',
+        html,
+    )
+    assert stack, "the number is not stacked above the first row's mark"
+    assert html.count("hr-info-stack") == 1
+    assert html.count('class="eqn-number"') == 1
+
+
+def test_unnumbered_calc_has_no_stack():
+    assert "hr-info-stack" not in _build("## Sec\n\n" + _chain())
+
+
+STEP_STARTS_WITH_EQN = """\
+## Sec
+
+:theorem: {:label: thm-s} A claim. ::
+
+:proof: {:of: thm-s}
+
+  :step: A step with text before its equation:
+
+  $$ {:label: eq-after-text}
+  a = b
+  $$
+
+  ::
+
+  :step:
+
+  $$ {:label: eq-first-line}
+  c = d
+  $$
+
+  ::
+
+  :step:
+
+  $$ {:nonum:}
+  e = f
+  $$
+
+  ::
+
+::
+
+See :ref:eq-first-line::.
+"""
+
+
+def test_step_number_stacks_above_its_leading_equation_number():
+    html = _build(STEP_STARTS_WITH_EQN)
+    stack = re.search(
+        r'<div class="hr-info hr-info-stack">'
+        r'<div class="step-number"><p>⟨2⟩</p></div>'
+        r'<div class="eqn-number"><p>\(1\.2\)</p></div></div>',
+        html,
+    )
+    assert stack, "step 2 and its equation number are not stacked in one cell"
+    # The equation number is shown once, in the step's cell, not twice.
+    assert html.count("<p>(1.2)</p>") == 1
+    assert html.count("hr-info-stack") == 1
+    assert '<a class="reference" href="#eq-first-line">(1.2)</a>' in html
+
+
+def test_step_with_text_before_its_equation_is_not_stacked():
+    html = _build(STEP_STARTS_WITH_EQN)
+    # Step 1 starts with text, so its number and the equation's stay apart.
+    assert '<div class="hr-info"><div class="step-number"><p>⟨1⟩</p></div></div>' in html
+    assert '<div class="hr-info"><div class="eqn-number"><p>(1.1)</p></div></div>' in html
+
+
+def test_step_with_unnumbered_leading_equation_is_not_stacked():
+    html = _build(STEP_STARTS_WITH_EQN)
+    assert '<div class="hr-info"><div class="step-number"><p>⟨3⟩</p></div></div>' in html

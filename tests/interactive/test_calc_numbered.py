@@ -1,10 +1,9 @@
 """A labelled :calc: is numbered like a display equation, at the top level and
 inside a proof.
 
-The chain's number sits in the equation-number column, centred on the rows. The
-rows' because-marks move to the right end of each row so they do not sit on the
-number. Outside a proof the rows start on the text column. Relation math is set
-at display size.
+The chain's number sits in the info column, stacked directly above the first
+row's because-mark, and the marks stay in one vertical line. Outside a proof
+the rows start on the text column. Relation math is set at display size.
 """
 
 import pytest
@@ -33,30 +32,38 @@ def _boxes_overlap(a: dict, b: dict) -> bool:
     )
 
 
-@pytest.mark.xfail(
-    reason="where the number and the marks share the info column is not decided yet",
-    strict=False,
-)
 @pytest.mark.parametrize("calc_id", ["eq-top", "eq-inproof"])
 @pytest.mark.parametrize("width", [375, 1280])
-def test_number_shows_and_marks_do_not_cover_it(
+def test_number_stacks_above_the_first_mark(
     page: Page, interactive_server: str, calc_id: str, width: int
 ):
     _open(page, interactive_server, width)
     calc = page.locator(f"#{calc_id}")
     calc.scroll_into_view_if_needed()
-    number = calc.locator(":scope > .hr-info-zone .eqn-number")
+    number = calc.locator(".eqn-number")
+    expect(number).to_have_count(1)
     expect(number).to_be_visible()
     expected = "(1.2)" if calc_id == "eq-top" else "(2.1)"
     expect(number).to_have_text(expected)
     num_box = number.bounding_box()
     marks = calc.locator(f"{ROW} > .hr-info-zone .hr-collapse")
     assert marks.count() >= 2
-    for i in range(marks.count()):
-        mark_box = marks.nth(i).bounding_box()
-        assert not _boxes_overlap(num_box, mark_box), (
-            f"because-mark {i} overlaps the equation number"
-        )
+    boxes = [marks.nth(i).bounding_box() for i in range(marks.count())]
+    for i, box in enumerate(boxes):
+        assert not _boxes_overlap(num_box, box), f"mark {i} overlaps the number"
+    first = boxes[0]
+    # Directly above the first mark, centred on the same x.
+    assert num_box["y"] + num_box["height"] <= first["y"] + 1
+    num_cx = num_box["x"] + num_box["width"] / 2
+    assert abs(num_cx - (first["x"] + first["width"] / 2)) <= 2
+    # The marks stay in one vertical line.
+    centres = [b["x"] + b["width"] / 2 for b in boxes]
+    assert max(centres) - min(centres) <= 1
+    # Nothing runs past the right edge of the page.
+    overflow = page.evaluate(
+        "() => document.documentElement.scrollWidth - document.documentElement.clientWidth"
+    )
+    assert overflow <= 0
 
 
 @pytest.mark.parametrize("width", [375, 1280])
