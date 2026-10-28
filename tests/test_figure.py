@@ -499,6 +499,24 @@ def test_labelled_dark_figure_emits_id_once_on_figure():
     assert '<img id="fig-b"' not in html
 
 
+def test_labelled_video_emits_id_once_on_figure():
+    """A labelled video carries its id only on the <figure>, not also on the
+    inner <video>, with or without handrails."""
+    src = dedent("""\
+        :video: {
+          :path: assets/demo.mp4
+          :label: vid-a
+        }
+        :caption: A video.
+        ::
+        """)
+    for handrails in (False, True):
+        html = rsm.render(src, handrails=handrails)
+        assert html.count('id="vid-a"') == 1
+        assert '<figure id="vid-a"' in html
+        assert '<video id="vid-a"' not in html
+
+
 class MockAssetResolver:
     """Asset resolver that returns predefined content for specific filenames."""
 

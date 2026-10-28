@@ -2660,6 +2660,11 @@ body {
   /* Beside the text the caption's empty number zone would only narrow it. */
   html.rsm-margin .manuscriptwrapper .manuscript .hr.rsm-margin-item > .hr-info-zone { display: none; }
 }
+/* A <video> keeps its intrinsic pixel width otherwise and overflows the figure
+   on a narrow screen (rsm-29p). height:auto keeps the aspect ratio. */
+.manuscriptwrapper figure video {
+  max-width: 100%;
+  height: auto; }
 
 
 /* Other */
