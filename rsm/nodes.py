@@ -1941,11 +1941,15 @@ class Caption(Paragraph):
 
 
 class Contents(Itemize):
-    newmetakeys: ClassVar[set] = {"view"}
+    newmetakeys: ClassVar[set] = {"view", "orientation"}
+    orientations: ClassVar[tuple[str, ...]] = ("horizontal", "vertical")
 
-    def __init__(self, view: str = "list", **kwargs: Any) -> None:
+    def __init__(
+        self, view: str = "list", orientation: str = "vertical", **kwargs: Any
+    ) -> None:
         super().__init__(**kwargs)
         self.view = view
+        self.orientation = orientation
         # Filled by the transformer: cross-section reference edges as dicts
         # {"src": row, "dst": row, "count": n, "kind": "dep" | "fwd"}, where
         # rows index the TOC entries in document order.
