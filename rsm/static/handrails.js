@@ -996,7 +996,10 @@ export function toggleTocView(hr, menuItem) {
   const toc = hr.closest(".toc");
   if (!toc) return;
   const isTree = toc.classList.toggle("tree");
-  if (isTree) tocarcs.draw(toc);
+  // The arcs are drawn at build time, but a TOC that started as a list was
+  // skipped when trees were wired for hover at load. drawAll skips trees
+  // already wired, so this is safe on every switch.
+  if (isTree) tocarcs.drawAll(toc);
   if (menuItem) {
     const textEl = menuItem.querySelector(".hr-menu-item-text");
     if (textEl) textEl.textContent = isTree ? "View as list" : "View as tree";

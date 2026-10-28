@@ -1915,7 +1915,7 @@ var RSM = (() => {
     const toc = hr.closest(".toc");
     if (!toc) return;
     const isTree = toc.classList.toggle("tree");
-    if (isTree) (void 0)(toc);
+    if (isTree) drawAll(toc);
     if (menuItem) {
       const textEl = menuItem.querySelector(".hr-menu-item-text");
       if (textEl) textEl.textContent = isTree ? "View as list" : "View as tree";
