@@ -976,6 +976,10 @@ var RSM = (() => {
   var PIN_LABEL = "Pin to the sidebar";
   var PINNED_LABEL = "Pinned in the sidebar";
   var pinnedTarget = null;
+  var pinnedTitle = "";
+  function currentPin() {
+    return pinnedTarget ? { target: pinnedTarget, title: pinnedTitle } : null;
+  }
   function buildExcerpt(rawHref) {
     if (!rawHref) return { content: "", error: "no-href" };
     const target = rawHref.replaceAll(".", "\\.").replaceAll(":", "\\:");
@@ -1064,7 +1068,7 @@ var RSM = (() => {
       btn.innerHTML = on ? PIN_FILLED_ICON : PIN_ICON;
     }
   }
-  function pinTarget(href, title, origin = document) {
+  function pinTarget(href, title, origin = document, { transient = false } = {}) {
     const { content } = buildExcerpt(href);
     if (!content) return false;
     const tmp = document.createElement("div");
@@ -1076,10 +1080,11 @@ var RSM = (() => {
       if (leadLabel) leadLabel.remove();
     }
     pinnedTarget = href;
+    pinnedTitle = title || "";
     origin.dispatchEvent(
       new CustomEvent("rail:pin", {
         bubbles: true,
-        detail: { html: tmp.innerHTML, title: title || "", target: href }
+        detail: { html: tmp.innerHTML, title: title || "", target: href, transient }
       })
     );
     paintPins();
@@ -1102,6 +1107,7 @@ var RSM = (() => {
     });
     document.addEventListener("rail:unpin", () => {
       pinnedTarget = null;
+      pinnedTitle = "";
       paintPins();
     });
   }
@@ -2312,7 +2318,7 @@ var RSM = (() => {
       }
       return best ? { el: best, top: bestTop } : null;
     }
-    function holdAnchor(a) {
+    function holdAnchor2(a) {
       if (!a) return;
       const t0 = performance.now();
       let expected = window.scrollY;
@@ -2374,7 +2380,7 @@ var RSM = (() => {
       paintStrip();
       layout();
       requestAnimationFrame(fitGraphs);
-      holdAnchor(anchor);
+      holdAnchor2(anchor);
       if (persist && !isPhone()) api.saveLayout({ view });
     }
     function select(id) {
@@ -2386,7 +2392,7 @@ var RSM = (() => {
       paintStrip();
       requestAnimationFrame(fitGraphs);
     }
-    function openView(id, { toggle = true } = {}) {
+    function openView(id, { toggle = true, persist = true } = {}) {
       id = translate(id);
       if (!VIEWS[id] || !has(id)) return;
       if (toggle && open && id === view) {
@@ -2394,7 +2400,7 @@ var RSM = (() => {
         return;
       }
       select(id);
-      setOpen(true);
+      setOpen(true, { persist });
       if (isPhone()) rail.scrollTop = 0;
     }
     strip.addEventListener("click", (ev) => {
@@ -2423,8 +2429,9 @@ var RSM = (() => {
       if (d.open) openView(id, { toggle: false });
       else select(id);
     });
-    document.addEventListener("rail:pin", () => {
-      requestAnimationFrame(() => openView("pinned", { toggle: false }));
+    document.addEventListener("rail:pin", (ev) => {
+      const persist = !(ev.detail && ev.detail.transient);
+      requestAnimationFrame(() => openView("pinned", { toggle: false, persist }));
     });
     function arrange() {
       html.classList.toggle("rail-phone", isPhone());
@@ -2546,11 +2553,11 @@ var RSM = (() => {
       });
     }
     const pinnedBody = rail.querySelector(".rail-pinned-body");
-    const pinnedTitle = rail.querySelector(".rail-pinned-title");
+    const pinnedTitle2 = rail.querySelector(".rail-pinned-title");
     document.addEventListener("rail:pin", (ev) => {
       if (!pinnedBody) return;
       pinnedBody.innerHTML = ev.detail.html || "";
-      if (pinnedTitle) pinnedTitle.textContent = ev.detail.title || "Pinned";
+      if (pinnedTitle2) pinnedTitle2.textContent = ev.detail.title || "Pinned";
       typesetMath(pinnedBody);
       rail.classList.add("has-pin");
     });
@@ -2558,7 +2565,7 @@ var RSM = (() => {
     if (pinClose) {
       pinClose.addEventListener("click", () => {
         if (pinnedBody) pinnedBody.innerHTML = "";
-        if (pinnedTitle) pinnedTitle.textContent = "";
+        if (pinnedTitle2) pinnedTitle2.textContent = "";
         rail.classList.remove("has-pin");
         document.dispatchEvent(new CustomEvent("rail:unpin"));
       });
@@ -3430,15 +3437,23 @@ var RSM = (() => {
     return JSON.parse(new TextDecoder().decode(bytes));
   }
   var isDagStep3 = (el) => !el.closest(".calc");
-  function currentAnchorId() {
+  function isShown(el) {
+    if (!el.getClientRects().length) return false;
+    const up = el.parentElement;
+    return !(up && up.closest(".hide, .hr-collapsed"));
+  }
+  function currentAnchor() {
     let best = null;
-    let bestTop = Infinity;
-    for (const hr of document.querySelectorAll(".hr[id]")) {
-      if (hr.closest(".rsm-source")) continue;
-      const top = hr.getBoundingClientRect().top;
-      if (top >= -2 && top < bestTop) {
-        best = hr.id;
-        bestTop = top;
+    let bestDist = Infinity;
+    const vh = window.innerHeight;
+    for (const hr of document.querySelectorAll(".manuscript .hr[id]")) {
+      if (hr.closest(".rsm-source") || !isShown(hr)) continue;
+      const r = hr.getBoundingClientRect();
+      if (r.bottom <= 0 || r.top >= vh) continue;
+      const dist = Math.abs(r.top);
+      if (dist < bestDist - 2) {
+        best = { id: hr.id, top: Math.round(r.top) };
+        bestDist = dist;
       }
     }
     return best;
@@ -3473,8 +3488,15 @@ var RSM = (() => {
     } catch {
     }
     if (Object.keys(notation).length) state.notation = notation;
-    const anchor = currentAnchorId();
-    if (anchor) state.anchor = anchor;
+    const pin = currentPin();
+    if (pin && pin.target.startsWith("#")) {
+      state.pins = [{ id: decodeURIComponent(pin.target.slice(1)), title: pin.title }];
+    }
+    const anchor = currentAnchor();
+    if (anchor) {
+      state.anchor = anchor.id;
+      state.anchorTop = anchor.top;
+    }
     return state;
   }
   function restoreNotation(state) {
@@ -3522,12 +3544,58 @@ var RSM = (() => {
       }
     }
   }
-  function restoreAnchor(state) {
-    if (!state.anchor) return;
+  function restorePins(state) {
+    const pin = Array.isArray(state.pins) ? state.pins[0] : null;
+    if (!pin || !pin.id) return;
+    const el = document.getElementById(pin.id);
+    if (!el) return;
+    try {
+      pinTarget("#" + pin.id, pin.title || "", el, { transient: true });
+    } catch {
+    }
+  }
+  function placeAnchor(state) {
     const el = document.getElementById(state.anchor);
     if (!el) return;
-    const reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    el.scrollIntoView({ behavior: reduce ? "auto" : "auto", block: "start" });
+    const want = Number(state.anchorTop) || 0;
+    const d = el.getBoundingClientRect().top - want;
+    if (Math.abs(d) > 0.5) window.scrollTo({ top: window.scrollY + d, behavior: "instant" });
+  }
+  function mathStyled() {
+    const link = document.querySelector('link[rel="stylesheet"][href*="temml"]');
+    if (!link || link.sheet) return Promise.resolve();
+    return new Promise((res) => {
+      link.addEventListener("load", res, { once: true });
+      link.addEventListener("error", res, { once: true });
+    });
+  }
+  var SETTLE_MS = 1e4;
+  var READER_INPUT = ["wheel", "touchstart", "keydown", "mousedown"];
+  function holdAnchor(state) {
+    if (!state.anchor || !document.getElementById(state.anchor)) return;
+    let done = false;
+    let ro = null;
+    const stop = () => {
+      done = true;
+      if (ro) ro.disconnect();
+      for (const t of READER_INPUT) window.removeEventListener(t, stop, true);
+    };
+    for (const t of READER_INPUT) {
+      window.addEventListener(t, stop, { capture: true, passive: true });
+    }
+    const place = () => {
+      if (!done) placeAnchor(state);
+    };
+    place();
+    requestAnimationFrame(place);
+    mathStyled().then(place);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(place);
+    const manuscript = document.querySelector(".manuscript");
+    if (manuscript && window.ResizeObserver) {
+      ro = new ResizeObserver(place);
+      ro.observe(manuscript);
+    }
+    setTimeout(stop, SETTLE_MS);
   }
   function applyState(state) {
     if (!state || state.v !== SCHEMA) {
@@ -3537,7 +3605,8 @@ var RSM = (() => {
     restoreNotation(state);
     restoreFolds(state);
     restoreOrder(state);
-    requestAnimationFrame(() => restoreAnchor(state));
+    restorePins(state);
+    holdAnchor(state);
     return true;
   }
   function showResetPill() {

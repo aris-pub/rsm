@@ -1,10 +1,10 @@
 // shareview.js
 //
 // Shareable presentation-state link ("read it the way I read it"). A reader's
-// constructed view (rail scope, fold/resolution state, logic-preserving reorder
-// order, scroll anchor; notation rebindings and pin follow) is captured on
-// demand into a ?view= URL token and restored on load, turning a private reading
-// into researcher-to-researcher communication.
+// constructed view (fold state, logic-preserving reorder order, notation
+// rebindings, the pinned block, and the block at the top of the window with its
+// offset) is captured on demand into a ?view= URL token and restored on load,
+// turning a private reading into researcher-to-researcher communication.
 //
 // Design (potf-44f, approved): the capture is an explicit, named act ("Copy this
 // view" in the document-scope sidebar); the per-block "Copy link" stays the
@@ -18,6 +18,7 @@
 import { collapseKey, openHandrail, closeHandrail, withoutPersist, launchToast } from "./handrails.js";
 import { extractModel, applyToBody, flatten, isValidOrder } from "./reorder.js";
 import { getNotationMacros, listNotation, reRenderAll } from "./notation.js";
+import { currentPin, pinTarget } from "./tooltips.js";
 
 const SCHEMA = 1;
 
@@ -40,17 +41,31 @@ function decodeToken(token) {
 // --- capture ----------------------------------------------------------------
 const isDagStep = (el) => !el.closest(".calc");
 
+// A block inside a fold is display:none: its rect is all zeros, so without this
+// check it would look like it sits exactly at the top of the window.
+function isShown(el) {
+  if (!el.getClientRects().length) return false;
+  const up = el.parentElement;
+  return !(up && up.closest(".hide, .hr-collapsed"));
+}
+
 // The block at the top of the reading viewport, to land the recipient where the
-// sender was. The first labeled handrail whose top is at or below the viewport.
-function currentAnchorId() {
+// sender was: the shown block (with an id) on screen whose top is closest to the
+// window's top, with that top in px (negative when it starts above the window).
+function currentAnchor() {
   let best = null;
-  let bestTop = Infinity;
-  for (const hr of document.querySelectorAll(".hr[id]")) {
-    if (hr.closest(".rsm-source")) continue;
-    const top = hr.getBoundingClientRect().top;
-    if (top >= -2 && top < bestTop) {
-      best = hr.id;
-      bestTop = top;
+  let bestDist = Infinity;
+  const vh = window.innerHeight;
+  for (const hr of document.querySelectorAll(".manuscript .hr[id]")) {
+    if (hr.closest(".rsm-source") || !isShown(hr)) continue;
+    const r = hr.getBoundingClientRect();
+    if (r.bottom <= 0 || r.top >= vh) continue;
+    const dist = Math.abs(r.top);
+    // A block and its first child often share a top to within a pixel. Keep
+    // the outer one, which comes first and is usually the labelled block.
+    if (dist < bestDist - 2) {
+      best = { id: hr.id, top: Math.round(r.top) };
+      bestDist = dist;
     }
   }
   return best;
@@ -103,8 +118,18 @@ export function captureState() {
   }
   if (Object.keys(notation).length) state.notation = notation;
 
-  const anchor = currentAnchorId();
-  if (anchor) state.anchor = anchor;
+  // The pinned block, by id. The sidebar holds one pin at a time, but the
+  // field is a list so more can ride along later without a new schema.
+  const pin = currentPin();
+  if (pin && pin.target.startsWith("#")) {
+    state.pins = [{ id: decodeURIComponent(pin.target.slice(1)), title: pin.title }];
+  }
+
+  const anchor = currentAnchor();
+  if (anchor) {
+    state.anchor = anchor.id;
+    state.anchorTop = anchor.top;
+  }
 
   return state;
 }
@@ -168,18 +193,80 @@ function restoreOrder(state) {
   }
 }
 
-function restoreAnchor(state) {
-  if (!state.anchor) return;
-  const el = document.getElementById(state.anchor);
+// Show the sender's pin in the Pinned view for this visit only. Pins are kept in
+// memory, never saved, and the transient flag stops the sidebar from saving
+// "Pinned" as the recipient's open view.
+function restorePins(state) {
+  const pin = Array.isArray(state.pins) ? state.pins[0] : null;
+  if (!pin || !pin.id) return;
+  const el = document.getElementById(pin.id);
   if (!el) return;
-  const reduce =
-    window.matchMedia &&
-    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  el.scrollIntoView({ behavior: reduce ? "auto" : "auto", block: "start" });
+  try {
+    pinTarget("#" + pin.id, pin.title || "", el, { transient: true });
+  } catch {
+    /* pinning unavailable, skip */
+  }
 }
 
-// Apply a decoded view. Folds and reorder do not need the math typeset, so they
-// run synchronously; the scroll anchor runs last, after layout settles.
+// Scroll so the anchor's top sits where it sat for the sender. Tokens made
+// before anchorTop existed land it at the top, as scrollIntoView did.
+function placeAnchor(state) {
+  const el = document.getElementById(state.anchor);
+  if (!el) return;
+  const want = Number(state.anchorTop) || 0;
+  const d = el.getBoundingClientRect().top - want;
+  if (Math.abs(d) > 0.5) window.scrollTo({ top: window.scrollY + d, behavior: "instant" });
+}
+
+// Resolves once the math stylesheet has loaded. It is added at runtime and
+// changes the height of every equation, so it can arrive after the restore.
+function mathStyled() {
+  const link = document.querySelector('link[rel="stylesheet"][href*="temml"]');
+  if (!link || link.sheet) return Promise.resolve();
+  return new Promise((res) => {
+    link.addEventListener("load", res, { once: true });
+    link.addEventListener("error", res, { once: true });
+  });
+}
+
+// How long a late layout change may still move the recipient to the anchor.
+const SETTLE_MS = 10000;
+const READER_INPUT = ["wheel", "touchstart", "keydown", "mousedown"];
+
+// Math styles and web fonts can load after the restore and move the layout, so
+// the anchor is placed again when each settles and whenever the manuscript
+// changes size, until the recipient touches the page or SETTLE_MS pass. Input
+// events, not scroll events, tell the reader apart: placing the anchor and the
+// browser's own scroll anchoring both scroll the page too.
+function holdAnchor(state) {
+  if (!state.anchor || !document.getElementById(state.anchor)) return;
+  let done = false;
+  let ro = null;
+  const stop = () => {
+    done = true;
+    if (ro) ro.disconnect();
+    for (const t of READER_INPUT) window.removeEventListener(t, stop, true);
+  };
+  for (const t of READER_INPUT) {
+    window.addEventListener(t, stop, { capture: true, passive: true });
+  }
+  const place = () => {
+    if (!done) placeAnchor(state);
+  };
+  place();
+  requestAnimationFrame(place);
+  mathStyled().then(place);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(place);
+  const manuscript = document.querySelector(".manuscript");
+  if (manuscript && window.ResizeObserver) {
+    ro = new ResizeObserver(place);
+    ro.observe(manuscript);
+  }
+  setTimeout(stop, SETTLE_MS);
+}
+
+// Apply a decoded view. Folds, reorder and the pin change the layout, so the
+// anchor is placed after them.
 function applyState(state) {
   if (!state || state.v !== SCHEMA) {
     launchToast("This shared view was made for a different version.", "error");
@@ -188,7 +275,8 @@ function applyState(state) {
   restoreNotation(state);
   restoreFolds(state);
   restoreOrder(state);
-  requestAnimationFrame(() => restoreAnchor(state));
+  restorePins(state);
+  holdAnchor(state);
   return true;
 }
 
