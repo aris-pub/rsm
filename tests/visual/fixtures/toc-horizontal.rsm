@@ -1,0 +1,43 @@
+# Embedding Finite Metric Spaces in Hilbert Space
+
+:toc: {
+  :view: tree
+  :orientation: horizontal
+}
+::
+
+## Introduction
+  {:label: sec-intro}
+
+Every finite metric space embeds in Hilbert space with some distortion. This
+note follows the standard random construction.
+
+## Preliminaries
+  {:label: sec-prelim}
+
+:definition: {:label: def-distortion}
+  The distortion of a map is the product of its expansion and its contraction.
+::
+
+### Random subsets
+  {:label: sec-random}
+
+We pick subsets of the points at random.
+
+## The embedding
+  {:label: sec-embedding}
+
+:theorem: {:label: thm-main}
+  The map has distortion at most a constant times the logarithm of the number
+  of points, in the sense of :ref:def-distortion::.
+::
+
+### Upper bound
+  {:label: sec-upper}
+
+Each coordinate is 1-Lipschitz, using :ref:sec-random::.
+
+## Discussion
+  {:label: sec-discussion}
+
+The bound in :ref:thm-main:: is tight.

@@ -1915,7 +1915,7 @@ var RSM = (() => {
     const toc = hr.closest(".toc");
     if (!toc) return;
     const isTree = toc.classList.toggle("tree");
-    if (isTree) (void 0)(toc);
+    if (isTree) drawAll(toc);
     if (menuItem) {
       const textEl = menuItem.querySelector(".hr-menu-item-text");
       if (textEl) textEl.textContent = isTree ? "View as list" : "View as tree";
@@ -2059,17 +2059,17 @@ var RSM = (() => {
   function menuUpOrDown(el, direction) {
     const menu = openMenuEl();
     if (!menu) return;
-    const items = Array.from(menu.querySelectorAll(":scope > .hr-menu-item")).filter((it) => it.offsetParent !== null && !it.classList.contains("disabled"));
-    if (!items.length) return;
-    const current = items.find((it) => it.classList.contains("active"));
-    let index = current ? items.indexOf(current) : -1;
+    const items2 = Array.from(menu.querySelectorAll(":scope > .hr-menu-item")).filter((it) => it.offsetParent !== null && !it.classList.contains("disabled"));
+    if (!items2.length) return;
+    const current = items2.find((it) => it.classList.contains("active"));
+    let index = current ? items2.indexOf(current) : -1;
     if (index === -1) {
-      index = direction === "down" ? 0 : items.length - 1;
+      index = direction === "down" ? 0 : items2.length - 1;
     } else {
-      index = direction === "down" ? (index + 1) % items.length : (index - 1 + items.length) % items.length;
+      index = direction === "down" ? (index + 1) % items2.length : (index - 1 + items2.length) % items2.length;
     }
     if (current) current.classList.remove("active");
-    items[index].classList.add("active");
+    items2[index].classList.add("active");
   }
   function focusUpOrDown(direction, root2) {
     const focusableElements = getFocusableElements(root2);
@@ -2216,6 +2216,113 @@ var RSM = (() => {
     });
   }
 
+  // rsm/static/margin.js
+  var MARGIN_CLASS = "rsm-margin";
+  var MARGIN_REM = 15;
+  var MARGIN_GAP_REM = 2;
+  var STACK_GAP_REM = 0.75;
+  var items = /* @__PURE__ */ new Map();
+  var resizeObs = null;
+  var frame = 0;
+  function addMarginItem(anchor, item) {
+    if (items.get(item) === anchor) return;
+    items.set(item, anchor);
+    item.classList.add("rsm-margin-item");
+    if (resizeObs) {
+      resizeObs.observe(item);
+      resizeObs.observe(anchor);
+    }
+    schedule();
+  }
+  function marginOn() {
+    return document.documentElement.classList.contains(MARGIN_CLASS);
+  }
+  function clear(item) {
+    item.style.removeProperty("left");
+    item.style.removeProperty("top");
+  }
+  function layoutMargin() {
+    frame = 0;
+    for (const [item, anchor] of items) {
+      if (!item.isConnected || !anchor.isConnected) items.delete(item);
+    }
+    const live = [...items].filter(([, a]) => a.getClientRects().length);
+    if (!marginOn()) {
+      for (const [item] of items) clear(item);
+    } else if (live.length) {
+      place(live);
+    }
+    document.dispatchEvent(new CustomEvent("rsm:margin-layout"));
+  }
+  function place(live) {
+    const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+    for (const [item] of live) {
+      item.style.left = "0px";
+      item.style.top = "0px";
+    }
+    const rows = live.map(([item, anchor]) => {
+      const column = anchor.closest(".manuscript") || document.body;
+      return {
+        item,
+        zero: item.getBoundingClientRect(),
+        anchorTop: anchor.getBoundingClientRect().top,
+        x: column.getBoundingClientRect().right + MARGIN_GAP_REM * rem
+      };
+    });
+    rows.sort((a, b) => a.anchorTop - b.anchorTop);
+    let floor = -Infinity;
+    for (const r of rows) {
+      const top = Math.max(r.anchorTop, floor);
+      r.item.style.left = r.x - r.zero.left + "px";
+      r.item.style.top = top - r.zero.top + "px";
+      floor = top + r.zero.height + STACK_GAP_REM * rem;
+    }
+  }
+  function schedule() {
+    if (!frame) frame = requestAnimationFrame(layoutMargin);
+  }
+  var ready = false;
+  function setup5() {
+    if (ready) return;
+    ready = true;
+    const html = document.documentElement;
+    new MutationObserver(schedule).observe(html, {
+      attributes: true,
+      attributeFilter: ["class", "data-reading-measure"]
+    });
+    window.addEventListener("resize", schedule);
+    if (window.ResizeObserver) {
+      resizeObs = new ResizeObserver(schedule);
+      for (const [item, anchor] of items) {
+        resizeObs.observe(item);
+        resizeObs.observe(anchor);
+      }
+      for (const m of document.querySelectorAll(".manuscript")) resizeObs.observe(m);
+    }
+    let sliding = 0;
+    const follow = () => {
+      layoutMargin();
+      if (sliding) frame = requestAnimationFrame(follow);
+    };
+    document.addEventListener("transitionrun", (ev) => {
+      if (!ev.target.matches || !ev.target.matches("main.manuscriptwrapper")) return;
+      if (!sliding++) {
+        cancelAnimationFrame(frame);
+        frame = requestAnimationFrame(follow);
+      }
+    });
+    const stop = (ev) => {
+      if (!ev.target.matches || !ev.target.matches("main.manuscriptwrapper")) return;
+      sliding = Math.max(0, sliding - 1);
+      if (!sliding) schedule();
+    };
+    document.addEventListener("transitionend", stop);
+    document.addEventListener("transitioncancel", stop);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(schedule);
+    window.addEventListener("load", schedule);
+    schedule();
+  }
+
   // rsm/static/sidebar.js
   var PHONE = "(max-width: 767px)";
   var STRIP_REM = 1 + 3 + 0.5;
@@ -2335,6 +2442,7 @@ var RSM = (() => {
       if (isPhone()) {
         html.style.removeProperty("--rail-ml");
         html.style.removeProperty("--rail-mw");
+        html.classList.remove(MARGIN_CLASS);
         return;
       }
       const rem = parseFloat(getComputedStyle(html).fontSize) || 16;
@@ -2344,9 +2452,14 @@ var RSM = (() => {
       const right = RIGHT_REM * rem;
       const avail = vw - left - right;
       const width = Math.min(colRem * rem, avail);
-      const ml = left + (open ? 0 : Math.max(0, (avail - width) / 2));
+      const extra = (MARGIN_REM + MARGIN_GAP_REM) * rem;
+      const margin = width + extra <= avail;
+      const centred = Math.max(0, (avail - width) / 2);
+      const shift = margin ? Math.min(centred, avail - width - extra) : centred;
+      const ml = left + (open ? 0 : shift);
       html.style.setProperty("--rail-ml", ml + "px");
-      html.style.setProperty("--rail-mw", width + "px");
+      html.style.setProperty("--rail-mw", width + (margin ? extra : 0) + "px");
+      html.classList.toggle(MARGIN_CLASS, margin);
     }
     function fitGraphs() {
       if (!open) return;
@@ -2457,7 +2570,7 @@ var RSM = (() => {
   }
 
   // rsm/static/prooftree.js
-  function setup5(root2 = document) {
+  function setup6(root2 = document) {
     const rail = root2.querySelector(".proof-rail");
     if (!rail) return;
     const lsKey = "rsm-sidebar:" + location.pathname;
@@ -2467,12 +2580,12 @@ var RSM = (() => {
         wireTree(svg);
       }
     });
-    const items = /* @__PURE__ */ new Map();
+    const items2 = /* @__PURE__ */ new Map();
     for (const item of rail.querySelectorAll(".rail-proof .proof-rail-item")) {
-      items.set(item.dataset.proof, item);
+      items2.set(item.dataset.proof, item);
     }
     const stateData = /* @__PURE__ */ new Map();
-    for (const [key, item] of items) {
+    for (const [key, item] of items2) {
       const sd = item.querySelector(".rail-state-data");
       if (sd) {
         try {
@@ -2665,11 +2778,11 @@ var RSM = (() => {
       );
     }
     function show(key) {
-      if (!items.has(key)) key = null;
+      if (!items2.has(key)) key = null;
       if (key === current) return;
       current = key;
       active.idx = -1;
-      for (const [k, item] of items) item.classList.toggle("shown", k === key);
+      for (const [k, item] of items2) item.classList.toggle("shown", k === key);
       rail.classList.toggle("no-proof", key === null);
       updateCollapsedClass();
       updateState();
@@ -2682,7 +2795,7 @@ var RSM = (() => {
       if (!target || !target.closest) return;
       if (target.closest(".proof-rail") || target.closest(".rail-strip") || target.closest("#hr-menu-singleton")) return;
       let el = target.closest(".proof[data-nodeid]");
-      while (el && !items.has(el.getAttribute("data-nodeid"))) {
+      while (el && !items2.has(el.getAttribute("data-nodeid"))) {
         const p = el.parentElement;
         el = p ? p.closest(".proof[data-nodeid]") : null;
       }
@@ -2736,7 +2849,7 @@ var RSM = (() => {
       if (!current) idx = -1;
       else if (idx == null || idx < 0) idx = active.idx >= 0 ? active.idx : 0;
       setActiveIdx(idx);
-      const item = current ? items.get(current) : null;
+      const item = current ? items2.get(current) : null;
       const node = item && idx >= 0 ? item.querySelector(`.toc-node[data-idx="${idx}"]`) : null;
       setCurrentNode(node);
       const dag = item ? item.querySelector("svg.toc-tree") : null;
@@ -2765,7 +2878,7 @@ var RSM = (() => {
     const collapseState = {};
     function renderState() {
       if (proofView !== "state") return;
-      const item = current ? items.get(current) : null;
+      const item = current ? items2.get(current) : null;
       if (!item) return;
       const panel = item.querySelector(".rail-state");
       if (!panel) return;
@@ -2940,7 +3053,7 @@ var RSM = (() => {
 
   // rsm/static/focusmode.js
   var focusEnabled = () => document.documentElement.getAttribute("data-focus-mode") === "on";
-  function setup6(root2 = document) {
+  function setup7(root2 = document) {
     const rail = root2.querySelector(".proof-rail");
     if (!rail) return;
     let active = null;
@@ -3226,7 +3339,7 @@ var RSM = (() => {
       liveRegion.textContent = msg;
     });
   }
-  function setup7(root2 = document) {
+  function setup8(root2 = document) {
     root2.addEventListener("reorder:toggle", (ev) => {
       const proof = ev.target.closest && ev.target.closest(".proof.hr");
       if (!proof) return;
@@ -3377,13 +3490,13 @@ var RSM = (() => {
       proof.classList.add("reorder-dragging");
       step.bodyEl.classList.add("reorder-dragged");
       if (model.svg) pinTreeCurrent(model.svg, String(step.idx));
-      const place = (slot) => {
+      const place2 = (slot) => {
         if (slot < others.length) container.insertBefore(indicator, others[slot]);
         else container.appendChild(indicator);
       };
       const onMove = (e) => {
         const slot = slotUnderPointer(others, e.clientY);
-        place(slot);
+        place2(slot);
         if (legal.has(slot)) {
           target = slot;
           indicator.classList.remove("illegal");
@@ -3583,16 +3696,16 @@ var RSM = (() => {
     for (const t of READER_INPUT) {
       window.addEventListener(t, stop, { capture: true, passive: true });
     }
-    const place = () => {
+    const place2 = () => {
       if (!done) placeAnchor(state);
     };
-    place();
-    requestAnimationFrame(place);
-    mathStyled().then(place);
-    if (document.fonts && document.fonts.ready) document.fonts.ready.then(place);
+    place2();
+    requestAnimationFrame(place2);
+    mathStyled().then(place2);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(place2);
     const manuscript = document.querySelector(".manuscript");
     if (manuscript && window.ResizeObserver) {
-      ro = new ResizeObserver(place);
+      ro = new ResizeObserver(place2);
       ro.observe(manuscript);
     }
     setTimeout(stop, SETTLE_MS);
@@ -3654,7 +3767,7 @@ var RSM = (() => {
       launchToast("Could not copy the view link.", "error");
     }
   }
-  function setup8(root2 = document) {
+  function setup9(root2 = document) {
     if (!window.__shareviewWired) {
       window.__shareviewWired = true;
       document.addEventListener("click", (ev) => {
@@ -3689,7 +3802,7 @@ var RSM = (() => {
     ".tooltipster-content .ref-pin[data-tip]"
   ].join(", ");
   var wired = false;
-  function setup9() {
+  function setup10() {
     if (wired) return;
     if (!document.querySelector(".rail-strip, .proof-rail")) return;
     wired = true;
@@ -3701,7 +3814,7 @@ var RSM = (() => {
     document.body.appendChild(tip);
     let timer = null;
     let owner = null;
-    function place(el) {
+    function place2(el) {
       const b = el.getBoundingClientRect();
       tip.style.left = "0px";
       tip.style.top = "0px";
@@ -3733,7 +3846,7 @@ var RSM = (() => {
           tip.textContent = text;
           owner = el;
           el.setAttribute("aria-describedby", tip.id);
-          place(el);
+          place2(el);
         },
         now ? 0 : 350
       );
@@ -3781,7 +3894,7 @@ var RSM = (() => {
   var READING_KEY = "rsm-reading";
   var mm = null;
   var switchObserver = null;
-  function setup10(root2 = document) {
+  function setup11(root2 = document) {
     if (root2 !== document) return;
     if (!document.body || document.body.getAttribute("data-minimap") === "false") return;
     if (!document.querySelector("main.manuscriptwrapper")) return;
@@ -3907,7 +4020,7 @@ var RSM = (() => {
     let sleepTimer = null;
     let tipTimer = null;
     let computeTimer = null;
-    let frame = 0;
+    let frame2 = 0;
     const trackRect = () => track.getBoundingClientRect();
     const behavior = () => motionMql.matches ? "auto" : "smooth";
     function render(next) {
@@ -3963,13 +4076,13 @@ var RSM = (() => {
       computeTimer = setTimeout(compute, DEBOUNCE_MS);
     }
     function updateViewport() {
-      frame = 0;
+      frame2 = 0;
       const sh = html.scrollHeight || 1;
       box.style.top = window.scrollY / sh * 100 + "%";
       box.style.height = Math.min(1, window.innerHeight / sh) * 100 + "%";
     }
     function onScroll() {
-      if (!frame) frame = requestAnimationFrame(updateViewport);
+      if (!frame2) frame2 = requestAnimationFrame(updateViewport);
       if (phoneMql.matches) wake();
     }
     function wake() {
@@ -4178,7 +4291,7 @@ var RSM = (() => {
       clearTimeout(sleepTimer);
       clearTimeout(tipTimer);
       clearTimeout(computeTimer);
-      if (frame) cancelAnimationFrame(frame);
+      if (frame2) cancelAnimationFrame(frame2);
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", scheduleCompute);
       window.removeEventListener("load", scheduleCompute);
@@ -4189,6 +4302,39 @@ var RSM = (() => {
       window.dispatchEvent(new Event("resize"));
     }
     return { nav, teardown, compute };
+  }
+
+  // rsm/static/captions.js
+  var CAPTIONS = ".manuscript :is(figure, .table-wrapper) > figcaption.hr";
+  var listening = false;
+  function setup12(root2 = document) {
+    for (const cap of root2.querySelectorAll(CAPTIONS)) {
+      cap.classList.add("rsm-cap-linked");
+      addMarginItem(cap.parentElement, cap);
+    }
+    if (listening) return;
+    listening = true;
+    document.addEventListener("rsm:margin-layout", alignRails);
+    document.addEventListener(
+      "scroll",
+      (ev) => {
+        if (ev.target.matches && ev.target.matches(".table-wrapper")) alignRails();
+      },
+      { capture: true, passive: true }
+    );
+  }
+  function alignRails() {
+    const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+    for (const cap of document.querySelectorAll("figcaption.rsm-cap-linked")) {
+      const block = cap.parentElement.getBoundingClientRect();
+      const box = cap.getBoundingClientRect();
+      if (!box.height && !box.width) continue;
+      const zone = cap.querySelector(":scope > .hr-border-zone")?.offsetWidth || rem;
+      const x = block.left - (cap.classList.contains("hr-offset") ? 3 * zone : 0);
+      cap.style.setProperty("--cap-rail-x", x - box.left + "px");
+      cap.style.setProperty("--cap-rail-y", block.top - box.top + "px");
+      cap.style.setProperty("--cap-rail-h", block.height + "px");
+    }
   }
 
   // rsm/static/onload.js
@@ -4229,17 +4375,17 @@ var RSM = (() => {
         console.error("Loading tocarcs.js FAILED!", err);
       }
       try {
-        setup5(root2);
+        setup6(root2);
       } catch (err) {
         console.error("Loading prooftree.js FAILED!", err);
       }
       try {
-        setup6(root2);
+        setup7(root2);
       } catch (err) {
         console.error("Loading focusmode.js FAILED!", err);
       }
       try {
-        setup7(root2);
+        setup8(root2);
       } catch (err) {
         console.error("Loading reorder.js FAILED!", err);
       }
@@ -4247,6 +4393,11 @@ var RSM = (() => {
         setup2(root2);
       } catch (err) {
         console.error("Loading deplens.js FAILED!", err);
+      }
+      try {
+        setup5();
+      } catch (err) {
+        console.error("Loading margin.js FAILED!", err);
       }
       try {
         if (keys) {
@@ -4288,17 +4439,17 @@ var RSM = (() => {
         console.error("Loading notation panel FAILED!", err);
       }
       try {
-        setup9();
+        setup10();
       } catch (err) {
         console.error("Loading interface tooltips FAILED!", err);
       }
       try {
-        setup8(root2);
+        setup9(root2);
       } catch (err) {
         console.error("Loading shareview.js FAILED!", err);
       }
       try {
-        setup10(root2);
+        setup11(root2);
       } catch (err) {
         console.error("Loading minimap.js FAILED!", err);
       }
@@ -4342,6 +4493,11 @@ var RSM = (() => {
         observeOffsetHandrails();
       } catch (err) {
         console.error("Re-observing offset handrails FAILED!", err);
+      }
+      try {
+        setup12(root2);
+      } catch (err) {
+        console.error("Placing captions FAILED!", err);
       }
       try {
         createTooltips();

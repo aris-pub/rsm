@@ -69,8 +69,16 @@ class TestSidebarDesktop:
         pin = page.locator('.tooltipster-base .ref-pin[data-pin-target="#thm-x"]').last
         pin.wait_for(state="visible")
         pin.click()
-        page.mouse.move(DESKTOP["width"] - 5, DESKTOP["height"] - 5)
-        page.wait_for_timeout(600)
+        # Close the hover preview on purpose with a click on empty page (its
+        # close trigger). Moving the mouse away did not always close it, so the
+        # snapshot sometimes caught it on screen. Escape would close the panel.
+        page.mouse.click(DESKTOP["width"] - 5, DESKTOP["height"] - 5)
+        page.wait_for_function(
+            "() => [...document.querySelectorAll('.tooltipster-base')]"
+            ".every(t => !t.getClientRects().length || getComputedStyle(t).opacity === '0')",
+            timeout=5000,
+        )
+        page.wait_for_timeout(300)
         assert_snapshot(page.screenshot())
 
 
