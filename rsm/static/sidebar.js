@@ -231,7 +231,7 @@ export function setupStrip(strip, rail, api) {
   }
 
   // Open a view; the open view's own button closes it.
-  function openView(id, { toggle = true } = {}) {
+  function openView(id, { toggle = true, persist = true } = {}) {
     id = translate(id);
     if (!VIEWS[id] || !has(id)) return;
     if (toggle && open && id === view) {
@@ -239,7 +239,7 @@ export function setupStrip(strip, rail, api) {
       return;
     }
     select(id);
-    setOpen(true);
+    setOpen(true, { persist });
     if (isPhone()) rail.scrollTop = 0;
   }
 
@@ -284,8 +284,9 @@ export function setupStrip(strip, rail, api) {
   });
 
   // Pinning shows the excerpt.
-  document.addEventListener("rail:pin", () => {
-    requestAnimationFrame(() => openView("pinned", { toggle: false }));
+  document.addEventListener("rail:pin", (ev) => {
+    const persist = !(ev.detail && ev.detail.transient);
+    requestAnimationFrame(() => openView("pinned", { toggle: false, persist }));
   });
 
   // Crossing the phone breakpoint switches arrangement; the open view (if any)
