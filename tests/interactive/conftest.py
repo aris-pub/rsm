@@ -9,7 +9,6 @@ import subprocess
 import time
 from contextlib import closing
 from pathlib import Path
-from subprocess import PIPE
 from typing import Any
 
 import pytest
@@ -92,11 +91,16 @@ def interactive_server(tmp_path_factory: Any):
     _write_iframe_hosts(serve_dir)
 
     port = _find_free_port()
+    # The server's output goes to a file, never to an unread pipe. livereload
+    # logs a line for every page that connects, and once an unread pipe's buffer
+    # is full (64KB on Linux) that write blocks and the whole server freezes, so
+    # every later page load times out.
+    log = open(serve_dir / "rsm-serve.log", "w")
     proc = subprocess.Popen(
         ["uv", "run", "rsm", "serve", "--port", str(port), "--no-browser"],
         cwd=serve_dir,
-        stdout=PIPE,
-        stderr=PIPE,
+        stdout=log,
+        stderr=subprocess.STDOUT,
     )
 
     try:
@@ -108,6 +112,7 @@ def interactive_server(tmp_path_factory: Any):
             proc.wait(timeout=5)
         except subprocess.TimeoutExpired:
             proc.kill()
+        log.close()
 
 
 
