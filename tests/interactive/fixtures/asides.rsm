@@ -56,7 +56,7 @@ figure's caption has to move down to clear it. ::
 :theorem: {:label: thm-a} Every step of the proof below is easy.::
 
 :proof: {:of: thm-a}
-  :step: A first step with an aside :aside:a-step:: in its statement.::
+  :step: {:label: st-a} A first step with an aside :aside:a-step:: in its statement.::
   :step: A second step.::
 ::
 
@@ -79,3 +79,4 @@ stacks them below the paragraph in marker order. The paragraph also has a footno
 :aside: {:label: a-step} The aside of the proof step. ::
 
 The last paragraph of the document, so that every aside above has text after it.
+It refers back to :ref:st-a:: so its preview can be checked.
