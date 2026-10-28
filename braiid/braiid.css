@@ -3006,9 +3006,9 @@ scripts it stays there, open. asides.js sets html.has-asides (the builder's
 pre-paint script sets it before first paint), and then an aside is either in
 the margin column (html.rsm-margin, placed by margin.js) or closed until its
 marker opens it. Screen only: print shows every aside below its block. */
-/* The aside's text colour, kept in one place while its contrast on the tint is
-   being settled. */
-:root { --aside-text: var(--text-subtle); }
+/* --text-subtle alone is below AA contrast on the tint, so the text is moved
+   halfway to the body colour. */
+:root { --aside-text: color-mix(in srgb, var(--text-subtle) 50%, var(--text-body)); }
 .manuscriptwrapper .aside {
   background: color-mix(in srgb, var(--primary-700) 9%, var(--surface-page));
   border-radius: 8px;
