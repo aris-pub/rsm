@@ -49,11 +49,20 @@ def assert_snapshot(pytestconfig: Any, request: Any, browser_name: str) -> Calla
         if update_snapshot:
             file.write_bytes(img)
             pytest.fail("--> Snapshots updated. Please review images")
+        # A new or resized snapshot also lands in snapshot_tests_failures/, which CI
+        # uploads, so the Linux baseline can be taken from the artifact.
         if not file.exists():
             file.write_bytes(img)
+            test_results_dir.mkdir(parents=True, exist_ok=True)
+            (test_results_dir / f"Actual_{name}").write_bytes(img)
             pytest.fail("--> New snapshot(s) created. Please review images")
         img_a = Image.open(BytesIO(img))
         img_b = Image.open(file)
+        if img_a.size != img_b.size:
+            test_results_dir.mkdir(parents=True, exist_ok=True)
+            img_a.save(f'{test_results_dir}/Actual_{name}')
+            img_b.save(f'{test_results_dir}/Expected_{name}')
+            pytest.fail(f"--> Snapshot size changed: {img_b.size} -> {img_a.size}")
         img_diff = Image.new("RGBA", img_a.size)
         # fail_fast off so pixelmatch counts every differing pixel for the budget.
         # max_diff_pixels stays 0 by default (exact match), so most tests are
