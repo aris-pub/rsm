@@ -622,7 +622,13 @@ function syncCollapseButton(hr) {
   const collapsed = hr.classList.contains("hr-collapsed");
   const name = (hr.getAttribute("data-menu-label") || "").trim() || "this block";
   btn.setAttribute("aria-expanded", collapsed ? "false" : "true");
-  btn.setAttribute("aria-label", (collapsed ? "Show " : "Hide ") + name);
+  // The fold label is drawn by CSS, which screen readers may skip, so a folded
+  // block's button names it too: "Show Proof, 8 steps hidden".
+  const fold = hr.querySelector(
+    ":scope > .hr-content-zone[data-fold-label], :scope > .hr-content-zone > .hr-label[data-fold-label]"
+  );
+  const hidden = collapsed && fold ? ", " + fold.getAttribute("data-fold-label") : "";
+  btn.setAttribute("aria-label", (collapsed ? "Show " : "Hide ") + name + hidden);
   const zone = hr.querySelector(":scope > .hr-content-zone");
   if (zone) {
     if (!zone.id) {

@@ -1,0 +1,56 @@
+# Fold labels
+
+:lemma: {:label: lem-fold} A statement to prove. ::
+
+:sketch:
+
+  The idea in one line.
+
+::
+
+:proof: {
+  :of: lem-fold
+  :collapsed:
+}
+
+  :step: {:label: stp-sub}
+
+    A step with sub-steps.
+
+    :step: {:label: stp-sub-a} First sub-step. ::
+
+    :step: {:label: stp-sub-b} Second sub-step. ::
+
+  ::
+
+  :step: {:label: stp-just}
+
+    A claim with a reason.
+
+    :p: The reason. ::
+
+  ::
+
+  :step: {:label: stp-bare} A bare claim. ::
+
+::
+
+:proof: {:label: prf-open}
+
+  :step: A step in an open proof. ::
+
+::
+
+:proof:
+
+  :calc:
+
+    :step: $f(x) = a$
+
+      :p: Because of the first reason. ::
+
+    ::
+
+  ::
+
+::

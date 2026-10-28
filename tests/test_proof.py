@@ -44,7 +44,7 @@ def test_simple():
 
         <div class="paragraph hr-label">
 
-        <p><span class="span label">Proof.</span><span class="span proof-step-count">1 step</span></p>
+        <p><span class="span label">Proof.</span></p>
 
         </div>
 
@@ -167,7 +167,7 @@ def test_sub_step():
 
         <div class="paragraph hr-label">
 
-        <p><span class="span label">Proof.</span><span class="span proof-step-count">1 step</span></p>
+        <p><span class="span label">Proof.</span></p>
 
         </div>
 
@@ -252,7 +252,7 @@ def test_two_steps():
 
         <div class="paragraph hr-label">
 
-        <p><span class="span label">Proof.</span><span class="span proof-step-count">2 steps</span></p>
+        <p><span class="span label">Proof.</span></p>
 
         </div>
 
