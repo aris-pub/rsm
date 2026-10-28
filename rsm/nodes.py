@@ -1637,7 +1637,7 @@ class Proof(NodeWithChildren):
         # goal is the step's claim and hyps is the full in-scope context.
         self.step_state: list[dict] = []
         # Count of top-level steps, set by the proof model's step numbering. The
-        # collapsed proof header shows it so the reader sees how much is folded.
+        # fold label of a collapsed proof names it so the reader sees how much is hidden.
         self.num_steps: int = 0
 
 

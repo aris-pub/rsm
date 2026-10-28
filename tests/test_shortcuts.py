@@ -407,7 +407,7 @@ def test_prev_shortcut():
 
         <div class="paragraph hr-label">
 
-        <p><span class="span label">Proof.</span><span class="span proof-step-count">2 steps</span></p>
+        <p><span class="span label">Proof.</span></p>
 
         </div>
 
@@ -521,7 +521,7 @@ def test_prev2_shortcut():
 
         <div class="paragraph hr-label">
 
-        <p><span class="span label">Proof.</span><span class="span proof-step-count">3 steps</span></p>
+        <p><span class="span label">Proof.</span></p>
 
         </div>
 
@@ -649,7 +649,7 @@ def test_prev_and_prev2_shortcut():
 
         <div class="paragraph hr-label">
 
-        <p><span class="span label">Proof.</span><span class="span proof-step-count">3 steps</span></p>
+        <p><span class="span label">Proof.</span></p>
 
         </div>
 

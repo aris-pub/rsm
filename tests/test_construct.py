@@ -149,7 +149,7 @@ def test_real_life_example():
 
         <div class="paragraph hr-label">
 
-        <p><span class="span label">Proof.</span><span class="span proof-step-count">7 steps</span></p>
+        <p><span class="span label">Proof.</span></p>
 
         </div>
 

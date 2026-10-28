@@ -1206,7 +1206,14 @@ class Translator:
         # does not correspond to the tag opened at the start of the paragraph.
         #
         # A paragraph cannot start with a mathblock.
-        items: list[EditCommand] = [AppendNodeTag(node, "div")]  #
+        # A labelled block's title paragraph carries the block's fold label, set
+        # by the handrails translator.
+        fold_label = getattr(node, "fold_label", "")
+        items: list[EditCommand] = [
+            AppendNodeTag(
+                node, "div", extra_attrs={"data-fold-label": fold_label} if fold_label else None
+            )
+        ]
         if node.first_of_type(nodes.MathBlock) or node.first_of_type(nodes.CodeBlock):
             items.append(AppendOpenTagManualClose(tag="p", newline_inner=False))
         else:
@@ -1756,14 +1763,6 @@ class Translator:
             ]
         )
 
-    @staticmethod
-    def _proof_step_count_text(node: nodes.Proof) -> str:
-        """The "N steps" suffix text, or "" when the proof has no top-level steps."""
-        count = getattr(node, "num_steps", 0)
-        if not count:
-            return ""
-        return "1 step" if count == 1 else f"{count} steps"
-
     def visit_proof(self, node: nodes.Proof) -> EditCommandBatch:
         last = node.last_of_type(nodes.Step)
         if last:
@@ -1782,15 +1781,8 @@ class Translator:
             classname = node.__class__.__name__.lower()
             title = self._make_title_node(label=f"{classname.capitalize()}.")
 
-        # A muted suffix (its own span, not baked into the label text, so a
-        # document can hide or restyle it) names the folded step count. CSS shows
-        # it only while the proof is collapsed and draws the leading separator.
-        count_text = self._proof_step_count_text(node)
         extra_attrs = None
-        if count_text:
-            count_span = nodes.Span(classes=["proof-step-count"])
-            count_span.append(nodes.Text(text=count_text))
-            title.append(count_span)
+        if node.num_steps:
             extra_attrs = {"data-steps": str(node.num_steps)}
 
         return AppendBatchAndDefer(
@@ -2608,12 +2600,44 @@ class HandrailsTranslator(Translator):
             classes=["hr-spacer-zone"],
         )
 
-    def _hr_content_zone(self, include_content) -> EditCommand:
+    def _hr_content_zone(self, include_content, fold_label: str = "") -> EditCommand:
+        attrs = {"data-fold-label": fold_label} if fold_label else {}
         return (
-            AppendOpenTag(classes=["hr-content-zone"])
+            AppendOpenTag(classes=["hr-content-zone"], **attrs)
             if include_content
-            else AppendOpenTagManualClose(classes=["hr-content-zone"])
+            else AppendOpenTagManualClose(classes=["hr-content-zone"], **attrs)
         )
+
+    @staticmethod
+    def _fold_label(node) -> str:
+        """What a folded block hides, as shown at the foot of its handrail.
+
+        Empty when folding would hide nothing. A step hides its subproof: the
+        direct steps in it, else its justification. Any other block hides its
+        body: its direct steps, else the whole block, named by its kind.
+        """
+        if isinstance(node, nodes.Step):
+            body = node.first_of_type(nodes.Subproof)
+            if body is None:
+                return ""
+            fallback = "justification hidden"
+        else:
+            body = node
+            fallback = f"{node.__class__.__name__.lower()} hidden"
+        if not body.children:
+            return ""
+        count = sum(isinstance(c, nodes.Step) for c in body.children)
+        if not count:
+            return fallback
+        return "1 step hidden" if count == 1 else f"{count} steps hidden"
+
+    def _label_head_with_fold(self, batch: EditCommandBatch, node) -> None:
+        # Labelled blocks show the fold label from their title paragraph, not the
+        # content zone: a proof's content-zone ::after already draws its tombstone.
+        for item in batch.items:
+            if isinstance(item, AppendExternalTree):
+                item.root.fold_label = self._fold_label(node)
+                return
 
     def _hr_info_zone_icon(self, icon) -> AppendOpenCloseTag:
         hr_info_start = """<div class="hr-info">"""
@@ -2749,7 +2773,7 @@ class HandrailsTranslator(Translator):
             menu_zone,
             self._hr_border_zone(),
             self._hr_spacer_zone(),
-            self._hr_content_zone(True),
+            self._hr_content_zone(True, fold_label=self._fold_label(node)),
         ]
         return AppendBatchAndDefer(newitems)
 
@@ -3442,6 +3466,7 @@ class HandrailsTranslator(Translator):
 
     def visit_theorem(self, node: nodes.Theorem) -> EditCommand:
         batch = super().visit_theorem(node)
+        self._label_head_with_fold(batch, node)
         hr = self._replace_node_with_handrails(node, additional_classes=["hr-labeled"])
         hr.items += batch.items[1:]
         return hr
@@ -3453,6 +3478,7 @@ class HandrailsTranslator(Translator):
 
     def visit_sketch(self, node: nodes.Sketch) -> EditCommand:
         batch = super().visit_sketch(node)
+        self._label_head_with_fold(batch, node)
         hr = self._replace_node_with_handrails(node, additional_classes=["hr-labeled"])
         hr.items += batch.items[1:]
         return hr
@@ -3465,6 +3491,7 @@ class HandrailsTranslator(Translator):
 
     def visit_proof(self, node: nodes.Proof) -> EditCommand:
         batch = super().visit_proof(node)
+        self._label_head_with_fold(batch, node)
         # Stamp the proof with the label of the result it proves, so the reader's
         # dependency lens can aggregate a result-level graph (which result rests
         # on which) from the per-proof citation graphs. Uses the same association

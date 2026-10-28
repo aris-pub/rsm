@@ -287,7 +287,7 @@ Blocks that carry semantic weight (named environments, structural elements) have
 - Content zone children: hidden
 - Border line: bottom border added (indicates continuation)
 - Collapse icon: expand state
-- Optional "steps hidden" text for proof steps
+- Fold label at the foot of the handrail saying what is hidden ("8 steps hidden", "justification hidden", "proof hidden"), from the block's `data-fold-label`
 
 ### Mobile
 
