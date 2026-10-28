@@ -15,8 +15,14 @@ RSM_READY = "() => window.__rsmInitialized === true"
 DESKTOP = {"width": 1400, "height": 900}
 PHONE = {"width": 375, "height": 812}
 
+# contentRight is the text column's edge: with the margin column on (rsm-coj)
+# the wrapper also holds that column, which is not part of the centring.
 _GEOM = """() => {
-    const w = document.querySelector('main.manuscriptwrapper').getBoundingClientRect();
+    const main = document.querySelector('main.manuscriptwrapper');
+    const cs = getComputedStyle(main);
+    const extra = parseFloat(cs.paddingRight) - parseFloat(cs.paddingLeft);
+    const b = main.getBoundingClientRect();
+    const w = {left: b.left, right: b.right - extra};
     const s = document.querySelector('.rail-strip').getBoundingClientRect();
     const r = document.querySelector('.proof-rail').getBoundingClientRect();
     const d = document.documentElement;

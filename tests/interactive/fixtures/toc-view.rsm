@@ -1,0 +1,19 @@
+# TOC View Toggle
+
+:toc:
+::
+
+## First section
+  {:label: sec-one}
+
+Body text for the first section.
+
+## Second section
+  {:label: sec-two}
+
+This builds on :ref:sec-one::.
+
+## Third section
+  {:label: sec-three}
+
+This builds on :ref:sec-two::.

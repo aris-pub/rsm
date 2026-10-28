@@ -19,6 +19,8 @@ import * as reorder from './reorder.js';
 import * as deplens from './deplens.js';
 import * as shareview from './shareview.js';
 import * as uitip from './uitip.js';
+import * as margin from './margin.js';
+import * as captions from './captions.js';
 
 export async function onload(root = null, { keys = true } = {}) {
   if (!root) root = document;
@@ -96,6 +98,13 @@ export async function onload(root = null, { keys = true } = {}) {
       deplens.setup(root);
     } catch (err) {
       console.error("Loading deplens.js FAILED!", err);
+    }
+
+    // Margin column - captions (and later asides) beside the text when it fits
+    try {
+      margin.setup();
+    } catch (err) {
+      console.error("Loading margin.js FAILED!", err);
     }
 
     // Keyboard - set up event listeners once
@@ -225,6 +234,13 @@ export async function onrender(root = null) {
       handrails.observeOffsetHandrails();
     } catch (err) {
       console.error("Re-observing offset handrails FAILED!", err);
+    }
+
+    // Captions into the margin column (idempotent, picks up replaced DOM)
+    try {
+      captions.setup(root);
+    } catch (err) {
+      console.error("Placing captions FAILED!", err);
     }
 
     // Tooltipster - already idempotent with :not(.tooltipstered) selector
