@@ -1250,7 +1250,14 @@ class Translator:
         # does not correspond to the tag opened at the start of the paragraph.
         #
         # A paragraph cannot start with a mathblock.
-        items: list[EditCommand] = [AppendNodeTag(node, "div")]  #
+        # A labelled block's title paragraph carries the block's fold label, set
+        # by the handrails translator.
+        fold_label = getattr(node, "fold_label", "")
+        items: list[EditCommand] = [
+            AppendNodeTag(
+                node, "div", extra_attrs={"data-fold-label": fold_label} if fold_label else None
+            )
+        ]
         if node.first_of_type(nodes.MathBlock) or node.first_of_type(nodes.CodeBlock):
             items.append(AppendOpenTagManualClose(tag="p", newline_inner=False))
         else:
@@ -1453,24 +1460,46 @@ class Translator:
         parts.append('</svg>')
         return "".join(parts)
 
-    def visit_note(self, node: nodes.Note) -> EditCommand:
-        return AppendBatchAndDefer(
-            [
-                AppendOpenTag("span", classes=["note"]),
-                AppendOpenCloseTag(
-                    "sup",
-                    content=f'<a class="note__link">{node.full_number}</a>',
-                    classes=["note__number"],
-                    newline_inner=False,
-                ),
-                AppendOpenTag(
-                    "span",
-                    id=node.label,
-                    classes=["note__content"],
-                    newline_inner=False,
-                ),
-            ]
+    def visit_notecall(self, node: nodes.NoteCall) -> EditCommand:
+        tag = _make_tag(
+            "a",
+            id_=f"call-{node.target}",
+            classes=["note-marker"],
+            href=f"#{node.target}",
+            role="doc-noteref",
+            **{"data-note-number": node.number, "data-note-kind": node.kind},
         )
+        return AppendText(f"{tag}{node.number}</a>")
+
+    def visit_note(self, node: nodes.Note) -> EditCommand:
+        # Until the notes list and margin placement exist, a definition is shown
+        # where it is written, as a paragraph that starts with its number. The
+        # mathblock and codeblock visitors close and reopen the <p> as they do
+        # inside an ordinary paragraph.
+        items: list[EditCommand] = [
+            AppendNodeTag(
+                node,
+                "div",
+                extra_attrs={
+                    "data-note-number": node.number,
+                    "data-note-kind": node.kind,
+                },
+            )
+        ]
+        if node.first_of_type(nodes.MathBlock) or node.first_of_type(nodes.CodeBlock):
+            items.append(AppendOpenTagManualClose(tag="p", newline_inner=False))
+        else:
+            items.append(AppendOpenTag(tag="p", newline_inner=False))
+        items.append(
+            AppendText(f'<span class="note__number">{node.number}</span> ')
+        )
+        return AppendBatchAndDefer(items)
+
+    def leave_note(self, node: nodes.Note) -> EditCommand:
+        batch = self.leave_node(node)
+        if getattr(node, "_must_close_p_tag", False):
+            batch.items.insert(0, AppendText("</p>"))
+        return batch
 
     def visit_math(self, node: nodes.Math) -> EditCommand:
         # \( ... \) are the standard TeX inline-math delimiters read by the client renderer
@@ -1485,7 +1514,7 @@ class Translator:
 
     def visit_mathblock(self, node: nodes.MathBlock) -> EditCommand:
         commands = []
-        if isinstance(node.parent, nodes.Paragraph):
+        if isinstance(node.parent, (nodes.Paragraph, nodes.Note)):
             # A paragraph that contains a mathblock cannot _start_ with a mathblock,
             # so this mathblock must always contain some previous siblings that must
             # be enclosed in <p> tags.  (See comment in visit_paragraph().)
@@ -1800,14 +1829,6 @@ class Translator:
             ]
         )
 
-    @staticmethod
-    def _proof_step_count_text(node: nodes.Proof) -> str:
-        """The "N steps" suffix text, or "" when the proof has no top-level steps."""
-        count = getattr(node, "num_steps", 0)
-        if not count:
-            return ""
-        return "1 step" if count == 1 else f"{count} steps"
-
     def visit_proof(self, node: nodes.Proof) -> EditCommandBatch:
         last = node.last_of_type(nodes.Step)
         if last:
@@ -1826,15 +1847,8 @@ class Translator:
             classname = node.__class__.__name__.lower()
             title = self._make_title_node(label=f"{classname.capitalize()}.")
 
-        # A muted suffix (its own span, not baked into the label text, so a
-        # document can hide or restyle it) names the folded step count. CSS shows
-        # it only while the proof is collapsed and draws the leading separator.
-        count_text = self._proof_step_count_text(node)
         extra_attrs = None
-        if count_text:
-            count_span = nodes.Span(classes=["proof-step-count"])
-            count_span.append(nodes.Text(text=count_text))
-            title.append(count_span)
+        if node.num_steps:
             extra_attrs = {"data-steps": str(node.num_steps)}
 
         return AppendBatchAndDefer(
@@ -2652,12 +2666,47 @@ class HandrailsTranslator(Translator):
             classes=["hr-spacer-zone"],
         )
 
-    def _hr_content_zone(self, include_content) -> EditCommand:
+    def _hr_content_zone(self, include_content, fold_label: str = "") -> EditCommand:
+        attrs = {"data-fold-label": fold_label} if fold_label else {}
         return (
-            AppendOpenTag(classes=["hr-content-zone"])
+            AppendOpenTag(classes=["hr-content-zone"], **attrs)
             if include_content
-            else AppendOpenTagManualClose(classes=["hr-content-zone"])
+            else AppendOpenTagManualClose(classes=["hr-content-zone"], **attrs)
         )
+
+    @staticmethod
+    def _fold_label(node) -> str:
+        """What a folded block hides, as shown at the foot of its handrail.
+
+        Empty when folding would hide nothing. A step hides its subproof: the
+        direct steps in it, else its justification. Any other block hides its
+        body: its direct steps, else the whole block, named by its kind.
+        """
+        if isinstance(node, nodes.Step):
+            # Calc rows start folded, so a label under every relation is noise.
+            if node.first_ancestor_of_type(nodes.Calc) is not None:
+                return ""
+            body = node.first_of_type(nodes.Subproof)
+            if body is None:
+                return ""
+            fallback = "justification hidden"
+        else:
+            body = node
+            fallback = f"{node.__class__.__name__.lower()} hidden"
+        if not body.children:
+            return ""
+        count = sum(isinstance(c, nodes.Step) for c in body.children)
+        if not count:
+            return fallback
+        return "1 step hidden" if count == 1 else f"{count} steps hidden"
+
+    def _label_head_with_fold(self, batch: EditCommandBatch, node) -> None:
+        # Labelled blocks show the fold label from their title paragraph, not the
+        # content zone: a proof's content-zone ::after already draws its tombstone.
+        for item in batch.items:
+            if isinstance(item, AppendExternalTree):
+                item.root.fold_label = self._fold_label(node)
+                return
 
     def _hr_info_zone_icon(self, icon) -> AppendOpenCloseTag:
         hr_info_start = """<div class="hr-info">"""
@@ -2793,7 +2842,7 @@ class HandrailsTranslator(Translator):
             menu_zone,
             self._hr_border_zone(),
             self._hr_spacer_zone(),
-            self._hr_content_zone(True),
+            self._hr_content_zone(True, fold_label=self._fold_label(node)),
         ]
         return AppendBatchAndDefer(newitems)
 
@@ -3318,6 +3367,23 @@ class HandrailsTranslator(Translator):
         batch.items.insert(-1, self._hr_info_zone_icon(getattr(node, "icon", None)))
         return batch
 
+    def visit_note(self, node: nodes.Note) -> EditCommand:
+        # A note or aside definition gets no handrail of its own. It sits inside a
+        # chromeless alignment handrail (as asset bodies do) so its text lines up
+        # with the paragraphs around it.
+        cmd = super().visit_note(node)
+        bare = "hr hr-bare" + (" hr-offset" if node.handrail_depth > 0 else "")
+        wrapper = AppendTextAndDefer(
+            f'<div class="{bare}">'
+            + self._hr_collapse_zone(collapsible=False).make_text()
+            + self._hr_menu_zone_empty().make_text()
+            + self._hr_border_zone_empty().make_text()
+            + self._hr_spacer_zone().make_text()
+            + '<div class="hr-content-zone">',
+            "</div>" + self._hr_info_zone_icon(None).make_text() + "</div>",
+        )
+        return AppendBatchAndDefer([cmd.items[0], wrapper, *cmd.items[1:]])
+
     def visit_enumerate(self, node: nodes.Enumerate) -> EditCommand:
         batch = self._replace_node_with_handrails(node, collapse_in_hr=False)
         if "hr-hidden" not in batch.items[0].classes:
@@ -3455,10 +3521,10 @@ class HandrailsTranslator(Translator):
     def visit_codeblock(self, node: nodes.CodeBlock) -> EditCommand:
         batch = self._replace_node_with_handrails(node, collapse_in_hr=False)
         handrail_idx = 0
-        if isinstance(node.parent, nodes.Paragraph):
+        if isinstance(node.parent, (nodes.Paragraph, nodes.Note)):
             batch.items.insert(0, AppendText("</p>"))
             handrail_idx = 1
-        offset_class = ["hr-offset"] if isinstance(node.parent, nodes.Paragraph) else []
+        offset_class = ["hr-offset"] if isinstance(node.parent, (nodes.Paragraph, nodes.Note)) else []
         batch.items[handrail_idx].classes += ["hr-hidden"] + offset_class
         batch.items.append(AppendOpenTag("pre"))
         return AppendBatchAndDefer(batch.items)
@@ -3487,6 +3553,7 @@ class HandrailsTranslator(Translator):
 
     def visit_theorem(self, node: nodes.Theorem) -> EditCommand:
         batch = super().visit_theorem(node)
+        self._label_head_with_fold(batch, node)
         hr = self._replace_node_with_handrails(node, additional_classes=["hr-labeled"])
         hr.items += batch.items[1:]
         return hr
@@ -3498,6 +3565,7 @@ class HandrailsTranslator(Translator):
 
     def visit_sketch(self, node: nodes.Sketch) -> EditCommand:
         batch = super().visit_sketch(node)
+        self._label_head_with_fold(batch, node)
         hr = self._replace_node_with_handrails(node, additional_classes=["hr-labeled"])
         hr.items += batch.items[1:]
         return hr
@@ -3510,6 +3578,7 @@ class HandrailsTranslator(Translator):
 
     def visit_proof(self, node: nodes.Proof) -> EditCommand:
         batch = super().visit_proof(node)
+        self._label_head_with_fold(batch, node)
         # Stamp the proof with the label of the result it proves, so the reader's
         # dependency lens can aggregate a result-level graph (which result rests
         # on which) from the per-proof citation graphs. Uses the same association
@@ -3624,11 +3693,11 @@ class HandrailsTranslator(Translator):
             menu_label="Equation" if node.nonum else node.long_reftext,
         )
         handrail_idx = 0
-        if isinstance(node.parent, nodes.Paragraph):
+        if isinstance(node.parent, (nodes.Paragraph, nodes.Note)):
             batch.items.insert(0, AppendText("</p>"))
             handrail_idx = 1
         batch.items.append(AppendTextAndDefer("$$\n", "\n$$"))
-        offset_class = ["hr-offset"] if isinstance(node.parent, nodes.Paragraph) else []
+        offset_class = ["hr-offset"] if isinstance(node.parent, (nodes.Paragraph, nodes.Note)) else []
         batch.items[handrail_idx].classes += ["hr-hidden"] + offset_class
         return batch
 

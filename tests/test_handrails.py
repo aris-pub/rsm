@@ -574,7 +574,7 @@ def test_theorem():
 
         <div class="hr-content-zone">
 
-        <div class="paragraph hr-label">
+        <div class="paragraph hr-label" data-fold-label="theorem hidden">
 
         <p><span class="span label">Theorem 1.</span></p>
 

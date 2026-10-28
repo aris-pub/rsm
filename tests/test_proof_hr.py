@@ -94,9 +94,9 @@ def test_two_steps():
 
         <div class="hr-content-zone">
 
-        <div class="paragraph hr-label">
+        <div class="paragraph hr-label" data-fold-label="2 steps hidden">
 
-        <p><span class="span label">Proof.</span><span class="span proof-step-count">2 steps</span></p>
+        <p><span class="span label">Proof.</span></p>
 
         </div>
 
@@ -358,9 +358,9 @@ def test_sub_step():
 
         <div class="hr-content-zone">
 
-        <div class="paragraph hr-label">
+        <div class="paragraph hr-label" data-fold-label="1 step hidden">
 
-        <p><span class="span label">Proof.</span><span class="span proof-step-count">1 step</span></p>
+        <p><span class="span label">Proof.</span></p>
 
         </div>
 
@@ -387,7 +387,7 @@ def test_sub_step():
         <div class="hr-spacer"></div>
         </div>
 
-        <div class="hr-content-zone">
+        <div class="hr-content-zone" data-fold-label="1 step hidden">
 
         <div class="statement" data-nodeid="3">
 
@@ -471,7 +471,7 @@ def test_sub_step():
         <div class="hr-spacer"></div>
         </div>
 
-        <div class="hr-content-zone">
+        <div class="hr-content-zone" data-fold-label="justification hidden">
 
         <div class="statement" data-nodeid="8">
 
@@ -665,7 +665,7 @@ def test_theorem():
 
         <div class="hr-content-zone">
 
-        <div class="paragraph hr-label">
+        <div class="paragraph hr-label" data-fold-label="theorem hidden">
 
         <p><span class="span label">Theorem 1.</span></p>
 
@@ -813,9 +813,9 @@ def test_proof():
 
         <div class="hr-content-zone">
 
-        <div class="paragraph hr-label">
+        <div class="paragraph hr-label" data-fold-label="1 step hidden">
 
-        <p><span class="span label">Proof.</span><span class="span proof-step-count">1 step</span></p>
+        <p><span class="span label">Proof.</span></p>
 
         </div>
 
@@ -1000,7 +1000,7 @@ def test_proof_with_sketch():
 
         <div class="hr-content-zone">
 
-        <div class="paragraph hr-label">
+        <div class="paragraph hr-label" data-fold-label="sketch hidden">
 
         <p><span class="span label">Proof sketch.</span></p>
 
@@ -1078,9 +1078,9 @@ def test_proof_with_sketch():
 
         <div class="hr-content-zone">
 
-        <div class="paragraph hr-label">
+        <div class="paragraph hr-label" data-fold-label="1 step hidden">
 
-        <p><span class="span label">Proof.</span><span class="span proof-step-count">1 step</span></p>
+        <p><span class="span label">Proof.</span></p>
 
         </div>
 
@@ -1175,46 +1175,53 @@ def test_proof_with_sketch():
     )
 
 
-# A collapsed structured proof shows how many top-level steps are folded away,
-# so the reader knows how much is hidden before expanding it. The count rides a
-# data attribute and a muted suffix span, kept out of the label text so a
-# document can hide or restyle it. See bead rsm-2df.
+# A folded block names what it hides at the foot of its handrail: "N steps
+# hidden" when it holds steps, "justification hidden" for a step whose only
+# hidden body is its :p:, else "<kind> hidden". The words ride a data-fold-label
+# attribute that CSS renders, so the stylesheet holds no hard-coded text. Steps
+# carry it on their content zone, labelled blocks (proof, sketch, theorem) on
+# their .hr-label, so a proof's label never shares a pseudo-element with its
+# tombstone. See beads rsm-2df and rsm-85x.
 
 
 def _render_proof(body):
     return rsm.render("# T\n\n" + body, handrails=True, source_offsets=False)
 
 
-def test_proof_step_count_multiple():
-    html = _render_proof(
-        """
+def _labels(body):
+    """Every (class, fold label) pair in the rendered body, in document order."""
+    html = _render_proof(body)
+    tags = re.findall(r'<div class="([^"]*)"[^>]*\bdata-fold-label="([^"]*)"', html)
+    return [(cls, label) for cls, label in tags]
+
+
+def test_fold_label_proof_counts_top_level_steps():
+    body = """
         :proof:
           :step: First.::
           :step: Second.::
           :step: Third.::
         ::
         """
-    )
-    assert 'data-steps="3"' in html
-    assert re.search(r'proof-step-count">\s*3 steps\s*<', html)
+    assert 'data-steps="3"' in _render_proof(body)
+    # The proof's label lives on its .hr-label, not on the content zone whose
+    # ::after draws the tombstone.
+    assert _labels(body) == [("paragraph hr-label", "3 steps hidden")]
 
 
-def test_proof_step_count_singular():
-    html = _render_proof(
-        """
+def test_fold_label_proof_one_step():
+    body = """
         :proof:
           :step: Only one.::
         ::
         """
-    )
-    assert 'data-steps="1"' in html
-    assert re.search(r'proof-step-count">\s*1 step\s*<', html)
+    assert _labels(body) == [("paragraph hr-label", "1 step hidden")]
 
 
-def test_proof_step_count_only_top_level():
-    # A single top-level step whose body holds two sub-steps still counts as one.
-    html = _render_proof(
-        """
+def test_fold_label_counts_only_direct_steps():
+    # One top-level step holding two sub-steps: the proof hides one step, the
+    # step hides two.
+    body = """
         :proof:
           :step: Outer.
             :step: Inner a.::
@@ -1222,18 +1229,105 @@ def test_proof_step_count_only_top_level():
           ::
         ::
         """
-    )
-    assert 'data-steps="1"' in html
-    assert re.search(r'proof-step-count">\s*1 step\s*<', html)
+    assert _labels(body) == [
+        ("paragraph hr-label", "1 step hidden"),
+        ("hr-content-zone", "2 steps hidden"),
+    ]
 
 
-def test_proof_step_count_none():
-    html = _render_proof(
+def test_fold_label_step_with_one_substep():
+    body = """
+        :proof:
+          :step: Outer.
+            :step: Inner.::
+          ::
+        ::
         """
+    assert _labels(body)[1] == ("hr-content-zone", "1 step hidden")
+
+
+def test_fold_label_prose_proof():
+    body = """
         :proof:
           Just prose, no steps at all.
         ::
         """
+    assert "data-steps=" not in _render_proof(body)
+    assert _labels(body) == [("paragraph hr-label", "proof hidden")]
+
+
+def test_fold_label_step_with_only_justification():
+    body = """
+        :proof:
+          :step: A claim.
+
+            :p: The reason. ::
+
+          ::
+        ::
+        """
+    assert _labels(body) == [
+        ("paragraph hr-label", "1 step hidden"),
+        ("hr-content-zone", "justification hidden"),
+    ]
+
+
+def test_fold_label_step_with_nothing_to_hide():
+    body = """
+        :proof:
+          :step: A bare claim.::
+        ::
+        """
+    assert _labels(body) == [("paragraph hr-label", "1 step hidden")]
+
+
+def test_no_fold_label_on_calc_step():
+    # Calc rows start folded, so they show no label. The proof around the calc
+    # has no steps of its own, so it reads "proof hidden".
+    body = """
+        :proof:
+          :calc:
+
+            :step: $f(x) = a$
+
+              :p: Because the first reason. ::
+
+            ::
+
+          ::
+        ::
+        """
+    assert _labels(body) == [("paragraph hr-label", "proof hidden")]
+
+
+def test_fold_label_sketch():
+    body = """
+        :sketch: The idea in brief.::
+        """
+    assert _labels(body) == [("paragraph hr-label", "sketch hidden")]
+
+
+def test_fold_label_theorem_uses_its_kind():
+    body = """
+        :lemma: A statement.::
+        """
+    assert _labels(body) == [("paragraph hr-label", "lemma hidden")]
+
+
+def test_fold_label_only_with_handrails():
+    html = rsm.render(
+        "# T\n\n:proof:\n  :step: One.::\n::\n", handrails=False, source_offsets=False
     )
-    assert "data-steps=" not in html
+    assert "data-fold-label" not in html
+
+
+def test_no_step_count_in_proof_header():
+    html = _render_proof(
+        """
+        :proof:
+          :step: First.::
+          :step: Second.::
+        ::
+        """
+    )
     assert "proof-step-count" not in html

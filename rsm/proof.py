@@ -133,7 +133,7 @@ def number_steps(proof) -> None:
     Subproof, numbering its direct Step children.
 
     The last index is the count of top-level steps, recorded on the node so the
-    collapsed proof header can show how much is folded without recounting.
+    fold label of a collapsed proof can say how much is hidden without recounting.
     """
     step_gen = (s for s in proof.children if isinstance(s, nodes.Step))
     count = 0

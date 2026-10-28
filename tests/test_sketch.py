@@ -41,7 +41,7 @@ def test_simple_no_handrails():
 
         <div class="paragraph hr-label">
 
-        <p><span class="span label">Proof.</span><span class="span proof-step-count">1 step</span></p>
+        <p><span class="span label">Proof.</span></p>
 
         </div>
 

@@ -1654,7 +1654,11 @@ var RSM = (() => {
     const collapsed = hr.classList.contains("hr-collapsed");
     const name = (hr.getAttribute("data-menu-label") || "").trim() || "this block";
     btn.setAttribute("aria-expanded", collapsed ? "false" : "true");
-    btn.setAttribute("aria-label", (collapsed ? "Show " : "Hide ") + name);
+    const fold = hr.querySelector(
+      ":scope > .hr-content-zone[data-fold-label], :scope > .hr-content-zone > .hr-label[data-fold-label]"
+    );
+    const hidden = collapsed && fold ? ", " + fold.getAttribute("data-fold-label") : "";
+    btn.setAttribute("aria-label", (collapsed ? "Show " : "Hide ") + name + hidden);
     const zone = hr.querySelector(":scope > .hr-content-zone");
     if (zone) {
       if (!zone.id) {
