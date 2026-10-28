@@ -3373,8 +3373,13 @@ class HandrailsTranslator(Translator):
         if isinstance(parent, nodes.Table):
             items.append(AppendText("\n</table>\n"))
         has_static = isinstance(parent, nodes.Asset) and parent.static
+        # The rail names the captioned block ("Figure", "Widget", "Table"), the
+        # same word the caption's own label starts with.
+        kind = parent.classreftext.format(
+            nodeclass=parent.__class__.__name__, number=""
+        ).strip()
         menu_zone, menu_attrs = self._hr_menu_zone(
-            label="Caption",
+            label=kind,
             link=(True if node.label else "disabled"),
             static_toggle=(True if has_static else "disabled"),
         )
