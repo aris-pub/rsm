@@ -73,7 +73,7 @@ Text between the widget and the video.
 
 :video: {
   :label: vid-a
-  :path: demo.mp4
+  :path: margin-captions-video.webm
 }
 :caption: A video caption.
 ::
