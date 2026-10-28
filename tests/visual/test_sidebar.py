@@ -70,7 +70,10 @@ class TestSidebarDesktop:
         pin.wait_for(state="visible")
         pin.click()
         page.mouse.move(DESKTOP["width"] - 5, DESKTOP["height"] - 5)
-        page.wait_for_timeout(600)
+        # The hover preview fades out after the mouse leaves. A fixed wait
+        # sometimes caught it still on screen, so wait until it is gone.
+        page.locator(".tooltipster-base").first.wait_for(state="hidden")
+        page.wait_for_timeout(300)
         assert_snapshot(page.screenshot())
 
 
