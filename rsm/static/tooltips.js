@@ -36,7 +36,14 @@ function buildExcerpt(rawHref) {
   const classes = $t[0].classList;
   let content = "";
   let clone;
-  if (["P", "LI"].includes(tag)) {
+  if (tag === "LI" && classes.contains("note")) {
+    // An entry of the notes list: show its text and number, without the
+    // backlink (the reader is already at the call) or the alignment handrail.
+    clone = $t.clone();
+    clone.find(".note-backlink").remove();
+    const zone = clone.find(".hr-content-zone").first();
+    content = `<div class="note-preview">${(zone[0] ? zone : clone).html()}</div>`;
+  } else if (["P", "LI"].includes(tag)) {
     // A paragraph's or list item's handrail wraps it from OUTSIDE the element,
     // so its own innerHTML carries no handrail chrome to strip.
     content = `<div>${$t.html()}</div>`;
@@ -189,65 +196,107 @@ function setupPinDelegation() {
   });
 }
 
+// The reference preview. Footnote markers use the same options, apart from how
+// a touch opens them (see tapToPreview).
+const PREVIEW_OPTIONS = {
+  theme: ['tooltipster-shadow', 'tooltipster-shadow-rsm'],
+  delay: 200,
+  minWidth: 100,
+  maxWidth: 500,
+  // Interactive so the reader can move into the preview to click its pin
+  // button without it closing on the way.
+  interactive: true,
+  trigger: 'custom',
+  triggerOpen: {
+    mouseenter: true,
+    touchstart: true
+  },
+  triggerClose: {
+    click: true,
+    mouseleave: true,
+    originClick: true,
+    touchleave: true
+  },
+  functionInit: function (instance, helper) {
+    const rawHref = $(helper.origin).attr("href");
+    const { content, error } = buildExcerpt(rawHref);
+    if (error === "no-href") {
+      console.warn("Target does not have an href attribute");
+      return;
+    }
+    if (error === "no-label") {
+      setTooltipContent(
+        instance,
+        '<span class="error">target node has no label</span>'
+      );
+      helper.origin.classList.add("error");
+      return;
+    }
+    if (error === "unknown") return;
+    if (!content) {
+      setTooltipContent(instance, "");
+      return;
+    }
+    // Title the excerpt like the block names itself ("Equation (1)"), not by
+    // the link text ("(1)"), falling back to the link text.
+    const target = document.getElementById((rawHref || "").replace(/^#/, ""));
+    const noteNumber = helper.origin.classList.contains("note-marker")
+      ? helper.origin.dataset.noteNumber
+      : "";
+    const title = (
+      (noteNumber && `Note ${noteNumber}`) ||
+      (target && target.getAttribute("data-menu-label")) ||
+      helper.origin.textContent ||
+      ""
+    ).trim().replace(/\.$/, "");
+    setTooltipContent(instance, pinBar(rawHref, title) + content);
+  },
+  functionReady: function (instance, helper) {
+    // The tooltip content is a clone of the target and can carry un-typeset
+    // math (raw \(...\) inline or $$...$$ display); render it the same way the
+    // body and the sidebar do, so tooltips are never the odd one out.
+    const el = instance.elementTooltip ? instance.elementTooltip() : helper.tooltip;
+    if (el) typesetMath(el instanceof $ ? el[0] : el);
+  }
+};
+
+// On touch, the first tap on `el` opens its preview instead of following the
+// link, and a second tap on it while the preview is open follows the link. A
+// tap anywhere else closes the preview (tooltipster's tap close). A mouse click
+// or Enter still follows the link at once. `el` must already have its tooltip.
+export function tapToPreview(el) {
+  if (el.dataset.tapPreview) return;
+  el.dataset.tapPreview = "true";
+  let touched = false;
+  el.addEventListener("pointerdown", (ev) => {
+    touched = ev.pointerType === "touch";
+  });
+  el.addEventListener("click", (ev) => {
+    if (!touched) return;
+    touched = false;
+    if ($(el).tooltipster("status").open) return;
+    ev.preventDefault();
+    $(el).tooltipster("open");
+  });
+}
+
 export function createTooltips() {
   setupPinDelegation();
-  $(".manuscriptwrapper a.reference:not(.external):not(.tooltipstered)").tooltipster({
-    theme: ['tooltipster-shadow', 'tooltipster-shadow-rsm'],
-    delay: 200,
-    minWidth: 100,
-    maxWidth: 500,
-    // Interactive so the reader can move into the preview to click its pin
-    // button without it closing on the way.
-    interactive: true,
-    trigger: 'custom',
-    triggerOpen: {
-      mouseenter: true,
-      touchstart: true
-    },
-    triggerClose: {
-      click: true,
-      mouseleave: true,
-      originClick: true,
-      touchleave: true
-    },
-    functionInit: function (instance, helper) {
-      const rawHref = $(helper.origin).attr("href");
-      const { content, error } = buildExcerpt(rawHref);
-      if (error === "no-href") {
-        console.warn("Target does not have an href attribute");
-        return;
-      }
-      if (error === "no-label") {
-        setTooltipContent(
-          instance,
-          '<span class="error">target node has no label</span>'
-        );
-        helper.origin.classList.add("error");
-        return;
-      }
-      if (error === "unknown") return;
-      if (!content) {
-        setTooltipContent(instance, "");
-        return;
-      }
-      // Title the excerpt like the block names itself ("Equation (1)"), not by
-      // the link text ("(1)"), falling back to the link text.
-      const target = document.getElementById((rawHref || "").replace(/^#/, ""));
-      const title = (
-        (target && target.getAttribute("data-menu-label")) ||
-        helper.origin.textContent ||
-        ""
-      ).trim().replace(/\.$/, "");
-      setTooltipContent(instance, pinBar(rawHref, title) + content);
-    },
-    functionReady: function (instance, helper) {
-      // The tooltip content is a clone of the target and can carry un-typeset
-      // math (raw \(...\) inline or $$...$$ display); render it the same way the
-      // body and the sidebar do, so tooltips are never the odd one out.
-      const el = instance.elementTooltip ? instance.elementTooltip() : helper.tooltip;
-      if (el) typesetMath(el instanceof $ ? el[0] : el);
-    }
+  $(".manuscriptwrapper a.reference:not(.external):not(.tooltipstered)").tooltipster(PREVIEW_OPTIONS);
+
+  // Footnote markers get the same preview as references. Aside markers do not,
+  // since an aside is shown next to its call. Touch opens the preview through
+  // tapToPreview, not tooltipster's touchstart, so the tap does not also jump
+  // to the notes list.
+  const $markers = $(
+    '.manuscriptwrapper a.note-marker[data-note-kind="note"]:not(.tooltipstered)'
+  );
+  $markers.tooltipster({
+    ...PREVIEW_OPTIONS,
+    triggerOpen: { mouseenter: true },
+    triggerClose: { click: true, mouseleave: true, originClick: true, tap: true },
   });
+  $markers.each((_, el) => tapToPreview(el));
 
 
   $(".manuscriptwrapper .author-names sup[data-tooltip]:not(.tooltipstered)").tooltipster({

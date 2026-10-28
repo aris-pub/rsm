@@ -6,10 +6,21 @@ A sentence that ends with a footnote.:note:first:: Another sentence carries an
 aside in the middle :aside:second:: and keeps going, and a third marker closes
 the paragraph.:note:third::
 
-:note: {:label: first} The first note, shown where it is written for now. ::
+:note: {:label: first} The first note, which cites :cite:knuth:: and goes on long
+enough to wrap onto a second line at the narrow width. ::
 
 :aside: {:label: second} An aside with inline math $x^2 + 1$. ::
 
-:note: {:label: third} The third note. ::
+:note: {:label: third} The third note, with inline math $\sum_{i=1}^n i$. ::
 
-A later paragraph so the definitions sit between ordinary text.
+A later paragraph so the aside sits between ordinary text.
+
+:references:
+  @book{knuth,
+    title={Art of computer programming},
+    author={Knuth, Donald E},
+    year={2014},
+    publisher={Addison-Wesley Professional},
+    doi={10.5555/270146}
+  }
+::

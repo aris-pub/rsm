@@ -2942,6 +2942,21 @@ rest so the reader can match the two. */
     outline: none;
   }
 
+  /* The notes list. Each entry starts with its number chip, so the list draws
+  no numbers of its own. The <li> value attributes keep the numbers right when
+  the list is read without this CSS. */
+  ol.noteslist {
+    list-style: none;
+    padding-inline-start: 0;
+    margin-block: 0;
+    font-size: 0.92em;
+
+    li.note {margin-block: 0.75rem;}
+    li.note p {margin-block: 0;}
+  }
+
+  .note-preview p {margin-block: 0;}
+
 }
 
 /* External cross-file references */
