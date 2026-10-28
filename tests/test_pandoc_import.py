@@ -116,3 +116,95 @@ def test_author_name_drops_thanks_footnote_and_parses():
 
     html = rsm.render(out, handrails=False, source_offsets=False)
     assert 'class="error"' not in html, out
+
+
+def _words(*words):
+    inlines = []
+    for i, w in enumerate(words):
+        if i:
+            inlines.append({"t": "Space"})
+        inlines.append({"t": "Str", "c": w})
+    return inlines
+
+
+def _note(*paras):
+    return {"t": "Note", "c": [{"t": "Para", "c": _words(*p.split())} for p in paras]}
+
+
+def test_footnote_becomes_call_and_definition_after_the_paragraph():
+    import rsm
+
+    ast = {
+        "blocks": [
+            {
+                "t": "Para",
+                "c": [
+                    *_words("Some", "text."),
+                    _note("The note."),
+                    {"t": "Space"},
+                    *_words("More", "text."),
+                ],
+            },
+            {"t": "Para", "c": _words("Next", "paragraph.")},
+        ]
+    }
+    out = PandocImporter().from_json(ast)
+    assert "text. :note:note-1:: More text." in out
+    definition = ":note: {:label: note-1} The note. ::"
+    assert definition in out
+    assert out.index("More text.") < out.index(definition) < out.index("Next paragraph.")
+
+    tree = rsm.transformer.Transformer().transform(rsm.tsparser.TSParser().parse(out))
+    (call,) = tree.traverse(nodeclass=rsm.nodes.NoteCall)
+    assert call.definition is not None
+    assert call.number == 1
+
+
+def test_footnotes_get_distinct_labels():
+    ast = {
+        "blocks": [
+            {
+                "t": "Para",
+                "c": [
+                    *_words("A."),
+                    _note("one"),
+                    {"t": "Space"},
+                    *_words("B."),
+                    _note("two"),
+                ],
+            },
+        ]
+    }
+    out = PandocImporter().from_json(ast)
+    assert ":note:note-1::" in out and ":note:note-2::" in out
+    assert ":note: {:label: note-1} one ::" in out
+    assert ":note: {:label: note-2} two ::" in out
+
+
+def test_footnote_with_two_paragraphs_stays_one_definition():
+    import rsm
+
+    ast = {"blocks": [{"t": "Para", "c": [*_words("A."), _note("First.", "Second.")]}]}
+    out = PandocImporter().from_json(ast)
+    tree = rsm.tsparser.TSParser().parse(out)
+    assert not list(tree.traverse(nodeclass=rsm.nodes.Error)), out
+    (note,) = tree.traverse(nodeclass=rsm.nodes.Note)
+    assert note.label == "note-1"
+
+
+def test_footnote_inside_a_list_item_is_defined_after_the_list():
+    import rsm
+
+    ast = {
+        "blocks": [
+            {
+                "t": "BulletList",
+                "c": [[{"t": "Plain", "c": [*_words("Item."), _note("In a list.")]}]],
+            },
+        ]
+    }
+    out = PandocImporter().from_json(ast)
+    tree = rsm.transformer.Transformer().transform(rsm.tsparser.TSParser().parse(out))
+    assert not list(tree.traverse(nodeclass=rsm.nodes.Error)), out
+    (call,) = tree.traverse(nodeclass=rsm.nodes.NoteCall)
+    assert call.definition is not None

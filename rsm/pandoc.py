@@ -123,7 +123,8 @@ class PandocTranslator:
     # the first ancestor that IS listed wins.  None means "skip silently".
     _BLOCK_DISPATCH: dict = {
         nodes.Section: "_block_section",       # Subsection, Subsubsection via MRO
-        nodes.Paragraph: "_block_paragraph",   # Step via MRO; Note handled inline
+        nodes.Paragraph: "_block_paragraph",   # Step via MRO
+        nodes.Note: None,       # Aside via MRO, exported at its call
         nodes.MathBlock: "_block_mathblock",
         nodes.CodeBlock: "_block_codeblock",
         nodes.Enumerate: "_block_enumerate",
@@ -178,7 +179,7 @@ class PandocTranslator:
         nodes.Reference: "_inline_reference",
         nodes.URL: "_inline_url",
         nodes.Cite: "_inline_cite",
-        nodes.Note: "_inline_note",
+        nodes.NoteCall: "_inline_notecall",
         nodes.Error: "_inline_text",
     }
 
@@ -219,9 +220,13 @@ class PandocTranslator:
         result: list[dict] = []
         if label and " " not in label:
             result.append({"t": "RawBlock", "c": ["typst", f'<{label}>']})
-        # A Paragraph may contain block-level MathBlock / CodeBlock children.
+        return result + self._paragraph_content_blocks(node)
+
+    def _paragraph_content_blocks(self, node: nodes.BaseParagraph) -> list[dict]:
+        # A paragraph may contain block-level MathBlock / CodeBlock children.
         # Split at each such child: flush accumulated inlines as Para, emit the block.
         _BLOCK_IN_PARA = (nodes.MathBlock, nodes.CodeBlock)
+        result: list[dict] = []
         current_inlines: list[dict] = []
         for child in node.children:
             if isinstance(child, _BLOCK_IN_PARA):
@@ -543,9 +548,11 @@ class PandocTranslator:
         result.append({"t": "Str", "c": "]"})
         return result
 
-    def _inline_note(self, node: nodes.Note) -> list[dict]:
-        inlines = self._walk_children_as_inlines(node)
-        return [{"t": "Note", "c": [{"t": "Para", "c": inlines}]}]
+    def _inline_notecall(self, node: nodes.NoteCall) -> list[dict]:
+        # Pandoc has no asides, so both kinds export as a footnote.
+        if node.definition is None:
+            return []
+        return [{"t": "Note", "c": self._paragraph_content_blocks(node.definition)}]
 
     # ── Helpers ───────────────────────────────────────────────────────────────
 
@@ -632,7 +639,8 @@ class PandocImporter:
         # still resolves.
         self._label_of: dict[int, str] = {}
         self._ref_map: dict[str, str] = {}
-        self._label_n = {"sec": 0, "thm": 0, "eqn": 0, "fig": 0, "tab": 0}
+        self._label_n = {"sec": 0, "thm": 0, "eqn": 0, "fig": 0, "tab": 0, "note": 0}
+        self._pending_notes: list[str] = []
         self._assign_labels(blocks)
         # A LaTeX \paragraph (pandoc level 4+) is a run-in titled paragraph, not
         # a section. _block_header stashes its title here so the next paragraph
@@ -645,6 +653,8 @@ class PandocImporter:
             if self._pending_para is not None and b.get("t") != "Para":
                 parts.append(self._flush_pending_para())
             parts.append(self._render_block(b))
+            parts.extend(self._pending_notes)
+            self._pending_notes = []
         if self._pending_para is not None:
             parts.append(self._flush_pending_para())
         return "".join(p for p in parts if p)
@@ -1101,8 +1111,19 @@ class PandocImporter:
         )
 
     def _inline_note(self, c: list) -> str:
-        inner = "".join(self._render_block(b).strip() for b in c)
-        return f":note: {inner} ::"
+        # The note's text becomes a definition placed after the current top-level
+        # block (see from_json), and only the call stays inline. A definition holds
+        # one paragraph, so the note's paragraphs are joined into one. Rendering
+        # the blocks here must not consume a stashed run-in paragraph title.
+        saved_para, self._pending_para = self._pending_para, None
+        inner = " ".join(self._render_block(b).strip() for b in c)
+        self._pending_para = saved_para
+        inner = re.sub(r"\n\s*\n", "\n", inner).strip()
+        label = self._next_label("note")
+        self._pending_notes.append(f":note: {{:label: {label}}} {inner} ::\n\n")
+        # The leading space lets the tag be read as a tag after a word. The
+        # transformer removes it so the marker sits against that word.
+        return f" :note:{label}::"
 
     def _inline_rawinline(self, c: list) -> str:
         fmt, raw = c

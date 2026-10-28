@@ -49,6 +49,7 @@ List of all tags
 
 .. rubric:: Inline Tags
 
+.. autoclass:: aside
 .. autoclass:: code
 .. autoclass:: cite
 .. autoclass:: claim

@@ -1409,24 +1409,46 @@ class Translator:
         parts.append('</svg>')
         return "".join(parts)
 
-    def visit_note(self, node: nodes.Note) -> EditCommand:
-        return AppendBatchAndDefer(
-            [
-                AppendOpenTag("span", classes=["note"]),
-                AppendOpenCloseTag(
-                    "sup",
-                    content=f'<a class="note__link">{node.full_number}</a>',
-                    classes=["note__number"],
-                    newline_inner=False,
-                ),
-                AppendOpenTag(
-                    "span",
-                    id=node.label,
-                    classes=["note__content"],
-                    newline_inner=False,
-                ),
-            ]
+    def visit_notecall(self, node: nodes.NoteCall) -> EditCommand:
+        tag = _make_tag(
+            "a",
+            id_=f"call-{node.target}",
+            classes=["note-marker"],
+            href=f"#{node.target}",
+            role="doc-noteref",
+            **{"data-note-number": node.number, "data-note-kind": node.kind},
         )
+        return AppendText(f"{tag}{node.number}</a>")
+
+    def visit_note(self, node: nodes.Note) -> EditCommand:
+        # Until the notes list and margin placement exist, a definition is shown
+        # where it is written, as a paragraph that starts with its number. The
+        # mathblock and codeblock visitors close and reopen the <p> as they do
+        # inside an ordinary paragraph.
+        items: list[EditCommand] = [
+            AppendNodeTag(
+                node,
+                "div",
+                extra_attrs={
+                    "data-note-number": node.number,
+                    "data-note-kind": node.kind,
+                },
+            )
+        ]
+        if node.first_of_type(nodes.MathBlock) or node.first_of_type(nodes.CodeBlock):
+            items.append(AppendOpenTagManualClose(tag="p", newline_inner=False))
+        else:
+            items.append(AppendOpenTag(tag="p", newline_inner=False))
+        items.append(
+            AppendText(f'<span class="note__number">{node.number}</span> ')
+        )
+        return AppendBatchAndDefer(items)
+
+    def leave_note(self, node: nodes.Note) -> EditCommand:
+        batch = self.leave_node(node)
+        if getattr(node, "_must_close_p_tag", False):
+            batch.items.insert(0, AppendText("</p>"))
+        return batch
 
     def visit_math(self, node: nodes.Math) -> EditCommand:
         # \( ... \) are the standard TeX inline-math delimiters read by the client renderer
@@ -1441,7 +1463,7 @@ class Translator:
 
     def visit_mathblock(self, node: nodes.MathBlock) -> EditCommand:
         commands = []
-        if isinstance(node.parent, nodes.Paragraph):
+        if isinstance(node.parent, (nodes.Paragraph, nodes.Note)):
             # A paragraph that contains a mathblock cannot _start_ with a mathblock,
             # so this mathblock must always contain some previous siblings that must
             # be enclosed in <p> tags.  (See comment in visit_paragraph().)
@@ -3273,6 +3295,23 @@ class HandrailsTranslator(Translator):
         batch.items.insert(-1, self._hr_info_zone_icon(getattr(node, "icon", None)))
         return batch
 
+    def visit_note(self, node: nodes.Note) -> EditCommand:
+        # A note or aside definition gets no handrail of its own. It sits inside a
+        # chromeless alignment handrail (as asset bodies do) so its text lines up
+        # with the paragraphs around it.
+        cmd = super().visit_note(node)
+        bare = "hr hr-bare" + (" hr-offset" if node.handrail_depth > 0 else "")
+        wrapper = AppendTextAndDefer(
+            f'<div class="{bare}">'
+            + self._hr_collapse_zone(collapsible=False).make_text()
+            + self._hr_menu_zone_empty().make_text()
+            + self._hr_border_zone_empty().make_text()
+            + self._hr_spacer_zone().make_text()
+            + '<div class="hr-content-zone">',
+            "</div>" + self._hr_info_zone_icon(None).make_text() + "</div>",
+        )
+        return AppendBatchAndDefer([cmd.items[0], wrapper, *cmd.items[1:]])
+
     def visit_enumerate(self, node: nodes.Enumerate) -> EditCommand:
         batch = self._replace_node_with_handrails(node, collapse_in_hr=False)
         if "hr-hidden" not in batch.items[0].classes:
@@ -3410,10 +3449,10 @@ class HandrailsTranslator(Translator):
     def visit_codeblock(self, node: nodes.CodeBlock) -> EditCommand:
         batch = self._replace_node_with_handrails(node, collapse_in_hr=False)
         handrail_idx = 0
-        if isinstance(node.parent, nodes.Paragraph):
+        if isinstance(node.parent, (nodes.Paragraph, nodes.Note)):
             batch.items.insert(0, AppendText("</p>"))
             handrail_idx = 1
-        offset_class = ["hr-offset"] if isinstance(node.parent, nodes.Paragraph) else []
+        offset_class = ["hr-offset"] if isinstance(node.parent, (nodes.Paragraph, nodes.Note)) else []
         batch.items[handrail_idx].classes += ["hr-hidden"] + offset_class
         batch.items.append(AppendOpenTag("pre"))
         return AppendBatchAndDefer(batch.items)
@@ -3579,11 +3618,11 @@ class HandrailsTranslator(Translator):
             menu_label="Equation" if node.nonum else node.long_reftext,
         )
         handrail_idx = 0
-        if isinstance(node.parent, nodes.Paragraph):
+        if isinstance(node.parent, (nodes.Paragraph, nodes.Note)):
             batch.items.insert(0, AppendText("</p>"))
             handrail_idx = 1
         batch.items.append(AppendTextAndDefer("$$\n", "\n$$"))
-        offset_class = ["hr-offset"] if isinstance(node.parent, nodes.Paragraph) else []
+        offset_class = ["hr-offset"] if isinstance(node.parent, (nodes.Paragraph, nodes.Note)) else []
         batch.items[handrail_idx].classes += ["hr-hidden"] + offset_class
         return batch
 

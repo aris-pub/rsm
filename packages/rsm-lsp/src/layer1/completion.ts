@@ -20,7 +20,8 @@ const RSM_TAGS = [
   { tag: ':definition:', description: 'Definition' },
   { tag: ':example:', description: 'Example' },
   { tag: ':remark:', description: 'Remark' },
-  { tag: ':note:', description: 'Note' },
+  { tag: ':note:', description: 'Footnote: call with :note:label::, define with :note: {:label: label} ... ::' },
+  { tag: ':aside:', description: 'Aside: call with :aside:label::, define with :aside: {:label: label} ... ::' },
 
   // Proof constructs
   { tag: ':proof:', description: 'Proof block' },

@@ -162,6 +162,7 @@ class Transformer:
         self.collect_labels()
         self.parse_notation()
         self.resolve_pending_references()
+        self.resolve_notes()
         self.assign_author_affiliations()
         self.assign_author_note_symbols()
         self.build_author_block()
@@ -394,6 +395,66 @@ class Transformer:
 
         for _pending in self.tree.traverse(condition=lambda n: type(n) in classes):
             raise RSMTransformerError("Found unresolved pending reference")
+
+    def resolve_notes(self) -> None:
+        """Link each note or aside call to its definition and number them.
+
+        Calls are numbered in the order they appear, in one sequence shared by notes
+        and asides. A call that cannot be resolved is replaced by an error node: when
+        its label has no note or aside definition, when the definition was already
+        called, or when it would put an aside in a caption. A call that holds more
+        than a label is also replaced by an error node. A definition that is
+        never called is removed with a warning.
+        """
+        number = count(start=1)
+        for call in list(self.tree.traverse(nodeclass=nodes.NoteCall)):
+            label = call.target
+            definition = self.labels_to_nodes.get(label)
+            message = ""
+            if call.malformed:
+                message = f"malformed :{call.tag}: call"
+                logmsg = (
+                    f"A :{call.tag}: call takes only a label, as in "
+                    f":{call.tag}:my-label::"
+                )
+            elif not isinstance(definition, nodes.Note):
+                message = f'unknown note "{label}"'
+                logmsg = f'Note call to nonexistent note or aside "{label}"'
+            elif definition.call is not None:
+                message = f'note "{label}" called more than once'
+                logmsg = f'The note or aside "{label}" is called more than once'
+            elif (
+                isinstance(definition, nodes.Aside) or call.tag == "aside"
+            ) and call.first_ancestor_of_type(nodes.Caption) is not None:
+                message = f'aside "{label}" in a caption'
+                logmsg = f'The aside "{label}" is called inside a caption'
+
+            if message:
+                logger.error(logmsg)
+                call.replace_self(
+                    nodes.Error(
+                        f"[{message}]",
+                        start_point=call.start_point,
+                        end_point=call.end_point,
+                    )
+                )
+                continue
+
+            call.definition = definition
+            definition.call = call
+            call.number = definition.number = next(number)
+            # The marker sits against the word before it, as footnote numbers do.
+            prev = call.prev_sibling()
+            if isinstance(prev, nodes.Text) and not isinstance(prev, nodes.Error):
+                prev.text = prev.text.rstrip()
+
+        for definition in list(self.tree.traverse(nodeclass=nodes.Note)):
+            if definition.call is None:
+                logger.warning(
+                    f'The {definition.kind} "{definition.label}" is never called '
+                    "and will not be shown"
+                )
+                definition.remove_self()
 
     def assign_author_affiliations(self) -> None:
         """Deduplicate affiliations and assign superscript numbers to authors.
