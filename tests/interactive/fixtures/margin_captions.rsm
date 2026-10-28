@@ -1,0 +1,102 @@
+# Margin Captions
+
+## Figures
+  {:label: sec-figs}
+
+Captions sit in the right-hand column when there is room for it, and under
+their block otherwise. This paragraph is long enough to wrap onto more than one
+line so the text column has a clear right edge to measure against.
+
+:figure: {
+  :label: fig-a
+  :path: figure-light.png
+}
+:caption: The first figure, with a short caption.
+::
+
+A paragraph between the first figure and the next two, which sit close
+together so the caption of the first one is pushed against the second.
+
+:figure: {
+  :label: fig-b
+  :path: figure-light.png
+  :scale: 0.3
+}
+:caption: A small figure with a long caption. It goes on for a while so that,
+in the margin column, it runs well past the bottom of its own figure and would
+overlap the caption of the figure that follows straight after it, unless the
+column pushes that caption down. More words to make sure it is long enough to
+do that at any width the column can have, and then a few more.
+::
+
+:figure: {
+  :label: fig-c
+  :path: figure-light.png
+  :scale: 0.3
+}
+:caption: The figure right after the long caption.
+::
+
+## Other blocks
+  {:label: sec-other}
+
+A table, a widget and a video, each with a caption.
+
+:table: {
+  :label: tab-a
+}
+
+:tbody:
+
+:tr: :td:one:: :td:two:: :td:three:: ::
+
+:tr: :td:four:: :td:five:: :td:six:: ::
+
+::
+
+:caption: A table caption.
+
+::
+
+Text between the table and the widget.
+
+:html: {
+  :label: wid-a
+}
+
+<div style="width:300px;height:120px;background:#406;color:#fff">widget</div>
+
+:caption: A widget caption.
+::
+
+Text between the widget and the video.
+
+:video: {
+  :label: vid-a
+  :path: margin-captions-video.webm
+}
+:caption: A video caption.
+::
+
+## A wide table
+  {:label: sec-wide}
+
+This table is wider than the text column, so it scrolls sideways inside its
+own box.
+
+:table: {
+  :label: tab-wide
+}
+
+:tbody:
+
+:tr: :td:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:: :td:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb:: :td:cccccccccccccccccccccccccccccccccccccccc:: ::
+
+::
+
+:caption: A wide table caption.
+
+::
+
+Closing paragraph after every captioned block, so the page has text below the
+last block as well.

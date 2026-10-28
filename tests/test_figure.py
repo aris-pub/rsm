@@ -1,4 +1,5 @@
 import base64
+import re
 from textwrap import dedent
 
 import rsm
@@ -577,3 +578,46 @@ def test_image_falls_back_to_raw_path():
     """)
     html = rsm.render(src, asset_resolver=resolver).lstrip()
     assert 'src="missing.png"' in html
+
+
+def test_caption_rail_is_named_after_its_block():
+    """A caption's handrail menu is labelled with the kind of block it captions,
+    the same word its own label starts with (rsm-coj)."""
+    src = dedent("""\
+        # T
+
+        :figure: {
+          :path: a.png
+        }
+        :caption: A figure.
+        ::
+
+        :video: {
+          :path: a.mp4
+        }
+        :caption: A video.
+        ::
+
+        :html: {
+        }
+
+        <div>w</div>
+
+        :caption: A widget.
+        ::
+
+        :table:
+
+        :tbody:
+
+        :tr: :td:one:: ::
+
+        ::
+
+        :caption: A table.
+
+        ::
+    """)
+    html = rsm.render(src, handrails=True)
+    labels = re.findall(r'<figcaption[^>]*data-menu-label="([^"]+)"', html)
+    assert labels == ["Figure", "Video", "Widget", "Table"]
