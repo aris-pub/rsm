@@ -2598,6 +2598,11 @@ body {
   font-size: 0.9em; }
 /* The "Figure N."/"Widget N." caption label gets the bold treatment. */
 .manuscriptwrapper figcaption .label { font-weight: var(--weight-bold); }
+/* A <video> keeps its intrinsic pixel width otherwise and overflows the figure
+   on a narrow screen (rsm-29p). height:auto keeps the aspect ratio. */
+.manuscriptwrapper figure video {
+  max-width: 100%;
+  height: auto; }
 
 
 /* Other */
