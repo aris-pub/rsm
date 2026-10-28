@@ -879,9 +879,7 @@ body {
   background-color: var(--primary-600);
 }
 /* The chain has its own handrail, like a display equation, and a labelled chain
-   shows its equation number centred on the rows. The number takes the column
-   where the rows' because-marks sit, so in a numbered chain the marks move to
-   the right end of each row and the row content leaves room for them. */
+   shows its equation number in the info column. */
 .manuscriptwrapper .calc.hr > .hr-info-zone {
   display: flex;
   align-items: center;
@@ -894,13 +892,6 @@ body {
 .manuscriptwrapper .calc.hr:focus > .hr-info-zone p {
   color: var(--extra-dark);
   font-weight: var(--weight-semi);
-}
-.manuscriptwrapper .calc.hr:has(> .hr-info-zone .eqn-number) > .hr-content-zone > .step > .hr-info-zone {
-  left: auto;
-  right: 0;
-}
-.manuscriptwrapper .calc.hr:has(> .hr-info-zone .eqn-number) > .hr-content-zone > .step > .hr-content-zone {
-  padding-inline-end: calc(32px + 2 * var(--chunk-sixth));
 }
 /* Touch: give the because-mark a >=44px tap target. */
 @media (hover: none) and (pointer: coarse) {

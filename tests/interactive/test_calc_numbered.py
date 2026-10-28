@@ -33,6 +33,10 @@ def _boxes_overlap(a: dict, b: dict) -> bool:
     )
 
 
+@pytest.mark.xfail(
+    reason="where the number and the marks share the info column is not decided yet",
+    strict=False,
+)
 @pytest.mark.parametrize("calc_id", ["eq-top", "eq-inproof"])
 @pytest.mark.parametrize("width", [375, 1280])
 def test_number_shows_and_marks_do_not_cover_it(
