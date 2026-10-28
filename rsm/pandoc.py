@@ -125,6 +125,7 @@ class PandocTranslator:
         nodes.Section: "_block_section",       # Subsection, Subsubsection via MRO
         nodes.Paragraph: "_block_paragraph",   # Step via MRO
         nodes.Note: None,       # Aside via MRO, exported at its call
+        nodes.NotesList: None,  # its notes are exported at their calls
         nodes.MathBlock: "_block_mathblock",
         nodes.CodeBlock: "_block_codeblock",
         nodes.Enumerate: "_block_enumerate",

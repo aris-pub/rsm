@@ -370,7 +370,7 @@ def test_aside_marker_kind():
     assert attrs["href"] == "#a"
 
 
-def test_definition_renders_in_place_with_its_number():
+def test_footnote_renders_in_the_notes_list_with_its_number():
     html = render(
         """\
         Before. :note:my-note::
@@ -381,14 +381,31 @@ def test_definition_renders_in_place_with_its_number():
         """
     )
     ((tag, attrs),) = tags_with_class(html, "note")
-    assert tag == "div"
+    assert tag == "li"
     assert attrs["id"] == "my-note"
+    assert attrs["value"] == "1"
     assert attrs["data-note-number"] == "1"
     assert attrs["data-note-kind"] == "note"
     assert '<span class="note__number">1</span>' in html
     assert "this is the note's contents" in html
-    # in place: after the calling paragraph, before the next one
-    assert html.index("Before.") < html.index('id="my-note"') < html.index("After.")
+    # not in place: the definition comes after all the text
+    assert html.index("After.") < html.index('id="my-note"')
+
+
+def test_aside_definition_stays_in_place():
+    html = render(
+        """\
+        Before. :aside:a::
+
+        :aside: {:label: a} the aside ::
+
+        After.
+        """
+    )
+    ((tag, attrs),) = tags_with_class(html, "aside")
+    assert tag == "div"
+    assert html.index("Before.") < html.index('id="a"') < html.index("After.")
+    assert not tags_with_class(html, "noteslist")
 
 
 def test_aside_definition_renders_with_aside_class():
@@ -454,3 +471,243 @@ def test_definition_has_no_handrail(handrails):
     html = render(ONE_NOTE, handrails=handrails)
     ((_, attrs),) = tags_with_class(html, "note")
     assert "hr" not in attrs["class"].split()
+
+
+# ---------------------------------------------------------------------------
+# Notes list
+# ---------------------------------------------------------------------------
+
+WITH_REFERENCES = """\
+# Title
+
+## Section
+
+First :note:a:: then :aside:b:: then :note:c:: and a citation :cite:knuth::.
+
+:note: {:label: a} note a ::
+
+:aside: {:label: b} aside b ::
+
+## Later
+
+Called later :note:d::.
+
+:note: {:label: d} note d ::
+
+:note: {:label: c} note c ::
+
+:references:
+  @book{knuth,
+    title={Art of computer programming},
+    author={Knuth, Donald E},
+    year={2014},
+    publisher={Addison-Wesley Professional}
+  }
+::
+"""
+
+
+def notes_lists(tree: nodes.Node) -> list:
+    return list(tree.traverse(nodeclass=nodes.NotesList))
+
+
+def test_transformer_moves_footnotes_into_one_list():
+    tree = transform(WITH_REFERENCES)
+    (notes_list,) = notes_lists(tree)
+    assert [n.label for n in notes_list.children] == ["a", "c", "d"]
+    assert all(type(n) is nodes.Note for n in notes_list.children)
+
+
+def test_notes_list_is_ordered_by_number_not_by_definition_order():
+    tree = transform(WITH_REFERENCES)
+    (notes_list,) = notes_lists(tree)
+    assert [n.number for n in notes_list.children] == [1, 3, 4]
+
+
+def test_asides_stay_where_they_are_written():
+    tree = transform(WITH_REFERENCES)
+    (aside,) = tree.traverse(nodeclass=nodes.Aside)
+    assert isinstance(aside.parent, nodes.Section)
+    assert aside.first_ancestor_of_type(nodes.NotesList) is None
+
+
+def test_notes_list_sits_just_before_the_references():
+    tree = transform(WITH_REFERENCES)
+    (notes_list,) = notes_lists(tree)
+    assert isinstance(notes_list.next_sibling(), nodes.Bibliography)
+
+
+def test_notes_list_is_last_when_there_are_no_references():
+    tree = transform(
+        """\
+        # Title
+
+        ## Section
+
+        Text :note:a::.
+
+        :note: {:label: a} note a ::
+
+        ## Last section
+
+        The end.
+        """
+    )
+    (notes_list,) = notes_lists(tree)
+    assert notes_list.parent is tree
+    assert notes_list is tree.children[-1]
+
+
+def test_no_notes_list_without_footnotes():
+    tree = transform(
+        """\
+        Only an aside :aside:x::.
+
+        :aside: {:label: x} aside ::
+        """
+    )
+    assert notes_lists(tree) == []
+
+
+def test_no_notes_list_when_every_definition_is_unused():
+    tree = transform(
+        """\
+        No calls.
+
+        :note: {:label: lonely} never called ::
+        """
+    )
+    assert notes_lists(tree) == []
+
+
+@pytest.mark.parametrize("handrails", [False, True])
+def test_rendered_list_comes_before_references(handrails):
+    html = render(WITH_REFERENCES, handrails=handrails)
+    notes_heading = html.index("<h2>Notes</h2>")
+    refs_heading = html.index("<h2>References</h2>")
+    assert html.index("Called later") < notes_heading < refs_heading
+    for label in ("a", "c", "d"):
+        assert notes_heading < html.index(f'id="{label}"') < refs_heading
+
+
+@pytest.mark.parametrize("handrails", [False, True])
+def test_rendered_list_markup(handrails):
+    html = render(WITH_REFERENCES, handrails=handrails)
+    ((tag, _),) = tags_with_class(html, "noteslist")
+    assert tag == "ol"
+    entries = tags_with_class(html, "note")
+    assert [t for t, _ in entries] == ["li", "li", "li"]
+    assert [a["id"] for _, a in entries] == ["a", "c", "d"]
+    assert [a["value"] for _, a in entries] == ["1", "3", "4"]
+    assert [a["data-note-number"] for _, a in entries] == ["1", "3", "4"]
+    for number in ("1", "3", "4"):
+        assert f'<span class="note__number">{number}</span>' in html
+    assert '<span class="note__number">2</span>' in html  # the aside, in place
+
+
+@pytest.mark.parametrize("handrails", [False, True])
+def test_markers_link_to_their_list_entries(handrails):
+    html = render(WITH_REFERENCES, handrails=handrails)
+    markers = {
+        a["id"]: a["href"]
+        for _, a in tags_with_class(html, "note-marker")
+        if a["data-note-kind"] == "note"
+    }
+    assert markers == {"call-a": "#a", "call-c": "#c", "call-d": "#d"}
+
+
+@pytest.mark.parametrize("handrails", [False, True])
+def test_each_entry_has_a_backlink_to_its_call(handrails):
+    html = render(WITH_REFERENCES, handrails=handrails)
+    backlinks = tags_with_class(html, "note-backlink")
+    assert [a["href"] for _, a in backlinks] == ["#call-a", "#call-c", "#call-d"]
+    for tag, attrs in backlinks:
+        assert tag == "a"
+        assert attrs["role"] == "doc-backlink"
+        assert attrs["aria-label"]
+        # the same classes as a bibliography backlink, so it gets the same preview
+        assert {"reference", "backlink"} <= set(attrs["class"].split())
+    # each backlink sits inside its own entry
+    for label in ("a", "c", "d"):
+        entry_end = html.index(">", html.index(f'id="{label}"'))
+        backlink = html.index(f'href="#call-{label}"')
+        assert entry_end < backlink
+        assert html.find('class="note"', entry_end, backlink) == -1
+
+
+@pytest.mark.parametrize("handrails", [False, True])
+def test_no_rendered_list_without_footnotes(handrails):
+    html = render(
+        """\
+        Only an aside :aside:x::.
+
+        :aside: {:label: x} aside ::
+        """,
+        handrails=handrails,
+    )
+    assert "<h2>Notes</h2>" not in html
+    assert not tags_with_class(html, "noteslist")
+
+
+def test_backlink_after_display_math_stays_inside_the_entry():
+    html = render(
+        """\
+        Call. :note:m::
+
+        :note: {:label: m}
+          Before
+          $$
+          x = 1
+          $$
+          after.
+        ::
+        """
+    )
+    body = html[html.index('id="m"'):]
+    assert body.index("after.") < body.index('href="#call-m"') < body.index("</li>")
+
+
+def test_backlink_after_trailing_display_math_stays_inside_the_entry():
+    html = render(
+        """\
+        Call. :note:m::
+
+        :note: {:label: m}
+          Before
+          $$
+          x = 1
+          $$
+        ::
+        """
+    )
+    body = html[html.index('id="m"'):]
+    assert body.index("mathblock") < body.index('href="#call-m"') < body.index("</li>")
+
+
+def test_notes_heading_sits_in_a_heading_handrail_like_references():
+    html = render(WITH_REFERENCES, handrails=True)
+    for heading in ("<h2>Notes</h2>", "<h2>References</h2>"):
+        before = html[: html.index(heading)]
+        hr_start = before.rindex('<div class="heading hr"')
+        assert "</section>" not in before[hr_start:]
+
+
+def test_notes_from_the_appendix_join_the_same_list():
+    html = render(
+        WITH_REFERENCES
+        + dedent(
+            """
+            :appendix:
+
+            ## Appendix section
+
+            Appendix text :note:z::.
+
+            :note: {:label: z} note z ::
+            """
+        )
+    )
+    notes_heading = html.index("<h2>Notes</h2>")
+    refs_heading = html.index("<h2>References</h2>")
+    assert html.count("<h2>Notes</h2>") == 1
+    assert notes_heading < html.index('id="z"') < refs_heading

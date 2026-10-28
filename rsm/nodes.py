@@ -1308,6 +1308,14 @@ class Aside(Note):
     kind: ClassVar[str] = "aside"
 
 
+class NotesList(NodeWithChildren):
+    """The list of footnotes shown at the end of the document.
+
+    The transformer creates it and moves every called :class:`Note` into it, in
+    the order of their numbers. Asides are not moved.
+    """
+
+
 class NoteCall(Node):
     """Call site of a note or aside, written as ``:note:lbl::`` or ``:aside:lbl::``.
 
