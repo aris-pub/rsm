@@ -263,10 +263,13 @@ function focusPrevOrNext(direction, root) {
 
 
 function getFocusableElements(root) {
+  // The fold chevron is a real button (so native Tab reaches it), but the
+  // single-key j/k/h/l navigation steps between reading blocks, not controls,
+  // so it is left out here. Native Tab order is unaffected by this list.
   return Array.from(
     root.querySelectorAll(`
       a[href]:not([tabindex="-1"]),
-      button:not([disabled]):not([tabindex="-1"]),
+      button:not([disabled]):not([tabindex="-1"]):not(.hr-collapse),
       textarea:not([disabled]):not([tabindex="-1"]),
       input:not([disabled]):not([tabindex="-1"]),
       select:not([disabled]):not([tabindex="-1"]),

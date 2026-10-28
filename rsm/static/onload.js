@@ -53,6 +53,8 @@ export async function onload(root = null, { keys = true } = {}) {
     // Handrails - set up event listeners once
     try {
       handrails.setup();
+      // Name and wire each fold button before the collapse passes change state.
+      handrails.initCollapseButtons(root);
       // Collapse blocks marked :collapsed: (subtractive: JS-off shows them open).
       handrails.collapseInitial(root);
       // Then restore the reader's own collapse choices from a previous visit.
