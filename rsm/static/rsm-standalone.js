@@ -3696,16 +3696,16 @@ var RSM = (() => {
     for (const t of READER_INPUT) {
       window.addEventListener(t, stop, { capture: true, passive: true });
     }
-    const place = () => {
+    const place2 = () => {
       if (!done) placeAnchor(state);
     };
-    place();
-    requestAnimationFrame(place);
-    mathStyled().then(place);
-    if (document.fonts && document.fonts.ready) document.fonts.ready.then(place);
+    place2();
+    requestAnimationFrame(place2);
+    mathStyled().then(place2);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(place2);
     const manuscript = document.querySelector(".manuscript");
     if (manuscript && window.ResizeObserver) {
-      ro = new ResizeObserver(place);
+      ro = new ResizeObserver(place2);
       ro.observe(manuscript);
     }
     setTimeout(stop, SETTLE_MS);
