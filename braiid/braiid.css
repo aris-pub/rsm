@@ -3021,6 +3021,9 @@ marker opens it. Screen only: print shows every aside below its block. */
   text-align: left;
   transition: background-color .15s;
 
+}
+/* The same number and spacing in the hover preview of a closed aside. */
+.manuscriptwrapper :is(.aside, .aside-preview) {
   & > p { margin: 0; }
 
   .note__number {
