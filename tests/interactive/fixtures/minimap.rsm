@@ -169,6 +169,24 @@ Filler text that pads the section so the document is long enough to scroll. Fill
 
 Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. 
 
+:video: {
+  :label: vid-a
+  :path: minimap-video.webm
+}
+::
+
+Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. 
+
+Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. 
+
+Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. 
+
+Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. 
+
+Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. 
+
+Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. 
+
 :figure: {
   :label: fig-b
   :path: figure-light.png

@@ -75,13 +75,21 @@ function headingText(section) {
   return h ? h.textContent.replace(/\s+/g, " ").trim() : "";
 }
 
-// The caption's label ("Widget 4.2"), or for a block with no caption the same
-// words built from its number.
+const FIGURE_KINDS = { html: "Widget", video: "Video", figure: "Figure" };
+
+function figureKind(fig) {
+  return Object.keys(FIGURE_KINDS).find((c) => fig.classList.contains(c));
+}
+
+// The caption's label ("Widget 4.2"). Without a caption, the same words from
+// the block's number, or the kind word alone for an unnumbered block.
 function figureLabel(fig) {
   const label = fig.querySelector(":scope > figcaption .label");
   const text = label ? label.textContent.replace(/\s+/g, " ").trim().replace(/\.$/, "") : "";
   if (text) return text;
-  return (fig.classList.contains("html") ? "Widget " : "Figure ") + fig.getAttribute("data-number");
+  const word = FIGURE_KINDS[figureKind(fig)];
+  const number = fig.getAttribute("data-number");
+  return number ? word + " " + number : word;
 }
 
 // Elements inside the sidebar, previews or the strip itself are not part of the
@@ -123,11 +131,11 @@ function collectMarks(main) {
     });
   }
 
-  // Every block numbered in the figure counter (:figure: and :html: alike, the
-  // translator writes data-number), captioned or not. A block with no number is
-  // an ornament, and a <figure> inside a widget's own HTML is part of that widget.
-  for (const fig of main.querySelectorAll("figure[data-number]")) {
-    if (inChrome(fig) || fig.parentElement.closest("figure")) continue;
+  // Every :figure:, :html: and :video: block, with or without a caption or a
+  // number. A <figure> inside a widget's own HTML is part of that widget, not
+  // an RSM block (it has no data-nodeid).
+  for (const fig of main.querySelectorAll("figure[data-nodeid]")) {
+    if (!figureKind(fig) || inChrome(fig) || fig.parentElement.closest("figure")) continue;
     if (!laidOut(fig)) continue;
     out.push({ el: fig, type: "figure", label: figureLabel(fig), pos: fraction(fig) });
   }

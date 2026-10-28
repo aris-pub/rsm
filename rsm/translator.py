@@ -693,8 +693,8 @@ class AppendOpenTag(AppendTextAndDefer):
 
 
 def _figure_number(node: nodes.Node) -> str | None:
-    """The number of a :figure: or :html: block, or None when it has none."""
-    if not isinstance(node, nodes.Asset) or node.number_as is not nodes.Figure:
+    """The number of a :figure:, :html: or :video: block, or None when it has none."""
+    if not isinstance(node, nodes.Asset):
         return None
     if node.nonum or not getattr(node, "number", None):
         return None
@@ -730,7 +730,7 @@ class AppendNodeTag(AppendOpenTag):
         if isinstance(node, nodes.Asset) and node.static:
             static_src = self._resolve_image_src(node.static) if hasattr(self, '_resolve_image_src') else str(node.static)
             kwargs["data-static"] = static_src
-        # Blocks in the figure counter carry their number, so the minimap can
+        # Figures, widgets and videos carry their number, so the minimap can
         # label one that has no caption (and so no visible "Widget 4.3" label).
         figure_number = _figure_number(node)
         if figure_number:

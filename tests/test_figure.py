@@ -135,7 +135,7 @@ def test_video_mp4():
 
         <section class="level-1">
 
-        <figure class="video" data-nodeid="1">
+        <figure class="video" data-number="1" data-nodeid="1">
         <video controls src="assets/demo.mp4">Your browser does not support the video tag.</video>
         <figcaption>
         <span class="label">Video 1. </span>This is a video demonstration.
@@ -172,7 +172,7 @@ def test_video_youtube():
 
         <section class="level-1">
 
-        <figure class="video" data-nodeid="1">
+        <figure class="video" data-number="1" data-nodeid="1">
         <video controls src="https://www.youtube.com/watch?v=dQw4w9WgXcQ">YouTube video: https://www.youtube.com/watch?v=dQw4w9WgXcQ</video>
         <figcaption>
         <span class="label">Video 1. </span>YouTube video example.
@@ -281,7 +281,7 @@ def test_mixed_asset_numbering():
 
         </figure>
 
-        <figure class="video" data-nodeid="4">
+        <figure class="video" data-number="1" data-nodeid="4">
         <video controls src="assets/demo.mp4">Your browser does not support the video tag.</video>
         <figcaption>
         <span class="label">Video 1. </span>First video.

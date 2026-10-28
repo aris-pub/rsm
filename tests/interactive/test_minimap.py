@@ -1,11 +1,13 @@
 """Interactive tests for the document minimap (rsm/static/minimap.js).
 
 A strip at the right edge of the viewport replaces the native scrollbar: a mark
-per section (line) and figure (dash), and a box over the part on screen. It
-scrolls like a scrollbar (click, drag) and works as a map (hover a mark for its
-label, click it to go there). On phones it shows only while the page scrolls.
-The fixture (fixtures/minimap.rsm) has sections at two depths, two figures, an
-:html: widget and a long foldable proof.
+per section (line) and per figure, widget or video (dash), and a box over the
+part on screen. It scrolls like a scrollbar (click, drag) and works as a map
+(hover a mark for its label, click it to go there). On phones it shows only
+while the page scrolls. The fixture (fixtures/minimap.rsm) has sections at two
+depths, two figures, a captioned widget, an uncaptioned numbered widget, an
+unnumbered ornament widget, a video (a tiny local file) and a long foldable
+proof.
 """
 
 from pathlib import Path
@@ -23,16 +25,19 @@ PHONE = {"width": 375, "height": 720}
 LABELS = [
     "1. Introduction",
     "1.1. Background",
+    "Widget",  # an unnumbered, uncaptioned ornament
     "Figure 1.1",
     "2. Results",
     "Widget 2.1",
-    "Widget 2.2",
+    "Widget 2.2",  # numbered, no caption
     "3. Discussion",
+    "Video 3.1",
     "Figure 3.1",
     "3.1. Outlook",
 ]
 TYPES = [
-    "section", "section", "figure", "section", "figure", "figure", "section", "figure", "section",
+    "section", "section", "figure", "figure", "section", "figure", "figure", "section",
+    "figure", "figure", "section",
 ]
 
 
@@ -192,17 +197,29 @@ def test_marks_list(page: Page, interactive_server: str):
     }
 
 
-def test_unnumbered_widgets_and_figures_inside_widgets_get_no_mark(
-    page: Page, interactive_server: str
-):
+def test_unnumbered_widget_gets_a_mark_named_by_its_kind(page: Page, interactive_server: str):
     _load(page, interactive_server)
-    # The fixture has a :nonum: widget with no caption (an ornament), and the
-    # widget HTML holds a <figure> of its own.
-    assert page.locator("#wid-ornament").count() == 1
+    # The fixture has a :nonum: widget with no caption (an ornament).
+    assert page.locator("#wid-ornament > figcaption").count() == 0
+    assert page.locator("#wid-ornament").get_attribute("data-number") is None
+    m = next(m for m in _marks(page) if m["id"] == "wid-ornament")
+    assert m["type"] == "figure" and m["label"] == "Widget"
+
+
+def test_figures_inside_a_widget_get_no_mark(page: Page, interactive_server: str):
+    _load(page, interactive_server)
+    # Each copy of the widget HTML holds a <figure> of its own.
     assert page.locator("figure.mm-inner-figure").count() == 3
-    ids = [m["id"] for m in _marks(page)]
-    assert "wid-ornament" not in ids
-    assert len(ids) == len(LABELS)
+    assert page.locator(".rsm-minimap-mark").count() == len(LABELS)
+
+
+def test_video_gets_a_mark_named_by_its_number(page: Page, interactive_server: str):
+    _load(page, interactive_server)
+    assert page.locator("figure.video video[src='minimap-video.webm']").count() == 1
+    m = next(m for m in _marks(page) if m["label"] == "Video 3.1")
+    assert m["type"] == "figure"
+    page.mouse.move(_strip_x(page), _track(page)["y"] + m["y"])
+    assert page.locator(".rsm-minimap-tip").inner_text() == "Video 3.1"
 
 
 def test_numbered_widget_without_a_caption_gets_a_mark_named_by_its_number(
@@ -563,7 +580,7 @@ def test_marks_are_exposed_as_a_list_of_links(page: Page, interactive_server: st
     links = nav.get_by_role("link")
     assert links.all_text_contents() == LABELS
     hrefs = [links.nth(i).get_attribute("href") for i in range(links.count())]
-    assert hrefs[0] == "#sec-intro" and hrefs[4] == "#wid-a"
+    assert hrefs[0] == "#sec-intro" and hrefs[LABELS.index("Widget 2.1")] == "#wid-a"
     assert page.locator(".rsm-minimap-track").get_attribute("aria-hidden") == "true"
 
 

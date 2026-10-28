@@ -119,6 +119,11 @@ FIGURES_SRC = """\
   :nonum:
 }
 ::
+
+:video: {
+  :label: vid-a
+}
+::
 """
 
 
@@ -136,6 +141,8 @@ def test_figure_counter_blocks_carry_their_number(sidebar):
     assert 'data-number="1.2"' in tag("wid-bare")
     # Outside any section the bare number is used.
     assert 'data-number="1"' in tag("fig-top")
+    # Videos have their own counter.
+    assert 'data-number="1.1"' in tag("vid-a")
     # An unnumbered block (an ornament) has none.
     assert "data-number" not in tag("wid-orn")
 
