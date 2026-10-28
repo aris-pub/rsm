@@ -249,6 +249,7 @@ CST_TYPE_TO_AST_TYPE: dict[str, Callable] = {
     "abstract": nodes.Abstract,
     "appendix": nodes.Appendix,
     "algorithm": nodes.Algorithm,
+    "aside": nodes.Aside,
     "notation": nodes.Notation,
     "author": nodes.Author,
     "enumerate": nodes.Enumerate,
@@ -274,6 +275,7 @@ CST_TYPE_TO_AST_TYPE: dict[str, Callable] = {
     "math": nodes.Math,
     "mathblock": nodes.MathBlock,
     "note": nodes.Note,
+    "notecall": nodes.NoteCall,
     "paragraph": nodes.Paragraph,
     "prev": nodes.PendingPrev,
     "prev2": nodes.PendingPrev,
@@ -622,6 +624,10 @@ def _abstractify(cst: TSTree) -> nodes.Manuscript:
 
         elif cst_node.type in ["specialblock", "specialinline"]:
             ast_node_type = cst_node.named_children[0].type
+            # The same tags open a definition (a special block) and a call (a
+            # special inline).
+            if cst_node.type == "specialinline" and ast_node_type in ["note", "aside"]:
+                ast_node_type = "notecall"
 
             # Tables are special because the entire contents are in the first children,
             # so we might as well add that with the current parent and ignore the
@@ -824,6 +830,18 @@ def _abstractify(cst: TSTree) -> nodes.Manuscript:
             meta = cst_node.child_by_field_name("meta")
             if meta:
                 ast_node.ingest_dict_as_meta(_parse_meta_into_dict(meta))
+
+        if ast_node_type == "notecall":
+            target_node = cst_node.child_by_field_name("target")
+            ast_node.target = target_node.text.decode("utf-8")
+            ast_node.tag = cst_node.child_by_field_name("tag").type
+            skip_these_ids.add(target_node.id)
+            # A call holds only a label. Anything else after the tag (such as the
+            # removed inline-content form ":note: some text ::") shows up as an
+            # ERROR inside the call. The transformer reports it, since an Error
+            # node made here would be merged into the neighboring text.
+            if any(c.type == "ERROR" for c in cst_node.named_children):
+                ast_node.malformed = True
 
         if ast_node_type.startswith("prev") and ast_node_type != "previous":
             if ast_node_type == "prev":

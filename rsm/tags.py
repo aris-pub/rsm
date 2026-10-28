@@ -86,6 +86,10 @@ paragraph = ParagraphTagInfo(None)
 #############
 InlineTagInfo = namedtuple("InlineTagInfo", ["shorthand"])
 
+aside = InlineTagInfo(None)
+"""Aside. Call it inline with ``:aside:lbl::`` and define it as a block with
+``:aside: {:label: lbl} content ::``. Notes and asides share one numbering, in call
+order."""
 code = InlineTagInfo(None)
 """Inline code."""
 cite = InlineTagInfo(None)
@@ -97,7 +101,9 @@ draft = InlineTagInfo(None)
 math = InlineTagInfo(None)
 """Inline math."""
 note = InlineTagInfo(None)
-"""Footnote."""
+"""Footnote. Call it inline with ``:note:lbl::`` and define it as a block with
+``:note: {:label: lbl} content ::``. Notes and asides share one numbering, in call
+order."""
 ref = InlineTagInfo(None)
 """Link to internal label."""
 span = InlineTagInfo(None)
@@ -127,6 +133,8 @@ author_display_first = MetaTagInfo(None, int)
 """Number of authors to display at start when >5 authors."""
 author_display_last = MetaTagInfo(None, int)
 """Number of authors to display at end when >5 authors."""
+minimap = MetaTagInfo(None, bool)
+"""Whether to show the minimap (true or false), set in the config block."""
 author_note = MetaTagInfo(None, str)
 """Author note (e.g., 'Equal contribution')."""
 email = MetaTagInfo(None, str)

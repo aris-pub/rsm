@@ -895,9 +895,6 @@ body {
     transition: none;
   }
 }
-.manuscriptwrapper .calc .step.hr-collapsed > .hr-content-zone::after {
-  content: none !important;
-}
 
 
 /* Headings */
@@ -1558,34 +1555,27 @@ body {
   /* Tombstones ride the same flush right edge as the numbers (see .hr-shift-1),
      so the base rule above positions them at every depth; no per-level offset. */
 
-  &.step.hr-collapsed > .hr-content-zone::after {
-    content: "steps hidden";
+  /* The fold label names what a folded block hides ("8 steps hidden"). The
+     translator writes the words into data-fold-label. A step carries it on its
+     content zone. A labelled block (proof, sketch, theorem) carries it on its
+     .hr-label instead, because a proof's content-zone ::after is its tombstone. */
+  &.step.hr-collapsed > .hr-content-zone[data-fold-label]::after,
+  &.hr-labeled.hr-collapsed > .hr-content-zone > .hr-label[data-fold-label]::after {
+    content: attr(data-fold-label);
     position: relative;
     left: var(--chunk-twelfth);
     top: var(--chunk-sixth);
-    /* >= 4.5:1 on the page (--medium was ~2.05): the tombstone stays a quiet
+    /* >= 4.5:1 on the page (--medium was ~2.05): the label stays a quiet
        gray but meets WCAG 1.4.3 AA. */
     color: var(--dark);
     font-style: italic;
     font-size: 0.875rem;
   }
-
-  /* The folded step count ("N steps") is a muted suffix on the proof label. It
-     shows only once the proof is collapsed, when the reader cannot otherwise
-     tell how much is hidden, and is gone while the proof is open. Its own span
-     carries the words, so a screen reader announces "N steps" as part of the
-     label. The leading separator is drawn here so hiding the span hides the
-     separator too. --dark matches the sibling "steps hidden" tombstone and
-     clears WCAG 1.4.3 AA on the page in both themes. */
-  &.proof .proof-step-count { display: none; }
-  &.proof.hr-collapsed .proof-step-count {
-    display: inline;
-    color: var(--dark);
-    font-weight: var(--weight-regular);
-  }
-  &.proof.hr-collapsed .proof-step-count::before {
-    content: "\00B7";
-    margin-inline: 0.4ch;
+  /* Inside .hr-label the label comes before the label's bottom padding, so move
+     it down by that padding to land where a step's label does. The layout
+     height is the same either way. */
+  &.hr-labeled.hr-collapsed > .hr-content-zone > .hr-label[data-fold-label]::after {
+    top: calc(var(--chunk-sixth) * 2);
   }
 
 }
@@ -2973,6 +2963,42 @@ body {
   .draft {color: var(--primary-600);}
 }
 
+/* Note and aside markers: a small tinted chip with the number, the same for both
+kinds. The selector repeats the link states so it wins over the general link rules
+above, whose padding, negative margin and focus colors would otherwise apply. The
+number at the start of a definition (shown in place for now) uses the same chip at
+rest so the reader can match the two. */
+.manuscriptwrapper {
+
+  a.note-marker:link, a.note-marker:visited, a.note-marker:active,
+  .note__number {
+    display: inline-block;
+    font-size: .68em;
+    line-height: 1;
+    vertical-align: .45em;
+    padding: .08em .32em;
+    margin: 0 0 0 .15em;
+    border-radius: 4px;
+    color: var(--primary-700);
+    background: color-mix(in srgb, var(--primary-700) 12%, var(--surface-page));
+    text-decoration: none;
+  }
+
+  .note__number {
+    margin-left: 0;
+    font-weight: 600;
+  }
+
+  a.note-marker:hover, a.note-marker:focus, a.note-marker:focus-visible {
+    color: var(--surface-page);
+    background: var(--primary-700);
+    text-decoration: none;
+    box-shadow: none;
+    outline: none;
+  }
+
+}
+
 /* External cross-file references */
 a.reference.external::after {
   content: " ↗";
@@ -3421,10 +3447,10 @@ a.reference.external:hover::after {
   }
 
   /* Unfold everything JS collapsed. closeHandrail adds .hide (display:none
-     !important) to a collapsed block's body and the page shows a "steps hidden"
-     tombstone; :collapsed: proofs and focus mode do the same. A PDF reader must
+     !important) to a collapsed block's body and the page shows a fold label
+     ("8 steps hidden"). :collapsed: proofs and focus mode do the same. A PDF reader must
      see every step and proof, so re-show the hidden bodies and drop the
-     tombstones. The unfolded body is either a handrail block (.hr, laid out as
+     fold labels. The unfolded body is either a handrail block (.hr, laid out as
      flex) or plain block content, so restore each its own display rather than
      `revert` (which would roll back to .hide's display:none); the higher-
      specificity .hr.hide rule then wins the flex case over the block default.
@@ -3440,7 +3466,8 @@ a.reference.external:hover::after {
   .manuscriptwrapper .hr.hide {
     display: flex !important;
   }
-  .hr.hr-collapsed > .hr-content-zone::after {
+  .hr.hr-collapsed > .hr-content-zone::after,
+  .hr.hr-collapsed > .hr-content-zone > .hr-label::after {
     content: none !important;
   }
   /* A collapsed block caps its gutter with a border-bottom on the spacer-zone

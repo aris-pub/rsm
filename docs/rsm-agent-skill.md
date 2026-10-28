@@ -153,7 +153,6 @@ close with `::`.
 | Tag | Description |
 |-----|-------------|
 | `:span:` | Text span — for styling via meta or attaching a `:label:` to specific text |
-| `:note:` | Footnote |
 | `:draft:` | Visible comment / draft note |
 
 `:span:` is particularly useful for labeling a piece of text so it can be cross-referenced.
@@ -164,6 +163,34 @@ Some :span:{:label: key-insight} remarkable observation:: that we revisit later.
 ...
 As noted in :ref:key-insight::, ...
 ```
+
+### Notes and Asides
+
+`:note:` (a footnote) and `:aside:` each have two forms: a call and a definition.
+
+| Form | Example | Where |
+|------|---------|-------|
+| Call | `:note:my-note::` or `:aside:my-aside::` | Inline, where the marker goes |
+| Definition | `:note: {:label: my-note} contents ::` | A block of its own, anywhere in the document |
+
+```
+Some paragraph with a note at the end. :note:my-note::
+
+:note: {:label: my-note} this is the note's contents ::
+```
+
+- A call takes only the label of its definition, like the target of `:ref:`. Text after
+  the tag in a call is a parse error.
+- A definition must have the `{:label: ...}` meta block. Without it, it is a parse error.
+  Its content is one paragraph: inline content, display math (`$$...$$`) and code
+  blocks. A blank line inside a definition is an error.
+- The definition's tag decides whether the marker is a footnote or an aside.
+- Every call gets a number in the order the calls appear. Notes and asides share one
+  sequence.
+- Errors: a call with no definition, a definition called more than once, and an aside
+  (call or definition) inside a caption. A definition that is never called gives a
+  warning and is not shown.
+- The old form with the content inside the sentence (`:note: some text ::`) is gone.
 
 ### Inline Tags — Special Syntax
 

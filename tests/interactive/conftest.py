@@ -61,6 +61,7 @@ SIDEBAR_FIXTURES = {
     "deplens",
     "reorder",
     "margin_captions",
+    "shareview_long",
 }
 
 
