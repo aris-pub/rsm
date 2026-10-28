@@ -837,12 +837,8 @@ def test_minimap_works_without_the_sidebar(page: Page, interactive_server: str):
     assert labels[:2] == ["1. Section One", "2. Section Two"]
 
 
-@pytest.mark.skip(
-    reason="rsm-3am: :minimap: is not yet a meta key in the tree-sitter-rsm grammar "
-    "(metakey_any). Enable once the grammar change lands."
-)
 def test_config_flag_removes_the_strip(page: Page, tmp_path: Path):
-    src = ":config: { :minimap: false }\n\n# Off\n\n## One\n\nText.\n"
+    src = "# Off\n\n:config: {\n  :minimap: false\n}\n::\n\n## One\n\nText.\n"
     (tmp_path / "off.rsm").write_text(src)
     rsm.build(
         path=str(tmp_path / "off.rsm"),

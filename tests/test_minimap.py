@@ -147,12 +147,9 @@ def test_figure_counter_blocks_carry_their_number(sidebar):
     assert "data-number" not in tag("wid-orn")
 
 
-@pytest.mark.skip(
-    reason="rsm-3am: :minimap: is not yet a meta key in the tree-sitter-rsm grammar "
-    "(metakey_any). Enable once the grammar change lands."
-)
 def test_config_block_turns_the_minimap_off():
-    src = ":config: { :minimap: false }\n\n" + SRC
+    title, rest = SRC.split("\n", 1)
+    src = title + "\n\n:config: {\n  :minimap: false\n}\n::\n" + rest
     html = rsm.render(src, handrails=True, sidebar=True, strict=True)
     assert 'data-minimap="false"' in _body_tag(html)
     assert 'data-control="minimap"' not in html
