@@ -21,6 +21,7 @@ import * as shareview from './shareview.js';
 import * as uitip from './uitip.js';
 import * as margin from './margin.js';
 import * as captions from './captions.js';
+import * as asides from './asides.js';
 
 export async function onload(root = null, { keys = true } = {}) {
   if (!root) root = document;
@@ -241,6 +242,13 @@ export async function onrender(root = null) {
       captions.setup(root);
     } catch (err) {
       console.error("Placing captions FAILED!", err);
+    }
+
+    // Asides: into the margin column, or closed below their block (idempotent)
+    try {
+      asides.setup(root);
+    } catch (err) {
+      console.error("Setting up asides FAILED!", err);
     }
 
     // Tooltipster - already idempotent with :not(.tooltipstered) selector
