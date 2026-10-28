@@ -2137,12 +2137,13 @@ class Translator:
         ):
             return self._render_image(node)
 
-        # Video files
+        # Video files. As with <img>, the label's id goes on the enclosing
+        # <figure> only, so the <video> gets none.
         elif any(path_str.endswith(ext) for ext in [".mp4", ".webm", ".avi", ".mov"]):
             return (
                 _make_tag(
                     "video",
-                    id_=node.label,
+                    id_=None,
                     classes=[],
                     controls=True,
                     src=node.path,
@@ -2155,7 +2156,7 @@ class Translator:
             return (
                 _make_tag(
                     "video",
-                    id_=node.label,
+                    id_=None,
                     classes=[],
                     controls=True,
                     src=node.path,
