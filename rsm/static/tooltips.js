@@ -4,6 +4,7 @@
 //
 
 import { typesetMath } from "./libraries.js";
+import { previewWanted, previewContent } from "./asides.js";
 
 // Tabler pin, outline (not pinned) and filled (pinned).
 const PIN_ICON =
@@ -250,6 +251,26 @@ export function createTooltips() {
     }
   });
 
+  // Aside markers: while an aside is closed below its block (no margin column)
+  // a pointer reader gets the same preview as a reference. asides.js says when.
+  // A tap or click opens the aside itself, so touch does not open a preview.
+  $('.manuscriptwrapper a.note-marker[data-note-kind="aside"]:not(.tooltipstered)').tooltipster({
+    theme: ['tooltipster-shadow', 'tooltipster-shadow-rsm'],
+    delay: 200,
+    minWidth: 100,
+    maxWidth: 500,
+    trigger: 'custom',
+    triggerOpen: { mouseenter: true },
+    triggerClose: { click: true, mouseleave: true, originClick: true },
+    functionBefore: function (instance, helper) {
+      if (!previewWanted(helper.origin)) return false;
+      setTooltipContent(instance, previewContent(helper.origin));
+    },
+    functionReady: function (instance, helper) {
+      const el = instance.elementTooltip ? instance.elementTooltip() : helper.tooltip;
+      if (el) typesetMath(el instanceof $ ? el[0] : el);
+    }
+  });
 
   $(".manuscriptwrapper .author-names sup[data-tooltip]:not(.tooltipstered)").tooltipster({
     theme: ['tooltipster-shadow', 'tooltipster-shadow-rsm'],

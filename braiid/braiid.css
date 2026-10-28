@@ -3011,7 +3011,8 @@ marker opens it. Screen only: print shows every aside below its block. */
   border-radius: 8px;
   padding: .65em .85em;
   margin: var(--chunk-third) 0;
-  font-size: .84rem;
+  /* em, as captions use: the root font is smaller than body text. */
+  font-size: .84em;
   line-height: 1.5;
   color: var(--text-subtle);
   text-align: left;

@@ -530,3 +530,67 @@ def test_first_paint_already_has_the_scripted_state(
     assert page.evaluate("() => document.documentElement.classList.contains('has-asides')")
     for i in ALL:
         assert not _geom(page, i)["shown"]
+
+
+# ---- look ------------------------------------------------------------------
+
+_STYLE = """(id) => {
+    const a = document.getElementById(id);
+    const num = a.querySelector('.note__number');
+    const para = a.closest('.hr-content-zone').querySelector(':scope > p');
+    const cap = document.querySelector('figure#fig-a > figcaption > .hr-content-zone');
+    const probe = (prop, v) => { const s = document.createElement('span');
+        s.style[prop] = v; document.querySelector('.manuscript').appendChild(s);
+        const c = getComputedStyle(s)[prop]; s.remove(); return c; };
+    const s = getComputedStyle(a), n = getComputedStyle(num);
+    return {
+        bg: s.backgroundColor,
+        want: probe('backgroundColor',
+            'color-mix(in srgb, var(--primary-700) 9%, var(--surface-page))'),
+        radius: s.borderTopLeftRadius,
+        borders: [s.borderLeftWidth, s.borderTopWidth, s.borderRightWidth, s.borderBottomWidth],
+        sizeRatio: parseFloat(s.fontSize) / parseFloat(getComputedStyle(para).fontSize),
+        lineRatio: parseFloat(s.lineHeight) / parseFloat(s.fontSize),
+        padTop: parseFloat(s.paddingTop) / parseFloat(s.fontSize),
+        padLeft: parseFloat(s.paddingLeft) / parseFloat(s.fontSize),
+        numColor: n.color, numWeight: +n.fontWeight, numBg: n.backgroundColor,
+        primary: probe('color', 'var(--primary-700)'),
+        capBg: getComputedStyle(cap).backgroundColor,
+        numFirst: a.querySelector('p').firstElementChild === num,
+    };
+}"""
+
+
+@pytest.mark.parametrize("theme", ["light", "dark"])
+@pytest.mark.parametrize("width", [375, 1280])
+def test_aside_card_look(page: Page, interactive_server: str, width, theme):
+    _load(page, interactive_server, width)
+    page.evaluate(
+        "(t) => { const c = document.documentElement.classList;"
+        " c.remove('light-theme', 'dark-theme'); c.add(t + '-theme'); }",
+        theme,
+    )
+    if width < 1000:
+        page.click("#call-a-one")
+    _rest(page)
+    st = page.evaluate(_STYLE, "a-one")
+    assert st["bg"] == st["want"], st
+    assert st["radius"] == "8px", st
+    assert st["borders"] == ["0px"] * 4, "no vertical bars on an aside"
+    assert abs(st["sizeRatio"] - 0.84) < 0.01, st
+    assert abs(st["lineRatio"] - 1.5) < 0.01, st
+    assert abs(st["padTop"] - 0.65) < 0.02 and abs(st["padLeft"] - 0.85) < 0.02, st
+    assert st["numFirst"], st
+    assert st["numColor"] == st["primary"] and st["numWeight"] >= 700, st
+    assert st["numBg"] == "rgba(0, 0, 0, 0)", st
+    # Captions are unboxed, asides are cards.
+    assert st["capBg"] == "rgba(0, 0, 0, 0)" and st["bg"] != st["capBg"], st
+
+
+def test_aside_has_no_handrail_of_its_own(page: Page, interactive_server: str):
+    _load(page, interactive_server, 1280)
+    n = page.evaluate(
+        "() => [...document.querySelectorAll('.aside')]"
+        ".filter(a => a.matches('.hr') || a.querySelector('.hr, .hr-border-zone')).length"
+    )
+    assert n == 0
