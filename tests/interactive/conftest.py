@@ -54,7 +54,7 @@ def _write_iframe_hosts(serve_dir: Path) -> None:
 
 
 # Fixtures built with the reader sidebar (`rsm build --sidebar`).
-SIDEBAR_FIXTURES = {"sidebar", "sidebar_figure", "sidebar_long", "collapsed", "deplens", "reorder"}
+SIDEBAR_FIXTURES = {"sidebar", "sidebar_figure", "sidebar_long", "collapsed", "deplens", "reorder", "shareview_long"}
 
 
 @pytest.fixture(scope="session")
