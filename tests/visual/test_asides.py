@@ -46,8 +46,6 @@ def _top_shot(page: Page) -> bytes:
     return page.screenshot(animations="disabled")
 
 
-@pytest.mark.visual
-
 def _settle(page: Page) -> None:
     """Opening an aside shows math that was hidden. Wait for the math font and
     two drawn frames, so the shot never catches the formula mid layout."""
@@ -60,6 +58,8 @@ def _settle(page: Page) -> None:
     )
     page.wait_for_timeout(300)
 
+
+@pytest.mark.visual
 class TestAsides:
     @pytest.mark.parametrize("scheme", ["light", "dark"])
     @pytest.mark.parametrize("name,width", WIDTHS)
