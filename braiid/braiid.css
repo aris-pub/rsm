@@ -1628,6 +1628,22 @@ body {
     display: none;
   }
 
+  /* :orientation: horizontal emits both layouts. The left-to-right graph is too
+     wide for a phone, so phones keep the vertical one. */
+  .toc.tree svg.toc-tree-h {
+    display: none;
+  }
+
+  @media (min-width: 768px) {
+    .toc.tree svg.toc-tree-h {
+      display: block;
+    }
+
+    .toc.tree svg.toc-tree-v {
+      display: none;
+    }
+  }
+
   .toc-tree .toc-node rect {
     fill: var(--white, #fff);
     stroke: var(--gray-300, #d4dae3);
@@ -2660,6 +2676,11 @@ body {
   /* Beside the text the caption's empty number zone would only narrow it. */
   html.rsm-margin .manuscriptwrapper .manuscript .hr.rsm-margin-item > .hr-info-zone { display: none; }
 }
+/* A <video> keeps its intrinsic pixel width otherwise and overflows the figure
+   on a narrow screen (rsm-29p). height:auto keeps the aspect ratio. */
+.manuscriptwrapper figure video {
+  max-width: 100%;
+  height: auto; }
 
 
 /* Other */
