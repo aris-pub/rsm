@@ -431,8 +431,10 @@ def _normalize_text(root: TSNode) -> str:
         # Finally we handle the space between non-Text children of a paragraph, for
         # example two Spans together, or a Span followed by a Construct.  In all cases,
         # we simply insert a single space between them.  References and citations are
-        # inline too, so e.g. "$x$ :cite:..." must not render glued as "x[1]".
+        # inline too, so e.g. "$x$ :cite:..." must not render glued as "x[1]",
+        # and so are note and aside calls (":aside:x,a space:: $R^m$").
         classes = [
+            nodes.NoteCall,
             nodes.Span,
             nodes.Construct,
             nodes.Math,
