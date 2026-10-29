@@ -13,7 +13,12 @@ from playwright.sync_api import Page
 
 pytestmark = pytest.mark.interactive
 
-RSM_READY = "() => window.__rsmInitialized === true"
+# __rsmInitialized is set before the first render pass, which is where
+# asides.js runs (after math), so also wait for the markers to be wired.
+RSM_READY = (
+    "() => window.__rsmInitialized === true && !!document.querySelector("
+    "'a.note-marker[data-note-kind=\"aside\"][aria-controls]')"
+)
 NAME = "asides"
 CLOSE = ["a-one", "a-two", "a-three"]
 ALL = ["a-one", "a-two", "a-three", "a-fig", "a-item", "a-step", "a-pair-1", "a-pair-2"]
