@@ -47,11 +47,15 @@ def _top_shot(page: Page) -> bytes:
 
 
 def _settle(page: Page) -> None:
-    """Opening an aside shows math that was hidden. Wait for the math font and
-    two drawn frames, so the shot never catches the formula mid layout."""
+    """Opening an aside shows math that was hidden. Wait for MathJax, the fonts
+    and two drawn frames, so the shot never catches the formula mid layout. The
+    MathJax wait is capped so a page that never settles fails the shot instead
+    of hanging the job."""
     page.evaluate(
         """async () => {
-            await document.fonts.load('16px "Latin Modern Math"', 'x');
+            const math = window.rsm && window.rsm.typesetMath
+              ? window.rsm.typesetMath(document) : null;
+            await Promise.race([math, new Promise(r => setTimeout(r, 5000))]);
             await document.fonts.ready;
             await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
         }"""
