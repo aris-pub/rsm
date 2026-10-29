@@ -187,6 +187,10 @@ Some paragraph with a note at the end. :note:my-note::
 - The definition's tag decides whether the marker is a footnote or an aside.
 - Every call gets a number in the order the calls appear. Notes and asides share one
   sequence.
+- Footnotes are shown in one Notes list just before References (at the end of the
+  document when there are no references), with their numbers and a link back to the
+  call. Since asides take numbers too, the list can skip numbers. Where a footnote
+  definition is written does not change where it is shown.
 - Errors: a call with no definition, a definition called more than once, and an aside
   (call or definition) inside a caption. A definition that is never called gives a
   warning and is not shown.
