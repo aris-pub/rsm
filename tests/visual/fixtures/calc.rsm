@@ -1,0 +1,98 @@
+# Calc chains
+
+## Outside a proof
+
+Some text before the chain, long enough to show where the text column starts and ends, so the chain can be compared with it.
+
+$$ {:label: eq-before}
+\|F(x)-F(y)\|^2 \ge c_0\sum_{j=1}^{k}a_j^2 .
+$$
+
+The bound :ref:eq-before:: gives
+
+:calc: {:label: eq-top}
+
+  :step: $\|F(x)-F(y)\|^2 \ \ge\ c_0\sum_{j=1}^{k}a_j^2$
+
+    :p: Because the first reason holds. ::
+
+  ::
+
+  :step: $\ge\ \frac{c_0}{k}\Big(\sum_{j=1}^{k}a_j\Big)^2$
+
+    :p: Because $\sum_{j=1}^{k} a_j \le k$. ::
+
+  ::
+
+  :step: $\ge\ \frac{c_0}{4L}\,d(x,y)^2 .$
+
+    :p: Because the third reason holds. ::
+
+  ::
+
+::
+
+Text after the chain. By :ref:eq-top::, the bound holds.
+
+## Inside a proof
+
+:theorem: {
+  :label: thm-calc
+  :title: A bound proved by calculations
+}
+
+  The bound holds.
+
+::
+
+:proof: {:of: thm-calc}
+
+  :step: A preliminary step. ::
+
+  :step: {:label: stp-calc-host}
+
+    :claim: The calculation below establishes the bound. ::
+
+    :p:
+
+      :calc: {:label: eq-inproof}
+
+        :step: $f(x) = a - b$
+
+          :p: Because the first reason holds. ::
+
+        ::
+
+        :step: $\le \sum_{j=1}^{k} c_j$
+
+          :p: Because the second reason holds. ::
+
+        ::
+
+      ::
+
+    :: ::
+
+  :step: An unnumbered chain finishes the proof.
+
+    :calc:
+
+      :step: $g(x) = \frac{1}{2}$
+
+        :p: Because the third reason holds. ::
+
+      ::
+
+      :step: $< 1$
+
+        :p: Because the fourth reason holds. ::
+
+      ::
+
+    ::
+
+  ::
+
+::
+
+By :ref:eq-inproof::, done.

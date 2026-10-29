@@ -15,6 +15,7 @@ List of all tags
 .. autoclass:: algorithm
 .. autoclass:: appendix
 .. autoclass:: author
+.. autoclass:: calc
 .. autoclass:: codeblock
 .. autoclass:: config
 .. autoclass:: corollary

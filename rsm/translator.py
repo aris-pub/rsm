@@ -204,6 +204,10 @@ _READING_CONTROLS = [
      [("narrow", "Narrow"), ("normal", "Normal"), ("wide", "Wide")], "normal"),
     ("theme", "Theme",
      [("system", "System"), ("light", "Light"), ("dark", "Dark")], "system"),
+    # The document map at the right edge (minimap.js watches the attribute).
+    # Left out when the author turned the map off with :minimap: false.
+    ("minimap", "Map",
+     [("on", "Show the document map"), ("off", "Hide the document map")], "on"),
 ]
 
 
@@ -235,6 +239,15 @@ _READING_TILES = {
         '<path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 '
         '-8.313 -12.454z"/>'
     ),
+    # A page with the map strip and its marks at the right edge, and the same
+    # page without it.
+    ("minimap", "on"): _tabler(
+        '<path d="M4 4h16v16h-16z"/><path d="M15 4v16"/>'
+        '<path d="M7 8h5M7 12h5M7 16h3M17 8h1M17 13h1"/>'
+    ),
+    ("minimap", "off"): _tabler(
+        '<path d="M4 4h16v16h-16z"/><path d="M7 8h10M7 12h10M7 16h6"/>'
+    ),
 }
 
 
@@ -246,10 +259,20 @@ def _reading_tile(control: str, value: str) -> str:
     return _READING_TILES[(control, value)]
 
 
-def _make_reading_panel(typeface_default: str = "sans") -> str:
+def minimap_enabled(tree: Any) -> bool:
+    """False when the author wrote :config: { :minimap: false }."""
+    value = getattr(tree, "minimap", True)
+    if isinstance(value, str):
+        return value.strip().lower() not in {"false", "off", "no"}
+    return bool(value)
+
+
+def _make_reading_panel(typeface_default: str = "sans", minimap: bool = True) -> str:
     from html import escape
     rows = []
     for control, label, options, default in _READING_CONTROLS:
+        if control == "minimap" and not minimap:
+            continue
         # The Typeface row's resting tile is the manuscript's built-in
         # typography, not a fixed constant, so a serif document opens with Serif
         # pressed. Mirrors how the Theme row rests on System.
@@ -669,6 +692,19 @@ class AppendOpenTag(AppendTextAndDefer):
         return self._edit_command_repr(["tag", "id", "classes", "newline_inner"])
 
 
+def _figure_number(node: nodes.Node) -> str | None:
+    """The number of a :figure:, :html: or :video: block, or None when it has none."""
+    if not isinstance(node, nodes.Asset):
+        return None
+    if node.nonum or not getattr(node, "number", None):
+        return None
+    # Outside any section full_number logs a warning before falling back to the
+    # bare number, so take that fallback directly.
+    if node.first_ancestor_of_type(node.number_within) is None:
+        return str(node.number)
+    return node.full_number
+
+
 class AppendNodeTag(AppendOpenTag):
     def __init__(
         self,
@@ -694,6 +730,11 @@ class AppendNodeTag(AppendOpenTag):
         if isinstance(node, nodes.Asset) and node.static:
             static_src = self._resolve_image_src(node.static) if hasattr(self, '_resolve_image_src') else str(node.static)
             kwargs["data-static"] = static_src
+        # Figures, widgets and videos carry their number, so the minimap can
+        # label one that has no caption (and so no visible "Widget 4.3" label).
+        figure_number = _figure_number(node)
+        if figure_number:
+            kwargs["data-number"] = figure_number
         # tree-sitter 0.26.0's Point.row/.column getters over-decref the returned
         # int and corrupt memory (py-tree-sitter #472); read row/column by index
         # instead. A default (-1, -1) point means no source position, so skip it.
@@ -1012,9 +1053,12 @@ class Translator:
         accent = getattr(node, 'accent', 'blue')
         lang = getattr(node, 'lang', 'en')
         typography = getattr(node, 'typography', 'sans-serif')
+        body_attrs = {"data-accent": accent, "data-lang": lang, "data-typography": typography}
+        if not minimap_enabled(node):
+            body_attrs["data-minimap"] = "false"
         batch = AppendBatchAndDefer(
             [
-                AppendOpenTag("body", **{"data-accent": accent, "data-lang": lang, "data-typography": typography}),
+                AppendOpenTag("body", **body_attrs),
                 AppendOpenTag("main", classes=["manuscriptwrapper"]),
                 AppendNodeTag(node),
                 AppendOpenTag("section", classes=["level-1"]),
@@ -1504,10 +1548,13 @@ class Translator:
         # \( ... \) are the standard TeX inline-math delimiters read by the client renderer
         if node.preamble:
             node.classes.append("math-preamble")
+        # A calc relation sits on its own row like display math, so it takes
+        # display size while staying left-aligned in the row.
+        opening = r"\(\displaystyle " if self._is_calc_relation(node) else r"\("
         return AppendBatchAndDefer(
             [
                 self._node_tag(node, "span", newline_inner=False, newline_outer=False),
-                AppendTextAndDefer(r"\(", r"\)"),
+                AppendTextAndDefer(opening, r"\)"),
             ]
         )
 
@@ -1862,22 +1909,39 @@ class Translator:
         base_batch.items.insert(-1, AppendHalmos())
         return AppendBatch(base_batch.items)
 
-    def visit_calc(self, node: nodes.Calc) -> EditCommand:
+    @staticmethod
+    def _fold_calc_rows(node: nodes.Calc) -> None:
         # Each relation step starts collapsed: a collapsed step shows its claim
         # (here the relation) and hides its proof (here the justification), so the
         # chain reads as the bare relations with each "why" disclosed on demand.
-        # Subtractive (data-start-collapsed): JS off renders it fully open -- the
-        # complete written proof. Reuses the existing collapse; handrails untouched.
+        # Subtractive (data-start-collapsed): JS off renders it fully open, the
+        # complete written proof.
         for step in node.children:
-            if isinstance(step, nodes.Step):
-                step.collapsed = True
+            step.collapsed = True
+
+    def visit_calc(self, node: nodes.Calc) -> EditCommand:
+        self._fold_calc_rows(node)
         return AppendBatchAndDefer([AppendNodeTag(node)])
 
     @auto_leave_deferred
     def leave_calc(self, node: nodes.Calc, base_batch) -> EditCommand:
-        # One closing tombstone for the whole chain, like a proof.
-        base_batch.items.insert(-1, AppendHalmos())
+        # Inside a proof the chain reads as one step and closes with its own
+        # tombstone. Outside a proof it is a display equation and has none.
+        if node.first_ancestor_of_type(nodes.Proof) is not None:
+            base_batch.items.insert(-1, AppendHalmos())
         return AppendBatch(base_batch.items)
+
+    @staticmethod
+    def _is_calc_relation(node: nodes.Math) -> bool:
+        """Whether this math is the relation of a calc row, not part of its reason."""
+        anc = node.parent
+        while anc is not None:
+            if isinstance(anc, nodes.Subproof):
+                return False
+            if isinstance(anc, nodes.Step) and anc.in_calc:
+                return True
+            anc = anc.parent
+        return False
 
     def visit_cite(self, node: nodes.Cite) -> EditCommand:
         style = getattr(self.tree, "citation_style", "numeric")
@@ -2722,24 +2786,32 @@ class HandrailsTranslator(Translator):
             classes=["hr-info-zone"],
         )
 
-    def _hr_info_zone_number(
-        self, number: int | str, style: Literal["eqn", "step"]
-    ) -> AppendOpenCloseTag:
-        start = """<div class="hr-info">"""
-        middle = ""
-        if number is not None:
-            if style == "step":
-                middle = f"""<div class="step-number"><p>⟨{number}⟩</p></div>"""
-            elif style == "eqn":
-                middle = f"""<div class="eqn-number"><p>({number})</p></div>"""
-        end = "</div>"
+    @staticmethod
+    def _info_number(number: int | str | None, style: Literal["eqn", "step"]) -> str:
+        if number is None:
+            return ""
+        if style == "step":
+            return f"""<div class="step-number"><p>⟨{number}⟩</p></div>"""
+        return f"""<div class="eqn-number"><p>({number})</p></div>"""
+
+    @staticmethod
+    def _hr_info_zone(*items: str) -> AppendOpenCloseTag:
+        """An info zone holding one cell. Two or more items in one cell stack
+        vertically, centred in the column, so nothing on that line overlaps."""
+        items = tuple(i for i in items if i)
+        classes = "hr-info hr-info-stack" if len(items) > 1 else "hr-info"
         return AppendOpenCloseTag(
             tag="div",
-            content=start + middle + end,
+            content=f'<div class="{classes}">{"".join(items)}</div>',
             classes=["hr-info-zone"],
         )
 
-    def _hr_info_zone_disclosure(self) -> AppendOpenCloseTag:
+    def _hr_info_zone_number(
+        self, number: int | str | None, style: Literal["eqn", "step"]
+    ) -> AppendOpenCloseTag:
+        return self._hr_info_zone(self._info_number(number, style))
+
+    def _hr_info_zone_disclosure(self, above: str = "") -> AppendOpenCloseTag:
         # A calc relation discloses its justification from the info-zone -- the
         # right-margin, per-row-aligned slot where an equation number would sit --
         # instead of the left gutter. The control is a real .hr-collapse inside a
@@ -2747,11 +2819,22 @@ class HandrailsTranslator(Translator):
         # the enclosing step via .closest('.hr')); CSS reglyphs it as the because-
         # sign. Presentation choice only; the collapse mechanism is unchanged.
         control = self._hr_collapse_zone(True).make_text()
-        return AppendOpenCloseTag(
-            tag="div",
-            content=f'<div class="hr-info">{control}</div>',
-            classes=["hr-info-zone"],
-        )
+        return self._hr_info_zone(above, control)
+
+    @staticmethod
+    def _leading_mathblock(step: nodes.Step) -> nodes.MathBlock | None:
+        """The numbered display equation a step starts with, if any.
+
+        Its number shares the step's info cell, stacked under the step number,
+        because both would otherwise sit on the same line of the column.
+        """
+        statement = step.children[0] if step.children else None
+        if not isinstance(statement, nodes.Statement) or not statement.children:
+            return None
+        first = statement.children[0]
+        if isinstance(first, nodes.MathBlock) and not first.preamble and not first.nonum:
+            return first
+        return None
 
     def _hr_from_node(
         self,
@@ -3024,7 +3107,7 @@ class HandrailsTranslator(Translator):
         "pinned": ("Pinned", "pinned", "",
                    "A block you pinned, kept open beside the text."),
         "reading": ("Reading", "reading", "",
-                    "How the manuscript looks: typeface, size, spacing and theme."),
+                    "How the manuscript looks: typeface, size, spacing, theme and the document map."),
     }
 
     def _make_proof_rail(self):
@@ -3199,7 +3282,8 @@ class HandrailsTranslator(Translator):
             + _make_reading_panel(
                 "serif"
                 if getattr(self.tree, "typography", "sans-serif") == "serif"
-                else "sans"
+                else "sans",
+                minimap=minimap_enabled(self.tree),
             ) + "</div>"
         )
         return AppendText(text=strip + panel)
@@ -3652,16 +3736,51 @@ class HandrailsTranslator(Translator):
         batch = AppendBatch(batch.items)
         return batch
 
+    def visit_calc(self, node: nodes.Calc) -> EditCommand:
+        # The chain gets a handrail of its own, like a display equation. At the
+        # top level that puts it on the text column. Inside a proof its depth
+        # makes it an offset handrail, which keeps its place among the steps.
+        self._fold_calc_rows(node)
+        batch = self._replace_node_with_handrails(
+            node,
+            collapse_in_hr=False,
+            menu_label="Equation" if node.nonum else node.long_reftext,
+        )
+        batch.items[0].classes.append("hr-hidden")
+        return batch
+
+    @auto_leave_deferred
+    def leave_calc(self, node: nodes.Calc, base_batch) -> EditCommand:
+        if node.first_ancestor_of_type(nodes.Proof) is not None:
+            base_batch.items.insert(0, AppendHalmos())
+            idx = 2
+        else:
+            idx = 1
+        # The chain's number is shown in its first row's info cell (leave_step),
+        # so the chain's own cell stays empty.
+        base_batch.items.insert(idx, self._hr_info_zone())
+        return AppendBatch(base_batch.items)
+
     def visit_step(self, node: nodes.Step) -> EditCommand:
+        if mathblock := self._leading_mathblock(node):
+            mathblock._number_in_step = True
         hr = self._step_handrails(node)
         return hr
 
     def leave_step(self, node: nodes.Step) -> EditCommand:
         batch = self.leave_node(node)
         if node.first_ancestor_of_type(nodes.Calc) is not None:
-            info = self._hr_info_zone_disclosure()
+            calc = node.parent
+            above = ""
+            if node.in_calc and not calc.nonum and calc.children[0] is node:
+                above = self._info_number(calc.full_number, "eqn")
+            info = self._hr_info_zone_disclosure(above)
         else:
-            info = self._hr_info_zone_number(node.full_number, style="step")
+            mathblock = self._leading_mathblock(node)
+            info = self._hr_info_zone(
+                self._info_number(node.full_number, "step"),
+                self._info_number(mathblock.full_number, "eqn") if mathblock else "",
+            )
         batch.items.insert(1, info)
         batch = AppendBatch(batch.items)
         return batch
@@ -3718,7 +3837,9 @@ class HandrailsTranslator(Translator):
 
     def leave_mathblock(self, node: nodes.MathBlock) -> EditCommand:
         batch = super().leave_mathblock(node)
-        batch.items.insert(2, self._hr_info_zone_number(node.full_number, style="eqn"))
+        # A step that starts with this equation shows its number (leave_step).
+        number = None if getattr(node, "_number_in_step", False) else node.full_number
+        batch.items.insert(2, self._hr_info_zone_number(number, style="eqn"))
         return batch
 
     def visit_bibitem(self, node: nodes.Bibitem) -> EditCommand:
