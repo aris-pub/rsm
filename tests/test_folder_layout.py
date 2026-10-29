@@ -107,11 +107,18 @@ def test_layout_is_index_static_assets(tmp_path, monkeypatch):
     for name in (
         "onload.js", "libraries.js", "braiid.css", "pygments.css",
         "jquery-3.6.0.js", "tooltipster.bundle.js", "tooltipster.bundle.css",
-        "temml-0.14.0.min.js", "pseudocode-2.4.1.min.js",
-        "pseudocode-2.4.1.min.css", "temml-0.14.0-latin-modern.css",
-        "Temml.woff2", "latinmodernmath.woff2",
+        "pseudocode-2.4.1.min.js", "pseudocode-2.4.1.min.css",
     ):
         assert name in static, name
+    # MathJax keeps its own layout, so it finds its fonts beside its script.
+    mathjax = out / "static" / "mathjax-3.2.2"
+    assert (mathjax / "tex-chtml-full.js").exists()
+    fonts = mathjax / "output" / "chtml" / "fonts" / "woff-v2"
+    vendored = Path(rsm.__file__).parent / "static" / "mathjax-3.2.2" / "output" / "chtml" / "fonts" / "woff-v2"
+    assert sorted(p.name for p in fonts.iterdir()) == sorted(p.name for p in vendored.iterdir())
+    assert (fonts / "MathJax_Main-Regular.woff").read_bytes() == (
+        vendored / "MathJax_Main-Regular.woff"
+    ).read_bytes()
     # static/ is RSM's alone: no author file lands there.
     assert "paper.css" not in static
     assert not (out / "static" / "figs").exists()
@@ -164,14 +171,16 @@ def test_no_unpinned_cdn_url_in_static_js():
 def test_standalone_inlines_vendored_math_libraries():
     html = rsm.build(SRC, handrails=True, lint=False, standalone=True)
     static = Path(rsm.__file__).parent / "static"
-    temml = (static / "temml-0.14.0.min.js").read_text()
     pseudocode = (static / "pseudocode-2.4.1.min.js").read_text()
-    assert temml in html
     assert pseudocode in html
-    # Temml's Latin Modern stylesheet, with both its fonts inlined as data URIs.
-    assert "data-temml-css" in html
-    assert html.count("url(data:font/woff2;base64,") == 2
-    assert not re.search(r"url\(['\"]?(\./)?(latinmodernmath|Temml)\.woff2", html)
+    # MathJax is inlined as a function libraries.js calls after setting its
+    # config, with every font MathJax names as a data URI.
+    assert "window.__rsmMathJax = function () {" in html
+    assert "%%URL%%/MathJax_" not in html
+    fonts = sorted((static / "mathjax-3.2.2" / "output" / "chtml" / "fonts" / "woff-v2").glob("*.woff"))
+    named = [f for f in fonts if f"%%URL%%/{f.name}" in (static / "mathjax-3.2.2" / "tex-chtml-full.js").read_text()]
+    assert named, "expected MathJax to name its fonts"
+    assert html.count('url("data:font/woff;base64,') == len(named)
     assert "pseudocode@latest" not in html
     assert "@import url(https://cdnjs" not in html
     assert '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pseudocode' not in html

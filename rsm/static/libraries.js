@@ -3,18 +3,18 @@
 // Load external libraries dynamically
 //
 
-import { getNotationMacros, mathOptions } from './notation.js';
+import { notationMacros } from './notation.js';
 
 // The math libraries are pinned and shipped in static/ next to this file, so a
 // new upstream release cannot change a published page. The pinned CDN copy is
 // only a fallback for hosts that serve this file without the vendored ones.
-const TEMML_FILE = 'temml-0.14.0.min.js';
-const TEMML_CDN = 'https://cdn.jsdelivr.net/npm/temml@0.14.0/dist/temml.min.js';
-const TEMML_CSS_FILE = 'temml-0.14.0-latin-modern.css';
-const TEMML_CSS_CDN = 'https://cdn.jsdelivr.net/npm/temml@0.14.0/dist/Temml-Latin-Modern.css';
+// The full MathJax component has every TeX extension built in, so no formula
+// makes it fetch one. Its fonts sit at MathJax's own relative path beside it,
+// so the vendored copy and the CDN copy each find their own fonts.
+const MATHJAX_FILE = 'mathjax-3.2.2/tex-chtml-full.js';
+const MATHJAX_CDN = 'https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-chtml-full.js';
 const PSEUDOCODE_FILE = 'pseudocode-2.4.1.min.js';
 const PSEUDOCODE_CDN = 'https://cdn.jsdelivr.net/npm/pseudocode@2.4.1/build/pseudocode.min.js';
-const MATHJAX_CDN = 'https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.js';
 
 // In the esbuild IIFE bundle import.meta is empty and new URL() throws. The
 // standalone build inlines the libraries, so that path never needs a URL.
@@ -49,214 +49,187 @@ function loadScript(urls, parent, attrs = {}) {
   });
 }
 
-let temmlLoaded = false;
-let temmlLoadPromise = null;
+// The html extension gives \class, \cssId, \style and \href. Interactive
+// figures and the notation marks need \class. The other three can inject
+// links or arbitrary styling, so they are removed, as Temml left them
+// untrusted. They then render as undefined commands.
+const UNTRUSTED_HTML_MACROS = ['href', 'style', 'cssId'];
 
-// Load temml (primary math renderer) - idempotent, only loads once
-export function loadTemml() {
-  if (temmlLoaded) return Promise.resolve();
-  if (temmlLoadPromise) return temmlLoadPromise;
-
-  // Temml's Latin Modern stylesheet (the math font and Temml's own layout
-  // inside a formula) goes in the vendor layer, so BRAIID's rules on how math
-  // sits in the text win. The standalone build inlines it already.
-  if (!document.querySelector('style[data-temml-css]')) {
-    const style = document.createElement('style');
-    style.setAttribute('data-temml-css', '');
-    style.textContent = `@import url("${besideThisFile(TEMML_CSS_FILE) || TEMML_CSS_CDN}") layer(vendor);`;
-    document.head.appendChild(style);
-  }
-
-  const onReady = () => {
-    temmlLoaded = true;
-    // Alias temml as katex so pseudocode.js (which checks for window.katex) can use it.
-    // temml exposes the same renderToString API that pseudocode.js expects.
-    if (window.temml && !window.katex) {
-      window.katex = window.temml;
-    }
+function mathJaxConfig(resolve, reject) {
+  return {
+    startup: {
+      typeset: false,
+      ready() {
+        const MJ = window.MathJax;
+        const html = MJ._?.input?.tex?.MapHandler?.MapHandler?.getMap('html_macros');
+        for (const name of UNTRUSTED_HTML_MACROS) html?.remove(name);
+        MJ.startup.defaultReady();
+        MJ.startup.promise.then(resolve, reject);
+      },
+    },
+    tex: {
+      inlineMath: [['\\(', '\\)']],
+      displayMath: [['$$', '$$']],
+      processEscapes: false,
+      processEnvironments: false,
+    },
+    // MathJax scales math so its x-height matches the text's (its default),
+    // chosen over a fixed size so math reads at the text's size.
+    chtml: {
+      matchFontHeight: true,
+    },
+    options: {
+      menuOptions: {
+        settings: {
+          inTabOrder: false,
+        },
+      },
+    },
   };
-
-  // The standalone build inlines temml, so it is already here.
-  if (window.temml) {
-    onReady();
-    temmlLoadPromise = Promise.resolve();
-    return temmlLoadPromise;
-  }
-
-  temmlLoadPromise = loadScript(
-    [besideThisFile(TEMML_FILE), TEMML_CDN], document.head
-  ).then(onReady);
-
-  return temmlLoadPromise;
 }
 
-let mathJaxLoaded = false;
-let mathJaxLoadPromise = null;
+let mathJaxPromise = null;
 
-// Load MathJax - fallback if temml is unavailable, idempotent
+// Load MathJax once. The standalone build inlines it as window.__rsmMathJax,
+// a function, so it runs only after the config below is in place.
 export function loadMathJax() {
-  if (mathJaxLoaded) {
-    return Promise.resolve();
-  }
-  if (mathJaxLoadPromise) {
-    return mathJaxLoadPromise;
-  }
-
-  // Feed the same :notation: macros to MathJax so the fallback honors the
-  // author's notation with no author-side change.  MathJax macro keys omit the
-  // leading backslash; getNotationMacros() already merges reader overrides.
-  const notationMacros = {};
-  for (const [name, value] of Object.entries(getNotationMacros())) {
-    const key = name.replace(/^\\/, '');
-    // A parameterized macro (value contains #1..#9) must reach MathJax in its
-    // [definition, argCount] form; a bare string would expand #1 literally and
-    // error. Temml infers the arg count, MathJax needs it stated.
-    const params = value.match(/#[1-9]/g);
-    notationMacros[key] = params
-      ? [value, Math.max(...params.map((s) => Number(s[1])))]
-      : value;
-  }
-
-  const config = document.createElement('script');
-  // Load the html extension and add it to the active package list so MathJax
-  // honors \class the same way Temml does. tex-mml-chtml ships without it.
-  config.innerHTML = `window.MathJax = {
-      loader: {
-        load: ['[tex]/html']
-      },
-      startup: {
-        typeset: false
-      },
-      tex: {
-        packages: {'[+]': ['html']},
-        macros: ${JSON.stringify(notationMacros)},
-        inlineMath: [['$', '$'], ['\\\\(', '\\\\)']],
-        displayMath: [['$$', '$$'], ['\\\\[', '\\\\]']],
-        processEscapes: true,
-        processEnvironments: true
-      },
-      options: {
-        menuOptions: {
-          settings: {
-            inTabOrder: false
-          }
-        }
-      }
-    };`;
-  document.body.appendChild(config);
-
-  const script = document.createElement('script');
-  script.type = "text/javascript";
-  script.id = "MathJax-script";
-  script.src = MATHJAX_CDN;
-  document.body.appendChild(script);
-
-  mathJaxLoadPromise = new Promise((res, rej) => {
-    script.onload = async () => {
-      const waitForStartup = () => {
-        if (window.MathJax?.startup?.promise) {
-          window.MathJax.startup.promise.then(() => {
-            mathJaxLoaded = true;
-            res();
-          });
-        } else {
-          setTimeout(waitForStartup, 10);
-        }
-      };
-      waitForStartup();
-    };
-    script.onerror = rej;
+  if (mathJaxPromise) return mathJaxPromise;
+  mathJaxPromise = new Promise((resolve, reject) => {
+    if (window.MathJax?.startup?.promise) {
+      window.MathJax.startup.promise.then(resolve, reject);
+      return;
+    }
+    window.MathJax = mathJaxConfig(resolve, reject);
+    if (typeof window.__rsmMathJax === 'function') {
+      window.__rsmMathJax();
+      return;
+    }
+    loadScript(
+      [besideThisFile(MATHJAX_FILE), MATHJAX_CDN], document.head, { id: 'MathJax-script' }
+    ).catch(reject);
   });
-
-  return mathJaxLoadPromise;
+  return mathJaxPromise;
 }
 
-// Re-typeset math after HTML content changes.
-// Uses temml (sync, native MathML) when available; falls back to MathJax.
-// Idempotent: already-rendered elements are skipped (their content is no
-// longer the raw \(...\) / $$...$$ delimiter strings).
-export async function typesetMath(root = document) {
+// MathJax must not run two typeset calls at once, so every render goes
+// through this queue.
+let mathQueue = Promise.resolve();
+function enqueue(task) {
+  const run = mathQueue.then(task);
+  mathQueue = run.catch(() => {});
+  return run;
+}
+
+// Resolves when every math render queued so far has finished.
+export function mathIdle() {
+  return mathQueue;
+}
+
+// MathJax keeps a \def from one formula for the next ones, so the notation is
+// (re)defined once before a render, not passed per formula as Temml needed.
+// One \def per macro, so a broken value cannot take the others down with it.
+let definedNotation = null;
+function defineNotation() {
+  const entries = Object.entries(notationMacros());
+  const key = JSON.stringify(entries);
+  if (key === definedNotation) return;
+  definedNotation = key;
+  for (const [name, value] of entries) {
+    const params = value.match(/#[1-9]/g);
+    const n = params ? Math.max(...params.map((s) => Number(s[1]))) : 0;
+    let args = '';
+    for (let i = 1; i <= n; i++) args += `#${i}`;
+    try {
+      window.MathJax.tex2mml(`\\def${name}${args}{${value}}`);
+    } catch (err) {
+      console.error(`notation ${name}:`, err);
+    }
+  }
+}
+
+// The elements in root that still hold raw \(...\) or $$...$$ source. Each
+// keeps its source in data-latex, which notation re-renders and locate use.
+// In handrails mode a display block's source sits in its .hr-content-zone.
+function rawMath(root) {
+  const targets = [];
+  root.querySelectorAll('span.math').forEach((el) => {
+    const src = el.textContent;
+    if (!src.startsWith('\\(') || !src.endsWith('\\)')) return;
+    el.dataset.latex = src.slice(2, -2);
+    targets.push(el);
+  });
+  root.querySelectorAll('div.mathblock').forEach((el) => {
+    const zone = el.querySelector('.hr-content-zone') || el;
+    const src = zone.textContent.trim();
+    if (!src.startsWith('$$') || !src.endsWith('$$')) return;
+    el.dataset.latex = src.slice(2, -2).trim();
+    targets.push(zone);
+  });
+  return targets;
+}
+
+// Typeset the raw math in root. Returns a promise that resolves once the math
+// is laid out, so anything that measures the page can wait for it.
+// Idempotent: math already typeset no longer holds raw source and is skipped.
+export function typesetMath(root = document) {
   const element = root === document ? document.body : root;
 
-  // Bail before any renderer-availability check if there is no math to
-  // typeset. Studio's editor re-runs onrender → typesetMath on every
-  // keystroke; for math-less documents the legacy fall-through landed in
-  // the MathJax-not-ready branch below and spammed a false-alarm warning
-  // on each edit.
-  const hasMath = element.querySelector('span.math, div.mathblock');
-  if (!hasMath) return;
+  // Studio's editor re-runs onrender on every keystroke, so a math-less
+  // document must not load MathJax.
+  if (!element.querySelector('span.math, div.mathblock')) return Promise.resolve();
 
-  // Load Temml on-demand if math elements exist but no renderer is loaded.
-  // This handles the case where the initial render had no math (so onload
-  // skipped Temml), then a subsequent compile introduces math.
-  if (!window.temml && !window.MathJax?.typesetPromise) {
-    try {
-      await loadTemml();
-    } catch {
-      try { await loadMathJax(); } catch { /* both failed */ }
-    }
-  }
-
-  if (window.temml) {
-    const BATCH = 30;
-
-    // Inline math: <span class="math">\(...\)</span>
-    const inlines = element.querySelectorAll('span.math');
-    for (let i = 0; i < inlines.length; i++) {
-      const el = inlines[i];
-      const src = el.textContent;
-      if (!src.startsWith('\\(') || !src.endsWith('\\)')) continue;
-      const latex = src.slice(2, -2);
-      el.dataset.latex = latex;
-      try {
-        temml.render(latex, el, mathOptions());
-      } catch (err) {
-        console.error('temml inline error:', err);
-      }
-      // Yield to the browser every BATCH elements to prevent UI freeze
-      if ((i + 1) % BATCH === 0 && i + 1 < inlines.length) {
-        await new Promise(r => requestAnimationFrame(r));
-      }
-    }
-
-    // Display math: <div class="mathblock">$$\n...\n$$</div>
-    // In handrails mode the LaTeX lives inside .hr-content-zone.
-    const displays = element.querySelectorAll('div.mathblock');
-    for (let i = 0; i < displays.length; i++) {
-      const el = displays[i];
-      const contentEl = el.querySelector('.hr-content-zone') || el;
-      const src = contentEl.textContent.trim();
-      if (!src.startsWith('$$') || !src.endsWith('$$')) continue;
-      const latex = src.slice(2, -2).trim();
-      el.dataset.latex = latex;
-      try {
-        temml.render(latex, contentEl, mathOptions({ displayMode: true }));
-      } catch (err) {
-        console.error('temml display error:', err);
-      }
-      if ((i + 1) % BATCH === 0 && i + 1 < displays.length) {
-        await new Promise(r => requestAnimationFrame(r));
-      }
-    }
-
-    return;
-  }
-
-  // MathJax fallback
-  if (!window.MathJax?.typesetPromise) {
-    console.warn('Neither temml nor MathJax ready for typesetting');
-    return;
-  }
-
-  const existingContainers = element.querySelectorAll('mjx-container');
-  existingContainers.forEach(el => el.remove());
-
-  try {
-    if (MathJax.typesetClear) MathJax.typesetClear([element]);
-    await MathJax.typesetPromise([element]);
-  } catch (err) {
+  return loadMathJax().then(() => enqueue(() => typesetRaw(element))).catch((err) => {
     console.error('MathJax typeset error:', err);
-  }
+  });
+}
+
+async function typesetRaw(element) {
+  const targets = rawMath(element);
+  if (!targets.length) return;
+  defineNotation();
+  await window.MathJax.typesetPromise(targets);
+}
+
+// Typeset every math element in root again from its data-latex, so a change
+// to the notation reaches math that is already typeset.
+export function retypesetMath(root = document) {
+  if (!window.MathJax?.typesetPromise) return Promise.resolve();
+  const element = root === document ? document.body : root;
+  return enqueue(() => {
+    const zones = [];
+    root.querySelectorAll('span.math[data-latex]').forEach((el) => {
+      zones.push([el, `\\(${el.dataset.latex}\\)`]);
+    });
+    root.querySelectorAll('div.mathblock[data-latex]').forEach((el) => {
+      zones.push([el.querySelector('.hr-content-zone') || el, `$$${el.dataset.latex}$$`]);
+    });
+    window.MathJax.typesetClear(zones.map(([zone]) => zone));
+    for (const [zone, src] of zones) zone.textContent = src;
+    return typesetRaw(element);
+  }).catch((err) => {
+    console.error('MathJax re-typeset error:', err);
+  });
+}
+
+// Render a LaTeX string into el, with the document's notation. For widgets and
+// figures that build their own math: rsm.renderMath(latex, el, { display }).
+export function renderMath(latex, el, { display = false } = {}) {
+  return loadMathJax().then(() => enqueue(async () => {
+    window.MathJax.typesetClear([el]);
+    el.textContent = display ? `$$${latex}$$` : `\\(${latex}\\)`;
+    defineNotation();
+    await window.MathJax.typesetPromise([el]);
+  }));
+}
+
+// Math that MathJax converted outside a typeset call (pseudocode.js uses
+// MathJax.tex2chtml) has no CSS for its characters until the stylesheet is
+// brought up to date.
+export function refreshMathStyles() {
+  const MJ = window.MathJax;
+  if (!MJ?.startup?.output || !MJ.startup.document) return;
+  const sheet = MJ.startup.output.styleSheet(MJ.startup.document);
+  if (sheet && !sheet.isConnected) document.head.appendChild(sheet);
 }
 
 let pseudocodeLoaded = false;

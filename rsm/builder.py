@@ -15,10 +15,10 @@ logger = logging.getLogger("RSM").getChild("build")
 # Vendored, pinned libraries in rsm/static/. libraries.js names the same files.
 PSEUDOCODE_CSS = "pseudocode-2.4.1.min.css"
 PSEUDOCODE_JS = "pseudocode-2.4.1.min.js"
-TEMML_JS = "temml-0.14.0.min.js"
-TEMML_CSS = "temml-0.14.0-latin-modern.css"
-# The fonts TEMML_CSS loads, by the names it uses in its url()s.
-TEMML_FONTS = ("Temml.woff2", "latinmodernmath.woff2")
+MATHJAX_DIR = "mathjax-3.2.2"
+MATHJAX_JS = f"{MATHJAX_DIR}/tex-chtml-full.js"
+# MathJax's CHTML fonts, at the path MathJax looks for them beside its script.
+MATHJAX_FONTS = f"{MATHJAX_DIR}/output/chtml/fonts/woff-v2"
 
 _ASSET_REF_RE = re.compile(r'((?:src|srcset|data-static)=")(.*?)(")')
 
@@ -261,8 +261,8 @@ class StandaloneBuilder(HTMLBuilder):
     Use this builder when the output file needs to work when opened directly
     in a browser (file:// URLs) without a web server. All RSM JavaScript is
     inlined directly in the HTML, and so are the vendored third-party
-    libraries in static/ (jQuery, Tooltipster, Temml, pseudocode.js). Fonts
-    still come from Google Fonts.
+    libraries in static/ (jQuery, Tooltipster, MathJax and its fonts,
+    pseudocode.js). Text fonts still come from Google Fonts.
     """
 
     CDN_JQUERY = "https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"
@@ -340,20 +340,19 @@ class StandaloneBuilder(HTMLBuilder):
             return f'<link rel="stylesheet" href="{self.CDN_TOOLTIPSTER_CSS}" />'
         return f"<style>\n@layer vendor {{\n{path.read_text()}\n}}\n  </style>"
 
-    def _get_temml_css_inline(self) -> str:
-        """Temml's Latin Modern stylesheet, with its fonts as data URIs so the
-        file stays self-contained. It goes in the vendor layer, like the
-        tooltip theme, so BRAIID's rules on how math sits in the text win."""
+    def _get_mathjax_inline(self) -> str:
+        """MathJax as a function libraries.js calls once its config is set, with
+        each font as a data URI so the file needs no network for math."""
         static = Path(__file__).parent / "static"
-        path = static / TEMML_CSS
+        path = static / MATHJAX_JS
         if not path.exists():
-            logger.warning(f"Temml CSS not found: {path}")
+            logger.warning(f"Vendored MathJax not found: {path}")
             return ""
-        css = path.read_text()
-        for name in TEMML_FONTS:
-            data = base64.b64encode((static / name).read_bytes()).decode("ascii")
-            css = re.sub(r"url\((['\"]?)(\./)?" + re.escape(name) + r"\1\)", f"url(data:font/woff2;base64,{data})", css)
-        return f"<style data-temml-css>\n@layer vendor {{\n{css}\n}}\n  </style>"
+        js = path.read_text()
+        for font in sorted((static / MATHJAX_FONTS).glob("*.woff")):
+            data = base64.b64encode(font.read_bytes()).decode("ascii")
+            js = js.replace(f"%%URL%%/{font.name}", f"data:font/woff;base64,{data}")
+        return f"<script>\nwindow.__rsmMathJax = function () {{\n{js}\n}};\n  </script>"
 
     def make_html_header(self) -> str:
         inline_js = self._get_inline_js()
@@ -361,10 +360,9 @@ class StandaloneBuilder(HTMLBuilder):
         tooltipster_css_inline = self._get_tooltipster_css_inline()
         jquery_inline = self._get_inline_script("jquery-3.6.0.js")
         tooltipster_js_inline = self._get_inline_script("tooltipster.bundle.js")
-        # libraries.js skips its network load when window.temml and
+        # libraries.js skips its network load when window.__rsmMathJax and
         # window.pseudocode already exist, so these make the math work offline.
-        temml_inline = self._get_inline_script(TEMML_JS)
-        temml_css_inline = self._get_temml_css_inline()
+        mathjax_inline = self._get_mathjax_inline()
         pseudocode_js_inline = self._get_inline_script(PSEUDOCODE_JS)
         pseudocode_css_inline = self._get_pseudocode_css_inline()
         custom_css_inline = self._get_custom_css_inline()
@@ -417,11 +415,10 @@ class StandaloneBuilder(HTMLBuilder):
   {braiid_css_inline}
   {tooltipster_css_inline}
   {pseudocode_css_inline}
-  {temml_css_inline}
   {pygments_css_inline}{custom_css_inline}{menu_position_style}
   {jquery_inline}
   {tooltipster_js_inline}
-  {temml_inline}
+  {mathjax_inline}
   {pseudocode_js_inline}
   <script>
 {inline_js}
@@ -464,8 +461,15 @@ class FolderBuilder(HTMLBuilder):
         for fn in source_path.iterdir():
             if fn.suffix in {".js", ".css"}:
                 self.web.writetext(f"static/{fn.name}", fn.read_text())
-            elif fn.suffix == ".woff2":
-                self.web.copy_asset(fn, f"static/{fn.name}")
+
+        # MathJax finds its fonts by a path relative to its script, so its
+        # folder keeps its layout.
+        for fn in sorted((source_path / MATHJAX_DIR).rglob("*")):
+            dest = f"static/{fn.relative_to(source_path).as_posix()}"
+            if fn.suffix == ".js":
+                self.web.writetext(dest, fn.read_text())
+            elif fn.suffix == ".woff":
+                self.web.copy_asset(fn, dest)
 
         # Copy BRAIID CSS from braiid/ directory
         braiid_css_path = working_path.parent / "braiid" / "braiid.css"

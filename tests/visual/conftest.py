@@ -186,7 +186,7 @@ def serve_rsm_html(page: Any, tmp_path: Path) -> Callable[[str, bool], Any]:
             page.wait_for_function("() => window.__rsmInitialized === true", timeout=10000)
 
             # Wait for fonts to fully load, including dynamically-injected @font-face
-            # rules (e.g. Temml.css). A single document.fonts.ready check is unreliable
+            # rules (e.g. MathJax's fonts). A single document.fonts.ready check is unreliable
             # here: if the CSS hasn't been parsed yet, status is trivially 'loaded'
             # because no font loads are pending. The double-ready pattern gives the
             # browser a tick to discover newly-injected @font-face rules.

@@ -4,19 +4,13 @@
 //
 // The author declares macros in a :notation: block; their defaults ship as
 // <script class="rsm-notation"> JSON.  A single shared macros object feeds
-// every Temml render (see typesetMath in libraries.js), so the math source
+// every MathJax render (see typesetMath in libraries.js), so the math source
 // stays clean (\eig, never a \def).  Rebinding mutates that object, persists
 // the override, and re-renders all math.
 
-let _macros = null;
+import { loadMathJax, mathIdle, renderMath, retypesetMath } from "./libraries.js";
 
-// Temml refuses "trusted" commands (\class, \href, \cssId, \style, \url,
-// \includegraphics) unless the caller opts in, and renders them as a red error
-// otherwise. Interactive figures bind to parts of an equation with
-// \class{name}{...}, so we trust \class alone. The others can inject links or
-// arbitrary markup, so they stay untrusted. Shared so every render path (first
-// typeset and notation re-render) agrees.
-export const mathTrust = (ctx) => ctx.command === "\\class";
+let _macros = null;
 
 function storageKey() {
   return "rsm-notation:" + location.pathname;
@@ -59,16 +53,12 @@ export function getNotationMacros() {
 // With the sidebar's Notation view on the page, every use of a declared symbol
 // is marked in the rendered math (\class{nt-<name>}), so a reader can click a
 // symbol to rename it. The marks ride on the same \class trust interactive
-// figures already rely on (mathTrust), so \class stays trusted on every render
-// path whether or not the Notation view is present.
+// figures already rely on.
 const MARK_PREFIX = "nt-";
 
-// mathOptions() runs this for every math element, and a render pass (typesetMath
-// or reRenderAll) loops over them, so querying the DOM per element is wasteful:
-// renaming a symbol re-renders the whole document. Cache the answer for the
-// current tick and clear it on the next microtask, so the query runs once per
-// synchronous render pass, not once per element. The marking state only changes
-// when the Notation panel is built or torn down, never mid-pass.
+// Cache the answer for the current tick and clear it on the next microtask, so
+// a burst of renders queries the DOM once. The marking state only changes when
+// the Notation panel is built or torn down, never mid-pass.
 let _markingCache = null;
 function markingOn() {
   if (_markingCache === null) {
@@ -80,70 +70,50 @@ function markingOn() {
   return _markingCache;
 }
 
-// The options every math render uses: the current notation (a fresh copy per
-// call, so a stray author \gdef cannot leak between blocks), the \class trust
-// figures and marks depend on, and, with the Notation view present, the marks
-// on each use.
-export function mathOptions(extra = {}) {
+// The notation every math render uses, keyed by control sequence (\eig): the
+// current values and, with the Notation view present, the marks on each use.
+export function notationMacros() {
   const macros = { ...getNotationMacros() };
   if (markingOn()) {
     for (const k of Object.keys(macros)) {
       macros[k] = `\\class{${MARK_PREFIX}${k.slice(1)}}{${macros[k]}}`;
     }
   }
-  return { throwOnError: false, ...extra, macros, trust: mathTrust };
+  return macros;
 }
 
-// Render a notation value to a string for validation and preview. A
-// parameterized value (one containing #1..#9, e.g. "e(#1)") only renders inside
-// a macro call, not on its own, so render it as a throwaway macro body applied
-// to a placeholder; a plain value renders directly.
-function renderNotationToString(latex) {
+// A notation value as one formula: defined as a throwaway macro and applied, so
+// a parameterized value (one containing #1..#9, e.g. "e(#1)") renders with a
+// placeholder for each argument, and a value that would break the \def the
+// renderer builds from it fails here too.
+function notationSample(latex) {
   const params = latex.match(/#[1-9]/g);
-  if (params) {
-    const n = Math.max(...params.map((s) => +s[1]));
-    const args = "{\\square}".repeat(n);
-    return window.temml.renderToString("\\rsmNotationPreview" + args, {
-      throwOnError: true,
-      macros: { "\\rsmNotationPreview": latex },
-    });
-  }
-  return window.temml.renderToString(latex, { throwOnError: true });
+  const n = params ? Math.max(...params.map((s) => +s[1])) : 0;
+  let defArgs = "";
+  for (let i = 1; i <= n; i++) defArgs += `#${i}`;
+  return `\\def\\rsmNotationPreview${defArgs}{${latex}}\\rsmNotationPreview` +
+    "{\\square}".repeat(n);
 }
 
 // A reader's value feeds every math block at once, so one bad value would
-// corrupt the whole document.  Reject anything Temml cannot render.
+// corrupt the whole document.  Reject anything MathJax cannot render: a TeX
+// error comes back as <merror>, an unknown command as red text that starts
+// with a backslash.
 function isValid(latex) {
   if (!latex || !latex.trim()) return false;
-  if (!window.temml) return true; // best-effort when the validator is unavailable
+  if (!window.MathJax?.tex2mml) return true; // best-effort when the validator is unavailable
   try {
-    renderNotationToString(latex);
-    return true;
+    const mml = window.MathJax.tex2mml(notationSample(latex));
+    return !/<merror|mathcolor="red"[^>]*>\\/.test(mml);
   } catch {
     return false;
   }
 }
 
-// Re-render every already-typeset math element from its stored data-latex.
-// A fresh copy of the macros object is passed per call so a stray author \gdef
-// cannot leak into the canonical set or between blocks.
+// Re-render every already-typeset math element from its stored data-latex, so
+// it picks up the current notation.
 export function reRenderAll(root = document) {
-  if (!window.temml) return;
-  root.querySelectorAll("span.math[data-latex]").forEach((el) => {
-    try {
-      window.temml.render(el.dataset.latex, el, mathOptions());
-    } catch (err) {
-      console.error("notation re-render (inline):", err);
-    }
-  });
-  root.querySelectorAll("div.mathblock[data-latex]").forEach((el) => {
-    const target = el.querySelector(".hr-content-zone") || el;
-    try {
-      window.temml.render(el.dataset.latex, target, mathOptions({ displayMode: true }));
-    } catch (err) {
-      console.error("notation re-render (display):", err);
-    }
-  });
+  return retypesetMath(root);
 }
 
 // Rebind a macro to a new LaTeX value: validate, persist, re-render.
@@ -304,17 +274,18 @@ export function mountNotationPanel(root = document) {
     reset.setAttribute("data-tip", "Reset to the author's default");
     reset.textContent = "↺";
 
+    // The preview is typeset like any math, so it gets MathJax's styles.
     function renderPreview(latex) {
-      if (!window.temml) {
-        preview.textContent = "";
-        return;
-      }
-      try {
-        preview.innerHTML = renderNotationToString(latex);
-        input.classList.remove("invalid");
-      } catch {
-        input.classList.add("invalid");
-      }
+      loadMathJax()
+        .then(() => {
+          if (!isValid(latex)) {
+            input.classList.add("invalid");
+            return;
+          }
+          input.classList.remove("invalid");
+          return renderMath(notationSample(latex), preview);
+        })
+        .catch((err) => console.error("notation preview:", err));
     }
     renderPreview(input.value);
 
@@ -322,12 +293,14 @@ export function mountNotationPanel(root = document) {
     // changed so the reader sees the effect (not just the symbol on the input's
     // row). No-op if nothing changed, so clicking away doesn't re-flash.
     let lastApplied = e.current;
-    function commit() {
+    async function commit() {
       if (input.value === lastApplied) return;
       const ok = setMacro(e.macro, input.value);
       input.classList.toggle("invalid", !ok);
       if (ok) {
         lastApplied = input.value;
+        // Measure where the uses sit only once they show the new value.
+        await mathIdle();
         const uses = usesOf(e.macro, root);
         uses.forEach(flash);
         // Always bring the nearest instance into view so the change is visible

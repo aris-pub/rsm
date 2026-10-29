@@ -24,6 +24,13 @@ import * as margin from './margin.js';
 import * as captions from './captions.js';
 import * as asides from './asides.js';
 
+// For widgets and figures that render their own math, so they get MathJax with
+// the document's notation without loading a renderer of their own.
+window.rsm = Object.assign(window.rsm || {}, {
+  renderMath: libs.renderMath,
+  typesetMath: libs.typesetMath,
+});
+
 export async function onload(root = null, { keys = true } = {}) {
   if (!root) root = document;
 
@@ -32,18 +39,13 @@ export async function onload(root = null, { keys = true } = {}) {
   }
 
   try {
-    // Load math renderer only when the page actually contains math.
-    // Avoids injecting a CDN font on math-free pages.
-    if (document.querySelector('span.math, div.mathblock')) {
+    // Load MathJax only when the page has math. pseudocode.js typesets the
+    // math in an algorithm with MathJax too.
+    if (document.querySelector('span.math, div.mathblock, pre.pseudocode')) {
       try {
-        await libs.loadTemml();
+        await libs.loadMathJax();
       } catch (err) {
-        console.warn("temml failed to load, falling back to MathJax:", err);
-        try {
-          await libs.loadMathJax();
-        } catch (err2) {
-          console.error("MathJax fallback also FAILED!", err2);
-        }
+        console.error("Loading MathJax FAILED!", err);
       }
     }
 
@@ -227,6 +229,7 @@ export async function onrender(root = null) {
     try {
       const elements = root.querySelectorAll("pre.pseudocode:not(.rendered)");
       if (elements.length && window.pseudocode) {
+        await libs.loadMathJax();
         elements.forEach(el => {
           pseudocode.renderElement(el, {
             lineNumber: true,
@@ -234,6 +237,7 @@ export async function onrender(root = null) {
           });
           el.classList.add("rendered");
         });
+        libs.refreshMathStyles();
       }
     } catch (err) {
       console.error("Pseudocode render FAILED!", err);

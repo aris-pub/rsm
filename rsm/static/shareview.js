@@ -19,6 +19,7 @@ import { collapseKey, openHandrail, closeHandrail, withoutPersist, launchToast }
 import { extractModel, applyToBody, flatten, isValidOrder } from "./reorder.js";
 import { getNotationMacros, listNotation, reRenderAll } from "./notation.js";
 import { currentPin, pinTarget } from "./tooltips.js";
+import { mathIdle } from "./libraries.js";
 
 const SCHEMA = 1;
 
@@ -218,23 +219,12 @@ function placeAnchor(state) {
   if (Math.abs(d) > 0.5) window.scrollTo({ top: window.scrollY + d, behavior: "instant" });
 }
 
-// Resolves once the math stylesheet has loaded. It is added at runtime and
-// changes the height of every equation, so it can arrive after the restore.
-function mathStyled() {
-  const link = document.querySelector('link[rel="stylesheet"][href*="temml"]');
-  if (!link || link.sheet) return Promise.resolve();
-  return new Promise((res) => {
-    link.addEventListener("load", res, { once: true });
-    link.addEventListener("error", res, { once: true });
-  });
-}
-
 // How long a late layout change may still move the recipient to the anchor.
 const SETTLE_MS = 10000;
 const READER_INPUT = ["wheel", "touchstart", "keydown", "mousedown"];
 
-// Math styles and web fonts can load after the restore and move the layout, so
-// the anchor is placed again when each settles and whenever the manuscript
+// Math typesetting and web fonts can finish after the restore and move the
+// layout, so the anchor is placed again when each settles and whenever the manuscript
 // changes size, until the recipient touches the page or SETTLE_MS pass. Input
 // events, not scroll events, tell the reader apart: placing the anchor and the
 // browser's own scroll anchoring both scroll the page too.
@@ -255,7 +245,7 @@ function holdAnchor(state) {
   };
   place();
   requestAnimationFrame(place);
-  mathStyled().then(place);
+  mathIdle().then(place);
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(place);
   const manuscript = document.querySelector(".manuscript");
   if (manuscript && window.ResizeObserver) {

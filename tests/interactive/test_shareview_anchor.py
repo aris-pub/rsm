@@ -6,8 +6,8 @@ recipient must land on that same block, at the same height, even when:
 - a proof above the reader is folded (its hidden steps have a zero rect and
   used to win the "topmost block" search),
 - the reader is inside an open proof,
-- the layout shifts after the restore (a slow math stylesheet, or content
-  inserted late), and
+- the layout shifts after the restore (math styles that change late, or
+  content inserted late), and
 - the sender had a block pinned (the pin rides along for that visit only).
 
 The shareview_long fixture is a long document with a lemma, a proof folded by
@@ -29,9 +29,22 @@ SENDER_TOP = 12
 TOLERANCE = 50
 
 # A late stylesheet that pushes everything below each display equation down.
-# Served in place of Temml's stylesheet after a delay, so the restore happens first.
+# Added some time after RSM is ready, so the restore happens first.
 SLOW_MATH_CSS = ".manuscript .mathblock { padding-top: 140px !important; }"
 SLOW_DELAY_S = 1.5
+SLOW_MATH_SCRIPT = f"""
+(() => {{
+  const go = () => {{
+    if (!window.__rsmInitialized) return setTimeout(go, 20);
+    setTimeout(() => {{
+      const style = document.createElement('style');
+      style.textContent = {SLOW_MATH_CSS!r};
+      document.head.appendChild(style);
+    }}, {int(SLOW_DELAY_S * 1000)});
+  }};
+  go();
+}})();
+"""
 
 # Chrome's scroll anchoring hides a late shift above the window by adjusting
 # the scroll itself, and only in some cases. Safari has no scroll anchoring.
@@ -159,12 +172,7 @@ def _assert_lands_like_sender(page: Page, anchor: str, sender_top: float) -> Non
 
 
 def _route_slow_math_css(page: Page) -> None:
-    def handle(route):
-        # Waits without blocking the test, unlike time.sleep.
-        page.wait_for_timeout(SLOW_DELAY_S * 1000)
-        route.fulfill(status=200, content_type="text/css", body=SLOW_MATH_CSS)
-
-    page.route(re.compile(r".*/temml-0\.14\.0-latin-modern\.css$"), handle)
+    page.add_init_script(SLOW_MATH_SCRIPT)
 
 
 def _wait_slow_css(page: Page) -> None:
@@ -266,8 +274,7 @@ class TestLateLayout:
         _place(page, "par-3-4")
         url = _copy_view_url(page)
 
-        # "commit": the load event waits for the slow stylesheet, and the
-        # recipient must be able to scroll before it arrives.
+        # The recipient must be able to scroll before the late styles arrive.
         _open_as_recipient(page, url, wait_until="commit")
         # The recipient starts reading before the stylesheet arrives.
         page.mouse.move(700, 400)
