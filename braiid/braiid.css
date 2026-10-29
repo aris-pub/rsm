@@ -1094,8 +1094,8 @@ body {
     position: relative;
     top: var(--chunk-sixth);
     border-radius: var(--radius-lg);
-    background: var(--surface-hover);
-    color: var(--gray-900);
+    background: var(--surface-primary);
+    color: var(--text-subtle);
     z-index: 1;
 
     .icon {padding-top: var(--chunk-sixth); padding-bottom: var(--chunk-sixth);}
@@ -1239,6 +1239,7 @@ body {
   .manuscriptwrapper .hr > .hr-border-zone .hr-border-dots {
     opacity: 1;
     background: var(--surface-page);
+    color: var(--gray-900);
   }
   .manuscriptwrapper .hr.hr-menu-open > .hr-border-zone .hr-border-dots {
     background: var(--surface-hover);
@@ -1317,7 +1318,12 @@ body {
 
   /* highlight EVERY nested handrail border */
   .hr-border-zone {
-    .hr-border-dots {background: var(--primary-600); color: var(--almost-white);}
+    /* The pill takes the rail's own colour. Light dots on it fail 3:1, so the
+       dots are dark in both themes (the page colour is the dark one in dark). */
+    .hr-border-dots {
+      background: var(--handrail-active);
+      color: light-dark(var(--text-body), var(--surface-page));
+    }
     .hr-border-rect {border-left-color: var(--handrail-active);}
   }
   &.hr-collapsed > .hr-spacer-zone, &.hr-collapsed > .hr-border-zone > .hr-border-rect {
@@ -1350,7 +1356,7 @@ body {
 
   /* Colors when hovered */
   .hr-border-zone .hr-border-dots:hover {
-    background: var(--primary-400);
+    background: color-mix(in srgb, var(--handrail-active) 70%, white);
   }
 
 }
