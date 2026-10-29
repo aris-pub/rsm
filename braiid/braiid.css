@@ -3877,6 +3877,37 @@ html:not(.has-rail) .manuscriptwrapper .rail-strip { display: none; }
 .ui-tip.on { opacity: 1; }
 @media (prefers-reduced-motion: reduce) { .ui-tip { transition: none; } }
 
+/* The excerpt of a widget (an :html: block) in a reference preview or the
+   Pinned card: its number, its still image, and a muted line saying the
+   interactive version is in the manuscript (tooltips.js widgetPreview). The
+   still image switches with the theme through the .static-fallback-light and
+   .static-fallback-dark rules above. */
+.widget-preview {
+  font-family: var(--font-body);
+}
+.widget-preview > p {
+  margin: var(--chunk-sixth) 0;
+}
+.widget-preview-label {
+  font-weight: var(--weight-semi);
+}
+.widget-preview-still img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+.widget-preview-still img.static-fallback-dark { display: none; }
+.dark-theme .widget-preview-still img.static-fallback-light { display: none; }
+.dark-theme .widget-preview-still img.static-fallback-dark { display: block; }
+@media (prefers-color-scheme: dark) {
+  :root:not(.light-theme) .widget-preview-still img.static-fallback-light { display: none; }
+  :root:not(.light-theme) .widget-preview-still img.static-fallback-dark { display: block; }
+}
+.widget-preview-note {
+  color: var(--text-subtle);
+  font-size: 0.9em;
+}
+
 /* The pin control in a reference preview: an icon in the corner. Quiet at
    rest, a surface on hover, the accent while pressed, filled once pinned. */
 .tooltipster-content > .manuscriptwrapper:has(> .ref-pin-bar) {

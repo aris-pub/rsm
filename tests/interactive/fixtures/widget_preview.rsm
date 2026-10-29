@@ -1,0 +1,26 @@
+# Widget previews
+
+## Widgets
+  {:label: sec-widgets}
+
+:html: {
+  :label: wid-still
+  :static: fixtures-static-light.png
+  :dark: fixtures-static-dark.png
+  :alt: A still picture of the widget.
+}
+
+<div class="live-widget" style="width:300px;height:120px;background:#406">interactive widget</div>
+
+::
+
+:html: {
+  :label: wid-bare
+  :alt: A widget with no still picture.
+}
+
+<div class="live-widget" style="width:300px;height:120px;background:#640">another widget</div>
+
+::
+
+See :ref:wid-still:: and :ref:wid-bare:: for the two widgets.

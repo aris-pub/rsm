@@ -1267,6 +1267,8 @@ var RSM = (() => {
       content = `<div class="aside-preview">${$t.html()}</div>`;
     } else if (["P", "LI"].includes(tag)) {
       content = `<div>${$t.html()}</div>`;
+    } else if (tag === "FIGURE" && classes.contains("html")) {
+      content = widgetPreview($t[0]);
     } else if (tag === "FIGURE") {
       clone = $t.clone();
       stripHandrail(clone);
@@ -1324,6 +1326,36 @@ var RSM = (() => {
     }
     return { content: content || "", error: content ? null : "unsupported" };
   }
+  function widgetPreview(fig) {
+    const esc = (s) => String(s).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll('"', "&quot;");
+    const capLabel = fig.querySelector(":scope > figcaption .label");
+    const number = fig.getAttribute("data-number");
+    const label = capLabel && capLabel.textContent.replace(/\s+/g, " ").trim().replace(/\.$/, "") || (number ? `Widget ${number}` : "Widget");
+    let body = "";
+    const imgs = fig.querySelectorAll(".static-fallback img");
+    if (imgs.length) {
+      body = '<div class="widget-preview-still">';
+      for (const img of imgs) {
+        const cls = img.className ? ` class="${esc(img.className)}"` : "";
+        body += `<img${cls} src="${esc(img.getAttribute("src") || "")}" alt="${esc(img.alt)}">`;
+      }
+      body += "</div>";
+    } else if (fig.getAttribute("data-alt")) {
+      body = `<p class="widget-preview-alt">${esc(fig.getAttribute("data-alt"))}</p>`;
+    }
+    const cap = fig.querySelector(":scope > figcaption");
+    if (cap) {
+      const c = $(cap).clone();
+      stripHandrail(c);
+      c.find(".label").first().remove();
+      c.find("[data-menu-label]").removeAttr(
+        "data-menu-label data-menu-link data-menu-code data-menu-static-toggle tabindex"
+      );
+      const text = c.text().trim();
+      if (text) body += `<div class="widget-preview-caption">${c.html()}</div>`;
+    }
+    return `<div class="widget-preview"><p class="widget-preview-label">${esc(label)}</p>` + body + '<p class="widget-preview-note">Interactive in the manuscript.</p></div>';
+  }
   function pinBar(href, title) {
     if (!document.querySelector(".proof-rail")) return "";
     const h = (href || "").replaceAll('"', "&quot;");
@@ -1352,7 +1384,7 @@ var RSM = (() => {
     tmp.querySelectorAll(".aside").forEach((e) => e.remove());
     tmp.querySelectorAll("[data-nodeid]").forEach((e) => e.removeAttribute("data-nodeid"));
     if (title) {
-      const leadLabel = tmp.querySelector(".hr-label");
+      const leadLabel = tmp.querySelector(".hr-label, .widget-preview-label");
       if (leadLabel) leadLabel.remove();
     }
     pinnedTarget = href;
