@@ -46,6 +46,19 @@ def _top_shot(page: Page) -> bytes:
     return page.screenshot(animations="disabled")
 
 
+def _settle(page: Page) -> None:
+    """Opening an aside shows math that was hidden. Wait for the math font and
+    two drawn frames, so the shot never catches the formula mid layout."""
+    page.evaluate(
+        """async () => {
+            await document.fonts.load('16px "Latin Modern Math"', 'x');
+            await document.fonts.ready;
+            await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+        }"""
+    )
+    page.wait_for_timeout(300)
+
+
 @pytest.mark.visual
 class TestAsides:
     @pytest.mark.parametrize("scheme", ["light", "dark"])
@@ -68,6 +81,7 @@ class TestAsides:
         for i in ["a-one", "a-two", "a-three", "a-fig", "a-item", "a-step",
                   "a-pair-2", "a-pair-1"]:
             page.click(f"#call-{i}")
+        _settle(page)
         assert_snapshot(_shot(page))
 
     @pytest.mark.parametrize("scheme", ["light", "dark"])
@@ -80,7 +94,7 @@ class TestAsides:
         _open(page, serve_rsm_html, width, scheme)
         page.click("#call-a-two")
         page.focus("#call-a-two")
-        page.wait_for_timeout(300)
+        _settle(page)
         assert_snapshot(page.screenshot(animations="disabled"))
 
     @pytest.mark.parametrize("scheme", ["light", "dark"])

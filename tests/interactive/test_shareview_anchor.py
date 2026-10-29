@@ -29,7 +29,7 @@ SENDER_TOP = 12
 TOLERANCE = 50
 
 # A late stylesheet that pushes everything below each display equation down.
-# Served in place of Temml.css after a delay, so the restore happens first.
+# Served in place of Temml's stylesheet after a delay, so the restore happens first.
 SLOW_MATH_CSS = ".manuscript .mathblock { padding-top: 140px !important; }"
 SLOW_DELAY_S = 1.5
 
@@ -164,7 +164,7 @@ def _route_slow_math_css(page: Page) -> None:
         page.wait_for_timeout(SLOW_DELAY_S * 1000)
         route.fulfill(status=200, content_type="text/css", body=SLOW_MATH_CSS)
 
-    page.route(re.compile(r".*/temml/dist/Temml\.css$"), handle)
+    page.route(re.compile(r".*/temml-0\.14\.0-latin-modern\.css$"), handle)
 
 
 def _wait_slow_css(page: Page) -> None:

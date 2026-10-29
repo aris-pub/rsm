@@ -350,6 +350,8 @@ var RSM = (() => {
   var import_meta = {};
   var TEMML_FILE = "temml-0.14.0.min.js";
   var TEMML_CDN = "https://cdn.jsdelivr.net/npm/temml@0.14.0/dist/temml.min.js";
+  var TEMML_CSS_FILE = "temml-0.14.0-latin-modern.css";
+  var TEMML_CSS_CDN = "https://cdn.jsdelivr.net/npm/temml@0.14.0/dist/Temml-Latin-Modern.css";
   var PSEUDOCODE_FILE = "pseudocode-2.4.1.min.js";
   var PSEUDOCODE_CDN = "https://cdn.jsdelivr.net/npm/pseudocode@2.4.1/build/pseudocode.min.js";
   var MATHJAX_CDN = "https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.js";
@@ -386,10 +388,12 @@ var RSM = (() => {
   function loadTemml() {
     if (temmlLoaded) return Promise.resolve();
     if (temmlLoadPromise) return temmlLoadPromise;
-    const link = document.createElement("link");
-    link.rel = "stylesheet";
-    link.href = "https://cdn.jsdelivr.net/npm/temml/dist/Temml.css";
-    document.head.appendChild(link);
+    if (!document.querySelector("style[data-temml-css]")) {
+      const style = document.createElement("style");
+      style.setAttribute("data-temml-css", "");
+      style.textContent = `@import url("${besideThisFile(TEMML_CSS_FILE) || TEMML_CSS_CDN}") layer(vendor);`;
+      document.head.appendChild(style);
+    }
     const onReady = () => {
       temmlLoaded = true;
       if (window.temml && !window.katex) {
