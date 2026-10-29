@@ -1125,16 +1125,8 @@ var RSM = (() => {
     // button without it closing on the way.
     interactive: true,
     trigger: "custom",
-    triggerOpen: {
-      mouseenter: true,
-      touchstart: true
-    },
-    triggerClose: {
-      click: true,
-      mouseleave: true,
-      originClick: true,
-      touchleave: true
-    },
+    triggerOpen: { mouseenter: true },
+    triggerClose: { click: true, mouseleave: true, originClick: true, tap: true },
     functionInit: function(instance, helper) {
       const rawHref = $(helper.origin).attr("href");
       const { content, error } = buildExcerpt(rawHref);
@@ -1165,9 +1157,10 @@ var RSM = (() => {
       if (el) typesetMath(el instanceof $ ? el[0] : el);
     }
   };
+  var tapBound = /* @__PURE__ */ new WeakSet();
   function tapToPreview(el) {
-    if (el.dataset.tapPreview) return;
-    el.dataset.tapPreview = "true";
+    if (tapBound.has(el)) return;
+    tapBound.add(el);
     let touched = false;
     el.addEventListener("pointerdown", (ev) => {
       touched = ev.pointerType === "touch";
@@ -1176,22 +1169,17 @@ var RSM = (() => {
       if (!touched) return;
       touched = false;
       if ($(el).tooltipster("status").open) return;
-      ev.preventDefault();
       $(el).tooltipster("open");
+      if ($(el).tooltipster("status").open) ev.preventDefault();
     });
   }
   function createTooltips() {
     setupPinDelegation();
-    $(".manuscriptwrapper a.reference:not(.external):not(.tooltipstered)").tooltipster(PREVIEW_OPTIONS);
-    const $markers = $(
-      '.manuscriptwrapper a.note-marker[data-note-kind="note"]:not(.tooltipstered)'
+    const $previewed = $(
+      '.manuscriptwrapper a.reference:not(.external):not(.tooltipstered), .manuscriptwrapper a.note-marker[data-note-kind="note"]:not(.tooltipstered)'
     );
-    $markers.tooltipster({
-      ...PREVIEW_OPTIONS,
-      triggerOpen: { mouseenter: true },
-      triggerClose: { click: true, mouseleave: true, originClick: true, tap: true }
-    });
-    $markers.each((_, el) => tapToPreview(el));
+    $previewed.tooltipster(PREVIEW_OPTIONS);
+    $previewed.each((_, el) => tapToPreview(el));
     $(".manuscriptwrapper .author-names sup[data-tooltip]:not(.tooltipstered)").tooltipster({
       theme: ["tooltipster-shadow", "tooltipster-shadow-rsm"],
       delay: 200,
