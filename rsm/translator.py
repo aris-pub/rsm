@@ -116,6 +116,7 @@ import uuid
 from abc import ABC, abstractmethod
 from collections import namedtuple
 from collections.abc import Callable, Iterable
+from html import escape as html_escape
 from typing import Any, Literal
 
 from . import nodes
@@ -730,6 +731,10 @@ class AppendNodeTag(AppendOpenTag):
         if isinstance(node, nodes.Asset) and node.static:
             static_src = self._resolve_image_src(node.static) if hasattr(self, '_resolve_image_src') else str(node.static)
             kwargs["data-static"] = static_src
+        elif isinstance(node, nodes.Html) and node.alt:
+            # Without a still image the alt text appears nowhere else in the
+            # page, and a reference preview of the widget shows it instead.
+            kwargs["data-alt"] = html_escape(node.alt, quote=True)
         # Figures, widgets and videos carry their number, so the minimap can
         # label one that has no caption (and so no visible "Widget 4.3" label).
         figure_number = _figure_number(node)

@@ -181,3 +181,34 @@ def test_static_fallback_without_alt_or_caption_is_empty(caplog):
     assert 'alt=""' in html
     assert "Static fallback for" not in html
     assert any("no :alt:" in r.message for r in caplog.records)
+
+
+def test_html_block_without_static_carries_alt():
+    """An :html: block with :alt: but no :static: has no image to put the alt
+    on, so the figure carries it as data-alt for the reference preview, escaped
+    (rsm-9wa). With a :static:, the alt stays on the image only."""
+    html = _render(
+        """
+        :html: {
+          :alt: A "quoted" <widget>.
+        }
+
+        <div>live</div>
+
+        ::
+        """
+    )
+    assert 'data-alt="A &quot;quoted&quot; &lt;widget&gt;."' in html
+    html = _render(
+        """
+        :html: {
+          :static: assets/widget-static.png
+          :alt: A widget.
+        }
+
+        <div>live</div>
+
+        ::
+        """
+    )
+    assert "data-alt" not in html

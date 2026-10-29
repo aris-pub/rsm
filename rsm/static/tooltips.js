@@ -52,6 +52,8 @@ function buildExcerpt(rawHref) {
     // A paragraph's or list item's handrail wraps it from OUTSIDE the element,
     // so its own innerHTML carries no handrail chrome to strip.
     content = `<div>${$t.html()}</div>`;
+  } else if (tag === "FIGURE" && classes.contains("html")) {
+    content = widgetPreview($t[0]);
   } else if (tag === "FIGURE") {
     // A figure keeps its handrail chrome INSIDE itself: the figcaption is its
     // own hr, with the menu dots (in .hr-border-zone) and data-menu-*
@@ -105,6 +107,51 @@ function buildExcerpt(rawHref) {
     }
   }
   return { content: content || "", error: content ? null : "unsupported" };
+}
+
+// The excerpt of an :html: block (a widget). A copy of the live widget does not
+// work out of its place (its styles and scripts are tied to the original), so
+// show its number, its still image when it has one (both light and dark, and
+// braiid.css shows the one for the current theme, so a pinned excerpt follows a
+// theme switch) or else its alt text, its caption, and a line saying where the
+// interactive version is.
+function widgetPreview(fig) {
+  const esc = (s) =>
+    String(s).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll('"', "&quot;");
+  const capLabel = fig.querySelector(":scope > figcaption .label");
+  const number = fig.getAttribute("data-number");
+  const label =
+    (capLabel && capLabel.textContent.replace(/\s+/g, " ").trim().replace(/\.$/, "")) ||
+    (number ? `Widget ${number}` : "Widget");
+  let body = "";
+  const imgs = fig.querySelectorAll(".static-fallback img");
+  if (imgs.length) {
+    body = '<div class="widget-preview-still">';
+    for (const img of imgs) {
+      const cls = img.className ? ` class="${esc(img.className)}"` : "";
+      body += `<img${cls} src="${esc(img.getAttribute("src") || "")}" alt="${esc(img.alt)}">`;
+    }
+    body += "</div>";
+  } else if (fig.getAttribute("data-alt")) {
+    body = `<p class="widget-preview-alt">${esc(fig.getAttribute("data-alt"))}</p>`;
+  }
+  const cap = fig.querySelector(":scope > figcaption");
+  if (cap) {
+    const c = $(cap).clone();
+    stripHandrail(c);
+    c.find(".label").first().remove();
+    c.find("[data-menu-label]").removeAttr(
+      "data-menu-label data-menu-link data-menu-code data-menu-static-toggle tabindex"
+    );
+    const text = c.text().trim();
+    if (text) body += `<div class="widget-preview-caption">${c.html()}</div>`;
+  }
+  return (
+    '<div class="widget-preview">' +
+    `<p class="widget-preview-label">${esc(label)}</p>` +
+    body +
+    '<p class="widget-preview-note">Interactive in the manuscript.</p></div>'
+  );
 }
 
 // The pin control in a reference preview: an icon in the preview's top-right
@@ -162,7 +209,7 @@ export function pinTarget(href, title, origin = document, { transient = false } 
   // leading one (this block's label). Nested labels stay. Mirrors the State
   // view, which likewise strips .hr-label from its clone.
   if (title) {
-    const leadLabel = tmp.querySelector(".hr-label");
+    const leadLabel = tmp.querySelector(".hr-label, .widget-preview-label");
     if (leadLabel) leadLabel.remove();
   }
   pinnedTarget = href;
