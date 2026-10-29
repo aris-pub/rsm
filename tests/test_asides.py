@@ -11,6 +11,8 @@ move it into the right-hand column.
 from html.parser import HTMLParser
 from textwrap import dedent
 
+import re
+
 import pytest
 
 import rsm
@@ -489,3 +491,16 @@ def test_step_summary_in_the_sidebar_leaves_out_the_aside(tmp_path):
     )
     # The phrase is part of the step's text, the aside is not.
     assert 'data-tooltip="1. A step the phrase a1 here."' in html
+
+
+def test_space_after_a_call_before_math_is_kept():
+    """The parser drops the space between two inline nodes, and RSM puts one back
+    for the inline kinds it knows. Note and aside calls must be among them, or
+    ":aside:x,some space:: $R^m$" renders as "some spaceR^m"."""
+    src = (
+        "# T\n\nWe go into :aside:a1,some space:: $R^m$ and :note:n1:: $x$ on.\n\n"
+        ":aside: {:label: a1} An aside. ::\n\n:note: {:label: n1} A note. ::\n"
+    )
+    html = rsm.render(src, handrails=False)
+    assert re.search(r"</a>\s+<span class=\"math\"[^>]*>\\\(R\^m", html), html
+    assert re.search(r"</a>\s+<span class=\"math\"[^>]*>\\\(x", html), html
