@@ -878,6 +878,13 @@ body {
 .manuscriptwrapper .calc .step:not(.hr-collapsed) > .hr-info-zone .hr-collapse::before {
   background-color: var(--primary-600);
 }
+/* The chain has its own handrail, like a display equation. A labelled chain
+   shows its number in the first row's info cell, above that row's mark. */
+.manuscriptwrapper .calc.hr:hover .hr-info-stack .eqn-number p,
+.manuscriptwrapper .calc.hr:focus .hr-info-stack .eqn-number p {
+  color: var(--extra-dark);
+  font-weight: var(--weight-semi);
+}
 /* Touch: give the because-mark a >=44px tap target. */
 @media (hover: none) and (pointer: coarse) {
   .manuscriptwrapper .calc .step > .hr-info-zone .hr-collapse::after {
@@ -1191,6 +1198,20 @@ body {
   }
 
   & .eqn-number, & .step-number {padding-bottom: var(--chunk-quarter);}
+
+  /* Two items on one line of the column share one cell, stacked and centred
+     (translator: _hr_info_zone). For example a step number over the number of
+     the equation the step starts with, or a calc's number over its first
+     row's because-mark. */
+  & .hr-info.hr-info-stack {
+    flex-direction: column;
+    justify-content: center;
+    height: auto;
+    min-height: 32px;
+
+    .eqn-number, .step-number {padding-bottom: 0;}
+    .eqn-number p, .step-number p {margin: 0; line-height: 1.2;}
+  }
 
 }
 

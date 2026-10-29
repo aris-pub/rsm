@@ -448,15 +448,18 @@ class Node:
     def parent(self, node: Optional["NodeWithChildren"]) -> None:
         if node is None:
             self._parent = None
-        elif not self.__class__.possible_parents:
-            self._parent = node
-        else:
-            possible_parents = self.__class__.possible_parents
-            if possible_parents and type(node) not in possible_parents:
-                raise RSMNodeError(
-                    f"Node of type {type(self)} cannot have parent of type {type(node)}"
-                )
-            self._parent = node
+            return
+        possible_parents = self.__class__.possible_parents
+        if possible_parents and type(node) not in possible_parents:
+            raise RSMNodeError(
+                f"Node of type {type(self)} cannot have parent of type {type(node)}"
+            )
+        possible_children = getattr(node.__class__, "possible_children", None)
+        if possible_children and type(self) not in possible_children:
+            raise RSMNodeError(
+                f"Node of type {type(node)} cannot have child of type {type(self)}"
+            )
+        self._parent = node
 
     @property
     def children(self) -> tuple:
@@ -916,6 +919,23 @@ class Node:
 
 class NodeWithChildren(Node):
     """A :class:`Node` that may have children Nodes."""
+
+    possible_children: ClassVar[set[type[Node]]] = set()
+    """Allowed types of children Nodes, or empty to allow any.
+
+    The mirror of :attr:`Node.possible_parents`. It is checked whenever a node's
+    parent is set, which is what :meth:`append`, :meth:`prepend` and the other
+    ways of adding a child do.
+
+    Examples
+    --------
+    >>> nodes.Calc.possible_children == {nodes.Step}
+    True
+    >>> nodes.Calc().append(nodes.Paragraph())
+    Traceback (most recent call last):
+    rsm.nodes.RSMNodeError: Node of type <class 'rsm.nodes.Calc'> cannot have child of type <class 'rsm.nodes.Paragraph'>
+
+    """
 
     def __init__(self, **kwargs: Any) -> None:
         super().__init__(**kwargs)
@@ -1702,11 +1722,49 @@ class Sketch(NodeWithChildren):
 
 
 class Calc(NodeWithChildren):
-    """An equational/calculational proof: a chain of relation steps, each with a
-    justification. One handrail wraps the whole chain, and its steps are kept out
-    of the proof DAG -- the chain reads as a single step."""
+    """A calculation: a chain of relations, each with its justification.
+
+    A ``:calc:`` can go anywhere a display equation can go, inside or outside a
+    proof. Each row is a ``:step:`` that holds one relation, followed by a
+    ``:p:`` with the reason for it. A ``:calc:`` holds only ``:step:`` children.
+
+    .. code-block:: text
+
+       :calc: {:label: eq-bound}
+
+         :step: $\\|F(x)-F(y)\\|^2 \\ge c_0\\sum_j a_j^2$
+
+           :p: Reason for the first relation. ::
+
+         ::
+
+         :step: $\\ge \\frac{c_0}{4L} d(x,y)^2$
+
+           :p: Reason for the second. ::
+
+         ::
+
+       ::
+
+    The relations render at display size and the reasons start folded: a
+    control at the right of each row shows its reason. A labelled ``:calc:``
+    takes an equation number from the same counter as display math, and a
+    ``:ref:`` to it prints that number. Only the whole chain is numbered: its
+    rows have no number and cannot be labelled. Outside a proof the chain lays
+    out on the text column like a display equation. Inside a proof it reads as
+    one step, so its rows are kept out of the proof's step graph.
+
+    """
 
     has_handrail = True
+    autonumber = True
+    _number_within = Section
+    _number_as = MathBlock
+    classreftext: ClassVar[str] = "({number})"
+
+    @property
+    def long_reftext(self) -> str:
+        return f"Equation {self.reftext}".strip()
 
 
 class Step(Paragraph):
@@ -1715,10 +1773,28 @@ class Step(Paragraph):
     possible_parents: ClassVar[set[type["NodeWithChildren"]]] = {Proof, Subproof}
     has_handrail = True
 
+    @property
+    def in_calc(self) -> bool:
+        """Whether this step is a row of a :class:`Calc`."""
+        return isinstance(self.parent, Calc)
+
+    @property
+    def full_number(self) -> str | None:
+        if self.in_calc:
+            return None
+        return super().full_number
+
+    @property
+    def reftext(self) -> str:
+        if self.in_calc:
+            return "Relation"
+        return super().reftext
+
 
 Step.possible_parents.add(Step)
 Step.possible_parents.add(Calc)
 Step._number_within = (Proof, Step)
+Calc.possible_children = {Step}
 
 
 class Theorem(Heading):

@@ -30,6 +30,7 @@ _NODE_TYPE_TO_CLASS = {
     "porism": "tok-keyword",
     # Proof environments
     "proof": "tok-keyword", "sketch": "tok-keyword", "subproof": "tok-keyword",
+    "calc": "tok-keyword",
     # Proof constructs
     "assume": "tok-keyword", "case": "tok-keyword", "claim": "tok-keyword",
     "define": "tok-keyword", "let": "tok-keyword", "new": "tok-keyword",
