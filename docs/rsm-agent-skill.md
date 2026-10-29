@@ -171,30 +171,44 @@ As noted in :ref:key-insight::, ...
 
 | Form | Example | Where |
 |------|---------|-------|
-| Call | `:note:my-note::` or `:aside:my-aside::` | Inline, where the marker goes |
-| Definition | `:note: {:label: my-note} contents ::` | A block of its own, anywhere in the document |
+| Footnote call | `:note:my-note::` | Inline, where the number goes |
+| Aside call | `:aside:my-aside,the words it is about::` | Inline, around the phrase the aside is about |
+| Definition | `:note: {:label: my-note} contents ::` or `:aside: {:label: my-aside} contents ::` | A block of its own, anywhere in the document |
 
 ```
 Some paragraph with a note at the end. :note:my-note::
 
 :note: {:label: my-note} this is the note's contents ::
+
+We look for a map into :aside:hilbert,some Euclidean space:: such that ...
+
+:aside: {:label: hilbert} Bourgain writes Hilbert space instead. ::
 ```
 
-- A call takes only the label of its definition, like the target of `:ref:`. Text after
-  the tag in a call is a parse error.
+- A footnote call takes only the label of its definition, like the target of `:ref:`.
+  Text after the tag in a footnote call is a parse error.
+- An aside call takes the label, a comma, and the phrase the aside is about, the same
+  pattern as `:ref:label,text::`. The phrase may hold inline markup (`*emph*`,
+  `**strong**`, `:span:`) and inline math, but not references or links. The phrase is
+  shown in the text with a faint dotted underline, and it is what lights or opens the
+  aside. An aside call without a phrase (`:aside:my-aside::`) is an error that asks
+  for the phrase.
 - A definition must have the `{:label: ...}` meta block. Without it, it is a parse error.
   Its content is one paragraph: inline content, display math (`$$...$$`) and code
   blocks. A blank line inside a definition is an error.
-- The definition's tag decides whether the marker is a footnote or an aside.
-- Every call gets a number in the order the calls appear. Notes and asides share one
-  sequence.
+- The definition's tag decides whether the call is a footnote or an aside. A call to an
+  aside must have a phrase and a call to a footnote must not.
+- Footnotes are numbered 1, 2, 3 in the order their calls appear. Asides have no
+  number.
 - Footnotes are shown in one Notes list just before References (at the end of the
   document when there are no references), with their numbers and a link back to the
-  call. Since asides take numbers too, the list can skip numbers. Where a footnote
-  definition is written does not change where it is shown.
-- Errors: a call with no definition, a definition called more than once, and an aside
-  (call or definition) inside a caption. A definition that is never called gives a
-  warning and is not shown.
+  call. Where a footnote definition is written does not change where it is shown.
+- An aside is shown below the paragraph or list item that calls it. On wide screens
+  it sits in the right-hand column level with its phrase. On narrow screens it is
+  closed until the reader taps or clicks the phrase.
+- Errors: a call with no definition, a definition called more than once, an aside call
+  without a phrase, a footnote call with a phrase, and an aside (call or definition)
+  inside a caption. A definition that is never called gives a warning and is not shown.
 - The old form with the content inside the sentence (`:note: some text ::`) is gone.
 
 ### Inline Tags — Special Syntax

@@ -12,7 +12,8 @@ text:
   - no JavaScript: the marker is a plain link to the list, with no preview;
   - print: the list prints, previews do not.
 
-Each list entry has a backlink to its call. Aside markers have no preview.
+Each list entry has a backlink to its call. Footnotes count on their own: asides
+take no number, so the markers and the list read 1, 2, 3.
 """
 
 import re
@@ -55,7 +56,7 @@ class TestNotesListPage:
         notes = headings.index("Notes")
         assert headings[notes + 1] == "References"
 
-    def test_entries_are_numbered_in_call_order(
+    def test_footnotes_are_numbered_1_to_n_and_asides_are_skipped(
         self, page: Page, interactive_server: str
     ):
         _open(page, interactive_server)
@@ -67,13 +68,19 @@ class TestNotesListPage:
             "third",
         ]
         numbers = page.locator("ol.noteslist .note__number").all_inner_texts()
-        # number 2 is the aside, shown in place
-        assert numbers == ["1", "3", "4"]
+        assert numbers == ["1", "2", "3"]
+        # The markers in the text read the same, with the aside between the
+        # first two taking no number.
+        markers = page.locator(".manuscript a.note-marker").all_inner_texts()
+        assert markers == ["1", "2", "3"]
+        assert entries.evaluate_all("els => els.map(e => e.value)") == [1, 2, 3]
+        expect(page.locator("#call-side")).to_have_class(re.compile(r"\baside-phrase\b"))
+        expect(page.locator("#side .note__number")).to_have_count(0)
 
     def test_entry_numbers_are_visible(self, page: Page, interactive_server: str):
         _open(page, interactive_server)
         expect(page.locator("#third .note__number")).to_be_visible()
-        expect(page.locator("#third .note__number")).to_have_text("4")
+        expect(page.locator("#third .note__number")).to_have_text("3")
 
 
 class TestHoverPreview:
@@ -133,13 +140,13 @@ class TestHoverPreview:
         page.wait_for_function("() => location.hash === '#first'", timeout=3000)
         expect(page.locator("#first")).to_be_in_viewport()
 
-    def test_closed_aside_marker_previews_the_aside(
+    def test_closed_aside_phrase_previews_the_aside(
         self, page: Page, interactive_server: str
     ):
         # Without the margin column an aside is closed below its paragraph, and
-        # its marker previews the aside itself (tests/interactive/test_asides.py).
+        # its phrase previews the aside itself (tests/interactive/test_asides.py).
         _open(page, interactive_server)
-        page.locator('a.note-marker[href="#side"]').hover()
+        page.locator('a.aside-phrase[href="#side"]').hover()
         preview = page.locator(PREVIEW)
         expect(preview).to_be_visible(timeout=3000)
         expect(preview).to_contain_text("An aside")

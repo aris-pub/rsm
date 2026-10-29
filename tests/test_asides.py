@@ -118,7 +118,7 @@ def element_children(el) -> list:
 
 
 ONE = """\
-First paragraph with an aside :aside:a1:: here. And more text.
+First paragraph with an aside :aside:a1,the phrase a1:: here. And more text.
 
 :aside: {:label: a1} the aside text ::
 
@@ -144,7 +144,7 @@ def test_definition_written_before_its_call_also_moves():
         """\
         :aside: {:label: a1} defined first ::
 
-        Then called :aside:a1:: here.
+        Then called :aside:a1,the phrase a1:: here.
         """
     )
     (aside,) = asides(tree)
@@ -155,7 +155,7 @@ def test_definition_written_before_its_call_also_moves():
 def test_several_asides_of_one_paragraph_follow_call_order():
     tree = transform(
         """\
-        One :aside:b:: two :aside:a:: three :aside:c::.
+        One :aside:b,the phrase b:: two :aside:a,the phrase a:: three :aside:c,the phrase c::.
 
         :aside: {:label: a} a ::
 
@@ -167,7 +167,8 @@ def test_several_asides_of_one_paragraph_follow_call_order():
     para = next(tree.traverse(nodeclass=nodes.Paragraph))
     tail = [c for c in para.children if isinstance(c, nodes.Aside)]
     assert [a.label for a in tail] == ["b", "a", "c"]
-    assert [a.number for a in tail] == [1, 2, 3]
+    assert [a.call.order for a in tail] == [1, 2, 3]
+    assert [a.number for a in tail] == [None, None, None]
     assert list(para.children[-3:]) == tail
 
 
@@ -176,7 +177,7 @@ def test_aside_in_a_list_item_moves_into_the_item():
         """\
         :itemize:
 
-          :-: An item :aside:a1:: here.
+          :-: An item :aside:a1,the phrase a1:: here.
 
           :-: Second.
 
@@ -197,7 +198,7 @@ def test_aside_in_a_proof_step_moves_into_the_step_paragraph():
 
         :proof:
 
-          :step: A step :aside:a1:: here.
+          :step: A step :aside:a1,the phrase a1:: here.
 
           :step: Another step.
 
@@ -228,7 +229,7 @@ def test_aside_called_from_inside_a_note_stays_in_place():
         """\
         Text :note:n1:: here.
 
-        :note: {:label: n1} a footnote with an aside :aside:a1:: ::
+        :note: {:label: n1} a footnote with an aside :aside:a1,the phrase a1:: ::
 
         :aside: {:label: a1} the aside ::
         """
@@ -273,27 +274,28 @@ def test_aside_has_no_handrail_and_no_alignment_wrapper():
 def test_aside_markup():
     t = tree_of(render(ONE))
     aside = by_id(t, "a1")
-    assert aside["attrs"]["data-note-number"] == "1"
+    assert "data-note-number" not in aside["attrs"]
     assert aside["attrs"]["data-note-kind"] == "aside"
     (p,) = element_children(aside)
     assert p["tag"] == "p"
-    (num,) = find_all(p, lambda e: "note__number" in classes(e))
-    assert text_of(num) == "1"
-    assert text_of(p).strip() == "1 the aside text"
+    assert not find_all(p, lambda e: "note__number" in classes(e))
+    assert text_of(p).strip() == "the aside text"
 
 
-def test_marker_points_at_the_aside():
+def test_phrase_points_at_the_aside():
     t = tree_of(render(ONE))
-    (marker,) = find_all(t.root, lambda e: "note-marker" in classes(e))
-    assert marker["attrs"]["href"] == "#a1"
-    assert marker["attrs"]["id"] == "call-a1"
+    assert not find_all(t.root, lambda e: "note-marker" in classes(e))
+    (phrase,) = find_all(t.root, lambda e: "aside-phrase" in classes(e))
+    assert phrase["attrs"]["href"] == "#a1"
+    assert phrase["attrs"]["id"] == "call-a1"
+    assert text_of(phrase) == "the phrase a1 (aside)"
 
 
 def test_several_asides_stack_below_the_paragraph_in_marker_order():
     t = tree_of(
         render(
             """\
-            One :aside:b:: two :aside:a::.
+            One :aside:b,the phrase b:: two :aside:a,the phrase a::.
 
             :aside: {:label: a} a ::
 
@@ -313,7 +315,7 @@ def test_paragraph_with_display_math_in_the_middle(handrails):
     t = tree_of(
         render(
             """\
-            Before :aside:a1:: the math
+            Before :aside:a1,the phrase a1:: the math
             $$
             x = 1
             $$
@@ -336,7 +338,7 @@ def test_paragraph_ending_in_display_math(handrails):
     t = tree_of(
         render(
             """\
-            Before :aside:a1:: the math
+            Before :aside:a1,the phrase a1:: the math
             $$
             x = 1
             $$
@@ -357,7 +359,7 @@ def test_aside_with_display_math_of_its_own():
     t = tree_of(
         render(
             """\
-            Text :aside:a1:: here.
+            Text :aside:a1,the phrase a1:: here.
 
             :aside: {:label: a1}
               Before
@@ -380,7 +382,7 @@ def test_aside_in_a_list_item_sits_inside_the_item():
             """\
             :itemize:
 
-              :-: An item :aside:a1:: here.
+              :-: An item :aside:a1,the phrase a1:: here.
 
               :-: Second.
 
@@ -403,7 +405,7 @@ def test_aside_in_a_proof_step_sits_below_the_step_text():
 
             :proof:
 
-              :step: A step :aside:a1:: here.
+              :step: A step :aside:a1,the phrase a1:: here.
 
               :step: Another step.
 
@@ -422,7 +424,7 @@ def test_aside_in_a_proof_step_sits_below_the_step_text():
 def test_paragraph_with_title_keeps_its_label():
     html = render(
         """\
-        :paragraph: {:title: Remark} Text :aside:a1:: here. ::
+        :paragraph: {:title: Remark} Text :aside:a1,the phrase a1:: here. ::
 
         :aside: {:label: a1} the aside ::
         """
@@ -476,7 +478,7 @@ def test_step_summary_in_the_sidebar_leaves_out_the_aside(tmp_path):
         :theorem: {:label: thm} A theorem. ::
 
         :proof:
-          :step: A step :aside:a1:: here.::
+          :step: A step :aside:a1,the phrase a1:: here.::
           :step: Another step.::
         ::
 
@@ -485,4 +487,5 @@ def test_step_summary_in_the_sidebar_leaves_out_the_aside(tmp_path):
         tmp_path,
         sidebar=True,
     )
-    assert 'data-tooltip="1. A step here."' in html
+    # The phrase is part of the step's text, the aside is not.
+    assert 'data-tooltip="1. A step the phrase a1 here."' in html

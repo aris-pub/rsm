@@ -138,11 +138,12 @@ def test_inline_math():
     assert m["c"][1] == "x^2"
 
 
-@pytest.mark.parametrize("tag", ["note", "aside"])
-def test_note_call_exports_as_pandoc_note(tag):
+@pytest.mark.parametrize("call", ["note:n1", "aside:n1,the phrase"])
+def test_note_call_exports_as_pandoc_note(call):
+    tag = call.split(":")[0]
     blocks = _blocks(
         f"""
-        Some text. :{tag}:n1:: More.
+        Some text. :{call}:: More.
 
         :{tag}: {{:label: n1}} The note text. ::
         """
@@ -154,6 +155,22 @@ def test_note_call_exports_as_pandoc_note(tag):
     (inner,) = note["c"]
     assert inner["t"] == "Para"
     assert {"t": "Str", "c": "note"} in inner["c"]
+
+
+def test_aside_phrase_stays_in_the_text_before_its_note():
+    blocks = _blocks(
+        """
+        We map into :aside:h,some space:: here.
+
+        :aside: {:label: h} The aside text. ::
+        """
+    )
+    (para,) = [b for b in blocks if b["t"] == "Para"]
+    inlines = para["c"]
+    strs = [i["c"] for i in inlines if i.get("t") == "Str"]
+    assert strs[:5] == ["We", "map", "into", "some", "space"]
+    space = inlines.index({"t": "Str", "c": "space"})
+    assert inlines[space + 1]["t"] == "Note"
 
 
 def test_display_math():

@@ -90,9 +90,9 @@ paragraph = ParagraphTagInfo(None)
 InlineTagInfo = namedtuple("InlineTagInfo", ["shorthand"])
 
 aside = InlineTagInfo(None)
-"""Aside. Call it inline with ``:aside:lbl::`` and define it as a block with
-``:aside: {:label: lbl} content ::``. Notes and asides share one numbering, in call
-order."""
+"""Aside. Call it inline on the phrase it is about, ``:aside:lbl,some words::``, and
+define it as a block with ``:aside: {:label: lbl} content ::``. Asides are not
+numbered."""
 code = InlineTagInfo(None)
 """Inline code."""
 cite = InlineTagInfo(None)
@@ -105,8 +105,7 @@ math = InlineTagInfo(None)
 """Inline math."""
 note = InlineTagInfo(None)
 """Footnote. Call it inline with ``:note:lbl::`` and define it as a block with
-``:note: {:label: lbl} content ::``. Notes and asides share one numbering, in call
-order."""
+``:note: {:label: lbl} content ::``. Footnotes are numbered 1, 2, 3 in call order."""
 ref = InlineTagInfo(None)
 """Link to internal label."""
 span = InlineTagInfo(None)

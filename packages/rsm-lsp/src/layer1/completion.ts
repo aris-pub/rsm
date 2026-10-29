@@ -21,7 +21,7 @@ const RSM_TAGS = [
   { tag: ':example:', description: 'Example' },
   { tag: ':remark:', description: 'Remark' },
   { tag: ':note:', description: 'Footnote: call with :note:label::, define with :note: {:label: label} ... ::' },
-  { tag: ':aside:', description: 'Aside: call with :aside:label::, define with :aside: {:label: label} ... ::' },
+  { tag: ':aside:', description: 'Aside: call with :aside:label,phrase::, define with :aside: {:label: label} ... ::' },
 
   // Proof constructs
   { tag: ':proof:', description: 'Proof block' },

@@ -3,8 +3,8 @@
 ## Markers
 
 A sentence that ends with a footnote.:note:first:: Another sentence carries an
-aside in the middle :aside:second:: and keeps going, and a third marker closes
-the paragraph.:note:third::
+aside on :aside:second,a phrase in the middle:: and keeps going, and a second
+footnote closes the paragraph.:note:third::
 
 :note: {:label: first} The first note, which cites :cite:knuth:: and goes on long
 enough to wrap onto a second line at the narrow width. ::

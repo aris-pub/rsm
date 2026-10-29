@@ -5,14 +5,16 @@
 // script runs, html.has-asides is set (the builder's pre-paint script sets it
 // even earlier, so there is no jump) and braiid.css takes over:
 //
+// The call of an aside is the phrase the aside is about (a.aside-phrase).
+//
 // - With the margin column on (html.rsm-margin, see margin.js), every aside sits
-//   in the column level with its marker, sharing the column and its push-down
+//   in the column level with its phrase, sharing the column and its push-down
 //   with captions.
-// - Otherwise each aside is hidden, and its marker opens and closes it in place
-//   below its block. On pointer devices, hovering the marker of a closed aside
+// - Otherwise each aside is hidden, and its phrase opens and closes it in place
+//   below its block. On pointer devices, hovering the phrase of a closed aside
 //   shows a preview of it.
 //
-// Either way, hovering or focusing a marker lights its aside and the other way
+// Either way, hovering or focusing a phrase lights its aside and the other way
 // around (OPEN and LIT classes below).
 
 import { addMarginItem, marginOn } from "./margin.js";
@@ -20,7 +22,7 @@ import { addMarginItem, marginOn } from "./margin.js";
 export const READY_CLASS = "has-asides";
 const OPEN = "rsm-aside-open";
 const LIT = "rsm-aside-lit";
-const MARKERS = '.manuscriptwrapper a.note-marker[data-note-kind="aside"]';
+const MARKERS = ".manuscriptwrapper a.aside-phrase";
 
 let listening = false;
 
@@ -54,7 +56,7 @@ export function setup(root = document) {
   document.addEventListener("focusout", onFocus);
   window.addEventListener("hashchange", openHashTarget);
   openHashTarget();
-  // The marker is a toggle only while the column is off.
+  // The phrase is a toggle only while the column is off.
   new MutationObserver(syncExpanded).observe(document.documentElement, {
     attributes: true,
     attributeFilter: ["class"],
@@ -90,7 +92,7 @@ function closestMarker(target) {
 function onClick(ev) {
   const marker = closestMarker(ev.target);
   if (!marker || !asideOf(marker)) return;
-  // The aside is right beside the marker or opens below its block, so the
+  // The aside is right beside the phrase or opens below its block, so the
   // link's jump would only move the reader away from the text.
   ev.preventDefault();
   if (!marginOn()) toggle(marker);
@@ -100,7 +102,7 @@ function onKeydown(ev) {
   if (ev.key !== " " && ev.key !== "Spacebar") return;
   const marker = closestMarker(ev.target);
   if (!marker || !asideOf(marker)) return;
-  // Enter already clicks a link. Space is added because the marker also
+  // Enter already clicks a link. Space is added because the phrase also
   // carries aria-expanded, and readers expect Space to work on a toggle.
   ev.preventDefault();
   ev.stopPropagation();

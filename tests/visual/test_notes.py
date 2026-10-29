@@ -1,11 +1,12 @@
-"""Visual guard for note markers, the notes list and the note preview.
+"""Visual guard for footnote markers, the notes list and the note preview.
 
-The marker is a small tinted chip with the number (braiid/braiid.css, the
-note-marker rules). It is the same for notes and asides. On hover or focus the
-chip fills with the primary color and the number takes the page color.
-Footnotes are shown in one Notes list before References, each entry starting
-with the same chip at rest. Asides are shown in place for now. Hovering a
-footnote marker shows the reference preview with the note's text.
+A footnote marker is a small tinted chip with the number (braiid/braiid.css,
+the note-marker rules). On hover or focus the chip fills with the primary color
+and the number takes the page color. Footnotes count on their own, 1, 2, 3.
+They are shown in one Notes list before References, each entry starting with
+the same chip at rest. An aside has no marker: its phrase has a dotted
+underline (tests/visual/test_asides.py covers asides). Hovering a footnote
+marker shows the reference preview with the note's text.
 """
 
 from pathlib import Path
@@ -56,7 +57,7 @@ class TestNoteMarkers:
         page.set_viewport_size({"width": 1280, "height": 720})
         serve_rsm_html(FIXTURE.read_text(), dark_theme=theme == "dark")
         page.wait_for_function(RSM_READY, timeout=10_000)
-        page.locator('a.note-marker[href="#second"]').focus()
+        page.locator('a.note-marker[href="#third"]').focus()
         paragraph = page.locator(".manuscript .paragraph").first
         assert_snapshot(paragraph.screenshot())
 

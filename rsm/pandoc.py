@@ -550,10 +550,14 @@ class PandocTranslator:
         return result
 
     def _inline_notecall(self, node: nodes.NoteCall) -> list[dict]:
-        # Pandoc has no asides, so both kinds export as a footnote.
+        # Pandoc has no asides, so both kinds export as a footnote. An aside's
+        # phrase stays in the text, followed by the footnote.
         if node.definition is None:
             return []
-        return [{"t": "Note", "c": self._paragraph_content_blocks(node.definition)}]
+        phrase = self._walk_children_as_inlines(node)
+        return phrase + [
+            {"t": "Note", "c": self._paragraph_content_blocks(node.definition)}
+        ]
 
     # ── Helpers ───────────────────────────────────────────────────────────────
 
