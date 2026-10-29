@@ -163,12 +163,13 @@ def _resolve(value, theme, tokens, seen=None):
 
 
 def _figcaption_background():
+    """The caption's surface. Captions are unboxed (rsm-coj), so a caption with
+    no background of its own sits on the page."""
     text = CSS.read_text()
     m = re.search(r"figcaption > \.hr-content-zone\s*\{([^}]*)\}", text)
     assert m, "no figcaption > .hr-content-zone rule in braiid.css"
     bg = re.search(r"\bbackground\s*:\s*([^;]+);", m.group(1))
-    assert bg, "figcaption content zone has no background"
-    return bg.group(1).strip()
+    return bg.group(1).strip() if bg else "var(--surface-page)"
 
 
 def test_caption_link_contrast_meets_wcag_aa():

@@ -1308,6 +1308,14 @@ class Aside(Note):
     kind: ClassVar[str] = "aside"
 
 
+class NotesList(NodeWithChildren):
+    """The list of footnotes shown at the end of the document.
+
+    The transformer creates it and moves every called :class:`Note` into it, in
+    the order of their numbers. Asides are not moved.
+    """
+
+
 class NoteCall(Node):
     """Call site of a note or aside, written as ``:note:lbl::`` or ``:aside:lbl::``.
 
@@ -1941,11 +1949,15 @@ class Caption(Paragraph):
 
 
 class Contents(Itemize):
-    newmetakeys: ClassVar[set] = {"view"}
+    newmetakeys: ClassVar[set] = {"view", "orientation"}
+    orientations: ClassVar[tuple[str, ...]] = ("horizontal", "vertical")
 
-    def __init__(self, view: str = "list", **kwargs: Any) -> None:
+    def __init__(
+        self, view: str = "list", orientation: str = "vertical", **kwargs: Any
+    ) -> None:
         super().__init__(**kwargs)
         self.view = view
+        self.orientation = orientation
         # Filled by the transformer: cross-section reference edges as dicts
         # {"src": row, "dst": row, "count": n, "kind": "dep" | "fwd"}, where
         # rows index the TOC entries in document order.

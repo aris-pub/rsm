@@ -1634,6 +1634,22 @@ body {
     display: none;
   }
 
+  /* :orientation: horizontal emits both layouts. The left-to-right graph is too
+     wide for a phone, so phones keep the vertical one. */
+  .toc.tree svg.toc-tree-h {
+    display: none;
+  }
+
+  @media (min-width: 768px) {
+    .toc.tree svg.toc-tree-h {
+      display: block;
+    }
+
+    .toc.tree svg.toc-tree-v {
+      display: none;
+    }
+  }
+
   .toc-tree .toc-node rect {
     fill: var(--white, #fff);
     stroke: var(--gray-300, #d4dae3);
@@ -2593,17 +2609,84 @@ body {
 .manuscriptwrapper figure > *:not(figcaption) {
   max-width: 100%;
   overflow-x: auto; }
-.manuscriptwrapper figcaption {
+/* Captions of every captioned block (figure, widget, video, table): small,
+   unboxed, subtle text, with the label ("Figure 2.3.") bold in the body colour
+   on its own line. The same look under the block and in the margin column. */
+.manuscriptwrapper :is(figure, .table-wrapper) > figcaption {
   text-align: left;
-  margin-block: var(--h4-size); }
-.manuscriptwrapper figcaption > .hr-content-zone {
-  background: var(--surface-caption);
-  border: 1px solid var(--gray-200);
-  border-radius: var(--radius-lg);
-  padding: 0.75em 1em;
-  font-size: 0.9em; }
-/* The "Figure N."/"Widget N." caption label gets the bold treatment. */
-.manuscriptwrapper figcaption .label { font-weight: var(--weight-bold); }
+  margin-block: var(--chunk-third); }
+.manuscriptwrapper :is(figure, .table-wrapper) > figcaption > .hr-content-zone {
+  font-size: 0.84em;
+  line-height: 1.5;
+  color: var(--text-subtle);
+  text-align: left; }
+/* The focus wash is too dark behind the subtle colour for AA contrast. */
+.manuscriptwrapper :is(figure, .table-wrapper) > figcaption:is(.active, :focus) > .hr-content-zone {
+  color: var(--text-body); }
+.manuscriptwrapper :is(figure, .table-wrapper) > figcaption .label {
+  display: block;
+  font-weight: var(--weight-bold);
+  color: var(--text-body); }
+
+/* The caption's handrail lives in the left gutter beside its block, spanning
+   the block's height (captions.js sets the --cap-rail-* offsets, measured from
+   the caption's own box). Its empty collapse and spacer zones give way to
+   padding, so the text keeps its column. */
+@media screen {
+  .manuscriptwrapper .manuscript .hr.rsm-cap-linked {
+    position: relative;
+    padding-left: calc(3 * var(--hr-zone-width));
+  }
+  .manuscriptwrapper .manuscript .hr.rsm-cap-linked > .hr-collapse-zone,
+  .manuscriptwrapper .manuscript .hr.rsm-cap-linked > .hr-spacer-zone { display: none; }
+  .manuscriptwrapper .manuscript .hr.rsm-cap-linked > .hr-border-zone,
+  .manuscriptwrapper .manuscript .hr.rsm-cap-linked > .hr-menu-zone {
+    position: absolute;
+    top: var(--cap-rail-y, 0px);
+  }
+  .manuscriptwrapper .manuscript .hr.rsm-cap-linked > .hr-border-zone {
+    left: calc(var(--cap-rail-x, 0px) + var(--hr-zone-width));
+    width: var(--hr-zone-width);
+    height: var(--cap-rail-h, 100%);
+  }
+  .manuscriptwrapper .manuscript .hr.rsm-cap-linked > .hr-menu-zone { left: var(--cap-rail-x, 0px); }
+  .manuscriptwrapper .manuscript .hr.rsm-cap-linked.hr-offset .hr-menu-zone .hr-menu {
+    left: calc(-2.5 * var(--chunk) + var(--hr-zone-width));
+  }
+  /* Hovering or focusing the block shows the caption's rail too, so the rail
+     reads as the block's. */
+  .manuscriptwrapper .manuscript :is(figure, .table-wrapper):is(:hover, :focus-within) > .hr.rsm-cap-linked {
+    & > .hr-border-zone { opacity: 100%; }
+    & > .hr-border-zone .hr-border-dots { opacity: 100%; }
+  }
+}
+
+/* The margin column (margin.js decides where each item goes; sidebar.js sets
+   html.rsm-margin when the column fits). The page widens by the column, the
+   text keeps its width, and items are placed in the column at their anchors.
+   Screen only: print keeps captions under their blocks. */
+:root {
+  --rsm-margin-width: 15rem;
+  --rsm-margin-gap: 2rem;
+}
+@media screen {
+  html.rsm-margin main.manuscriptwrapper {
+    padding-right: calc(var(--side-padding) + var(--rsm-margin-gap) + var(--rsm-margin-width));
+  }
+  html.rsm-margin .manuscriptwrapper .manuscript .rsm-margin-item {
+    position: absolute;
+    width: var(--rsm-margin-width);
+    margin: 0;
+    padding-left: 0;
+  }
+  /* Beside the text the caption's empty number zone would only narrow it. */
+  html.rsm-margin .manuscriptwrapper .manuscript .hr.rsm-margin-item > .hr-info-zone { display: none; }
+}
+/* A <video> keeps its intrinsic pixel width otherwise and overflows the figure
+   on a narrow screen (rsm-29p). height:auto keeps the aspect ratio. */
+.manuscriptwrapper figure video {
+  max-width: 100%;
+  height: auto; }
 
 
 /* Other */
@@ -2736,13 +2819,6 @@ body {
   border-top: var(--border-thin) solid var(--gray-600); }
 .manuscriptwrapper tbody tr:last-child td.tabledatum {
   border-bottom: var(--border-thin) solid var(--gray-600); }
-.manuscriptwrapper .table-wrapper > figcaption {
-  margin-block: 0.5rem;
-  text-align: center; }
-.manuscriptwrapper .table-wrapper > figcaption.hr .hr-content-zone {
-  text-align: center;
-  padding-inline: 1rem;
-  padding-block: 0.5rem; }
 
 /* Hyperlinks */
 .manuscriptwrapper {
@@ -2947,6 +3023,21 @@ rest so the reader can match the two. */
     box-shadow: none;
     outline: none;
   }
+
+  /* The notes list. Each entry starts with its number chip, so the list draws
+  no numbers of its own. The <li> value attributes keep the numbers right when
+  the list is read without this CSS. */
+  ol.noteslist {
+    list-style: none;
+    padding-inline-start: 0;
+    margin-block: 0;
+    font-size: 0.92em;
+
+    li.note {margin-block: 0.75rem;}
+    li.note p {margin-block: 0;}
+  }
+
+  .note-preview p {margin-block: 0;}
 
 }
 

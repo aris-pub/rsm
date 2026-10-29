@@ -772,6 +772,13 @@ def _abstractify(cst: TSTree) -> nodes.Manuscript:
         meta = cst_node.child_by_field_name("meta")
         if meta:
             ast_node.ingest_dict_as_meta(_parse_meta_into_dict(meta))
+            if isinstance(ast_node, nodes.Contents):
+                valid = nodes.Contents.orientations
+                if ast_node.orientation not in valid:
+                    raise RSMParserError(
+                        msg=f"Invalid :toc: orientation value: {ast_node.orientation}. "
+                            f"Must be one of: {', '.join(valid)}"
+                    )
 
         # process some special tags
         if ast_node_type in ["math", "code", "mathblock", "codeblock", "algorithm", "notation"]:
