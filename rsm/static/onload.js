@@ -19,6 +19,7 @@ import * as reorder from './reorder.js';
 import * as deplens from './deplens.js';
 import * as shareview from './shareview.js';
 import * as uitip from './uitip.js';
+import * as minimap from './minimap.js';
 import * as margin from './margin.js';
 import * as captions from './captions.js';
 
@@ -181,6 +182,14 @@ export async function onload(root = null, { keys = true } = {}) {
       shareview.setup(root);
     } catch (err) {
       console.error("Loading shareview.js FAILED!", err);
+    }
+
+    // Document minimap. Mounted after the first typeset so the marks are
+    // measured against rendered math.
+    try {
+      minimap.setup(root);
+    } catch (err) {
+      console.error("Loading minimap.js FAILED!", err);
     }
 
   } catch (err) {

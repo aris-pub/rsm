@@ -3859,3 +3859,165 @@ html:not(.has-rail) .manuscriptwrapper .rail-strip { display: none; }
 @media (prefers-reduced-motion: reduce) {
   .rail-notation-row.rail-notation-row-hi { animation: none; }
 }
+
+/* Document minimap (minimap.js): a strip at the right edge of the viewport
+   that replaces the native scrollbar. A mark per section (line) and figure
+   (accent dash), and a box over the part on screen. The native scrollbar is
+   hidden only while the strip is mounted (html.rsm-minimap-on), so with
+   scripting off the page keeps it. Below the sidebar (z-index 40 to 42), menus
+   and modals. */
+html.rsm-minimap-on { scrollbar-width: none; }
+html.rsm-minimap-on::-webkit-scrollbar { display: none; }
+
+.rsm-minimap {
+  --mm-width: 24px;
+  --mm-draw: 24px;
+  --mm-box-inset: 8px;
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 30;
+  width: var(--mm-width);
+  margin: 0;
+  padding: 0;
+  touch-action: none;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.rsm-minimap.is-dragging { cursor: grabbing; }
+.rsm-minimap-track {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  width: var(--mm-draw);
+}
+.rsm-minimap-marks { position: absolute; inset: 0; pointer-events: none; }
+.rsm-minimap-box {
+  position: absolute;
+  left: var(--mm-box-inset);
+  right: var(--mm-box-inset);
+  border-radius: 4px;
+  background: var(--gray-600);
+  opacity: 0.25;
+  pointer-events: none;
+}
+
+.rsm-minimap-mark {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+.rsm-minimap-mark::after {
+  content: "";
+  display: block;
+  border-radius: 2px;
+  transform: scaleX(0.75);
+  opacity: 0.3;
+  transition: transform 0.25s ease, opacity 0.25s ease, background-color 0.15s ease;
+}
+.rsm-minimap-mark.mm-section::after {
+  flex: 1 1 auto;
+  height: 3px;
+  margin-inline: 4px;
+  background: var(--text-subtle);
+}
+.rsm-minimap-mark.mm-section.mm-top::after { height: 4px; margin-inline: 2px; }
+.rsm-minimap-mark.mm-figure::after {
+  width: 60%;
+  height: 3px;
+  margin-inline: auto;
+  background: var(--primary-500);
+}
+
+.rsm-minimap:hover .rsm-minimap-mark::after,
+.rsm-minimap.is-touching .rsm-minimap-mark::after,
+.rsm-minimap:focus-within .rsm-minimap-mark::after { transform: scaleX(1); opacity: 1; }
+.rsm-minimap.has-hovered .rsm-minimap-mark::after { opacity: 0.35; }
+.rsm-minimap.has-hovered .rsm-minimap-mark.is-near::after { opacity: 0.1; }
+.rsm-minimap.has-hovered .rsm-minimap-mark.is-hovered::after { opacity: 1; transform: scaleX(1); }
+.rsm-minimap-mark.is-hovered { z-index: 1; }
+.rsm-minimap-mark.mm-section.is-hovered::after { background: var(--text-body); }
+.rsm-minimap-mark.mm-figure.is-hovered::after { background: var(--primary-600); }
+.rsm-minimap-mark.is-focused {
+  outline: 2px solid var(--border-action);
+  outline-offset: -2px;
+  border-radius: var(--radius-md);
+}
+
+.rsm-minimap-tip {
+  position: absolute;
+  right: calc(100% + 6px);
+  max-width: 18rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transform: translateY(-50%);
+  padding: var(--chunk-twelfth) var(--chunk-sixth);
+  border-radius: var(--radius-md);
+  background: var(--text-body);
+  color: var(--surface-page);
+  font: var(--weight-semi) 0.75rem/1.35 var(--font-body);
+  box-shadow: var(--shadow-soft);
+  pointer-events: none;
+  visibility: hidden;
+}
+.rsm-minimap-tip.is-visible { visibility: visible; }
+
+/* The marks as a list of links for screen readers and the keyboard. The links
+   are visually hidden: the focused one shows as its mark's focus ring. */
+.rsm-minimap-links {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  list-style: none;
+}
+
+/* Phones: drawn 16px wide with a 24px hit area (8px over the text). The strip
+   shows only while the page scrolls, is touched, or holds focus, and takes
+   pointer events only while it shows, so a tap on the text is never caught. */
+@media (max-width: 767px) {
+  .rsm-minimap {
+    --mm-draw: 16px;
+    --mm-box-inset: 4px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+  .rsm-minimap.is-awake,
+  .rsm-minimap.is-touching,
+  .rsm-minimap:focus-within {
+    opacity: 1;
+    pointer-events: auto;
+    transition: opacity 0.1s ease;
+  }
+  /* Stop above the sidebar's bottom bar. */
+  .rail-strip ~ .rsm-minimap {
+    bottom: calc(48px + 2 * var(--chunk-sixth) + var(--border-extrathin) + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rsm-minimap,
+  .rsm-minimap.is-awake,
+  .rsm-minimap.is-touching,
+  .rsm-minimap:focus-within,
+  .rsm-minimap-mark::after { transition: none; }
+}
+
+@media print {
+  .rsm-minimap { display: none !important; }
+}

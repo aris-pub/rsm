@@ -204,6 +204,10 @@ _READING_CONTROLS = [
      [("narrow", "Narrow"), ("normal", "Normal"), ("wide", "Wide")], "normal"),
     ("theme", "Theme",
      [("system", "System"), ("light", "Light"), ("dark", "Dark")], "system"),
+    # The document map at the right edge (minimap.js watches the attribute).
+    # Left out when the author turned the map off with :minimap: false.
+    ("minimap", "Map",
+     [("on", "Show the document map"), ("off", "Hide the document map")], "on"),
 ]
 
 
@@ -235,6 +239,15 @@ _READING_TILES = {
         '<path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 '
         '-8.313 -12.454z"/>'
     ),
+    # A page with the map strip and its marks at the right edge, and the same
+    # page without it.
+    ("minimap", "on"): _tabler(
+        '<path d="M4 4h16v16h-16z"/><path d="M15 4v16"/>'
+        '<path d="M7 8h5M7 12h5M7 16h3M17 8h1M17 13h1"/>'
+    ),
+    ("minimap", "off"): _tabler(
+        '<path d="M4 4h16v16h-16z"/><path d="M7 8h10M7 12h10M7 16h6"/>'
+    ),
 }
 
 
@@ -246,10 +259,20 @@ def _reading_tile(control: str, value: str) -> str:
     return _READING_TILES[(control, value)]
 
 
-def _make_reading_panel(typeface_default: str = "sans") -> str:
+def minimap_enabled(tree: Any) -> bool:
+    """False when the author wrote :config: { :minimap: false }."""
+    value = getattr(tree, "minimap", True)
+    if isinstance(value, str):
+        return value.strip().lower() not in {"false", "off", "no"}
+    return bool(value)
+
+
+def _make_reading_panel(typeface_default: str = "sans", minimap: bool = True) -> str:
     from html import escape
     rows = []
     for control, label, options, default in _READING_CONTROLS:
+        if control == "minimap" and not minimap:
+            continue
         # The Typeface row's resting tile is the manuscript's built-in
         # typography, not a fixed constant, so a serif document opens with Serif
         # pressed. Mirrors how the Theme row rests on System.
@@ -669,6 +692,19 @@ class AppendOpenTag(AppendTextAndDefer):
         return self._edit_command_repr(["tag", "id", "classes", "newline_inner"])
 
 
+def _figure_number(node: nodes.Node) -> str | None:
+    """The number of a :figure:, :html: or :video: block, or None when it has none."""
+    if not isinstance(node, nodes.Asset):
+        return None
+    if node.nonum or not getattr(node, "number", None):
+        return None
+    # Outside any section full_number logs a warning before falling back to the
+    # bare number, so take that fallback directly.
+    if node.first_ancestor_of_type(node.number_within) is None:
+        return str(node.number)
+    return node.full_number
+
+
 class AppendNodeTag(AppendOpenTag):
     def __init__(
         self,
@@ -694,6 +730,11 @@ class AppendNodeTag(AppendOpenTag):
         if isinstance(node, nodes.Asset) and node.static:
             static_src = self._resolve_image_src(node.static) if hasattr(self, '_resolve_image_src') else str(node.static)
             kwargs["data-static"] = static_src
+        # Figures, widgets and videos carry their number, so the minimap can
+        # label one that has no caption (and so no visible "Widget 4.3" label).
+        figure_number = _figure_number(node)
+        if figure_number:
+            kwargs["data-number"] = figure_number
         # tree-sitter 0.26.0's Point.row/.column getters over-decref the returned
         # int and corrupt memory (py-tree-sitter #472); read row/column by index
         # instead. A default (-1, -1) point means no source position, so skip it.
@@ -1012,9 +1053,12 @@ class Translator:
         accent = getattr(node, 'accent', 'blue')
         lang = getattr(node, 'lang', 'en')
         typography = getattr(node, 'typography', 'sans-serif')
+        body_attrs = {"data-accent": accent, "data-lang": lang, "data-typography": typography}
+        if not minimap_enabled(node):
+            body_attrs["data-minimap"] = "false"
         batch = AppendBatchAndDefer(
             [
-                AppendOpenTag("body", **{"data-accent": accent, "data-lang": lang, "data-typography": typography}),
+                AppendOpenTag("body", **body_attrs),
                 AppendOpenTag("main", classes=["manuscriptwrapper"]),
                 AppendNodeTag(node),
                 AppendOpenTag("section", classes=["level-1"]),
@@ -3063,7 +3107,7 @@ class HandrailsTranslator(Translator):
         "pinned": ("Pinned", "pinned", "",
                    "A block you pinned, kept open beside the text."),
         "reading": ("Reading", "reading", "",
-                    "How the manuscript looks: typeface, size, spacing and theme."),
+                    "How the manuscript looks: typeface, size, spacing, theme and the document map."),
     }
 
     def _make_proof_rail(self):
@@ -3238,7 +3282,8 @@ class HandrailsTranslator(Translator):
             + _make_reading_panel(
                 "serif"
                 if getattr(self.tree, "typography", "sans-serif") == "serif"
-                else "sans"
+                else "sans",
+                minimap=minimap_enabled(self.tree),
             ) + "</div>"
         )
         return AppendText(text=strip + panel)
