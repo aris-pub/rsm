@@ -4,6 +4,7 @@
 //
 
 import { typesetMath } from "./libraries.js";
+import { previewWanted } from "./asides.js";
 
 // Tabler pin, outline (not pinned) and filled (pinned).
 const PIN_ICON =
@@ -43,6 +44,10 @@ function buildExcerpt(rawHref) {
     clone.find(".note-backlink").remove();
     const zone = clone.find(".hr-content-zone").first();
     content = `<div class="note-preview">${(zone[0] ? zone : clone).html()}</div>`;
+  } else if (tag === "DIV" && classes.contains("aside")) {
+    // An aside has no handrail of its own, so its content is the excerpt. The
+    // class is not "aside", so excerpt cleanup does not strip it.
+    content = `<div class="aside-preview">${$t.html()}</div>`;
   } else if (["P", "LI"].includes(tag)) {
     // A paragraph's or list item's handrail wraps it from OUTSIDE the element,
     // so its own innerHTML carries no handrail chrome to strip.
@@ -148,6 +153,7 @@ export function pinTarget(href, title, origin = document, { transient = false } 
   const tmp = document.createElement("div");
   tmp.innerHTML = content;
   tmp.querySelectorAll("[id]").forEach((e) => e.removeAttribute("id"));
+  tmp.querySelectorAll(".aside").forEach((e) => e.remove());
   tmp
     .querySelectorAll("[data-nodeid]")
     .forEach((e) => e.removeAttribute("data-nodeid"));
@@ -233,11 +239,11 @@ const PREVIEW_OPTIONS = {
     // Title the excerpt like the block names itself ("Equation (1)"), not by
     // the link text ("(1)"), falling back to the link text.
     const target = document.getElementById((rawHref || "").replace(/^#/, ""));
-    const noteNumber = helper.origin.classList.contains("note-marker")
-      ? helper.origin.dataset.noteNumber
-      : "";
+    // A marker's preview is titled by its kind and number ("Note 2", "Aside 3").
+    const marker = helper.origin.classList.contains("note-marker");
+    const kind = helper.origin.dataset.noteKind === "aside" ? "Aside" : "Note";
     const title = (
-      (noteNumber && `Note ${noteNumber}`) ||
+      (marker && `${kind} ${helper.origin.dataset.noteNumber}`) ||
       (target && target.getAttribute("data-menu-label")) ||
       helper.origin.textContent ||
       ""
@@ -280,8 +286,8 @@ export function tapToPreview(el) {
 
 export function createTooltips() {
   setupPinDelegation();
-  // Footnote markers get the same preview as references. Aside markers do not,
-  // since an aside is shown next to its call.
+  // Footnote markers get the same preview as references, and both open it on a
+  // tap through tapToPreview. Aside markers are set up below.
   const $previewed = $(
     ".manuscriptwrapper a.reference:not(.external):not(.tooltipstered), " +
       '.manuscriptwrapper a.note-marker[data-note-kind="note"]:not(.tooltipstered)'
@@ -289,6 +295,15 @@ export function createTooltips() {
   $previewed.tooltipster(PREVIEW_OPTIONS);
   $previewed.each((_, el) => tapToPreview(el));
 
+  // Aside markers get the same preview, but only while the aside is closed
+  // below its block on a pointer device (asides.js says when). A tap or click
+  // opens the aside itself, so touch never opens a preview.
+  $('.manuscriptwrapper a.note-marker[data-note-kind="aside"]:not(.tooltipstered)').tooltipster({
+    ...PREVIEW_OPTIONS,
+    triggerOpen: { mouseenter: true },
+    triggerClose: { click: true, mouseleave: true, originClick: true },
+    functionBefore: (instance, helper) => previewWanted(helper.origin),
+  });
 
   $(".manuscriptwrapper .author-names sup[data-tooltip]:not(.tooltipstered)").tooltipster({
     theme: ['tooltipster-shadow', 'tooltipster-shadow-rsm'],
@@ -380,6 +395,8 @@ function setTooltipContent(tt, content) {
   // subtree: otherwise it duplicates the source block's id, which breaks
   // getElementById and hash-based navigation to that block.
   $content.find("[id]").removeAttr("id");
+  // Asides sit inside the block that calls them but are not part of its excerpt.
+  $content.find(".aside").remove();
   $content.find("[data-nodeid]").removeAttr("data-nodeid");
   tt.content($content);
 }

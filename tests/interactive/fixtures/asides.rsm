@@ -1,0 +1,82 @@
+# Asides
+
+## Close together
+  {:label: sec-close}
+
+The first paragraph has three asides within a few lines of each other, so that
+in the margin column each one would run into the next :aside:a-one:: unless the
+column pushes it down. The text goes on so that the second marker sits on the
+next line :aside:a-two:: and the third one on the line after that, still close
+enough to collide :aside:a-three::. A few more words to finish the paragraph and
+give it a clear right edge to measure against.
+
+:aside: {:label: a-one} The first aside. It is long enough to wrap onto several
+lines in the margin column, so that it reaches down past the line of the second
+marker and would overlap the second aside without the push-down. ::
+
+:aside: {:label: a-two} The second aside, with some math: $x^2 + y^2 = 1$ holds on
+the unit circle, and a few more words so it also wraps. ::
+
+:aside: {:label: a-three} The third aside, short. ::
+
+A paragraph between the first one and the figure, with no asides of its own,
+long enough to wrap onto a second line at any reading width.
+
+## Next to a caption
+  {:label: sec-caption}
+
+This paragraph calls an aside :aside:a-fig:: right before a figure, so the aside
+and the figure's caption share the column and the caption is pushed down below
+the aside when the two would overlap.
+
+:aside: {:label: a-fig} An aside just before a figure. It wraps onto a few lines
+in the margin column so that it reaches the top of the figure below and the
+figure's caption has to move down to clear it. ::
+
+:figure: {
+  :label: fig-a
+  :path: figure-light.png
+  :scale: 0.3
+}
+:caption: The figure right below the paragraph with the aside.
+::
+
+## In a list and a proof
+  {:label: sec-blocks}
+
+:itemize:
+
+  :-: A list item with an aside :aside:a-item:: in the middle of its text, which
+  goes on a little longer.
+
+  :-: A second item without one.
+
+::
+
+:theorem: {:label: thm-a} Every step of the proof below is easy.::
+
+:proof: {:of: thm-a}
+  :step: {:label: st-a} A first step with an aside :aside:a-step:: in its statement.::
+  :step: A second step.::
+::
+
+## Two in one paragraph
+  {:label: sec-two}
+
+A paragraph with two asides, the first :aside:a-pair-1:: near the start and the
+second :aside:a-pair-2:: a little later, so that on a narrow screen opening both
+stacks them below the paragraph in marker order. The paragraph also has a footnote
+:note:n-one:: that stays a footnote.
+
+:aside: {:label: a-pair-2} The second aside of the pair. ::
+
+:aside: {:label: a-pair-1} The first aside of the pair. ::
+
+:note: {:label: n-one} A footnote, not an aside. ::
+
+:aside: {:label: a-item} The aside of the list item. ::
+
+:aside: {:label: a-step} The aside of the proof step. ::
+
+The last paragraph of the document, so that every aside above has text after it.
+It refers back to :ref:st-a:: so its preview can be checked.

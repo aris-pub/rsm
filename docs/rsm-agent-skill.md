@@ -121,6 +121,7 @@ key. Section-form tags do not need a Halmos — they close implicitly.
 | `:abstract:` | Manuscript abstract |
 | `:algorithm:` | Algorithm listing (as-is content, not recursive) |
 | `:author:` | Author information block |
+| `:calc:` | Calculation: a chain of relations, each a `:step:` with its reason (see Calculations) |
 | `:codeblock:` | Code listing (as-is content) |
 | `:config:` | Document configuration |
 | `:corollary:` | Corollary |
@@ -353,7 +354,7 @@ Proofs follow a rigid nesting: **proof → steps → substeps/subproofs**.
 ```
 
 **Key rules:**
-- `:step:` can only appear directly inside `:proof:`, `:sketch:`, or inside a `:p:` (subproof)
+- `:step:` can only appear directly inside `:proof:`, `:sketch:`, `:calc:`, or inside a `:p:` (subproof)
 - `:p:` provides the justification for its parent step — it can contain nested steps
 - `:p:` closes with `:: ::` (its own Halmos, then the step's Halmos)
 - Proof constructs (`:let:`, `:assume:`, `:prove:`, `:claim:`, `:pick:` / `:st:`, `:qed:`) appear inline within steps
@@ -379,6 +380,75 @@ is to place a `:sketch:` before the `:proof:` to give the reader a high-level ov
   ...
 ::
 ```
+
+### Calculations
+
+A `:calc:` is a chain of relations. Each row is a `:step:` that holds one relation in
+`$...$`, followed by a `:p:` with the reason it holds. It can go anywhere a display
+equation (`$$...$$`) can go, inside or outside a proof.
+
+Outside a proof:
+
+```
+:calc: {:label: eq-onepair}
+
+  :step: $\|F(x)-F(y)\|^2 \ge c_0\sum_{j=1}^{k}a_j^2$
+
+    :p: By the bound for each scale. ::
+
+  ::
+
+  :step: $\ge \frac{c_0}{4L}\,d(x,y)^2$
+
+    :p: By Cauchy-Schwarz and $k \le L$. ::
+
+  ::
+
+::
+
+By :ref:eq-onepair::, the map shrinks no distance by more than $2\sqrt{L/c_0}$.
+```
+
+Inside a proof, as the justification of a step:
+
+```
+:proof:
+
+  :step: {:label: stp-bound}
+
+    :claim: $(a+b)^2 \ge 4ab$. ::
+
+    :p:
+
+      :calc:
+
+        :step: $(a+b)^2 - 4ab = (a-b)^2$
+
+          :p: Expand and collect terms. ::
+
+        ::
+
+        :step: $\ge 0$
+
+          :p: A square is never negative. ::
+
+        ::
+
+      ::
+
+    :: ::
+
+::
+```
+
+**Rules:**
+- A `:calc:` holds only `:step:` rows. Anything else is an error.
+- A labelled `:calc:` takes the next equation number, from the same counter as `$$...$$`,
+  and `:ref:` to it prints that number, e.g. (6.1). An unlabelled `:calc:` has no number.
+- Only the whole chain is numbered. A row has no step number and cannot have a `:label:`.
+- The relations render at display size. The reasons start folded: the reader opens one
+  from the mark at the right of its row.
+- Inside a proof the chain reads as one step: its rows are not steps of the proof.
 
 ### Referencing Previous Steps
 
@@ -627,7 +697,7 @@ as a resolver URL (`https://doi.org/10.1234/x`): either way it produces a single
 
 2. **`:qed:` with Halmos** — `:qed:` is a stamp. Write `:qed:`, never `:qed:::`.
 
-3. **`:step:` outside proof** — `:step:` is only valid inside `:proof:`, `:sketch:`, or `:p:`.
+3. **`:step:` outside proof** — `:step:` is only valid inside `:proof:`, `:sketch:`, `:calc:`, or `:p:`.
 
 4. **Wrong meta separator** — block meta uses newlines between pairs; inline meta uses
    commas. Mixing them up causes parse failures.

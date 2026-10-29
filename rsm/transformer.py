@@ -159,10 +159,12 @@ class Transformer:
         logger.info("Transforming...")
         self.tree = tree
 
+        self.check_calc_rows()
         self.collect_labels()
         self.parse_notation()
         self.resolve_pending_references()
         self.resolve_notes()
+        self.place_asides()
         self.collect_notes_list()
         self.assign_author_affiliations()
         self.assign_author_note_symbols()
@@ -270,6 +272,25 @@ class Transformer:
             raise RSMTransformerError(
                 f"Strict mode enabled: CST errors detected in manuscript:\n{error_summary}"
             )
+
+    def check_calc_rows(self) -> None:
+        """Reject a label on a row of a :calc:.
+
+        Only the whole chain is numbered, so a row has nothing for a reference
+        to print.
+
+        Raises
+        ------
+        RSMTransformerError
+            If a step inside a calc has a label.
+        """
+        for calc in self.tree.traverse(nodeclass=nodes.Calc):
+            for row in calc.children:
+                if row.label:
+                    raise RSMTransformerError(
+                        f"A :step: inside a :calc: cannot have a label "
+                        f"(found '{row.label}'). Label the :calc: instead."
+                    )
 
     def collect_labels(self) -> None:
         """Find all nodes with labels.
@@ -457,12 +478,35 @@ class Transformer:
                 )
                 definition.remove_self()
 
+    def place_asides(self) -> None:
+        """Move each aside definition to the end of the block that calls it.
+
+        The block is the paragraph or list item holding the call (for a proof step,
+        the paragraph of its statement). Asides of one block end up in call order.
+        The HTML then has each aside right below the text that calls it, inside the
+        block's handrail, which is where it is shown without scripts or on narrow
+        screens. An aside called from inside a note or aside definition, or from
+        anywhere that is not such a block, stays where it is written.
+        """
+        calls = [
+            d.call
+            for d in self.tree.traverse(nodeclass=nodes.Aside)
+            if d.call is not None
+        ]
+        for call in sorted(calls, key=lambda c: c.number):
+            host = call.first_ancestor_of_type((nodes.Paragraph, nodes.Item, nodes.Note))
+            if host is None or isinstance(host, (nodes.Note, nodes.Step, nodes.Caption)):
+                continue
+            definition = call.definition
+            definition.remove_self()
+            host.append(definition)
+
     def collect_notes_list(self) -> None:
         """Move every footnote definition into one list at the end of the document.
 
         The list holds the footnotes in the order of their numbers. It goes just
         before the bibliography, or at the end of the manuscript when there is none.
-        Asides stay where they are written. No list is made when there are no
+        Asides are not moved here, see place_asides(). No list is made when there are no
         footnotes.
         """
         footnotes = [
@@ -650,6 +694,9 @@ class Transformer:
                 continue
             if isinstance(node, nodes.Step):
                 continue
+            # A calc is numbered only when labelled, unlike display math.
+            if isinstance(node, nodes.Calc) and not node.label:
+                node.nonum = True
 
             if node.autonumber and not node.nonum:
                 # Apply numbering mode from config

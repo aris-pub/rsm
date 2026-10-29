@@ -140,6 +140,19 @@ class HTMLBuilder(BaseBuilder):
             "  </script>\n"
         )
 
+    def _asides_preload_script(self) -> str:
+        """A pre-paint script that marks a page with asides, so braiid.css hands
+        them to asides.js (closed on narrow screens, in the margin on wide ones)
+        from the first paint, with no jump. With scripting off it never runs and
+        every aside stays open below its paragraph."""
+        if 'data-note-kind="aside"' not in (self.body or ""):
+            return ""
+        return (
+            "\n  <script>\n"
+            "    document.documentElement.classList.add('has-asides');\n"
+            "  </script>\n"
+        )
+
     def make_html_header(self) -> str:
         custom_css_link = ""
         if self.custom_css:
@@ -185,7 +198,7 @@ class HTMLBuilder(BaseBuilder):
           </script>
         """)
 
-        sidebar_preload = self._sidebar_preload_script()
+        sidebar_preload = self._sidebar_preload_script() + self._asides_preload_script()
 
         header = dedent(
             f"""\
@@ -345,7 +358,7 @@ class StandaloneBuilder(HTMLBuilder):
   </script>
 """
 
-        sidebar_preload = self._sidebar_preload_script()
+        sidebar_preload = self._sidebar_preload_script() + self._asides_preload_script()
 
         header = f"""\
 <head>
