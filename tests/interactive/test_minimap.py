@@ -215,7 +215,7 @@ def test_figures_inside_a_widget_get_no_mark(page: Page, interactive_server: str
 
 def test_video_gets_a_mark_named_by_its_number(page: Page, interactive_server: str):
     _load(page, interactive_server)
-    assert page.locator("figure.video video[src='minimap-video.webm']").count() == 1
+    assert page.locator("figure.video video[src='assets/minimap-video.webm']").count() == 1
     m = next(m for m in _marks(page) if m["label"] == "Video 3.1")
     assert m["type"] == "figure"
     page.mouse.move(_strip_x(page), _track(page)["y"] + m["y"])

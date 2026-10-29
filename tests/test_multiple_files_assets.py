@@ -9,7 +9,7 @@ import rsm
 
 
 def _write_figure_doc(src_dir, with_webp=True):
-    assets = src_dir / "assets"
+    assets = src_dir / "figs"
     assets.mkdir()
     (assets / "fig.svg").write_text(
         '<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10">'
@@ -20,20 +20,20 @@ def _write_figure_doc(src_dir, with_webp=True):
     (assets / "fig.png").write_bytes(b"\x89PNG\r\n\x1a\n\xff\xd8\xff\x00png")
     body = (
         "# Doc\n\n"
-        ":figure: {\n  :path: assets/fig.svg\n}\n:caption: Vector.\n::\n\n"
-        ":figure: {\n  :path: assets/fig.png\n}\n:caption: Raster.\n::\n"
+        ":figure: {\n  :path: figs/fig.svg\n}\n:caption: Vector.\n::\n\n"
+        ":figure: {\n  :path: figs/fig.png\n}\n:caption: Raster.\n::\n"
     )
     if with_webp:
         (assets / "fig.webp").write_bytes(b"RIFF\xff\x00\x00\x00WEBPVP8 \xff\xd8")
-        body += "\n:figure: {\n  :path: assets/fig.webp\n}\n:caption: Webp.\n::\n"
+        body += "\n:figure: {\n  :path: figs/fig.webp\n}\n:caption: Webp.\n::\n"
     (src_dir / "doc.rsm").write_text(body)
 
 
 def test_folder_build_relocated_is_self_contained(tmp_path):
     """A non-standalone build into a separate output directory copies every
-    referenced figure asset into that folder at its relative path, so the folder
-    can be moved and still render. Binary formats (png, webp) must not crash the
-    build (rsm-en4)."""
+    referenced figure asset into assets/ in that folder, at its relative path
+    under assets/, so the folder can be moved and still render (rsm-3wf).
+    Binary formats (png, webp) must not crash the build (rsm-en4)."""
     src_dir = tmp_path / "src"
     src_dir.mkdir()
     _write_figure_doc(src_dir, with_webp=True)
@@ -55,30 +55,31 @@ def test_folder_build_relocated_is_self_contained(tmp_path):
         os.chdir(cwd)
 
     html = (out_dir / "doc.html").read_text()
-    assert 'src="assets/fig.svg"' in html
-    assert 'src="assets/fig.png"' in html
-    assert 'src="assets/fig.webp"' in html
+    assert 'src="assets/figs/fig.svg"' in html
+    assert 'src="assets/figs/fig.png"' in html
+    assert 'src="assets/figs/fig.webp"' in html
 
-    # Every asset copied into the output folder at its authored relative path.
-    assert (out_dir / "assets" / "fig.svg").exists()
-    assert (out_dir / "assets" / "fig.png").exists()
-    assert (out_dir / "assets" / "fig.webp").exists()
+    # Every asset copied under assets/ at its authored relative path.
+    assert (out_dir / "assets" / "figs" / "fig.svg").exists()
+    assert (out_dir / "assets" / "figs" / "fig.png").exists()
+    assert (out_dir / "assets" / "figs" / "fig.webp").exists()
+    assert not (out_dir / "figs").exists()
 
     # User media is not dumped into static/ (only framework files live there).
     assert not (out_dir / "static" / "fig.svg").exists()
     assert not (out_dir / "static" / "fig.png").exists()
 
     # Originals are copied, not moved.
-    assert (src_dir / "assets" / "fig.svg").exists()
-    assert (src_dir / "assets" / "fig.png").exists()
+    assert (src_dir / "figs" / "fig.svg").exists()
+    assert (src_dir / "figs" / "fig.png").exists()
 
 
 @pytest.mark.slow
 def test_multiple_files_with_different_images(tmp_path):
     """Test that multiple RSM files can reference different images.
 
-    The images are NOT copied to static/ - they're referenced with relative
-    paths from the RSM source. Only the RSM framework files (CSS, JS) go in
+    The images are NOT copied to static/. They are copied to assets/ at their
+    path in the RSM source. Only the RSM framework files (CSS, JS) go in
     static/, and those are identical for all documents.
     """
     # Create images directory
@@ -94,7 +95,9 @@ def test_multiple_files_with_different_images(tmp_path):
     doc1.write_text("""\
 # Document 1
 
-:figure: {:path: images/pic1.png}
+:figure: {
+  :path: images/pic1.png
+}
 :caption: Picture 1
 ::
 """)
@@ -104,7 +107,9 @@ def test_multiple_files_with_different_images(tmp_path):
     doc2.write_text("""\
 # Document 2
 
-:figure: {:path: images/pic2.png}
+:figure: {
+  :path: images/pic2.png
+}
 :caption: Picture 2
 ::
 """)
@@ -132,6 +137,10 @@ def test_multiple_files_with_different_images(tmp_path):
     assert "images/pic2.png" in content2, "doc2.html should reference pic2.png"
     assert "<img src=" in content1, "doc1.html should have an img tag"
     assert "<img src=" in content2, "doc2.html should have an img tag"
+    assert 'src="assets/images/pic1.png"' in content1
+    assert 'src="assets/images/pic2.png"' in content2
+    assert (tmp_path / "assets" / "images" / "pic1.png").read_bytes() == b"fake-png-1"
+    assert (tmp_path / "assets" / "images" / "pic2.png").read_bytes() == b"fake-png-2"
 
     # Images should NOT be copied to static/
     static_dir = tmp_path / "static"
@@ -184,7 +193,7 @@ def test_multiple_files_share_static_assets(tmp_path):
     for i in range(1, 4):
         html_file = tmp_path / f"doc{i}.html"
         content = html_file.read_text()
-        assert "/static/braiid.css" in content, (
+        assert 'href="static/braiid.css"' in content, (
             f"doc{i}.html should reference shared static/braiid.css"
         )
 

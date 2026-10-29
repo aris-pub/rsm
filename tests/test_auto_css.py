@@ -25,18 +25,18 @@ def test_auto_detects_matching_css_file(tmp_path):
         capture_output=True,
     )
 
-    # Check that CSS was copied to static/
-    static_css = tmp_path / "static" / "document.css"
-    assert static_css.exists(), (
-        "Matching CSS should be auto-detected and copied to static/"
+    # Check that CSS was copied to assets/
+    asset_css = tmp_path / "assets" / "document.css"
+    assert asset_css.exists(), (
+        "Matching CSS should be auto-detected and copied to assets/"
     )
-    assert css_content in static_css.read_text()
+    assert css_content in asset_css.read_text()
 
     # Check that HTML links to it
     html_file = tmp_path / "document.html"
     html_content = html_file.read_text()
     assert (
-        '<link rel="stylesheet" type="text/css" href="/static/document.css"'
+        '<link rel="stylesheet" type="text/css" href="assets/document.css"'
         in html_content
     )
 
@@ -90,13 +90,13 @@ def test_css_flag_overrides_auto_detection(tmp_path):
     )
 
     # Should use custom.css, not document.css
-    assert (tmp_path / "static" / "custom.css").exists()
-    assert not (tmp_path / "static" / "document.css").exists()
+    assert (tmp_path / "assets" / "custom.css").exists()
+    assert not (tmp_path / "assets" / "document.css").exists()
 
     # HTML should link to custom.css
     html_content = (tmp_path / "document.html").read_text()
-    assert "/static/custom.css" in html_content
-    assert "/static/document.css" not in html_content
+    assert "assets/custom.css" in html_content
+    assert "assets/document.css" not in html_content
 
 
 @pytest.mark.slow
@@ -115,10 +115,10 @@ def test_css_flag_works_without_auto_css(tmp_path):
         capture_output=True,
     )
 
-    assert (tmp_path / "static" / "styles.css").exists()
+    assert (tmp_path / "assets" / "styles.css").exists()
 
     html_content = (tmp_path / "document.html").read_text()
-    assert "/static/styles.css" in html_content
+    assert "assets/styles.css" in html_content
 
 
 @pytest.mark.slow
@@ -171,7 +171,7 @@ def test_auto_css_with_different_directory(tmp_path):
     # CSS should be found and used
     html_file = tmp_path / "article.html"
     html_content = html_file.read_text()
-    assert "/static/article.css" in html_content
+    assert "assets/article.css" in html_content
 
 
 @pytest.mark.slow
@@ -192,7 +192,7 @@ def test_auto_css_with_output_flag(tmp_path):
     )
 
     # Should still auto-detect paper.css
-    assert (tmp_path / "static" / "paper.css").exists()
+    assert (tmp_path / "assets" / "paper.css").exists()
 
     html_content = (tmp_path / "output.html").read_text()
-    assert "/static/paper.css" in html_content
+    assert "assets/paper.css" in html_content

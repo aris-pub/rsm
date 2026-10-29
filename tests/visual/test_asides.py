@@ -146,8 +146,8 @@ def _serve_static(tmp_path: Path):
     src = tmp_path / "asides.rsm"
     src.write_text(SRC, encoding="utf-8")
     out = tmp_path / "output"
-    out.mkdir(exist_ok=True)
-    shutil.copy(FIXTURES / "figure-light.png", out / "figure-light.png")
+    (out / "assets").mkdir(parents=True, exist_ok=True)
+    shutil.copy(FIXTURES / "figure-light.png", out / "assets" / "figure-light.png")
     rsm.build(
         path=str(src),
         output_dir=str(out),

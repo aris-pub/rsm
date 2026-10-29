@@ -23,16 +23,19 @@ class TestStandaloneMode:
         result = rsm.build(source, handrails=False, lint=False, standalone=True)
         assert "<html" in result.lower()
 
-    def test_standalone_false_uses_absolute_paths(self):
-        """Test that standalone=False (default) uses /static/ paths."""
+    def test_standalone_false_uses_relative_static_paths(self):
+        """standalone=False links static/ relative to the page (rsm-3wf)."""
         source = ":rsm:\n\nHello world.\n\n::"
         result = rsm.build(source, handrails=False, lint=False, standalone=False)
 
-        assert 'href="/static/braiid.css"' in result
+        assert 'href="static/braiid.css"' in result
         # tooltipster CSS is imported into the vendor cascade layer (rsm-3y7).
-        assert 'url("/static/tooltipster.bundle.css") layer(vendor)' in result
-        assert 'src="/static/jquery-3.6.0.js"' in result
-        assert 'src="/static/tooltipster.bundle.js"' in result
+        assert 'url("static/tooltipster.bundle.css") layer(vendor)' in result
+        assert 'src="static/jquery-3.6.0.js"' in result
+        assert 'src="static/tooltipster.bundle.js"' in result
+        assert "from './static/onload.js'" in result
+        assert 'href="static/pseudocode-2.4.1.min.css"' in result
+        assert '"/static/' not in result and "'/static/" not in result
 
     def test_standalone_true_inlines_jquery(self):
         """Standalone inlines jQuery instead of loading it from a CDN (rsm-nyg)."""
@@ -98,8 +101,8 @@ class TestStandaloneMode:
         source = ":rsm:\n\nHello world.\n\n::"
         result = rsm.build(source, handrails=False, lint=False)
 
-        # Default behavior should use /static/ paths
-        assert 'href="/static/braiid.css"' in result
+        # Default behavior links static/ relative to the page
+        assert 'href="static/braiid.css"' in result
 
 
 import re as _re
@@ -193,7 +196,7 @@ class TestCustomCSS:
     """Test custom CSS support in builders."""
 
     def test_folder_builder_with_custom_css(self, tmp_path):
-        """Test FolderBuilder copies custom CSS to static/ folder."""
+        """FolderBuilder copies custom CSS to assets/, not static/ (rsm-3wf)."""
         from rsm.builder import FolderBuilder
 
         # Create custom CSS file
@@ -206,15 +209,13 @@ class TestCustomCSS:
         body = '<body><div class="manuscript">Test</main></body>'
         web = builder.build(body, src=tmp_path / "test.rsm")
 
-        # Should copy custom.css to static/ folder
-        assert web.exists("static/custom.css")
-        custom_css_in_static = web.readtext("static/custom.css")
-        assert custom_css_content in custom_css_in_static
+        assert web.exists("assets/custom.css")
+        assert not web.exists("static/custom.css")
+        assert custom_css_content in web.readtext("assets/custom.css")
 
-        # Should add link tag in HTML
         html = web.readtext("index.html")
         assert (
-            '<link rel="stylesheet" type="text/css" href="/static/custom.css"' in html
+            '<link rel="stylesheet" type="text/css" href="assets/custom.css"' in html
         )
 
     def test_standalone_builder_with_custom_css(self, tmp_path):

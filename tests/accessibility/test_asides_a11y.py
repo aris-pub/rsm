@@ -51,8 +51,8 @@ def _force_theme(page, theme):
 
 
 def _serve(serve_rsm_a11y, page, tmp_path, width):
-    (tmp_path / "output").mkdir(exist_ok=True)
-    shutil.copy(FIXTURES / "figure-light.png", tmp_path / "output" / "figure-light.png")
+    (tmp_path / "output" / "assets").mkdir(parents=True, exist_ok=True)
+    shutil.copy(FIXTURES / "figure-light.png", tmp_path / "output" / "assets" / "figure-light.png")
     page.set_viewport_size({"width": width, "height": 900})
     return serve_rsm_a11y(SRC, sidebar=True)
 
@@ -124,8 +124,8 @@ def _with_accent(src: str, accent: str) -> str:
 
 
 def _contrast(serve_rsm_a11y, page, tmp_path, accent, theme, state) -> dict:
-    (tmp_path / "output").mkdir(exist_ok=True)
-    shutil.copy(FIXTURES / "figure-light.png", tmp_path / "output" / "figure-light.png")
+    (tmp_path / "output" / "assets").mkdir(parents=True, exist_ok=True)
+    shutil.copy(FIXTURES / "figure-light.png", tmp_path / "output" / "assets" / "figure-light.png")
     page.set_viewport_size({"width": 1280, "height": 900})
     page = serve_rsm_a11y(_with_accent(SRC, accent), sidebar=True)
     if accent:

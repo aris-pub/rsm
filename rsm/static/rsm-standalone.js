@@ -347,6 +347,40 @@ var RSM = (() => {
   }
 
   // rsm/static/libraries.js
+  var import_meta = {};
+  var TEMML_FILE = "temml-0.14.0.min.js";
+  var TEMML_CDN = "https://cdn.jsdelivr.net/npm/temml@0.14.0/dist/temml.min.js";
+  var PSEUDOCODE_FILE = "pseudocode-2.4.1.min.js";
+  var PSEUDOCODE_CDN = "https://cdn.jsdelivr.net/npm/pseudocode@2.4.1/build/pseudocode.min.js";
+  var MATHJAX_CDN = "https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.js";
+  function besideThisFile(name) {
+    try {
+      return new URL(`./${name}`, import_meta.url).href;
+    } catch {
+      return null;
+    }
+  }
+  function loadScript(urls, parent, attrs = {}) {
+    const candidates = urls.filter(Boolean);
+    return new Promise((res, rej) => {
+      const tryNext = (i) => {
+        if (i >= candidates.length) {
+          rej(new Error(`could not load ${urls.join(" or ")}`));
+          return;
+        }
+        const script = document.createElement("script");
+        Object.assign(script, attrs);
+        script.src = candidates[i];
+        script.onload = () => res();
+        script.onerror = () => {
+          script.remove();
+          tryNext(i + 1);
+        };
+        parent.appendChild(script);
+      };
+      tryNext(0);
+    });
+  }
   var temmlLoaded = false;
   var temmlLoadPromise = null;
   function loadTemml() {
@@ -356,19 +390,21 @@ var RSM = (() => {
     link.rel = "stylesheet";
     link.href = "https://cdn.jsdelivr.net/npm/temml/dist/Temml.css";
     document.head.appendChild(link);
-    const script = document.createElement("script");
-    script.src = "https://cdn.jsdelivr.net/npm/temml/dist/temml.min.js";
-    document.head.appendChild(script);
-    temmlLoadPromise = new Promise((res, rej) => {
-      script.onload = () => {
-        temmlLoaded = true;
-        if (window.temml && !window.katex) {
-          window.katex = window.temml;
-        }
-        res();
-      };
-      script.onerror = rej;
-    });
+    const onReady = () => {
+      temmlLoaded = true;
+      if (window.temml && !window.katex) {
+        window.katex = window.temml;
+      }
+    };
+    if (window.temml) {
+      onReady();
+      temmlLoadPromise = Promise.resolve();
+      return temmlLoadPromise;
+    }
+    temmlLoadPromise = loadScript(
+      [besideThisFile(TEMML_FILE), TEMML_CDN],
+      document.head
+    ).then(onReady);
     return temmlLoadPromise;
   }
   var mathJaxLoaded = false;
@@ -414,7 +450,7 @@ var RSM = (() => {
     const script = document.createElement("script");
     script.type = "text/javascript";
     script.id = "MathJax-script";
-    script.src = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js";
+    script.src = MATHJAX_CDN;
     document.body.appendChild(script);
     mathJaxLoadPromise = new Promise((res, rej) => {
       script.onload = async () => {
@@ -507,17 +543,16 @@ var RSM = (() => {
     if (pseudocodeLoadPromise) {
       return pseudocodeLoadPromise;
     }
-    const script = document.createElement("script");
-    script.type = "text/javascript";
-    script.id = "pseudocode-script";
-    script.src = "https://cdn.jsdelivr.net/npm/pseudocode@latest/build/pseudocode.min.js";
-    document.body.appendChild(script);
-    pseudocodeLoadPromise = new Promise((res, rej) => {
-      script.onload = () => {
-        pseudocodeLoaded = true;
-        res();
-      };
-      script.onerror = rej;
+    if (window.pseudocode) {
+      pseudocodeLoaded = true;
+      return Promise.resolve();
+    }
+    pseudocodeLoadPromise = loadScript(
+      [besideThisFile(PSEUDOCODE_FILE), PSEUDOCODE_CDN],
+      document.body,
+      { type: "text/javascript", id: "pseudocode-script" }
+    ).then(() => {
+      pseudocodeLoaded = true;
     });
     return pseudocodeLoadPromise;
   }

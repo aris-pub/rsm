@@ -104,11 +104,14 @@ def interactive_server(tmp_path_factory: Any):
                 sidebar=rsm_file.stem in SIDEBAR_FIXTURES,
             )
 
-    # Copy image assets so figures can render
+    # Copy image assets so figures can render. Most fixtures build from the
+    # repo root, where their media is not found, so it goes into assets/ here,
+    # where the standard build links it from.
     import shutil
+    (serve_dir / "assets").mkdir(exist_ok=True)
     for img in fixtures_dir.iterdir():
         if img.suffix.lower() in {".png", ".jpg", ".jpeg", ".gif", ".svg", ".webp", ".webm", ".mp4"}:
-            shutil.copy(img, serve_dir / img.name)
+            shutil.copy(img, serve_dir / "assets" / img.name)
 
     _write_iframe_hosts(serve_dir)
 

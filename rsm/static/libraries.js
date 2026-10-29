@@ -5,6 +5,48 @@
 
 import { getNotationMacros, mathOptions } from './notation.js';
 
+// The math libraries are pinned and shipped in static/ next to this file, so a
+// new upstream release cannot change a published page. The pinned CDN copy is
+// only a fallback for hosts that serve this file without the vendored ones.
+const TEMML_FILE = 'temml-0.14.0.min.js';
+const TEMML_CDN = 'https://cdn.jsdelivr.net/npm/temml@0.14.0/dist/temml.min.js';
+const PSEUDOCODE_FILE = 'pseudocode-2.4.1.min.js';
+const PSEUDOCODE_CDN = 'https://cdn.jsdelivr.net/npm/pseudocode@2.4.1/build/pseudocode.min.js';
+const MATHJAX_CDN = 'https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.js';
+
+// In the esbuild IIFE bundle import.meta is empty and new URL() throws. The
+// standalone build inlines the libraries, so that path never needs a URL.
+function besideThisFile(name) {
+  try {
+    return new URL(`./${name}`, import.meta.url).href;
+  } catch {
+    return null;
+  }
+}
+
+// Append a classic <script> for each URL in turn until one loads.
+function loadScript(urls, parent, attrs = {}) {
+  const candidates = urls.filter(Boolean);
+  return new Promise((res, rej) => {
+    const tryNext = (i) => {
+      if (i >= candidates.length) {
+        rej(new Error(`could not load ${urls.join(' or ')}`));
+        return;
+      }
+      const script = document.createElement('script');
+      Object.assign(script, attrs);
+      script.src = candidates[i];
+      script.onload = () => res();
+      script.onerror = () => {
+        script.remove();
+        tryNext(i + 1);
+      };
+      parent.appendChild(script);
+    };
+    tryNext(0);
+  });
+}
+
 let temmlLoaded = false;
 let temmlLoadPromise = null;
 
@@ -18,22 +60,25 @@ export function loadTemml() {
   link.href = 'https://cdn.jsdelivr.net/npm/temml/dist/Temml.css';
   document.head.appendChild(link);
 
-  const script = document.createElement('script');
-  script.src = 'https://cdn.jsdelivr.net/npm/temml/dist/temml.min.js';
-  document.head.appendChild(script);
+  const onReady = () => {
+    temmlLoaded = true;
+    // Alias temml as katex so pseudocode.js (which checks for window.katex) can use it.
+    // temml exposes the same renderToString API that pseudocode.js expects.
+    if (window.temml && !window.katex) {
+      window.katex = window.temml;
+    }
+  };
 
-  temmlLoadPromise = new Promise((res, rej) => {
-    script.onload = () => {
-      temmlLoaded = true;
-      // Alias temml as katex so pseudocode.js (which checks for window.katex) can use it.
-      // temml exposes the same renderToString API that pseudocode.js expects.
-      if (window.temml && !window.katex) {
-        window.katex = window.temml;
-      }
-      res();
-    };
-    script.onerror = rej;
-  });
+  // The standalone build inlines temml, so it is already here.
+  if (window.temml) {
+    onReady();
+    temmlLoadPromise = Promise.resolve();
+    return temmlLoadPromise;
+  }
+
+  temmlLoadPromise = loadScript(
+    [besideThisFile(TEMML_FILE), TEMML_CDN], document.head
+  ).then(onReady);
 
   return temmlLoadPromise;
 }
@@ -96,7 +141,7 @@ export function loadMathJax() {
   const script = document.createElement('script');
   script.type = "text/javascript";
   script.id = "MathJax-script";
-  script.src = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js";
+  script.src = MATHJAX_CDN;
   document.body.appendChild(script);
 
   mathJaxLoadPromise = new Promise((res, rej) => {
@@ -220,18 +265,18 @@ export function loadPseudocode() {
     return pseudocodeLoadPromise;
   }
 
-  const script = document.createElement('script');
-  script.type = "text/javascript";
-  script.id = "pseudocode-script";
-  script.src = "https://cdn.jsdelivr.net/npm/pseudocode@latest/build/pseudocode.min.js"
-  document.body.appendChild(script);
+  // The standalone build inlines pseudocode.js, so it is already here.
+  if (window.pseudocode) {
+    pseudocodeLoaded = true;
+    return Promise.resolve();
+  }
 
-  pseudocodeLoadPromise = new Promise((res, rej) => {
-    script.onload = () => {
-      pseudocodeLoaded = true;
-      res();
-    };
-    script.onerror = rej;
+  pseudocodeLoadPromise = loadScript(
+    [besideThisFile(PSEUDOCODE_FILE), PSEUDOCODE_CDN],
+    document.body,
+    { type: 'text/javascript', id: 'pseudocode-script' },
+  ).then(() => {
+    pseudocodeLoaded = true;
   });
 
   return pseudocodeLoadPromise;
