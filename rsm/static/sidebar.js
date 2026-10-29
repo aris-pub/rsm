@@ -16,6 +16,8 @@
 //
 // prooftree.js owns the panel's content and calls setupStrip with its view API.
 
+import { MARGIN_CLASS, MARGIN_REM, MARGIN_GAP_REM } from "./margin.js";
+
 const PHONE = "(max-width: 767px)";
 
 // Geometry, in rem (the same numbers as the --rail-* tokens in braiid.css):
@@ -155,10 +157,16 @@ export function setupStrip(strip, rail, api) {
 
   // Place the column: right of the strip, centred in the space left when that
   // space allows; with a view open, next to the panel.
+  //
+  // The margin column (margin.js) is on only when it fits whole beside the
+  // text column at the current Reading width. The page then widens by the
+  // column, and the text keeps its centred place unless that would push the
+  // column off the right edge, in which case it moves left just enough.
   function layout() {
     if (isPhone()) {
       html.style.removeProperty("--rail-ml");
       html.style.removeProperty("--rail-mw");
+      html.classList.remove(MARGIN_CLASS);
       return;
     }
     const rem = parseFloat(getComputedStyle(html).fontSize) || 16;
@@ -169,9 +177,14 @@ export function setupStrip(strip, rail, api) {
     const right = RIGHT_REM * rem;
     const avail = vw - left - right;
     const width = Math.min(colRem * rem, avail);
-    const ml = left + (open ? 0 : Math.max(0, (avail - width) / 2));
+    const extra = (MARGIN_REM + MARGIN_GAP_REM) * rem;
+    const margin = width + extra <= avail;
+    const centred = Math.max(0, (avail - width) / 2);
+    const shift = margin ? Math.min(centred, avail - width - extra) : centred;
+    const ml = left + (open ? 0 : shift);
     html.style.setProperty("--rail-ml", ml + "px");
-    html.style.setProperty("--rail-mw", width + "px");
+    html.style.setProperty("--rail-mw", width + (margin ? extra : 0) + "px");
+    html.classList.toggle(MARGIN_CLASS, margin);
   }
   // A graph (Contents, Proof steps) scales down to fit what is left of the
   // panel below its head, so it is never cut off.

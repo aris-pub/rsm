@@ -1270,25 +1270,43 @@ class Translator:
                 # numbered h2. Front-matter styling lives in braiid.css.
                 AppendHeading(2, "Table of Contents"),
                 AppendOpenTag(classes=["toc-wrapper"]),
-                AppendText(text=self._toc_tree_svg(node)),
+                AppendText(text=self._text_toc_tree_svg(node)),
                 AppendNodeTag(node, "ul"),
             ]
         )
 
-    def _toc_tree_svg(self, node: nodes.Contents) -> str:
+    def _text_toc_tree_svg(self, node: nodes.Contents) -> str:
+        if node.orientation != "horizontal":
+            return self._toc_tree_svg(node)
+        # A left-to-right graph is too wide for a phone, so the page carries
+        # both layouts and braiid.css shows the horizontal one from 768px.
+        # Each copy has its own arrowhead ids: a marker found inside the hidden
+        # copy would not be drawn.
+        vertical = self._toc_tree_svg(node, svg_class="toc-tree toc-tree-v", marker_id="toc-v-arr")
+        horizontal = self._toc_tree_svg(
+            node, orient="horizontal", svg_class="toc-tree toc-tree-h", marker_id="toc-h-arr"
+        )
+        return vertical + horizontal
+
+    def _toc_tree_svg(
+        self, node: nodes.Contents, orient: str = "vertical",
+        svg_class: str = "toc-tree", marker_id: str = "toc-arr",
+    ) -> str:
         # The TOC graph root stands in for the title/abstract and is drawn as a
         # small muted dot with no label, so the manuscript title no longer sizes
         # or overflows the drawing. The full title stays the dot's accessible name
         # and hover tooltip.
         return self._build_tree_svg(
             node.tree_nodes, node.toc_edges, node.tree_root_title,
-            "Section dependency graph",
+            "Section dependency graph", orient=orient,
+            svg_class=svg_class, marker_id=marker_id,
         )
 
     def _build_tree_svg(
         self, tree_nodes: list[dict], ref_edges: list[dict],
         root_title: str, aria_label: str, orient: str = "vertical",
         bracket_nums: bool = False, root_label: str | None = None,
+        svg_class: str = "toc-tree", marker_id: str = "toc-arr",
     ) -> str:
         """Pre-rendered dependency-graph SVG, shared by the TOC and proof trees.
 
@@ -1334,15 +1352,15 @@ class Translator:
         w = layout["width"] + 2 * pad_x
         h = layout["height"] + 2 * pad
         parts = [
-            f'<svg class="toc-tree" width="{w:.0f}" height="{h:.0f}" '
+            f'<svg class="{svg_class}" width="{w:.0f}" height="{h:.0f}" '
             f'viewBox="{-pad_x} {-pad} {w:.0f} {h:.0f}" role="group" '
             f'aria-label="{escape(aria_label)}">',
             '<defs>'
-            '<marker id="toc-arr-dep" viewBox="0 0 10 8" refX="8.5" refY="4" '
+            f'<marker id="{marker_id}-dep" viewBox="0 0 10 8" refX="8.5" refY="4" '
             'markerWidth="8" markerHeight="6.5" markerUnits="userSpaceOnUse" '
             'orient="auto-start-reverse">'
             '<path d="M0,0 L10,4 L0,8 z" class="toc-arrowhead dep"/></marker>'
-            '<marker id="toc-arr-fwd" viewBox="0 0 10 8" refX="8.5" refY="4" '
+            f'<marker id="{marker_id}-fwd" viewBox="0 0 10 8" refX="8.5" refY="4" '
             'markerWidth="8" markerHeight="6.5" markerUnits="userSpaceOnUse" '
             'orient="auto-start-reverse">'
             '<path d="M0,0 L10,4 L0,8 z" class="toc-arrowhead fwd"/></marker>'
@@ -1361,7 +1379,7 @@ class Translator:
                 sw, marker = 1.0, ""
             else:
                 sw = 1.1 + e["count"] * 0.7
-                marker = f' marker-end="url(#toc-arr-{e["kind"]})"'
+                marker = f' marker-end="url(#{marker_id}-{e["kind"]})"'
             parts.append(
                 f'<path class="toc-edge {e["kind"]}" d="{d}" '
                 f'stroke-width="{sw:.1f}" data-from="{e["src"]}" '
@@ -1387,12 +1405,17 @@ class Translator:
             )
             if n["depth"] == 0 and not root_label:
                 # The TOC root is a small muted dot, not a box with a label. It is
-                # drawn at the point where the structural edges meet it (the bottom
-                # of its slot, since the root leads at the top), so the edges touch
-                # the dot instead of ending in empty space.
+                # drawn at the point where the structural edges meet it (the face
+                # of its slot that points into the graph: the bottom when the root
+                # leads at the top, the right side when it leads at the left), so
+                # the edges touch the dot instead of ending in empty space.
+                if horizontal:
+                    dx, dy = n["x"] + n["w"], cy
+                else:
+                    dx, dy = cx, n["y"] + n["h"]
                 parts.append(
-                    f'{open_a}<circle class="toc-root-dot" cx="{cx:.1f}" '
-                    f'cy="{n["y"] + n["h"]:.1f}" r="{ROOT_DOT_R:.0f}"></circle></a>'
+                    f'{open_a}<circle class="toc-root-dot" cx="{dx:.1f}" '
+                    f'cy="{dy:.1f}" r="{ROOT_DOT_R:.0f}"></circle></a>'
                 )
                 continue
             # The compact horizontal-rail root shows a short "Goal" marker; its
@@ -1427,20 +1450,28 @@ class Translator:
         )
         return AppendText(f"{tag}{node.number}</a>")
 
+    def visit_noteslist(self, node: nodes.NotesList) -> EditCommand:
+        return AppendBatchAndDefer(
+            [
+                AppendOpenTag("section", classes=["level-2"]),
+                AppendHeading(2, "Notes"),
+                AppendNodeTag(node, "ol"),
+            ]
+        )
+
     def visit_note(self, node: nodes.Note) -> EditCommand:
-        # Until the notes list and margin placement exist, a definition is shown
-        # where it is written, as a paragraph that starts with its number. The
-        # mathblock and codeblock visitors close and reopen the <p> as they do
-        # inside an ordinary paragraph.
+        # A footnote is an entry of the notes list. An aside is shown where it is
+        # written until margin placement exists. Both are a paragraph that starts
+        # with the number. The mathblock and codeblock visitors close and reopen
+        # the <p> as they do inside an ordinary paragraph.
+        attrs: dict = {"data-note-number": node.number, "data-note-kind": node.kind}
+        in_list = isinstance(node.parent, nodes.NotesList)
+        if in_list:
+            # The value attribute keeps the numbers right without CSS, since the
+            # list skips the numbers taken by asides.
+            attrs["value"] = node.number
         items: list[EditCommand] = [
-            AppendNodeTag(
-                node,
-                "div",
-                extra_attrs={
-                    "data-note-number": node.number,
-                    "data-note-kind": node.kind,
-                },
-            )
+            AppendNodeTag(node, "li" if in_list else "div", extra_attrs=attrs)
         ]
         if node.first_of_type(nodes.MathBlock) or node.first_of_type(nodes.CodeBlock):
             items.append(AppendOpenTagManualClose(tag="p", newline_inner=False))
@@ -1455,6 +1486,18 @@ class Translator:
         batch = self.leave_node(node)
         if getattr(node, "_must_close_p_tag", False):
             batch.items.insert(0, AppendText("</p>"))
+        if isinstance(node.parent, nodes.NotesList) and node.call is not None:
+            # The bibliography's backlink classes give it the same look and the
+            # same preview of the text it points back to.
+            backlink = _make_tag(
+                "a",
+                id_="",
+                classes=["reference", "backlink", "note-backlink"],
+                href=f"#call-{node.label}",
+                role="doc-backlink",
+                **{"aria-label": f"Back to the text of note {node.number}"},
+            )
+            batch.items.insert(0, AppendText(f" {backlink}↖</a>"))
         return batch
 
     def visit_math(self, node: nodes.Math) -> EditCommand:
@@ -2157,12 +2200,13 @@ class Translator:
         ):
             return self._render_image(node)
 
-        # Video files
+        # Video files. As with <img>, the label's id goes on the enclosing
+        # <figure> only, so the <video> gets none.
         elif any(path_str.endswith(ext) for ext in [".mp4", ".webm", ".avi", ".mov"]):
             return (
                 _make_tag(
                     "video",
-                    id_=node.label,
+                    id_=None,
                     classes=[],
                     controls=True,
                     src=node.path,
@@ -2175,7 +2219,7 @@ class Translator:
             return (
                 _make_tag(
                     "video",
-                    id_=node.label,
+                    id_=None,
                     classes=[],
                     controls=True,
                     src=node.path,
@@ -3345,6 +3389,17 @@ class HandrailsTranslator(Translator):
             node=node,
         )
 
+    def visit_noteslist(self, node: nodes.NotesList) -> EditCommand:
+        batch = super().visit_noteslist(node)
+        return self._wrap_batch_item_with_handrails(
+            1,
+            batch,
+            classes=["heading"],
+            menu_label="Notes",
+            link="disabled",
+            node=node,
+        )
+
     def visit_paragraph(self, node: nodes.Paragraph) -> EditCommand:
         cmd = super().visit_paragraph(node)
         batch = self._replace_node_with_handrails(node, collapse_in_hr=False)
@@ -3478,8 +3533,13 @@ class HandrailsTranslator(Translator):
         if isinstance(parent, nodes.Table):
             items.append(AppendText("\n</table>\n"))
         has_static = isinstance(parent, nodes.Asset) and parent.static
+        # The rail names the captioned block ("Figure", "Widget", "Table"), the
+        # same word the caption's own label starts with.
+        kind = parent.classreftext.format(
+            nodeclass=parent.__class__.__name__, number=""
+        ).strip()
         menu_zone, menu_attrs = self._hr_menu_zone(
-            label="Caption",
+            label=kind,
             link=(True if node.label else "disabled"),
             static_toggle=(True if has_static else "disabled"),
         )
