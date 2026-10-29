@@ -3908,6 +3908,13 @@ html:not(.has-rail) .manuscriptwrapper .rail-strip { display: none; }
   font-size: 0.9em;
 }
 
+/* The excerpt of a :calc: (tooltips.js calcPreview). In the page each row's
+   number hangs in the right margin, which a preview or the Pinned card does
+   not have, so put the number column back in the row. */
+.calc-preview .step.hr-offset > .hr-info-zone {
+  position: static;
+}
+
 /* The pin control in a reference preview: an icon in the corner. Quiet at
    rest, a surface on hover, the accent while pressed, filled once pinned. */
 .tooltipster-content > .manuscriptwrapper:has(> .ref-pin-bar) {

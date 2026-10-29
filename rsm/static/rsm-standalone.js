@@ -1291,7 +1291,9 @@ var RSM = (() => {
     } else if (tag === "A") {
       content = `<div>${$t.parent().html()}</div>`;
     } else if (tag === "DIV") {
-      if (classes.contains("step")) {
+      if (classes.contains("calc")) {
+        content = calcPreview($t);
+      } else if (classes.contains("step")) {
         clone = $t.find(".statement").clone();
         stripHandrail(clone);
         clone.css("font-size", "0.7rem");
@@ -1548,6 +1550,20 @@ var RSM = (() => {
         instance.content($(`<div class="rail-tip">${text}</div>`));
       }
     });
+  }
+  function calcPreview($calc) {
+    const clone = $calc.clone();
+    clone.children(".hr-content-zone").children(".step").each((_, row) => {
+      $(row).children(".hr-content-zone").children(":not(.statement)").remove();
+      row.classList.remove("hr-collapsed");
+    });
+    clone.find(".hr-collapse-zone, .hr-menu-zone, .hr-border-zone, .hr-spacer-zone").remove();
+    clone.find(".hr-collapse").remove();
+    clone.find(".hr-info-zone").not(clone.find(".step").children(".hr-info-zone")).remove();
+    clone.find("[data-menu-label], [tabindex]").addBack().removeAttr(
+      "data-menu-label data-menu-link data-menu-code data-menu-collapse data-menu-collapse-all data-menu-static-toggle data-start-collapsed tabindex"
+    );
+    return `<div class="calc-preview">${clone[0].outerHTML}</div>`;
   }
   function stripHandrail(hr) {
     hr.find(".hr-collapse-zone").remove();

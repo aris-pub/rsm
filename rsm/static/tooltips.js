@@ -83,7 +83,9 @@ function buildExcerpt(rawHref) {
   } else if (tag === "A") {
     content = `<div>${$t.parent().html()}</div>`;
   } else if (tag === "DIV") {
-    if (classes.contains("step")) {
+    if (classes.contains("calc")) {
+      content = calcPreview($t);
+    } else if (classes.contains("step")) {
       clone = $t.find(".statement").clone();
       stripHandrail(clone);
       clone.css("font-size", "0.7rem");
@@ -426,6 +428,31 @@ export function createTooltips() {
   });
 }
 
+
+// The excerpt of a :calc:. Its number sits in the first row's info zone,
+// stacked with that row's collapse button, so stripHandrail (which drops the
+// whole info zone) would lose it. Keep the rows' info zones, emptied of their
+// controls, so every row keeps the same width. The reasons are dropped, as the
+// page shows them by default: hover previews are built at load and pins at
+// click time, so following the reader's open reasons would make the two differ.
+function calcPreview($calc) {
+  const clone = $calc.clone();
+  clone.children(".hr-content-zone").children(".step").each((_, row) => {
+    $(row).children(".hr-content-zone").children(":not(.statement)").remove();
+    row.classList.remove("hr-collapsed");
+  });
+  clone.find(".hr-collapse-zone, .hr-menu-zone, .hr-border-zone, .hr-spacer-zone").remove();
+  clone.find(".hr-collapse").remove();
+  clone.find(".hr-info-zone").not(clone.find(".step").children(".hr-info-zone")).remove();
+  clone
+    .find("[data-menu-label], [tabindex]")
+    .addBack()
+    .removeAttr(
+      "data-menu-label data-menu-link data-menu-code data-menu-collapse " +
+        "data-menu-collapse-all data-menu-static-toggle data-start-collapsed tabindex"
+    );
+  return `<div class="calc-preview">${clone[0].outerHTML}</div>`;
+}
 
 function stripHandrail(hr) {
   hr.find(".hr-collapse-zone").remove();

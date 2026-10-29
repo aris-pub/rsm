@@ -1,0 +1,33 @@
+# Calc previews
+
+## The chain
+  {:label: sec-chain}
+
+The squared distance is a sum of terms, one for each density, and we bound it below.
+
+:calc: {:label: eq-chain}
+
+  :step: $\|F(x)-F(y)\|^2 \ \ge\ c_0\sum_{j=1}^{k}a_j^2$
+
+    :p: Each term is at least $c_0a_j^2$ and the others are nonnegative. ::
+
+  ::
+
+  :step: $\ge\ \frac{c_0}{k}\Big(\sum_{j=1}^{k}a_j\Big)^2$
+
+    :p: By Cauchy-Schwarz. ::
+
+  ::
+
+  :step: $\ge\ \frac{c_0}{4L}\,d(x,y)^2 .$
+
+    :p: Because $\sum_{j=1}^{k} a_j \ge d(x,y)/2$. ::
+
+  ::
+
+::
+
+## Using it
+  {:label: sec-use}
+
+Since the pair was arbitrary, :ref:eq-chain:: holds for all pairs.
