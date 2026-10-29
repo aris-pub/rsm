@@ -75,6 +75,7 @@ SIDEBAR_FIXTURES = {
     "reorder",
     "minimap",
     "margin_captions",
+    "asides",
     "shareview_long",
 }
 

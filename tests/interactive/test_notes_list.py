@@ -133,11 +133,17 @@ class TestHoverPreview:
         page.wait_for_function("() => location.hash === '#first'", timeout=3000)
         expect(page.locator("#first")).to_be_in_viewport()
 
-    def test_aside_marker_has_no_preview(self, page: Page, interactive_server: str):
+    def test_closed_aside_marker_previews_the_aside(
+        self, page: Page, interactive_server: str
+    ):
+        # Without the margin column an aside is closed below its paragraph, and
+        # its marker previews the aside itself (tests/interactive/test_asides.py).
         _open(page, interactive_server)
         page.locator('a.note-marker[href="#side"]').hover()
-        page.wait_for_timeout(600)
-        expect(page.locator(PREVIEW)).to_have_count(0)
+        preview = page.locator(PREVIEW)
+        expect(preview).to_be_visible(timeout=3000)
+        expect(preview).to_contain_text("An aside")
+        expect(preview).not_to_contain_text("footnote")
 
 
 class TestTapPreview:

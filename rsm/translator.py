@@ -1258,7 +1258,13 @@ class Translator:
                 node, "div", extra_attrs={"data-fold-label": fold_label} if fold_label else None
             )
         ]
-        if node.first_of_type(nodes.MathBlock) or node.first_of_type(nodes.CodeBlock):
+        # An aside at the end of the paragraph closes the <p> itself, see
+        # visit_aside().
+        if (
+            node.first_of_type(nodes.MathBlock)
+            or node.first_of_type(nodes.CodeBlock)
+            or node.first_of_type(nodes.Aside)
+        ):
             items.append(AppendOpenTagManualClose(tag="p", newline_inner=False))
         else:
             items.append(AppendOpenTag(tag="p", newline_inner=False))
@@ -1526,6 +1532,20 @@ class Translator:
         )
         return AppendBatchAndDefer(items)
 
+    def visit_aside(self, node: nodes.Aside) -> EditCommand:
+        # The transformer moves an aside to the end of the paragraph or list item
+        # that calls it. In a paragraph, the first aside closes the paragraph's
+        # open <p>, unless a mathblock or codeblock just before it already did.
+        cmd = Translator.visit_note(self, node)
+        parent = node.parent
+        if not isinstance(parent, nodes.Paragraph):
+            return cmd
+        prev = node.prev_sibling()
+        if isinstance(prev, (nodes.Aside, nodes.MathBlock, nodes.CodeBlock)):
+            return cmd
+        parent._must_close_p_tag = False
+        return AppendBatchAndDefer([AppendText("</p>"), *cmd.items])
+
     def leave_note(self, node: nodes.Note) -> EditCommand:
         batch = self.leave_node(node)
         if getattr(node, "_must_close_p_tag", False):
@@ -1582,7 +1602,8 @@ class Translator:
 
         # In case this mathblock is the last child of the paragraph, there is nothing
         # special to do since visit_mathblock() already handled the remaining </p> tag.
-        if not node.next_sibling():
+        # Asides moved to the end of the paragraph do not count: they go after it.
+        if not node.next_sibling() or isinstance(node.next_sibling(), nodes.Aside):
             return batch
 
         # If there are more children, we need to close this mathblock, start a new <p>
@@ -1640,7 +1661,7 @@ class Translator:
         batch = self.leave_node(node)
         if not isinstance(node.parent, nodes.BaseParagraph):
             return batch
-        if not node.next_sibling():
+        if not node.next_sibling() or isinstance(node.next_sibling(), nodes.Aside):
             return batch
         node.parent._must_close_p_tag = True
         batch.items.append(AppendText("<p>"))
@@ -3460,6 +3481,13 @@ class HandrailsTranslator(Translator):
         batch = super().leave_paragraph(node)
         batch.items.insert(-1, self._hr_info_zone_icon(getattr(node, "icon", None)))
         return batch
+
+    def visit_aside(self, node: nodes.Aside) -> EditCommand:
+        # An aside inside the block that calls it is covered by that block's
+        # handrail and needs no alignment wrapper.
+        if isinstance(node.parent, (nodes.Paragraph, nodes.Item)):
+            return super().visit_aside(node)
+        return self.visit_note(node)
 
     def visit_note(self, node: nodes.Note) -> EditCommand:
         # A note or aside definition gets no handrail of its own. It sits inside a

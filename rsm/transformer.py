@@ -164,6 +164,7 @@ class Transformer:
         self.parse_notation()
         self.resolve_pending_references()
         self.resolve_notes()
+        self.place_asides()
         self.collect_notes_list()
         self.assign_author_affiliations()
         self.assign_author_note_symbols()
@@ -477,12 +478,35 @@ class Transformer:
                 )
                 definition.remove_self()
 
+    def place_asides(self) -> None:
+        """Move each aside definition to the end of the block that calls it.
+
+        The block is the paragraph or list item holding the call (for a proof step,
+        the paragraph of its statement). Asides of one block end up in call order.
+        The HTML then has each aside right below the text that calls it, inside the
+        block's handrail, which is where it is shown without scripts or on narrow
+        screens. An aside called from inside a note or aside definition, or from
+        anywhere that is not such a block, stays where it is written.
+        """
+        calls = [
+            d.call
+            for d in self.tree.traverse(nodeclass=nodes.Aside)
+            if d.call is not None
+        ]
+        for call in sorted(calls, key=lambda c: c.number):
+            host = call.first_ancestor_of_type((nodes.Paragraph, nodes.Item, nodes.Note))
+            if host is None or isinstance(host, (nodes.Note, nodes.Step, nodes.Caption)):
+                continue
+            definition = call.definition
+            definition.remove_self()
+            host.append(definition)
+
     def collect_notes_list(self) -> None:
         """Move every footnote definition into one list at the end of the document.
 
         The list holds the footnotes in the order of their numbers. It goes just
         before the bibliography, or at the end of the manuscript when there is none.
-        Asides stay where they are written. No list is made when there are no
+        Asides are not moved here, see place_asides(). No list is made when there are no
         footnotes.
         """
         footnotes = [

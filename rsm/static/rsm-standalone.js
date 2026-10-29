@@ -914,7 +914,7 @@ var RSM = (() => {
       clearMarks();
       if (bar) bar.remove();
       if (rail) rail.classList.remove("deplensing");
-      document.removeEventListener("keydown", onKeydown);
+      document.removeEventListener("keydown", onKeydown2);
       document.removeEventListener("click", onClickAway, true);
       active = null;
     }
@@ -923,7 +923,7 @@ var RSM = (() => {
       teardown();
       announce2("Dependency lens cleared.");
     }
-    function onKeydown(ev) {
+    function onKeydown2(ev) {
       if (ev.key === "Escape") exit();
     }
     function onClickAway(ev) {
@@ -957,7 +957,7 @@ var RSM = (() => {
       active = { model, anchorEl, dirs: /* @__PURE__ */ new Set([dir]) };
       showRail(model);
       render();
-      document.addEventListener("keydown", onKeydown);
+      document.addEventListener("keydown", onKeydown2);
       document.addEventListener("click", onClickAway, true);
       document.dispatchEvent(new CustomEvent("rsm:focus-enter"));
     }
@@ -968,6 +968,239 @@ var RSM = (() => {
       if (dir !== "up" && dir !== "down") return;
       show(anchor, dir);
     });
+  }
+
+  // rsm/static/margin.js
+  var MARGIN_CLASS = "rsm-margin";
+  var MARGIN_REM = 15;
+  var MARGIN_GAP_REM = 2;
+  var STACK_GAP_REM = 0.75;
+  var items = /* @__PURE__ */ new Map();
+  var resizeObs = null;
+  var frame = 0;
+  function addMarginItem(anchor, item) {
+    if (items.get(item) === anchor) return;
+    items.set(item, anchor);
+    item.classList.add("rsm-margin-item");
+    if (resizeObs) {
+      resizeObs.observe(item);
+      resizeObs.observe(anchor);
+    }
+    schedule();
+  }
+  function marginOn() {
+    return document.documentElement.classList.contains(MARGIN_CLASS);
+  }
+  function clear(item) {
+    item.style.removeProperty("left");
+    item.style.removeProperty("top");
+  }
+  function layoutMargin() {
+    frame = 0;
+    for (const [item, anchor] of items) {
+      if (!item.isConnected || !anchor.isConnected) items.delete(item);
+    }
+    const live = [...items].filter(([, a]) => a.getClientRects().length);
+    if (!marginOn()) {
+      for (const [item] of items) clear(item);
+    } else if (live.length) {
+      place(live);
+    }
+    document.dispatchEvent(new CustomEvent("rsm:margin-layout"));
+  }
+  function place(live) {
+    const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+    for (const [item] of live) {
+      item.style.left = "0px";
+      item.style.top = "0px";
+    }
+    const rows = live.map(([item, anchor]) => {
+      const column = anchor.closest(".manuscript") || document.body;
+      return {
+        item,
+        zero: item.getBoundingClientRect(),
+        anchorTop: anchor.getBoundingClientRect().top,
+        x: column.getBoundingClientRect().right + MARGIN_GAP_REM * rem
+      };
+    });
+    rows.sort((a, b) => a.anchorTop - b.anchorTop);
+    let floor = -Infinity;
+    for (const r of rows) {
+      const top = Math.max(r.anchorTop, floor);
+      r.item.style.left = r.x - r.zero.left + "px";
+      r.item.style.top = top - r.zero.top + "px";
+      floor = top + r.zero.height + STACK_GAP_REM * rem;
+    }
+  }
+  function schedule() {
+    if (!frame) frame = requestAnimationFrame(layoutMargin);
+  }
+  var ready = false;
+  function setup3() {
+    if (ready) return;
+    ready = true;
+    const html = document.documentElement;
+    new MutationObserver(schedule).observe(html, {
+      attributes: true,
+      attributeFilter: ["class", "data-reading-measure"]
+    });
+    window.addEventListener("resize", schedule);
+    if (window.ResizeObserver) {
+      resizeObs = new ResizeObserver(schedule);
+      for (const [item, anchor] of items) {
+        resizeObs.observe(item);
+        resizeObs.observe(anchor);
+      }
+      for (const m of document.querySelectorAll(".manuscript")) resizeObs.observe(m);
+    }
+    let sliding = 0;
+    const follow = () => {
+      layoutMargin();
+      if (sliding) frame = requestAnimationFrame(follow);
+    };
+    document.addEventListener("transitionrun", (ev) => {
+      if (!ev.target.matches || !ev.target.matches("main.manuscriptwrapper")) return;
+      if (!sliding++) {
+        cancelAnimationFrame(frame);
+        frame = requestAnimationFrame(follow);
+      }
+    });
+    const stop = (ev) => {
+      if (!ev.target.matches || !ev.target.matches("main.manuscriptwrapper")) return;
+      sliding = Math.max(0, sliding - 1);
+      if (!sliding) schedule();
+    };
+    document.addEventListener("transitionend", stop);
+    document.addEventListener("transitioncancel", stop);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(schedule);
+    window.addEventListener("load", schedule);
+    schedule();
+  }
+
+  // rsm/static/asides.js
+  var READY_CLASS = "has-asides";
+  var OPEN = "rsm-aside-open";
+  var LIT = "rsm-aside-lit";
+  var MARKERS = '.manuscriptwrapper a.note-marker[data-note-kind="aside"]';
+  var listening = false;
+  function asideOf(marker) {
+    const id = (marker.getAttribute("href") || "").replace(/^#/, "");
+    const el = id && document.getElementById(id);
+    return el && el.matches(".aside") ? el : null;
+  }
+  function markerOf(aside) {
+    return document.getElementById("call-" + aside.id);
+  }
+  function setup4(root2 = document) {
+    document.documentElement.classList.add(READY_CLASS);
+    for (const marker of root2.querySelectorAll(MARKERS)) {
+      const aside = asideOf(marker);
+      if (!aside) continue;
+      marker.setAttribute("aria-controls", aside.id);
+      addMarginItem(marker, aside);
+    }
+    syncExpanded();
+    if (listening) return;
+    listening = true;
+    document.addEventListener("click", onClick);
+    document.addEventListener("keydown", onKeydown);
+    document.addEventListener("mouseover", onPointer);
+    document.addEventListener("mouseout", onPointer);
+    document.addEventListener("focusin", onFocus);
+    document.addEventListener("focusout", onFocus);
+    window.addEventListener("hashchange", openHashTarget);
+    openHashTarget();
+    new MutationObserver(syncExpanded).observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"]
+    });
+  }
+  function syncExpanded() {
+    const toggles = !marginOn();
+    for (const marker of document.querySelectorAll(MARKERS)) {
+      const aside = asideOf(marker);
+      if (!aside) continue;
+      if (toggles) {
+        marker.setAttribute("aria-expanded", String(aside.classList.contains(OPEN)));
+      } else {
+        marker.removeAttribute("aria-expanded");
+      }
+    }
+  }
+  function toggle(marker, open) {
+    const aside = asideOf(marker);
+    if (!aside) return;
+    const now = open === void 0 ? !aside.classList.contains(OPEN) : open;
+    aside.classList.toggle(OPEN, now);
+    if (!marginOn()) marker.setAttribute("aria-expanded", String(now));
+    if (now) closePreview(marker);
+  }
+  function closestMarker(target) {
+    return target && target.closest ? target.closest(MARKERS) : null;
+  }
+  function onClick(ev) {
+    const marker = closestMarker(ev.target);
+    if (!marker || !asideOf(marker)) return;
+    ev.preventDefault();
+    if (!marginOn()) toggle(marker);
+  }
+  function onKeydown(ev) {
+    if (ev.key !== " " && ev.key !== "Spacebar") return;
+    const marker = closestMarker(ev.target);
+    if (!marker || !asideOf(marker)) return;
+    ev.preventDefault();
+    ev.stopPropagation();
+    if (!marginOn()) toggle(marker);
+  }
+  function light(marker, aside, on) {
+    marker.classList.toggle(LIT, on);
+    aside.classList.toggle(LIT, on);
+  }
+  function pairFrom(target) {
+    if (!target || !target.closest) return null;
+    const marker = target.closest(MARKERS);
+    if (marker) {
+      const aside2 = asideOf(marker);
+      return aside2 ? { marker, aside: aside2 } : null;
+    }
+    const aside = target.closest(".manuscriptwrapper .aside");
+    if (!aside) return null;
+    const m = markerOf(aside);
+    return m ? { marker: m, aside } : null;
+  }
+  function onPointer(ev) {
+    const pair = pairFrom(ev.target);
+    if (!pair) return;
+    const into = pairFrom(ev.relatedTarget);
+    if (into && into.aside === pair.aside) return;
+    light(pair.marker, pair.aside, ev.type === "mouseover");
+  }
+  function onFocus(ev) {
+    const marker = closestMarker(ev.target);
+    if (!marker) return;
+    const aside = asideOf(marker);
+    if (aside) light(marker, aside, ev.type === "focusin");
+  }
+  function openHashTarget() {
+    const id = decodeURIComponent((location.hash || "").slice(1));
+    const aside = id && document.getElementById(id);
+    if (!aside || !aside.matches(".aside")) return;
+    const marker = markerOf(aside);
+    if (marker) toggle(marker, true);
+  }
+  function closePreview(marker) {
+    const $2 = window.jQuery;
+    if (!$2 || !marker.classList.contains("tooltipstered")) return;
+    try {
+      $2(marker).tooltipster("close");
+    } catch (err) {
+    }
+  }
+  function previewWanted(marker) {
+    const aside = asideOf(marker);
+    if (!aside || marginOn()) return false;
+    if (aside.classList.contains(OPEN)) return false;
+    return window.matchMedia("(hover: hover)").matches;
   }
 
   // rsm/static/tooltips.js
@@ -995,6 +1228,8 @@ var RSM = (() => {
       clone.find(".note-backlink").remove();
       const zone = clone.find(".hr-content-zone").first();
       content = `<div class="note-preview">${(zone[0] ? zone : clone).html()}</div>`;
+    } else if (tag === "DIV" && classes.contains("aside")) {
+      content = `<div class="aside-preview">${$t.html()}</div>`;
     } else if (["P", "LI"].includes(tag)) {
       content = `<div>${$t.html()}</div>`;
     } else if (tag === "FIGURE") {
@@ -1079,6 +1314,7 @@ var RSM = (() => {
     const tmp = document.createElement("div");
     tmp.innerHTML = content;
     tmp.querySelectorAll("[id]").forEach((e) => e.removeAttribute("id"));
+    tmp.querySelectorAll(".aside").forEach((e) => e.remove());
     tmp.querySelectorAll("[data-nodeid]").forEach((e) => e.removeAttribute("data-nodeid"));
     if (title) {
       const leadLabel = tmp.querySelector(".hr-label");
@@ -1156,8 +1392,9 @@ var RSM = (() => {
         return;
       }
       const target = document.getElementById((rawHref || "").replace(/^#/, ""));
-      const noteNumber = helper.origin.classList.contains("note-marker") ? helper.origin.dataset.noteNumber : "";
-      const title = (noteNumber && `Note ${noteNumber}` || target && target.getAttribute("data-menu-label") || helper.origin.textContent || "").trim().replace(/\.$/, "");
+      const marker = helper.origin.classList.contains("note-marker");
+      const kind = helper.origin.dataset.noteKind === "aside" ? "Aside" : "Note";
+      const title = (marker && `${kind} ${helper.origin.dataset.noteNumber}` || target && target.getAttribute("data-menu-label") || helper.origin.textContent || "").trim().replace(/\.$/, "");
       setTooltipContent(instance, pinBar(rawHref, title) + content);
     },
     functionReady: function(instance, helper) {
@@ -1192,6 +1429,12 @@ var RSM = (() => {
       triggerClose: { click: true, mouseleave: true, originClick: true, tap: true }
     });
     $markers.each((_, el) => tapToPreview(el));
+    $('.manuscriptwrapper a.note-marker[data-note-kind="aside"]:not(.tooltipstered)').tooltipster({
+      ...PREVIEW_OPTIONS,
+      triggerOpen: { mouseenter: true },
+      triggerClose: { click: true, mouseleave: true, originClick: true },
+      functionBefore: (instance, helper) => previewWanted(helper.origin)
+    });
     $(".manuscriptwrapper .author-names sup[data-tooltip]:not(.tooltipstered)").tooltipster({
       theme: ["tooltipster-shadow", "tooltipster-shadow-rsm"],
       delay: 200,
@@ -1261,6 +1504,7 @@ var RSM = (() => {
   function setTooltipContent(tt, content) {
     const $content = $(`<div class="manuscriptwrapper">${content}</div>`);
     $content.find("[id]").removeAttr("id");
+    $content.find(".aside").remove();
     $content.find("[data-nodeid]").removeAttr("data-nodeid");
     tt.content($content);
   }
@@ -1290,7 +1534,7 @@ var RSM = (() => {
   var activeHr = null;
   var IS_TOUCH = typeof window !== "undefined" && typeof window.matchMedia === "function" && window.matchMedia("(hover: none) and (pointer: coarse)").matches;
   var delegationAttached = false;
-  function setup3() {
+  function setup5() {
     if (delegationAttached) return;
     delegationAttached = true;
     document.addEventListener("click", function(ev) {
@@ -1971,7 +2215,7 @@ var RSM = (() => {
   }
 
   // rsm/static/keyboard.js
-  function setup4(root2) {
+  function setup6(root2) {
     function ignore(event) {
       if (event.metaKey || event.ctrlKey || event.altKey) return true;
       const t = event.target;
@@ -2247,113 +2491,6 @@ var RSM = (() => {
     });
   }
 
-  // rsm/static/margin.js
-  var MARGIN_CLASS = "rsm-margin";
-  var MARGIN_REM = 15;
-  var MARGIN_GAP_REM = 2;
-  var STACK_GAP_REM = 0.75;
-  var items = /* @__PURE__ */ new Map();
-  var resizeObs = null;
-  var frame = 0;
-  function addMarginItem(anchor, item) {
-    if (items.get(item) === anchor) return;
-    items.set(item, anchor);
-    item.classList.add("rsm-margin-item");
-    if (resizeObs) {
-      resizeObs.observe(item);
-      resizeObs.observe(anchor);
-    }
-    schedule();
-  }
-  function marginOn() {
-    return document.documentElement.classList.contains(MARGIN_CLASS);
-  }
-  function clear(item) {
-    item.style.removeProperty("left");
-    item.style.removeProperty("top");
-  }
-  function layoutMargin() {
-    frame = 0;
-    for (const [item, anchor] of items) {
-      if (!item.isConnected || !anchor.isConnected) items.delete(item);
-    }
-    const live = [...items].filter(([, a]) => a.getClientRects().length);
-    if (!marginOn()) {
-      for (const [item] of items) clear(item);
-    } else if (live.length) {
-      place(live);
-    }
-    document.dispatchEvent(new CustomEvent("rsm:margin-layout"));
-  }
-  function place(live) {
-    const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
-    for (const [item] of live) {
-      item.style.left = "0px";
-      item.style.top = "0px";
-    }
-    const rows = live.map(([item, anchor]) => {
-      const column = anchor.closest(".manuscript") || document.body;
-      return {
-        item,
-        zero: item.getBoundingClientRect(),
-        anchorTop: anchor.getBoundingClientRect().top,
-        x: column.getBoundingClientRect().right + MARGIN_GAP_REM * rem
-      };
-    });
-    rows.sort((a, b) => a.anchorTop - b.anchorTop);
-    let floor = -Infinity;
-    for (const r of rows) {
-      const top = Math.max(r.anchorTop, floor);
-      r.item.style.left = r.x - r.zero.left + "px";
-      r.item.style.top = top - r.zero.top + "px";
-      floor = top + r.zero.height + STACK_GAP_REM * rem;
-    }
-  }
-  function schedule() {
-    if (!frame) frame = requestAnimationFrame(layoutMargin);
-  }
-  var ready = false;
-  function setup5() {
-    if (ready) return;
-    ready = true;
-    const html = document.documentElement;
-    new MutationObserver(schedule).observe(html, {
-      attributes: true,
-      attributeFilter: ["class", "data-reading-measure"]
-    });
-    window.addEventListener("resize", schedule);
-    if (window.ResizeObserver) {
-      resizeObs = new ResizeObserver(schedule);
-      for (const [item, anchor] of items) {
-        resizeObs.observe(item);
-        resizeObs.observe(anchor);
-      }
-      for (const m of document.querySelectorAll(".manuscript")) resizeObs.observe(m);
-    }
-    let sliding = 0;
-    const follow = () => {
-      layoutMargin();
-      if (sliding) frame = requestAnimationFrame(follow);
-    };
-    document.addEventListener("transitionrun", (ev) => {
-      if (!ev.target.matches || !ev.target.matches("main.manuscriptwrapper")) return;
-      if (!sliding++) {
-        cancelAnimationFrame(frame);
-        frame = requestAnimationFrame(follow);
-      }
-    });
-    const stop = (ev) => {
-      if (!ev.target.matches || !ev.target.matches("main.manuscriptwrapper")) return;
-      sliding = Math.max(0, sliding - 1);
-      if (!sliding) schedule();
-    };
-    document.addEventListener("transitionend", stop);
-    document.addEventListener("transitioncancel", stop);
-    if (document.fonts && document.fonts.ready) document.fonts.ready.then(schedule);
-    window.addEventListener("load", schedule);
-    schedule();
-  }
-
   // rsm/static/sidebar.js
   var PHONE = "(max-width: 767px)";
   var STRIP_REM = 1 + 3 + 0.5;
@@ -2536,10 +2673,10 @@ var RSM = (() => {
       paintStrip();
       requestAnimationFrame(fitGraphs);
     }
-    function openView(id, { toggle = true, persist = true } = {}) {
+    function openView(id, { toggle: toggle2 = true, persist = true } = {}) {
       id = translate(id);
       if (!VIEWS[id] || !has(id)) return;
-      if (toggle && open && id === view) {
+      if (toggle2 && open && id === view) {
         setOpen(false);
         return;
       }
@@ -2601,7 +2738,7 @@ var RSM = (() => {
   }
 
   // rsm/static/prooftree.js
-  function setup6(root2 = document) {
+  function setup7(root2 = document) {
     const rail = root2.querySelector(".proof-rail");
     if (!rail) return;
     const lsKey = "rsm-sidebar:" + location.pathname;
@@ -2898,6 +3035,7 @@ var RSM = (() => {
       c.querySelectorAll(".tooltipstered").forEach(
         (n) => n.classList.remove("tooltipstered")
       );
+      c.querySelectorAll(".aside").forEach((n) => n.remove());
       c.querySelectorAll(
         ".hr-collapse-zone,.hr-menu-zone,.hr-border-zone,.hr-spacer-zone,.hr-info-zone"
       ).forEach((n) => n.remove());
@@ -3002,15 +3140,15 @@ var RSM = (() => {
         clone.querySelectorAll(".hr-label, .construct.let, .construct.assume").forEach((n) => n.remove());
         text.appendChild(clone);
         preview.appendChild(text);
-        const toggle = document.createElement("button");
-        toggle.type = "button";
-        toggle.className = "rail-goal-toggle";
-        toggle.textContent = "show more";
-        toggle.addEventListener("click", () => {
+        const toggle2 = document.createElement("button");
+        toggle2.type = "button";
+        toggle2.className = "rail-goal-toggle";
+        toggle2.textContent = "show more";
+        toggle2.addEventListener("click", () => {
           const clamped = text.classList.toggle("clamped");
-          toggle.textContent = clamped ? "show more" : "show less";
+          toggle2.textContent = clamped ? "show more" : "show less";
         });
-        preview.appendChild(toggle);
+        preview.appendChild(toggle2);
         summary.appendChild(preview);
         goalB.body.appendChild(summary);
       } else if (goalEl) {
@@ -3084,7 +3222,7 @@ var RSM = (() => {
 
   // rsm/static/focusmode.js
   var focusEnabled = () => document.documentElement.getAttribute("data-focus-mode") === "on";
-  function setup7(root2 = document) {
+  function setup8(root2 = document) {
     const rail = root2.querySelector(".proof-rail");
     if (!rail) return;
     let active = null;
@@ -3145,7 +3283,7 @@ var RSM = (() => {
         new CustomEvent("rail:show", { detail: { view: "steps", open: true } })
       );
     }
-    function onKeydown(ev) {
+    function onKeydown2(ev) {
       if (ev.key === "Escape") exitFocus();
     }
     let exitBar = null;
@@ -3170,7 +3308,7 @@ var RSM = (() => {
     }
     function teardown() {
       if (!active) return;
-      document.removeEventListener("keydown", onKeydown);
+      document.removeEventListener("keydown", onKeydown2);
       rail.classList.remove("focusing");
       if (exitBar) exitBar.remove();
       withoutPersist(() => {
@@ -3206,7 +3344,7 @@ var RSM = (() => {
       const sel = steps[idx];
       active = { proofEl, svg, startIdx: String(idx), steps, wasCollapsed };
       setExitBar(sel);
-      document.addEventListener("keydown", onKeydown);
+      document.addEventListener("keydown", onKeydown2);
       const deps = steps.filter((_, i) => cone.has(String(i))).length - 1;
       const num = stepNumber2(sel);
       announce2(
@@ -3370,7 +3508,7 @@ var RSM = (() => {
       liveRegion.textContent = msg;
     });
   }
-  function setup8(root2 = document) {
+  function setup9(root2 = document) {
     root2.addEventListener("reorder:toggle", (ev) => {
       const proof = ev.target.closest && ev.target.closest(".proof.hr");
       if (!proof) return;
@@ -3798,7 +3936,7 @@ var RSM = (() => {
       launchToast("Could not copy the view link.", "error");
     }
   }
-  function setup9(root2 = document) {
+  function setup10(root2 = document) {
     if (!window.__shareviewWired) {
       window.__shareviewWired = true;
       document.addEventListener("click", (ev) => {
@@ -3833,7 +3971,7 @@ var RSM = (() => {
     ".tooltipster-content .ref-pin[data-tip]"
   ].join(", ");
   var wired = false;
-  function setup10() {
+  function setup11() {
     if (wired) return;
     if (!document.querySelector(".rail-strip, .proof-rail")) return;
     wired = true;
@@ -3925,7 +4063,7 @@ var RSM = (() => {
   var READING_KEY = "rsm-reading";
   var mm = null;
   var switchObserver = null;
-  function setup11(root2 = document) {
+  function setup12(root2 = document) {
     if (root2 !== document) return;
     if (!document.body || document.body.getAttribute("data-minimap") === "false") return;
     if (!document.querySelector("main.manuscriptwrapper")) return;
@@ -4337,14 +4475,14 @@ var RSM = (() => {
 
   // rsm/static/captions.js
   var CAPTIONS = ".manuscript :is(figure, .table-wrapper) > figcaption.hr";
-  var listening = false;
-  function setup12(root2 = document) {
+  var listening2 = false;
+  function setup13(root2 = document) {
     for (const cap of root2.querySelectorAll(CAPTIONS)) {
       cap.classList.add("rsm-cap-linked");
       addMarginItem(cap.parentElement, cap);
     }
-    if (listening) return;
-    listening = true;
+    if (listening2) return;
+    listening2 = true;
     document.addEventListener("rsm:margin-layout", alignRails);
     document.addEventListener(
       "scroll",
@@ -4393,7 +4531,7 @@ var RSM = (() => {
         console.error("Loading pseudocode FAILED!", err);
       }
       try {
-        setup3();
+        setup5();
         initCollapseButtons(root2);
         collapseInitial(root2);
         restoreCollapse(root2);
@@ -4406,17 +4544,17 @@ var RSM = (() => {
         console.error("Loading tocarcs.js FAILED!", err);
       }
       try {
-        setup6(root2);
+        setup7(root2);
       } catch (err) {
         console.error("Loading prooftree.js FAILED!", err);
       }
       try {
-        setup7(root2);
+        setup8(root2);
       } catch (err) {
         console.error("Loading focusmode.js FAILED!", err);
       }
       try {
-        setup8(root2);
+        setup9(root2);
       } catch (err) {
         console.error("Loading reorder.js FAILED!", err);
       }
@@ -4426,13 +4564,13 @@ var RSM = (() => {
         console.error("Loading deplens.js FAILED!", err);
       }
       try {
-        setup5();
+        setup3();
       } catch (err) {
         console.error("Loading margin.js FAILED!", err);
       }
       try {
         if (keys) {
-          setup4(root2);
+          setup6(root2);
         }
       } catch (err) {
         console.error("Loading keyboard.js FAILED!", err);
@@ -4470,17 +4608,17 @@ var RSM = (() => {
         console.error("Loading notation panel FAILED!", err);
       }
       try {
-        setup10();
+        setup11();
       } catch (err) {
         console.error("Loading interface tooltips FAILED!", err);
       }
       try {
-        setup9(root2);
+        setup10(root2);
       } catch (err) {
         console.error("Loading shareview.js FAILED!", err);
       }
       try {
-        setup11(root2);
+        setup12(root2);
       } catch (err) {
         console.error("Loading minimap.js FAILED!", err);
       }
@@ -4526,9 +4664,14 @@ var RSM = (() => {
         console.error("Re-observing offset handrails FAILED!", err);
       }
       try {
-        setup12(root2);
+        setup13(root2);
       } catch (err) {
         console.error("Placing captions FAILED!", err);
+      }
+      try {
+        setup4(root2);
+      } catch (err) {
+        console.error("Setting up asides FAILED!", err);
       }
       try {
         createTooltips();
