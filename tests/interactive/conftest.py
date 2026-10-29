@@ -78,6 +78,7 @@ SIDEBAR_FIXTURES = {
     "asides",
     "shareview_long",
     "widget_preview",
+    "calc_preview",
 }
 
 # Fixtures whose :html: assets must be read at build time. Asset paths resolve
