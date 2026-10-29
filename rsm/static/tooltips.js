@@ -288,11 +288,13 @@ const PREVIEW_OPTIONS = {
     // Title the excerpt like the block names itself ("Equation (1)"), not by
     // the link text ("(1)"), falling back to the link text.
     const target = document.getElementById((rawHref || "").replace(/^#/, ""));
-    // A marker's preview is titled by its kind and number ("Note 2", "Aside 3").
+    // A footnote's preview is titled by its number ("Note 2"). Asides have no
+    // number, and the phrase is already in the text, so theirs is "Aside".
     const marker = helper.origin.classList.contains("note-marker");
-    const kind = helper.origin.dataset.noteKind === "aside" ? "Aside" : "Note";
+    const aside = helper.origin.classList.contains("aside-phrase");
     const title = (
-      (marker && `${kind} ${helper.origin.dataset.noteNumber}`) ||
+      (aside && "Aside") ||
+      (marker && `Note ${helper.origin.dataset.noteNumber}`) ||
       (target && target.getAttribute("data-menu-label")) ||
       helper.origin.textContent ||
       ""
@@ -336,7 +338,7 @@ export function tapToPreview(el) {
 export function createTooltips() {
   setupPinDelegation();
   // Footnote markers get the same preview as references, and both open it on a
-  // tap through tapToPreview. Aside markers are set up below.
+  // tap through tapToPreview. Aside phrases are set up below.
   const $previewed = $(
     ".manuscriptwrapper a.reference:not(.external):not(.tooltipstered), " +
       '.manuscriptwrapper a.note-marker[data-note-kind="note"]:not(.tooltipstered)'
@@ -344,10 +346,10 @@ export function createTooltips() {
   $previewed.tooltipster(PREVIEW_OPTIONS);
   $previewed.each((_, el) => tapToPreview(el));
 
-  // Aside markers get the same preview, but only while the aside is closed
+  // Aside phrases get the same preview, but only while the aside is closed
   // below its block on a pointer device (asides.js says when). A tap or click
   // opens the aside itself, so touch never opens a preview.
-  $('.manuscriptwrapper a.note-marker[data-note-kind="aside"]:not(.tooltipstered)').tooltipster({
+  $(".manuscriptwrapper a.aside-phrase:not(.tooltipstered)").tooltipster({
     ...PREVIEW_OPTIONS,
     triggerOpen: { mouseenter: true },
     triggerClose: { click: true, mouseleave: true, originClick: true },

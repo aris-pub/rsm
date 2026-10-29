@@ -4,15 +4,15 @@
   {:label: sec-close}
 
 The first paragraph has three asides within a few lines of each other, so that
-in the margin column each one would run into the next :aside:a-one:: unless the
-column pushes it down. The text goes on so that the second marker sits on the
-next line :aside:a-two:: and the third one on the line after that, still close
-enough to collide :aside:a-three::. A few more words to finish the paragraph and
+in the margin column each one would run into :aside:a-one,the next one:: unless
+the column pushes it down. The text goes on so that the second phrase sits on
+:aside:a-two,the next line:: and the third one on the line after that, still
+close enough :aside:a-three,to collide::. A few more words to finish the paragraph and
 give it a clear right edge to measure against.
 
 :aside: {:label: a-one} The first aside. It is long enough to wrap onto several
 lines in the margin column, so that it reaches down past the line of the second
-marker and would overlap the second aside without the push-down. ::
+phrase and would overlap the second aside without the push-down. ::
 
 :aside: {:label: a-two} The second aside, with some math: $x^2 + y^2 = 1$ holds on
 the unit circle, and a few more words so it also wraps. ::
@@ -25,7 +25,7 @@ long enough to wrap onto a second line at any reading width.
 ## Next to a caption
   {:label: sec-caption}
 
-This paragraph calls an aside :aside:a-fig:: right before a figure, so the aside
+This paragraph calls an aside :aside:a-fig,right before a figure::, so the aside
 and the figure's caption share the column and the caption is pushed down below
 the aside when the two would overlap.
 
@@ -46,7 +46,7 @@ figure's caption has to move down to clear it. ::
 
 :itemize:
 
-  :-: A list item with an aside :aside:a-item:: in the middle of its text, which
+  :-: A list item with an aside on :aside:a-item,a few words:: in the middle of its text, which
   goes on a little longer.
 
   :-: A second item without one.
@@ -56,16 +56,16 @@ figure's caption has to move down to clear it. ::
 :theorem: {:label: thm-a} Every step of the proof below is easy.::
 
 :proof: {:of: thm-a}
-  :step: {:label: st-a} A first step with an aside :aside:a-step:: in its statement.::
+  :step: {:label: st-a} A first step with an aside on :aside:a-step,its statement::.::
   :step: A second step.::
 ::
 
 ## Two in one paragraph
   {:label: sec-two}
 
-A paragraph with two asides, the first :aside:a-pair-1:: near the start and the
-second :aside:a-pair-2:: a little later, so that on a narrow screen opening both
-stacks them below the paragraph in marker order. The paragraph also has a footnote
+A paragraph with two asides, :aside:a-pair-1,the first:: near the start and
+:aside:a-pair-2,the second:: a little later, so that on a narrow screen opening
+both stacks them below the paragraph in phrase order. The paragraph also has a footnote
 :note:n-one:: that stays a footnote.
 
 :aside: {:label: a-pair-2} The second aside of the pair. ::

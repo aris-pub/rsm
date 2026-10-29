@@ -1495,6 +1495,19 @@ class Translator:
         return "".join(parts)
 
     def visit_notecall(self, node: nodes.NoteCall) -> EditCommand:
+        if node.kind == "aside":
+            # The phrase itself is the link. The hidden word tells a screen
+            # reader that the link is about an aside, since nothing else says so.
+            tag = _make_tag(
+                "a",
+                id_=f"call-{node.target}",
+                classes=["aside-phrase"],
+                href=f"#{node.target}",
+                **{"data-note-kind": "aside"},
+            )
+            return AppendTextAndDefer(
+                tag, '<span class="visually-hidden"> (aside)</span></a>'
+            )
         tag = _make_tag(
             "a",
             id_=f"call-{node.target}",
@@ -1515,15 +1528,18 @@ class Translator:
         )
 
     def visit_note(self, node: nodes.Note) -> EditCommand:
-        # A footnote is an entry of the notes list. An aside is shown where it is
-        # written until margin placement exists. Both are a paragraph that starts
-        # with the number. The mathblock and codeblock visitors close and reopen
-        # the <p> as they do inside an ordinary paragraph.
-        attrs: dict = {"data-note-number": node.number, "data-note-kind": node.kind}
+        # A footnote is an entry of the notes list and starts with its number. An
+        # aside sits below the block that calls it and has no number. Both are a
+        # paragraph. The mathblock and codeblock visitors close and reopen the <p>
+        # as they do inside an ordinary paragraph.
+        is_aside = isinstance(node, nodes.Aside)
+        attrs: dict = {"data-note-kind": node.kind}
+        if not is_aside:
+            attrs["data-note-number"] = node.number
         in_list = isinstance(node.parent, nodes.NotesList)
         if in_list:
-            # The value attribute keeps the numbers right without CSS, since the
-            # list skips the numbers taken by asides.
+            # The value attribute keeps the numbers right when the list is read
+            # without CSS, which hides the list's own numbers.
             attrs["value"] = node.number
         items: list[EditCommand] = [
             AppendNodeTag(node, "li" if in_list else "div", extra_attrs=attrs)
@@ -1532,9 +1548,10 @@ class Translator:
             items.append(AppendOpenTagManualClose(tag="p", newline_inner=False))
         else:
             items.append(AppendOpenTag(tag="p", newline_inner=False))
-        items.append(
-            AppendText(f'<span class="note__number">{node.number}</span> ')
-        )
+        if not is_aside:
+            items.append(
+                AppendText(f'<span class="note__number">{node.number}</span> ')
+            )
         return AppendBatchAndDefer(items)
 
     def visit_aside(self, node: nodes.Aside) -> EditCommand:

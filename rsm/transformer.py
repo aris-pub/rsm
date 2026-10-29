@@ -42,6 +42,16 @@ class RSMTransformerError(Exception):
     pass
 
 
+def _strip_phrase(call: "nodes.NoteCall") -> None:
+    """Drop the spaces at the two ends of an aside's phrase, so the underline
+    covers only the words."""
+    first, last = call.children[0], call.children[-1]
+    if isinstance(first, nodes.Text):
+        first.text = first.text.lstrip()
+    if isinstance(last, nodes.Text):
+        last.text = last.text.rstrip()
+
+
 def _carry_reftext_nodes(pending: "nodes.BaseReference", ref: "nodes.Reference") -> None:
     """Move a pending reference's inline reftext nodes onto the resolved
     Reference so a marked-up :ref: display text survives resolution. Reparent
@@ -419,26 +429,35 @@ class Transformer:
             raise RSMTransformerError("Found unresolved pending reference")
 
     def resolve_notes(self) -> None:
-        """Link each note or aside call to its definition and number them.
+        """Link each note or aside call to its definition and number the footnotes.
 
-        Calls are numbered in the order they appear, in one sequence shared by notes
-        and asides. A call that cannot be resolved is replaced by an error node: when
+        Footnotes are numbered 1, 2, 3 in the order of their calls. Asides take no
+        number. A call that cannot be resolved is replaced by an error node: when
         its label has no note or aside definition, when the definition was already
-        called, or when it would put an aside in a caption. A call that holds more
-        than a label is also replaced by an error node. A definition that is
-        never called is removed with a warning.
+        called, when it would put an aside in a caption, when a call to an aside
+        does not name its phrase, and when a call to a footnote has a phrase. A
+        call that holds something the grammar does not allow is also replaced by
+        an error node. A definition that is never called is removed with a
+        warning.
         """
         number = count(start=1)
+        order = count(start=1)
         for call in list(self.tree.traverse(nodeclass=nodes.NoteCall)):
             label = call.target
             definition = self.labels_to_nodes.get(label)
             message = ""
             if call.malformed:
                 message = f"malformed :{call.tag}: call"
-                logmsg = (
-                    f"A :{call.tag}: call takes only a label, as in "
-                    f":{call.tag}:my-label::"
-                )
+                if call.tag == "aside":
+                    logmsg = (
+                        "An :aside: call takes a label and a phrase, as in "
+                        ":aside:my-label,some words::"
+                    )
+                else:
+                    logmsg = (
+                        f"A :{call.tag}: call takes only a label, as in "
+                        f":{call.tag}:my-label::"
+                    )
             elif not isinstance(definition, nodes.Note):
                 message = f'unknown note "{label}"'
                 logmsg = f'Note call to nonexistent note or aside "{label}"'
@@ -450,6 +469,18 @@ class Transformer:
             ) and call.first_ancestor_of_type(nodes.Caption) is not None:
                 message = f'aside "{label}" in a caption'
                 logmsg = f'The aside "{label}" is called inside a caption'
+            elif isinstance(definition, nodes.Aside) and not call.children:
+                message = f'aside "{label}" called without a phrase'
+                logmsg = (
+                    f'The call to the aside "{label}" must name the phrase the '
+                    f"aside is about, as in :aside:{label},some words::"
+                )
+            elif not isinstance(definition, nodes.Aside) and call.children:
+                message = f'footnote "{label}" called with a phrase'
+                logmsg = (
+                    f'"{label}" is a footnote, and a footnote call takes only a '
+                    f"label, as in :note:{label}::"
+                )
 
             if message:
                 logger.error(logmsg)
@@ -464,6 +495,10 @@ class Transformer:
 
             call.definition = definition
             definition.call = call
+            call.order = next(order)
+            if isinstance(definition, nodes.Aside):
+                _strip_phrase(call)
+                continue
             call.number = definition.number = next(number)
             # The marker sits against the word before it, as footnote numbers do.
             prev = call.prev_sibling()
@@ -493,7 +528,7 @@ class Transformer:
             for d in self.tree.traverse(nodeclass=nodes.Aside)
             if d.call is not None
         ]
-        for call in sorted(calls, key=lambda c: c.number):
+        for call in sorted(calls, key=lambda c: c.order):
             host = call.first_ancestor_of_type((nodes.Paragraph, nodes.Item, nodes.Note))
             if host is None or isinstance(host, (nodes.Note, nodes.Step, nodes.Caption)):
                 continue

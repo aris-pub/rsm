@@ -2,8 +2,8 @@
 
 ## Text with notes
 
-A sentence that ends with a footnote.:note:first:: A sentence with an aside
-:aside:side:: in the middle, and a second footnote with math.:note:second::
+A sentence that ends with a footnote.:note:first:: A sentence with an aside on
+:aside:side,a phrase in the middle::, and a second footnote with math.:note:second::
 See :ref:thm-x:: for a theorem.
 
 :note: {:label: first} The first footnote, which cites :cite:knuth::. ::

@@ -3011,11 +3011,11 @@ body {
   .draft {color: var(--primary-600);}
 }
 
-/* Note and aside markers: a small tinted chip with the number, the same for both
-kinds. The selector repeats the link states so it wins over the general link rules
-above, whose padding, negative margin and focus colors would otherwise apply. The
-number at the start of a definition (shown in place for now) uses the same chip at
-rest so the reader can match the two. */
+/* Footnote markers: a small tinted chip with the number. The selector repeats the
+link states so it wins over the general link rules above, whose padding, negative
+margin and focus colors would otherwise apply. The number at the start of an entry
+of the notes list uses the same chip at rest so the reader can match the two.
+Asides have no marker: their call is the phrase they are about (.aside-phrase). */
 .manuscriptwrapper {
 
   a.note-marker:link, a.note-marker:visited, a.note-marker:active,
@@ -3062,13 +3062,13 @@ rest so the reader can match the two. */
 
 }
 
-/* Asides: a tinted card with no border and no rail of its own (a vertical line
-is kept for handrails), the number first in bold. The HTML puts each aside at
-the end of the block that calls it, so the block's handrail covers it. Without
-scripts it stays there, open. asides.js sets html.has-asides (the builder's
-pre-paint script sets it before first paint), and then an aside is either in
-the margin column (html.rsm-margin, placed by margin.js) or closed until its
-marker opens it. Screen only: print shows every aside below its block. */
+/* Asides: a tinted card with no border, no rail of its own (a vertical line is
+kept for handrails) and no number. The HTML puts each aside at the end of the
+block that calls it, so the block's handrail covers it. Without scripts it stays
+there, open. asides.js sets html.has-asides (the builder's pre-paint script sets
+it before first paint), and then an aside is either in the margin column
+(html.rsm-margin, placed by margin.js) or closed until its phrase opens it.
+Screen only: print shows every aside below its block. */
 /* --text-subtle alone is below AA contrast on the tint, so the text is moved
    halfway to the body colour. */
 :root { --aside-text: color-mix(in srgb, var(--text-subtle) 50%, var(--text-body)); }
@@ -3085,38 +3085,70 @@ marker opens it. Screen only: print shows every aside below its block. */
   transition: background-color .15s;
 
 }
-/* The same number and spacing in the hover preview of a closed aside. */
+/* The same spacing in the hover preview of a closed aside. */
 .manuscriptwrapper :is(.aside, .aside-preview) {
   & > p { margin: 0; }
-
-  .note__number {
-    display: inline;
-    font-size: inherit;
-    line-height: inherit;
-    vertical-align: baseline;
-    padding: 0;
-    margin: 0 .1em 0 0;
-    background: none;
-    color: var(--primary-700);
-    font-weight: var(--weight-bold);
-  }
 }
 
-/* Linked hover and focus: the marker and its aside light up together. */
-.manuscriptwrapper .aside.rsm-aside-lit {
-  background: color-mix(in srgb, var(--primary-700) 18%, var(--surface-page));
+/* The phrase an aside is about: body text with a faint dotted accent underline,
+no chip and no number. The selector repeats the link states so it wins over the
+general link rules above (link colour, semi-bold, focus colours). The tint is
+clipped to the text so the padding that grows the tap target does not show. */
+.manuscriptwrapper a.aside-phrase:is(:link, :visited, :active, :hover, :focus) {
+  color: inherit;
+  font-weight: inherit;
+  text-decoration: underline dotted color-mix(in srgb, var(--primary-700) 70%, transparent);
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: .2em;
+  background: none;
+  background-clip: content-box;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  border-radius: 3px;
+  box-shadow: none;
+  outline: none;
+  transition: background-color .15s;
 }
-.manuscriptwrapper a.note-marker.rsm-aside-lit:is(:link, :visited, :active) {
-  color: var(--surface-page);
-  background: var(--primary-700);
+.manuscriptwrapper a.aside-phrase:focus-visible {
+  outline: 2px solid var(--border-action);
+  outline-offset: 2px;
+}
+
+/* Linked hover and focus: the phrase and its aside light up together, with the
+same tint. */
+.manuscriptwrapper .aside.rsm-aside-lit,
+.manuscriptwrapper a.aside-phrase.rsm-aside-lit:is(:link, :visited, :active, :hover, :focus) {
+  background-color: color-mix(in srgb, var(--primary-700) 18%, var(--surface-page));
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
 }
 
 @media screen {
   html.has-asides:not(.rsm-margin) .manuscriptwrapper .aside:not(.rsm-aside-open) {
     display: none;
   }
-  html.has-asides:not(.rsm-margin) .manuscriptwrapper a.note-marker[data-note-kind="aside"] {
+  html.has-asides:not(.rsm-margin) .manuscriptwrapper a.aside-phrase {
     cursor: pointer;
+  }
+  /* Touch, with the aside below the paragraph: tapping the phrase opens it, so
+  the phrase gets a tap target at least 44px tall. The glyph box is always taller
+  than 1em, so 1em plus this padding is enough. Inline padding does not move the
+  lines around it. */
+  @media (hover: none) and (pointer: coarse) {
+    html.has-asides:not(.rsm-margin) .manuscriptwrapper a.aside-phrase {
+      padding-block: max(.15em, calc(22px - .5em));
+    }
   }
   /* The margin item rule clears padding (for captions): the card keeps its own. */
   html.rsm-margin .manuscriptwrapper .manuscript .aside.rsm-margin-item {

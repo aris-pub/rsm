@@ -1309,9 +1309,9 @@ class Paragraph(BaseParagraph):
 class Note(BaseParagraph):
     """Definition of a footnote, written as ``:note: {:label: lbl} content ::``.
 
-    The definition holds the content. It is shown where a :class:`NoteCall` with the
-    same label appears. Its number is the number of that call, assigned by the
-    transformer in call order.
+    The definition holds the content. Its number is the number of its
+    :class:`NoteCall`. The transformer numbers footnotes 1, 2, 3 in call order.
+    Asides take no number.
     """
 
     kind: ClassVar[str] = "note"
@@ -1331,16 +1331,18 @@ class Aside(Note):
 class NotesList(NodeWithChildren):
     """The list of footnotes shown at the end of the document.
 
-    The transformer creates it and moves every called :class:`Note` into it, in
-    the order of their numbers. Asides are not moved.
+    The transformer creates it and moves every called footnote into it, in the
+    order of their numbers. Asides are not moved.
     """
 
 
-class NoteCall(Node):
-    """Call site of a note or aside, written as ``:note:lbl::`` or ``:aside:lbl::``.
+class NoteCall(NodeWithChildren):
+    """Call site of a note or aside.
 
-    Whether the call is shown as a footnote or as an aside is decided by the tag of
-    the definition it points to, not by the tag of the call.
+    A footnote call is written ``:note:lbl::``. An aside call also names the
+    phrase the aside is about, ``:aside:lbl,some words::``, and the phrase is
+    the children of the call. Whether the call is shown as a footnote or as an
+    aside is decided by the definition it points to, not by the tag of the call.
     """
 
     def __init__(self, target: str = "", tag: str = "note", **kwargs: Any) -> None:
@@ -1352,7 +1354,11 @@ class NoteCall(Node):
         self.definition: Note | None = None
         """The definition this call points to, set by the transformer."""
         self.malformed = False
-        """Whether the call holds more than a label, which is a parse error."""
+        """Whether the call holds something the grammar does not allow."""
+        self.order: int = 0
+        """Position of the call among all note and aside calls, set by the
+        transformer. Footnotes and asides are counted together here, unlike
+        :attr:`number`, which only footnotes have."""
 
     @property
     def kind(self) -> str:

@@ -1,11 +1,12 @@
-"""Asides on the page (rsm-zvn.2, rsm-zvn.3, rsm-zvn.4).
+"""Asides on the page (rsm-zvn.2, rsm-zvn.3, rsm-zvn.4, rsm-aul).
 
-The HTML puts each aside at the end of the block that calls it. With room for
-the right-hand column (html.rsm-margin, set by sidebar.js), asides.js hands
-each aside to margin.js, which places it level with its marker and pushes it
-down past whatever is above it, captions included. Without room the aside is
-hidden and its marker opens and closes it below its block. Without scripts
-every aside is shown, open, below its block.
+An aside is called on the phrase it is about. The HTML puts each aside at the
+end of the block that calls it. With room for the right-hand column
+(html.rsm-margin, set by sidebar.js), asides.js hands each aside to margin.js,
+which places it level with its phrase and pushes it down past whatever is above
+it, captions included. Without room the aside is hidden and its phrase opens
+and closes it below its block. Without scripts every aside is shown, open,
+below its block.
 """
 
 import pytest
@@ -14,10 +15,10 @@ from playwright.sync_api import Page
 pytestmark = pytest.mark.interactive
 
 # __rsmInitialized is set before the first render pass, which is where
-# asides.js runs (after math), so also wait for the markers to be wired.
+# asides.js runs (after math), so also wait for the phrases to be wired.
 RSM_READY = (
     "() => window.__rsmInitialized === true && !!document.querySelector("
-    "'a.note-marker[data-note-kind=\"aside\"][aria-controls]')"
+    "'a.aside-phrase[aria-controls]')"
 )
 NAME = "asides"
 CLOSE = ["a-one", "a-two", "a-three"]
@@ -90,7 +91,7 @@ def _assert_in_margin(g: dict):
     assert g["margin"], g
     assert g["shown"], g
     assert g["aside"]["l"] >= g["text"]["r"], f"aside is not right of the text: {g}"
-    assert g["aside"]["t"] >= g["marker"]["t"] - 1, f"aside starts above its marker: {g}"
+    assert g["aside"]["t"] >= g["marker"]["t"] - 1, f"aside starts above its phrase: {g}"
     assert g["expanded"] is None, g
 
 
@@ -117,7 +118,7 @@ def test_close_asides_in_margin_without_overlap(page: Page, interactive_server: 
     gs = [_geom(page, i) for i in CLOSE]
     for g in gs:
         _assert_in_margin(g)
-    # The three markers are within a few lines of each other.
+    # The three phrases are within a few lines of each other.
     assert gs[-1]["marker"]["t"] - gs[0]["marker"]["t"] < 5 * gs[0]["marker"]["h"] * 3
     for a, b in zip(gs, gs[1:], strict=False):
         assert b["aside"]["t"] >= a["aside"]["b"], (a, b)
@@ -161,7 +162,7 @@ def test_every_kind_of_block_puts_its_aside_in_margin(
     _assert_in_margin(_geom(page, id_))
 
 
-def test_marker_click_in_margin_does_not_jump(page: Page, interactive_server: str):
+def test_phrase_click_in_margin_does_not_jump(page: Page, interactive_server: str):
     _load(page, interactive_server, 1280)
     before = page.evaluate("() => [scrollY, location.hash]")
     page.click("#call-a-one")
@@ -268,7 +269,8 @@ _LIT = """(id) => {
             marker: m.classList.contains('rsm-aside-lit'),
             asideBg: getComputedStyle(a).backgroundColor,
             markerBg: getComputedStyle(m).backgroundColor,
-            markerColor: getComputedStyle(m).color};
+            markerColor: getComputedStyle(m).color,
+            textColor: getComputedStyle(m.parentElement).color};
 }"""
 
 
@@ -279,7 +281,7 @@ def _rest(page: Page):
 
 
 @pytest.mark.parametrize("width", [1280, 375])
-def test_hovering_the_marker_lights_both(page: Page, interactive_server: str, width):
+def test_hovering_the_phrase_lights_both(page: Page, interactive_server: str, width):
     _load(page, interactive_server, width)
     if width < 1000:
         page.click("#call-a-one")
@@ -296,7 +298,7 @@ def test_hovering_the_marker_lights_both(page: Page, interactive_server: str, wi
     assert not page.evaluate(_LIT, "a-one")["aside"]
 
 
-def test_hovering_the_aside_lights_the_marker_and_the_rail(
+def test_hovering_the_aside_lights_the_phrase_and_the_rail(
     page: Page, interactive_server: str
 ):
     _load(page, interactive_server, 1280)
@@ -313,7 +315,7 @@ def test_hovering_the_aside_lights_the_marker_and_the_rail(
     assert not others["aside"] and not others["marker"]
 
 
-def test_focusing_the_marker_lights_both(page: Page, interactive_server: str):
+def test_focusing_the_phrase_lights_both(page: Page, interactive_server: str):
     _load(page, interactive_server, 1280)
     _rest(page)
     page.focus("#call-a-two")
@@ -326,20 +328,14 @@ def test_focusing_the_marker_lights_both(page: Page, interactive_server: str):
     assert page.evaluate(_LIT, "a-three")["aside"]
 
 
-def test_lit_marker_is_filled(page: Page, interactive_server: str):
+def test_lit_phrase_has_the_tint_of_the_lit_aside(page: Page, interactive_server: str):
     _load(page, interactive_server, 1280)
     page.hover("#a-one")
     page.wait_for_timeout(250)
-    probe = page.evaluate(
-        "() => { const s = document.createElement('span');"
-        " s.style.color = 'var(--primary-700)'; s.style.background = 'var(--surface-page)';"
-        " document.querySelector('.manuscript').appendChild(s);"
-        " const c = getComputedStyle(s); const r = [c.color, c.backgroundColor];"
-        " s.remove(); return r; }"
-    )
     lit = page.evaluate(_LIT, "a-one")
-    assert lit["markerBg"] == probe[0], (lit, probe)
-    assert lit["markerColor"] == probe[1], (lit, probe)
+    assert lit["markerBg"] == lit["asideBg"], lit
+    # Still body text, not link colour or a filled chip.
+    assert lit["markerColor"] == lit["textColor"], lit
 
 
 # ---- narrow: tap to open below the block (zvn.3) ----------------------------
@@ -367,7 +363,7 @@ def test_tap_opens_below_the_paragraph_and_again_closes(
     assert page.evaluate("() => location.hash") == ""
 
 
-def test_opened_asides_stack_in_marker_order(page: Page, interactive_server: str):
+def test_opened_asides_stack_in_phrase_order(page: Page, interactive_server: str):
     _load(page, interactive_server, 375)
     page.click("#call-a-pair-2")
     page.click("#call-a-pair-1")
@@ -420,7 +416,7 @@ def test_keyboard_toggles_with_enter_and_space(page: Page, interactive_server: s
     assert page.evaluate("() => document.activeElement.id") == "call-a-one"
 
 
-def test_marker_reachable_by_tab(page: Page, interactive_server: str):
+def test_phrase_reachable_by_tab(page: Page, interactive_server: str):
     _load(page, interactive_server, 375)
     page.focus("#call-a-one")
     page.keyboard.press("Shift+Tab")
@@ -457,8 +453,8 @@ def test_hover_preview_of_a_closed_aside(page: Page, interactive_server: str):
 
 
 def test_hover_preview_is_titled_as_an_aside(page: Page, interactive_server: str):
-    """The preview is the shared reference preview, titled by the marker's own
-    kind ("Aside 3"), never the footnotes' "Note 3"."""
+    """The preview is the shared reference preview, titled "Aside". Asides have
+    no number, and the footnotes' "Note 3" would be wrong."""
     _load(page, interactive_server, 1000)
     page.hover("#call-a-three")
     page.wait_for_timeout(700)
@@ -466,7 +462,7 @@ def test_hover_preview_is_titled_as_an_aside(page: Page, interactive_server: str
         "() => [...document.querySelectorAll('.tooltipster-base .ref-pin')]"
         ".map(b => b.dataset.pinTitle)"
     )
-    assert titles == ["Aside 3"], titles
+    assert titles == ["Aside"], titles
 
 
 def test_no_hover_preview_once_open(page: Page, interactive_server: str):
@@ -554,13 +550,12 @@ def test_first_paint_already_has_the_scripted_state(
 
 _STYLE = """(id) => {
     const a = document.getElementById(id);
-    const num = a.querySelector('.note__number');
     const para = a.closest('.hr-content-zone').querySelector(':scope > p');
     const cap = document.querySelector('figure#fig-a > figcaption > .hr-content-zone');
     const probe = (prop, v) => { const s = document.createElement('span');
         s.style[prop] = v; document.querySelector('.manuscript').appendChild(s);
         const c = getComputedStyle(s)[prop]; s.remove(); return c; };
-    const s = getComputedStyle(a), n = getComputedStyle(num);
+    const s = getComputedStyle(a);
     return {
         bg: s.backgroundColor,
         want: probe('backgroundColor',
@@ -571,10 +566,8 @@ _STYLE = """(id) => {
         lineRatio: parseFloat(s.lineHeight) / parseFloat(s.fontSize),
         padTop: parseFloat(s.paddingTop) / parseFloat(s.fontSize),
         padLeft: parseFloat(s.paddingLeft) / parseFloat(s.fontSize),
-        numColor: n.color, numWeight: +n.fontWeight, numBg: n.backgroundColor,
-        primary: probe('color', 'var(--primary-700)'),
         capBg: getComputedStyle(cap).backgroundColor,
-        numFirst: a.querySelector('p').firstElementChild === num,
+        numbers: a.querySelectorAll('.note__number').length,
     };
 }"""
 
@@ -598,9 +591,7 @@ def test_aside_card_look(page: Page, interactive_server: str, width, theme):
     assert abs(st["sizeRatio"] - 0.84) < 0.01, st
     assert abs(st["lineRatio"] - 1.5) < 0.01, st
     assert abs(st["padTop"] - 0.65) < 0.02 and abs(st["padLeft"] - 0.85) < 0.02, st
-    assert st["numFirst"], st
-    assert st["numColor"] == st["primary"] and st["numWeight"] >= 700, st
-    assert st["numBg"] == "rgba(0, 0, 0, 0)", st
+    assert st["numbers"] == 0, "an aside card has no number"
     # Captions are unboxed, asides are cards.
     assert st["capBg"] == "rgba(0, 0, 0, 0)" and st["bg"] != st["capBg"], st
 
@@ -612,3 +603,67 @@ def test_aside_has_no_handrail_of_its_own(page: Page, interactive_server: str):
         ".filter(a => a.matches('.hr') || a.querySelector('.hr, .hr-border-zone')).length"
     )
     assert n == 0
+
+
+_PHRASE = """(id) => {
+    const m = document.getElementById('call-' + id);
+    const s = getComputedStyle(m), p = getComputedStyle(m.parentElement);
+    const probe = (prop, v) => { const e = document.createElement('span');
+        e.style[prop] = v; document.querySelector('.manuscript').appendChild(e);
+        const c = getComputedStyle(e)[prop]; e.remove(); return c; };
+    return {
+        text: m.textContent, color: s.color, bodyColor: p.color,
+        weight: s.fontWeight, bodyWeight: p.fontWeight, bg: s.backgroundColor,
+        line: s.textDecorationLine, style: s.textDecorationStyle,
+        decoColor: s.textDecorationColor,
+        want: probe('color', 'color-mix(in srgb, var(--primary-700) 70%, transparent)'),
+        thickness: s.textDecorationThickness, offset: s.textUnderlineOffset,
+        fontSize: parseFloat(s.fontSize),
+    };
+}"""
+
+
+@pytest.mark.parametrize("theme", ["light", "dark"])
+@pytest.mark.parametrize("width", [375, 1280])
+def test_phrase_look(page: Page, interactive_server: str, width, theme):
+    """Body text with a faint dotted accent underline, no chip and no number."""
+    _load(page, interactive_server, width)
+    page.evaluate(
+        "(t) => { const c = document.documentElement.classList;"
+        " c.remove('light-theme', 'dark-theme'); c.add(t + '-theme'); }",
+        theme,
+    )
+    _rest(page)
+    st = page.evaluate(_PHRASE, "a-one")
+    assert st["text"] == "the next one (aside)", st
+    assert st["color"] == st["bodyColor"], st
+    assert st["weight"] == st["bodyWeight"], st
+    assert st["bg"] == "rgba(0, 0, 0, 0)", st
+    assert st["line"] == "underline" and st["style"] == "dotted", st
+    assert st["decoColor"] == st["want"], st
+    assert st["thickness"] == "1.5px", st
+    assert abs(float(st["offset"][:-2]) - 0.2 * st["fontSize"]) < 0.5, st
+    assert not page.evaluate("() => document.querySelector('a.note-marker[data-note-kind=aside]')")
+
+
+def test_tap_target_is_44px_tall_on_touch(browser, interactive_server: str):
+    ctx = browser.new_context(
+        viewport={"width": 375, "height": 800}, has_touch=True, is_mobile=True
+    )
+    page = ctx.new_page()
+    page.goto(f"{interactive_server}/{NAME}.html")
+    page.wait_for_function(RSM_READY, timeout=10_000)
+    _settle(page)
+    coarse = page.evaluate("() => matchMedia('(hover: none) and (pointer: coarse)').matches")
+    heights = page.evaluate(
+        "() => [...document.querySelectorAll('a.aside-phrase')]"
+        ".map(a => [...a.getClientRects()].map(r => r.height))"
+    )
+    page.tap("#call-a-two")
+    page.wait_for_timeout(200)
+    opened = page.evaluate("() => document.getElementById('a-two').classList.contains('rsm-aside-open')")
+    ctx.close()
+    assert coarse
+    for rects in heights:
+        assert rects and all(h >= 44 for h in rects), heights
+    assert opened

@@ -1,5 +1,6 @@
-"""WCAG 2.1 AA checks for asides (rsm-zvn.2, .3, .4): in the margin column,
-closed and opened below their block, and lit by hover, in both themes."""
+"""WCAG 2.1 AA checks for asides (rsm-zvn.2, .3, .4, rsm-aul): in the margin
+column, closed and opened below their block, and lit by hover, in both themes.
+The control is the phrase the aside is about."""
 
 import shutil
 from pathlib import Path
@@ -83,7 +84,7 @@ def test_opened_asides_wcag(serve_rsm_a11y, page, tmp_path, theme):
 @pytest.mark.parametrize("theme", ["light", "dark"])
 @pytest.mark.parametrize("width", [375, 1280])
 def test_lit_aside_wcag(serve_rsm_a11y, page, tmp_path, width, theme):
-    """A lit aside (deeper tint) and a filled marker still meet contrast."""
+    """A lit aside and its lit phrase (deeper tint) still meet contrast."""
     page = _serve(serve_rsm_a11y, page, tmp_path, width)
     if width == 375:
         page.click("#call-a-two")
@@ -94,7 +95,8 @@ def test_lit_aside_wcag(serve_rsm_a11y, page, tmp_path, width, theme):
     assert not v, "\n" + _fmt(v)
 
 
-# Contrast of the aside's text and number on its tint, measured directly. The
+# Contrast of the aside's text on its tint and of the phrase's text on its own
+# background (the page at rest, the lit tint when lit), measured directly. The
 # colours are drawn onto a canvas so color-mix() results come back as sRGB.
 _CONTRAST = """(id) => {
     const cv = document.createElement('canvas'); cv.width = cv.height = 1;
@@ -107,10 +109,14 @@ _CONTRAST = """(id) => {
     const ratio = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p);
         return (x + 0.05) / (y + 0.05); };
     const a = document.getElementById(id);
+    const m = document.getElementById('call-' + id);
     const bg = rgb(getComputedStyle(a).backgroundColor);
+    const mbg = getComputedStyle(m).backgroundColor;
+    const page = rgb(getComputedStyle(document.body).backgroundColor);
+    const phraseBg = mbg === 'rgba(0, 0, 0, 0)' ? page : rgb(mbg);
     return {
         text: ratio(rgb(getComputedStyle(a).color), bg),
-        number: ratio(rgb(getComputedStyle(a.querySelector('.note__number')).color), bg),
+        phrase: ratio(rgb(getComputedStyle(m).color), phraseBg),
         bgAlpha: bg[3],
     };
 }"""
@@ -158,12 +164,41 @@ def test_aside_text_contrast(serve_rsm_a11y, page, tmp_path, accent, theme, stat
 
 
 @pytest.mark.parametrize("accent,theme,state", CASES)
-def test_aside_number_contrast(serve_rsm_a11y, page, tmp_path, accent, theme, state):
+def test_phrase_text_contrast(serve_rsm_a11y, page, tmp_path, accent, theme, state):
     c = _contrast(serve_rsm_a11y, page, tmp_path, accent, theme, state)
-    if state == "rest":
-        assert c["number"] >= 4.5, c
+    assert c["phrase"] >= 4.5, c
+
+
+_CONTROL = """(id) => {
+    const m = document.getElementById('call-' + id);
+    return {
+        tag: m.tagName, href: m.getAttribute('href'), tabIndex: m.tabIndex,
+        name: m.textContent.replace(/\\s+/g, ' ').trim(),
+        expanded: m.getAttribute('aria-expanded'),
+        controls: m.getAttribute('aria-controls'),
+        role: m.getAttribute('role'),
+    };
+}"""
+
+
+@pytest.mark.parametrize("width", [375, 1280])
+def test_phrase_is_a_named_control(serve_rsm_a11y, page, tmp_path, width):
+    """The phrase is focusable, its accessible name says it is about an aside,
+    and on narrow screens it says whether the aside is open."""
+    page = _serve(serve_rsm_a11y, page, tmp_path, width)
+    link = page.get_by_role("link", name="the next one (aside)", exact=True)
+    assert link.count() == 1
+    assert link.get_attribute("id") == "call-a-one"
+    c = page.evaluate(_CONTROL, "a-one")
+    assert c["tag"] == "A" and c["href"] == "#a-one" and c["tabIndex"] == 0, c
+    assert c["controls"] == "a-one", c
+    assert c["role"] is None, c
+    if width == 375:
+        assert c["expanded"] == "false", c
+        page.focus("#call-a-one")
+        page.keyboard.press("Enter")
+        assert page.evaluate(_CONTROL, "a-one")["expanded"] == "true"
+        page.keyboard.press("Space")
+        assert page.evaluate(_CONTROL, "a-one")["expanded"] == "false"
     else:
-        # The maintainer accepted a lit-state number below 4.5 on 2026-10-29
-        # (4.22 with :accent: green in the dark theme): it keeps the marker's
-        # colour in every state. Anything below 4.0 is still a regression.
-        assert c["number"] >= 4.0, c
+        assert c["expanded"] is None, c

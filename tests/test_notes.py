@@ -76,10 +76,43 @@ def test_parse_note_call():
 
 
 def test_parse_aside_call():
-    tree = parse("Some text :aside:a-1:: here.\n")
+    tree = parse("Some text :aside:a-1,the phrase:: here.\n")
     (call,) = calls(tree)
     assert call.target == "a-1"
     assert call.tag == "aside"
+    (text,) = call.children
+    assert text.text == "the phrase"
+
+
+def test_parse_aside_call_with_inline_markup_in_the_phrase():
+    tree = parse("We map into :aside:h,some *Euclidean* **space**:: here.\n")
+    (call,) = calls(tree)
+    words = [t.text for t in call.traverse(nodeclass=nodes.Text)]
+    assert words == ["some ", "Euclidean", " ", "space"]
+    spans = list(call.traverse(nodeclass=nodes.Span))
+    assert [(s.emphas, s.strong) for s in spans] == [(True, False), (False, True)]
+
+
+def test_parse_aside_call_with_math_in_the_phrase():
+    tree = parse("We map into :aside:h,the space $\\mathbb{R}^m$:: here.\n")
+    (call,) = calls(tree)
+    (math,) = call.traverse(nodeclass=nodes.Math)
+    assert math.first_of_type(nodes.Text).text == r"\mathbb{R}^m"
+
+
+def test_parse_aside_call_without_a_phrase():
+    tree = parse("Some text :aside:a-1:: here.\n")
+    (call,) = calls(tree)
+    assert not call.children
+    assert not call.malformed
+
+
+def test_phrase_in_a_note_call_is_an_error(caplog):
+    caplog.set_level(logging.WARNING, logger="RSM")
+    src = "Some text :note:n,some words:: and more.\n\n:note: {:label: n} the note ::\n"
+    tree = transform(src)
+    assert not calls(tree)
+    assert errors(tree)
 
 
 def test_parse_note_definition():
@@ -168,10 +201,10 @@ def test_definition_before_its_call():
     assert call.number == 1
 
 
-def test_numbering_follows_call_order_across_notes_and_asides():
+def test_footnotes_are_numbered_on_their_own_and_asides_take_no_number():
     tree = transform(
         """\
-        First :note:c:: then :aside:a:: then :note:b::.
+        First :note:c:: then :aside:b,a phrase:: then :note:a::.
 
         :aside: {:label: b} b is an aside ::
 
@@ -181,13 +214,35 @@ def test_numbering_follows_call_order_across_notes_and_asides():
         """
     )
     by_label = {d.label: d for d in defs(tree)}
-    assert [c.number for c in calls(tree)] == [1, 2, 3]
+    assert [c.number for c in calls(tree)] == [1, None, 2]
+    assert [c.order for c in calls(tree)] == [1, 2, 3]
     assert by_label["c"].number == 1
     assert by_label["a"].number == 2
-    assert by_label["b"].number == 3
+    assert by_label["b"].number is None
 
 
-def test_kind_is_decided_by_the_definition():
+def test_aside_call_without_a_phrase_is_an_error(caplog):
+    caplog.set_level(logging.WARNING, logger="RSM")
+    tree = transform(
+        """\
+        A call with no phrase :aside:x::.
+
+        :aside: {:label: x} the aside ::
+        """
+    )
+    assert not calls(tree)
+    (err,) = errors(tree)
+    assert "phrase" in err.text
+    assert any(
+        r.levelno >= logging.ERROR
+        and "must name the phrase" in r.getMessage()
+        and ":aside:x,some words::" in r.getMessage()
+        for r in caplog.records
+    )
+
+
+def test_note_call_to_an_aside_asks_for_the_phrase(caplog):
+    caplog.set_level(logging.WARNING, logger="RSM")
     tree = transform(
         """\
         Called with the note tag. :note:x::
@@ -195,9 +250,52 @@ def test_kind_is_decided_by_the_definition():
         :aside: {:label: x} but defined as an aside ::
         """
     )
+    assert not calls(tree)
+    assert errors(tree)
+    assert any("must name the phrase" in r.getMessage() for r in caplog.records)
+
+
+def test_aside_call_to_a_footnote_is_an_error(caplog):
+    caplog.set_level(logging.WARNING, logger="RSM")
+    tree = transform(
+        """\
+        Called with a phrase :aside:n,some words::.
+
+        :note: {:label: n} but defined as a footnote ::
+        """
+    )
+    assert not calls(tree)
+    assert errors(tree)
+    assert any(
+        r.levelno >= logging.ERROR and "only a label" in r.getMessage()
+        for r in caplog.records
+    )
+
+
+def test_kind_is_decided_by_the_definition():
+    tree = transform(
+        """\
+        Called with the aside tag. :aside:x,a phrase::
+
+        :aside: {:label: x} defined as an aside ::
+        """
+    )
     (call,) = calls(tree)
     assert call.kind == "aside"
     assert isinstance(call.definition, nodes.Aside)
+
+
+def test_phrase_keeps_the_space_before_it_and_loses_its_own_end_spaces():
+    tree = transform(
+        """\
+        We map into :aside:x, some space :: here.
+
+        :aside: {:label: x} the aside ::
+        """
+    )
+    (call,) = calls(tree)
+    assert call.prev_sibling().text == "We map into "
+    assert [t.text for t in call.children] == ["some space"]
 
 
 def test_call_without_definition_is_an_error(caplog):
@@ -263,7 +361,7 @@ def test_aside_call_in_figure_caption_is_an_error(caplog):
     tree = transform(
         """\
         :figure: {:label: fig}
-          :caption: A caption :aside:a1::
+          :caption: A caption :aside:a1,a phrase::
         ::
 
         :aside: {:label: a1} the aside ::
@@ -357,17 +455,42 @@ def test_definition_ending_in_inline_math_on_one_line():
     assert "error" not in html
 
 
-def test_aside_marker_kind():
+def test_aside_phrase_markup():
     html = render(
         """\
-        Text. :aside:a::
+        We map into :aside:a,some *Euclidean* space:: here.
 
         :aside: {:label: a} the aside ::
         """
     )
-    ((_, attrs),) = tags_with_class(html, "note-marker")
-    assert attrs["data-note-kind"] == "aside"
+    assert not tags_with_class(html, "note-marker")
+    ((tag, attrs),) = tags_with_class(html, "aside-phrase")
+    assert tag == "a"
+    assert attrs["id"] == "call-a"
     assert attrs["href"] == "#a"
+    assert attrs["data-note-kind"] == "aside"
+    assert "data-note-number" not in attrs
+    assert "role" not in attrs
+    start = html.index('id="call-a"')
+    link = html[start : html.index("</a>", start)]
+    assert "<em>Euclidean</em>" in link
+    # The phrase follows the word before it with its space, and ends with the
+    # hidden word that names it as an aside for screen readers.
+    assert "into <a " in html
+    assert link.endswith('space<span class="visually-hidden"> (aside)</span>')
+
+
+def test_aside_phrase_with_math():
+    html = render(
+        """\
+        We map into :aside:a,the space $\\mathbb{R}^m$:: here.
+
+        :aside: {:label: a} the aside ::
+        """
+    )
+    start = html.index('id="call-a"')
+    link = html[start : html.index("</a>", start)]
+    assert r"\(\mathbb{R}^m\)" in link
 
 
 def test_footnote_renders_in_the_notes_list_with_its_number():
@@ -395,7 +518,7 @@ def test_footnote_renders_in_the_notes_list_with_its_number():
 def test_aside_definition_stays_in_place():
     html = render(
         """\
-        Before. :aside:a::
+        Before :aside:a,the words::.
 
         :aside: {:label: a} the aside ::
 
@@ -404,14 +527,14 @@ def test_aside_definition_stays_in_place():
     )
     ((tag, attrs),) = tags_with_class(html, "aside")
     assert tag == "div"
-    assert html.index("Before.") < html.index('id="a"') < html.index("After.")
+    assert html.index("Before") < html.index('id="a"') < html.index("After.")
     assert not tags_with_class(html, "noteslist")
 
 
 def test_aside_definition_renders_with_aside_class():
     html = render(
         """\
-        Text. :aside:a::
+        Text with :aside:a,a phrase::.
 
         :aside: {:label: a} the aside ::
         """
@@ -419,21 +542,29 @@ def test_aside_definition_renders_with_aside_class():
     ((tag, attrs),) = tags_with_class(html, "aside")
     assert tag == "div"
     assert attrs["data-note-kind"] == "aside"
+    assert "data-note-number" not in attrs
+    assert "note__number" not in html
     assert not tags_with_class(html, "note")
 
 
-def test_shared_numbers_in_rendered_markers():
+def test_footnote_markers_count_on_their_own():
     html = render(
         """\
-        One :aside:x:: two :note:y::.
+        One :aside:x,a phrase:: two :note:y:: three :aside:w,more words:: and
+        four :note:z::.
 
         :note: {:label: y} y ::
 
+        :note: {:label: z} z ::
+
         :aside: {:label: x} x ::
+
+        :aside: {:label: w} w ::
         """
     )
     numbers = [a["data-note-number"] for _, a in tags_with_class(html, "note-marker")]
     assert numbers == ["1", "2"]
+    assert len(tags_with_class(html, "aside-phrase")) == 2
 
 
 def test_unused_definition_is_not_rendered():
@@ -482,7 +613,7 @@ WITH_REFERENCES = """\
 
 ## Section
 
-First :note:a:: then :aside:b:: then :note:c:: and a citation :cite:knuth::.
+First :note:a:: then :aside:b,an aside phrase:: then :note:c:: and a citation :cite:knuth::.
 
 :note: {:label: a} note a ::
 
@@ -521,7 +652,7 @@ def test_transformer_moves_footnotes_into_one_list():
 def test_notes_list_is_ordered_by_number_not_by_definition_order():
     tree = transform(WITH_REFERENCES)
     (notes_list,) = notes_lists(tree)
-    assert [n.number for n in notes_list.children] == [1, 3, 4]
+    assert [n.number for n in notes_list.children] == [1, 2, 3]
 
 
 def test_asides_are_not_in_the_notes_list():
@@ -563,7 +694,7 @@ def test_notes_list_is_last_when_there_are_no_references():
 def test_no_notes_list_without_footnotes():
     tree = transform(
         """\
-        Only an aside :aside:x::.
+        Only an aside :aside:x,a phrase::.
 
         :aside: {:label: x} aside ::
         """
@@ -600,11 +731,11 @@ def test_rendered_list_markup(handrails):
     entries = tags_with_class(html, "note")
     assert [t for t, _ in entries] == ["li", "li", "li"]
     assert [a["id"] for _, a in entries] == ["a", "c", "d"]
-    assert [a["value"] for _, a in entries] == ["1", "3", "4"]
-    assert [a["data-note-number"] for _, a in entries] == ["1", "3", "4"]
-    for number in ("1", "3", "4"):
+    assert [a["value"] for _, a in entries] == ["1", "2", "3"]
+    assert [a["data-note-number"] for _, a in entries] == ["1", "2", "3"]
+    for number in ("1", "2", "3"):
         assert f'<span class="note__number">{number}</span>' in html
-    assert '<span class="note__number">2</span>' in html  # the aside, in place
+    assert html.count('class="note__number"') == 3  # the aside has none
 
 
 @pytest.mark.parametrize("handrails", [False, True])
@@ -641,7 +772,7 @@ def test_each_entry_has_a_backlink_to_its_call(handrails):
 def test_no_rendered_list_without_footnotes(handrails):
     html = render(
         """\
-        Only an aside :aside:x::.
+        Only an aside :aside:x,a phrase::.
 
         :aside: {:label: x} aside ::
         """,

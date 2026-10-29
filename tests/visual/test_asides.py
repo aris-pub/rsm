@@ -1,4 +1,4 @@
-"""Visual regression for asides (rsm-zvn.2, .3, .4).
+"""Visual regression for asides (rsm-zvn.2, .3, .4, rsm-aul).
 
 Asides in the margin column when it fits, closed or opened below their block
 when it does not, and open below their block without scripts. Baselines are
@@ -54,7 +54,7 @@ class TestAsides:
         self, serve_rsm_html, page: Page, assert_snapshot, name, width, scheme
     ) -> None:
         """Wide: asides in the margin, pushed down past each other and the
-        caption. Narrow: all closed, only the markers show."""
+        caption. Narrow: all closed, only the underlined phrases show."""
         _open(page, serve_rsm_html, width, scheme)
         assert_snapshot(_shot(page))
 
@@ -75,7 +75,7 @@ class TestAsides:
     def test_one_open_and_lit(
         self, serve_rsm_html, page: Page, assert_snapshot, name, width, scheme
     ) -> None:
-        """One aside open and its marker focused: both lit, the paragraph's
+        """One aside open and its phrase focused: both lit, the paragraph's
         rail running down past the aside."""
         _open(page, serve_rsm_html, width, scheme)
         page.click("#call-a-two")
@@ -88,7 +88,7 @@ class TestAsides:
     def test_lit_in_margin(
         self, serve_rsm_html, page: Page, assert_snapshot, name, width, scheme
     ) -> None:
-        """Hovering an aside in the margin lights it, its marker, and the rail
+        """Hovering an aside in the margin lights it, its phrase, and the rail
         of the paragraph that calls it."""
         _open(page, serve_rsm_html, width, scheme)
         page.evaluate("() => scrollTo(0, 0)")
@@ -127,7 +127,7 @@ class TestAsides:
     def test_hover_preview(
         self, serve_rsm_html, page: Page, assert_snapshot, name, width, scheme
     ) -> None:
-        """On a pointer device without the column, hovering the marker of a
+        """On a pointer device without the column, hovering the phrase of a
         closed aside previews it. At 1280 the panel is opened to take the
         column away."""
         _open(page, serve_rsm_html, width, scheme)

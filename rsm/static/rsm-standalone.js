@@ -1116,7 +1116,7 @@ var RSM = (() => {
   var READY_CLASS = "has-asides";
   var OPEN = "rsm-aside-open";
   var LIT = "rsm-aside-lit";
-  var MARKERS = '.manuscriptwrapper a.note-marker[data-note-kind="aside"]';
+  var MARKERS = ".manuscriptwrapper a.aside-phrase";
   var listening = false;
   function asideOf(marker) {
     const id = (marker.getAttribute("href") || "").replace(/^#/, "");
@@ -1454,8 +1454,8 @@ var RSM = (() => {
       }
       const target = document.getElementById((rawHref || "").replace(/^#/, ""));
       const marker = helper.origin.classList.contains("note-marker");
-      const kind = helper.origin.dataset.noteKind === "aside" ? "Aside" : "Note";
-      const title = (marker && `${kind} ${helper.origin.dataset.noteNumber}` || target && target.getAttribute("data-menu-label") || helper.origin.textContent || "").trim().replace(/\.$/, "");
+      const aside = helper.origin.classList.contains("aside-phrase");
+      const title = (aside && "Aside" || marker && `Note ${helper.origin.dataset.noteNumber}` || target && target.getAttribute("data-menu-label") || helper.origin.textContent || "").trim().replace(/\.$/, "");
       setTooltipContent(instance, pinBar(rawHref, title) + content);
     },
     functionReady: function(instance, helper) {
@@ -1486,7 +1486,7 @@ var RSM = (() => {
     );
     $previewed.tooltipster(PREVIEW_OPTIONS);
     $previewed.each((_, el) => tapToPreview(el));
-    $('.manuscriptwrapper a.note-marker[data-note-kind="aside"]:not(.tooltipstered)').tooltipster({
+    $(".manuscriptwrapper a.aside-phrase:not(.tooltipstered)").tooltipster({
       ...PREVIEW_OPTIONS,
       triggerOpen: { mouseenter: true },
       triggerClose: { click: true, mouseleave: true, originClick: true },
