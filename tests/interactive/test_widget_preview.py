@@ -41,6 +41,18 @@ def _shown_img_src(scope) -> list[str]:
     )
 
 
+def _wait_one_shown(scope, name: str) -> None:
+    """Wait until exactly one image shows in scope and it is the named file."""
+    scope.page.wait_for_function(
+        """([el, name]) => {
+            const shown = [...el.querySelectorAll('img')].filter(i => i.getClientRects().length)
+            return shown.length === 1 && shown[0].getAttribute('src').endsWith(name)
+        }""",
+        arg=[scope.element_handle(), name],
+        timeout=5000,
+    )
+
+
 @pytest.mark.parametrize("dark", [False, True])
 def test_preview_shows_still_image_not_widget(page: Page, interactive_server: str, dark: bool):
     _load(page, interactive_server, dark)
@@ -89,8 +101,8 @@ def test_pinned_widget_follows_theme_switch(page: Page, interactive_server: str)
     # The card's header already names the widget, so the body does not repeat it.
     expect(body.locator(".widget-preview-label")).to_have_count(0)
     expect(page.locator(".rail-pinned")).to_contain_text("Widget 1.1")
-    shown = _shown_img_src(body)
-    assert len(shown) == 1 and shown[0].endswith("fixtures-static-light.png"), shown
+    # The card is filled and laid out after the click returns, so wait for the
+    # image to show rather than reading it once.
+    _wait_one_shown(body, "fixtures-static-light.png")
     page.eval_on_selector("html", "h => h.classList.add('dark-theme')")
-    shown = _shown_img_src(body)
-    assert len(shown) == 1 and shown[0].endswith("fixtures-static-dark.png"), shown
+    _wait_one_shown(body, "fixtures-static-dark.png")
