@@ -667,3 +667,32 @@ def test_tap_target_is_44px_tall_on_touch(browser, interactive_server: str):
     for rects in heights:
         assert rects and all(h >= 44 for h in rects), heights
     assert opened
+
+
+def test_phrase_tap_area_does_not_cover_other_links(browser, interactive_server: str):
+    """The phrase's 44px tap area reaches into the lines around it. Every other
+    link in the text must still take a tap at its own centre (a footnote marker
+    on the line above a phrase used to open the aside instead)."""
+    ctx = browser.new_context(
+        viewport={"width": 375, "height": 800}, has_touch=True, is_mobile=True
+    )
+    page = ctx.new_page()
+    page.goto(f"{interactive_server}/aside_tap.html")
+    page.wait_for_function(RSM_READY, timeout=10_000)
+    _settle(page)
+    covered = page.evaluate(
+        """() => {
+            const out = [];
+            for (const a of document.querySelectorAll('.manuscript p a:not(.aside-phrase)')) {
+                a.scrollIntoView({block: 'center'});
+                for (const r of a.getClientRects()) {
+                    if (!r.width) continue;
+                    const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+                    if (hit && hit.closest('a.aside-phrase')) out.push(a.getAttribute('href'));
+                }
+            }
+            return out;
+        }"""
+    )
+    ctx.close()
+    assert covered == [], covered

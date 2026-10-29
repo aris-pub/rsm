@@ -1,0 +1,22 @@
+# Aside tap areas
+
+A footnote :note:f1:: sits here and another :note:f2:: right after it, and then a long phrase follows,
+:aside:a-long,which runs on for several lines of a narrow screen so that its padded tap area reaches into the lines above and below where footnote markers sit::,
+and after it come two more footnotes :note:f3:: and :note:f4:: on the next line, with a
+reference to :ref:sec-end,the end:: as well.
+
+:aside: {:label: a-long} The long aside. ::
+
+:note: {:label: f1} First. ::
+
+:note: {:label: f2} Second. ::
+
+:note: {:label: f3} Third. ::
+
+:note: {:label: f4} Fourth. ::
+
+## The end {
+  :label: sec-end
+}
+
+That is all.

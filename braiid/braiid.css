@@ -3157,6 +3157,13 @@ same tint. */
     html.has-asides:not(.rsm-margin) .manuscriptwrapper a.aside-phrase {
       padding-block: max(.15em, calc(22px - .5em));
     }
+    /* That padding reaches into the lines above and below. Any other control
+    there (a footnote marker, a reference) must stay on top of it, or tapping
+    it opens the aside instead. Positioning does not move inline content. */
+    html.has-asides:not(.rsm-margin) .manuscriptwrapper :is(a, button, [role="button"]):not(.aside-phrase) {
+      position: relative;
+      z-index: 1;
+    }
   }
   /* The margin item rule clears padding (for captions): the card keeps its own. */
   html.rsm-margin .manuscriptwrapper .manuscript .aside.rsm-margin-item {
