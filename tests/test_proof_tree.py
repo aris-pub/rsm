@@ -161,8 +161,8 @@ def test_strip_has_one_icon_per_view():
 
 def test_strip_buttons_are_named_with_hints():
     html = _sidebar(RAIL_SRC_NOTATION)
-    assert 'aria-label="Contents" data-tip="Contents" data-hint="The contents of the manuscript as a dependency graph."' in html
-    assert "Rename one and it changes everywhere." in html
+    assert 'aria-label="Contents" data-tip="Contents" data-hint="The contents as a dependency graph."' in html
+    assert "Rename a symbol to change it everywhere." in html
 
 
 def test_no_notation_without_notation():

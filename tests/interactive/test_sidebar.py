@@ -102,7 +102,7 @@ def test_panel_head_names_the_view(page: Page, interactive_server: str):
     assert "dependency graph" in page.locator(".rail-hint").inner_text()
     _show(page, "notation")
     assert page.locator(".rail-title").inner_text() == "Notation"
-    assert "Rename one" in page.locator(".rail-hint").inner_text()
+    assert "Rename a symbol" in page.locator(".rail-hint").inner_text()
     # Every view says what it shows.
     for view in ("steps", "state", "pinned", "reading"):
         _show(page, view)
@@ -721,7 +721,7 @@ def test_phone_sheet_switches_views_with_tabs(page: Page, interactive_server: st
     tabs.nth(1).click()
     assert "doc-view-notation" in _rail_class(page)
     assert tabs.nth(1).get_attribute("aria-selected") == "true"
-    assert "Rename one" in page.locator(".rail-hint").inner_text()
+    assert "Rename a symbol" in page.locator(".rail-hint").inner_text()
     # Arrow keys move between the tabs.
     tabs.nth(1).press("ArrowLeft")
     assert "doc-view-map" in _rail_class(page)
