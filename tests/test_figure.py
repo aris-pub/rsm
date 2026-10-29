@@ -14,7 +14,7 @@ SIMPLE_WANT = """\
 
 <section class="level-1">
 
-<figure class="figure" data-nodeid="1">
+<figure class="figure" data-number="1" data-nodeid="1">
 <img src="assets/example.png" alt="Figure 1.">
 <figcaption>
 <span class="label">Figure 1. </span>This is the figure caption.
@@ -98,7 +98,7 @@ def test_caption_with_inline_tags():
 
         <section class="level-1">
 
-        <figure class="figure" data-nodeid="1">
+        <figure class="figure" data-number="1" data-nodeid="1">
         <img src="assets/example.png" alt="Figure 1.">
         <figcaption>
         <span class="label">Figure 1. </span>This is the <span class="span" data-nodeid="4"><strong>figure</strong></span> caption.
@@ -136,7 +136,7 @@ def test_video_mp4():
 
         <section class="level-1">
 
-        <figure class="video" data-nodeid="1">
+        <figure class="video" data-number="1" data-nodeid="1">
         <video controls src="assets/demo.mp4">Your browser does not support the video tag.</video>
         <figcaption>
         <span class="label">Video 1. </span>This is a video demonstration.
@@ -173,7 +173,7 @@ def test_video_youtube():
 
         <section class="level-1">
 
-        <figure class="video" data-nodeid="1">
+        <figure class="video" data-number="1" data-nodeid="1">
         <video controls src="https://www.youtube.com/watch?v=dQw4w9WgXcQ">YouTube video: https://www.youtube.com/watch?v=dQw4w9WgXcQ</video>
         <figcaption>
         <span class="label">Video 1. </span>YouTube video example.
@@ -211,7 +211,7 @@ def test_html_asset():
 
         <section class="level-1">
 
-        <figure class="html" data-nodeid="1">
+        <figure class="html" data-number="1" data-nodeid="1">
         <div class="interactive-chart">
           <h3>Sample Interactive Chart</h3>
           <canvas id="chart" width="400" height="300"></canvas>
@@ -274,7 +274,7 @@ def test_mixed_asset_numbering():
 
         <section class="level-1">
 
-        <figure class="figure" data-nodeid="1">
+        <figure class="figure" data-number="1" data-nodeid="1">
         <img src="assets/chart.png" alt="Figure 1.">
         <figcaption>
         <span class="label">Figure 1. </span>First figure.
@@ -282,7 +282,7 @@ def test_mixed_asset_numbering():
 
         </figure>
 
-        <figure class="video" data-nodeid="4">
+        <figure class="video" data-number="1" data-nodeid="4">
         <video controls src="assets/demo.mp4">Your browser does not support the video tag.</video>
         <figcaption>
         <span class="label">Video 1. </span>First video.
@@ -290,7 +290,7 @@ def test_mixed_asset_numbering():
 
         </figure>
 
-        <figure class="figure" data-nodeid="7">
+        <figure class="figure" data-number="2" data-nodeid="7">
         <img src="assets/graph.jpg" alt="Figure 2.">
         <figcaption>
         <span class="label">Figure 2. </span>Second figure.
@@ -298,7 +298,7 @@ def test_mixed_asset_numbering():
 
         </figure>
 
-        <figure class="html" data-nodeid="10">
+        <figure class="html" data-number="3" data-nodeid="10">
         <div class="data-visualization">
           <p>Custom HTML visualization content</p>
         </div>
@@ -337,7 +337,7 @@ def test_figure_alt_text():
 
         <section class="level-1">
 
-        <figure class="figure" data-nodeid="1">
+        <figure class="figure" data-number="1" data-nodeid="1">
         <img src="assets/example.png" alt="A scatter plot showing the correlation between X and Y.">
         </figure>
 
@@ -370,7 +370,7 @@ def test_figure_dark_mode():
 
         <section class="level-1">
 
-        <figure class="figure" data-nodeid="1">
+        <figure class="figure" data-number="1" data-nodeid="1">
         <picture>
         <source media="(prefers-color-scheme: dark)" srcset="assets/chart-dark.png">
         <img src="assets/chart-light.png" alt="Figure 1.">
@@ -407,7 +407,7 @@ def test_figure_static_path():
 
         <section class="level-1">
 
-        <figure class="figure" data-static="assets/interactive-static.png" data-nodeid="1">
+        <figure class="figure" data-static="assets/interactive-static.png" data-number="1" data-nodeid="1">
         <img src="assets/interactive.svg" alt="Figure 1.">
         <span class="static-fallback" style="display:none"><img src="assets/interactive-static.png" alt=""></span><noscript><img src="assets/interactive-static.png" alt=""></noscript>
         </figure>
@@ -443,7 +443,7 @@ def test_figure_all_new_options():
 
         <section class="level-1">
 
-        <figure class="figure" data-static="assets/plot-static.png" data-nodeid="1">
+        <figure class="figure" data-static="assets/plot-static.png" data-number="1" data-nodeid="1">
         <picture>
         <source media="(prefers-color-scheme: dark)" srcset="assets/plot-dark.png">
         <img src="assets/plot-light.png" alt="A density plot.">
