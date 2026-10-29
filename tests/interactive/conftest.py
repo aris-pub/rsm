@@ -4,6 +4,8 @@ These tests drive a real browser (via Playwright) against a running rsm serve
 instance to verify JS behavior: toasts, tooltips, clipboard, and iframe contexts.
 """
 
+import contextlib
+import os
 import socket
 import subprocess
 import time
@@ -33,6 +35,17 @@ def _wait_for_server(port: int, timeout: float = 10.0) -> None:
     raise RuntimeError(f"rsm serve did not start on port {port} within {timeout}s")
 
 
+@contextlib.contextmanager
+def _chdir(path: Path):
+    # contextlib.chdir needs Python 3.11 and the project supports 3.10.
+    old = os.getcwd()
+    os.chdir(path)
+    try:
+        yield
+    finally:
+        os.chdir(old)
+
+
 def _write_iframe_hosts(serve_dir: Path) -> None:
     """Write host pages that embed basic.html in an iframe."""
     # Mirrors the RSM Sphinx docs: sandbox="allow-scripts allow-same-origin"
@@ -60,9 +73,14 @@ SIDEBAR_FIXTURES = {
     "collapsed",
     "deplens",
     "reorder",
+    "minimap",
     "margin_captions",
     "shareview_long",
 }
+
+# Fixtures whose :html: assets must be read at build time. Asset paths resolve
+# from the working directory, so these build from inside the fixtures folder.
+ASSET_FIXTURES = {"minimap"}
 
 
 @pytest.fixture(scope="session")
@@ -72,16 +90,18 @@ def interactive_server(tmp_path_factory: Any):
 
     fixtures_dir = Path(__file__).parent / "fixtures"
     for rsm_file in sorted(fixtures_dir.glob("*.rsm")):
-        rsm.build(
-            path=str(rsm_file),
-            output_dir=str(serve_dir),
-            output_filename=rsm_file.stem + ".html",
-            write_output=True,
-            handrails=True,
-            standalone=False,
-            strict=True,
-            sidebar=rsm_file.stem in SIDEBAR_FIXTURES,
-        )
+        cwd = fixtures_dir if rsm_file.stem in ASSET_FIXTURES else Path.cwd()
+        with _chdir(cwd):
+            rsm.build(
+                path=str(rsm_file),
+                output_dir=str(serve_dir),
+                output_filename=rsm_file.stem + ".html",
+                write_output=True,
+                handrails=True,
+                standalone=False,
+                strict=True,
+                sidebar=rsm_file.stem in SIDEBAR_FIXTURES,
+            )
 
     # Copy image assets so figures can render
     import shutil

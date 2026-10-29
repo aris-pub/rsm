@@ -1,0 +1,172 @@
+# Minimap Demo
+
+Some math $x^2 + y^2$ near the top.
+
+## Introduction
+  {:label: sec-intro}
+
+Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. 
+
+Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. 
+
+Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. 
+
+Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. 
+
+Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. 
+
+Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. 
+
+### Background
+  {:label: sec-bg}
+
+Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. 
+
+Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. 
+
+Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. 
+
+Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. 
+
+Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. 
+
+Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. 
+
+:figure: {
+  :label: fig-a
+  :path: figure-light.png
+}
+:caption: A first figure.
+::
+
+Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. 
+
+Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. 
+
+Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. 
+
+Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. 
+
+Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. 
+
+Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. 
+
+## Results
+  {:label: sec-results}
+
+Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. 
+
+Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. 
+
+Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. 
+
+Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. 
+
+Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. 
+
+Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. 
+
+:theorem: {:label: thm-x} A claim. ::
+
+:proof: {:label: prf-long}
+
+  :step: {:label: st-1} Step 1. Long step text to make the proof tall. Long step text to make the proof tall. Long step text to make the proof tall. Long step text to make the proof tall. Long step text to make the proof tall. Long step text to make the proof tall. Long step text to make the proof tall. Long step text to make the proof tall. ::
+
+  :step: {:label: st-2} Step 2. Long step text to make the proof tall. Long step text to make the proof tall. Long step text to make the proof tall. Long step text to make the proof tall. Long step text to make the proof tall. Long step text to make the proof tall. Long step text to make the proof tall. Long step text to make the proof tall. ::
+
+  :step: {:label: st-3} Step 3. Long step text to make the proof tall. Long step text to make the proof tall. Long step text to make the proof tall. Long step text to make the proof tall. Long step text to make the proof tall. Long step text to make the proof tall. Long step text to make the proof tall. Long step text to make the proof tall. ::
+
+  :step: {:label: st-4} Step 4. Long step text to make the proof tall. Long step text to make the proof tall. Long step text to make the proof tall. Long step text to make the proof tall. Long step text to make the proof tall. Long step text to make the proof tall. Long step text to make the proof tall. Long step text to make the proof tall. ::
+
+  :step: {:label: st-5} Step 5. Long step text to make the proof tall. Long step text to make the proof tall. Long step text to make the proof tall. Long step text to make the proof tall. Long step text to make the proof tall. Long step text to make the proof tall. Long step text to make the proof tall. Long step text to make the proof tall. ::
+
+  :step: {:label: st-6} Step 6. Long step text to make the proof tall. Long step text to make the proof tall. Long step text to make the proof tall. Long step text to make the proof tall. Long step text to make the proof tall. Long step text to make the proof tall. Long step text to make the proof tall. Long step text to make the proof tall. ::
+
+  :step: {:label: st-7} Step 7. Long step text to make the proof tall. Long step text to make the proof tall. Long step text to make the proof tall. Long step text to make the proof tall. Long step text to make the proof tall. Long step text to make the proof tall. Long step text to make the proof tall. Long step text to make the proof tall. ::
+
+  :step: {:label: st-8} Step 8. Long step text to make the proof tall. Long step text to make the proof tall. Long step text to make the proof tall. Long step text to make the proof tall. Long step text to make the proof tall. Long step text to make the proof tall. Long step text to make the proof tall. Long step text to make the proof tall. ::
+
+  :step: {:label: st-9} Step 9. Long step text to make the proof tall. Long step text to make the proof tall. Long step text to make the proof tall. Long step text to make the proof tall. Long step text to make the proof tall. Long step text to make the proof tall. Long step text to make the proof tall. Long step text to make the proof tall. ::
+
+  :step: {:label: st-10} Step 10. Long step text to make the proof tall. Long step text to make the proof tall. Long step text to make the proof tall. Long step text to make the proof tall. Long step text to make the proof tall. Long step text to make the proof tall. Long step text to make the proof tall. Long step text to make the proof tall. ::
+
+  :step: {:label: st-11} Step 11. Long step text to make the proof tall. Long step text to make the proof tall. Long step text to make the proof tall. Long step text to make the proof tall. Long step text to make the proof tall. Long step text to make the proof tall. Long step text to make the proof tall. Long step text to make the proof tall. ::
+
+  :step: {:label: st-12} Step 12. Long step text to make the proof tall. Long step text to make the proof tall. Long step text to make the proof tall. Long step text to make the proof tall. Long step text to make the proof tall. Long step text to make the proof tall. Long step text to make the proof tall. Long step text to make the proof tall. ::
+
+  :step: :qed: Done. ::
+
+::
+
+Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. 
+
+Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. 
+
+Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. 
+
+Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. 
+
+Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. 
+
+Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. 
+
+## Discussion
+  {:label: sec-disc}
+
+Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. 
+
+Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. 
+
+Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. 
+
+Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. 
+
+Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. 
+
+Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. 
+
+:figure: {
+  :label: fig-b
+  :path: figure-light.png
+}
+:caption: A second figure.
+::
+
+Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. 
+
+Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. 
+
+Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. 
+
+Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. 
+
+Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. 
+
+Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. 
+
+### Outlook
+  {:label: sec-outlook}
+
+Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. 
+
+Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. 
+
+Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. 
+
+Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. 
+
+Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. 
+
+Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. 
+
+Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. 
+
+Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. 
+
+Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. 
+
+Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. 
+
+Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. 
+
+Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. 
