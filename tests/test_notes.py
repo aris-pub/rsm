@@ -524,10 +524,12 @@ def test_notes_list_is_ordered_by_number_not_by_definition_order():
     assert [n.number for n in notes_list.children] == [1, 3, 4]
 
 
-def test_asides_stay_where_they_are_written():
+def test_asides_are_not_in_the_notes_list():
+    # An aside goes to the end of the paragraph that calls it (see
+    # tests/test_asides.py), never into the notes list.
     tree = transform(WITH_REFERENCES)
     (aside,) = tree.traverse(nodeclass=nodes.Aside)
-    assert isinstance(aside.parent, nodes.Section)
+    assert aside.parent is aside.call.first_ancestor_of_type(nodes.Paragraph)
     assert aside.first_ancestor_of_type(nodes.NotesList) is None
 
 
