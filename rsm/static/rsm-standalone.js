@@ -1202,10 +1202,6 @@ var RSM = (() => {
     if (aside.classList.contains(OPEN)) return false;
     return window.matchMedia("(hover: hover)").matches;
   }
-  function previewContent(marker) {
-    const aside = asideOf(marker);
-    return aside ? `<div class="aside-preview">${aside.innerHTML}</div>` : "";
-  }
 
   // rsm/static/tooltips.js
   var PIN_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 4.5l-4 4l-4 1.5l-1.5 1.5l7 7l1.5 -1.5l1.5 -4l4 -4"/><path d="M9 15l-4.5 4.5"/><path d="M14.5 4l5.5 5.5"/></svg>';
@@ -1227,7 +1223,14 @@ var RSM = (() => {
     const classes = $t[0].classList;
     let content = "";
     let clone;
-    if (["P", "LI"].includes(tag)) {
+    if (tag === "LI" && classes.contains("note")) {
+      clone = $t.clone();
+      clone.find(".note-backlink").remove();
+      const zone = clone.find(".hr-content-zone").first();
+      content = `<div class="note-preview">${(zone[0] ? zone : clone).html()}</div>`;
+    } else if (tag === "DIV" && classes.contains("aside")) {
+      content = `<div class="aside-preview">${$t.html()}</div>`;
+    } else if (["P", "LI"].includes(tag)) {
       content = `<div>${$t.html()}</div>`;
     } else if (tag === "FIGURE") {
       clone = $t.clone();
@@ -1349,72 +1352,88 @@ var RSM = (() => {
       paintPins();
     });
   }
+  var PREVIEW_OPTIONS = {
+    theme: ["tooltipster-shadow", "tooltipster-shadow-rsm"],
+    delay: 200,
+    minWidth: 100,
+    maxWidth: 500,
+    // Interactive so the reader can move into the preview to click its pin
+    // button without it closing on the way.
+    interactive: true,
+    trigger: "custom",
+    triggerOpen: {
+      mouseenter: true,
+      touchstart: true
+    },
+    triggerClose: {
+      click: true,
+      mouseleave: true,
+      originClick: true,
+      touchleave: true
+    },
+    functionInit: function(instance, helper) {
+      const rawHref = $(helper.origin).attr("href");
+      const { content, error } = buildExcerpt(rawHref);
+      if (error === "no-href") {
+        console.warn("Target does not have an href attribute");
+        return;
+      }
+      if (error === "no-label") {
+        setTooltipContent(
+          instance,
+          '<span class="error">target node has no label</span>'
+        );
+        helper.origin.classList.add("error");
+        return;
+      }
+      if (error === "unknown") return;
+      if (!content) {
+        setTooltipContent(instance, "");
+        return;
+      }
+      const target = document.getElementById((rawHref || "").replace(/^#/, ""));
+      const marker = helper.origin.classList.contains("note-marker");
+      const kind = helper.origin.dataset.noteKind === "aside" ? "Aside" : "Note";
+      const title = (marker && `${kind} ${helper.origin.dataset.noteNumber}` || target && target.getAttribute("data-menu-label") || helper.origin.textContent || "").trim().replace(/\.$/, "");
+      setTooltipContent(instance, pinBar(rawHref, title) + content);
+    },
+    functionReady: function(instance, helper) {
+      const el = instance.elementTooltip ? instance.elementTooltip() : helper.tooltip;
+      if (el) typesetMath(el instanceof $ ? el[0] : el);
+    }
+  };
+  function tapToPreview(el) {
+    if (el.dataset.tapPreview) return;
+    el.dataset.tapPreview = "true";
+    let touched = false;
+    el.addEventListener("pointerdown", (ev) => {
+      touched = ev.pointerType === "touch";
+    });
+    el.addEventListener("click", (ev) => {
+      if (!touched) return;
+      touched = false;
+      if ($(el).tooltipster("status").open) return;
+      ev.preventDefault();
+      $(el).tooltipster("open");
+    });
+  }
   function createTooltips() {
     setupPinDelegation();
-    $(".manuscriptwrapper a.reference:not(.external):not(.tooltipstered)").tooltipster({
-      theme: ["tooltipster-shadow", "tooltipster-shadow-rsm"],
-      delay: 200,
-      minWidth: 100,
-      maxWidth: 500,
-      // Interactive so the reader can move into the preview to click its pin
-      // button without it closing on the way.
-      interactive: true,
-      trigger: "custom",
-      triggerOpen: {
-        mouseenter: true,
-        touchstart: true
-      },
-      triggerClose: {
-        click: true,
-        mouseleave: true,
-        originClick: true,
-        touchleave: true
-      },
-      functionInit: function(instance, helper) {
-        const rawHref = $(helper.origin).attr("href");
-        const { content, error } = buildExcerpt(rawHref);
-        if (error === "no-href") {
-          console.warn("Target does not have an href attribute");
-          return;
-        }
-        if (error === "no-label") {
-          setTooltipContent(
-            instance,
-            '<span class="error">target node has no label</span>'
-          );
-          helper.origin.classList.add("error");
-          return;
-        }
-        if (error === "unknown") return;
-        if (!content) {
-          setTooltipContent(instance, "");
-          return;
-        }
-        const target = document.getElementById((rawHref || "").replace(/^#/, ""));
-        const title = (target && target.getAttribute("data-menu-label") || helper.origin.textContent || "").trim().replace(/\.$/, "");
-        setTooltipContent(instance, pinBar(rawHref, title) + content);
-      },
-      functionReady: function(instance, helper) {
-        const el = instance.elementTooltip ? instance.elementTooltip() : helper.tooltip;
-        if (el) typesetMath(el instanceof $ ? el[0] : el);
-      }
+    $(".manuscriptwrapper a.reference:not(.external):not(.tooltipstered)").tooltipster(PREVIEW_OPTIONS);
+    const $markers = $(
+      '.manuscriptwrapper a.note-marker[data-note-kind="note"]:not(.tooltipstered)'
+    );
+    $markers.tooltipster({
+      ...PREVIEW_OPTIONS,
+      triggerOpen: { mouseenter: true },
+      triggerClose: { click: true, mouseleave: true, originClick: true, tap: true }
     });
+    $markers.each((_, el) => tapToPreview(el));
     $('.manuscriptwrapper a.note-marker[data-note-kind="aside"]:not(.tooltipstered)').tooltipster({
-      theme: ["tooltipster-shadow", "tooltipster-shadow-rsm"],
-      delay: 200,
-      minWidth: 100,
-      maxWidth: 500,
-      trigger: "custom",
+      ...PREVIEW_OPTIONS,
       triggerOpen: { mouseenter: true },
       triggerClose: { click: true, mouseleave: true, originClick: true },
-      functionBefore: function(instance, helper) {
-        if (!previewWanted(helper.origin)) return false;
-        setTooltipContent(instance, previewContent(helper.origin));
-      },
-      functionReady: function(instance, helper) {
-        const el = instance.elementTooltip ? instance.elementTooltip() : helper.tooltip;
-        if (el) typesetMath(el instanceof $ ? el[0] : el);
-      }
+      functionBefore: (instance, helper) => previewWanted(helper.origin)
     });
     $(".manuscriptwrapper .author-names sup[data-tooltip]:not(.tooltipstered)").tooltipster({
       theme: ["tooltipster-shadow", "tooltipster-shadow-rsm"],

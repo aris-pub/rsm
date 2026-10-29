@@ -164,6 +164,7 @@ class Transformer:
         self.resolve_pending_references()
         self.resolve_notes()
         self.place_asides()
+        self.collect_notes_list()
         self.assign_author_affiliations()
         self.assign_author_note_symbols()
         self.build_author_block()
@@ -479,6 +480,31 @@ class Transformer:
             definition = call.definition
             definition.remove_self()
             host.append(definition)
+
+    def collect_notes_list(self) -> None:
+        """Move every footnote definition into one list at the end of the document.
+
+        The list holds the footnotes in the order of their numbers. It goes just
+        before the bibliography, or at the end of the manuscript when there is none.
+        Asides are not moved here, see place_asides(). No list is made when there are no
+        footnotes.
+        """
+        footnotes = [
+            n
+            for n in self.tree.traverse(nodeclass=nodes.Note)
+            if not isinstance(n, nodes.Aside)
+        ]
+        if not footnotes:
+            return
+        notes_list = nodes.NotesList()
+        for note in sorted(footnotes, key=lambda n: n.number):
+            note.remove_self()
+            notes_list.append(note)
+        bibliography = self.tree.first_of_type(nodes.Bibliography)
+        if bibliography is not None:
+            bibliography.replace_self([notes_list, bibliography])
+        else:
+            self.tree.append(notes_list)
 
     def assign_author_affiliations(self) -> None:
         """Deduplicate affiliations and assign superscript numbers to authors.

@@ -1456,20 +1456,28 @@ class Translator:
         )
         return AppendText(f"{tag}{node.number}</a>")
 
+    def visit_noteslist(self, node: nodes.NotesList) -> EditCommand:
+        return AppendBatchAndDefer(
+            [
+                AppendOpenTag("section", classes=["level-2"]),
+                AppendHeading(2, "Notes"),
+                AppendNodeTag(node, "ol"),
+            ]
+        )
+
     def visit_note(self, node: nodes.Note) -> EditCommand:
-        # Until the notes list and margin placement exist, a definition is shown
-        # where it is written, as a paragraph that starts with its number. The
-        # mathblock and codeblock visitors close and reopen the <p> as they do
-        # inside an ordinary paragraph.
+        # A footnote is an entry of the notes list. An aside is shown where it is
+        # written until margin placement exists. Both are a paragraph that starts
+        # with the number. The mathblock and codeblock visitors close and reopen
+        # the <p> as they do inside an ordinary paragraph.
+        attrs: dict = {"data-note-number": node.number, "data-note-kind": node.kind}
+        in_list = isinstance(node.parent, nodes.NotesList)
+        if in_list:
+            # The value attribute keeps the numbers right without CSS, since the
+            # list skips the numbers taken by asides.
+            attrs["value"] = node.number
         items: list[EditCommand] = [
-            AppendNodeTag(
-                node,
-                "div",
-                extra_attrs={
-                    "data-note-number": node.number,
-                    "data-note-kind": node.kind,
-                },
-            )
+            AppendNodeTag(node, "li" if in_list else "div", extra_attrs=attrs)
         ]
         if node.first_of_type(nodes.MathBlock) or node.first_of_type(nodes.CodeBlock):
             items.append(AppendOpenTagManualClose(tag="p", newline_inner=False))
@@ -1498,6 +1506,18 @@ class Translator:
         batch = self.leave_node(node)
         if getattr(node, "_must_close_p_tag", False):
             batch.items.insert(0, AppendText("</p>"))
+        if isinstance(node.parent, nodes.NotesList) and node.call is not None:
+            # The bibliography's backlink classes give it the same look and the
+            # same preview of the text it points back to.
+            backlink = _make_tag(
+                "a",
+                id_="",
+                classes=["reference", "backlink", "note-backlink"],
+                href=f"#call-{node.label}",
+                role="doc-backlink",
+                **{"aria-label": f"Back to the text of note {node.number}"},
+            )
+            batch.items.insert(0, AppendText(f" {backlink}↖</a>"))
         return batch
 
     def visit_math(self, node: nodes.Math) -> EditCommand:
@@ -3348,6 +3368,17 @@ class HandrailsTranslator(Translator):
             classes=["heading"],
             menu_label=node.reftext,
             link=True if node.label else "disabled",
+            node=node,
+        )
+
+    def visit_noteslist(self, node: nodes.NotesList) -> EditCommand:
+        batch = super().visit_noteslist(node)
+        return self._wrap_batch_item_with_handrails(
+            1,
+            batch,
+            classes=["heading"],
+            menu_label="Notes",
+            link="disabled",
             node=node,
         )
 

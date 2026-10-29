@@ -148,8 +148,7 @@ function openHashTarget() {
   if (marker) toggle(marker, true);
 }
 
-// The hover preview of a closed aside. It reuses the reference previews'
-// tooltip (tooltipster, see tooltips.js) and shows the aside's own content.
+// The hover preview of a closed aside is the reference preview (tooltips.js).
 function closePreview(marker) {
   const $ = window.jQuery;
   if (!$ || !marker.classList.contains("tooltipstered")) return;
@@ -165,9 +164,4 @@ export function previewWanted(marker) {
   if (!aside || marginOn()) return false;
   if (aside.classList.contains(OPEN)) return false;
   return window.matchMedia("(hover: hover)").matches;
-}
-
-export function previewContent(marker) {
-  const aside = asideOf(marker);
-  return aside ? `<div class="aside-preview">${aside.innerHTML}</div>` : "";
 }
