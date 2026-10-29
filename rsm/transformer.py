@@ -159,6 +159,7 @@ class Transformer:
         logger.info("Transforming...")
         self.tree = tree
 
+        self.check_calc_rows()
         self.collect_labels()
         self.parse_notation()
         self.resolve_pending_references()
@@ -271,6 +272,25 @@ class Transformer:
             raise RSMTransformerError(
                 f"Strict mode enabled: CST errors detected in manuscript:\n{error_summary}"
             )
+
+    def check_calc_rows(self) -> None:
+        """Reject a label on a row of a :calc:.
+
+        Only the whole chain is numbered, so a row has nothing for a reference
+        to print.
+
+        Raises
+        ------
+        RSMTransformerError
+            If a step inside a calc has a label.
+        """
+        for calc in self.tree.traverse(nodeclass=nodes.Calc):
+            for row in calc.children:
+                if row.label:
+                    raise RSMTransformerError(
+                        f"A :step: inside a :calc: cannot have a label "
+                        f"(found '{row.label}'). Label the :calc: instead."
+                    )
 
     def collect_labels(self) -> None:
         """Find all nodes with labels.
@@ -674,6 +694,9 @@ class Transformer:
                 continue
             if isinstance(node, nodes.Step):
                 continue
+            # A calc is numbered only when labelled, unlike display math.
+            if isinstance(node, nodes.Calc) and not node.label:
+                node.nonum = True
 
             if node.autonumber and not node.nonum:
                 # Apply numbering mode from config

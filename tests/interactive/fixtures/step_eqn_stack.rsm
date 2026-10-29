@@ -1,0 +1,27 @@
+# Step numbers and equation numbers
+
+## Sec
+
+:theorem: {:label: thm-stack} A claim. ::
+
+:proof: {:of: thm-stack}
+
+  :step: A step with text before its equation:
+
+  $$ {:label: eq-after-text}
+  a = b
+  $$
+
+  ::
+
+  :step:
+
+  $$ {:label: eq-first-line}
+  c = d
+  $$
+
+  ::
+
+  :step: A last step. ::
+
+::

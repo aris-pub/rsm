@@ -151,9 +151,9 @@ def test_step_with_only_justification_label(page: Page, interactive_server: str)
 def test_calc_step_has_no_label(page: Page, interactive_server: str):
     # Calc rows start folded, so a label under every relation would be noise.
     _load(page, interactive_server)
-    row = page.locator(".calc > .step").first
+    row = page.locator(".calc > .hr-content-zone > .step").first
     expect(row).to_have_class(re.compile(r"\bhr-collapsed\b"))
-    zone = ".calc > .step > .hr-content-zone"
+    zone = ".calc > .hr-content-zone > .step > .hr-content-zone"
     assert page.locator(zone).first.get_attribute("data-fold-label") is None
     assert _label_text(page, zone) is None
 

@@ -878,6 +878,13 @@ body {
 .manuscriptwrapper .calc .step:not(.hr-collapsed) > .hr-info-zone .hr-collapse::before {
   background-color: var(--primary-600);
 }
+/* The chain has its own handrail, like a display equation. A labelled chain
+   shows its number in the first row's info cell, above that row's mark. */
+.manuscriptwrapper .calc.hr:hover .hr-info-stack .eqn-number p,
+.manuscriptwrapper .calc.hr:focus .hr-info-stack .eqn-number p {
+  color: var(--extra-dark);
+  font-weight: var(--weight-semi);
+}
 /* Touch: give the because-mark a >=44px tap target. */
 @media (hover: none) and (pointer: coarse) {
   .manuscriptwrapper .calc .step > .hr-info-zone .hr-collapse::after {
@@ -1087,8 +1094,8 @@ body {
     position: relative;
     top: var(--chunk-sixth);
     border-radius: var(--radius-lg);
-    background: var(--surface-hover);
-    color: var(--gray-900);
+    background: var(--surface-primary);
+    color: var(--text-subtle);
     z-index: 1;
 
     .icon {padding-top: var(--chunk-sixth); padding-bottom: var(--chunk-sixth);}
@@ -1192,6 +1199,20 @@ body {
 
   & .eqn-number, & .step-number {padding-bottom: var(--chunk-quarter);}
 
+  /* Two items on one line of the column share one cell, stacked and centred
+     (translator: _hr_info_zone). For example a step number over the number of
+     the equation the step starts with, or a calc's number over its first
+     row's because-mark. */
+  & .hr-info.hr-info-stack {
+    flex-direction: column;
+    justify-content: center;
+    height: auto;
+    min-height: 32px;
+
+    .eqn-number, .step-number {padding-bottom: 0;}
+    .eqn-number p, .step-number p {margin: 0; line-height: 1.2;}
+  }
+
 }
 
 
@@ -1218,6 +1239,7 @@ body {
   .manuscriptwrapper .hr > .hr-border-zone .hr-border-dots {
     opacity: 1;
     background: var(--surface-page);
+    color: var(--gray-900);
   }
   .manuscriptwrapper .hr.hr-menu-open > .hr-border-zone .hr-border-dots {
     background: var(--surface-hover);
@@ -1296,7 +1318,12 @@ body {
 
   /* highlight EVERY nested handrail border */
   .hr-border-zone {
-    .hr-border-dots {background: var(--primary-600); color: var(--almost-white);}
+    /* The pill takes the rail's own colour. Light dots on it fail 3:1, so the
+       dots are dark in both themes (the page colour is the dark one in dark). */
+    .hr-border-dots {
+      background: var(--handrail-active);
+      color: light-dark(var(--text-body), var(--surface-page));
+    }
     .hr-border-rect {border-left-color: var(--handrail-active);}
   }
   &.hr-collapsed > .hr-spacer-zone, &.hr-collapsed > .hr-border-zone > .hr-border-rect {
@@ -1329,7 +1356,7 @@ body {
 
   /* Colors when hovered */
   .hr-border-zone .hr-border-dots:hover {
-    background: var(--primary-400);
+    background: color-mix(in srgb, var(--handrail-active) 70%, white);
   }
 
 }

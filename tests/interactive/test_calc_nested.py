@@ -27,7 +27,7 @@ def _bring_calc_control_into_view(page: Page) -> dict:
     viewport-center coordinates plus a hit-target probe."""
     return page.evaluate(
         """() => {
-            const row = document.querySelector('.calc > .step');
+            const row = document.querySelector('.calc > .hr-content-zone > .step');
             const ctrl = row.querySelector(':scope > .hr-info-zone .hr-collapse');
             ctrl.scrollIntoView({block: 'center'});
             const r = ctrl.getBoundingClientRect();
@@ -74,7 +74,7 @@ def test_nested_calc_pixel_click_discloses_justification(
     page.wait_for_function(RSM_READY, timeout=10_000)
     page.wait_for_timeout(400)
 
-    row = page.locator(".calc > .step").first
+    row = page.locator(".calc > .hr-content-zone > .step").first
     just = row.locator(".subproof").first
     # At rest the relation (math) shows and the justification is hidden.
     expect(row.locator(".statement .math").first).to_be_visible()
@@ -105,7 +105,7 @@ def test_nested_calc_hover_flips_glyph_color(page: Page, interactive_server: str
         return page.evaluate(
             """() => {
                 const ctrl = document.querySelector(
-                    '.calc > .step > .hr-info-zone .hr-collapse');
+                    '.calc > .hr-content-zone > .step > .hr-info-zone .hr-collapse');
                 return getComputedStyle(ctrl, '::before').backgroundColor;
             }"""
         )

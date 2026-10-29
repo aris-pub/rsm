@@ -1,0 +1,11 @@
+# Pill colours
+
+A paragraph above the theorem.
+
+:theorem:
+
+  This theorem has a visible handrail with a dots pill.
+
+::
+
+A paragraph below the theorem.

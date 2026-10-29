@@ -210,3 +210,67 @@ Structure mathematical arguments:
    The proof is left as an exercise.
 
    ::
+
+
+Add a calculation
+*****************
+
+A ``:calc:`` is a chain of relations, each with the reason it holds. Each row is
+a ``:step:`` that holds one relation, followed by a ``:p:`` with its reason. The
+reasons start folded: click the mark at the right of a row to read one.
+
+A ``:calc:`` can go anywhere a display equation can go, inside or outside a
+proof. Outside a proof it sits on the text column like a display equation. Give
+it a label to number it: it takes the next equation number, and ``:ref:`` to it
+prints that number. Only the whole chain is numbered, so its rows cannot have a
+label. A ``:calc:`` holds only ``:step:`` rows.
+
+.. rsm::
+
+   :calc: {:label: eq-chain}
+
+     :step: $(a+b)^2 = a^2 + 2ab + b^2$
+
+       :p: Expand the square. ::
+
+     ::
+
+     :step: $\ge 4ab$
+
+       :p: Since $a^2 + b^2 - 2ab = (a-b)^2 \ge 0$. ::
+
+     ::
+
+   ::
+
+   By :ref:eq-chain::, $(a+b)^2 \ge 4ab$.
+
+Inside a proof, the chain reads as one step:
+
+.. rsm::
+
+   :theorem: {:label: thm-amgm} For real $a, b$, $(a+b)^2 \ge 4ab$. ::
+
+   :proof: {:of: thm-amgm}
+
+     :step: We compute.
+
+       :calc:
+
+         :step: $(a+b)^2 - 4ab = a^2 - 2ab + b^2$
+
+           :p: Expand and collect terms. ::
+
+         ::
+
+         :step: $= (a-b)^2 \ge 0$
+
+           :p: A square is never negative. ::
+
+         ::
+
+       ::
+
+     ::
+
+   ::
