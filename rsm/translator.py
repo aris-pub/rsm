@@ -3121,19 +3121,20 @@ class HandrailsTranslator(Translator):
     # The sidebar's views: (id, name, scope, sub-tab, hint). The scope and
     # sub-tab select the rail's panel (prooftree.js keys its classes off them);
     # the hint says what the view shows.
+    # Each hint fits one line in the 17rem desktop panel.
     _RAIL_VIEWS = {
         "contents": ("Contents", "document", "doc-map",
-                     "The contents of the manuscript as a dependency graph."),
+                     "The contents as a dependency graph."),
         "notation": ("Notation", "document", "notation",
-                     "The manuscript’s main symbols. Rename one and it changes everywhere."),
+                     "Rename a symbol to change it everywhere."),
         "steps": ("Proof steps", "proof", "proof-map",
-                  "The steps of the proof in view and which earlier steps each one uses."),
+                  "Each step and the earlier steps it uses."),
         "state": ("Proof state", "proof", "state",
-                  "What is assumed and what is left to prove at the step you are on."),
+                  "Assumed and left to prove at this step."),
         "pinned": ("Pinned", "pinned", "",
-                   "A block you pinned, kept open beside the text."),
+                   "A pinned block, kept beside the text."),
         "reading": ("Reading", "reading", "",
-                    "How the manuscript looks: typeface, size, spacing, theme and the document map."),
+                    "Typeface, size, spacing, theme and the map."),
     }
 
     def _make_proof_rail(self):
@@ -3288,8 +3289,7 @@ class HandrailsTranslator(Translator):
         pinned_section = (
             '<div class="rail-section rail-pinned">'
             '<div class="rail-pinned-empty">'
-            "Pin a reference\u2019s preview, or a block from its menu, "
-            "to keep it open here.</div>"
+            "Nothing pinned yet.</div>"
             '<div class="rail-pinned-head">'
             '<span class="rail-pinned-title"></span>'
             '<button type="button" class="rail-pin-close" aria-label="Unpin" '
