@@ -202,8 +202,9 @@ function setupPinDelegation() {
   });
 }
 
-// The reference preview. Footnote markers use the same options, apart from how
-// a touch opens them (see tapToPreview).
+// The reference preview, also used by footnote markers. Touch opens it through
+// tapToPreview, not tooltipster's touchstart, so the tap does not also follow
+// the link.
 const PREVIEW_OPTIONS = {
   theme: ['tooltipster-shadow', 'tooltipster-shadow-rsm'],
   delay: 200,
@@ -213,16 +214,8 @@ const PREVIEW_OPTIONS = {
   // button without it closing on the way.
   interactive: true,
   trigger: 'custom',
-  triggerOpen: {
-    mouseenter: true,
-    touchstart: true
-  },
-  triggerClose: {
-    click: true,
-    mouseleave: true,
-    originClick: true,
-    touchleave: true
-  },
+  triggerOpen: { mouseenter: true },
+  triggerClose: { click: true, mouseleave: true, originClick: true, tap: true },
   functionInit: function (instance, helper) {
     const rawHref = $(helper.origin).attr("href");
     const { content, error } = buildExcerpt(rawHref);
@@ -270,9 +263,12 @@ const PREVIEW_OPTIONS = {
 // link, and a second tap on it while the preview is open follows the link. A
 // tap anywhere else closes the preview (tooltipster's tap close). A mouse click
 // or Enter still follows the link at once. `el` must already have its tooltip.
+// A WeakSet, not a data attribute, marks bound links: the sidebar clones
+// references (prooftree.js) and a copied attribute would leave the clone unbound.
+const tapBound = new WeakSet();
 export function tapToPreview(el) {
-  if (el.dataset.tapPreview) return;
-  el.dataset.tapPreview = "true";
+  if (tapBound.has(el)) return;
+  tapBound.add(el);
   let touched = false;
   el.addEventListener("pointerdown", (ev) => {
     touched = ev.pointerType === "touch";
@@ -281,27 +277,23 @@ export function tapToPreview(el) {
     if (!touched) return;
     touched = false;
     if ($(el).tooltipster("status").open) return;
-    ev.preventDefault();
     $(el).tooltipster("open");
+    // Tooltipster opens nothing when there is no excerpt (an unknown target),
+    // and then the tap follows the link as before.
+    if ($(el).tooltipster("status").open) ev.preventDefault();
   });
 }
 
 export function createTooltips() {
   setupPinDelegation();
-  $(".manuscriptwrapper a.reference:not(.external):not(.tooltipstered)").tooltipster(PREVIEW_OPTIONS);
-
-  // Footnote markers get the same preview as references. Touch opens it through
-  // tapToPreview, not tooltipster's touchstart, so the tap does not also jump
-  // to the notes list.
-  const $markers = $(
-    '.manuscriptwrapper a.note-marker[data-note-kind="note"]:not(.tooltipstered)'
+  // Footnote markers get the same preview as references, and both open it on a
+  // tap through tapToPreview. Aside markers are set up below.
+  const $previewed = $(
+    ".manuscriptwrapper a.reference:not(.external):not(.tooltipstered), " +
+      '.manuscriptwrapper a.note-marker[data-note-kind="note"]:not(.tooltipstered)'
   );
-  $markers.tooltipster({
-    ...PREVIEW_OPTIONS,
-    triggerOpen: { mouseenter: true },
-    triggerClose: { click: true, mouseleave: true, originClick: true, tap: true },
-  });
-  $markers.each((_, el) => tapToPreview(el));
+  $previewed.tooltipster(PREVIEW_OPTIONS);
+  $previewed.each((_, el) => tapToPreview(el));
 
   // Aside markers get the same preview, but only while the aside is closed
   // below its block on a pointer device (asides.js says when). A tap or click

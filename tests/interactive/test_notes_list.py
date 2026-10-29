@@ -173,11 +173,6 @@ class TestTapPreview:
         expect(touch_page.locator(PREVIEW)).to_have_count(0, timeout=3000)
         assert touch_page.evaluate("location.hash") == ""
 
-    def test_tap_on_a_reference_is_unchanged(self, touch_page: Page):
-        # References keep following the link on the first tap.
-        touch_page.locator('a.reference[href="#thm-x"]').tap()
-        touch_page.wait_for_function("() => location.hash === '#thm-x'", timeout=3000)
-
 
 class TestKeyboard:
 
