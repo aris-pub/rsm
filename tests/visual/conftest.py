@@ -139,12 +139,14 @@ def serve_rsm_html(page: Any, tmp_path: Path) -> Callable[[str, bool], Any]:
             sidebar=sidebar,
         )
 
-        # Copy extra asset files (e.g. images) so the HTTP server can serve them
+        # Copy extra asset files (e.g. images) into assets/, where the standard
+        # build links them from, so the HTTP server can serve them
         if image_dir is not None:
             import shutil
+            (output_dir / "assets").mkdir(exist_ok=True)
             for img in image_dir.iterdir():
                 if img.suffix.lower() in {".png", ".jpg", ".jpeg", ".gif", ".svg", ".webp"}:
-                    shutil.copy(img, output_dir / img.name)
+                    shutil.copy(img, output_dir / "assets" / img.name)
 
         # Read the generated HTML file
         html_file = output_dir / "test.html"

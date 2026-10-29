@@ -1,6 +1,7 @@
 """Input: HTML body -- Output: WebManuscript."""
 
 import logging
+import posixpath
 import re
 from abc import ABC, abstractmethod
 from pathlib import Path
@@ -9,6 +10,13 @@ from textwrap import dedent
 from .manuscript import WebManuscript
 
 logger = logging.getLogger("RSM").getChild("build")
+
+# Vendored, pinned libraries in rsm/static/. libraries.js names the same files.
+PSEUDOCODE_CSS = "pseudocode-2.4.1.min.css"
+PSEUDOCODE_JS = "pseudocode-2.4.1.min.js"
+TEMML_JS = "temml-0.14.0.min.js"
+
+_ASSET_REF_RE = re.compile(r'((?:src|srcset|data-static)=")(.*?)(")')
 
 
 class BaseBuilder(ABC):
@@ -62,6 +70,7 @@ class BaseBuilder(ABC):
         logger.debug("Searching required static assets...")
         self.required_assets: list[str] = []
         self.find_required_assets()
+        self.relocate_asset_refs()
 
         logger.debug("Building main file...")
         self.make_main_file()
@@ -73,11 +82,11 @@ class BaseBuilder(ABC):
 
     def find_required_assets(self) -> None:
         """Collect the user assets the document references by a relative path
-        (figure images and video, from src and srcset). http(s) and data: URLs
-        are external, and absolute /static/ paths are framework files, so both
-        are skipped. FolderBuilder copies these into the output folder so it is
-        self-contained and can be moved."""
-        refs = re.findall(r'(?:src|srcset)="(.*?)"', str(self.body))
+        (figure images, video and static fallbacks, from src, srcset and
+        data-static). http(s) and data: URLs are external, and absolute paths
+        are left alone, so both are skipped. FolderBuilder copies these into
+        the output folder so it is self-contained and can be moved."""
+        refs = [ref for _, ref, _ in _ASSET_REF_RE.findall(str(self.body))]
         seen: dict[str, None] = {}
         for ref in refs:
             if not ref or ref.startswith(("http://", "https://", "data:", "/")):
@@ -85,12 +94,17 @@ class BaseBuilder(ABC):
             seen[ref] = None  # dedupe, preserve document order
         self.required_assets = list(seen)
 
+    def relocate_asset_refs(self) -> None:
+        """Hook for builders that move user assets in the output. No-op here."""
+
 
 class HTMLBuilder(BaseBuilder):
     """Base class for builders that output HTML files.
 
-    Produces a single index.html file with /static/ paths for resources.
-    Subclasses can override make_html_header() to customize resource URLs.
+    Produces a single index.html file that links RSM's files from static/ and
+    the custom CSS from assets/, both relative to the page, so the output works
+    at any address. Subclasses can override make_html_header() to customize
+    resource URLs.
     """
 
     body: str
@@ -157,7 +171,7 @@ class HTMLBuilder(BaseBuilder):
         custom_css_link = ""
         if self.custom_css:
             custom_css_filename = Path(self.custom_css).name
-            custom_css_link = f'  <link rel="stylesheet" type="text/css" href="/static/{custom_css_filename}" />\n'
+            custom_css_link = f'  <link rel="stylesheet" type="text/css" href="assets/{custom_css_filename}" />\n'
 
         menu_position_style = ""
         if self.menu_position == "right":
@@ -207,14 +221,14 @@ class HTMLBuilder(BaseBuilder):
           <meta name="viewport" content="width=device-width, initial-scale=1.0" />
           <meta name="generator" content="RSM 0.0.1 https://github.com/leotrs/rsm" />
 
-          <link rel="stylesheet" type="text/css" href="/static/braiid.css" />
-          <style>@import url("/static/tooltipster.bundle.css") layer(vendor);</style>
-          <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pseudocode@latest/build/pseudocode.min.css">
+          <link rel="stylesheet" type="text/css" href="static/braiid.css" />
+          <style>@import url("static/tooltipster.bundle.css") layer(vendor);</style>
+          <link rel="stylesheet" href="static/{PSEUDOCODE_CSS}">
 {custom_css_link}{menu_position_style}
-          <script src="/static/jquery-3.6.0.js"></script>
-          <script src="/static/tooltipster.bundle.js"></script>
+          <script src="static/jquery-3.6.0.js"></script>
+          <script src="static/tooltipster.bundle.js"></script>
           <script type="module">
-            import {{ onload }} from '/static/onload.js';
+            import {{ onload }} from './static/onload.js';
             window.addEventListener('load', (ev) => {{window.lsp_ws = onload();}});
           </script>{dark_mode_script}{sidebar_preload}
 
@@ -242,8 +256,9 @@ class StandaloneBuilder(HTMLBuilder):
 
     Use this builder when the output file needs to work when opened directly
     in a browser (file:// URLs) without a web server. All RSM JavaScript is
-    inlined directly in the HTML. Third-party libraries (jQuery, Tooltipster,
-    MathJax) are loaded from CDNs.
+    inlined directly in the HTML, and so are the vendored third-party
+    libraries in static/ (jQuery, Tooltipster, Temml, pseudocode.js). Fonts
+    still come from Google Fonts.
     """
 
     CDN_JQUERY = "https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"
@@ -302,6 +317,14 @@ class StandaloneBuilder(HTMLBuilder):
             return ""
         return f"<script>\n{path.read_text()}\n  </script>"
 
+    def _get_pseudocode_css_inline(self) -> str:
+        """Inline the vendored, pinned pseudocode.js CSS."""
+        path = Path(__file__).parent / "static" / PSEUDOCODE_CSS
+        if not path.exists():
+            logger.warning(f"pseudocode CSS not found: {path}")
+            return f'<link rel="stylesheet" href="{self.CDN_PSEUDOCODE_CSS}">'
+        return f"<style>\n{path.read_text()}\n  </style>"
+
     def _get_tooltipster_css_inline(self) -> str:
         """Inline the vendored tooltipster CSS in the vendor cascade layer, so
         BRAIID's base-layer tooltip theme wins (rsm-3y7). Both build modes use
@@ -319,6 +342,11 @@ class StandaloneBuilder(HTMLBuilder):
         tooltipster_css_inline = self._get_tooltipster_css_inline()
         jquery_inline = self._get_inline_script("jquery-3.6.0.js")
         tooltipster_js_inline = self._get_inline_script("tooltipster.bundle.js")
+        # libraries.js skips its network load when window.temml and
+        # window.pseudocode already exist, so these make the math work offline.
+        temml_inline = self._get_inline_script(TEMML_JS)
+        pseudocode_js_inline = self._get_inline_script(PSEUDOCODE_JS)
+        pseudocode_css_inline = self._get_pseudocode_css_inline()
         custom_css_inline = self._get_custom_css_inline()
         pygments_css_inline = self._get_pygments_css_inline()
 
@@ -368,10 +396,12 @@ class StandaloneBuilder(HTMLBuilder):
 
   {braiid_css_inline}
   {tooltipster_css_inline}
-  <link rel="stylesheet" href="{self.CDN_PSEUDOCODE_CSS}">
+  {pseudocode_css_inline}
   {pygments_css_inline}{custom_css_inline}{menu_position_style}
   {jquery_inline}
   {tooltipster_js_inline}
+  {temml_inline}
+  {pseudocode_js_inline}
   <script>
 {inline_js}
   </script>
@@ -388,7 +418,13 @@ class StandaloneBuilder(HTMLBuilder):
 
 
 class FolderBuilder(HTMLBuilder):
-    """Builder that outputs an HTML file plus a static/ folder with all assets."""
+    """Builder that outputs an HTML file, a static/ folder and an assets/ folder.
+
+    static/ holds RSM's own files only, and a rebuild may overwrite it. assets/
+    holds the author's files: the custom CSS and every file the document
+    references by a relative path, kept at that path under assets/ (figs/x.png
+    becomes assets/figs/x.png). Every link is relative to the page.
+    """
 
     def build(self, body: str, src: Path = None) -> WebManuscript:
         super().build(body, src)
@@ -415,22 +451,40 @@ class FolderBuilder(HTMLBuilder):
         else:
             logger.warning(f"BRAIID CSS not found at: {braiid_css_path}")
 
-        # Copy custom CSS if provided
         if self.custom_css:
             custom_css_path = Path(self.custom_css)
             if custom_css_path.exists():
                 self.web.writetext(
-                    f"static/{custom_css_path.name}", custom_css_path.read_text()
+                    f"assets/{custom_css_path.name}", custom_css_path.read_text()
                 )
             else:
                 logger.warning(f"Custom CSS file not found: {self.custom_css}")
 
+    @staticmethod
+    def _asset_dest(ref: str) -> str:
+        """Where a referenced user file goes in the output. A path that climbs
+        out of the source folder (../x.png) keeps its reference, and the Writer
+        warns that it cannot copy it, as it did before assets/ existed."""
+        norm = posixpath.normpath(ref)
+        if norm == ".." or norm.startswith("../"):
+            return ref
+        return f"assets/{norm}"
+
+    def relocate_asset_refs(self) -> None:
+        dests = {ref: self._asset_dest(ref) for ref in self.required_assets}
+
+        def _replace(match: re.Match) -> str:
+            ref = match.group(2)
+            if ref not in dests:
+                return match.group(0)
+            return match.group(1) + dests[ref] + match.group(3)
+
+        self.body = _ASSET_REF_RE.sub(_replace, self.body)
+        self.web.body = self.body
+
     def register_asset_copies(self) -> None:
-        """Record each referenced user asset so the Writer copies it into the
-        output folder at its authored relative path. Keeping the reference and
-        copying the file (rather than bundling into static/) makes the output
-        folder self-contained and movable without rewriting any src attribute.
-        The source is the path as resolved from the build's working directory.
-        """
+        """Record each referenced user asset so the Writer copies it into
+        assets/ in the output folder. The source is the path as resolved from
+        the build's working directory."""
         for ref in self.required_assets:
-            self.web.copy_asset(Path(ref).resolve(), ref)
+            self.web.copy_asset(Path(ref).resolve(), self._asset_dest(ref))

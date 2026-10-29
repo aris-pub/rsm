@@ -51,3 +51,51 @@ def test_standalone_renders_offline_with_inlined_assets(page: Page, tmp_path):
         if any(k in u.lower() for k in ("jquery", "braiid", "tooltipster.bundle.js"))
     ]
     assert not fetched, fetched
+
+
+MATH_SRC = """# Math
+
+Inline $x + y$.
+
+:algorithm:
+\\begin{algorithm}
+\\caption{Euclid}
+\\begin{algorithmic}
+\\PROCEDURE{Euclid}{$a, b$}
+    \\RETURN $a$
+\\ENDPROCEDURE
+\\end{algorithmic}
+\\end{algorithm}
+::
+"""
+
+
+def test_standalone_math_and_pseudocode_use_inlined_libraries(page: Page, tmp_path):
+    """Temml and pseudocode.js are inlined, so math and algorithms render with
+    no request for them, and pseudocode's KaTeX css is not fetched (rsm-nyg.2)."""
+    html = rsm.build(MATH_SRC, handrails=True, lint=False, standalone=True)
+    out = tmp_path / "math.html"
+    out.write_text(html)
+
+    blocked: list[str] = []
+
+    def handle(route):
+        url = route.request.url
+        if url.startswith(("http://", "https://")):
+            blocked.append(url)
+            route.abort()
+        else:
+            route.continue_()
+
+    page.route("**/*", handle)
+    page.goto(out.as_uri(), wait_until="load")
+    page.wait_for_function(
+        "() => document.querySelector('.ps-root') && document.querySelector('math')",
+        timeout=10_000,
+    )
+
+    fetched = [
+        u for u in blocked
+        if any(k in u.lower() for k in ("temml.min", "pseudocode", "katex", "mathjax"))
+    ]
+    assert not fetched, fetched

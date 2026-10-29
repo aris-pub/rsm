@@ -245,21 +245,21 @@ class TestMakeCLIFileOutput:
             check=True,
         )
 
-        static_dir = tmp_path / "static"
-        css_in_static = static_dir / "test.css"
-        assert css_in_static.exists(), "Auto-detected CSS should be copied to static/"
-        assert custom_css in css_in_static.read_text()
+        css_in_assets = tmp_path / "assets" / "test.css"
+        assert css_in_assets.exists(), "Auto-detected CSS should be copied to assets/"
+        assert custom_css in css_in_assets.read_text()
+        assert not (tmp_path / "static" / "test.css").exists()
 
         output_html = tmp_path / "test.html"
         html_content = output_html.read_text()
         assert (
-            '<link rel="stylesheet" type="text/css" href="/static/test.css"'
+            '<link rel="stylesheet" type="text/css" href="assets/test.css"'
             in html_content
         )
 
     @pytest.mark.slow
     def test_make_cli_custom_css_flag(self, tmp_path):
-        """Test rsm build --css copies custom CSS to static/ folder."""
+        """Test rsm build --css copies custom CSS to assets/ folder."""
         src = "# Test\n\n:paragraph: {:class: mytype} Custom styled text\n"
         src_file = tmp_path / "test.rsm"
         src_file.write_text(src)
@@ -277,23 +277,20 @@ class TestMakeCLIFileOutput:
             check=True,
         )
 
-        # Should copy custom.css to static/ folder
-        static_dir = tmp_path / "static"
-        custom_css_in_static = static_dir / "custom.css"
-        assert custom_css_in_static.exists(), "Custom CSS should be copied to static/"
-        assert custom_css in custom_css_in_static.read_text()
+        custom_css_in_assets = tmp_path / "assets" / "custom.css"
+        assert custom_css_in_assets.exists(), "Custom CSS should be copied to assets/"
+        assert custom_css in custom_css_in_assets.read_text()
 
-        # Should add link tag in HTML
         output_html = tmp_path / "test.html"
         html_content = output_html.read_text()
         assert (
-            '<link rel="stylesheet" type="text/css" href="/static/custom.css"'
+            '<link rel="stylesheet" type="text/css" href="assets/custom.css"'
             in html_content
         )
 
         # Custom CSS link should come after braiid.css
-        rsm_css_pos = html_content.find("/static/braiid.css")
-        custom_css_pos = html_content.find("/static/custom.css")
+        rsm_css_pos = html_content.find("static/braiid.css")
+        custom_css_pos = html_content.find("assets/custom.css")
         assert rsm_css_pos < custom_css_pos, "Custom CSS should load after braiid.css"
 
     @pytest.mark.slow
@@ -317,8 +314,8 @@ class TestMakeCLIFileOutput:
         )
 
         # Verify custom CSS is present
-        custom_css_in_static = tmp_path / "static" / "custom.css"
-        assert custom_css in custom_css_in_static.read_text()
+        custom_css_in_assets = tmp_path / "assets" / "custom.css"
+        assert custom_css in custom_css_in_assets.read_text()
 
         # Verify braiid.css is wrapped in @layer base
         rsm_css_in_static = tmp_path / "static" / "braiid.css"
