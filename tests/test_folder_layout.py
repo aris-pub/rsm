@@ -108,7 +108,8 @@ def test_layout_is_index_static_assets(tmp_path, monkeypatch):
         "onload.js", "libraries.js", "braiid.css", "pygments.css",
         "jquery-3.6.0.js", "tooltipster.bundle.js", "tooltipster.bundle.css",
         "temml-0.14.0.min.js", "pseudocode-2.4.1.min.js",
-        "pseudocode-2.4.1.min.css",
+        "pseudocode-2.4.1.min.css", "temml-0.14.0-latin-modern.css",
+        "Temml.woff2", "latinmodernmath.woff2",
     ):
         assert name in static, name
     # static/ is RSM's alone: no author file lands there.
@@ -145,7 +146,7 @@ def test_every_local_link_is_relative_and_resolves(tmp_path, monkeypatch):
 
 def test_no_unpinned_cdn_url_in_static_js():
     """No @latest or unversioned jsDelivr npm URL in rsm/static/*.js. The bundle
-    is rebuilt from these files, and the Temml.css link belongs to rsm-r3u."""
+    is rebuilt from these files."""
     static = Path(rsm.__file__).parent / "static"
     vendored = {"jquery-3.6.0.js", "tooltipster.bundle.js", "rsm-standalone.js"}
     bad = []
@@ -153,8 +154,6 @@ def test_no_unpinned_cdn_url_in_static_js():
         if path.name in vendored or ".min." in path.name:
             continue
         for url in re.findall(r"https://cdn\.jsdelivr\.net/npm/[^'\"`\s]+", path.read_text()):
-            if url == "https://cdn.jsdelivr.net/npm/temml/dist/Temml.css":
-                continue
             package = url.split("/npm/", 1)[1].split("/", 1)[0]
             if "@" not in package or package.endswith(("@latest", "@3")):
                 bad.append((path.name, url))
@@ -169,6 +168,10 @@ def test_standalone_inlines_vendored_math_libraries():
     pseudocode = (static / "pseudocode-2.4.1.min.js").read_text()
     assert temml in html
     assert pseudocode in html
+    # Temml's Latin Modern stylesheet, with both its fonts inlined as data URIs.
+    assert "data-temml-css" in html
+    assert html.count("url(data:font/woff2;base64,") == 2
+    assert not re.search(r"url\(['\"]?(\./)?(latinmodernmath|Temml)\.woff2", html)
     assert "pseudocode@latest" not in html
     assert "@import url(https://cdnjs" not in html
     assert '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pseudocode' not in html

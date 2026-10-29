@@ -10,6 +10,8 @@ import { getNotationMacros, mathOptions } from './notation.js';
 // only a fallback for hosts that serve this file without the vendored ones.
 const TEMML_FILE = 'temml-0.14.0.min.js';
 const TEMML_CDN = 'https://cdn.jsdelivr.net/npm/temml@0.14.0/dist/temml.min.js';
+const TEMML_CSS_FILE = 'temml-0.14.0-latin-modern.css';
+const TEMML_CSS_CDN = 'https://cdn.jsdelivr.net/npm/temml@0.14.0/dist/Temml-Latin-Modern.css';
 const PSEUDOCODE_FILE = 'pseudocode-2.4.1.min.js';
 const PSEUDOCODE_CDN = 'https://cdn.jsdelivr.net/npm/pseudocode@2.4.1/build/pseudocode.min.js';
 const MATHJAX_CDN = 'https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.js';
@@ -55,10 +57,15 @@ export function loadTemml() {
   if (temmlLoaded) return Promise.resolve();
   if (temmlLoadPromise) return temmlLoadPromise;
 
-  const link = document.createElement('link');
-  link.rel = 'stylesheet';
-  link.href = 'https://cdn.jsdelivr.net/npm/temml/dist/Temml.css';
-  document.head.appendChild(link);
+  // Temml's Latin Modern stylesheet (the math font and Temml's own layout
+  // inside a formula) goes in the vendor layer, so BRAIID's rules on how math
+  // sits in the text win. The standalone build inlines it already.
+  if (!document.querySelector('style[data-temml-css]')) {
+    const style = document.createElement('style');
+    style.setAttribute('data-temml-css', '');
+    style.textContent = `@import url("${besideThisFile(TEMML_CSS_FILE) || TEMML_CSS_CDN}") layer(vendor);`;
+    document.head.appendChild(style);
+  }
 
   const onReady = () => {
     temmlLoaded = true;

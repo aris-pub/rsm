@@ -1,5 +1,6 @@
 """Input: HTML body -- Output: WebManuscript."""
 
+import base64
 import logging
 import posixpath
 import re
@@ -15,6 +16,9 @@ logger = logging.getLogger("RSM").getChild("build")
 PSEUDOCODE_CSS = "pseudocode-2.4.1.min.css"
 PSEUDOCODE_JS = "pseudocode-2.4.1.min.js"
 TEMML_JS = "temml-0.14.0.min.js"
+TEMML_CSS = "temml-0.14.0-latin-modern.css"
+# The fonts TEMML_CSS loads, by the names it uses in its url()s.
+TEMML_FONTS = ("Temml.woff2", "latinmodernmath.woff2")
 
 _ASSET_REF_RE = re.compile(r'((?:src|srcset|data-static)=")(.*?)(")')
 
@@ -336,6 +340,21 @@ class StandaloneBuilder(HTMLBuilder):
             return f'<link rel="stylesheet" href="{self.CDN_TOOLTIPSTER_CSS}" />'
         return f"<style>\n@layer vendor {{\n{path.read_text()}\n}}\n  </style>"
 
+    def _get_temml_css_inline(self) -> str:
+        """Temml's Latin Modern stylesheet, with its fonts as data URIs so the
+        file stays self-contained. It goes in the vendor layer, like the
+        tooltip theme, so BRAIID's rules on how math sits in the text win."""
+        static = Path(__file__).parent / "static"
+        path = static / TEMML_CSS
+        if not path.exists():
+            logger.warning(f"Temml CSS not found: {path}")
+            return ""
+        css = path.read_text()
+        for name in TEMML_FONTS:
+            data = base64.b64encode((static / name).read_bytes()).decode("ascii")
+            css = re.sub(r"url\((['\"]?)(\./)?" + re.escape(name) + r"\1\)", f"url(data:font/woff2;base64,{data})", css)
+        return f"<style data-temml-css>\n@layer vendor {{\n{css}\n}}\n  </style>"
+
     def make_html_header(self) -> str:
         inline_js = self._get_inline_js()
         braiid_css_inline = self._get_braiid_css_inline()
@@ -345,6 +364,7 @@ class StandaloneBuilder(HTMLBuilder):
         # libraries.js skips its network load when window.temml and
         # window.pseudocode already exist, so these make the math work offline.
         temml_inline = self._get_inline_script(TEMML_JS)
+        temml_css_inline = self._get_temml_css_inline()
         pseudocode_js_inline = self._get_inline_script(PSEUDOCODE_JS)
         pseudocode_css_inline = self._get_pseudocode_css_inline()
         custom_css_inline = self._get_custom_css_inline()
@@ -397,6 +417,7 @@ class StandaloneBuilder(HTMLBuilder):
   {braiid_css_inline}
   {tooltipster_css_inline}
   {pseudocode_css_inline}
+  {temml_css_inline}
   {pygments_css_inline}{custom_css_inline}{menu_position_style}
   {jquery_inline}
   {tooltipster_js_inline}
@@ -443,6 +464,8 @@ class FolderBuilder(HTMLBuilder):
         for fn in source_path.iterdir():
             if fn.suffix in {".js", ".css"}:
                 self.web.writetext(f"static/{fn.name}", fn.read_text())
+            elif fn.suffix == ".woff2":
+                self.web.copy_asset(fn, f"static/{fn.name}")
 
         # Copy BRAIID CSS from braiid/ directory
         braiid_css_path = working_path.parent / "braiid" / "braiid.css"

@@ -9,6 +9,14 @@
 
 @layer base {
 
+  /* Temml's stylesheet (vendor layer) brings the math font and Temml's layout
+     inside a formula. These keep how math sits in the text exactly as the
+     browser lays it out without it: Temml would pad the top row of every
+     formula, make inline math a flex box and display math a 100%-wide block. */
+  math { display: math; }
+  math.tml-display { display: block math; width: auto; }
+  math > mrow { padding: 0; }
+
 /* Page-level background for dark mode */
 body {
   background: var(--surface-page);

@@ -56,8 +56,6 @@ SVG = (
 WIDGET = '<div id="widget"><img id="inner" src="figs/inner.svg" alt="inner"></div>'
 CSS = "body { --subpath-marker: 7; }\n"
 
-# The Temml.css link 404s and belongs to rsm-r3u, so it is not counted here.
-R3U_TEMML_CSS = "https://cdn.jsdelivr.net/npm/temml/dist/Temml.css"
 PINNED_TEMML_CDN = "https://cdn.jsdelivr.net/npm/temml@0.14.0/dist/temml.min.js"
 
 
@@ -131,7 +129,7 @@ def test_page_works_under_a_subfolder(page: Page, subpath_site: str):
 
     assert not failed, failed
     # No math library came from a CDN.
-    assert [u for u in cdn if u != R3U_TEMML_CSS] == [], cdn
+    assert cdn == [], cdn
 
     # braiid.css applied: the manuscript column has braiid's width cap.
     assert page.evaluate(
@@ -158,6 +156,12 @@ def test_page_works_under_a_subfolder(page: Page, subpath_site: str):
         "() => performance.getEntriesByType('resource').map(e => e.name)"
     )
     assert any(u.endswith("/a/b/static/temml-0.14.0.min.js") for u in loaded), loaded
+    # Temml's Latin Modern stylesheet and its math font, from static/ too.
+    assert any(u.endswith("/a/b/static/temml-0.14.0-latin-modern.css") for u in loaded), loaded
+    page.evaluate("() => document.fonts.ready")
+    assert page.evaluate(
+        "() => [...document.fonts].some(f => f.family.replace(/\"/g, '') === 'Latin Modern Math' && f.status === 'loaded')"
+    )
     assert any(u.endswith("/a/b/static/pseudocode-2.4.1.min.js") for u in loaded), loaded
     assert any(u.endswith("/a/b/static/pseudocode-2.4.1.min.css") for u in loaded), loaded
     assert page.evaluate("() => typeof window.temml.render") == "function"
