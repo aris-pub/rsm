@@ -3107,8 +3107,9 @@ it before first paint), and then an aside is either in the margin column
 (html.rsm-margin, placed by margin.js) or closed until its phrase opens it.
 Screen only: print shows every aside below its block. */
 /* --text-subtle alone is below AA contrast on the tint, so the text is moved
-   halfway to the body colour. */
-:root { --aside-text: color-mix(in srgb, var(--text-subtle) 50%, var(--text-body)); }
+   halfway to the body colour. In dark mode even that reads dim, and a lit aside
+   dropped near 4.5:1, so asides there take the body colour. */
+:root { --aside-text: light-dark(color-mix(in srgb, var(--text-subtle) 50%, var(--text-body)), var(--text-body)); }
 .manuscriptwrapper .aside {
   background: color-mix(in srgb, var(--primary-700) 9%, var(--surface-page));
   border-radius: 8px;
@@ -3138,7 +3139,8 @@ clipped to the text so the padding that grows the tap target does not show. */
      phrase is drawn as inline-blocks, which a text underline does not reach. */
   text-decoration: none;
   background-color: transparent;
-  background-image: linear-gradient(to right, color-mix(in srgb, var(--primary-700) 70%, transparent) 50%, transparent 50%);
+  /* Full strength in dark mode: at 70% the dots fall to about 3:1 on a dark page. */
+  background-image: linear-gradient(to right, light-dark(color-mix(in srgb, var(--primary-700) 70%, transparent), var(--primary-700)) 50%, transparent 50%);
   background-size: 4px 1.5px;
   background-repeat: repeat-x;
   background-origin: content-box;
@@ -3161,6 +3163,11 @@ same tint. */
 .manuscriptwrapper .aside.rsm-aside-lit,
 .manuscriptwrapper a.aside-phrase.rsm-aside-lit:is(:link, :visited, :active, :hover, :focus) {
   background-color: color-mix(in srgb, var(--primary-700) 18%, var(--surface-page));
+}
+/* In dark mode 18% barely shows behind the phrase, so the phrase takes a
+   stronger tint. The aside keeps 18%: its subtle text would fall below 4.5:1. */
+.manuscriptwrapper a.aside-phrase.rsm-aside-lit:is(:link, :visited, :active, :hover, :focus) {
+  background-color: light-dark(color-mix(in srgb, var(--primary-700) 18%, var(--surface-page)), color-mix(in srgb, var(--primary-700) 32%, var(--surface-page)));
 }
 
 .visually-hidden {

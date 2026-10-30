@@ -616,7 +616,7 @@ _PHRASE = """(id) => {
         weight: s.fontWeight, bodyWeight: p.fontWeight, bg: s.backgroundColor,
         line: s.textDecorationLine, image: s.backgroundImage,
         size: s.backgroundSize, repeat: s.backgroundRepeat,
-        want: probe('color', 'color-mix(in srgb, var(--primary-700) 70%, transparent)'),
+        want: probe('color', 'light-dark(color-mix(in srgb, var(--primary-700) 70%, transparent), var(--primary-700))'),
     };
 }"""
 
