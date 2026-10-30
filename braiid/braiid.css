@@ -2027,6 +2027,16 @@ body {
     border-bottom: var(--border-thin) solid var(--border-primary);
     margin-bottom: var(--chunk-sixth);
   }
+  /* With a block pinned, the panel's own title and hint go and the pinned
+     block's row is the only header ("Pinned · Paragraph"), so the content
+     starts higher. With nothing pinned the usual head stays. */
+  .proof-rail.scope-pinned.has-pin .rail-head { display: none; }
+  .proof-rail.scope-pinned.has-pin .rail-pinned { padding-top: var(--chunk-quarter); }
+  .rail-pinned-title::before {
+    content: "Pinned · " / "Pinned: ";
+    font-weight: 400;
+    color: var(--text-subtle);
+  }
   .rail-pinned-title {
     flex: 1;
     min-width: 0;
@@ -3956,6 +3966,18 @@ html:not(.has-rail) .manuscriptwrapper .rail-strip { display: none; }
   .manuscriptwrapper .proof-rail.scope-document .rail-subtabs-document,
   .manuscriptwrapper .proof-rail.scope-proof .rail-subtabs-proof { display: flex; }
   .manuscriptwrapper .proof-rail.has-tabs .rail-title { display: none; }
+  /* With tabs in place of the title, the hint shares their row, at the right. */
+  .manuscriptwrapper .proof-rail.has-tabs .rail-head {
+    flex-direction: row;
+    align-items: center;
+    gap: var(--chunk-third);
+  }
+  .manuscriptwrapper .proof-rail.has-tabs .rail-hint {
+    flex: 1 1 auto;
+    min-width: 0;
+    text-align: right;
+    order: 2;
+  }
 
   /* Reading in the sheet: label beside its tiles; no Width (the column already
      fills the screen). */

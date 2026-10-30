@@ -297,6 +297,12 @@ export function setupStrip(strip, rail, api) {
   });
 
   // Pinning shows the excerpt.
+  // Unpinning empties the Pinned view. On a phone the sheet then only covers
+  // the text, so it closes; on desktop the panel stays open on its empty state.
+  document.addEventListener("rail:unpin", () => {
+    if (isPhone() && open) setOpen(false, { persist: false });
+  });
+
   document.addEventListener("rail:pin", (ev) => {
     const persist = !(ev.detail && ev.detail.transient);
     requestAnimationFrame(() => openView("pinned", { toggle: false, persist }));

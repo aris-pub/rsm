@@ -203,6 +203,9 @@ function build(main) {
   let drag = null;
   let sleepTimer = null;
   let tipTimer = null;
+  // On touch the first tap on a mark shows its label and the second goes
+  // there, as with notes: a finger cannot hover to read the label first.
+  let armed = -1;
   let computeTimer = null;
   let frame = 0;
 
@@ -396,8 +399,19 @@ function build(main) {
     const y = localY(ev);
     if (!d.moved) {
       const i = nearest(y, d.touch ? TOUCH_HOVER_PX : HOVER_PX);
+      if (d.touch && i >= 0 && i !== armed) {
+        armed = i;
+        setHovered(i);
+        endDrag();
+        clearTimeout(tipTimer);
+        tipTimer = setTimeout(() => { setHovered(-1); armed = -1; }, 3000);
+        return;
+      }
+      armed = -1;
       if (i >= 0) jumpTo(i);
       else scrollToY(y, "instant");
+    } else {
+      armed = -1;
     }
     endDrag();
     if (d.touch) {
@@ -411,7 +425,9 @@ function build(main) {
   }
 
   function onPointerLeave() {
-    if (!drag) setHovered(-1);
+    // A lifted finger also "leaves": keep the label of a mark waiting for its
+    // second tap.
+    if (!drag && armed < 0) setHovered(-1);
   }
 
   // ---- keyboard ----
