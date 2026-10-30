@@ -1,6 +1,6 @@
 # Algorithm with pseudocode
 
-A paragraph with inline math $x + y$ to trigger Temml loading.
+A paragraph with inline math $x + y$ next to the algorithm.
 
 :algorithm:
 \begin{algorithm}

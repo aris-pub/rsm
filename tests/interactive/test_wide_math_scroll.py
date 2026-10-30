@@ -23,8 +23,9 @@ def test_wide_math_scrolls_in_its_own_box(page: Page, interactive_server: str):
     page.goto(f"{interactive_server}/wide-math.html")
     wait_for_rsm(page)
 
-    # Temml has replaced the raw $$...$$ with rendered math by now.
+    # Wait for MathJax to replace the raw $$...$$ with rendered math.
     zone = page.locator("div.mathblock > .hr-content-zone").first
+    zone.locator("mjx-container").wait_for(state="attached", timeout=15_000)
 
     # The rendered equation really is wider than its box (otherwise this
     # fixture is not exercising the bug).

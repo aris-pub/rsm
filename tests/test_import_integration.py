@@ -98,11 +98,11 @@ def test_import_project_emits_preamble_macros(tmp_path):
     (tmp_path / "main.tex").write_text(_MACROS, encoding="utf-8")
     out = app.import_project(str(tmp_path))
     # the preamble's macro definitions carry into RSM's hidden preamble block,
-    # so Temml can expand any macro pandoc left raw in the math.
+    # so MathJax can expand any macro pandoc left raw in the math.
     assert ":mathblock: {:preamble:}" in out
     assert "\\newcommand{\\RR}{\\mathbb{R}}" in out
     assert "\\newcommand{\\abs}[1]{\\lvert #1 \\rvert}" in out
-    # \DeclareMathOperator is translated to a Temml-safe \newcommand.
+    # \DeclareMathOperator is translated to a MathJax-safe \newcommand.
     assert "\\newcommand{\\argmin}{\\operatorname{arg\\,min}}" in out
     # placed so the document still renders, with the math-preamble class.
     html = rsm.render(out, handrails=False, source_offsets=False)

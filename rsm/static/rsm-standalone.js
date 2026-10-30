@@ -26,7 +26,6 @@ var RSM = (() => {
 
   // rsm/static/notation.js
   var _macros = null;
-  var mathTrust = (ctx) => ctx.command === "\\class";
   function storageKey() {
     return "rsm-notation:" + location.pathname;
   }
@@ -68,54 +67,34 @@ var RSM = (() => {
     }
     return _markingCache;
   }
-  function mathOptions(extra = {}) {
+  function notationMacros() {
     const macros = { ...getNotationMacros() };
     if (markingOn()) {
       for (const k of Object.keys(macros)) {
         macros[k] = `\\class{${MARK_PREFIX}${k.slice(1)}}{${macros[k]}}`;
       }
     }
-    return { throwOnError: false, ...extra, macros, trust: mathTrust };
+    return macros;
   }
-  function renderNotationToString(latex) {
+  function notationSample(latex) {
     const params = latex.match(/#[1-9]/g);
-    if (params) {
-      const n = Math.max(...params.map((s) => +s[1]));
-      const args = "{\\square}".repeat(n);
-      return window.temml.renderToString("\\rsmNotationPreview" + args, {
-        throwOnError: true,
-        macros: { "\\rsmNotationPreview": latex }
-      });
-    }
-    return window.temml.renderToString(latex, { throwOnError: true });
+    const n = params ? Math.max(...params.map((s) => +s[1])) : 0;
+    let defArgs = "";
+    for (let i = 1; i <= n; i++) defArgs += `#${i}`;
+    return `\\def\\rsmNotationPreview${defArgs}{${latex}}\\rsmNotationPreview` + "{\\square}".repeat(n);
   }
   function isValid(latex) {
     if (!latex || !latex.trim()) return false;
-    if (!window.temml) return true;
+    if (!window.MathJax?.tex2mml) return true;
     try {
-      renderNotationToString(latex);
-      return true;
+      const mml = window.MathJax.tex2mml(notationSample(latex));
+      return !/<merror|mathcolor="red"[^>]*>\\/.test(mml);
     } catch {
       return false;
     }
   }
   function reRenderAll(root2 = document) {
-    if (!window.temml) return;
-    root2.querySelectorAll("span.math[data-latex]").forEach((el) => {
-      try {
-        window.temml.render(el.dataset.latex, el, mathOptions());
-      } catch (err) {
-        console.error("notation re-render (inline):", err);
-      }
-    });
-    root2.querySelectorAll("div.mathblock[data-latex]").forEach((el) => {
-      const target = el.querySelector(".hr-content-zone") || el;
-      try {
-        window.temml.render(el.dataset.latex, target, mathOptions({ displayMode: true }));
-      } catch (err) {
-        console.error("notation re-render (display):", err);
-      }
-    });
+    return retypesetMath(root2);
   }
   function setMacro(macro, latex) {
     if (!isValid(latex)) return false;
@@ -202,27 +181,14 @@ var RSM = (() => {
     }
     for (const e of entries) {
       let renderPreview = function(latex) {
-        if (!window.temml) {
-          preview.textContent = "";
-          return;
-        }
-        try {
-          preview.innerHTML = renderNotationToString(latex);
+        loadMathJax().then(() => {
+          if (!isValid(latex)) {
+            input.classList.add("invalid");
+            return;
+          }
           input.classList.remove("invalid");
-        } catch {
-          input.classList.add("invalid");
-        }
-      }, commit = function() {
-        if (input.value === lastApplied) return;
-        const ok = setMacro(e.macro, input.value);
-        input.classList.toggle("invalid", !ok);
-        if (ok) {
-          lastApplied = input.value;
-          const uses = usesOf(e.macro, root2);
-          uses.forEach(flash);
-          const nearest = nearestOf(uses);
-          if (nearest) nearest.scrollIntoView({ behavior: "smooth", block: "center" });
-        }
+          return renderMath(notationSample(latex), preview);
+        }).catch((err) => console.error("notation preview:", err));
       };
       const row = document.createElement("div");
       row.className = "rail-notation-row";
@@ -259,6 +225,19 @@ var RSM = (() => {
       reset.textContent = "\u21BA";
       renderPreview(input.value);
       let lastApplied = e.current;
+      async function commit() {
+        if (input.value === lastApplied) return;
+        const ok = setMacro(e.macro, input.value);
+        input.classList.toggle("invalid", !ok);
+        if (ok) {
+          lastApplied = input.value;
+          await mathIdle();
+          const uses = usesOf(e.macro, root2);
+          uses.forEach(flash);
+          const nearest = nearestOf(uses);
+          if (nearest) nearest.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      }
       input.addEventListener("input", () => renderPreview(input.value));
       input.addEventListener("keydown", (ev) => {
         if (ev.key === "Enter") {
@@ -348,13 +327,10 @@ var RSM = (() => {
 
   // rsm/static/libraries.js
   var import_meta = {};
-  var TEMML_FILE = "temml-0.14.0.min.js";
-  var TEMML_CDN = "https://cdn.jsdelivr.net/npm/temml@0.14.0/dist/temml.min.js";
-  var TEMML_CSS_FILE = "temml-0.14.0-latin-modern.css";
-  var TEMML_CSS_CDN = "https://cdn.jsdelivr.net/npm/temml@0.14.0/dist/Temml-Latin-Modern.css";
+  var MATHJAX_FILE = "mathjax-3.2.2/tex-chtml-full.js";
+  var MATHJAX_CDN = "https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-chtml-full.js";
   var PSEUDOCODE_FILE = "pseudocode-2.4.1.min.js";
   var PSEUDOCODE_CDN = "https://cdn.jsdelivr.net/npm/pseudocode@2.4.1/build/pseudocode.min.js";
-  var MATHJAX_CDN = "https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.js";
   function besideThisFile(name) {
     try {
       return new URL(`./${name}`, import_meta.url).href;
@@ -383,64 +359,29 @@ var RSM = (() => {
       tryNext(0);
     });
   }
-  var temmlLoaded = false;
-  var temmlLoadPromise = null;
-  function loadTemml() {
-    if (temmlLoaded) return Promise.resolve();
-    if (temmlLoadPromise) return temmlLoadPromise;
-    if (!document.querySelector("style[data-temml-css]")) {
-      const style = document.createElement("style");
-      style.setAttribute("data-temml-css", "");
-      style.textContent = `@import url("${besideThisFile(TEMML_CSS_FILE) || TEMML_CSS_CDN}") layer(vendor);`;
-      document.head.appendChild(style);
-    }
-    const onReady = () => {
-      temmlLoaded = true;
-      if (window.temml && !window.katex) {
-        window.katex = window.temml;
-      }
-    };
-    if (window.temml) {
-      onReady();
-      temmlLoadPromise = Promise.resolve();
-      return temmlLoadPromise;
-    }
-    temmlLoadPromise = loadScript(
-      [besideThisFile(TEMML_FILE), TEMML_CDN],
-      document.head
-    ).then(onReady);
-    return temmlLoadPromise;
-  }
-  var mathJaxLoaded = false;
-  var mathJaxLoadPromise = null;
-  function loadMathJax() {
-    if (mathJaxLoaded) {
-      return Promise.resolve();
-    }
-    if (mathJaxLoadPromise) {
-      return mathJaxLoadPromise;
-    }
-    const notationMacros = {};
-    for (const [name, value] of Object.entries(getNotationMacros())) {
-      const key = name.replace(/^\\/, "");
-      const params = value.match(/#[1-9]/g);
-      notationMacros[key] = params ? [value, Math.max(...params.map((s) => Number(s[1])))] : value;
-    }
-    const config = document.createElement("script");
-    config.innerHTML = `window.MathJax = {
-      loader: {
-        load: ['[tex]/html']
-      },
+  var UNTRUSTED_HTML_MACROS = ["href", "style", "cssId"];
+  function mathJaxConfig(resolve, reject) {
+    return {
       startup: {
-        typeset: false
+        typeset: false,
+        ready() {
+          const MJ = window.MathJax;
+          const html = MJ._?.input?.tex?.MapHandler?.MapHandler?.getMap("html_macros");
+          for (const name of UNTRUSTED_HTML_MACROS) html?.remove(name);
+          MJ.startup.defaultReady();
+          MJ.startup.promise.then(resolve, reject);
+        }
       },
       tex: {
-        packages: {'[+]': ['html']},
-        macros: ${JSON.stringify(notationMacros)},
-        inlineMath: [['$', '$'], ['\\\\(', '\\\\)']],
-        displayMath: [['$$', '$$'], ['\\\\[', '\\\\]']],
-        processEscapes: true,
-        processEnvironments: true
+        inlineMath: [["\\(", "\\)"]],
+        displayMath: [["$$", "$$"]],
+        processEscapes: false,
+        processEnvironments: false
+      },
+      // MathJax scales math so its x-height matches the text's (its default),
+      // chosen over a fixed size so math reads at the text's size.
+      chtml: {
+        matchFontHeight: true
       },
       options: {
         menuOptions: {
@@ -449,94 +390,130 @@ var RSM = (() => {
           }
         }
       }
-    };`;
-    document.body.appendChild(config);
-    const script = document.createElement("script");
-    script.type = "text/javascript";
-    script.id = "MathJax-script";
-    script.src = MATHJAX_CDN;
-    document.body.appendChild(script);
-    mathJaxLoadPromise = new Promise((res, rej) => {
-      script.onload = async () => {
-        const waitForStartup = () => {
-          if (window.MathJax?.startup?.promise) {
-            window.MathJax.startup.promise.then(() => {
-              mathJaxLoaded = true;
-              res();
-            });
-          } else {
-            setTimeout(waitForStartup, 10);
-          }
-        };
-        waitForStartup();
-      };
-      script.onerror = rej;
-    });
-    return mathJaxLoadPromise;
+    };
   }
-  async function typesetMath(root2 = document) {
-    const element = root2 === document ? document.body : root2;
-    const hasMath = element.querySelector("span.math, div.mathblock");
-    if (!hasMath) return;
-    if (!window.temml && !window.MathJax?.typesetPromise) {
+  var mathJaxPromise = null;
+  function loadMathJax() {
+    if (mathJaxPromise) return mathJaxPromise;
+    mathJaxPromise = new Promise((resolve, reject) => {
+      if (window.MathJax?.startup?.promise) {
+        window.MathJax.startup.promise.then(resolve, reject);
+        return;
+      }
+      window.MathJax = mathJaxConfig(resolve, reject);
+      if (typeof window.__rsmMathJax === "function") {
+        window.__rsmMathJax();
+        return;
+      }
+      loadScript(
+        [besideThisFile(MATHJAX_FILE), MATHJAX_CDN],
+        document.head,
+        { id: "MathJax-script" }
+      ).catch(reject);
+    });
+    return mathJaxPromise;
+  }
+  var mathQueue = Promise.resolve();
+  function enqueue(task) {
+    const run = mathQueue.then(task);
+    mathQueue = run.catch(() => {
+    });
+    return run;
+  }
+  var mathPending = 0;
+  function track(promise) {
+    mathPending++;
+    return promise.finally(() => {
+      mathPending--;
+    });
+  }
+  async function mathIdle() {
+    for (; ; ) {
+      const q = mathQueue;
+      await q;
+      await new Promise((r) => setTimeout(r, 0));
+      if (q === mathQueue && mathPending === 0) return;
+    }
+  }
+  var definedNotation = null;
+  function defineNotation() {
+    const entries = Object.entries(notationMacros());
+    const key = JSON.stringify(entries);
+    if (key === definedNotation) return;
+    definedNotation = key;
+    for (const [name, value] of entries) {
+      const params = value.match(/#[1-9]/g);
+      const n = params ? Math.max(...params.map((s) => Number(s[1]))) : 0;
+      let args = "";
+      for (let i = 1; i <= n; i++) args += `#${i}`;
       try {
-        await loadTemml();
-      } catch {
-        try {
-          await loadMathJax();
-        } catch {
-        }
+        window.MathJax.tex2mml(`\\def${name}${args}{${value}}`);
+      } catch (err) {
+        console.error(`notation ${name}:`, err);
       }
     }
-    if (window.temml) {
-      const BATCH = 30;
-      const inlines = element.querySelectorAll("span.math");
-      for (let i = 0; i < inlines.length; i++) {
-        const el = inlines[i];
-        const src = el.textContent;
-        if (!src.startsWith("\\(") || !src.endsWith("\\)")) continue;
-        const latex = src.slice(2, -2);
-        el.dataset.latex = latex;
-        try {
-          temml.render(latex, el, mathOptions());
-        } catch (err) {
-          console.error("temml inline error:", err);
-        }
-        if ((i + 1) % BATCH === 0 && i + 1 < inlines.length) {
-          await new Promise((r) => requestAnimationFrame(r));
-        }
-      }
-      const displays = element.querySelectorAll("div.mathblock");
-      for (let i = 0; i < displays.length; i++) {
-        const el = displays[i];
-        const contentEl = el.querySelector(".hr-content-zone") || el;
-        const src = contentEl.textContent.trim();
-        if (!src.startsWith("$$") || !src.endsWith("$$")) continue;
-        const latex = src.slice(2, -2).trim();
-        el.dataset.latex = latex;
-        try {
-          temml.render(latex, contentEl, mathOptions({ displayMode: true }));
-        } catch (err) {
-          console.error("temml display error:", err);
-        }
-        if ((i + 1) % BATCH === 0 && i + 1 < displays.length) {
-          await new Promise((r) => requestAnimationFrame(r));
-        }
-      }
-      return;
-    }
-    if (!window.MathJax?.typesetPromise) {
-      console.warn("Neither temml nor MathJax ready for typesetting");
-      return;
-    }
-    const existingContainers = element.querySelectorAll("mjx-container");
-    existingContainers.forEach((el) => el.remove());
-    try {
-      if (MathJax.typesetClear) MathJax.typesetClear([element]);
-      await MathJax.typesetPromise([element]);
-    } catch (err) {
+  }
+  function rawMath(root2) {
+    const targets = [];
+    root2.querySelectorAll("span.math").forEach((el) => {
+      const src = el.textContent;
+      if (!src.startsWith("\\(") || !src.endsWith("\\)")) return;
+      el.dataset.latex = src.slice(2, -2);
+      targets.push(el);
+    });
+    root2.querySelectorAll("div.mathblock").forEach((el) => {
+      const zone = el.querySelector(".hr-content-zone") || el;
+      const src = zone.textContent.trim();
+      if (!src.startsWith("$$") || !src.endsWith("$$")) return;
+      el.dataset.latex = src.slice(2, -2).trim();
+      targets.push(zone);
+    });
+    return targets;
+  }
+  function typesetMath(root2 = document) {
+    const element = root2 === document ? document.body : root2;
+    if (!element.querySelector("span.math, div.mathblock")) return Promise.resolve();
+    return track(loadMathJax().then(() => enqueue(() => typesetRaw(element))).catch((err) => {
       console.error("MathJax typeset error:", err);
-    }
+    }));
+  }
+  async function typesetRaw(element) {
+    const targets = rawMath(element);
+    if (!targets.length) return;
+    defineNotation();
+    await window.MathJax.typesetPromise(targets);
+  }
+  function retypesetMath(root2 = document) {
+    if (!window.MathJax?.typesetPromise) return Promise.resolve();
+    const element = root2 === document ? document.body : root2;
+    return enqueue(() => {
+      const zones = [];
+      root2.querySelectorAll("span.math[data-latex]").forEach((el) => {
+        zones.push([el, `\\(${el.dataset.latex}\\)`]);
+      });
+      root2.querySelectorAll("div.mathblock[data-latex]").forEach((el) => {
+        zones.push([el.querySelector(".hr-content-zone") || el, `$$${el.dataset.latex}$$`]);
+      });
+      window.MathJax.typesetClear(zones.map(([zone]) => zone));
+      for (const [zone, src] of zones) zone.textContent = src;
+      return typesetRaw(element);
+    }).catch((err) => {
+      console.error("MathJax re-typeset error:", err);
+    });
+  }
+  function renderMath(latex, el, { display = false } = {}) {
+    return track(loadMathJax().then(() => enqueue(async () => {
+      window.MathJax.typesetClear([el]);
+      el.textContent = display ? `$$${latex}$$` : `\\(${latex}\\)`;
+      defineNotation();
+      await window.MathJax.typesetPromise([el]);
+    })));
+  }
+  function refreshMathStyles() {
+    const MJ = window.MathJax;
+    if (!MJ?.startup?.output || !MJ.startup.document) return;
+    const sheet = MJ.startup.output.styleSheet(MJ.startup.document);
+    if (sheet && !sheet.isConnected) document.head.appendChild(sheet);
   }
   var pseudocodeLoaded = false;
   var pseudocodeLoadPromise = null;
@@ -3918,14 +3895,6 @@ var RSM = (() => {
     const d = el.getBoundingClientRect().top - want;
     if (Math.abs(d) > 0.5) window.scrollTo({ top: window.scrollY + d, behavior: "instant" });
   }
-  function mathStyled() {
-    const link = document.querySelector('link[rel="stylesheet"][href*="temml"]');
-    if (!link || link.sheet) return Promise.resolve();
-    return new Promise((res) => {
-      link.addEventListener("load", res, { once: true });
-      link.addEventListener("error", res, { once: true });
-    });
-  }
   var SETTLE_MS = 1e4;
   var READER_INPUT = ["wheel", "touchstart", "keydown", "mousedown"];
   function holdAnchor(state) {
@@ -3945,7 +3914,10 @@ var RSM = (() => {
     };
     place2();
     requestAnimationFrame(place2);
-    mathStyled().then(place2);
+    mathIdle().then(() => {
+      place2();
+      return document.fonts && document.fonts.ready;
+    }).then(place2);
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(place2);
     const manuscript = document.querySelector(".manuscript");
     if (manuscript && window.ResizeObserver) {
@@ -4247,7 +4219,7 @@ var RSM = (() => {
     nav.className = "rsm-minimap";
     nav.setAttribute("aria-label", "Document map");
     nav.innerHTML = '<div class="rsm-minimap-track" aria-hidden="true"><div class="rsm-minimap-box"></div><div class="rsm-minimap-marks"></div><div class="rsm-minimap-tip"></div></div><ul class="rsm-minimap-links"></ul>';
-    const track = nav.querySelector(".rsm-minimap-track");
+    const track2 = nav.querySelector(".rsm-minimap-track");
     const box = nav.querySelector(".rsm-minimap-box");
     const marksEl = nav.querySelector(".rsm-minimap-marks");
     const tip = nav.querySelector(".rsm-minimap-tip");
@@ -4265,7 +4237,7 @@ var RSM = (() => {
     let tipTimer = null;
     let computeTimer = null;
     let frame2 = 0;
-    const trackRect = () => track.getBoundingClientRect();
+    const trackRect = () => track2.getBoundingClientRect();
     const behavior = () => motionMql.matches ? "auto" : "smooth";
     function render(next) {
       const same = next.length === marks.length && next.every((m, i) => m.el === marks[i].el);
@@ -4582,22 +4554,23 @@ var RSM = (() => {
   }
 
   // rsm/static/onload.js
+  window.rsm = Object.assign(window.rsm || {}, {
+    renderMath,
+    typesetMath,
+    // Resolves once all math, including math typeset after the page, is done.
+    mathIdle
+  });
   async function onload(root2 = null, { keys = true } = {}) {
     if (!root2) root2 = document;
     if (window.__rsmInitialized) {
       return onrender(root2);
     }
     try {
-      if (document.querySelector("span.math, div.mathblock")) {
+      if (document.querySelector("span.math, div.mathblock, pre.pseudocode")) {
         try {
-          await loadTemml();
+          await loadMathJax();
         } catch (err) {
-          console.warn("temml failed to load, falling back to MathJax:", err);
-          try {
-            await loadMathJax();
-          } catch (err2) {
-            console.error("MathJax fallback also FAILED!", err2);
-          }
+          console.error("Loading MathJax FAILED!", err);
         }
       }
       try {
@@ -4722,6 +4695,7 @@ var RSM = (() => {
       try {
         const elements = root2.querySelectorAll("pre.pseudocode:not(.rendered)");
         if (elements.length && window.pseudocode) {
+          await loadMathJax();
           elements.forEach((el) => {
             pseudocode.renderElement(el, {
               lineNumber: true,
@@ -4729,6 +4703,7 @@ var RSM = (() => {
             });
             el.classList.add("rendered");
           });
+          refreshMathStyles();
         }
       } catch (err) {
         console.error("Pseudocode render FAILED!", err);

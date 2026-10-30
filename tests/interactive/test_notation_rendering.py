@@ -13,16 +13,30 @@ pytestmark = pytest.mark.interactive
 RSM_READY = "() => window.__rsmInitialized === true"
 
 
+# MathJax typesets after __rsmInitialized is set. Text checks read the hidden
+# assistive MathML, since CHTML draws its characters with CSS.
+def _wait_for_math(page: Page) -> None:
+    page.wait_for_function(RSM_READY, timeout=10_000)
+    page.wait_for_function(
+        "() => [...document.querySelectorAll('span.math, div.mathblock')]"
+        ".every((el) => el.querySelector('mjx-container'))",
+        timeout=15_000,
+    )
+
+
 def _load(page: Page, server: str) -> None:
     page.goto(f"{server}/notation.html")
-    page.wait_for_function(RSM_READY, timeout=10_000)
+    _wait_for_math(page)
 
 
 def _set_macro(page: Page, macro: str, latex: str):
     return page.evaluate(
         """async ([m, l]) => {
             const n = await import('/static/notation.js');
-            return n.setMacro(m, l);
+            const libs = await import('/static/libraries.js');
+            const ok = n.setMacro(m, l);
+            await libs.mathIdle();
+            return ok;
         }""",
         [macro, latex],
     )
@@ -63,7 +77,7 @@ def test_rebind_persists_across_reload(page: Page, interactive_server: str):
     _load(page, interactive_server)
     assert _set_macro(page, "\\eig", "\\mu") is True
     page.reload()
-    page.wait_for_function(RSM_READY, timeout=10_000)
+    _wait_for_math(page)
     assert "μ" in _inline(page), "rebinding should persist via localStorage"
 
 
@@ -152,16 +166,10 @@ def test_locate_skips_hidden_uses(page: Page, interactive_server: str):
     assert box["w"] > 0 and box["h"] > 0, "locate must flash a visible use, not a hidden one"
 
 
-def test_mathjax_fallback_honors_notation(page: Page, interactive_server: str):
-    """When Temml is unavailable, the author's :notation: must still render via
-    MathJax with no author-side change: the same macros reach tex.macros."""
-    page.route("**/temml*", lambda route: route.abort())
+def test_notation_renders_without_errors(page: Page, interactive_server: str):
+    """The author's :notation: reaches MathJax: no TeX error and no undefined
+    command (MathJax draws those as red text) anywhere in the math."""
     _load(page, interactive_server)
+    assert page.locator("mjx-container mjx-merror").count() == 0
+    assert page.locator("mjx-container mjx-mtext[style*='color: red']").count() == 0
 
-    # Temml failed; MathJax took over.
-    assert page.evaluate("() => !window.temml && !!window.MathJax")
-    # The author's notation reached MathJax's macro table unchanged.
-    assert page.evaluate("() => window.MathJax.config.tex.macros.eig") == "\\lambda"
-    # And the math rendered without an undefined-macro error.
-    page.wait_for_selector("span.math mjx-container", timeout=15_000)
-    assert page.locator("span.math mjx-container mjx-merror").count() == 0

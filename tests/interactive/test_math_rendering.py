@@ -1,12 +1,10 @@
-"""Regression tests for math rendering via Temml/MathJax.
+"""Math rendering via MathJax.
 
-Covers the bug where typesetMath() fails silently when called without a math
-renderer loaded.  This happens in Studio when the initial render has no math
-(so onload skips Temml), then a subsequent compile introduces math and
-onrender calls typesetMath — which found neither Temml nor MathJax.
-
-The fix: typesetMath() now loads Temml on-demand when math elements are present
-but no renderer is available.
+Covers the bug where typesetMath() failed silently when called without a math
+renderer loaded. This happens in Studio when the initial render has no math
+(so onload skips MathJax), then a subsequent compile introduces math and
+onrender calls typesetMath. typesetMath now loads MathJax on demand when math
+elements are present.
 """
 
 import pytest
@@ -21,15 +19,19 @@ def wait_for_rsm(page):
     page.wait_for_function(RSM_READY, timeout=10_000)
 
 
+def wait_for_math(page):
+    """MathJax typesets after __rsmInitialized is set, so wait for its output."""
+    page.wait_for_selector("span.math mjx-container", state="attached", timeout=15_000)
+
+
 class TestMathRendering:
     """Math typesetting in a directly loaded RSM page."""
 
     def test_inline_math_renders(self, page: Page, interactive_server: str):
         page.goto(f"{interactive_server}/math-basic.html")
         wait_for_rsm(page)
-        # Temml replaces the raw \(...\) content with MathML markup
         inline = page.locator("span.math").first
-        expect(inline).to_be_visible()
+        expect(inline.locator("mjx-container")).to_have_count(1)
         content = inline.text_content()
         assert not content.startswith("\\("), (
             f"Inline math not rendered: {content[:80]}"
@@ -39,44 +41,65 @@ class TestMathRendering:
         page.goto(f"{interactive_server}/math-basic.html")
         wait_for_rsm(page)
         display = page.locator("div.mathblock").first
-        expect(display).to_be_visible()
+        expect(display.locator("mjx-container[display='true']")).to_have_count(1)
         content = display.text_content().strip()
         assert not content.startswith("$$"), (
             f"Display math not rendered: {content[:80]}"
         )
 
-    def test_temml_loaded(self, page: Page, interactive_server: str):
+    def test_mathjax_loaded(self, page: Page, interactive_server: str):
         page.goto(f"{interactive_server}/math-basic.html")
         wait_for_rsm(page)
-        has_temml = page.evaluate("() => !!window.temml")
-        assert has_temml, "Temml should be loaded for a page with math"
+        wait_for_math(page)
+        assert page.evaluate("() => window.MathJax.version") == "3.2.2"
+
+    def test_typeset_math_returns_after_layout(
+        self, page: Page, interactive_server: str
+    ):
+        """typesetMath resolves only once the math it was given is typeset, so
+        code that measures the page can wait for it."""
+        page.goto(f"{interactive_server}/math-basic.html")
+        wait_for_rsm(page)
+        rendered = page.evaluate("""async () => {
+            const libs = await import('/static/libraries.js');
+            const span = document.createElement('span');
+            span.className = 'math';
+            span.textContent = '\\\\(\\\\sqrt{n}\\\\)';
+            document.querySelector('.manuscript').appendChild(span);
+            await libs.typesetMath(span.parentElement);
+            return !!span.querySelector('mjx-container') && span.getBoundingClientRect().width > 0;
+        }""")
+        assert rendered
+
+    def test_assistive_mathml_present(self, page: Page, interactive_server: str):
+        """Screen readers get MathML next to the visual rendering."""
+        page.goto(f"{interactive_server}/math-basic.html")
+        wait_for_rsm(page)
+        wait_for_math(page)
+        assert page.locator("span.math mjx-assistive-mml math").count() >= 1
 
 
 class TestMathOnDemandLoading:
-    """Regression: typesetMath must load Temml on-demand when no renderer exists.
+    """Regression: typesetMath must load MathJax on demand when none is loaded.
 
     Simulates the Studio bug: __rsmInitialized is set on a no-math page, then
     typesetMath is called on a DOM that now contains math elements.
     """
 
-    def test_no_math_page_skips_temml(self, page: Page, interactive_server: str):
+    def test_no_math_page_skips_mathjax(self, page: Page, interactive_server: str):
         page.goto(f"{interactive_server}/no-math.html")
         wait_for_rsm(page)
-        has_temml = page.evaluate("() => !!window.temml")
-        assert not has_temml, "Temml should NOT be loaded for a page without math"
+        assert not page.evaluate("() => !!window.MathJax")
 
-    def test_typeset_math_loads_temml_on_demand(
+    def test_typeset_math_loads_mathjax_on_demand(
         self, page: Page, interactive_server: str
     ):
         """After initializing on a no-math page, injecting math elements and
-        calling typesetMath should load Temml and render them."""
+        calling typesetMath should load MathJax and render them."""
         page.goto(f"{interactive_server}/no-math.html")
         wait_for_rsm(page)
+        assert not page.evaluate("() => !!window.MathJax")
 
-        # Confirm Temml is not loaded
-        assert not page.evaluate("() => !!window.temml")
-
-        # Inject math elements into the DOM
         page.evaluate("""() => {
             const container = document.querySelector('.manuscriptwrapper') || document.body;
             const span = document.createElement('span');
@@ -90,53 +113,36 @@ class TestMathOnDemandLoading:
             container.appendChild(div);
         }""")
 
-        # Call typesetMath — this should load Temml on-demand and render
         page.evaluate("""async () => {
             const libs = await import('/static/libraries.js');
             const container = document.querySelector('.manuscriptwrapper') || document.body;
             await libs.typesetMath(container);
         }""")
 
-        # Temml should now be loaded
-        has_temml = page.evaluate("() => !!window.temml")
-        assert has_temml, "typesetMath should have loaded Temml on-demand"
-
-        # Math should be rendered (content replaced)
+        assert page.evaluate("() => !!window.MathJax.typesetPromise")
         inline_content = page.locator("span.math").first.text_content()
         assert not inline_content.startswith("\\("), (
             f"Inline math not rendered after on-demand load: {inline_content[:80]}"
         )
+        assert page.locator("div.mathblock mjx-container").count() == 1
 
     def test_typeset_math_silent_on_math_less_page(
         self, page: Page, interactive_server: str
     ):
-        """Regression: typesetMath must not emit 'Neither temml nor MathJax'
-        warnings when there is no math in the document.
-
-        Studio's editor recompiles the manuscript on every keystroke and runs
-        onrender → typesetMath each time.  For a math-less document, the
-        function previously fell through past the on-demand load (which is
-        also gated on math presence) and into the MathJax fallback's
-        availability check, logging a warning.  The warning is a false alarm
-        — there is no math to typeset — but it spams the console on every
-        edit, drowning out real diagnostics.
-        """
-        warnings: list[str] = []
+        """Studio's editor recompiles the manuscript on every keystroke and runs
+        onrender, then typesetMath, each time. On a math-less document that
+        must neither load MathJax nor log anything."""
+        messages: list[str] = []
         page.on(
             "console",
-            lambda msg: warnings.append(msg.text)
-            if msg.type == "warning" and "Neither temml nor MathJax" in msg.text
+            lambda msg: messages.append(msg.text)
+            if msg.type in ("warning", "error")
             else None,
         )
 
         page.goto(f"{interactive_server}/no-math.html")
         wait_for_rsm(page)
 
-        # Sanity: no temml on a math-less page
-        assert not page.evaluate("() => !!window.temml")
-
-        # Call typesetMath the way onrender would after a recompile.  One
-        # call is enough; the bug manifests on every invocation.
         page.evaluate(
             """async () => {
             const libs = await import('/static/libraries.js');
@@ -145,107 +151,96 @@ class TestMathOnDemandLoading:
         }"""
         )
 
-        # No "Neither temml nor MathJax ready for typesetting" warnings.
-        assert warnings == [], (
-            f"typesetMath emitted spurious 'Neither temml nor MathJax' "
-            f"warnings on a math-less page: {warnings}"
-        )
+        assert not page.evaluate("() => !!window.MathJax")
+        assert messages == [], f"typesetMath logged on a math-less page: {messages}"
 
 
 class TestAnnotatedEquations:
-    """Temml must keep \\class in math so interactive figures can bind to parts
-    of an equation.  \\class is trust-gated in Temml, so without opting in it
-    errors and renders a red temml-error node instead of carrying the class.
-    Other trust-gated commands (\\href, \\cssId, ...) must stay untrusted.
+    """MathJax must keep \\class in math so interactive figures can bind to
+    parts of an equation. The other html extension commands (\\href, \\cssId,
+    \\style) are removed, so they stay untrusted as they were under Temml.
     """
 
     def test_class_renders_carrying_the_class(
         self, page: Page, interactive_server: str
     ):
         """\\class{lk lk-a}{a} must render an element carrying classes lk lk-a,
-        not a red parse error."""
+        not a red parse error. (The hidden assistive MathML carries the class
+        too, so the check looks inside the visual rendering only.)"""
         page.goto(f"{interactive_server}/math-class.html")
         wait_for_rsm(page)
 
         block = page.locator("#eqn-ann")
         expect(block).to_be_visible()
 
-        # The annotated atom carries both classes from \class{lk lk-a}{a}.
-        annotated = page.locator("#eqn-ann .lk.lk-a")
-        expect(annotated).to_have_count(1)
+        expect(page.locator("#eqn-ann mjx-math .lk.lk-a")).to_have_count(1)
+        # CHTML draws characters with CSS, so the text is read from the MathML.
+        annotated = page.locator("#eqn-ann mjx-assistive-mml .lk.lk-a")
         assert annotated.text_content().strip() == "a"
 
-        # No leftover raw LaTeX and no trust error.
         text = block.text_content()
         assert "\\class" not in text, f"raw \\class left unrendered: {text[:120]}"
-        assert "not trusted" not in text.lower(), (
-            f"\\class rendered a trust error: {text[:120]}"
-        )
-        assert page.locator("#eqn-ann .temml-error").count() == 0
+        assert page.locator("#eqn-ann mjx-merror").count() == 0
 
     def test_class_equation_still_numbered_and_referenceable(
         self, page: Page, interactive_server: str
     ):
-        """Trusting \\class must not touch numbering or :ref: resolution."""
+        """\\class must not touch numbering or :ref: resolution."""
         page.goto(f"{interactive_server}/math-class.html")
         wait_for_rsm(page)
 
         ref = page.locator("a.reference[href='#eqn-ann']")
         expect(ref).to_have_count(1)
-        # The reference resolved to a number like (1).
         assert any(ch.isdigit() for ch in ref.text_content())
 
-    def test_other_trust_gated_commands_stay_untrusted(
+    def test_other_html_commands_stay_untrusted(
         self, page: Page, interactive_server: str
     ):
-        """\\href must not be trusted by the \\class-only predicate: it stays a
-        red literal, never a rendered link."""
+        """\\href must render as an undefined command, never as a link."""
         page.goto(f"{interactive_server}/math-class.html")
         wait_for_rsm(page)
 
         block = page.locator("#eqn-href")
-        expect(block).to_be_visible()
-        # Untrusted \\href is echoed as a red literal, not consumed into a link.
+        expect(block.locator("mjx-container")).to_have_count(1)
         assert "\\href" in block.text_content()
-        assert page.locator("#eqn-href a").count() == 0
+        assert page.locator("#eqn-href mjx-container a").count() == 0
+        assert page.locator("#eqn-href mjx-container [href]").count() == 0
 
     def test_class_survives_notation_rerender(
         self, page: Page, interactive_server: str
     ):
         """Rebinding a notation macro re-renders every equation from its stored
-        data-latex. The annotated atom must keep its classes, not revert to a
-        red error on that path too."""
+        data-latex. The annotated atom must keep its classes on that path too."""
         page.goto(f"{interactive_server}/math-class.html")
         wait_for_rsm(page)
-        expect(page.locator("#eqn-ann .lk.lk-a")).to_have_count(1)
+        expect(page.locator("#eqn-ann mjx-math .lk.lk-a")).to_have_count(1)
 
         page.evaluate(
             """async () => {
             const n = await import('/static/notation.js');
-            n.reRenderAll(document);
+            await n.reRenderAll(document);
         }"""
         )
 
-        annotated = page.locator("#eqn-ann .lk.lk-a")
-        expect(annotated).to_have_count(1)
+        expect(page.locator("#eqn-ann mjx-math .lk.lk-a")).to_have_count(1)
+        # CHTML draws characters with CSS, so the text is read from the MathML.
+        annotated = page.locator("#eqn-ann mjx-assistive-mml .lk.lk-a")
         assert annotated.text_content().strip() == "a"
 
-    def test_class_renders_via_mathjax_fallback(
-        self, page: Page, interactive_server: str
-    ):
-        """With Temml blocked, the MathJax fallback (html extension enabled)
-        must also carry the class, so both renderers agree."""
-        page.route("**/temml*", lambda route: route.abort())
-        page.goto(f"{interactive_server}/math-class.html")
+
+class TestWidgetApi:
+    """Widgets and figures render their own math through window.rsm."""
+
+    def test_render_math_into_an_element(self, page: Page, interactive_server: str):
+        page.goto(f"{interactive_server}/math-basic.html")
         wait_for_rsm(page)
-
-        assert page.evaluate("() => !window.temml && !!window.MathJax")
-        # The html extension is in MathJax's active package list (resolved to a
-        # flat array after startup).
-        assert page.evaluate(
-            "() => window.MathJax.config.tex.packages.includes('html')"
-        )
-
-        annotated = page.locator("#eqn-ann .lk.lk-a")
-        expect(annotated.first).to_be_visible(timeout=15_000)
-        assert annotated.count() >= 1
+        result = page.evaluate("""async () => {
+            const el = document.createElement('span');
+            document.querySelector('.manuscript').appendChild(el);
+            await window.rsm.renderMath('\\\\class{w}{x}^2', el);
+            const first = !!el.querySelector('mjx-math .w');
+            await window.rsm.renderMath('\\\\sum_i y_i', el, { display: true });
+            return [first, el.querySelectorAll('mjx-container').length,
+                    el.querySelector('mjx-container').getAttribute('display')];
+        }""")
+        assert result == [True, 1, "true"]

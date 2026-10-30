@@ -1,6 +1,6 @@
 """A standard build served from a subfolder (here /a/b/) loads its scripts,
 CSS, figures and math, because every link is relative to the page (rsm-3wf).
-Temml and pseudocode.js come from static/, not from a CDN (rsm-nyg.2)."""
+MathJax and pseudocode.js come from static/, not from a CDN (rsm-nyg.2)."""
 
 import functools
 import http.server
@@ -56,7 +56,8 @@ SVG = (
 WIDGET = '<div id="widget"><img id="inner" src="figs/inner.svg" alt="inner"></div>'
 CSS = "body { --subpath-marker: 7; }\n"
 
-PINNED_TEMML_CDN = "https://cdn.jsdelivr.net/npm/temml@0.14.0/dist/temml.min.js"
+PINNED_MATHJAX_CDN = "https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/"
+VENDORED_MATHJAX = Path(rsm.__file__).parent / "static" / "mathjax-3.2.2"
 
 
 @pytest.fixture
@@ -117,7 +118,7 @@ def _watch(page: Page):
 def _wait_ready(page: Page):
     page.wait_for_function("() => window.__rsmInitialized === true", timeout=15_000)
     page.wait_for_function(
-        "() => document.querySelector('.ps-root') && document.querySelectorAll('math').length >= 2",
+        "() => document.querySelector('.ps-root') && document.querySelectorAll('mjx-container').length >= 2",
         timeout=15_000,
     )
 
@@ -151,43 +152,46 @@ def test_page_works_under_a_subfolder(page: Page, subpath_site: str):
     assert {i["src"] for i in images} >= {"assets/figs/plot.svg", "assets/figs/inner.svg"}
     assert all(i["ok"] for i in images), images
 
-    # Math by Temml from static/, algorithm by pseudocode.js from static/.
+    # Math by MathJax from static/, algorithm by pseudocode.js from static/.
+    page.evaluate("() => document.fonts.ready")
     loaded = page.evaluate(
         "() => performance.getEntriesByType('resource').map(e => e.name)"
     )
-    assert any(u.endswith("/a/b/static/temml-0.14.0.min.js") for u in loaded), loaded
-    # Temml's Latin Modern stylesheet and its math font, from static/ too.
-    assert any(u.endswith("/a/b/static/temml-0.14.0-latin-modern.css") for u in loaded), loaded
-    page.evaluate("() => document.fonts.ready")
-    assert page.evaluate(
-        "() => [...document.fonts].some(f => f.family.replace(/\"/g, '') === 'Latin Modern Math' && f.status === 'loaded')"
-    )
+    assert any(u.endswith("/a/b/static/mathjax-3.2.2/tex-chtml-full.js") for u in loaded), loaded
+    # MathJax's fonts, from the same folder.
+    assert any(
+        u.endswith("/a/b/static/mathjax-3.2.2/output/chtml/fonts/woff-v2/MathJax_Main-Regular.woff")
+        for u in loaded
+    ), loaded
     assert any(u.endswith("/a/b/static/pseudocode-2.4.1.min.js") for u in loaded), loaded
     assert any(u.endswith("/a/b/static/pseudocode-2.4.1.min.css") for u in loaded), loaded
-    assert page.evaluate("() => typeof window.temml.render") == "function"
-    assert page.evaluate("() => window.katex === window.temml")
+    assert page.evaluate("() => window.MathJax.version") == "3.2.2"
     assert page.locator(".ps-root .ps-funcname").first.inner_text().lower() == "euclid"
 
 
-def test_temml_falls_back_to_the_pinned_cdn(page: Page, subpath_site: str):
-    """When static/ lacks the vendored file, libraries.js loads the pinned CDN
-    copy. The CDN is stubbed with the vendored file, so no network is used."""
+def test_mathjax_falls_back_to_the_pinned_cdn(page: Page, subpath_site: str):
+    """When static/ lacks the vendored MathJax, libraries.js loads the pinned CDN
+    copy, which then takes its fonts from the CDN too. The CDN is stubbed with
+    the vendored files, so no network is used."""
     cdn: list[str] = []
-    vendored = (Path(rsm.__file__).parent / "static" / "temml-0.14.0.min.js").read_text()
 
     def handle_cdn(route):
         url = route.request.url
         cdn.append(url)
-        if url == PINNED_TEMML_CDN:
-            route.fulfill(body=vendored, content_type="application/javascript")
-        else:
-            route.abort()
+        if url.startswith(PINNED_MATHJAX_CDN):
+            path = VENDORED_MATHJAX / url[len(PINNED_MATHJAX_CDN):]
+            if path.is_file():
+                route.fulfill(body=path.read_bytes())
+                return
+        route.abort()
 
-    page.route("**/static/temml-0.14.0.min.js", lambda route: route.abort())
+    page.route("**/static/mathjax-3.2.2/**", lambda route: route.abort())
     page.route("https://cdn.jsdelivr.net/**", handle_cdn)
     page.route("https://cdnjs.cloudflare.com/**", handle_cdn)
     page.goto(subpath_site, wait_until="load")
     _wait_ready(page)
+    page.evaluate("() => document.fonts.ready")
 
-    assert PINNED_TEMML_CDN in cdn, cdn
-    assert page.evaluate("() => document.querySelectorAll('math').length") >= 2
+    assert PINNED_MATHJAX_CDN + "tex-chtml-full.js" in cdn, cdn
+    assert PINNED_MATHJAX_CDN + "output/chtml/fonts/woff-v2/MathJax_Main-Regular.woff" in cdn, cdn
+    assert page.evaluate("() => document.querySelectorAll('mjx-container').length") >= 2

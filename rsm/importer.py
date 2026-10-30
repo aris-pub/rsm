@@ -279,9 +279,9 @@ def preamble_macros(tex: str) -> list[str]:
     """Extract macro definitions from the LaTeX preamble (bead rsm-ddx.2).
 
     pandoc discards the preamble and expands most macros, but some survive into
-    the math, so carrying the definitions lets Temml expand them. Best-effort:
+    the math, so carrying the definitions lets MathJax expand them. Best-effort:
     handles \\newcommand, \\renewcommand, \\providecommand (keeping argument
-    specs), \\DeclareMathOperator (translated to a Temml-safe \\newcommand with
+    specs), \\DeclareMathOperator (translated to a MathJax-safe \\newcommand with
     \\operatorname), and \\def. Anything trickier is left to the LLM host pass.
     """
     doc = re.search(r"\\begin\{document\}", tex)

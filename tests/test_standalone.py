@@ -73,8 +73,7 @@ class TestStandaloneMode:
         source = ":rsm:\n\nHello world.\n\n::"
         result = rsm.build(source, handrails=False, lint=False, standalone=True)
 
-        # temml is the primary renderer; MathJax is the fallback — both are CDN-loaded
-        assert "temml" in result.lower() or "mathjax" in result.lower()
+        assert "mathjax" in result.lower()
 
     def test_standalone_true_uses_cdn_for_pseudocode(self):
         """Test that standalone=True preserves pseudocode.js CDN URL."""

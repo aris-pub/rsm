@@ -71,8 +71,9 @@ Inline $x + y$.
 
 
 def test_standalone_math_and_pseudocode_use_inlined_libraries(page: Page, tmp_path):
-    """Temml and pseudocode.js are inlined, so math and algorithms render with
-    no request for them, and pseudocode's KaTeX css is not fetched (rsm-nyg.2)."""
+    """MathJax, its fonts and pseudocode.js are inlined, so math and algorithms
+    render with no request for them, and pseudocode's KaTeX css is not fetched
+    (rsm-nyg.2)."""
     html = rsm.build(MATH_SRC, handrails=True, lint=False, standalone=True)
     out = tmp_path / "math.html"
     out.write_text(html)
@@ -90,12 +91,17 @@ def test_standalone_math_and_pseudocode_use_inlined_libraries(page: Page, tmp_pa
     page.route("**/*", handle)
     page.goto(out.as_uri(), wait_until="load")
     page.wait_for_function(
-        "() => document.querySelector('.ps-root') && document.querySelector('math')",
+        "() => document.querySelector('.ps-root') && document.querySelector('span.math mjx-container')",
         timeout=10_000,
     )
 
     fetched = [
         u for u in blocked
-        if any(k in u.lower() for k in ("temml.min", "pseudocode", "katex", "mathjax"))
+        if any(k in u.lower() for k in ("pseudocode", "katex", "mathjax", ".woff"))
     ]
     assert not fetched, fetched
+    # MathJax's fonts load from their data URIs.
+    page.evaluate("() => document.fonts.ready")
+    assert page.evaluate(
+        "() => [...document.fonts].some(f => f.family.replace(/\"/g, '') === 'MJXTEX-I' && f.status === 'loaded')"
+    )

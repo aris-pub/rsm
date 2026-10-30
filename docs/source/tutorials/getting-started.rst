@@ -157,7 +157,7 @@ Browser issues
    Verify the ``static/`` folder is in the same directory as the HTML file.
 
 **Math equations don't display**
-   RSM uses Temml for math rendering. Try a hard refresh
+   RSM uses MathJax for math rendering. Try a hard refresh
    or use ``rsm serve`` for automatic rebuilds.
 
 **Still stuck?**

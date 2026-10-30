@@ -9,14 +9,6 @@
 
 @layer base {
 
-  /* Temml's stylesheet (vendor layer) brings the math font and Temml's layout
-     inside a formula. These keep how math sits in the text exactly as the
-     browser lays it out without it: Temml would pad the top row of every
-     formula, make inline math a flex box and display math a 100%-wide block. */
-  math { display: math; }
-  math.tml-display { display: block math; width: auto; }
-  math > mrow { padding: 0; }
-
 /* Page-level background for dark mode */
 body {
   background: var(--surface-page);
@@ -1017,19 +1009,12 @@ body {
 
   .proof .hr.statement, .proof .hr.paragraph {margin-block-end: 0.5em;}
 
-  /* MathJax's runtime CSS provides `margin: 1em 0` on mjx-container[display="true"].
-   Temml's native <math display="block"> has no equivalent, so we set it explicitly
-   so both renderers produce the same internal block spacing. */
-  .mathblock math[display="block"] {
-    margin-block: 1em;
-  }
-
-  /* The last equation in a block carries its own bottom margin; suppress it so
-   it doesn't double up with the following element's spacing. Targets both
-   temml's native <math display="block"> and MathJax's mjx-container as fallback. */
-  .mathblock:is(:last-child) math[display="block"],
+  /* MathJax's own CSS gives a display equation `margin: 1em 0`. The last
+   equation in a block drops its bottom margin so it does not double up with
+   the following element's spacing. MathJax adds its CSS at runtime outside any
+   layer, so only !important lets this layered rule win. */
   .mathblock:is(:last-child) mjx-container[jax="CHTML"][display="true"] {
-    margin-block-end: 0;
+    margin-block-end: 0 !important;
   }
 
 }
