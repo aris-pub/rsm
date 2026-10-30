@@ -420,8 +420,20 @@ var RSM = (() => {
     });
     return run;
   }
-  function mathIdle() {
-    return mathQueue;
+  var mathPending = 0;
+  function track(promise) {
+    mathPending++;
+    return promise.finally(() => {
+      mathPending--;
+    });
+  }
+  async function mathIdle() {
+    for (; ; ) {
+      const q = mathQueue;
+      await q;
+      await new Promise((r) => setTimeout(r, 0));
+      if (q === mathQueue && mathPending === 0) return;
+    }
   }
   var definedNotation = null;
   function defineNotation() {
@@ -461,9 +473,9 @@ var RSM = (() => {
   function typesetMath(root2 = document) {
     const element = root2 === document ? document.body : root2;
     if (!element.querySelector("span.math, div.mathblock")) return Promise.resolve();
-    return loadMathJax().then(() => enqueue(() => typesetRaw(element))).catch((err) => {
+    return track(loadMathJax().then(() => enqueue(() => typesetRaw(element))).catch((err) => {
       console.error("MathJax typeset error:", err);
-    });
+    }));
   }
   async function typesetRaw(element) {
     const targets = rawMath(element);
@@ -490,12 +502,12 @@ var RSM = (() => {
     });
   }
   function renderMath(latex, el, { display = false } = {}) {
-    return loadMathJax().then(() => enqueue(async () => {
+    return track(loadMathJax().then(() => enqueue(async () => {
       window.MathJax.typesetClear([el]);
       el.textContent = display ? `$$${latex}$$` : `\\(${latex}\\)`;
       defineNotation();
       await window.MathJax.typesetPromise([el]);
-    }));
+    })));
   }
   function refreshMathStyles() {
     const MJ = window.MathJax;
@@ -3902,7 +3914,10 @@ var RSM = (() => {
     };
     place2();
     requestAnimationFrame(place2);
-    mathIdle().then(place2);
+    mathIdle().then(() => {
+      place2();
+      return document.fonts && document.fonts.ready;
+    }).then(place2);
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(place2);
     const manuscript = document.querySelector(".manuscript");
     if (manuscript && window.ResizeObserver) {
@@ -4204,7 +4219,7 @@ var RSM = (() => {
     nav.className = "rsm-minimap";
     nav.setAttribute("aria-label", "Document map");
     nav.innerHTML = '<div class="rsm-minimap-track" aria-hidden="true"><div class="rsm-minimap-box"></div><div class="rsm-minimap-marks"></div><div class="rsm-minimap-tip"></div></div><ul class="rsm-minimap-links"></ul>';
-    const track = nav.querySelector(".rsm-minimap-track");
+    const track2 = nav.querySelector(".rsm-minimap-track");
     const box = nav.querySelector(".rsm-minimap-box");
     const marksEl = nav.querySelector(".rsm-minimap-marks");
     const tip = nav.querySelector(".rsm-minimap-tip");
@@ -4222,7 +4237,7 @@ var RSM = (() => {
     let tipTimer = null;
     let computeTimer = null;
     let frame2 = 0;
-    const trackRect = () => track.getBoundingClientRect();
+    const trackRect = () => track2.getBoundingClientRect();
     const behavior = () => motionMql.matches ? "auto" : "smooth";
     function render(next) {
       const same = next.length === marks.length && next.every((m, i) => m.el === marks[i].el);
@@ -4541,7 +4556,9 @@ var RSM = (() => {
   // rsm/static/onload.js
   window.rsm = Object.assign(window.rsm || {}, {
     renderMath,
-    typesetMath
+    typesetMath,
+    // Resolves once all math, including math typeset after the page, is done.
+    mathIdle
   });
   async function onload(root2 = null, { keys = true } = {}) {
     if (!root2) root2 = document;

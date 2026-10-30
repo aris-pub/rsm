@@ -245,7 +245,10 @@ function holdAnchor(state) {
   };
   place();
   requestAnimationFrame(place);
-  mathIdle().then(place);
+  // Typeset math can need font files that load only then, so wait for those too.
+  mathIdle()
+    .then(() => { place(); return document.fonts && document.fonts.ready; })
+    .then(place);
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(place);
   const manuscript = document.querySelector(".manuscript");
   if (manuscript && window.ResizeObserver) {

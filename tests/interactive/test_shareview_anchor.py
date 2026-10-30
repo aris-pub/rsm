@@ -87,6 +87,7 @@ def _encode(state: dict) -> str:
 def _settle(page: Page) -> None:
     page.evaluate(
         """async () => {
+          if (window.rsm && window.rsm.mathIdle) await window.rsm.mathIdle();
           await document.fonts.ready;
           await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
         }"""
@@ -167,7 +168,11 @@ def _open_proof(page: Page, step_id: str) -> None:
 
 
 def _assert_lands_like_sender(page: Page, anchor: str, sender_top: float) -> None:
-    assert abs(_top(page, anchor) - sender_top) <= TOLERANCE
+    top = _top(page, anchor)
+    where = page.evaluate(
+        "() => ({scrollY, height: document.documentElement.scrollHeight})"
+    )
+    assert abs(top - sender_top) <= TOLERANCE, (top, sender_top, where)
     assert anchor in _blocks_at(page, sender_top)
 
 

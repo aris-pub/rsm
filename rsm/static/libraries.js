@@ -120,9 +120,23 @@ function enqueue(task) {
   return run;
 }
 
-// Resolves when every math render queued so far has finished.
-export function mathIdle() {
-  return mathQueue;
+// Renders asked for but not finished. A render joins the queue only once
+// MathJax has loaded, so the queue alone can miss one that was just asked for.
+let mathPending = 0;
+function track(promise) {
+  mathPending++;
+  return promise.finally(() => { mathPending--; });
+}
+
+// Resolves once no math render is pending, including renders asked for while
+// waiting (a pinned excerpt or an opened aside typesets after the page does).
+export async function mathIdle() {
+  for (;;) {
+    const q = mathQueue;
+    await q;
+    await new Promise((r) => setTimeout(r, 0));
+    if (q === mathQueue && mathPending === 0) return;
+  }
 }
 
 // MathJax keeps a \def from one formula for the next ones, so the notation is
@@ -178,9 +192,9 @@ export function typesetMath(root = document) {
   // document must not load MathJax.
   if (!element.querySelector('span.math, div.mathblock')) return Promise.resolve();
 
-  return loadMathJax().then(() => enqueue(() => typesetRaw(element))).catch((err) => {
+  return track(loadMathJax().then(() => enqueue(() => typesetRaw(element))).catch((err) => {
     console.error('MathJax typeset error:', err);
-  });
+  }));
 }
 
 async function typesetRaw(element) {
@@ -214,12 +228,12 @@ export function retypesetMath(root = document) {
 // Render a LaTeX string into el, with the document's notation. For widgets and
 // figures that build their own math: rsm.renderMath(latex, el, { display }).
 export function renderMath(latex, el, { display = false } = {}) {
-  return loadMathJax().then(() => enqueue(async () => {
+  return track(loadMathJax().then(() => enqueue(async () => {
     window.MathJax.typesetClear([el]);
     el.textContent = display ? `$$${latex}$$` : `\\(${latex}\\)`;
     defineNotation();
     await window.MathJax.typesetPromise([el]);
-  }));
+  })));
 }
 
 // Math that MathJax converted outside a typeset call (pseudocode.js uses

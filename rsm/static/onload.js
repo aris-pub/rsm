@@ -29,6 +29,8 @@ import * as asides from './asides.js';
 window.rsm = Object.assign(window.rsm || {}, {
   renderMath: libs.renderMath,
   typesetMath: libs.typesetMath,
+  // Resolves once all math, including math typeset after the page, is done.
+  mathIdle: libs.mathIdle,
 });
 
 export async function onload(root = null, { keys = true } = {}) {
