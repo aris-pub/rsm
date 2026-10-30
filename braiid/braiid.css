@@ -1282,10 +1282,18 @@ body {
   display: flex;
   align-items: center;
 }
+/* Every block's content zone may shrink below the width of what it holds. As a
+   flex item it would otherwise keep min-width: auto and grow to fit the widest
+   thing inside it (an equation in a paragraph, a long formula), pushing the
+   block past the column on narrow screens and when the sidebar panel narrows
+   the column. Wide content then scrolls in its own box instead. */
+.manuscriptwrapper .hr > .hr-content-zone {
+  min-width: 0;
+}
+
 /* Wide display math scrolls inside its own box instead of running past the
-   right edge and overlapping the number. min-width:0 lets the flex content
-   zone shrink below the equation's width so the overflow can take effect; the
-   number lives in the sibling .hr-info-zone, outside this scroll container. */
+   right edge and overlapping the number; the number lives in the sibling
+   .hr-info-zone, outside this scroll container. */
 .manuscriptwrapper .mathblock > .hr-content-zone {
   min-width: 0;
   overflow-x: auto;
