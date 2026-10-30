@@ -2623,7 +2623,7 @@ body {
   background: color-mix(in srgb, var(--primary-700) 12%, var(--surface-page));
 }
 .bib-body {min-width: 0;}
-.bib-who {font-weight: 600; transition: color .15s;}
+.bib-who {font-weight: 600;}
 .bib-line {display: flex; align-items: baseline; gap: 1.25em;}
 .bib-line > :first-child {flex: 1; min-width: 0;}
 .bib-title {font-style: italic;}
