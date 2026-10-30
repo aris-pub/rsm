@@ -2586,19 +2586,63 @@ body {
 
   li {margin-block: 0.75rem;}
 
-  li::before {
-    margin-right: var(--chunk-quarter);
-    padding: var(--chunk-twelfth);
-    content: counter(item);
-    width: 1.2em;
-    text-align: center;
-    display: inline-block;
-  }
-
 }
+
+.manuscriptwrapper :is(ol, ul).bibliography {list-style: none; padding-inline-start: 0;}
 
 .manuscriptwrapper div.bibliography {
   font-size: 0.92em;
+}
+
+/* Each entry is a card: authors and year with the DOI in the top right
+   corner, then the title, then the venue with the links back to the citations
+   flush right. The
+   card background, the DOI and the back links show on hover or focus, so the
+   list reads as plain text at rest; without hover (touch) they always show.
+   Numeric styles put the number in a pill like the footnote numbers. */
+.manuscriptwrapper .bibitem > .hr {margin-bottom: .25em;}
+.manuscriptwrapper .bib-card {
+  display: grid;
+  grid-template-columns: 1fr;
+  column-gap: .3em;
+  border-radius: 8px;
+  padding: .45em .7em;
+  transition: background-color .15s;
+}
+.manuscriptwrapper .bib-card:has(> .bib-num) {grid-template-columns: 2.4em 1fr;}
+.manuscriptwrapper .bib-num {
+  justify-self: start;
+  align-self: start;
+  margin-top: .3em;
+  font-size: .8em;
+  line-height: 1;
+  padding: .18em .4em;
+  border-radius: 4px;
+  font-weight: 600;
+  color: var(--primary-700);
+  background: color-mix(in srgb, var(--primary-700) 12%, var(--surface-page));
+}
+.bib-body {min-width: 0;}
+.bib-who {font-weight: 600;}
+.bib-line {display: flex; align-items: baseline; gap: 1.25em;}
+.bib-line > :first-child {flex: 1; min-width: 0;}
+.bib-title {font-style: italic;}
+.bib-venue {color: var(--text-subtle); font-size: .92em;}
+.bib-line > .bibitem-doi, .bib-line > .bibitem-url, .bib-cited {
+  flex: none;
+  font-size: .85em;
+  line-height: 1;
+  white-space: nowrap;
+}
+.bib-cited sup {line-height: 0;}
+.bib-cited a.backlink + a.backlink {margin-left: .15em;}
+@media (hover: hover) {
+  .manuscriptwrapper :is(.bib-line > .bibitem-doi, .bib-line > .bibitem-url, .bib-cited) {opacity: 0; transition: opacity .15s;}
+  /* Hover, or keyboard focus inside the entry. A click focuses the handrail,
+     which has its own look, so plain focus does not light the card. */
+  .manuscriptwrapper .bibitem:is(:hover, :has(:focus-visible)) .bib-card {background: var(--surface-primary);}
+  .manuscriptwrapper .bibitem:is(:hover, :has(:focus-visible)) .bib-who {color: var(--primary-700);}
+  .manuscriptwrapper .bibitem:is(:hover, :focus-within) :is(.bib-line > .bibitem-doi, .bib-line > .bibitem-url, .bib-cited) {opacity: 1;}
 }
 
 

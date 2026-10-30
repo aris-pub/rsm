@@ -180,4 +180,6 @@ def test_bibliography_unnumbered_in_author_year():
 
 
 def test_bibliography_numbered_in_numeric():
-    assert re.match(r"\d+\.", _bib_text(_build2("numeric"), "knuth14"))
+    html = _build2("numeric")
+    m = re.search(r'id="knuth14" class="bibitem".*?<span class="bib-num">(\d+)</span>', html, re.S)
+    assert m, "numeric entry has no number pill"

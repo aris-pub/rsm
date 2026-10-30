@@ -2094,113 +2094,133 @@ class Translator:
         )
 
     def visit_bibitem(self, node: nodes.Bibitem) -> EditCommand:
-        # Author-year bibliographies are unnumbered and the year carries the
-        # a/b/c disambiguation suffix assigned during transform.
+        # An entry is a card: authors and year with the DOI, title, venue with
+        # the links back to each citation. Author-year bibliographies are
+        # unnumbered and the year carries the a/b/c suffix assigned during
+        # transform; numeric ones show the number in a pill beside the card.
         style = getattr(self.tree, "citation_style", "numeric")
         ay = style in ("parens-author-year", "author-parens-year")
         year_text = f"{node.year}{node.year_suffix}" if (ay and node.year) else node.year
-        if node.verbatim:
-            # A verbatim reference is unstructured, so render its text as-is and
-            # warn once here instead of emitting the per-field warnings below.
-            logger.warning(f"Bibitem {node.label} is a verbatim (unparsed) reference")
-            items = [node.verbatim]
-            if node.number and not ay:
-                items.insert(0, f"{node.number}.")
-        else:
-            items = [node.author, f'"{node.title}"']
-            if node.number and not ay:
-                items.insert(0, f"{node.number}.")
-            if node.kind == "article":
-                if node.journal:
-                    # Article references read "Journal Volume(Number) (Year)".
-                    # Volume, issue, and year are joined here as one clause so
-                    # the year sits in parentheses next to the journal instead
-                    # of becoming its own sentence. Any absent field is omitted.
-                    journal_part = node.journal
-                    if node.volume:
-                        journal_part += f" {node.volume}"
-                        # The issue number only makes sense beside a volume, so
-                        # skip it when there is no volume to attach it to.
-                        if node.issue:
-                            journal_part += f"({node.issue})"
-                    if node.year:
-                        journal_part += f" ({year_text})"
-                    items.append(journal_part)
-                else:
-                    logger.warning(f"Bibitem {node.label} has no journal")
-            elif node.kind == "book":
-                if node.publisher:
-                    items.append(node.publisher)
-                else:
-                    logger.warning(f"Bibitem {node.label} has no publisher")
-            elif node.kind in ("inproceedings", "conference"):
-                if node.booktitle:
-                    items.append(f"In {node.booktitle}")
-            elif node.kind == "incollection":
-                if node.booktitle:
-                    items.append(f"In {node.booktitle}")
-                if node.publisher:
-                    items.append(node.publisher)
-            elif node.kind in ("phdthesis", "mastersthesis"):
-                kind_label = (
-                    "PhD thesis" if node.kind == "phdthesis" else "Master's thesis"
-                )
-                items.append(kind_label)
-                if node.school:
-                    items.append(node.school)
-            elif node.kind == "techreport":
-                items.append("Technical report")
-                if node.institution:
-                    items.append(node.institution)
-            elif node.kind in ("misc", "webpage"):
-                if node.howpublished:
-                    items.append(node.howpublished)
-            if node.year:
-                # An article prints the year next to its journal, so append it
-                # separately only for other kinds, or for an article that had no
-                # journal to attach it to.
-                if not (node.kind == "article" and node.journal):
-                    items.append(year_text)
-            else:
-                logger.warning(f"Bibitem {node.label} has no year")
-        text = ". ".join([str(i).strip(".") for i in items]) + "."
+
+        link = ""
         if node.doi:
-            a_tag = _make_tag(
-                "a",
-                id_=f"{node.label}-doi",
-                classes=["bibitem-doi"],
-                href=f"https://doi.org/{_normalize_doi(node.doi)}",
-                target="_blank",
+            doi = _normalize_doi(node.doi)
+            link = (
+                _make_tag(
+                    "a",
+                    id_=f"{node.label}-doi",
+                    classes=["bibitem-doi"],
+                    href=f"https://doi.org/{doi}",
+                    target="_blank",
+                    title=f"doi.org/{doi}",
+                )
+                + "DOI ↗</a>"
             )
-            text = f"{text} {a_tag}[link]</a>"
         elif node.url:
-            a_tag = _make_tag(
-                "a",
-                id_=f"{node.label}-url",
-                classes=["bibitem-url"],
-                href=node.url,
-                target="_blank",
+            shown = re.sub(r"^https?://(www\.)?", "", node.url).rstrip("/")
+            link = (
+                _make_tag(
+                    "a",
+                    id_=f"{node.label}-url",
+                    classes=["bibitem-url"],
+                    href=node.url,
+                    target="_blank",
+                    title=shown,
+                )
+                + "Link ↗</a>"
             )
-            text = f"{text} {a_tag}[link]</a>"
         elif not node.verbatim:
             logger.warning(f"Bibitem {node.label} has no DOI")
 
+        cited = ""
         if node.backlinks:
-            text += "<br />"
+            many = len(node.backlinks) > 1
             backs = [
                 _make_tag(
                     "a",
                     id_="",
                     classes=["reference", "backlink"],
                     href=f"#{link_lbl}",
+                    **{"aria-label": f"Back to citation {idx}" if many else "Back to the citation"},
                 )
-                + f"↖{idx}"
+                + "↖"
+                + (f"<sup>{idx}</sup>" if many else "")
                 + "</a>"
                 for idx, link_lbl in enumerate(node.backlinks, start=1)
             ]
-            text += "[" + ",".join(backs) + "]"
+            cited = '<span class="bib-cited">cited ' + " ".join(backs) + "</span>"
 
+        # The DOI sits in the top right corner and the back links at the end of
+        # the venue line, so the card needs no row of its own for them.
+        def line(main: str, side: str) -> str:
+            return f'<div class="bib-line">{main}{side}</div>'
+
+        lines = []
+        if node.verbatim:
+            # A verbatim reference is unstructured, so render its text as-is and
+            # warn once here instead of emitting the per-field warnings below.
+            logger.warning(f"Bibitem {node.label} is a verbatim (unparsed) reference")
+            lines.append(line(f'<div class="bib-verbatim">{node.verbatim}</div>', link + cited))
+        else:
+            who = str(node.author or "").strip()
+            if node.year:
+                who = f"{who} ({year_text})" if who else f"({year_text})"
+            else:
+                logger.warning(f"Bibitem {node.label} has no year")
+            lines.append(line(f'<div class="bib-who">{who}</div>', link))
+            title = str(node.title or "").strip().rstrip(".")
+            venue = self._bib_venue(node)
+            lines.append(f'<div class="bib-title">{title}</div>')
+            lines.append(line(f'<div class="bib-venue">{venue}</div>', cited))
+
+        body = '<div class="bib-body">' + "".join(lines) + "</div>"
+        num = ""
+        if node.number and not ay:
+            num = f'<span class="bib-num">{node.number}</span>'
+        text = f'<div class="bib-card">{num}{body}</div>'
         return AppendBatchAndDefer([AppendNodeTag(node, "li"), AppendText(text)])
+
+    def _bib_venue(self, node: nodes.Bibitem) -> str:
+        """Where the work appeared: journal and volume, publisher, proceedings,
+        school or institution, depending on the entry type."""
+        parts = []
+        if node.kind == "article":
+            if node.journal:
+                # Journal, volume and issue are one clause: "Journal 52(3)".
+                journal_part = str(node.journal)
+                if node.volume:
+                    journal_part += f" {node.volume}"
+                    # The issue number only makes sense beside a volume.
+                    if node.issue:
+                        journal_part += f"({node.issue})"
+                parts.append(journal_part)
+            else:
+                logger.warning(f"Bibitem {node.label} has no journal")
+        elif node.kind == "book":
+            if node.publisher:
+                parts.append(node.publisher)
+            else:
+                logger.warning(f"Bibitem {node.label} has no publisher")
+        elif node.kind in ("inproceedings", "conference"):
+            if node.booktitle:
+                parts.append(f"In {node.booktitle}")
+        elif node.kind == "incollection":
+            if node.booktitle:
+                parts.append(f"In {node.booktitle}")
+            if node.publisher:
+                parts.append(node.publisher)
+        elif node.kind in ("phdthesis", "mastersthesis"):
+            parts.append("PhD thesis" if node.kind == "phdthesis" else "Master's thesis")
+            if node.school:
+                parts.append(node.school)
+        elif node.kind == "techreport":
+            parts.append("Technical report")
+            if node.institution:
+                parts.append(node.institution)
+        elif node.kind in ("misc", "webpage"):
+            if node.howpublished:
+                parts.append(node.howpublished)
+        return ", ".join(str(x).strip() for x in parts if str(x).strip())
 
     def visit_draft(self, node: nodes.Draft) -> EditCommand:
         return AppendBatchAndDefer(
@@ -3893,47 +3913,17 @@ class HandrailsTranslator(Translator):
         return batch
 
     def visit_bibitem(self, node: nodes.Bibitem) -> EditCommand:
+        # The DOI and the back links are part of the card, so the handrail adds
+        # no link icon of its own.
         batch = super().visit_bibitem(node)
         batch.items[0] = AppendNodeTag(node, "div")
-        hr = self._wrap_batch_item_with_handrails(
+        return self._wrap_batch_item_with_handrails(
             1,
             batch,
             include_content=False,
             classes=["hr-hidden"],
-            icon="ext" if (node.doi or node.url) else None,
+            icon=None,
             collapse_in_hr=False,
             link=False,
             node=node,
         )
-
-        # get the <a> tag already there...
-        text = batch.items[1]._text
-        pat = r'(<a.*?class="bibitem-(?:doi|url)".*?>).*?</a>'
-        mobj = re.search(pat, text)
-        if mobj is None:
-            # A verbatim entry has no link and is already flagged once by the
-            # base translator, so do not warn again here.
-            if not node.verbatim:
-                logger.warning(f"Unable to extract link from {node.label}")
-            return hr
-
-        # ...remove it from the content zone...
-        left, right = mobj.span()
-        hr.items[-4]._text = text[:left] + text[right:]
-
-        # ...and add it to the info zone. The link is icon-only, so give it an
-        # accessible name (WCAG link-name).
-        opening = mobj.group(1)
-        label = "DOI" if "bibitem-doi" in opening else "Link"
-        opening = opening.replace(">", f' aria-label="{label}">', 1)
-        hr.items[-2].content = (
-            '<div class="hr-info">\n'
-            + opening
-            + "\n"
-            + hr.items[-2].content[22:-6].strip()
-            + "</a>\n</div>"
-        )
-
-        hr.items.insert(7, AppendText("<p>"))
-        hr.items.insert(9, AppendText("</p>"))
-        return hr
