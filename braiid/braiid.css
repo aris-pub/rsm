@@ -2594,8 +2594,9 @@ body {
   font-size: 0.92em;
 }
 
-/* Each entry is a card: authors and year, then the title with the DOI flush
-   right, then the venue with the links back to the citations flush right. The
+/* Each entry is a card: authors and year with the DOI in the top right
+   corner, then the title, then the venue with the links back to the citations
+   flush right. The
    card background, the DOI and the back links show on hover or focus, so the
    list reads as plain text at rest; without hover (touch) they always show.
    Numeric styles put the number in a pill like the footnote numbers. */
@@ -2605,8 +2606,7 @@ body {
   grid-template-columns: 1fr;
   column-gap: .3em;
   border-radius: 8px;
-  padding: .45em .85em;
-  margin-inline: -.85em;
+  padding: .45em .7em;
   transition: background-color .15s;
 }
 .manuscriptwrapper .bib-card:has(> .bib-num) {grid-template-columns: 2.4em 1fr;}
@@ -2623,7 +2623,7 @@ body {
   background: color-mix(in srgb, var(--primary-700) 12%, var(--surface-page));
 }
 .bib-body {min-width: 0;}
-.bib-who {font-weight: 600;}
+.bib-who {font-weight: 600; transition: color .15s;}
 .bib-line {display: flex; align-items: baseline; gap: 1.25em;}
 .bib-line > :first-child {flex: 1; min-width: 0;}
 .bib-title {font-style: italic;}
@@ -2638,7 +2638,10 @@ body {
 .bib-cited a.backlink + a.backlink {margin-left: .15em;}
 @media (hover: hover) {
   .manuscriptwrapper :is(.bib-line > .bibitem-doi, .bib-line > .bibitem-url, .bib-cited) {opacity: 0; transition: opacity .15s;}
-  .manuscriptwrapper .bibitem:is(:hover, :focus-within) .bib-card {background: var(--surface-primary);}
+  /* Hover, or keyboard focus inside the entry. A click focuses the handrail,
+     which has its own look, so plain focus does not light the card. */
+  .manuscriptwrapper .bibitem:is(:hover, :has(:focus-visible)) .bib-card {background: var(--surface-primary);}
+  .manuscriptwrapper .bibitem:is(:hover, :has(:focus-visible)) .bib-who {color: var(--primary-700);}
   .manuscriptwrapper .bibitem:is(:hover, :focus-within) :is(.bib-line > .bibitem-doi, .bib-line > .bibitem-url, .bib-cited) {opacity: 1;}
 }
 

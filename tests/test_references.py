@@ -230,7 +230,7 @@ def test_bibitem_without_doi(caplog):
         <ol class="bibliography" data-nodeid="5">
 
         <li id="smith2024" class="bibitem" data-nodeid="6">
-        <div class="bib-card"><span class="bib-num">1</span><div class="bib-body"><div class="bib-who">Jane Smith (2024)</div><div class="bib-line"><div class="bib-title">My Paper</div></div><div class="bib-line"><div class="bib-venue">Nature</div><span class="bib-cited">cited <a class="reference backlink" href="#cite-0" aria-label="Back to the citation">↖</a></span></div></div></div>
+        <div class="bib-card"><span class="bib-num">1</span><div class="bib-body"><div class="bib-line"><div class="bib-who">Jane Smith (2024)</div></div><div class="bib-title">My Paper</div><div class="bib-line"><div class="bib-venue">Nature</div><span class="bib-cited">cited <a class="reference backlink" href="#cite-0" aria-label="Back to the citation">↖</a></span></div></div></div>
         </li>
 
         </ol>
@@ -326,7 +326,7 @@ def test_bibitem_with_doi():
         <ol class="bibliography" data-nodeid="5">
 
         <li id="smith2024" class="bibitem" data-nodeid="6">
-        <div class="bib-card"><span class="bib-num">1</span><div class="bib-body"><div class="bib-who">Jane Smith (2024)</div><div class="bib-line"><div class="bib-title">My Paper</div><a id="smith2024-doi" class="bibitem-doi" href="https://doi.org/10.1234/example" target="_blank" title="doi.org/10.1234/example">DOI</a></div><div class="bib-line"><div class="bib-venue">Nature</div><span class="bib-cited">cited <a class="reference backlink" href="#cite-0" aria-label="Back to the citation">↖</a></span></div></div></div>
+        <div class="bib-card"><span class="bib-num">1</span><div class="bib-body"><div class="bib-line"><div class="bib-who">Jane Smith (2024)</div><a id="smith2024-doi" class="bibitem-doi" href="https://doi.org/10.1234/example" target="_blank" title="doi.org/10.1234/example">DOI ↗</a></div><div class="bib-title">My Paper</div><div class="bib-line"><div class="bib-venue">Nature</div><span class="bib-cited">cited <a class="reference backlink" href="#cite-0" aria-label="Back to the citation">↖</a></span></div></div></div>
         </li>
 
         </ol>

@@ -2094,8 +2094,8 @@ class Translator:
         )
 
     def visit_bibitem(self, node: nodes.Bibitem) -> EditCommand:
-        # An entry is a card: authors and year, title with the DOI, venue with the
-        # links back to each citation. Author-year bibliographies are
+        # An entry is a card: authors and year with the DOI, title, venue with
+        # the links back to each citation. Author-year bibliographies are
         # unnumbered and the year carries the a/b/c suffix assigned during
         # transform; numeric ones show the number in a pill beside the card.
         style = getattr(self.tree, "citation_style", "numeric")
@@ -2114,7 +2114,7 @@ class Translator:
                     target="_blank",
                     title=f"doi.org/{doi}",
                 )
-                + "DOI</a>"
+                + "DOI ↗</a>"
             )
         elif node.url:
             shown = re.sub(r"^https?://(www\.)?", "", node.url).rstrip("/")
@@ -2127,7 +2127,7 @@ class Translator:
                     target="_blank",
                     title=shown,
                 )
-                + "Link</a>"
+                + "Link ↗</a>"
             )
         elif not node.verbatim:
             logger.warning(f"Bibitem {node.label} has no DOI")
@@ -2150,8 +2150,8 @@ class Translator:
             ]
             cited = '<span class="bib-cited">cited ' + " ".join(backs) + "</span>"
 
-        # The DOI sits flush right on the title line and the back links on the
-        # venue line, so the card needs no row of its own for them.
+        # The DOI sits in the top right corner and the back links at the end of
+        # the venue line, so the card needs no row of its own for them.
         def line(main: str, side: str) -> str:
             return f'<div class="bib-line">{main}{side}</div>'
 
@@ -2167,10 +2167,10 @@ class Translator:
                 who = f"{who} ({year_text})" if who else f"({year_text})"
             else:
                 logger.warning(f"Bibitem {node.label} has no year")
-            lines.append(f'<div class="bib-who">{who}</div>')
+            lines.append(line(f'<div class="bib-who">{who}</div>', link))
             title = str(node.title or "").strip().rstrip(".")
             venue = self._bib_venue(node)
-            lines.append(line(f'<div class="bib-title">{title}</div>', link))
+            lines.append(f'<div class="bib-title">{title}</div>')
             lines.append(line(f'<div class="bib-venue">{venue}</div>', cited))
 
         body = '<div class="bib-body">' + "".join(lines) + "</div>"

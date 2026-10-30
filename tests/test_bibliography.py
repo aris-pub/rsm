@@ -46,7 +46,7 @@ def test_single():
         <ol class="bibliography" data-nodeid="4">
 
         <li id="knuth" class="bibitem" data-nodeid="5">
-        <div class="bib-card"><span class="bib-num">1</span><div class="bib-body"><div class="bib-who">Knuth, Donald E (2014)</div><div class="bib-line"><div class="bib-title">Art of computer programming, volume 2, Seminumerical algorithms</div></div><div class="bib-line"><div class="bib-venue">Addison-Wesley Professional</div><span class="bib-cited">cited <a class="reference backlink" href="#cite-0" aria-label="Back to the citation">↖</a></span></div></div></div>
+        <div class="bib-card"><span class="bib-num">1</span><div class="bib-body"><div class="bib-line"><div class="bib-who">Knuth, Donald E (2014)</div></div><div class="bib-title">Art of computer programming, volume 2, Seminumerical algorithms</div><div class="bib-line"><div class="bib-venue">Addison-Wesley Professional</div><span class="bib-cited">cited <a class="reference backlink" href="#cite-0" aria-label="Back to the citation">↖</a></span></div></div></div>
         </li>
 
         </ol>
@@ -104,7 +104,7 @@ def test_with_shortcuts():
         <ol class="bibliography" data-nodeid="7">
 
         <li id="knuth" class="bibitem" data-nodeid="8">
-        <div class="bib-card"><span class="bib-num">1</span><div class="bib-body"><div class="bib-who">Knuth, Donald E (2014)</div><div class="bib-line"><div class="bib-title">Art of computer programming, volume 2: Seminumerical algorithms</div></div><div class="bib-line"><div class="bib-venue">Addison-Wesley Professional</div><span class="bib-cited">cited <a class="reference backlink" href="#cite-0" aria-label="Back to the citation">↖</a></span></div></div></div>
+        <div class="bib-card"><span class="bib-num">1</span><div class="bib-body"><div class="bib-line"><div class="bib-who">Knuth, Donald E (2014)</div></div><div class="bib-title">Art of computer programming, volume 2: Seminumerical algorithms</div><div class="bib-line"><div class="bib-venue">Addison-Wesley Professional</div><span class="bib-cited">cited <a class="reference backlink" href="#cite-0" aria-label="Back to the citation">↖</a></span></div></div></div>
         </li>
 
         </ol>
@@ -171,11 +171,11 @@ def test_many():
         <ol class="bibliography" data-nodeid="4">
 
         <li id="torres2020" class="bibitem" data-nodeid="5">
-        <div class="bib-card"><span class="bib-num">1</span><div class="bib-body"><div class="bib-who">Torres, Leo and Chan, Kevin S and Tong, Hanghang and Eliassi-Rad, Tina (2021)</div><div class="bib-line"><div class="bib-title">Nonbacktracking eigenvalues under node removal: X-centrality and targeted immunization</div></div><div class="bib-line"><div class="bib-venue">SIAM Journal on Mathematics of Data Science 3(2)</div><span class="bib-cited">cited <a class="reference backlink" href="#cite-0" aria-label="Back to the citation">↖</a></span></div></div></div>
+        <div class="bib-card"><span class="bib-num">1</span><div class="bib-body"><div class="bib-line"><div class="bib-who">Torres, Leo and Chan, Kevin S and Tong, Hanghang and Eliassi-Rad, Tina (2021)</div></div><div class="bib-title">Nonbacktracking eigenvalues under node removal: X-centrality and targeted immunization</div><div class="bib-line"><div class="bib-venue">SIAM Journal on Mathematics of Data Science 3(2)</div><span class="bib-cited">cited <a class="reference backlink" href="#cite-0" aria-label="Back to the citation">↖</a></span></div></div></div>
         </li>
 
         <li id="knuth" class="bibitem" data-nodeid="6">
-        <div class="bib-card"><span class="bib-num">2</span><div class="bib-body"><div class="bib-who">Knuth, Donald E (2014)</div><div class="bib-line"><div class="bib-title">Art of computer programming, volume 2: Seminumerical algorithms</div></div><div class="bib-line"><div class="bib-venue">Addison-Wesley Professional</div><span class="bib-cited">cited <a class="reference backlink" href="#cite-0" aria-label="Back to the citation">↖</a></span></div></div></div>
+        <div class="bib-card"><span class="bib-num">2</span><div class="bib-body"><div class="bib-line"><div class="bib-who">Knuth, Donald E (2014)</div></div><div class="bib-title">Art of computer programming, volume 2: Seminumerical algorithms</div><div class="bib-line"><div class="bib-venue">Addison-Wesley Professional</div><span class="bib-cited">cited <a class="reference backlink" href="#cite-0" aria-label="Back to the citation">↖</a></span></div></div></div>
         </li>
 
         </ol>
@@ -242,11 +242,11 @@ def test_order():
         <ol class="bibliography" data-nodeid="4">
 
         <li id="torres2020" class="bibitem" data-nodeid="5">
-        <div class="bib-card"><span class="bib-num">1</span><div class="bib-body"><div class="bib-who">Torres, Leo and Chan, Kevin S and Tong, Hanghang and Eliassi-Rad, Tina (2021)</div><div class="bib-line"><div class="bib-title">Nonbacktracking eigenvalues under node removal: X-centrality and targeted immunization</div></div><div class="bib-line"><div class="bib-venue">SIAM Journal on Mathematics of Data Science 3(2)</div><span class="bib-cited">cited <a class="reference backlink" href="#cite-0" aria-label="Back to the citation">↖</a></span></div></div></div>
+        <div class="bib-card"><span class="bib-num">1</span><div class="bib-body"><div class="bib-line"><div class="bib-who">Torres, Leo and Chan, Kevin S and Tong, Hanghang and Eliassi-Rad, Tina (2021)</div></div><div class="bib-title">Nonbacktracking eigenvalues under node removal: X-centrality and targeted immunization</div><div class="bib-line"><div class="bib-venue">SIAM Journal on Mathematics of Data Science 3(2)</div><span class="bib-cited">cited <a class="reference backlink" href="#cite-0" aria-label="Back to the citation">↖</a></span></div></div></div>
         </li>
 
         <li id="knuth" class="bibitem" data-nodeid="6">
-        <div class="bib-card"><span class="bib-num">2</span><div class="bib-body"><div class="bib-who">Knuth, Donald E (2014)</div><div class="bib-line"><div class="bib-title">Art of computer programming, volume 2: Seminumerical algorithms</div></div><div class="bib-line"><div class="bib-venue">Addison-Wesley Professional</div><span class="bib-cited">cited <a class="reference backlink" href="#cite-0" aria-label="Back to the citation">↖</a></span></div></div></div>
+        <div class="bib-card"><span class="bib-num">2</span><div class="bib-body"><div class="bib-line"><div class="bib-who">Knuth, Donald E (2014)</div></div><div class="bib-title">Art of computer programming, volume 2: Seminumerical algorithms</div><div class="bib-line"><div class="bib-venue">Addison-Wesley Professional</div><span class="bib-cited">cited <a class="reference backlink" href="#cite-0" aria-label="Back to the citation">↖</a></span></div></div></div>
         </li>
 
         </ol>
