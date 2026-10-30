@@ -2515,10 +2515,10 @@ class HandrailsTranslator(Translator):
         "star": """<svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="#3C4952" xmlns="http://www.w3.org/2000/svg">
         <path d="M9.00561 14.2664L4.06109 17L5.00561 11.2101L1 7.11004L6.52774 6.26763L9 1L11.4723 6.26763L17 7.11004L12.9944 11.2101L13.9389 17L9.00561 14.2664Z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>""",
-        "collapse": """<svg width="8" height="14" viewBox="0 0 8 14" fill="none" stroke="#3C4952" xmlns="http://www.w3.org/2000/svg">
+        "collapse": """<svg width="8" height="14" viewBox="0 0 8 14" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">
         <path d="M1 1L7 7L1 13" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>""",
-        "collapse-all": """<svg width="9" height="9" viewBox="5 5 14 14" fill="none" stroke="#3C4952" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+        "collapse-all": """<svg width="9" height="9" viewBox="5 5 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
         <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
         <path d="M7 7l5 5l-5 5" />
         <path d="M13 7l5 5l-5 5" />
