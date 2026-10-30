@@ -6,6 +6,8 @@ never ran. A TOC that starts as a list was also never wired for hover, because
 tocarcs only wires trees present at load.
 """
 
+import re
+
 import pytest
 from playwright.sync_api import Page, expect
 
@@ -62,3 +64,19 @@ def test_toc_toggles_list_and_tree_without_errors(page: Page, interactive_server
     assert svg.get_attribute("data-wired") == "1"
     svg.locator(".toc-node[data-idx='0']").hover()
     expect(svg.locator(".toc-node.toc-faded").first).to_be_attached()
+
+
+def test_tree_toc_in_the_text_previews_like_the_sidebar(page: Page, interactive_server: str):
+    """A node of the TOC graph in the text shows the section preview on hover,
+    as the same graph in the sidebar does."""
+    page.goto(f"{interactive_server}/toc-view.html")
+    page.wait_for_function(RSM_READY, timeout=10_000)
+    _open_menu(page)
+    _toc_view_item(page).click()
+    page.keyboard.press("Escape")
+    node = page.locator("nav.toc svg.toc-tree .toc-node[data-idx='0']")
+    expect(node).to_have_class(re.compile(r"\btooltipstered\b"))
+    node.hover()
+    tip = page.locator(".tooltipster-base").last
+    expect(tip).to_be_visible(timeout=3000)
+    expect(tip).to_contain_text("First section")

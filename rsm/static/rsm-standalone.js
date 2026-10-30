@@ -1494,7 +1494,7 @@ var RSM = (() => {
         setTooltipContent(instance, text);
       }
     });
-    $(".proof-rail a.toc-node:not(.tooltipstered)").tooltipster({
+    $(".proof-rail a.toc-node:not(.tooltipstered), .manuscriptwrapper a.toc-node:not(.tooltipstered)").tooltipster({
       theme: ["tooltipster-shadow", "tooltipster-shadow-rsm"],
       delay: 200,
       maxWidth: 360,

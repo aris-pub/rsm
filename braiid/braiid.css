@@ -3090,10 +3090,15 @@ clipped to the text so the padding that grows the tap target does not show. */
 .manuscriptwrapper a.aside-phrase:is(:link, :visited, :active, :hover, :focus) {
   color: inherit;
   font-weight: inherit;
-  text-decoration: underline dotted color-mix(in srgb, var(--primary-700) 70%, transparent);
-  text-decoration-thickness: 1.5px;
-  text-underline-offset: .2em;
-  background: none;
+  /* The dotted line is a background, not a text underline: math inside the
+     phrase is drawn as inline-blocks, which a text underline does not reach. */
+  text-decoration: none;
+  background-color: transparent;
+  background-image: linear-gradient(to right, color-mix(in srgb, var(--primary-700) 70%, transparent) 50%, transparent 50%);
+  background-size: 4px 1.5px;
+  background-repeat: repeat-x;
+  background-origin: content-box;
+  background-position: 0 100%;
   background-clip: content-box;
   box-decoration-break: clone;
   -webkit-box-decoration-break: clone;
