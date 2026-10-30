@@ -2651,6 +2651,19 @@ body {
 }
 .bib-cited sup {line-height: 0;}
 .bib-cited a.backlink + a.backlink {margin-left: .15em;}
+/* On a narrow screen the right-hand spots crowd long author lists, so the DOI
+   and the back links share one row at the end of the entry. */
+@media (max-width: 600px) {
+  .bib-body {display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 1.1em;}
+  .bib-body > .bib-line {display: contents;}
+  .bib-body > .bib-line > :first-child,
+  .bib-body > .bib-title {flex: 1 1 100%;}
+  .bib-who {order: 1;}
+  .bib-title {order: 2;}
+  .bib-venue {order: 3;}
+  .bib-body .bibitem-doi, .bib-body .bibitem-url {order: 4;}
+  .bib-cited {order: 5;}
+}
 @media (hover: hover) {
   .manuscriptwrapper :is(.bib-line > .bibitem-doi, .bib-line > .bibitem-url, .bib-cited) {opacity: 0; transition: opacity .15s;}
   /* Hover, or keyboard focus inside the entry. A click focuses the handrail,

@@ -61,3 +61,24 @@ def test_bibliography_entry_is_a_card_with_links_on_hover(page: Page, interactiv
     expect(cited).to_have_css("opacity", "1")
     bg = entry.locator(".bib-card").evaluate("e => getComputedStyle(e).backgroundColor")
     assert bg != "rgba(0, 0, 0, 0)"
+
+
+def test_bibliography_links_share_a_row_on_a_phone(playwright, browser, interactive_server: str):
+    """On a phone the DOI and the back links sit together on one row after the
+    venue, instead of at the right of the authors and venue lines."""
+    ctx = browser.new_context(**playwright.devices["iPhone 13"])
+    page = ctx.new_page()
+    try:
+        page.goto(f"{interactive_server}/citations-author-year.html")
+        page.wait_for_function(RSM_READY, timeout=10_000)
+        entry = page.locator("#bourgainA")
+        venue = entry.locator(".bib-venue").bounding_box()
+        cited = entry.locator(".bib-cited").bounding_box()
+        assert cited["y"] >= venue["y"] + venue["height"] - 2, (venue, cited)
+        doi = entry.locator(".bibitem-doi, .bibitem-url")
+        if doi.count():
+            d = doi.first.bounding_box()
+            assert abs(d["y"] - cited["y"]) < 6, (d, cited)
+            assert d["x"] < cited["x"]
+    finally:
+        ctx.close()
