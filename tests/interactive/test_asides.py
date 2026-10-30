@@ -614,11 +614,9 @@ _PHRASE = """(id) => {
     return {
         text: m.textContent, color: s.color, bodyColor: p.color,
         weight: s.fontWeight, bodyWeight: p.fontWeight, bg: s.backgroundColor,
-        line: s.textDecorationLine, style: s.textDecorationStyle,
-        decoColor: s.textDecorationColor,
+        line: s.textDecorationLine, image: s.backgroundImage,
+        size: s.backgroundSize, repeat: s.backgroundRepeat,
         want: probe('color', 'color-mix(in srgb, var(--primary-700) 70%, transparent)'),
-        thickness: s.textDecorationThickness, offset: s.textUnderlineOffset,
-        fontSize: parseFloat(s.fontSize),
     };
 }"""
 
@@ -626,7 +624,8 @@ _PHRASE = """(id) => {
 @pytest.mark.parametrize("theme", ["light", "dark"])
 @pytest.mark.parametrize("width", [375, 1280])
 def test_phrase_look(page: Page, interactive_server: str, width, theme):
-    """Body text with a faint dotted accent underline, no chip and no number."""
+    """Body text with a faint dotted accent line under it, no chip and no number.
+    The line is a background so it also runs under math in the phrase."""
     _load(page, interactive_server, width)
     page.evaluate(
         "(t) => { const c = document.documentElement.classList;"
@@ -639,10 +638,9 @@ def test_phrase_look(page: Page, interactive_server: str, width, theme):
     assert st["color"] == st["bodyColor"], st
     assert st["weight"] == st["bodyWeight"], st
     assert st["bg"] == "rgba(0, 0, 0, 0)", st
-    assert st["line"] == "underline" and st["style"] == "dotted", st
-    assert st["decoColor"] == st["want"], st
-    assert st["thickness"] == "1.5px", st
-    assert abs(float(st["offset"][:-2]) - 0.2 * st["fontSize"]) < 0.5, st
+    assert st["line"] == "none", st
+    assert "linear-gradient" in st["image"] and st["want"] in st["image"], st
+    assert st["size"] == "4px 1.5px" and st["repeat"] == "repeat-x", st
     assert not page.evaluate("() => document.querySelector('a.note-marker[data-note-kind=aside]')")
 
 

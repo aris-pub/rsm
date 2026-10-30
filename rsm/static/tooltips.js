@@ -381,7 +381,7 @@ export function createTooltips() {
   // DAG nodes: show the link target's rendered excerpt (math and all), the same
   // way reference tooltips do, so the graph is not the odd one out. Falls back to
   // the plain-text statement in data-tooltip when the target cannot be excerpted.
-  $(".proof-rail a.toc-node:not(.tooltipstered)").tooltipster({
+  $(".proof-rail a.toc-node:not(.tooltipstered), .manuscriptwrapper a.toc-node:not(.tooltipstered)").tooltipster({
     theme: ['tooltipster-shadow', 'tooltipster-shadow-rsm'],
     delay: 200,
     maxWidth: 360,
