@@ -1,5 +1,6 @@
 """Tests for the TOC tree view: edge derivation, build-time layout, markup."""
 
+import json
 import logging
 import re
 
@@ -266,3 +267,61 @@ def test_layout_is_deterministic():
 
 def test_layout_empty():
     assert layout_tree([], []) is None
+
+
+# The section graph of a real paper (lipschitz-embedding): eleven nodes, long
+# arrows that skip depth columns, laid out horizontally.
+_PAPER_NODES = [{"num": "1", "title": "S0", "label": "s0", "depth": 1}, {"num": "2", "title": "S1", "label": "s1", "depth": 1}, {"num": "3", "title": "S2", "label": "s2", "depth": 1}, {"num": "4", "title": "S3", "label": "s3", "depth": 1}, {"num": "5", "title": "S4", "label": "s4", "depth": 1}, {"num": "6", "title": "S5", "label": "s5", "depth": 1}, {"num": "7", "title": "S6", "label": "s6", "depth": 1}, {"num": "8", "title": "S7", "label": "s7", "depth": 1}, {"num": "9", "title": "S8", "label": "s8", "depth": 1}, {"num": "10", "title": "S9", "label": "s9", "depth": 1}, {"num": "", "title": "S10", "label": "s10", "depth": 0}]
+_PAPER_EDGES = [
+    {"src": s, "dst": d, "count": c, "kind": k}
+    for s, d, c, k in [[1, 0, 2, "dep"], [2, 0, 2, "dep"], [2, 1, 1, "dep"], [2, 5, 1, "fwd"], [2, 6, 1, "fwd"], [2, 9, 1, "fwd"], [3, 2, 2, "dep"], [4, 3, 2, "dep"], [5, 3, 1, "dep"], [5, 4, 4, "dep"], [6, 0, 1, "dep"], [6, 3, 2, "dep"], [6, 5, 2, "dep"], [7, 6, 1, "dep"], [8, 6, 1, "dep"], [8, 7, 1, "dep"], [9, 6, 3, "dep"], [9, 8, 2, "dep"], [0, 10, 1, "struct"], [1, 10, 1, "struct"], [2, 10, 1, "struct"], [3, 10, 1, "struct"], [4, 10, 1, "struct"], [5, 10, 1, "struct"], [6, 10, 1, "struct"], [7, 10, 1, "struct"], [8, 10, 1, "struct"], [9, 10, 1, "struct"]]
+]
+
+
+def test_layout_does_not_depend_on_set_order(monkeypatch):
+    """grandalf keeps edges in sets, and its objects hash by memory address, so
+    the layout used to change from one build to the next. Random hashes give a
+    different set order on each run, and the layout must not change."""
+    import random
+
+    from grandalf import graphs
+
+    outs = set()
+    for seed in range(8):
+        rng = random.Random(seed)
+        table = {}
+        rand_hash = lambda self: table.setdefault(id(self), rng.getrandbits(48))
+        monkeypatch.setattr(graphs.Vertex, "__hash__", rand_hash)
+        monkeypatch.setattr(graphs.Edge, "__hash__", rand_hash)
+        out = layout_tree(_PAPER_NODES, _PAPER_EDGES, "horizontal")
+        outs.add(json.dumps(out, sort_keys=True))
+    assert len(outs) == 1
+
+
+def test_tall_horizontal_toc_closes_up_its_stack():
+    from rsm import toc_layout as tl
+
+    out = layout_tree(_PAPER_NODES, _PAPER_EDGES, "horizontal")
+    wide = tl.MAX_TREE_H
+    try:
+        tl.MAX_TREE_H = 10_000
+        loose = layout_tree(_PAPER_NODES, _PAPER_EDGES, "horizontal")
+    finally:
+        tl.MAX_TREE_H = wide
+    assert out["height"] < loose["height"]
+    ys = sorted({n["y"] for n in out["nodes"]})
+    assert all(b - a >= tl.NODE_H / 2 for a, b in zip(ys, ys[1:]))
+
+
+def test_proof_rail_keeps_its_spacing():
+    """The cap is for TOC graphs. A proof rail (root_label set) fits its gutter."""
+    from rsm import toc_layout as tl
+
+    out = layout_tree(_PAPER_NODES, _PAPER_EDGES, "horizontal", root_label="Goal")
+    wide = tl.MAX_TREE_H
+    try:
+        tl.MAX_TREE_H = 10_000
+        loose = layout_tree(_PAPER_NODES, _PAPER_EDGES, "horizontal", root_label="Goal")
+    finally:
+        tl.MAX_TREE_H = wide
+    assert out == loose
