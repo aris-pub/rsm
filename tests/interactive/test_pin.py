@@ -189,3 +189,21 @@ class TestPinProofsAndTitles:
             "el => (el.innerText.match(/Theorem 2\\.1/g) || []).length"
         )
         assert count == 1
+
+
+class TestPinnedHeader:
+    def test_one_header_row_when_a_block_is_pinned(self, page: Page, interactive_server: str):
+        """With a block pinned, the panel's title and hint give way to the pinned
+        block's row, which names the panel ("Pinned · ...") and holds the close
+        button. With nothing pinned, the usual head shows."""
+        _load(page, interactive_server)
+        page.click('.rail-strip-btn[data-view="pinned"]')
+        head = page.locator(".proof-rail .rail-head")
+        expect(head).to_be_visible()
+        _pin(page, "#thm-x")
+        page.click('.rail-strip-btn[data-view="pinned"]') if not page.locator(".proof-rail.scope-pinned").count() else None
+        expect(page.locator(".proof-rail")).to_have_class(re.compile(r"\bhas-pin\b"))
+        expect(head).to_be_hidden()
+        before = page.locator(".rail-pinned-title").evaluate("e => getComputedStyle(e, '::before').content")
+        assert "Pinned" in before, before
+        expect(page.locator(".rail-pin-close")).to_be_visible()

@@ -2027,6 +2027,16 @@ body {
     border-bottom: var(--border-thin) solid var(--border-primary);
     margin-bottom: var(--chunk-sixth);
   }
+  /* With a block pinned, the panel's own title and hint go and the pinned
+     block's row is the only header ("Pinned · Paragraph"), so the content
+     starts higher. With nothing pinned the usual head stays. */
+  .proof-rail.scope-pinned.has-pin .rail-head { display: none; }
+  .proof-rail.scope-pinned.has-pin .rail-pinned { padding-top: var(--chunk-quarter); }
+  .rail-pinned-title::before {
+    content: "Pinned · " / "Pinned: ";
+    font-weight: 400;
+    color: var(--text-subtle);
+  }
   .rail-pinned-title {
     flex: 1;
     min-width: 0;
