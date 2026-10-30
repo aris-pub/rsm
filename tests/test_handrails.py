@@ -886,14 +886,11 @@ def test_bibliography():
         </div>
 
         <div class="hr-content-zone">
-        <p>1. Atiyah, M.F., & MacDonald, I.G. "Introduction to commutative algebra". CRC Press. 2018. <br />[<a class="reference backlink" href="#cite-0">↖1</a>]</p>
+        <div class="bib-card"><span class="bib-num">1</span><div class="bib-body"><div class="bib-who">Atiyah, M.F., & MacDonald, I.G. (2018)</div><div class="bib-title">Introduction to commutative algebra</div><div class="bib-venue">CRC Press</div><div class="bib-links"><a id="atiyah2018introduction-doi" class="bibitem-doi" href="https://doi.org/10.1201/9780429493638" target="_blank">doi.org/10.1201/9780429493638</a><span class="bib-cited">cited <a class="reference backlink" href="#cite-0" aria-label="Back to the citation">↖</a></span></div></div></div>
         </div>
 
         <div class="hr-info-zone">
-        <div class="hr-info">
-        <a id="atiyah2018introduction-doi" class="bibitem-doi" href="https://doi.org/10.1201/9780429493638" target="_blank" aria-label="DOI">
-        <div class="icon ext"><svg overflow="visible"><use href="#hr-icon-ext" width="100%" height="100%"/></svg></div></a>
-        </div>
+        <div class="hr-info"></div>
         </div>
 
         </div>

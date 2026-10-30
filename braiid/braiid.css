@@ -2586,19 +2586,60 @@ body {
 
   li {margin-block: 0.75rem;}
 
-  li::before {
-    margin-right: var(--chunk-quarter);
-    padding: var(--chunk-twelfth);
-    content: counter(item);
-    width: 1.2em;
-    text-align: center;
-    display: inline-block;
-  }
-
 }
+
+.manuscriptwrapper :is(ol, ul).bibliography {list-style: none; padding-inline-start: 0;}
 
 .manuscriptwrapper div.bibliography {
   font-size: 0.92em;
+}
+
+/* Each entry is a card: authors and year, title, venue, then a row with the DOI
+   and the links back to the citations. The card's background and that row show
+   on hover or focus, so the list reads as plain text at rest; without hover
+   (touch) the row always shows. Numeric styles put the number in a pill like
+   the footnote numbers. */
+.manuscriptwrapper .bib-card {
+  display: grid;
+  grid-template-columns: 1fr;
+  column-gap: .3em;
+  border-radius: 8px;
+  padding: .55em .85em;
+  margin-inline: -.85em;
+  transition: background-color .15s;
+}
+.manuscriptwrapper .bib-card:has(> .bib-num) {grid-template-columns: 2.4em 1fr;}
+.manuscriptwrapper .bib-num {
+  justify-self: start;
+  align-self: start;
+  margin-top: .3em;
+  font-size: .8em;
+  line-height: 1;
+  padding: .18em .4em;
+  border-radius: 4px;
+  font-weight: 600;
+  color: var(--primary-700);
+  background: color-mix(in srgb, var(--primary-700) 12%, var(--surface-page));
+}
+.bib-body {min-width: 0;}
+.bib-who {font-weight: 600;}
+.bib-title {font-style: italic;}
+.bib-venue {color: var(--text-subtle); font-size: .92em;}
+.bib-links {
+  display: flex;
+  justify-content: space-between;
+  gap: .25em 1em;
+  flex-wrap: wrap;
+  font-size: .9em;
+  margin-top: .1em;
+}
+.bib-links .bibitem-doi, .bib-links .bibitem-url {overflow-wrap: anywhere;}
+.bib-cited {margin-left: auto; white-space: nowrap;}
+.bib-cited a.backlink + a.backlink {margin-left: .15em;}
+@media (hover: hover) {
+  .manuscriptwrapper .bib-links {opacity: 0; transition: opacity .15s;}
+  .manuscriptwrapper .bibitem:is(:hover, :focus-within) .bib-card {background: var(--surface-primary);}
+  .manuscriptwrapper .bibitem:is(:hover, :focus-within) .bib-links {opacity: 1;}
 }
 
 
