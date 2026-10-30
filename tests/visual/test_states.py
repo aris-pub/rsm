@@ -99,10 +99,14 @@ class TestHandrailStates:
         fixture = Path(__file__).parent / "fixtures" / "interactive-states.rsm"
         content = serve_rsm_html(fixture.read_text())
 
-        # Click collapse button (force=True bypasses visibility checks)
         proof = page.locator(".proof.hr").first
-        collapse_btn = proof.locator(".hr-collapse").first
-        collapse_btn.click(force=True)
+        if viewport_name == "phone":
+            # Touch has no chevron: folding is an item in the dots menu.
+            proof.locator(":scope > .hr-border-zone .hr-border-dots").click()
+            page.locator('#hr-menu-singleton [data-role="collapse"]').click()
+        else:
+            # Click collapse button (force=True bypasses visibility checks)
+            proof.locator(".hr-collapse").first.click(force=True)
 
         # Wait for collapse animation/class to apply
         page.wait_for_selector(".proof.hr.hr-collapsed", timeout=1000)
