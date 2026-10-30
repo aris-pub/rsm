@@ -207,3 +207,35 @@ class TestPinnedHeader:
         before = page.locator(".rail-pinned-title").evaluate("e => getComputedStyle(e, '::before').content")
         assert "Pinned" in before, before
         expect(page.locator(".rail-pin-close")).to_be_visible()
+
+
+class TestUnpinClosesTheSheetOnPhones:
+    def _pinned_sheet(self, page, interactive_server):
+        _load(page, interactive_server)
+        _pin(page, "#thm-x")
+        page.wait_for_timeout(300)
+        if not page.evaluate("document.documentElement.classList.contains('rail-open')"):
+            page.click('.rail-strip-btn[data-view="pinned"]')
+        page.wait_for_function("() => document.documentElement.classList.contains('rail-open')")
+
+    def test_unpin_closes_the_sheet_on_a_phone(self, playwright, browser, interactive_server: str):
+        ctx = browser.new_context(**playwright.devices["iPhone 13"])
+        page = ctx.new_page()
+        try:
+            page.goto(f"{interactive_server}/sidebar.html")
+            page.wait_for_function(RSM_READY, timeout=10_000)
+            theorem = page.locator(".manuscript .theorem").first
+            theorem.scroll_into_view_if_needed()
+            theorem.locator(":scope > .hr-border-zone .hr-border-dots").click()
+            page.locator('#hr-menu-singleton [data-role="pin"]').click()
+            page.wait_for_function("() => document.documentElement.classList.contains('rail-open')")
+            page.locator(".rail-pin-close").click()
+            page.wait_for_function("() => !document.documentElement.classList.contains('rail-open')", timeout=3000)
+        finally:
+            ctx.close()
+
+    def test_unpin_keeps_the_panel_open_on_desktop(self, page: Page, interactive_server: str):
+        self._pinned_sheet(page, interactive_server)
+        page.locator(".rail-pin-close").click()
+        expect(page.locator(".rail-pinned-empty")).to_be_visible()
+        assert page.evaluate("document.documentElement.classList.contains('rail-open')")

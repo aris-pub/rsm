@@ -711,7 +711,9 @@ def test_phone_touch_drag_scrolls_the_page(touch_page: Page, interactive_server:
     assert seen[-1] > max_y * 0.9
 
 
-def test_phone_tap_near_a_mark_shows_its_label(touch_page: Page, interactive_server: str):
+def test_phone_first_tap_shows_the_label_second_tap_goes_there(touch_page: Page, interactive_server: str):
+    """As with notes: a finger cannot hover, so the first tap on a mark shows
+    its label without moving the page, and a second tap on it goes there."""
     page = touch_page
     _load_touch(page, interactive_server)
     cdp = page.context.new_cdp_session(page)
@@ -720,9 +722,14 @@ def test_phone_tap_near_a_mark_shows_its_label(touch_page: Page, interactive_ser
     m = _mark(page, "2. Results")
     track = _track(page)
     y = track["y"] + m["y"] + 20  # within the 24px touch reach, not the 12px mouse one
+    before = page.evaluate("() => window.scrollY")
     _touch(cdp, "touchStart", PHONE["width"] - 6, y)
+    _touch(cdp, "touchEnd", 0, 0)
+    page.wait_for_timeout(400)
     assert page.locator(".rsm-minimap-tip").inner_text() == "2. Results"
     assert page.locator(".rsm-minimap-tip").is_visible()
+    assert page.evaluate("() => window.scrollY") == before, "the first tap moved the page"
+    _touch(cdp, "touchStart", PHONE["width"] - 6, y)
     _touch(cdp, "touchEnd", 0, 0)
     _settle_scroll(page)
     assert abs(_top_in_viewport(page, "sec-results") - PHONE["height"] / 2) <= 2

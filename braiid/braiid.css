@@ -3966,6 +3966,18 @@ html:not(.has-rail) .manuscriptwrapper .rail-strip { display: none; }
   .manuscriptwrapper .proof-rail.scope-document .rail-subtabs-document,
   .manuscriptwrapper .proof-rail.scope-proof .rail-subtabs-proof { display: flex; }
   .manuscriptwrapper .proof-rail.has-tabs .rail-title { display: none; }
+  /* With tabs in place of the title, the hint shares their row, at the right. */
+  .manuscriptwrapper .proof-rail.has-tabs .rail-head {
+    flex-direction: row;
+    align-items: center;
+    gap: var(--chunk-third);
+  }
+  .manuscriptwrapper .proof-rail.has-tabs .rail-hint {
+    flex: 1 1 auto;
+    min-width: 0;
+    text-align: right;
+    order: 2;
+  }
 
   /* Reading in the sheet: label beside its tiles; no Width (the column already
      fills the screen). */
