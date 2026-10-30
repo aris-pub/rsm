@@ -1226,6 +1226,13 @@ body {
    Desktop keeps the chevron and the hover reveal above. */
 @media (hover: none) and (pointer: coarse) {
   .manuscriptwrapper .hr > .hr-collapse-zone .hr-collapse { display: none; }
+  /* Remove the fold column itself, on every block. Hiding only the chevron
+     left the column 0 wide in foldable blocks but 12px wide (its spacer) in
+     the others, so their rails sat 12px apart. */
+  .manuscriptwrapper .hr > .hr-collapse-zone { display: none; }
+  /* And give the same 12px back on the right: the equation-number column
+     drops its side padding (numbers still fit its 32px). */
+  .manuscriptwrapper .hr > .hr-info-zone { padding-inline: 0; }
   /* Reveal the dots. At rest their background matches the page, so they break
      the vertical rule (occlude it) without reading as a pill. The visible
      rounded pill appears only while that block's menu is open. */
@@ -2725,6 +2732,12 @@ body {
     & > .hr-border-zone { opacity: 100%; }
     & > .hr-border-zone .hr-border-dots { opacity: 100%; }
   }
+}
+/* On touch there is no fold column (see the touch block above), so a caption's
+   rail is one column in, like every other block's. */
+@media screen and (hover: none) and (pointer: coarse) {
+  .manuscriptwrapper .manuscript .hr.rsm-cap-linked { padding-left: calc(2 * var(--hr-zone-width)); }
+  .manuscriptwrapper .manuscript .hr.rsm-cap-linked > .hr-border-zone { left: var(--cap-rail-x, 0px); }
 }
 
 /* The margin column (margin.js decides where each item goes; sidebar.js sets

@@ -21,7 +21,7 @@ FIXTURES = Path(__file__).parents[1] / "interactive" / "fixtures"
 SRC = (FIXTURES / "asides.rsm").read_text()
 
 # 1280 and 1440: the column fits. 768 and 375: it does not.
-WIDTHS = [("wide-1440", 1440), ("desktop-1280", 1280), ("tablet-768", 768), ("mobile-375", 375)]
+WIDTHS = [("wide-1440", 1440), ("desktop-1280", 1280), ("tablet-768", 768), ("mobile-375", 375), ("phone-375", 375)]
 NARROW = WIDTHS[2:]
 WIDE = WIDTHS[:2]
 

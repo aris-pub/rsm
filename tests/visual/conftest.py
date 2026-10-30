@@ -85,7 +85,8 @@ def assert_snapshot(pytestconfig: Any, request: Any, browser_name: str) -> Calla
 # Viewport configurations aligned with BRAIID responsive breakpoints
 # Mobile-first approach: 12px base (< 640px), 14px (640px+), 16px (1024px+)
 VIEWPORTS = [
-    ("mobile", 375, 667),    # iPhone SE - tests mobile default (12px base)
+    ("mobile", 375, 667),    # narrow desktop window: mouse, phone width (12px base)
+    ("phone", 375, 667),     # a phone: touch and mobile viewport (see the page fixture)
     ("tablet", 768, 1024),   # iPad - tests sm breakpoint (14px base, 640px-1024px)
     ("desktop", 1280, 720),  # Standard desktop - tests lg breakpoint (16px base, 1024px+)
 ]
@@ -236,3 +237,26 @@ def browser_context_args(browser_context_args: dict[str, Any]) -> dict[str, Any]
         "viewport": {"width": 1280, "height": 720},
         "device_scale_factor": 1,
     }
+
+
+def _is_phone_run(request: Any) -> bool:
+    callspec = getattr(request.node, "callspec", None)
+    if callspec is None:
+        return False
+    return any(isinstance(v, str) and v.startswith("phone") for v in callspec.params.values())
+
+
+@pytest.fixture
+def page(context: Any, browser: Any, browser_context_args: dict[str, Any], request: Any) -> Any:
+    """A phone run gets a touch, mobile-viewport context. A narrow desktop window
+    never applies the touch-only rules ((hover: none) and (pointer: coarse)), so
+    phone-width runs without this never showed what a phone shows."""
+    if not _is_phone_run(request):
+        p = context.new_page()
+        yield p
+        p.close()
+        return
+    ctx = browser.new_context(**{**browser_context_args, "is_mobile": True, "has_touch": True})
+    p = ctx.new_page()
+    yield p
+    ctx.close()
