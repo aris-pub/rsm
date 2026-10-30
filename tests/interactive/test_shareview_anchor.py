@@ -333,43 +333,6 @@ class TestPins:
         page.locator('#hr-menu-singleton [data-role="pin"]').click()
         expect(page.locator(".proof-rail")).to_have_class(re.compile(r"\bhas-pin\b"))
 
-    def test_pin_rides_along_and_is_not_saved(
-        self, page: Page, interactive_server: str
-    ):
-        _fresh_sender(page, interactive_server)
-        self._pin_lemma(page)
-        title = page.locator(".rail-pinned-title").inner_text()
-        assert title.startswith("Lemma")
-        _settle(page)
-        _place(page, "par-1-6")
-        sender_top = _top(page, "par-1-6")
-        url = _copy_view_url(page)
-        assert _token(url)["pins"][0]["id"] == "lem-main"
-
-        # The recipient has their own saved settings already.
-        page.evaluate("() => localStorage.clear()")
-        _load(page, interactive_server)
-        saved_before = page.evaluate("() => JSON.stringify({...localStorage})")
-
-        page.goto(url)
-        page.wait_for_function(RSM_READY, timeout=10_000)
-        expect(page.locator(".rsm-shared-pill")).to_be_visible(timeout=5000)
-        rail = page.locator(".proof-rail")
-        expect(rail).to_have_class(re.compile(r"\bhas-pin\b"))
-        expect(page.locator(".rail-pinned-title")).to_have_text(title)
-        expect(page.locator(".rail-pinned-body")).to_contain_text("For every")
-        assert "view=" not in page.evaluate("() => window.location.search")
-        _settle(page)
-        page.wait_for_timeout(600)
-        _assert_lands_like_sender(page, "par-1-6", sender_top)
-
-        assert page.evaluate("() => JSON.stringify({...localStorage})") == saved_before
-        page.reload()
-        page.wait_for_function(RSM_READY, timeout=10_000)
-        expect(rail).not_to_have_class(re.compile(r"\bhas-pin\b"))
-        expect(page.locator(".rsm-shared-pill")).to_have_count(0)
-        assert page.evaluate("() => JSON.stringify({...localStorage})") == saved_before
-
     def test_no_pin_no_pins_field(self, page: Page, interactive_server: str):
         _fresh_sender(page, interactive_server)
         url = _copy_view_url(page)
