@@ -37,8 +37,9 @@ def test_multi_author_cite_uses_spelled_out_names(page: Page, interactive_server
 
 
 def test_bibliography_entry_is_a_card_with_links_on_hover(page: Page, interactive_server: str):
-    """Each entry shows authors and year, title and venue; its row of links
-    (DOI and the way back to the citation) shows on hover."""
+    """Each entry shows authors and year, title and venue. Its DOI (flush right
+    on the title line) and the way back to the citation (flush right on the
+    venue line) show on hover, so the card has no extra row."""
     page.set_viewport_size({"width": 1280, "height": 900})
     page.goto(f"{interactive_server}/citations-author-year.html")
     page.wait_for_function(RSM_READY, timeout=10_000)
@@ -46,11 +47,17 @@ def test_bibliography_entry_is_a_card_with_links_on_hover(page: Page, interactiv
     expect(entry.locator(".bib-who")).to_contain_text("Bourgain")
     expect(entry.locator(".bib-title")).not_to_be_empty()
     expect(entry.locator(".bib-num")).to_have_count(0)
-    links = entry.locator(".bib-links")
-    expect(links.locator("a.backlink")).to_have_count(1)
+    cited = entry.locator(".bib-cited")
+    expect(cited.locator("a.backlink")).to_have_count(1)
+    title_top = entry.locator(".bib-title").bounding_box()["y"]
+    venue_top = entry.locator(".bib-venue").bounding_box()["y"]
+    assert abs(cited.bounding_box()["y"] - venue_top) < 6
+    doi = entry.locator(".bibitem-doi")
+    if doi.count():
+        assert abs(doi.bounding_box()["y"] - title_top) < 6
     page.mouse.move(1, 1)
-    expect(links).to_have_css("opacity", "0")
+    expect(cited).to_have_css("opacity", "0")
     entry.locator(".bib-title").hover()
-    expect(links).to_have_css("opacity", "1")
+    expect(cited).to_have_css("opacity", "1")
     bg = entry.locator(".bib-card").evaluate("e => getComputedStyle(e).backgroundColor")
     assert bg != "rgba(0, 0, 0, 0)"

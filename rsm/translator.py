@@ -2094,32 +2094,13 @@ class Translator:
         )
 
     def visit_bibitem(self, node: nodes.Bibitem) -> EditCommand:
-        # An entry is a card: authors and year, title, venue, and a row with the
-        # DOI and the links back to each citation. Author-year bibliographies are
+        # An entry is a card: authors and year, title with the DOI, venue with the
+        # links back to each citation. Author-year bibliographies are
         # unnumbered and the year carries the a/b/c suffix assigned during
         # transform; numeric ones show the number in a pill beside the card.
         style = getattr(self.tree, "citation_style", "numeric")
         ay = style in ("parens-author-year", "author-parens-year")
         year_text = f"{node.year}{node.year_suffix}" if (ay and node.year) else node.year
-
-        lines = []
-        if node.verbatim:
-            # A verbatim reference is unstructured, so render its text as-is and
-            # warn once here instead of emitting the per-field warnings below.
-            logger.warning(f"Bibitem {node.label} is a verbatim (unparsed) reference")
-            lines.append(f'<div class="bib-verbatim">{node.verbatim}</div>')
-        else:
-            who = str(node.author or "").strip()
-            if node.year:
-                who = f"{who} ({year_text})" if who else f"({year_text})"
-            else:
-                logger.warning(f"Bibitem {node.label} has no year")
-            lines.append(f'<div class="bib-who">{who}</div>')
-            if node.title:
-                lines.append(f'<div class="bib-title">{str(node.title).strip().rstrip(".")}</div>')
-            venue = self._bib_venue(node)
-            if venue:
-                lines.append(f'<div class="bib-venue">{venue}</div>')
 
         link = ""
         if node.doi:
@@ -2131,8 +2112,9 @@ class Translator:
                     classes=["bibitem-doi"],
                     href=f"https://doi.org/{doi}",
                     target="_blank",
+                    title=f"doi.org/{doi}",
                 )
-                + f"doi.org/{doi}</a>"
+                + "DOI</a>"
             )
         elif node.url:
             shown = re.sub(r"^https?://(www\.)?", "", node.url).rstrip("/")
@@ -2143,8 +2125,9 @@ class Translator:
                     classes=["bibitem-url"],
                     href=node.url,
                     target="_blank",
+                    title=shown,
                 )
-                + f"{shown}</a>"
+                + "Link</a>"
             )
         elif not node.verbatim:
             logger.warning(f"Bibitem {node.label} has no DOI")
@@ -2166,8 +2149,29 @@ class Translator:
                 for idx, link_lbl in enumerate(node.backlinks, start=1)
             ]
             cited = '<span class="bib-cited">cited ' + " ".join(backs) + "</span>"
-        if link or cited:
-            lines.append(f'<div class="bib-links">{link}{cited}</div>')
+
+        # The DOI sits flush right on the title line and the back links on the
+        # venue line, so the card needs no row of its own for them.
+        def line(main: str, side: str) -> str:
+            return f'<div class="bib-line">{main}{side}</div>'
+
+        lines = []
+        if node.verbatim:
+            # A verbatim reference is unstructured, so render its text as-is and
+            # warn once here instead of emitting the per-field warnings below.
+            logger.warning(f"Bibitem {node.label} is a verbatim (unparsed) reference")
+            lines.append(line(f'<div class="bib-verbatim">{node.verbatim}</div>', link + cited))
+        else:
+            who = str(node.author or "").strip()
+            if node.year:
+                who = f"{who} ({year_text})" if who else f"({year_text})"
+            else:
+                logger.warning(f"Bibitem {node.label} has no year")
+            lines.append(f'<div class="bib-who">{who}</div>')
+            title = str(node.title or "").strip().rstrip(".")
+            venue = self._bib_venue(node)
+            lines.append(line(f'<div class="bib-title">{title}</div>', link))
+            lines.append(line(f'<div class="bib-venue">{venue}</div>', cited))
 
         body = '<div class="bib-body">' + "".join(lines) + "</div>"
         num = ""

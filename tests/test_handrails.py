@@ -886,7 +886,7 @@ def test_bibliography():
         </div>
 
         <div class="hr-content-zone">
-        <div class="bib-card"><span class="bib-num">1</span><div class="bib-body"><div class="bib-who">Atiyah, M.F., & MacDonald, I.G. (2018)</div><div class="bib-title">Introduction to commutative algebra</div><div class="bib-venue">CRC Press</div><div class="bib-links"><a id="atiyah2018introduction-doi" class="bibitem-doi" href="https://doi.org/10.1201/9780429493638" target="_blank">doi.org/10.1201/9780429493638</a><span class="bib-cited">cited <a class="reference backlink" href="#cite-0" aria-label="Back to the citation">↖</a></span></div></div></div>
+        <div class="bib-card"><span class="bib-num">1</span><div class="bib-body"><div class="bib-who">Atiyah, M.F., & MacDonald, I.G. (2018)</div><div class="bib-line"><div class="bib-title">Introduction to commutative algebra</div><a id="atiyah2018introduction-doi" class="bibitem-doi" href="https://doi.org/10.1201/9780429493638" target="_blank" title="doi.org/10.1201/9780429493638">DOI</a></div><div class="bib-line"><div class="bib-venue">CRC Press</div><span class="bib-cited">cited <a class="reference backlink" href="#cite-0" aria-label="Back to the citation">↖</a></span></div></div></div>
         </div>
 
         <div class="hr-info-zone">
