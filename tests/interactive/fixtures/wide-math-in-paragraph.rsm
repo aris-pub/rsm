@@ -1,0 +1,18 @@
+# Wide Math Inside a Paragraph
+
+## First section
+
+The second method compares sums of squared distances over two sets of pairs.
+An inequality between two such sums that holds in every Euclidean space bounds from below the distortion of any metric space in which the pairs of the first set are much farther apart than those of the second.
+We first apply the method to the cube, where it gives $\sqrt{\log n}$, and then to expander graphs, where it gives the sharp bound.
+Another holds for any four points $p_1,p_2,p_3,p_4$ of a Euclidean space:
+
+$$ {:label: eq-shortdiag}
+\|p_1-p_3\|^2+\|p_2-p_4\|^2\le\|p_1-p_2\|^2+\|p_2-p_3\|^2+\|p_3-p_4\|^2+\|p_4-p_1\|^2 ,
+$$
+
+which holds because the difference of the two sides is a sum of squares.
+
+A paragraph with a long inline formula, which cannot wrap, $\|p_1-p_3\|^2+\|p_2-p_4\|^2\le\|p_1-p_2\|^2+\|p_2-p_3\|^2+\|p_3-p_4\|^2+\|p_4-p_1\|^2$, and more words after it.
+
+A plain paragraph after it, long enough to wrap onto a second line at any width.
