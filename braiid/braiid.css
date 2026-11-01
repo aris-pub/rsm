@@ -1840,6 +1840,13 @@ body {
   }
   .rail-strip-btn svg { width: 1.25rem; height: 1.25rem; }
   .rail-strip-btn:hover { color: var(--primary-700); background: var(--surface-hover); }
+  /* A view this document cannot show (no structured proofs). Its tooltip says why. */
+  .rail-strip-btn[aria-disabled="true"],
+  .rail-strip-btn[aria-disabled="true"]:hover {
+    color: var(--text-disabled);
+    background: none;
+    cursor: default;
+  }
   .rail-strip-btn[aria-pressed="true"] { color: var(--primary-800); background: var(--primary-100); }
   .rail-strip-btn:focus-visible {
     outline: var(--border-thin) solid var(--border-action);
@@ -2087,13 +2094,41 @@ body {
   .rail-map { display: flex; align-items: center; justify-content: center; min-height: 0; }
 
   /* Outside any proof the Proof scope has nothing live to show. */
-  .rail-proof-empty {
-    display: none;
-    color: var(--gray-700);
-    font-style: italic;
-    font-size: 0.8rem;
-  }
+  /* Outside any proof the panel lists the document's proofs to jump to. */
+  .rail-proof-empty { display: none; font-size: 0.8rem; }
   .proof-rail.no-proof .rail-proof-empty { display: block; }
+  .rail-proof-empty-hint { margin: 0; color: var(--gray-700); font-style: italic; }
+  .rail-proof-list-head {
+    margin: var(--chunk-third) 0 var(--chunk-twelfth);
+    color: var(--text-subtle);
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .rail-proof-list { list-style: none; margin: 0; padding: 0; }
+  .rail-proof-link {
+    display: flex;
+    align-items: baseline;
+    gap: var(--chunk-sixth);
+    padding: var(--chunk-twelfth) var(--chunk-sixth);
+    margin-inline: calc(-1 * var(--chunk-sixth));
+    border-radius: var(--radius-md);
+    color: light-dark(var(--primary-700), var(--primary-800));
+    text-decoration: none;
+    font-size: 0.85rem;
+  }
+  .rail-proof-link:hover { background: var(--surface-hover); text-decoration: none; }
+  .rail-proof-link:focus-visible {
+    outline: var(--border-thin) solid var(--border-action);
+    outline-offset: 1px;
+  }
+  .rail-proof-meta {
+    margin-left: auto;
+    color: var(--text-subtle);
+    font-size: 0.75rem;
+    white-space: nowrap;
+  }
 
   /* Collapsed proof: the rail shows a single node standing for the proof, not
      the step graph the page is hiding. The card itself expands the proof. */

@@ -3208,9 +3208,11 @@ class HandrailsTranslator(Translator):
         # Proof scope: one pre-rendered step-tree (and its state) per proof,
         # auto-followed by prooftree.js as the reader scrolls.
         proof_items = []
+        proof_links = []
         for proof in self.tree.traverse(nodeclass=nodes.Proof):
             if not proof.tree_nodes:
                 continue
+            proof_links.append(self._rail_proof_link(proof))
             svg = self._build_tree_svg(
                 proof.tree_nodes, proof.tree_edges, proof.tree_root_title,
                 "Proof step dependency graph", orient="horizontal",
@@ -3255,6 +3257,25 @@ class HandrailsTranslator(Translator):
                 strip_btn("steps", _RAIL_STEPS_ICON, "split")
                 + strip_btn("state", _RAIL_STATE_ICON, "split")
                 + strip_btn("proof", _RAIL_STEPS_ICON, "grouped", "Proof")
+            )
+        else:
+            # Shown but disabled, so a reader learns the sidebar has a Proof view
+            # and why it is unavailable here. No data-view, so sidebar.js treats
+            # it as absent (never opens it, never restores it).
+            tip = "This document has no structured proofs"
+            groups.append(
+                "".join(
+                    f'<button type="button" class="rail-strip-btn" data-mode="{mode}" '
+                    f'aria-disabled="true" aria-label="{escape(name)}: {tip}" '
+                    f'data-tip="{tip}">{icon}'
+                    f'<span class="rail-strip-label" aria-hidden="true">{escape(name)}</span>'
+                    "</button>"
+                    for name, icon, mode in (
+                        (self._RAIL_VIEWS["steps"][0], _RAIL_STEPS_ICON, "split"),
+                        (self._RAIL_VIEWS["state"][0], _RAIL_STATE_ICON, "split"),
+                        ("Proof", _RAIL_STEPS_ICON, "grouped"),
+                    )
+                )
             )
         groups.append(
             strip_btn("pinned", _RAIL_PIN_ICON, "both")
@@ -3318,7 +3339,9 @@ class HandrailsTranslator(Translator):
         proof_section = (
             '<div class="rail-section rail-proof">'
             '<div class="rail-proof-empty">'
-            "Click a proof to see its steps and state.</div>"
+            '<p class="rail-proof-empty-hint">No proof selected.</p>'
+            '<p class="rail-proof-list-head">Proofs in this document</p>'
+            '<ul class="rail-proof-list">' + "".join(proof_links) + "</ul></div>"
             + "".join(proof_items) + "</div>"
         )
         # Holds the one currently pinned excerpt (filled by prooftree.js from a
@@ -3350,6 +3373,27 @@ class HandrailsTranslator(Translator):
             ) + "</div>"
         )
         return AppendText(text=strip + panel)
+
+    @staticmethod
+    def _rail_proof_link(proof) -> str:
+        """One row of the Proof panel's list: the proof's name, section and steps."""
+        from html import escape
+
+        target = proof.label or f"n{proof.nodeid}"
+        anc = proof.parent
+        while anc is not None and not isinstance(anc, nodes.Section):
+            anc = anc.parent
+        where = f"\u00a7{anc.full_number}" if anc is not None and anc.full_number else ""
+        n = proof.num_steps
+        steps = f"{n} step{'' if n == 1 else 's'}" if n else ""
+        meta = " \u00b7 ".join(x for x in (where, steps) if x)
+        return (
+            f'<li><a class="rail-proof-link" href="#{escape(target)}" '
+            f'data-proof="{proof.nodeid}">'
+            f'<span class="rail-proof-name">Proof of {escape(proof.tree_root_title)}</span>'
+            + (f'<span class="rail-proof-meta">{meta}</span>' if meta else "")
+            + "</a></li>"
+        )
 
     def _rail_item(
         self, key: str, svg: str, step_state, root_title: str, step_count: int

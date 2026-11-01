@@ -92,6 +92,9 @@ function buildExcerpt(rawHref) {
       content = clone.html();
     } else if (classes.contains("proof")) {
       clone = $t.clone();
+      // A collapsed proof hides its body with .hide. The preview shows the proof
+      // itself, so undo the proof's own fold (nested folds stay as they are).
+      clone.children(".hr-content-zone").children(".hide").removeClass("hide");
       stripHandrail(clone);
       content = clone.html();
     } else if (["math", "algorithm"].some((c) => classes.contains(c))) {
@@ -292,7 +295,9 @@ const PREVIEW_OPTIONS = {
     // number, and the phrase is already in the text, so theirs is "Aside".
     const marker = helper.origin.classList.contains("note-marker");
     const aside = helper.origin.classList.contains("aside-phrase");
+    const listed = helper.origin.querySelector(".rail-proof-name");
     const title = (
+      (listed && listed.textContent) ||
       (aside && "Aside") ||
       (marker && `Note ${helper.origin.dataset.noteNumber}`) ||
       (target && target.getAttribute("data-menu-label")) ||
@@ -345,6 +350,13 @@ export function createTooltips() {
   );
   $previewed.tooltipster(PREVIEW_OPTIONS);
   $previewed.each((_, el) => tapToPreview(el));
+
+  // The Proof panel's list of proofs previews each proof on hover. A tap goes
+  // straight to the proof, so touch gets no preview.
+  $(".proof-rail a.rail-proof-link:not(.tooltipstered)").tooltipster({
+    ...PREVIEW_OPTIONS,
+    side: "right",
+  });
 
   // Aside phrases get the same preview, but only while the aside is closed
   // below its block on a pointer device (asides.js says when). A tap or click
