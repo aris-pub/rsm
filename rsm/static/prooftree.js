@@ -352,6 +352,19 @@ export function setup(root = document) {
       updateState();
     }
   });
+  // A proof picked from the empty panel's list: open it if collapsed, follow it
+  // in the panel, and jump to it by hash (so Back returns the reader).
+  rail.addEventListener("click", (ev) => {
+    const link = ev.target.closest(".rail-proof-link");
+    if (!link) return;
+    const el = proofElFor(link.dataset.proof);
+    if (!el) return;
+    ev.preventDefault();
+    if (el.classList.contains("hr-collapsed")) openHandrail(el);
+    show(link.dataset.proof);
+    if (el.id) location.hash = el.id;
+    else el.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
   rail.addEventListener("click", (ev) => {
     const btn = ev.target.closest(".rail-expand-proof");
     if (!btn) return;

@@ -177,6 +177,10 @@ def test_no_proof_views_without_structured_proofs():
     views = [v for v, _ in _strip_views(_sidebar(src))]
     assert "steps" not in views and "state" not in views and "proof" not in views
     assert "contents" in views and "pinned" in views and "reading" in views
+    # The proof icons stay in the strip, disabled, with a tooltip saying why.
+    html = _sidebar(src)
+    tip = 'aria-disabled="true" aria-label="Proof steps: This document has no structured proofs" data-tip="This document has no structured proofs"'
+    assert tip in html
 
 
 def test_proof_items_live_under_proof_scope():
@@ -373,3 +377,15 @@ def test_render_sidebar_implies_handrails():
     # The sidebar is built on the handrails markup; asking for it is enough.
     html = rsm.render(RAIL_SRC, sidebar=True)
     assert 'class="rail-strip"' in html
+
+
+def test_empty_proof_panel_lists_the_proofs():
+    # Before a proof is selected, the panel lists each structured proof with its
+    # section and step count, linked to the proof.
+    html = _sidebar(RAIL_SRC)
+    empty = html[html.index('<div class="rail-proof-empty">'):html.index("</ul></div>")]
+    assert "No proof selected." in empty
+    assert "Proofs in this document" in empty
+    assert '<span class="rail-proof-name">Proof of Theorem 1.1</span>' in empty
+    assert '<span class="rail-proof-meta">§1 · 3 steps</span>' in empty
+    assert empty.count('class="rail-proof-link"') == 1
