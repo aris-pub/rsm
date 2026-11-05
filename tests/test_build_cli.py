@@ -583,3 +583,41 @@ class TestFindRequiredAssets:
         assert any("local.js" in a for a in asset_strs), (
             "Local assets should still be included"
         )
+
+    def test_in_page_references_excluded_from_required_assets(self):
+        """A src starting with # points into the page itself, never at a file."""
+        from rsm.builder import FolderBuilder
+
+        builder = FolderBuilder()
+        builder.body = (
+            '<x-widget src="#widget-data"></x-widget><script src="local.js"></script>'
+        )
+        builder.required_assets = []
+        builder.find_required_assets()
+
+        assert builder.required_assets == ["local.js"]
+
+
+@pytest.mark.slow
+def test_build_keeps_in_page_references_in_html_assets(tmp_path):
+    """An :html: asset that names an element of the page by #id keeps that reference,
+    and the build does not look for a file named after it."""
+    (tmp_path / "widget.html").write_text(
+        '<x-widget src="#widget-data"></x-widget>\n'
+        '<script type="application/json" id="widget-data">{"k": 1}</script>\n'
+    )
+    src_file = tmp_path / "doc.rsm"
+    src_file.write_text("# Test\n\n:html: {\n  :path: widget.html\n}\n::\n")
+
+    result = subprocess.run(
+        ["rsm", "build", str(src_file)],
+        cwd=tmp_path,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    html = (tmp_path / "doc.html").read_text()
+    assert '<x-widget src="#widget-data">' in html
+    assert "assets/#widget-data" not in html
+    assert "widget-data" not in result.stdout + result.stderr

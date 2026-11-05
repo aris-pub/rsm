@@ -87,13 +87,14 @@ class BaseBuilder(ABC):
     def find_required_assets(self) -> None:
         """Collect the user assets the document references by a relative path
         (figure images, video and static fallbacks, from src, srcset and
-        data-static). http(s) and data: URLs are external, and absolute paths
-        are left alone, so both are skipped. FolderBuilder copies these into
+        data-static). http(s) and data: URLs are external, absolute paths
+        are left alone, and a reference starting with # points into the page
+        itself, so all three are skipped. FolderBuilder copies these into
         the output folder so it is self-contained and can be moved."""
         refs = [ref for _, ref, _ in _ASSET_REF_RE.findall(str(self.body))]
         seen: dict[str, None] = {}
         for ref in refs:
-            if not ref or ref.startswith(("http://", "https://", "data:", "/")):
+            if not ref or ref.startswith(("http://", "https://", "data:", "/", "#")):
                 continue
             seen[ref] = None  # dedupe, preserve document order
         self.required_assets = list(seen)
