@@ -129,6 +129,8 @@ typography = MetaTagInfo(None, str)
 """Typography style for the manuscript (sans-serif, serif)."""
 citation_style = MetaTagInfo(None, str)
 """Citation style for the manuscript (numeric, parens-author-year, author-parens-year)."""
+eyebrow = MetaTagInfo(None, str)
+"""Short label set above the manuscript title, such as "Note" or "Preprint"."""
 affiliation = MetaTagInfo(None, datetime)
 """Author institutional affiliation."""
 author_display_first = MetaTagInfo(None, int)

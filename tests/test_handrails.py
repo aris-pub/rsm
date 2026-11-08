@@ -235,6 +235,111 @@ def test_manuscript():
     )
 
 
+def test_manuscript_eyebrow():
+    compare_have_want_handrails(
+        have="""
+        # Some Title {
+          :eyebrow: Note
+        }
+
+        Hello.
+
+        """,
+        want="""
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
+
+        <main class="manuscriptwrapper">
+
+        <div class="manuscript" data-nodeid="0">
+
+        <section class="level-1">
+
+        <p class="manuscript-eyebrow">Note</p>
+
+        <div class="heading hr" tabindex=0>
+
+        <div class="hr-collapse-zone">
+
+                    <button type="button" class="hr-collapse" aria-expanded="true" aria-label="Show or hide this block">
+                      <div class="icon collapse"><svg overflow="visible"><use href="#hr-icon-collapse" width="100%" height="100%"/></svg></div>
+                    </button>
+
+        </div>
+
+        <div class="hr-menu-zone">
+</div>
+
+        <div class="hr-border-zone">
+
+                        <div class="hr-border-dots">
+                          <div class="icon dots"><svg overflow="visible"><use href="#hr-icon-dots" width="100%" height="100%"/></svg></div>
+                        </div>
+                        <div class="hr-border-rect">
+                        </div>
+
+        </div>
+
+        <div class="hr-spacer-zone">
+        <div class="hr-spacer"></div>
+        </div>
+
+        <div class="hr-content-zone">
+
+        <h1>Some Title</h1>
+
+        </div>
+
+        <div class="hr-info-zone">
+        <div class="hr-info"></div>
+        </div>
+
+        </div>
+
+        <div class="paragraph hr hr-hidden" tabindex=0 data-nodeid="1">
+
+        <div class="hr-collapse-zone">
+        <div class="hr-spacer"></div>
+        </div>
+
+        <div class="hr-menu-zone">
+</div>
+
+        <div class="hr-border-zone">
+
+                        <div class="hr-border-dots">
+                          <div class="icon dots"><svg overflow="visible"><use href="#hr-icon-dots" width="100%" height="100%"/></svg></div>
+                        </div>
+                        <div class="hr-border-rect">
+                        </div>
+
+        </div>
+
+        <div class="hr-spacer-zone">
+        <div class="hr-spacer"></div>
+        </div>
+
+        <div class="hr-content-zone">
+
+        <p>Hello.</p>
+
+        </div>
+
+        <div class="hr-info-zone">
+        <div class="hr-info"></div>
+        </div>
+
+        </div>
+
+        </section>
+
+        </div>
+
+        </main>
+
+        </body>
+        """,
+    )
+
 def test_section():
     compare_have_want_handrails(
         have="""
