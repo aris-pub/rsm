@@ -55,6 +55,7 @@ meta, then body content:
 ```
 # Manuscript Title {
   :label: my-manuscript
+  :eyebrow: Preprint
 }
 
 :config: {
@@ -89,7 +90,8 @@ meta, then body content:
 ```
 
 **Manuscript meta** goes in `{...}` right after the `#` title. It accepts keys like
-`:label:` and `:title:`.
+`:label:` and `:title:`, and `:eyebrow:`: a short label set above the title, such as
+`Preprint` or `Lecture notes`.
 
 **`:config:`** is a block tag for document-wide settings: `:theme:`, `:accent:`,
 `:typography:`, `:numbering:`, `:citation-style:`, `:override-date:`, `:toc-depth:`,
@@ -288,6 +290,7 @@ key-value pairs; inline meta uses comma-separated pairs inside `{...}`.
 | `:alt:` | Alt text for figure images |
 | `:author-note:` | Author note (e.g. "Equal contribution") |
 | `:email:` | Author email |
+| `:eyebrow:` | Short label above the manuscript title |
 | `:goal:` | Theorem goal |
 | `:icon:` | Icon assigned to the block |
 | `:label:` | Cross-reference label |

@@ -1069,6 +1069,9 @@ class Translator:
                 AppendOpenTag("section", classes=["level-1"]),
             ]
         )
+        if node.eyebrow:
+            batch.items.append(AppendParagraph(node.eyebrow, classes=["manuscript-eyebrow"]))
+
         if node.title:
             batch.items.append(AppendHeading(1, node.title))
 
@@ -3456,8 +3459,10 @@ class HandrailsTranslator(Translator):
     def visit_manuscript(self, node: nodes.Manuscript) -> EditCommand:
         batch = super().visit_manuscript(node)
         if node.title:
+            # The title follows the eyebrow, when there is one.
+            title_index = 5 if node.eyebrow else 4
             batch = self._wrap_batch_item_with_handrails(
-                4, batch, classes=["heading"], menu_label="Title", link=True, node=node
+                title_index, batch, classes=["heading"], menu_label="Title", link=True, node=node
             )
         if getattr(self, "sidebar", False):
             # The skip link (emitted by _make_proof_rail, before the strip) lands

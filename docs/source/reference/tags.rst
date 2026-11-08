@@ -72,6 +72,7 @@ List of all tags
 .. autoclass:: dark
 .. autoclass:: email
 .. autoclass:: emphas
+.. autoclass:: eyebrow
 .. autoclass:: goal
 .. autoclass:: icon
 .. autoclass:: isclaim

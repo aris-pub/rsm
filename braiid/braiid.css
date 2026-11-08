@@ -2911,6 +2911,15 @@ body {
   margin: 0.25rem 0; }
 
 /* Manuscript metadata */
+.manuscriptwrapper .manuscript-eyebrow {
+  font-size: 0.8125rem;
+  font-weight: var(--weight-semi);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--primary-700);
+  margin-block: var(--chunk-half) var(--chunk-quarter);
+  margin-inline-start: var(--chunk); }
+
 .manuscriptwrapper .manuscript-date {
   font-size: 0.9375rem;
   color: var(--gray-700);

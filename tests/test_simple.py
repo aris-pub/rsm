@@ -131,6 +131,46 @@ def test_manuscript_meta():
     )
 
 
+
+def test_manuscript_eyebrow():
+    compare_have_want(
+        have="""\
+        # My Title {
+          :label: mylbl
+          :eyebrow: Note
+        }
+
+        Hello.
+        """,
+        want="""\
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
+
+        <main class="manuscriptwrapper">
+
+        <div id="mylbl" class="manuscript" data-nodeid="0">
+
+        <section class="level-1">
+
+        <p class="manuscript-eyebrow">Note</p>
+
+        <h1>My Title</h1>
+
+        <div class="paragraph" data-nodeid="1">
+
+        <p>Hello.</p>
+
+        </div>
+
+        </section>
+
+        </div>
+
+        </main>
+
+        </body>
+        """,
+    )
+
 def test_section_header():
     compare_have_want(
         have="""\
