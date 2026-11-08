@@ -2,6 +2,8 @@ import base64
 import re
 from textwrap import dedent
 
+import pytest
+
 import rsm
 from conftest import compare_have_want
 
@@ -621,3 +623,65 @@ def test_caption_rail_is_named_after_its_block():
     html = rsm.render(src, handrails=True)
     labels = re.findall(r'<figcaption[^>]*data-menu-label="([^"]+)"', html)
     assert labels == ["Figure", "Video", "Widget", "Table"]
+
+
+# A caption's label carries its block's number: "Figure 1. ". A block with no number, because
+# of :nonum: or because the manuscript turns numbering off, has a caption with no label, not
+# "Figure None. ".
+UNNUMBERED = dedent("""\
+    # T
+
+    {config}:figure: {{
+      :path: a.png{nonum}
+    }}
+    :caption: A figure.
+    ::
+
+    :html: {{{nonum_block}
+    }}
+
+    <div>w</div>
+
+    :caption: A widget.
+    ::
+
+    :table: {{{nonum_block}
+    }}
+
+    :tbody:
+
+    :tr: :td:one:: ::
+
+    ::
+
+    :caption: A table.
+
+    ::
+""")
+NONUM = {"config": "", "nonum": "\n  :nonum:", "nonum_block": "\n  :nonum:"}
+NUMBERING_OFF = {
+    "config": ":config: {\n  :numbering: none\n}\n::\n\n",
+    "nonum": "",
+    "nonum_block": "",
+}
+
+
+@pytest.mark.parametrize("handrails", [False, True])
+@pytest.mark.parametrize("case", [NONUM, NUMBERING_OFF], ids=["nonum", "numbering-off"])
+def test_a_caption_without_a_number_has_no_label(case, handrails):
+    html = rsm.render(UNNUMBERED.format(**case), handrails=handrails)
+    assert "None" not in html
+    assert re.findall(r'<span class="label">[^<]*</span>', html) == []
+    for text in ("A figure.", "A widget.", "A table."):
+        assert text in html
+
+
+def test_a_numbered_caption_keeps_its_label():
+    html = rsm.render(
+        UNNUMBERED.format(config="", nonum="", nonum_block=""), handrails=True
+    )
+    assert re.findall(r'<span class="label">([^<]*)</span>', html) == [
+        "Figure 1. ",
+        "Widget 2. ",
+        "Table 1. ",
+    ]
