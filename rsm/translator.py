@@ -693,6 +693,20 @@ class AppendOpenTag(AppendTextAndDefer):
         return self._edit_command_repr(["tag", "id", "classes", "newline_inner"])
 
 
+def _caption_label(parent: nodes.Node) -> AppendOpenCloseTag | None:
+    """A caption's label, "Figure 1. ", which exists to carry its block's number. A block with
+    no number (:nonum:, or numbering turned off) gets no label, not "Figure None. "."""
+    if not parent.full_number:
+        return None
+    return AppendOpenCloseTag(
+        tag="span",
+        content=f"{parent.classreftext.format(nodeclass=parent.__class__.__name__, number=parent.full_number)}. ",
+        classes=["label"],
+        newline_inner=False,
+        newline_outer=False,
+    )
+
+
 def _figure_number(node: nodes.Node) -> str | None:
     """The number of a :figure:, :html: or :video: block, or None when it has none."""
     if not isinstance(node, nodes.Asset):
@@ -2274,7 +2288,13 @@ class Translator:
         return f"data:{mime};base64,{encoded}"
 
     def _render_image(self, node: nodes.Asset) -> str:
-        alt_text = node.alt if node.alt else f"{node.__class__.__name__} {node.full_number}."
+        if node.alt:
+            alt_text = node.alt
+        elif node.full_number:
+            alt_text = f"{node.__class__.__name__} {node.full_number}."
+        else:
+            # An unnumbered asset has no "Figure N." to name it by (it showed "Figure None.").
+            alt_text = node.__class__.__name__
         src = self._resolve_image_src(node.path)
         # No id on the <img>: the asset's label already becomes the id on the
         # enclosing <figure> (via AppendNodeTag), and putting it here too gave
@@ -2425,13 +2445,7 @@ class Translator:
 
     def visit_caption(self, node: nodes.Caption) -> EditCommand:
         parent = node.parent
-        caption = AppendOpenCloseTag(
-            tag="span",
-            content=f"{parent.classreftext.format(nodeclass=parent.__class__.__name__, number=parent.full_number)}. ",
-            classes=["label"],
-            newline_inner=False,
-            newline_outer=False,
-        )
+        caption = _caption_label(parent)
         # Tables use figcaption outside <table> (inside table-wrapper) so the caption
         # doesn't participate in the table's intrinsic width calculation.
         use_figcaption = isinstance(parent, (nodes.Asset, nodes.Table))
@@ -2441,7 +2455,7 @@ class Translator:
         items.extend(
             [
                 AppendOpenTag("figcaption" if use_figcaption else "caption"),
-                caption,
+                *([caption] if caption else []),
             ]
         )
         return AppendBatchAndDefer(items)
@@ -3677,13 +3691,7 @@ class HandrailsTranslator(Translator):
 
     def visit_caption(self, node: nodes.Caption) -> EditCommand:
         parent = node.parent
-        caption_label = AppendOpenCloseTag(
-            tag="span",
-            content=f"{parent.classreftext.format(nodeclass=parent.__class__.__name__, number=parent.full_number)}. ",
-            classes=["label"],
-            newline_inner=False,
-            newline_outer=False,
-        )
+        caption_label = _caption_label(parent)
 
         # Create figcaption with handrail classes
         figcaption_classes = ["hr", "hr-hidden"]
@@ -3721,7 +3729,7 @@ class HandrailsTranslator(Translator):
                 self._hr_border_zone(),
                 self._hr_spacer_zone(),
                 AppendOpenTagManualClose("div", classes=["hr-content-zone"]),
-                caption_label,
+                *([caption_label] if caption_label else []),
             ]
         )
         return AppendBatchAndDefer(items)
