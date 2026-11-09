@@ -151,6 +151,26 @@ key. Section-form tags do not need a Halmos — they close implicitly.
 All block tags open with `:tag:`, take optional `{meta}`, contain paragraphs/blocks, and
 close with `::`.
 
+**Theorem-like blocks** are `:theorem:`, `:lemma:`, `:corollary:`, `:proposition:`,
+`:definition:`, `:example:`, `:exercise:`, `:problem:`, `:porism:` and `:remark:`. They
+accept `:title:` and `:blockname:`. `:blockname:` sets the name the block is called by,
+in place of its type's name, written exactly as given:
+
+```
+:remark: {
+  :blockname: Hint
+  :label: hint-inversion
+}
+
+  Two circles are tangent at a point $T$. What does inversion at $T$ make of them?
+
+::
+```
+
+In Section 1 the header reads "Hint 1.1." (or "Hint." with `:nonum:`), and
+`:ref:hint-inversion::` reads "Hint 1.1". The block is still a remark: it is numbered with the other
+theorem-like blocks and keeps the class `remark`. Other blocks ignore `:blockname:`.
+
 ### Inline Tags — General
 
 | Tag | Description |
@@ -319,6 +339,7 @@ key-value pairs; inline meta uses comma-separated pairs inside `{...}`.
 | `:affiliation:` | Author institutional affiliation |
 | `:alt:` | Alt text for figure images; the fallback of `:rawhtml:` |
 | `:author-note:` | Author note (e.g. "Equal contribution") |
+| `:blockname:` | Name a theorem-like block is called by, in place of its type's name |
 | `:email:` | Author email |
 | `:eyebrow:` | Short label above the manuscript title |
 | `:goal:` | Theorem goal |

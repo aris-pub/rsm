@@ -492,11 +492,19 @@ class Node:
         return f"{self.number}" if self.number else ""
 
     @property
+    def kindname(self) -> str:
+        """The name this node is called by in the text: "Theorem" in "Theorem 1".
+
+        It is the class name. A theorem-like block may set its own with :blockname:.
+        """
+        return self.__class__.__name__
+
+    @property
     def reftext(self) -> str:
         # full_number is None for a node with no number (:nonum:, or numbering turned
         # off), which would print "Theorem None".
         return self.reftext_template.format(
-            nodeclass=self.__class__.__name__, number=self.full_number or ""
+            nodeclass=self.kindname, number=self.full_number or ""
         ).strip()
 
     def traverse(
@@ -1834,7 +1842,7 @@ class Theorem(Heading):
     autonumber = True
     title = ""
     _number_within = Section
-    newmetakeys: ClassVar[set] = {"title", "goals", "stars", "clocks"}
+    newmetakeys: ClassVar[set] = {"title", "goals", "stars", "clocks", "blockname"}
     has_handrail = True
 
     def __init__(
@@ -1843,13 +1851,19 @@ class Theorem(Heading):
         goals: list[BaseReference] | None = None,
         stars: int = 0,
         clocks: int = 0,
+        blockname: str = "",
         **kwargs: Any,
     ):
         super().__init__(**kwargs)
         self.title = title
+        self.blockname = blockname
         self.goals = goals or []
         self.stars = stars
         self.clocks = clocks
+
+    @property
+    def kindname(self) -> str:
+        return self.blockname or super().kindname
 
 
 class Lemma(Theorem):

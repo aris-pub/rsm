@@ -54,7 +54,8 @@ function Div(el)
           anchor = " <" .. el.identifier .. ">"
         end
         -- Build label line: "Definition 2.1: Title." handled by braiid.typ
-        local heading = cls:sub(1,1):upper() .. cls:sub(2)
+        local blockname = el.attributes and el.attributes["blockname"] or nil
+        local heading = blockname or (cls:sub(1,1):upper() .. cls:sub(2))
         if title then heading = heading .. ": " .. title end
         return {pandoc.RawBlock("typst",
           '#block(stroke: (left: 1.5pt + rgb("#D1D5DB")), inset: (top: 6pt, bottom: 6pt), outset: (left: 14pt), width: 100%)[#block(sticky: true)[#strong[' .. heading .. ']]')}
