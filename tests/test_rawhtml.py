@@ -359,3 +359,19 @@ def test_embedded_source_is_escaped():
     assert "<x-dial" not in div
     assert div == src.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
     assert html.count("<x-dial") == 1
+
+
+# A comma after inline math stays on its line; the same should hold after a :rawhtml:, which
+# often stands for a symbol in a sentence.
+@pytest.mark.parametrize("punct", [",", ".", ";", ")"])
+def test_trailing_punctuation_stays_on_the_line_with_handrails(punct):
+    html = _render(f"A :rawhtml:{{:alt: x}} <b>x</b> ::{punct} then.\n", handrails=True)
+    assert '<span class="inline-wrapper">' in html
+    wrapper = html[html.index('<span class="inline-wrapper">') :]
+    assert wrapper.index("<b>x</b>") < wrapper.index(f"<span>{punct}</span></span>")
+    assert f"::{punct}" not in html
+
+
+def test_no_wrapper_without_trailing_punctuation():
+    html = _render("A :rawhtml:{:alt: x} <b>x</b> :: then.\n", handrails=True)
+    assert "inline-wrapper" not in html
