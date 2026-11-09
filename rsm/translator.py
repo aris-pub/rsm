@@ -1926,9 +1926,8 @@ class Translator:
         return para
 
     def visit_theorem(self, node: nodes.Theorem) -> EditCommand:
-        classname = node.__class__.__name__.lower()
         title = self._make_title_node(
-            label=f"{classname.capitalize()}"
+            label=node.kindname
             + (f" {node.full_number}" if not node.nonum and node.number else "")
             + (": " if node.title else "."),
             desc=node.title or "",
@@ -2841,11 +2840,11 @@ class HandrailsTranslator(Translator):
 
     @staticmethod
     def _fold_label(node) -> str:
-        """What a folded block hides, as shown at the foot of its handrail.
+        """How many steps a folded block hides, as shown at the foot of its handrail.
 
-        Empty when folding would hide nothing. A step hides its subproof: the
-        direct steps in it, else its justification. Any other block hides its
-        body: its direct steps, else the whole block, named by its kind.
+        A step counts the direct steps in its subproof, any other block its own
+        direct steps. Empty when there are none: when the whole body folds away,
+        the header and the folded rail already show it.
         """
         if isinstance(node, nodes.Step):
             # Calc rows start folded, so a label under every relation is noise.
@@ -2854,15 +2853,11 @@ class HandrailsTranslator(Translator):
             body = node.first_of_type(nodes.Subproof)
             if body is None:
                 return ""
-            fallback = "justification hidden"
         else:
             body = node
-            fallback = f"{node.__class__.__name__.lower()} hidden"
-        if not body.children:
-            return ""
         count = sum(isinstance(c, nodes.Step) for c in body.children)
         if not count:
-            return fallback
+            return ""
         return "1 step hidden" if count == 1 else f"{count} steps hidden"
 
     def _label_head_with_fold(self, batch: EditCommandBatch, node) -> None:

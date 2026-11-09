@@ -70,6 +70,7 @@ List of all tags
 .. autoclass:: author_display_first
 .. autoclass:: author_display_last
 .. autoclass:: author_note
+.. autoclass:: blockname
 .. autoclass:: dark
 .. autoclass:: email
 .. autoclass:: emphas

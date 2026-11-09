@@ -298,6 +298,8 @@ class PandocTranslator:
         kvs = []
         if node.title:
             kvs.append(["title", node.title])
+        if node.blockname:
+            kvs.append(["blockname", node.blockname])
         inner = self._walk_children_as_blocks(node)
         return [{"t": "Div", "c": [[anchor, [classname, "theorem"], kvs], inner]}]
 

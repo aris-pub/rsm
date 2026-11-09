@@ -147,6 +147,8 @@ minimap = MetaTagInfo(None, bool)
 """Whether to show the minimap (true or false), set in the config block."""
 author_note = MetaTagInfo(None, str)
 """Author note (e.g., 'Equal contribution')."""
+blockname = MetaTagInfo(None, str)
+"""Name a theorem-like block is called by, in place of its type's name, such as "Hint"."""
 email = MetaTagInfo(None, str)
 """Author email."""
 emphas = MetaTagInfo(None, bool)

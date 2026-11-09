@@ -471,7 +471,7 @@ def test_sub_step():
         <div class="hr-spacer"></div>
         </div>
 
-        <div class="hr-content-zone" data-fold-label="justification hidden">
+        <div class="hr-content-zone">
 
         <div class="statement" data-nodeid="8">
 
@@ -665,7 +665,7 @@ def test_theorem():
 
         <div class="hr-content-zone">
 
-        <div class="paragraph hr-label" data-fold-label="theorem hidden">
+        <div class="paragraph hr-label">
 
         <p><span class="span label">Theorem 1.</span></p>
 
@@ -1000,7 +1000,7 @@ def test_proof_with_sketch():
 
         <div class="hr-content-zone">
 
-        <div class="paragraph hr-label" data-fold-label="sketch hidden">
+        <div class="paragraph hr-label">
 
         <p><span class="span label">Proof sketch.</span></p>
 
@@ -1175,9 +1175,11 @@ def test_proof_with_sketch():
     )
 
 
-# A folded block names what it hides at the foot of its handrail: "N steps
-# hidden" when it holds steps, "justification hidden" for a step whose only
-# hidden body is its :p:, else "<kind> hidden". The words ride a data-fold-label
+# A folded block that holds steps says how many it hides at the foot of its
+# handrail: "N steps hidden". A block whose whole body folds away (a prose
+# proof, a sketch, a theorem, a step whose only body is its :p:) has no label:
+# the header, the chevron and the curved foot of the rail already show it is
+# folded, and its kind is in the header. The words ride a data-fold-label
 # attribute that CSS renders, so the stylesheet holds no hard-coded text. Steps
 # carry it on their content zone, labelled blocks (proof, sketch, theorem) on
 # their .hr-label, so a proof's label never shares a pseudo-element with its
@@ -1253,7 +1255,7 @@ def test_fold_label_prose_proof():
         ::
         """
     assert "data-steps=" not in _render_proof(body)
-    assert _labels(body) == [("paragraph hr-label", "proof hidden")]
+    assert _labels(body) == []
 
 
 def test_fold_label_step_with_only_justification():
@@ -1266,10 +1268,7 @@ def test_fold_label_step_with_only_justification():
           ::
         ::
         """
-    assert _labels(body) == [
-        ("paragraph hr-label", "1 step hidden"),
-        ("hr-content-zone", "justification hidden"),
-    ]
+    assert _labels(body) == [("paragraph hr-label", "1 step hidden")]
 
 
 def test_fold_label_step_with_nothing_to_hide():
@@ -1283,7 +1282,7 @@ def test_fold_label_step_with_nothing_to_hide():
 
 def test_no_fold_label_on_calc_step():
     # Calc rows start folded, so they show no label. The proof around the calc
-    # has no steps of its own, so it reads "proof hidden".
+    # has no steps of its own, so it has none either.
     body = """
         :proof:
           :calc:
@@ -1297,21 +1296,41 @@ def test_no_fold_label_on_calc_step():
           ::
         ::
         """
-    assert _labels(body) == [("paragraph hr-label", "proof hidden")]
+    assert _labels(body) == []
 
 
 def test_fold_label_sketch():
     body = """
         :sketch: The idea in brief.::
         """
-    assert _labels(body) == [("paragraph hr-label", "sketch hidden")]
+    assert _labels(body) == []
 
 
-def test_fold_label_theorem_uses_its_kind():
+def test_no_fold_label_on_theorem_like_block():
     body = """
         :lemma: A statement.::
         """
-    assert _labels(body) == [("paragraph hr-label", "lemma hidden")]
+    assert _labels(body) == []
+
+
+def test_fold_labels_of_blocks_that_start_collapsed():
+    body = """
+        :remark: {:collapsed:}
+          A statement.
+        ::
+
+        :proof: {:collapsed:}
+          :step: {:collapsed:} A claim.
+
+            :p: The reason. ::
+
+          ::
+          :step: Another claim.::
+        ::
+        """
+    html = _render_proof(body)
+    assert html.count('data-start-collapsed="true"') == 3
+    assert _labels(body) == [("paragraph hr-label", "2 steps hidden")]
 
 
 def test_fold_label_only_with_handrails():

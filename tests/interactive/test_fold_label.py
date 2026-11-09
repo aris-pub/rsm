@@ -1,7 +1,8 @@
 """The fold label at the foot of a folded block's handrail (rsm-85x).
 
-A folded block says what it hides: "N steps hidden", "justification hidden" for
-a step whose only hidden body is its :p:, else "<kind> hidden". The words come
+A folded block that holds steps says how many it hides: "N steps hidden". A
+block whose whole body folds away (a sketch, a theorem, a step whose only body
+is its :p:) shows no label, only its header and the rail. The words come
 from data-fold-label and CSS draws them. A proof draws its label from its
 .hr-label, so the tombstone (the proof content zone's ::after) is untouched.
 """
@@ -141,11 +142,16 @@ def test_step_with_substeps_label(page: Page, interactive_server: str):
     assert _label_text(page, "#stp-sub > .hr-content-zone") == "2 steps hidden"
 
 
-def test_step_with_only_justification_label(page: Page, interactive_server: str):
+def test_step_with_only_justification_has_no_label(page: Page, interactive_server: str):
     _load(page, interactive_server)
     _unfold_proof(page)
     _fold_step(page, "stp-just")
-    assert _label_text(page, "#stp-just > .hr-content-zone") == "justification hidden"
+    zone = "#stp-just > .hr-content-zone"
+    assert page.locator(zone).get_attribute("data-fold-label") is None
+    assert _label_text(page, zone) is None
+    btn = page.locator("#stp-just > .hr-collapse-zone .hr-collapse")
+    if btn.count():
+        assert "hidden" not in (btn.get_attribute("aria-label") or "")
 
 
 def test_calc_step_has_no_label(page: Page, interactive_server: str):
@@ -158,12 +164,16 @@ def test_calc_step_has_no_label(page: Page, interactive_server: str):
     assert _label_text(page, zone) is None
 
 
-@pytest.mark.parametrize("block,word", [(".sketch.hr", "sketch hidden"), (".lemma.hr", "lemma hidden")])
-def test_labelled_blocks_without_steps(page: Page, interactive_server: str, block, word):
+@pytest.mark.parametrize("block", [".sketch.hr", ".lemma.hr"])
+def test_labelled_blocks_without_steps_have_no_label(page: Page, interactive_server: str, block):
     _load(page, interactive_server)
-    page.locator(f"{block} > .hr-collapse-zone .hr-collapse").click()
+    btn = page.locator(f"{block} > .hr-collapse-zone .hr-collapse")
+    btn.click()
     expect(page.locator(block)).to_have_class(re.compile(r"\bhr-collapsed\b"))
-    assert _label_text(page, f"{block} > .hr-content-zone > .hr-label") == word
+    head = f"{block} > .hr-content-zone > .hr-label"
+    assert page.locator(head).get_attribute("data-fold-label") is None
+    assert _label_text(page, head) is None
+    expect(btn).to_have_attribute("aria-label", re.compile(r"^Show [^,]+$"))
 
 
 def test_collapse_button_names_what_is_hidden(page: Page, interactive_server: str):
@@ -178,10 +188,10 @@ def test_collapse_button_names_what_is_hidden(page: Page, interactive_server: st
 def test_print_drops_labels(page: Page, interactive_server: str):
     _load(page, interactive_server)
     _unfold_proof(page)
-    _fold_step(page, "stp-just")
+    _fold_step(page, "stp-sub")
     page.locator(FOLDED + " > .hr-collapse-zone .hr-collapse").click()
     assert _label_text(page, PROOF_HEAD) == "3 steps hidden"
-    assert _label_text(page, "#stp-just > .hr-content-zone") == "justification hidden"
+    assert _label_text(page, "#stp-sub > .hr-content-zone") == "2 steps hidden"
     page.emulate_media(media="print")
     assert _label_text(page, PROOF_HEAD) is None
-    assert _label_text(page, "#stp-just > .hr-content-zone") is None
+    assert _label_text(page, "#stp-sub > .hr-content-zone") is None
