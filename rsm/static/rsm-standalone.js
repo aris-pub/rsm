@@ -1219,7 +1219,33 @@ var RSM = (() => {
     return window.matchMedia("(hover: hover)").matches;
   }
 
+  // rsm/static/rawhtml.js
+  function swapIn(root2) {
+    for (const el of root2.querySelectorAll(".rawhtml:not([data-fallback])")) {
+      const alt = el.querySelector(":scope > .rawhtml-alt");
+      el.replaceChildren(...alt ? alt.childNodes : []);
+      el.setAttribute("data-fallback", "");
+    }
+  }
+  function withoutRawHtml(html) {
+    if (!html || !html.includes("rawhtml")) return html;
+    const t = document.createElement("template");
+    t.innerHTML = html;
+    swapIn(t.content);
+    return t.innerHTML;
+  }
+  function cloneWithoutRawHtml(el) {
+    if (!el.matches(".rawhtml") && !el.querySelector(".rawhtml")) {
+      return el.cloneNode(true);
+    }
+    const t = document.createElement("template");
+    t.innerHTML = el.outerHTML;
+    swapIn(t.content);
+    return document.importNode(t.content.firstElementChild, true);
+  }
+
   // rsm/static/tooltips.js
+  var copyOf = ($el) => $($el.toArray().map(cloneWithoutRawHtml));
   var PIN_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 4.5l-4 4l-4 1.5l-1.5 1.5l7 7l1.5 -1.5l1.5 -4l4 -4"/><path d="M9 15l-4.5 4.5"/><path d="M14.5 4l5.5 5.5"/></svg>';
   var PIN_FILLED_ICON = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M15.113 3.21l.094 .083l5.5 5.5a1 1 0 0 1 -1.175 1.59l-3.172 3.171l-1.424 3.797a1 1 0 0 1 -.158 .277l-.07 .08l-1.5 1.5a1 1 0 0 1 -1.32 .082l-.095 -.083l-2.793 -2.792l-3.793 3.792a1 1 0 0 1 -1.497 -1.32l.083 -.094l3.792 -3.793l-2.792 -2.793a1 1 0 0 1 -.083 -1.32l.083 -.094l1.5 -1.5a1 1 0 0 1 .258 -.187l.098 -.042l3.796 -1.425l3.171 -3.17a1 1 0 0 1 1.497 -1.26z"/></svg>';
   var PIN_LABEL = "Pin to the sidebar";
@@ -1240,7 +1266,7 @@ var RSM = (() => {
     let content = "";
     let clone;
     if (tag === "LI" && classes.contains("note")) {
-      clone = $t.clone();
+      clone = copyOf($t);
       clone.find(".note-backlink").remove();
       const zone = clone.find(".hr-content-zone").first();
       content = `<div class="note-preview">${(zone[0] ? zone : clone).html()}</div>`;
@@ -1251,7 +1277,7 @@ var RSM = (() => {
     } else if (tag === "FIGURE" && classes.contains("html")) {
       content = widgetPreview($t[0]);
     } else if (tag === "FIGURE") {
-      clone = $t.clone();
+      clone = copyOf($t);
       stripHandrail(clone);
       clone.find("[data-menu-label]").removeAttr("data-menu-label data-menu-link data-menu-code data-menu-static-toggle tabindex");
       content = `<div>${clone.html()}</div>`;
@@ -1264,7 +1290,7 @@ var RSM = (() => {
     } else if (tag === "TABLE") {
       content = $t[0].outerHTML;
     } else if (tag === "SECTION") {
-      clone = $t.clone();
+      clone = copyOf($t);
       clone.children().slice(2).remove();
       stripHandrail(clone);
       clone.css("font-size", "0.7rem");
@@ -1275,16 +1301,17 @@ var RSM = (() => {
       if (classes.contains("calc")) {
         content = calcPreview($t);
       } else if (classes.contains("step")) {
-        clone = $t.find(".statement").clone();
+        clone = copyOf($t.find(".statement"));
         stripHandrail(clone);
         clone.css("font-size", "0.7rem");
         content = clone.html();
       } else if (classes.contains("proof")) {
-        clone = $t.clone();
+        clone = copyOf($t);
+        clone.children(".hr-content-zone").children(".hide").removeClass("hide");
         stripHandrail(clone);
         content = clone.html();
       } else if (["math", "algorithm"].some((c) => classes.contains(c))) {
-        clone = $t.clone();
+        clone = copyOf($t);
         stripHandrail(clone);
         content = clone.html();
       } else if ([
@@ -1302,11 +1329,12 @@ var RSM = (() => {
         "definition",
         "bibitem"
       ].some((c) => classes.contains(c))) {
-        clone = $t.clone();
+        clone = copyOf($t);
         stripHandrail(clone);
         content = clone.html();
       }
     }
+    content = withoutRawHtml(content);
     return { content: content || "", error: content ? null : "unsupported" };
   }
   function widgetPreview(fig) {
@@ -1328,7 +1356,7 @@ var RSM = (() => {
     }
     const cap = fig.querySelector(":scope > figcaption");
     if (cap) {
-      const c = $(cap).clone();
+      const c = copyOf($(cap));
       stripHandrail(c);
       c.find(".label").first().remove();
       c.find("[data-menu-label]").removeAttr(
@@ -1436,7 +1464,8 @@ var RSM = (() => {
       const target = document.getElementById((rawHref || "").replace(/^#/, ""));
       const marker = helper.origin.classList.contains("note-marker");
       const aside = helper.origin.classList.contains("aside-phrase");
-      const title = (aside && "Aside" || marker && `Note ${helper.origin.dataset.noteNumber}` || target && target.getAttribute("data-menu-label") || helper.origin.textContent || "").trim().replace(/\.$/, "");
+      const listed = helper.origin.querySelector(".rail-proof-name");
+      const title = (listed && listed.textContent || aside && "Aside" || marker && `Note ${helper.origin.dataset.noteNumber}` || target && target.getAttribute("data-menu-label") || helper.origin.textContent || "").trim().replace(/\.$/, "");
       setTooltipContent(instance, pinBar(rawHref, title) + content);
     },
     functionReady: function(instance, helper) {
@@ -1467,6 +1496,10 @@ var RSM = (() => {
     );
     $previewed.tooltipster(PREVIEW_OPTIONS);
     $previewed.each((_, el) => tapToPreview(el));
+    $(".proof-rail a.rail-proof-link:not(.tooltipstered)").tooltipster({
+      ...PREVIEW_OPTIONS,
+      side: "right"
+    });
     $(".manuscriptwrapper a.aside-phrase:not(.tooltipstered)").tooltipster({
       ...PREVIEW_OPTIONS,
       triggerOpen: { mouseenter: true },
@@ -1533,7 +1566,7 @@ var RSM = (() => {
     });
   }
   function calcPreview($calc) {
-    const clone = $calc.clone();
+    const clone = copyOf($calc);
     clone.children(".hr-content-zone").children(".step").each((_, row) => {
       $(row).children(".hr-content-zone").children(":not(.statement)").remove();
       row.classList.remove("hr-collapsed");
@@ -3045,6 +3078,17 @@ var RSM = (() => {
       }
     });
     rail.addEventListener("click", (ev) => {
+      const link = ev.target.closest(".rail-proof-link");
+      if (!link) return;
+      const el = proofElFor(link.dataset.proof);
+      if (!el) return;
+      ev.preventDefault();
+      if (el.classList.contains("hr-collapsed")) openHandrail(el);
+      show(link.dataset.proof);
+      if (el.id) location.hash = el.id;
+      else el.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+    rail.addEventListener("click", (ev) => {
       const btn = ev.target.closest(".rail-expand-proof");
       if (!btn) return;
       const el = proofElFor(btn.dataset.proof);
@@ -3079,7 +3123,7 @@ var RSM = (() => {
       if (dag) pinTreeCurrent(dag, idx >= 0 ? String(idx) : null);
     }
     function cloneClean(el) {
-      const c = el.cloneNode(true);
+      const c = cloneWithoutRawHtml(el);
       c.removeAttribute("id");
       c.removeAttribute("data-nodeid");
       c.querySelectorAll("[id],[data-nodeid]").forEach((n) => {

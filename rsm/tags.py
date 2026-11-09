@@ -106,6 +106,12 @@ math = InlineTagInfo(None)
 note = InlineTagInfo(None)
 """Footnote. Call it inline with ``:note:lbl::`` and define it as a block with
 ``:note: {:label: lbl} content ::``. Footnotes are numbered 1, 2, 3 in call order."""
+rawhtml = InlineTagInfo(None)
+"""Raw HTML inside a sentence, written into the HTML page as is:
+``:rawhtml:{:alt: fallback} <span>...</span> ::``. The HTML runs up to the first
+``::``, so it cannot contain one. :alt: (text and inline math) stands in for the
+HTML in output other than HTML and in the copies the page makes of its own content,
+such as reference previews."""
 ref = InlineTagInfo(None)
 """Link to internal label."""
 span = InlineTagInfo(None)
@@ -178,7 +184,7 @@ orcid = MetaTagInfo(None, str)
 override_date = MetaTagInfo(None, datetime)
 """Override manuscript date via config block."""
 alt = MetaTagInfo(None, str)
-"""Alt text for figure images."""
+"""Alt text for figure images, and the fallback of :rawhtml:."""
 dark = MetaTagInfo(None, Path)
 """Path to alternate figure image rendered in dark mode."""
 path = MetaTagInfo(None, Path)

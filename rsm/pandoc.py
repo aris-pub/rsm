@@ -177,6 +177,7 @@ class PandocTranslator:
         nodes.Span: "_inline_span",              # Keyword via MRO
         nodes.Math: "_inline_math",
         nodes.Code: "_inline_code",
+        nodes.RawHtml: "_walk_children_as_inlines",
         nodes.Reference: "_inline_reference",
         nodes.URL: "_inline_url",
         nodes.Cite: "_inline_cite",

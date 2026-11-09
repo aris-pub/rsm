@@ -1687,6 +1687,23 @@ class Translator:
     def visit_code(self, node: nodes.Code) -> EditCommand:
         return self._node_tag(node, tag="span", newline_inner=False, newline_outer=False)
 
+    def visit_rawhtml(self, node: nodes.RawHtml) -> EditCommand:
+        # The fallback (the children) goes first and hidden, and the HTML last,
+        # so that HTML that does not close its own tags cannot swallow the
+        # fallback. Copies of the page swap the fallback in (rawhtml.js).
+        items: list[EditCommand] = [
+            self._node_tag(node, "span", newline_inner=False, newline_outer=False)
+        ]
+        if node.children:
+            items.append(
+                AppendTextAndDefer(
+                    '<span class="rawhtml-alt" hidden>', "</span>" + node.html
+                )
+            )
+        else:
+            items.append(AppendTextAndDefer("", node.html))
+        return AppendBatchAndDefer(items)
+
     def visit_codeblock(self, node: nodes.CodeBlock) -> EditCommand:
         items = []
         if isinstance(node.parent, nodes.BaseParagraph):
@@ -1731,6 +1748,9 @@ class Translator:
         # which the browser decodes back to the original characters.
         ancestor = node.parent
         while ancestor is not None:
+            # The fallback of a :rawhtml: is text even inside an :html: block.
+            if isinstance(ancestor, nodes.RawHtml):
+                break
             if isinstance(ancestor, nodes.Html):
                 return AppendText(node.text)
             ancestor = ancestor.parent
@@ -3171,7 +3191,11 @@ class HandrailsTranslator(Translator):
         return AppendText(text=html)
 
     def _make_source_div(self):
-        return AppendText(text=f'<div class="rsm-source hide">{self.tree.src}</div>')
+        # Escaped, or any HTML in the source (a :rawhtml: body, an :html:
+        # block) would become live elements in the page a second time. The
+        # Source menu item reads the div's textContent, which is the source.
+        src = html_escape(self.tree.src, quote=False)
+        return AppendText(text=f'<div class="rsm-source hide">{src}</div>')
 
     # The sidebar's views: (id, name, scope, sub-tab, hint). The scope and
     # sub-tab select the rail's panel (prooftree.js keys its classes off them);

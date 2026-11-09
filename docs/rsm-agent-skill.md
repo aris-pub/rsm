@@ -219,6 +219,7 @@ We look for a map into :aside:hilbert,some Euclidean space:: such that ...
 |-----|----------|-------------|
 | `:math:` | `$...$` | Inline math (as-is content) |
 | `:code:` | `` `...` `` | Inline code (as-is content) |
+| `:rawhtml:` | none | Inline raw HTML (as-is content, see below) |
 | `:ref:` | — | Internal cross-reference |
 | `:cite:` | — | Bibliography citation |
 | `:url:` | — | External hyperlink |
@@ -230,6 +231,35 @@ We look for a map into :aside:hilbert,some Euclidean space:: such that ...
 **Stamps** (`:prev:`, `:prev2:`, `:prev3:`) have no content and no Halmos — they stand alone.
 
 **Emphasis shortcuts:** `**bold**` = `:span:{:strong:}bold::`, `*italic*` = `:span:{:emphas:}italic::`.
+
+### Inline Raw HTML
+
+`:rawhtml:` puts raw HTML inside a sentence, written into the HTML page exactly as
+typed, with no escaping. It is built like the long form of `:code:`: the HTML runs up
+to the first `::`, and `:alt:` in the optional meta block is the fallback.
+
+```
+Consider a chain of circles :rawhtml:{:alt: the circle $C_0$} <mtp-display model="pappus" name="c0"></mtp-display> ::, each tangent to the next.
+```
+
+- The HTML cannot contain `::`, cannot start with a colon, and cannot be empty.
+- `:alt:` may hold text and inline math (`$...$`). It cannot hold a comma or a brace,
+  as with any inline meta value.
+- Where the HTML cannot be, the fallback stands in: output other than HTML (pandoc
+  export), and the copies the page makes of its own content (reference previews, the
+  pinned excerpt, the proof State view). Text read out of the document (a still
+  image's alt text taken from a caption, the proof tree labels) uses the fallback too.
+  Without `:alt:` nothing stands in, and RSM warns.
+- Without JavaScript the page shows the HTML, as it does with JavaScript.
+- Allowed wherever inline content is: paragraphs, spans, `**bold**`, `*italic*`,
+  theorems, captions, list items and table cells. Not in a link's text (`:ref:` or
+  `:url:` reftext, an aside's phrase): there the fallback is shown, with a warning.
+  Headings and titles hold plain text only.
+- Write phrasing content (elements that may sit inside a `<p>`, such as `<span>`,
+  `<svg>` or a custom element). A `<div>` or another block element ends the paragraph
+  early in the browser.
+- `:html:` is a different tag: a block that holds a widget, from a file (`:path:`) or
+  written inside it.
 
 ### Inline Tags — Proof Constructs
 
@@ -287,7 +317,7 @@ key-value pairs; inline meta uses comma-separated pairs inside `{...}`.
 | Key | Description |
 |-----|-------------|
 | `:affiliation:` | Author institutional affiliation |
-| `:alt:` | Alt text for figure images |
+| `:alt:` | Alt text for figure images; the fallback of `:rawhtml:` |
 | `:author-note:` | Author note (e.g. "Equal contribution") |
 | `:email:` | Author email |
 | `:eyebrow:` | Short label above the manuscript title |
