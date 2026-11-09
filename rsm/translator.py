@@ -3968,6 +3968,31 @@ class HandrailsTranslator(Translator):
         batch.items.extend([AppendText(f"<span>{escaped}</span>"), AppendText("</span>")])
         return batch
 
+    def visit_rawhtml(self, node: nodes.RawHtml) -> EditCommand:
+        # Raw HTML often stands for a symbol in a sentence, so it keeps its
+        # trailing punctuation on the same line, as inline math does.
+        batch = super().visit_rawhtml(node)
+        sib = node.next_sibling()
+        if not isinstance(sib, nodes.Text) or not sib.text or sib.text[0] not in self._TRAILING_PUNCT:
+            return batch
+        node._trailing_punct = sib.text[0]
+        sib.text = sib.text[1:]
+        return AppendBatchAndDefer(
+            [
+                AppendOpenTagManualClose(tag="span", classes=["inline-wrapper"], newline_outer=False),
+                *batch.items,
+            ]
+        )
+
+    def leave_rawhtml(self, node: nodes.RawHtml) -> EditCommand:
+        batch = self.leave_node(node)
+        punct = getattr(node, "_trailing_punct", None)
+        if not punct:
+            return batch
+        escaped = punct.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+        batch.items.extend([AppendText(f"<span>{escaped}</span>"), AppendText("</span>")])
+        return batch
+
     def visit_mathblock(self, node: nodes.MathBlock) -> EditCommand:
         # Preamble mathblocks are invisible — skip handrails, just emit hidden div
         if node.preamble:
