@@ -57,6 +57,7 @@ List of all tags
 .. autoclass:: draft
 .. autoclass:: math
 .. autoclass:: note
+.. autoclass:: rawhtml
 .. autoclass:: ref
 .. autoclass:: span
 .. autoclass:: url

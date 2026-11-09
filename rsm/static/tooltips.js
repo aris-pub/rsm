@@ -5,6 +5,10 @@
 
 import { typesetMath } from "./libraries.js";
 import { previewWanted } from "./asides.js";
+import { cloneWithoutRawHtml, withoutRawHtml } from "./rawhtml.js";
+
+// Like $el.clone(), but a :rawhtml: in the copy shows its fallback (rawhtml.js).
+const copyOf = ($el) => $($el.toArray().map(cloneWithoutRawHtml));
 
 // Tabler pin, outline (not pinned) and filled (pinned).
 const PIN_ICON =
@@ -40,7 +44,7 @@ function buildExcerpt(rawHref) {
   if (tag === "LI" && classes.contains("note")) {
     // An entry of the notes list: show its text and number, without the
     // backlink (the reader is already at the call) or the alignment handrail.
-    clone = $t.clone();
+    clone = copyOf($t);
     clone.find(".note-backlink").remove();
     const zone = clone.find(".hr-content-zone").first();
     content = `<div class="note-preview">${(zone[0] ? zone : clone).html()}</div>`;
@@ -60,7 +64,7 @@ function buildExcerpt(rawHref) {
     // attributes. Take the HTML from a stripped clone, like the block branches
     // below, so a pinned or previewed figure is just the image and caption,
     // with no interactive menu dots or leftover menu metadata.
-    clone = $t.clone();
+    clone = copyOf($t);
     stripHandrail(clone);
     clone
       .find("[data-menu-label]")
@@ -75,7 +79,7 @@ function buildExcerpt(rawHref) {
   } else if (tag === "TABLE") {
     content = $t[0].outerHTML;
   } else if (tag === "SECTION") {
-    clone = $t.clone();
+    clone = copyOf($t);
     clone.children().slice(2).remove();
     stripHandrail(clone);
     clone.css("font-size", "0.7rem");
@@ -86,19 +90,19 @@ function buildExcerpt(rawHref) {
     if (classes.contains("calc")) {
       content = calcPreview($t);
     } else if (classes.contains("step")) {
-      clone = $t.find(".statement").clone();
+      clone = copyOf($t.find(".statement"));
       stripHandrail(clone);
       clone.css("font-size", "0.7rem");
       content = clone.html();
     } else if (classes.contains("proof")) {
-      clone = $t.clone();
+      clone = copyOf($t);
       // A collapsed proof hides its body with .hide. The preview shows the proof
       // itself, so undo the proof's own fold (nested folds stay as they are).
       clone.children(".hr-content-zone").children(".hide").removeClass("hide");
       stripHandrail(clone);
       content = clone.html();
     } else if (["math", "algorithm"].some((c) => classes.contains(c))) {
-      clone = $t.clone();
+      clone = copyOf($t);
       stripHandrail(clone);
       content = clone.html();
     } else if (
@@ -106,11 +110,14 @@ function buildExcerpt(rawHref) {
        "exercise", "proposition", "problem", "porism", "remark", "definition",
        "bibitem"].some((c) => classes.contains(c))
     ) {
-      clone = $t.clone();
+      clone = copyOf($t);
       stripHandrail(clone);
       content = clone.html();
     }
   }
+  // The branches above that read the live target's HTML directly copy its
+  // :rawhtml: too.
+  content = withoutRawHtml(content);
   return { content: content || "", error: content ? null : "unsupported" };
 }
 
@@ -142,7 +149,7 @@ function widgetPreview(fig) {
   }
   const cap = fig.querySelector(":scope > figcaption");
   if (cap) {
-    const c = $(cap).clone();
+    const c = copyOf($(cap));
     stripHandrail(c);
     c.find(".label").first().remove();
     c.find("[data-menu-label]").removeAttr(
@@ -450,7 +457,7 @@ export function createTooltips() {
 // page shows them by default: hover previews are built at load and pins at
 // click time, so following the reader's open reasons would make the two differ.
 function calcPreview($calc) {
-  const clone = $calc.clone();
+  const clone = copyOf($calc);
   clone.children(".hr-content-zone").children(".step").each((_, row) => {
     $(row).children(".hr-content-zone").children(":not(.statement)").remove();
     row.classList.remove("hr-collapsed");

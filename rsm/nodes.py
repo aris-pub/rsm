@@ -1459,6 +1459,29 @@ class Code(NodeWithChildren):
         self.source = SourceCode(source, lang)
 
 
+class RawHtml(NodeWithChildren):
+    """Inline raw HTML, written into the HTML page as is.
+
+    The HTML is kept in :attr:`html`, not as a child, so that nothing that
+    reads text out of the tree ever sees the markup. The children are the
+    fallback made from :attr:`alt` (text and inline math). They stand for the
+    HTML wherever it cannot be: output other than HTML, link text, and the
+    copies the page makes of its own content.
+    """
+
+    newmetakeys: ClassVar[set] = {"alt"}
+
+    def __init__(self, html: str = "", alt: str = "", **kwargs: Any) -> None:
+        super().__init__(**kwargs)
+        self.html = html
+        self.alt = alt
+
+    def to_dict(self) -> dict:
+        result = super().to_dict()
+        result["html"] = self.html
+        return result
+
+
 class CodeBlock(NodeWithChildren):
     classreftext: ClassVar[str] = "Code Block {number}"
     newmetakeys: ClassVar[set] = {"lang"}

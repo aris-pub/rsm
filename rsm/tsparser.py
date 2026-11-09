@@ -284,6 +284,7 @@ CST_TYPE_TO_AST_TYPE: dict[str, Callable] = {
     "proof": nodes.Proof,
     "calc": nodes.Calc,
     "proposition": nodes.Proposition,
+    "rawhtml": nodes.RawHtml,
     "ref": nodes.PendingReference,
     "remark": nodes.Remark,
     "section": nodes.Section,
@@ -443,6 +444,7 @@ def _normalize_text(root: TSNode) -> str:
             nodes.Reference,
             nodes.URL,
             nodes.PendingReference,
+            nodes.RawHtml,
         ]
         sibling = node.next_sibling()
         if sibling and type(node) in classes and type(sibling) in classes:
@@ -533,6 +535,75 @@ def _flatten_reftext(reftext_nodes: "list[nodes.Node]") -> str:
     return "".join(parts)
 
 
+# The :alt: of a :rawhtml: is a text meta value, so the grammar does not parse
+# the inline math in it. It is split here instead.
+_ALT_MATH = re.compile(r"(?<!\\)\$(.+?)(?<!\\)\$")
+
+
+def _alt_nodes(alt: str) -> list[nodes.Node]:
+    """The fallback of a :rawhtml: as inline nodes: text, and inline math for
+    each $...$ in its :alt:."""
+    result: list[nodes.Node] = []
+    pos = 0
+    for match in _ALT_MATH.finditer(alt):
+        if match.start() > pos:
+            result.append(nodes.Text(alt[pos : match.start()]))
+        math = nodes.Math()
+        math.append(nodes.Text(match.group(1), asis=True))
+        result.append(math)
+        pos = match.end()
+    if pos < len(alt):
+        result.append(nodes.Text(alt[pos:]))
+    return result
+
+
+def _check_raw_html(raw: nodes.RawHtml) -> None:
+    """Put the fallback of a :rawhtml: in its place when it is part of a link's
+    text (a :ref: or :url: reftext, or the phrase of an aside call), and warn
+    when it has no fallback at all.
+
+    The grammar keeps :rawhtml: out of reftext, but a span inside reftext can
+    still hold one, and a link cannot hold live HTML."""
+    (start_row, start_col), (end_row, end_col) = raw.start_point, raw.end_point
+    extra = {
+        "start_row": start_row,
+        "start_col": start_col,
+        "end_row": end_row,
+        "end_col": end_col,
+    }
+    link = raw.parent
+    while link is not None and not isinstance(
+        link, (nodes.BaseReference, nodes.NoteCall)
+    ):
+        link = link.parent
+    if link is None:
+        if not raw.alt:
+            logger.warning(
+                "An inline :rawhtml: has no :alt:, so nothing stands in for it in "
+                "reference previews and in output other than HTML",
+                extra=extra,
+            )
+        return
+
+    logger.warning(
+        "An inline :rawhtml: inside the text of a link shows its :alt: instead",
+        extra=extra,
+    )
+    fallback = list(raw.children)
+    raw.clear()
+    parent = raw.parent
+    if any(c is raw for c in parent.children):
+        raw.replace_self(fallback)
+        return
+    # Directly in a reference's reftext_nodes, which are not its children.
+    siblings = parent.reftext_nodes
+    index = next(i for i, c in enumerate(siblings) if c is raw)
+    for c in fallback:
+        c.parent = parent
+    siblings[index : index + 1] = fallback
+    raw.parent = None
+
+
 def _abstractify(cst: TSTree) -> nodes.Manuscript:
     ast_root_node = None
     bibliography_node = None
@@ -541,6 +612,7 @@ def _abstractify(cst: TSTree) -> nodes.Manuscript:
     # holder collects the inline children as the main loop builds them; after the
     # loop they move onto the reference node's reftext_nodes.
     reftext_builds: list[tuple[nodes.Node, nodes.Span]] = []
+    raw_html_nodes: list[nodes.RawHtml] = []
     stack = [(None, cst.root_node)]
     while stack:
         parent, cst_node = stack.pop()
@@ -795,6 +867,14 @@ def _abstractify(cst: TSTree) -> nodes.Manuscript:
                 child = nodes.Text(text, asis=True)
             ast_node.append(child)
 
+        if ast_node_type == "rawhtml":
+            asis = cst_node.named_children[-1]
+            assert asis.type == "asis_text"
+            ast_node.html = asis.text.decode("utf-8").strip()
+            for child in _alt_nodes(ast_node.alt):
+                ast_node.append(child)
+            raw_html_nodes.append(ast_node)
+
         # mathblocks that are marked as claims must be enclosed within a ClaimBlock
         if ast_node_type == "mathblock" and ast_node.isclaim:
             claimblock = nodes.ClaimBlock(
@@ -901,6 +981,9 @@ def _abstractify(cst: TSTree) -> nodes.Manuscript:
             c.parent = ref_node
         ref_node.reftext_nodes = children
         ref_node.overwrite_reftext = _flatten_reftext(children).strip()
+
+    for raw in raw_html_nodes:
+        _check_raw_html(raw)
 
     _normalize_text(ast_root_node)
     return ast_root_node

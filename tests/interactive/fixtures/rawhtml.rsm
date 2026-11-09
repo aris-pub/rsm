@@ -1,0 +1,27 @@
+# Raw HTML
+
+## Results
+  {:label: sec-results}
+
+:theorem: {:label: thm-chain}
+  A chain of circles :rawhtml:{:alt: the circle $C_0$} <x-probe></x-probe> ::, tangent to both.
+::
+
+:proof:
+  :step: :assume: the chain :rawhtml:{:alt: the chain $K$} <x-probe></x-probe> :: is given. ::
+  :step: {:label: st-1} It is closed. ::
+  :step: :qed: Done by :ref:st-1::. ::
+::
+
+:html: {
+  :label: wid-a
+  :alt: A widget.
+}
+
+<div class="live-widget">widget</div>
+
+  :caption: A widget near :rawhtml:{:alt: the dial} <x-probe></x-probe> ::.
+
+::
+
+See :ref:thm-chain:: and :ref:wid-a::.

@@ -17,6 +17,7 @@ import { createTooltips } from "./tooltips.js";
 import { reRenderAll } from "./notation.js";
 import { typesetMath } from "./libraries.js";
 import { setupStrip } from "./sidebar.js";
+import { cloneWithoutRawHtml } from "./rawhtml.js";
 
 export function setup(root = document) {
   const rail = root.querySelector(".proof-rail");
@@ -414,7 +415,7 @@ export function setup(root = document) {
   // (handled by the proof click handler above), not the scroll position.
 
   function cloneClean(el) {
-    const c = el.cloneNode(true);
+    const c = cloneWithoutRawHtml(el);
     c.removeAttribute("id");
     c.removeAttribute("data-nodeid");
     c.querySelectorAll("[id],[data-nodeid]").forEach((n) => {
