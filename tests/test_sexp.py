@@ -59,7 +59,7 @@ def test_with_meta():
         (Subsection { :class: ['level-3'], :reftext: Section 1.1, :title: My Subsection }
           (Paragraph { :reftext: Paragraph }
             (Text { :reftext: Text }))))
-      (Section { :class: ['level-2'], :nonum: True, :reftext: Section None, :title: Another section }
+      (Section { :class: ['level-2'], :nonum: True, :reftext: Section, :title: Another section }
         (Paragraph { :reftext: Paragraph }
           (Math { :reftext: Math }
             (Text { :reftext: Text })))))

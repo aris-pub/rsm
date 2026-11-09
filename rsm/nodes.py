@@ -493,8 +493,10 @@ class Node:
 
     @property
     def reftext(self) -> str:
+        # full_number is None for a node with no number (:nonum:, or numbering turned
+        # off), which would print "Theorem None".
         return self.reftext_template.format(
-            nodeclass=self.__class__.__name__, number=self.full_number
+            nodeclass=self.__class__.__name__, number=self.full_number or ""
         ).strip()
 
     def traverse(
