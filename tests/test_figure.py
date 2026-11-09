@@ -668,10 +668,14 @@ NUMBERING_OFF = {
 
 @pytest.mark.parametrize("handrails", [False, True])
 @pytest.mark.parametrize("case", [NONUM, NUMBERING_OFF], ids=["nonum", "numbering-off"])
-def test_a_caption_without_a_number_has_no_label(case, handrails):
+def test_a_caption_without_a_number_keeps_its_label_without_the_number(case, handrails):
     html = rsm.render(UNNUMBERED.format(**case), handrails=handrails)
     assert "None" not in html
-    assert re.findall(r'<span class="label">[^<]*</span>', html) == []
+    assert re.findall(r'<span class="label">([^<]*)</span>', html) == [
+        "Figure. ",
+        "Widget. ",
+        "Table. ",
+    ]
     for text in ("A figure.", "A widget.", "A table."):
         assert text in html
 

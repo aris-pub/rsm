@@ -693,14 +693,15 @@ class AppendOpenTag(AppendTextAndDefer):
         return self._edit_command_repr(["tag", "id", "classes", "newline_inner"])
 
 
-def _caption_label(parent: nodes.Node) -> AppendOpenCloseTag | None:
-    """A caption's label, "Figure 1. ", which exists to carry its block's number. A block with
-    no number (:nonum:, or numbering turned off) gets no label, not "Figure None. "."""
-    if not parent.full_number:
-        return None
+def _caption_label(parent: nodes.Node) -> AppendOpenCloseTag:
+    """A caption's label, "Figure 1. ". A block with no number (:nonum:, or numbering turned
+    off) keeps the name without the number, "Figure. ", not "Figure None. "."""
+    name = parent.classreftext.format(
+        nodeclass=parent.__class__.__name__, number=parent.full_number or ""
+    ).strip()
     return AppendOpenCloseTag(
         tag="span",
-        content=f"{parent.classreftext.format(nodeclass=parent.__class__.__name__, number=parent.full_number)}. ",
+        content=f"{name}. ",
         classes=["label"],
         newline_inner=False,
         newline_outer=False,
@@ -2455,7 +2456,7 @@ class Translator:
         items.extend(
             [
                 AppendOpenTag("figcaption" if use_figcaption else "caption"),
-                *([caption] if caption else []),
+                caption,
             ]
         )
         return AppendBatchAndDefer(items)
@@ -3729,7 +3730,7 @@ class HandrailsTranslator(Translator):
                 self._hr_border_zone(),
                 self._hr_spacer_zone(),
                 AppendOpenTagManualClose("div", classes=["hr-content-zone"]),
-                *([caption_label] if caption_label else []),
+                caption_label,
             ]
         )
         return AppendBatchAndDefer(items)
