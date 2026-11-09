@@ -6,9 +6,9 @@
 
 The header reads "Hint 1.", a :ref: to it reads "Hint 1", and so do the handrail
 menu and the proof views. Numbering, CSS classes and
-everything else a theme hooks onto by type are unchanged. Blocks that are not
-theorem-like do not accept the key, and treat it like any other key they do not
-accept.
+everything else a theme hooks onto by type are unchanged. Assets and tables also
+accept the key (see test_blockname_assets.py). Other blocks do not accept it, and
+treat it like any other key they do not accept.
 """
 
 import logging
@@ -211,9 +211,10 @@ def test_typst_export_heading_uses_blockname():
     assert "Remark" not in out
 
 
-# Blocks that are not theorem-like do not accept :blockname:. RSM does not check meta
-# keys against a block's accepted keys: it neither errors nor warns, and the key has
-# no effect on the output. :blockname: behaves the same way as any other such key.
+# Blocks that are not theorem-like, assets or tables do not accept :blockname:. RSM
+# does not check meta keys against a block's accepted keys: it neither errors nor
+# warns, and the key has no effect on the output. :blockname: behaves the same way as
+# any other such key.
 
 PARAGRAPH = """\
 # Doc
