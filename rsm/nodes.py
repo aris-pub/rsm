@@ -2007,7 +2007,15 @@ class UnknownBibitem(Bibitem):
 class Asset(NodeWithChildren):
     autonumber = True
     _number_within = Section
-    newmetakeys: ClassVar[set] = {"path", "scale", "alt", "dark", "static", "blockname"}
+    newmetakeys: ClassVar[set] = {
+        "path",
+        "scale",
+        "alt",
+        "dark",
+        "static",
+        "blockname",
+        "as_paragraph",
+    }
 
     def __init__(
         self,
@@ -2017,6 +2025,7 @@ class Asset(NodeWithChildren):
         dark: Path | str = "",
         static: Path | str = "",
         blockname: str = "",
+        as_paragraph: bool = False,
         **kwargs: Any,
     ) -> None:
         super().__init__(**kwargs)
@@ -2026,6 +2035,7 @@ class Asset(NodeWithChildren):
         self.dark = Path(dark) if dark else None
         self.static = Path(static) if static else None
         self.blockname = blockname
+        self.as_paragraph = as_paragraph
 
     @property
     def kindname(self) -> str:

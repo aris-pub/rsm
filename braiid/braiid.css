@@ -2740,6 +2740,25 @@ body {
 .manuscriptwrapper figure > *:not(figcaption) {
   max-width: 100%;
   overflow-x: auto; }
+/* An :as-paragraph: asset is laid out as a paragraph: the <figure> is itself the
+   handrail, so it keeps the paragraph's spacing, and it must not clip the rail
+   zones that hr-offset places outside its box. Its picture, video or widget is
+   capped at the width of the column, so it never scrolls sideways. min-width: 0
+   lets the content zone, a flex item, shrink below the width of its content. */
+.manuscriptwrapper figure.as-paragraph {
+  margin-block: 0 1em;
+  overflow: visible; }
+.manuscriptwrapper .proof figure.as-paragraph {
+  margin-block-end: 0.5em; }
+.manuscriptwrapper figure.as-paragraph > * {
+  overflow: visible; }
+.manuscriptwrapper figure.as-paragraph > .hr-content-zone {
+  min-width: 0; }
+.manuscriptwrapper figure.as-paragraph > .hr-content-zone :is(img, video, picture, iframe, canvas, svg),
+.manuscriptwrapper figure.as-paragraph > .hr-content-zone > * {
+  max-width: 100%; }
+.manuscriptwrapper figure.as-paragraph > .hr-content-zone :is(img, video) {
+  height: auto; }
 /* Captions of every captioned block (figure, widget, video, table): small,
    unboxed, subtle text, with the label ("Figure 2.3.") bold in the body colour
    on its own line. The same look under the block and in the margin column. */

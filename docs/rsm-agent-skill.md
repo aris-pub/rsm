@@ -360,6 +360,7 @@ key-value pairs; inline meta uses comma-separated pairs inside `{...}`.
 
 | Key | Description |
 |-----|-------------|
+| `:as-paragraph:` | A figure, widget or video sits at the level of a paragraph: no number, no caption |
 | `:emphas:` | Emphasized span |
 | `:isclaim:` | Math block is a claim |
 | `:nonum:` | Suppress numbering |
@@ -930,6 +931,28 @@ Key properties of the operator:
 ::
 
 **Figures vs. widgets.** Use `:figure:` for any figure, including one drawn as inline SVG or HTML. Point `:path:` at an HTML fragment file (for example a `fig.html` that contains `<svg>...</svg>`), and its markup is inlined into the page, so it picks up the page CSS variables (dark mode, accent color) and is labelled "Figure". A raw image file (`.png`, `.jpg`, `.svg`) is embedded as an `<img>` and cannot see those variables. Reserve `:html:` for non-figure interactive widgets. Its reference label is "Widget", not "Figure", unless it has `:blockname: Figure`.
+
+**Figures as paragraphs.** With `:as-paragraph:`, a `:figure:`, `:html:` or `:video:` sits at the level of a paragraph instead of being a block. Use it for a picture that belongs to the text around it, for example inside a theorem-like block:
+
+```rsm
+:remark: {
+  :blockname: Hint
+}
+
+  Under inversion at $T$, the chain becomes a stack of congruent circles.
+
+  :figure: {
+    :as-paragraph:
+    :path: figs/pappus-images.png
+    :alt: The chain and its image, a stack of congruent circles.
+    :scale: 0.2
+  }
+  ::
+
+::
+```
+
+It takes no number, and the next figure is numbered as if it were not there. A `:caption:` given to it is ignored, with a warning. It has a handrail like a paragraph's, labeled with its kind ("Figure", "Widget", "Video", or its `:blockname:`), and is never wider than the text column. Every other key still works (`:path:`, `:dark:`, `:static:`, `:alt:`, `:scale:`, `:label:`...). A `:ref:` to it reads its kind with no number, as for any unnumbered block. It is allowed anywhere a paragraph is.
 
 :table: {:label: tbl-results}
 

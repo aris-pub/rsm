@@ -147,6 +147,9 @@ minimap = MetaTagInfo(None, bool)
 """Whether to show the minimap (true or false), set in the config block."""
 author_note = MetaTagInfo(None, str)
 """Author note (e.g., 'Equal contribution')."""
+as_paragraph = MetaTagInfo(None, bool)
+"""Whether a figure, widget or video sits at the level of a paragraph: no number, no
+caption, and a handrail like a paragraph's."""
 blockname = MetaTagInfo(None, str)
 """Name a theorem-like block, an asset (figure, widget, video) or a table is called by, in
 place of its type's name, such as "Hint"."""

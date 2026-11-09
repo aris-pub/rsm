@@ -721,6 +721,18 @@ def _figure_number(node: nodes.Node) -> str | None:
     return node.full_number
 
 
+def _asset_classes(node: nodes.Asset) -> list[str]:
+    """Extra classes of an asset's <figure>. braiid.css caps the content of an
+    :as-paragraph: asset at the width of the column by this class."""
+    return ["as-paragraph"] if node.as_paragraph else []
+
+
+def _in_paragraph_asset(node: nodes.Node) -> bool:
+    """Whether node is the body of an :as-paragraph: asset (a widget's inline
+    HTML), which sits inside the asset's own paragraph handrail and so gets none."""
+    return isinstance(node.parent, nodes.Asset) and node.parent.as_paragraph
+
+
 class AppendNodeTag(AppendOpenTag):
     def __init__(
         self,
@@ -2440,7 +2452,7 @@ class Translator:
     def visit_figure(self, node: nodes.Figure) -> EditCommand:
         return AppendBatchAndDefer(
             [
-                AppendNodeTag(node, "figure"),
+                AppendNodeTag(node, "figure", additional_classes=_asset_classes(node)),
                 AppendText(self._detect_content_type_and_render(node)),
                 AppendText(self._static_fallback_img(node)),
             ]
@@ -2449,7 +2461,7 @@ class Translator:
     def visit_video(self, node: nodes.Video) -> EditCommand:
         return AppendBatchAndDefer(
             [
-                AppendNodeTag(node, "figure"),
+                AppendNodeTag(node, "figure", additional_classes=_asset_classes(node)),
                 AppendText(self._detect_content_type_and_render(node)),
             ]
         )
@@ -2457,7 +2469,7 @@ class Translator:
     def visit_html(self, node: nodes.Html) -> EditCommand:
         return AppendBatchAndDefer(
             [
-                AppendNodeTag(node, "figure"),
+                AppendNodeTag(node, "figure", additional_classes=_asset_classes(node)),
                 AppendText(self._detect_content_type_and_render(node)),
                 AppendText(self._static_fallback_img(node)),
             ]
@@ -2938,6 +2950,7 @@ class HandrailsTranslator(Translator):
         additional_classes: None | list[str] = None,
         is_selectable: bool = True,
         extra_attrs: dict | None = None,
+        tag: str = "div",
     ):
         classes = (
             (node.classes or [])
@@ -2952,6 +2965,7 @@ class HandrailsTranslator(Translator):
             extra_attrs = {**(extra_attrs or {}), "data-start-collapsed": "true"}
         return AppendNodeTag(
             node,
+            tag,
             additional_classes=classes,
             is_selectable=is_selectable,
             include_source=self.source_offsets,
@@ -3593,6 +3607,8 @@ class HandrailsTranslator(Translator):
 
     def visit_paragraph(self, node: nodes.Paragraph) -> EditCommand:
         cmd = super().visit_paragraph(node)
+        if _in_paragraph_asset(node):
+            return cmd
         batch = self._replace_node_with_handrails(node, collapse_in_hr=False)
         if "hr-hidden" not in batch.items[0].classes:
             batch.items[0].classes.append("hr-hidden")
@@ -3604,6 +3620,8 @@ class HandrailsTranslator(Translator):
         # then the corresponding leave_* method MUST MUST MUST call leave_node(node) and
         # add it to the returned batch!!!
         batch = super().leave_paragraph(node)
+        if _in_paragraph_asset(node):
+            return batch
         batch.items.insert(-1, self._hr_info_zone_icon(getattr(node, "icon", None)))
         return batch
 
@@ -3674,6 +3692,8 @@ class HandrailsTranslator(Translator):
         return batch
 
     def _asset_handrails(self, node, with_fallback: bool = True) -> EditCommand:
+        if node.as_paragraph:
+            return self._paragraph_asset_handrails(node, with_fallback)
         # A plain <figure> holds the asset body wrapped in a chromeless alignment
         # handrail (no menu, no visible bar, no info zone, not focusable) so the
         # body lines up with the reading column. The caption is a sibling child
@@ -3700,14 +3720,60 @@ class HandrailsTranslator(Translator):
         )
         return AppendBatchAndDefer([AppendNodeTag(node, "figure"), AppendText(body)])
 
+    def _paragraph_asset_handrails(self, node, with_fallback: bool) -> EditCommand:
+        # The <figure> is itself the handrail, with the classes a paragraph at the
+        # same depth gets, because it has no caption to carry the menu. Its
+        # rendered content and any body (a widget's inline HTML) share the one
+        # content zone, which is where the static toggle swaps them for the
+        # fallback.
+        menu_zone, menu_attrs = self._hr_menu_zone(
+            label=node.kindname,
+            link=(True if node.label else "disabled"),
+            static_toggle=(True if with_fallback and node.static else "disabled"),
+        )
+        inner = self._detect_content_type_and_render(node)
+        if with_fallback:
+            inner += self._static_fallback_img(node)
+        return AppendBatchAndDefer(
+            [
+                self._hr_from_node(
+                    node,
+                    ["hr-hidden", *_asset_classes(node)],
+                    extra_attrs=menu_attrs,
+                    tag="figure",
+                ),
+                self._hr_collapse_zone(False),
+                menu_zone,
+                self._hr_border_zone(),
+                self._hr_spacer_zone(),
+                self._hr_content_zone(True),
+                AppendText(inner),
+            ]
+        )
+
+    def _leave_asset(self, node: nodes.Asset) -> EditCommand:
+        batch = self.leave_node(node)
+        if node.as_paragraph:
+            batch.items.insert(-1, self._hr_info_zone_icon(getattr(node, "icon", None)))
+        return batch
+
     def visit_figure(self, node: nodes.Figure) -> EditCommand:
         return self._asset_handrails(node)
+
+    def leave_figure(self, node: nodes.Figure) -> EditCommand:
+        return self._leave_asset(node)
 
     def visit_html(self, node: nodes.Html) -> EditCommand:
         return self._asset_handrails(node)
 
+    def leave_html(self, node: nodes.Html) -> EditCommand:
+        return self._leave_asset(node)
+
     def visit_video(self, node: nodes.Video) -> EditCommand:
         return self._asset_handrails(node, with_fallback=False)
+
+    def leave_video(self, node: nodes.Video) -> EditCommand:
+        return self._leave_asset(node)
 
     def visit_caption(self, node: nodes.Caption) -> EditCommand:
         parent = node.parent
