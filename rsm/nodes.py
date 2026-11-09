@@ -495,7 +495,8 @@ class Node:
     def kindname(self) -> str:
         """The name this node is called by in the text: "Theorem" in "Theorem 1".
 
-        It is the class name. A theorem-like block may set its own with :blockname:.
+        It is the class name. A theorem-like block, an asset or a table may set its own
+        with :blockname:.
         """
         return self.__class__.__name__
 
@@ -2006,7 +2007,7 @@ class UnknownBibitem(Bibitem):
 class Asset(NodeWithChildren):
     autonumber = True
     _number_within = Section
-    newmetakeys: ClassVar[set] = {"path", "scale", "alt", "dark", "static"}
+    newmetakeys: ClassVar[set] = {"path", "scale", "alt", "dark", "static", "blockname"}
 
     def __init__(
         self,
@@ -2015,6 +2016,7 @@ class Asset(NodeWithChildren):
         alt: str = "",
         dark: Path | str = "",
         static: Path | str = "",
+        blockname: str = "",
         **kwargs: Any,
     ) -> None:
         super().__init__(**kwargs)
@@ -2023,19 +2025,27 @@ class Asset(NodeWithChildren):
         self.alt = alt
         self.dark = Path(dark) if dark else None
         self.static = Path(static) if static else None
+        self.blockname = blockname
+
+    @property
+    def kindname(self) -> str:
+        return self.blockname or super().kindname
 
 
 class Figure(Asset):
-    classreftext = "Figure {number}"
+    pass
 
 
 class Video(Asset):
-    classreftext = "Video {number}"
+    pass
 
 
 class Html(Asset):
-    classreftext = "Widget {number}"
     _number_as = Figure
+
+    @property
+    def kindname(self) -> str:
+        return self.blockname or "Widget"
 
 
 class Draft(NodeWithChildren):
@@ -2044,6 +2054,15 @@ class Draft(NodeWithChildren):
 
 class Table(NodeWithChildren):
     autonumber = True
+    newmetakeys: ClassVar[set] = {"blockname"}
+
+    def __init__(self, blockname: str = "", **kwargs: Any) -> None:
+        super().__init__(**kwargs)
+        self.blockname = blockname
+
+    @property
+    def kindname(self) -> str:
+        return self.blockname or super().kindname
 
 
 class TableHead(NodeWithChildren):

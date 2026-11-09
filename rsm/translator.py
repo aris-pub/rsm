@@ -697,7 +697,7 @@ def _caption_label(parent: nodes.Node) -> AppendOpenCloseTag:
     """A caption's label, "Figure 1. ". A block with no number (:nonum:, or numbering turned
     off) keeps the name without the number, "Figure. ", not "Figure None. "."""
     name = parent.classreftext.format(
-        nodeclass=parent.__class__.__name__, number=parent.full_number or ""
+        nodeclass=parent.kindname, number=parent.full_number or ""
     ).strip()
     return AppendOpenCloseTag(
         tag="span",
@@ -3727,9 +3727,7 @@ class HandrailsTranslator(Translator):
         has_static = isinstance(parent, nodes.Asset) and parent.static
         # The rail names the captioned block ("Figure", "Widget", "Table"), the
         # same word the caption's own label starts with.
-        kind = parent.classreftext.format(
-            nodeclass=parent.__class__.__name__, number=""
-        ).strip()
+        kind = parent.classreftext.format(nodeclass=parent.kindname, number="").strip()
         menu_zone, menu_attrs = self._hr_menu_zone(
             label=kind,
             link=(True if node.label else "disabled"),

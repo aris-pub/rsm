@@ -169,7 +169,12 @@ in place of its type's name, written exactly as given:
 
 In Section 1 the header reads "Hint 1.1." (or "Hint." with `:nonum:`), and
 `:ref:hint-inversion::` reads "Hint 1.1". The block is still a remark: it is numbered with the other
-theorem-like blocks and keeps the class `remark`. Other blocks ignore `:blockname:`.
+theorem-like blocks and keeps the class `remark`.
+
+`:figure:`, `:html:`, `:video:` and `:table:` also accept `:blockname:`. With
+`:blockname: Figure`, an `:html:` block's caption label reads "Figure 1.1." and a `:ref:`
+to it reads "Figure 1.1", in place of "Widget". It is still numbered with the figures.
+Other blocks ignore `:blockname:`.
 
 ### Inline Tags — General
 
@@ -339,7 +344,7 @@ key-value pairs; inline meta uses comma-separated pairs inside `{...}`.
 | `:affiliation:` | Author institutional affiliation |
 | `:alt:` | Alt text for figure images; the fallback of `:rawhtml:` |
 | `:author-note:` | Author note (e.g. "Equal contribution") |
-| `:blockname:` | Name a theorem-like block is called by, in place of its type's name |
+| `:blockname:` | Name a theorem-like block, figure, widget, video or table is called by, in place of its type's name |
 | `:email:` | Author email |
 | `:eyebrow:` | Short label above the manuscript title |
 | `:goal:` | Theorem goal |
@@ -924,7 +929,7 @@ Key properties of the operator:
 
 ::
 
-**Figures vs. widgets.** Use `:figure:` for any figure, including one drawn as inline SVG or HTML. Point `:path:` at an HTML fragment file (for example a `fig.html` that contains `<svg>...</svg>`), and its markup is inlined into the page, so it picks up the page CSS variables (dark mode, accent color) and is labelled "Figure". A raw image file (`.png`, `.jpg`, `.svg`) is embedded as an `<img>` and cannot see those variables. Reserve `:html:` for non-figure interactive widgets. Its reference label is "Widget", not "Figure".
+**Figures vs. widgets.** Use `:figure:` for any figure, including one drawn as inline SVG or HTML. Point `:path:` at an HTML fragment file (for example a `fig.html` that contains `<svg>...</svg>`), and its markup is inlined into the page, so it picks up the page CSS variables (dark mode, accent color) and is labelled "Figure". A raw image file (`.png`, `.jpg`, `.svg`) is embedded as an `<img>` and cannot see those variables. Reserve `:html:` for non-figure interactive widgets. Its reference label is "Widget", not "Figure", unless it has `:blockname: Figure`.
 
 :table: {:label: tbl-results}
 
