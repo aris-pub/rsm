@@ -169,6 +169,7 @@ class Transformer:
         logger.info("Transforming...")
         self.tree = tree
 
+        self.prepare_paragraph_assets()
         self.check_calc_rows()
         self.collect_labels()
         self.parse_notation()
@@ -282,6 +283,24 @@ class Transformer:
             raise RSMTransformerError(
                 f"Strict mode enabled: CST errors detected in manuscript:\n{error_summary}"
             )
+
+    def prepare_paragraph_assets(self) -> None:
+        """Give each asset with :as-paragraph: no number and no caption.
+
+        It runs first so that a dropped caption leaves no labels, notes or references
+        behind for the later steps to collect.
+        """
+        for node in self.tree.traverse(nodeclass=nodes.Asset):
+            if not node.as_paragraph:
+                continue
+            node.nonum = True
+            for caption in [c for c in node.children if isinstance(c, nodes.Caption)]:
+                tag = node.__class__.__name__.lower()
+                name = f' "{node.label}"' if node.label else ""
+                logger.warning(
+                    f"Ignoring the caption of :{tag}:{name}, which has :as-paragraph:"
+                )
+                node.remove(caption)
 
     def check_calc_rows(self) -> None:
         """Reject a label on a row of a :calc:.

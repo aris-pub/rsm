@@ -67,6 +67,7 @@ List of all tags
 
 .. autoclass:: alt
 .. autoclass:: affiliation
+.. autoclass:: as_paragraph
 .. autoclass:: author_display_first
 .. autoclass:: author_display_last
 .. autoclass:: author_note
