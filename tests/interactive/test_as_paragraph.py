@@ -127,3 +127,34 @@ def test_click_on_paragraph_still_selects_it(page: Page, tmp_path):
     para = page.locator(".paragraph.hr", has_text="Some text before").first
     para.locator("p").click()
     assert para.evaluate("el => el.matches(':focus')") is True
+
+
+SELECT_SRC = """# Doc
+
+## Sec
+
+:html: {
+  :label: w
+  :as-paragraph:
+}
+
+<p id="widget-text">Text inside a widget that the reader can select.</p>
+
+::
+"""
+
+
+def test_text_in_as_paragraph_widget_can_be_selected(page: Page, tmp_path):
+    html = rsm.build(SELECT_SRC, handrails=True, lint=False, standalone=True)
+    out = tmp_path / "as-paragraph-select.html"
+    out.write_text(html)
+    page.set_viewport_size({"width": 1280, "height": 800})
+    page.goto(out.as_uri(), wait_until="load")
+    page.wait_for_function("() => window.__rsmInitialized === true", timeout=10_000)
+    box = page.locator("#widget-text").bounding_box()
+    page.mouse.move(box["x"] + 2, box["y"] + box["height"] / 2)
+    page.mouse.down()
+    page.mouse.move(box["x"] + box["width"] - 2, box["y"] + box["height"] / 2, steps=8)
+    page.mouse.up()
+    assert "the reader can select" in page.evaluate("() => String(window.getSelection())")
+    assert page.evaluate("() => document.querySelector('figure.as-paragraph').matches(':focus')") is False

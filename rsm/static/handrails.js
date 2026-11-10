@@ -118,15 +118,16 @@ export function setup() {
     }
     // An :as-paragraph: block is itself a focusable handrail, unlike a plain
     // figure's body, so a press on its content (a widget in use) would select
-    // the whole block. It selects nothing, as in a plain figure, unless the
-    // press is on something in the content that takes focus of its own.
+    // the whole block. It selects nothing, as in a plain figure. The press keeps
+    // its default, so that text in the content can still be selected, but the
+    // block is not focusable while the press lands, and is again right after.
     const zone = ev.target.closest(".as-paragraph > .hr-content-zone");
     if (!zone) return;
-    const own = ev.target.closest("a[href], button, input, select, textarea, [contenteditable], [tabindex]");
-    if (own && zone.contains(own)) return;
-    ev.preventDefault();
-    const active = document.activeElement;
-    if (active && active.classList && active.classList.contains("hr")) active.blur();
+    const block = zone.parentElement;
+    const tabindex = block.getAttribute("tabindex");
+    if (tabindex === null) return;
+    block.removeAttribute("tabindex");
+    setTimeout(() => block.setAttribute("tabindex", tabindex), 0);
   });
 
   // Mouse leave on singleton menu → hide
