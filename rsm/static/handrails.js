@@ -121,13 +121,15 @@ export function setup() {
     // the whole block. It selects nothing, as in a plain figure. The press keeps
     // its default, so that text in the content can still be selected, but the
     // block is not focusable while the press lands, and is again right after.
+    // Nor are the blocks around it, which would otherwise take the focus.
     const zone = ev.target.closest(".as-paragraph > .hr-content-zone");
     if (!zone) return;
-    const block = zone.parentElement;
-    const tabindex = block.getAttribute("tabindex");
-    if (tabindex === null) return;
-    block.removeAttribute("tabindex");
-    setTimeout(() => block.setAttribute("tabindex", tabindex), 0);
+    const blocks = [];
+    for (let el = zone.parentElement.closest(".hr[tabindex]"); el; el = el.parentElement.closest(".hr[tabindex]")) {
+      blocks.push([el, el.getAttribute("tabindex")]);
+      el.removeAttribute("tabindex");
+    }
+    setTimeout(() => blocks.forEach(([el, tabindex]) => el.setAttribute("tabindex", tabindex)), 0);
   });
 
   // Mouse leave on singleton menu → hide

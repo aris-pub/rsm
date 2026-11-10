@@ -1679,11 +1679,12 @@ var RSM = (() => {
       }
       const zone = ev.target.closest(".as-paragraph > .hr-content-zone");
       if (!zone) return;
-      const block = zone.parentElement;
-      const tabindex = block.getAttribute("tabindex");
-      if (tabindex === null) return;
-      block.removeAttribute("tabindex");
-      setTimeout(() => block.setAttribute("tabindex", tabindex), 0);
+      const blocks = [];
+      for (let el = zone.parentElement.closest(".hr[tabindex]"); el; el = el.parentElement.closest(".hr[tabindex]")) {
+        blocks.push([el, el.getAttribute("tabindex")]);
+        el.removeAttribute("tabindex");
+      }
+      setTimeout(() => blocks.forEach(([el, tabindex]) => el.setAttribute("tabindex", tabindex)), 0);
     });
     document.addEventListener("mouseout", function(ev) {
       const menu = ev.target.closest && ev.target.closest("#hr-menu-singleton .hr-menu");

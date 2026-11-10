@@ -158,3 +158,39 @@ def test_text_in_as_paragraph_widget_can_be_selected(page: Page, tmp_path):
     page.mouse.up()
     assert "the reader can select" in page.evaluate("() => String(window.getSelection())")
     assert page.evaluate("() => document.querySelector('figure.as-paragraph').matches(':focus')") is False
+
+
+NESTED_SRC = """# Doc
+
+## Sec
+
+:remark: {
+  :blockname: Hints
+}
+
+  :html: {
+    :label: w
+    :as-paragraph:
+  }
+
+  <div id="nested-widget" style="height: 120px; background: teal"></div>
+
+  ::
+
+::
+"""
+
+
+def test_click_in_nested_as_paragraph_widget_selects_no_block(page: Page, tmp_path):
+    # With the widget's block unable to take focus, a press must not hand the
+    # focus to the block around it either.
+    html = rsm.build(NESTED_SRC, handrails=True, lint=False, standalone=True)
+    out = tmp_path / "as-paragraph-nested.html"
+    out.write_text(html)
+    page.set_viewport_size({"width": 1280, "height": 800})
+    page.goto(out.as_uri(), wait_until="load")
+    page.wait_for_function("() => window.__rsmInitialized === true", timeout=10_000)
+    page.locator("#nested-widget").click(position={"x": 200, "y": 60})
+    assert page.evaluate("() => document.activeElement.closest('.hr') === null"), page.evaluate(
+        "() => document.activeElement.className"
+    )
