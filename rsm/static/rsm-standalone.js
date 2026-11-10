@@ -1675,7 +1675,15 @@ var RSM = (() => {
       if (!ev.target.closest) return;
       if (ev.target.closest(".hr-collapse-zone") || ev.target.closest(".hr-border-zone") || ev.target.closest("#hr-menu-singleton")) {
         ev.preventDefault();
+        return;
       }
+      const zone = ev.target.closest(".as-paragraph > .hr-content-zone");
+      if (!zone) return;
+      const own = ev.target.closest("a[href], button, input, select, textarea, [contenteditable], [tabindex]");
+      if (own && zone.contains(own)) return;
+      ev.preventDefault();
+      const active = document.activeElement;
+      if (active && active.classList && active.classList.contains("hr")) active.blur();
     });
     document.addEventListener("mouseout", function(ev) {
       const menu = ev.target.closest && ev.target.closest("#hr-menu-singleton .hr-menu");
