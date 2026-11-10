@@ -115,10 +115,36 @@ function buildExcerpt(rawHref) {
       content = clone.html();
     }
   }
+  content = withWidgetStills(content);
   // The branches above that read the live target's HTML directly copy its
   // :rawhtml: too.
   content = withoutRawHtml(content);
   return { content: content || "", error: content ? null : "unsupported" };
+}
+
+// An excerpt's HTML with each widget (:html: block) inside it swapped for its
+// still image, or else its alt text, as a widget alone is (widgetPreview): a live
+// copy attaches to the original's scripts and state, and two copies of one
+// control can fight over it.
+function withWidgetStills(html) {
+  if (!html || !html.includes("html")) return html;
+  const t = document.createElement("template");
+  t.innerHTML = html;
+  const widgets = t.content.querySelectorAll("figure.html");
+  if (!widgets.length) return html;
+  for (const fig of widgets) {
+    const still = document.createElement("div");
+    const imgs = fig.querySelectorAll(".static-fallback img");
+    if (imgs.length) {
+      still.className = "widget-preview-still";
+      for (const img of imgs) still.append(img.cloneNode());
+    } else {
+      still.className = "widget-preview-alt";
+      still.textContent = fig.getAttribute("data-alt") || "";
+    }
+    fig.replaceWith(still);
+  }
+  return t.innerHTML;
 }
 
 // The excerpt of an :html: block (a widget). A copy of the live widget does not
