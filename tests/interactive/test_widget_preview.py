@@ -106,3 +106,59 @@ def test_pinned_widget_follows_theme_switch(page: Page, interactive_server: str)
     _wait_one_shown(body, "fixtures-static-light.png")
     page.eval_on_selector("html", "h => h.classList.add('dark-theme')")
     _wait_one_shown(body, "fixtures-static-dark.png")
+
+
+BLOCK_WITH_WIDGET = """# Doc
+
+## Sec
+
+:remark: {
+  :label: rem-hints
+  :blockname: Hints
+}
+
+  Text before the widget.
+
+  :html: {
+    :as-paragraph:
+    :static: still.png
+    :alt: The widget at rest.
+  }
+
+  <div class="live-widget" style="height: 80px; background: teal"></div>
+
+  ::
+
+::
+
+See :ref:rem-hints::.
+"""
+
+# One transparent pixel, as the widget's still image.
+PIXEL = bytes.fromhex(
+    "89504e470d0a1a0a0000000d4948445200000001000000010806000000"
+    "1f15c4890000000d49444154789c6360000002000154a24f5d0000000049454e44ae426082"
+)
+
+
+def test_pinned_block_shows_its_widget_still(page: Page, tmp_path, monkeypatch):
+    # A block holding a widget, pinned or previewed, is copied with the widget's still
+    # image in place of the widget, as a widget alone is: a live copy attaches to the
+    # original's model, and two copies of one control fought until the page froze.
+    import rsm
+
+    (tmp_path / "still.png").write_bytes(PIXEL)
+    monkeypatch.chdir(tmp_path)
+    html = rsm.build(BLOCK_WITH_WIDGET, handrails=True, lint=False, standalone=True, sidebar=True)
+    out = tmp_path / "block-with-widget.html"
+    out.write_text(html)
+    page.set_viewport_size({"width": 1400, "height": 900})
+    page.goto(out.as_uri(), wait_until="load")
+    page.wait_for_function(RSM_READY, timeout=10_000)
+    block = page.locator(".remark.hr").first
+    block.locator(":scope > .hr-border-zone .hr-border-dots").click(force=True)
+    page.locator("#hr-menu-singleton [data-role='pin']").click()
+    body = page.locator(".rail-pinned-body")
+    expect(body).to_contain_text("Text before the widget.")
+    expect(body.locator(".live-widget")).to_have_count(0)
+    expect(body.locator(".widget-preview-still img").first).to_be_attached()

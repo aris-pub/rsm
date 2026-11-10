@@ -1334,8 +1334,29 @@ var RSM = (() => {
         content = clone.html();
       }
     }
+    content = withWidgetStills(content);
     content = withoutRawHtml(content);
     return { content: content || "", error: content ? null : "unsupported" };
+  }
+  function withWidgetStills(html) {
+    if (!html || !html.includes("html")) return html;
+    const t = document.createElement("template");
+    t.innerHTML = html;
+    const widgets = t.content.querySelectorAll("figure.html");
+    if (!widgets.length) return html;
+    for (const fig of widgets) {
+      const still = document.createElement("div");
+      const imgs = fig.querySelectorAll(".static-fallback img");
+      if (imgs.length) {
+        still.className = "widget-preview-still";
+        for (const img of imgs) still.append(img.cloneNode());
+      } else {
+        still.className = "widget-preview-alt";
+        still.textContent = fig.getAttribute("data-alt") || "";
+      }
+      fig.replaceWith(still);
+    }
+    return t.innerHTML;
   }
   function widgetPreview(fig) {
     const esc = (s) => String(s).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll('"', "&quot;");
