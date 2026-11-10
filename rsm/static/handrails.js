@@ -114,7 +114,19 @@ export function setup() {
       ev.target.closest("#hr-menu-singleton")
     ) {
       ev.preventDefault();
+      return;
     }
+    // An :as-paragraph: block is itself a focusable handrail, unlike a plain
+    // figure's body, so a press on its content (a widget in use) would select
+    // the whole block. It selects nothing, as in a plain figure, unless the
+    // press is on something in the content that takes focus of its own.
+    const zone = ev.target.closest(".as-paragraph > .hr-content-zone");
+    if (!zone) return;
+    const own = ev.target.closest("a[href], button, input, select, textarea, [contenteditable], [tabindex]");
+    if (own && zone.contains(own)) return;
+    ev.preventDefault();
+    const active = document.activeElement;
+    if (active && active.classList && active.classList.contains("hr")) active.blur();
   });
 
   // Mouse leave on singleton menu → hide

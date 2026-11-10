@@ -79,3 +79,51 @@ def test_as_paragraph_figure_fits_the_column(page: Page, tmp_path, monkeypatch, 
     # The picture fills the column, so its left edge is the column's: the same as
     # the text of the paragraph above it.
     assert abs(m["imgLeft"] - m["paraLeft"]) <= 0.5, m
+
+
+CLICK_SRC = """# Doc
+
+## Sec
+
+Some text before the widget.
+
+:html: {
+  :label: w
+  :as-paragraph:
+}
+
+<div id="widget" style="height: 120px; background: teal"><button id="widget-button">Go</button></div>
+
+::
+"""
+
+
+def _load_click_doc(page: Page, tmp_path) -> None:
+    html = rsm.build(CLICK_SRC, handrails=True, lint=False, standalone=True)
+    out = tmp_path / "as-paragraph-click.html"
+    out.write_text(html)
+    page.set_viewport_size({"width": 1280, "height": 800})
+    page.goto(out.as_uri(), wait_until="load")
+    page.wait_for_function("() => window.__rsmInitialized === true", timeout=10_000)
+
+
+def test_click_in_as_paragraph_widget_does_not_select_it(page: Page, tmp_path):
+    # A plain figure's body cannot take focus, so a click in it selects nothing.
+    # An :as-paragraph: block is itself a focusable handrail, but a click on its
+    # content (a widget being used) must not select it either.
+    _load_click_doc(page, tmp_path)
+    page.locator("#widget").click(position={"x": 400, "y": 80})
+    assert page.evaluate("() => document.querySelector('figure.as-paragraph').matches(':focus')") is False
+
+
+def test_focusable_element_in_as_paragraph_widget_still_takes_focus(page: Page, tmp_path):
+    _load_click_doc(page, tmp_path)
+    page.locator("#widget-button").click()
+    assert page.evaluate("() => document.activeElement.id") == "widget-button"
+
+
+def test_click_on_paragraph_still_selects_it(page: Page, tmp_path):
+    _load_click_doc(page, tmp_path)
+    para = page.locator(".paragraph.hr", has_text="Some text before").first
+    para.locator("p").click()
+    assert para.evaluate("el => el.matches(':focus')") is True
