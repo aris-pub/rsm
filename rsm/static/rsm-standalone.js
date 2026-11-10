@@ -1679,11 +1679,11 @@ var RSM = (() => {
       }
       const zone = ev.target.closest(".as-paragraph > .hr-content-zone");
       if (!zone) return;
-      const own = ev.target.closest("a[href], button, input, select, textarea, [contenteditable], [tabindex]");
-      if (own && zone.contains(own)) return;
-      ev.preventDefault();
-      const active = document.activeElement;
-      if (active && active.classList && active.classList.contains("hr")) active.blur();
+      const block = zone.parentElement;
+      const tabindex = block.getAttribute("tabindex");
+      if (tabindex === null) return;
+      block.removeAttribute("tabindex");
+      setTimeout(() => block.setAttribute("tabindex", tabindex), 0);
     });
     document.addEventListener("mouseout", function(ev) {
       const menu = ev.target.closest && ev.target.closest("#hr-menu-singleton .hr-menu");
