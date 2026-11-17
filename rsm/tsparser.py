@@ -912,8 +912,10 @@ def _abstractify(cst: TSTree) -> nodes.Manuscript:
                 else:
                     # The grammar keeps the space after the comma in the reftext
                     # token; strip it so the link text has no surrounding space.
-                    ast_node.overwrite_reftext = (
-                        reftext_children[0].text.decode("utf-8").strip()
+                    # Link text that wraps onto more source lines arrives as one
+                    # text child per line, joined here with single spaces.
+                    ast_node.overwrite_reftext = " ".join(
+                        c.text.decode("utf-8").strip() for c in reftext_children
                     )
 
             meta = cst_node.child_by_field_name("meta")

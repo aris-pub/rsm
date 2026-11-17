@@ -190,3 +190,40 @@ def test_an_unnumbered_node_reftext_has_no_number():
     assert thm.reftext == "Theorem"
     sec = rsm.nodes.Section(nonum=True)
     assert sec.reftext == "Section"
+
+
+# Custom link text that wraps onto more source lines (rsm-qmp). The scanner ends
+# a text token at a newline, so each line is its own child of the reftext.
+_WRAPPED_REF = "# T\n\n:span:{:label: x} target::\n\nSee :ref:x,TEXT::.\n"
+_WRAPPED_URL = "# T\n\nSee :url:https://a.com,TEXT::.\n"
+
+
+@pytest.mark.parametrize(
+    "text, want, want_flat",
+    [
+        ("one\ntwo", "one two", "one two"),
+        ("one\ntwo\nthree", "one two three", "one two three"),
+        ("one\n*two*", 'one <span class="span"><em>two</em></span>', "one two"),
+        (
+            "one\n$x$\nthree",
+            'one <span class="math">\\(x\\)</span> three',
+            "one x three",
+        ),
+    ],
+    ids=["two-lines", "three-lines", "emph-on-second-line", "math-on-second-line"],
+)
+@pytest.mark.parametrize(
+    "src, opening",
+    [
+        (_WRAPPED_REF, '<a class="reference" href="#x">'),
+        (_WRAPPED_URL, '<a href="https://a.com">'),
+    ],
+    ids=["ref", "url"],
+)
+def test_link_text_over_several_lines_keeps_every_line(src, opening, text, want, want_flat):
+    source = src.replace("TEXT", text)
+    html = rsm.render(source, handrails=False, source_offsets=False)
+    assert f"{opening}{want}</a>" in html
+    tree = rsm.tsparser.TSParser().parse(source)
+    (link,) = [n for n in tree.traverse() if isinstance(n, rsm.nodes.BaseReference)]
+    assert link.overwrite_reftext == want_flat
