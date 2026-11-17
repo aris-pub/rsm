@@ -158,12 +158,12 @@ def test_sidebar_copy_stays_vertical():
     html = rsm.render(
         _src(":view: tree, :orientation: horizontal"), handrails=True, sidebar=True
     )
-    m = re.search(r'<div class="rail-panel rail-doc-map">(.*?)</div>', html, re.S)
+    m = re.search(r'<div class="rail-panel rail-doc-map[^"]*">(.*?)</div>', html, re.S)
     rail = _svgs(m.group(1))
     assert len(rail) == 1
     assert rail[0].startswith('<svg class="toc-tree" ')
     default = rsm.render(_src(":view: tree"), handrails=True, sidebar=True)
-    m2 = re.search(r'<div class="rail-panel rail-doc-map">(.*?)</div>', default, re.S)
+    m2 = re.search(r'<div class="rail-panel rail-doc-map[^"]*">(.*?)</div>', default, re.S)
     assert _svgs(m2.group(1)) == rail
 
 

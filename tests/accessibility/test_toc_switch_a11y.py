@@ -27,7 +27,30 @@ def test_toc_switch_passes_axe(serve_rsm_a11y, page: Page, view: str, dark_theme
             "values": ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "best-practice"],
         }
     })
+    _assert_clean(results)
+
+
+def _assert_clean(results):
     violations = results.response["violations"]
     assert violations == [], "\n".join(
         f"{v['id']}: {[n['target'] for n in v['nodes']]}" for v in violations
     )
+
+
+@pytest.mark.accessibility
+@pytest.mark.parametrize("view", ["list", "tree"])
+@pytest.mark.parametrize("dark_theme", [False, True])
+def test_sidebar_contents_switch_passes_axe(
+    serve_rsm_a11y, page: Page, view: str, dark_theme: bool
+):
+    page.set_viewport_size({"width": 1400, "height": 900})
+    page = serve_rsm_a11y(SRC.format(view=view), dark_theme, sidebar=True)
+    page.locator('.rail-strip-btn[data-view="contents"]').click()
+    expect(page.locator(".rail-toc-switch")).to_be_visible()
+    results = Axe().run(page, options={
+        "runOnly": {
+            "type": "tag",
+            "values": ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "best-practice"],
+        }
+    })
+    _assert_clean(results)

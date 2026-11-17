@@ -157,10 +157,10 @@ _TOC_LIST_ICON = _tabler(
 )
 
 
-def _toc_switch(tree: bool) -> str:
+def _toc_switch(tree: bool, extra_class: str = "") -> str:
     """The list/graph buttons of a table of contents. *tree* is the view shown
-    first. braiid.css hides them until html.has-toc-switch is set, since they
-    only work with scripting on."""
+    first. braiid.css hides the page's buttons until html.has-toc-switch is
+    set, since they only work with scripting on."""
     buttons = []
     for view, label, icon in (
         ("list", "Show as list", _TOC_LIST_ICON),
@@ -171,7 +171,8 @@ def _toc_switch(tree: bool) -> str:
             f'<button type="button" class="toc-switch-btn" data-toc-view="{view}" '
             f'title="{label}" aria-label="{label}" aria-pressed="{pressed}">{icon}</button>'
         )
-    return '<div class="toc-switch">' + "".join(buttons) + "</div>"
+    classes = "toc-switch" + (f" {extra_class}" if extra_class else "")
+    return f'<div class="{classes}">' + "".join(buttons) + "</div>"
 
 
 _RAIL_NOTATION_ICON = _tabler(
@@ -3245,8 +3246,7 @@ class HandrailsTranslator(Translator):
     # the hint says what the view shows.
     # Each hint fits one line in the 17rem desktop panel.
     _RAIL_VIEWS = {
-        "contents": ("Contents", "document", "doc-map",
-                     "The contents as a dependency graph."),
+        "contents": ("Contents", "document", "doc-map", ""),
         "notation": ("Notation", "document", "notation",
                      "Rename a symbol to change it everywhere."),
         "steps": ("Proof steps", "proof", "proof-map",
@@ -3258,6 +3258,34 @@ class HandrailsTranslator(Translator):
         "reading": ("Reading", "reading", "",
                     "Typeface, size, spacing, theme and the map."),
     }
+
+    def _rail_toc_list(self) -> str:
+        """The sidebar's Contents list: the same entries, links and markup as
+        the list in the page's :toc:, built from the sections directly since
+        the document may have no :toc:."""
+        children: dict[int | None, list[nodes.Section]] = {}
+        for sec in self.tree.traverse(nodeclass=nodes.Section):
+            parent = sec.parent
+            while parent is not None and not isinstance(parent, nodes.Section):
+                parent = parent.parent
+            children.setdefault(id(parent) if parent else None, []).append(sec)
+
+        def items(key: int | None) -> str:
+            out = []
+            for sec in children.get(key, []):
+                text = sec.title if sec.nonum else f"{sec.full_number}. {sec.title}"
+                nested = (
+                    f'<ul class="itemize">{items(id(sec))}</ul>'
+                    if id(sec) in children else ""
+                )
+                out.append(
+                    '<li class="item"><a class="reference" '
+                    f'href="#{html_escape(_section_anchor_id(sec))}">'
+                    f"{html_escape(text, quote=False)}</a>{nested}</li>"
+                )
+            return "".join(out)
+
+        return f'<ul class="contents">{items(None)}</ul>'
 
     def _make_proof_rail(self):
         """The reader sidebar: an icon strip in the left margin and the panel it
@@ -3281,11 +3309,15 @@ class HandrailsTranslator(Translator):
             next(iter(self.tree.traverse(nodeclass=nodes.Notation)), None) is not None
         )
 
+        # The sidebar starts in the author's :toc: view, or as a graph when the
+        # document has no :toc:. prooftree.js restores the reader's own choice.
+        toc = next(iter(self.tree.traverse(nodeclass=nodes.Contents)), None)
+        rail_tree = toc is None or toc.view == "tree"
         doc_panels = []
         if has_contents:
             doc_panels.append(
-                '<div class="rail-panel rail-doc-map">'
-                f'{self._toc_tree_svg(graph)}</div>'
+                f'<div class="rail-panel rail-doc-map{" tree" if rail_tree else ""}">'
+                f'{self._toc_tree_svg(graph)}{self._rail_toc_list()}</div>'
             )
         if has_notation:
             doc_panels.append('<div class="rail-panel rail-notation"></div>')
@@ -3416,7 +3448,8 @@ class HandrailsTranslator(Translator):
             + (subtabs("proof", ["steps", "state"], ["Steps", "State"])
                if has_proofs else "")
             + '<p class="rail-title" role="heading" aria-level="2"></p>'
-            '<p class="rail-hint"></p></div>'
+            + (_toc_switch(rail_tree, "rail-toc-switch") if has_contents else "")
+            + '<p class="rail-hint"></p></div>'
         )
         document_section = (
             '<div class="rail-section rail-document">' + "".join(doc_panels) + "</div>"

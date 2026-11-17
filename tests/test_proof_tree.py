@@ -142,7 +142,8 @@ def test_sidebar_without_toc_still_has_contents():
     src = RAIL_SRC.replace(":toc: {\n  :view: tree\n}\n::\n\n", "")
     assert ":toc:" not in src
     html = _sidebar(src)
-    assert 'class="rail-panel rail-doc-map"' in html
+    # Without a :toc: the sidebar's Contents view starts as a graph.
+    assert 'class="rail-panel rail-doc-map tree"' in html
     assert ("contents", "split") in _strip_views(html)
 
 
@@ -161,7 +162,8 @@ def test_strip_has_one_icon_per_view():
 
 def test_strip_buttons_are_named_with_hints():
     html = _sidebar(RAIL_SRC_NOTATION)
-    assert 'aria-label="Contents" data-tip="Contents" data-hint="The contents as a dependency graph."' in html
+    # The author removed the Contents hint (rsm-ucv): the view has a list and a graph.
+    assert 'aria-label="Contents" data-tip="Contents">' in html
     assert "Rename a symbol to change it everywhere." in html
 
 
@@ -383,7 +385,8 @@ def test_empty_proof_panel_lists_the_proofs():
     # Before a proof is selected, the panel lists each structured proof with its
     # section and step count, linked to the proof.
     html = _sidebar(RAIL_SRC)
-    empty = html[html.index('<div class="rail-proof-empty">'):html.index("</ul></div>")]
+    start = html.index('<div class="rail-proof-empty">')
+    empty = html[start:html.index("</ul></div>", start)]
     assert "No proof selected." in empty
     assert "Proofs in this document" in empty
     assert '<span class="rail-proof-name">Proof of Theorem 1.1</span>' in empty

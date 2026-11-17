@@ -1668,11 +1668,11 @@ body {
     gap: var(--chunk-sixth);
     flex: 1;
   }
-  .toc .toc-switch {
+  .toc-switch {
     display: flex;
     gap: 2px;
   }
-  .toc .toc-switch-btn {
+  .toc-switch-btn {
     display: flex;
     padding: 4px;
     border: none;
@@ -1681,16 +1681,16 @@ body {
     color: var(--text-subtle);
     cursor: pointer;
   }
-  .toc .toc-switch-btn svg {
+  .toc-switch-btn svg {
     width: 20px;
     height: 20px;
   }
-  .toc .toc-switch-btn:hover { color: var(--link-default); }
-  .toc .toc-switch-btn[aria-pressed="true"] {
+  .toc-switch-btn:hover { color: var(--link-default); }
+  .toc-switch-btn[aria-pressed="true"] {
     background: var(--text-hilite-bg);
     color: var(--text-body);
   }
-  .toc .toc-switch-btn:focus-visible {
+  .toc-switch-btn:focus-visible {
     outline: var(--border-thin) solid var(--border-action);
     outline-offset: 1px;
   }
@@ -1981,6 +1981,18 @@ body {
   }
   .rail-tab:focus-visible { border-radius: var(--radius-md); }
 
+  /* The Contents view's list/graph buttons sit at the end of the title row,
+     so the head is a wrapping row and the hint takes a line of its own. */
+  .rail-head {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .rail-title { flex: 1 1 0; min-width: 0; }
+  .rail-hint { flex-basis: 100%; }
+  .rail-toc-switch { margin-left: auto; }
+  .proof-rail:not(.scope-document.doc-view-map) .rail-toc-switch { display: none; }
+
   /* Reading: every option is a small preview tile. In the narrow desktop
      panel each label sits above its tiles; the phone sheet puts them side by
      side. */
@@ -2123,6 +2135,22 @@ body {
   .proof-rail.doc-view-map .rail-notation { display: none; }
   .proof-rail.doc-view-notation .rail-doc-map { display: none; }
   .rail-doc-map { display: flex; align-items: center; justify-content: center; min-height: 0; }
+  /* The Contents view as a list: the page's list, one line per entry. A title
+     too long for the panel ends in an ellipsis instead of scrolling sideways. */
+  .rail-doc-map.tree ul.contents { display: none; }
+  .rail-doc-map:not(.tree) svg.toc-tree { display: none; }
+  .rail-doc-map:not(.tree) {
+    display: block;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+  .rail-doc-map ul.contents { margin: 0; }
+  .rail-doc-map ul.contents a {
+    display: block;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
 
   .proof-rail-item { display: none; min-height: 0; }
   /* A little more breathing room below the sub-tabs than the row gap alone. */
@@ -4015,6 +4043,7 @@ html:not(.has-toc-switch) .manuscriptwrapper .toc .toc-switch { display: none; }
   /* With tabs in place of the title, the hint shares their row, at the right. */
   .manuscriptwrapper .proof-rail.has-tabs .rail-head {
     flex-direction: row;
+    flex-wrap: nowrap;
     align-items: center;
     gap: var(--chunk-third);
   }
@@ -4024,6 +4053,7 @@ html:not(.has-toc-switch) .manuscriptwrapper .toc .toc-switch { display: none; }
     text-align: right;
     order: 2;
   }
+  .manuscriptwrapper .proof-rail.has-tabs .rail-toc-switch { order: 3; }
 
   /* Reading in the sheet: label beside its tiles; no Width (the column already
      fills the screen). */
