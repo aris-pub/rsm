@@ -190,3 +190,23 @@ def test_removed_keys_are_unknown(caplog, line):
     assert 'data-accent="red"' in html
     assert 'data-minimap="false"' not in html
     assert "Parse error in meta" in caplog.text
+
+
+@pytest.mark.parametrize(
+    "src",
+    [
+        "Ordered list:\n1. First step\n2. Second step\n",
+        "Some text\n2 apples and\n3 pears.\n",
+        "Year\n2025 was long.\n",
+    ],
+)
+def test_lines_that_start_with_a_number_parse(src):
+    cst = TSParser().parse(src, abstractify=False)
+    assert not cst.root_node.has_error
+
+
+def test_date_with_one_digit_month_is_logged(caplog):
+    with caplog.at_level(logging.ERROR):
+        tree = _parse(_config(":override-date: 2025-1-05"))
+    assert _value_errors(caplog, "override-date")
+    assert not getattr(tree, "date", None)

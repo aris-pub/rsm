@@ -94,7 +94,6 @@ List of all tags
 .. autoclass:: scale
 .. autoclass:: static
 .. autoclass:: strong
-.. autoclass:: theme
 .. autoclass:: title
 .. autoclass:: toc_depth
 .. autoclass:: view
