@@ -1,4 +1,8 @@
+import pytest
+
+import rsm
 from conftest import compare_have_want
+from rsm import app, nodes
 
 
 def test_display_alone():
@@ -376,3 +380,38 @@ def test_preamble_math_inline():
         </body>
         """,
     )
+
+
+PREAMBLE_THEN_EQUATION = """\
+:mathblock: {:preamble:}
+\\newcommand{\\foo}{y}
+::
+
+$\\foo$
+
+$$
+x = \\foo
+$$
+"""
+
+
+def _mathblocks(src, handrails):
+    a = app.ProcessorApp(plain=src, handrails=handrails)
+    a.run()
+    return list(a.translator.tree.traverse(nodeclass=nodes.MathBlock))
+
+
+@pytest.mark.parametrize("handrails", [False, True])
+def test_preamble_mathblock_takes_no_number(handrails):
+    preamble, equation = _mathblocks(PREAMBLE_THEN_EQUATION, handrails)
+    assert preamble.nonum
+    assert equation.number == 1
+
+
+def test_preamble_mathblock_shows_no_number_in_handrails():
+    html = rsm.render(PREAMBLE_THEN_EQUATION, handrails=True)
+    preamble_start = html.index('class="mathblock math-preamble"')
+    paragraph_start = html.index('class="paragraph', preamble_start)
+    assert "hr-info-zone" not in html[preamble_start:paragraph_start]
+    assert html.count('<div class="eqn-number"><p>(1)</p></div>') == 1
+    assert "(2)" not in html

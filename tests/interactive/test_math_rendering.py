@@ -244,3 +244,41 @@ class TestWidgetApi:
                     el.querySelector('mjx-container').getAttribute('display')];
         }""")
         assert result == [True, 1, "true"]
+
+
+class TestMathPreamble:
+    """Macros from a preamble reach all math in the document."""
+
+    def _math_text(self, locator):
+        # CHTML draws characters with CSS, so the text is read from the MathML.
+        locator.locator("mjx-container").first.wait_for(state="attached", timeout=15_000)
+        return locator.locator("mjx-assistive-mml").first.text_content().strip()
+
+    def test_block_preamble_macro_in_inline_math(self, page: Page, interactive_server: str):
+        page.goto(f"{interactive_server}/math-preamble.html")
+        wait_for_rsm(page)
+        inline = page.locator("span.math:not(.math-preamble)").first
+        assert self._math_text(inline) == "y"
+
+    def test_inline_preamble_macro_in_inline_math(self, page: Page, interactive_server: str):
+        page.goto(f"{interactive_server}/math-preamble.html")
+        wait_for_rsm(page)
+        inline = page.locator("span.math:not(.math-preamble)").nth(1)
+        assert self._math_text(inline) == "z"
+
+    def test_block_preamble_macro_in_display_math(self, page: Page, interactive_server: str):
+        page.goto(f"{interactive_server}/math-preamble.html")
+        wait_for_rsm(page)
+        display = page.locator("div.mathblock:not(.math-preamble)").first
+        assert self._math_text(display) == "x=y"
+
+    def test_block_preamble_macro_in_render_math(self, page: Page, interactive_server: str):
+        page.goto(f"{interactive_server}/math-preamble.html")
+        wait_for_rsm(page)
+        text = page.evaluate("""async () => {
+            const el = document.createElement('span');
+            document.querySelector('.manuscript').appendChild(el);
+            await window.rsm.renderMath('\\\\foo', el);
+            return el.querySelector('mjx-assistive-mml').textContent.trim();
+        }""")
+        assert text == "y"

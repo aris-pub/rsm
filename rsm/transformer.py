@@ -751,6 +751,8 @@ class Transformer:
             # A calc is numbered only when labelled, unlike display math.
             if isinstance(node, nodes.Calc) and not node.label:
                 node.nonum = True
+            if isinstance(node, nodes.MathBlock) and node.preamble:
+                node.nonum = True
 
             if node.autonumber and not node.nonum:
                 # Apply numbering mode from config

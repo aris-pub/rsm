@@ -1,0 +1,13 @@
+# Math Preamble
+
+:mathblock: {:preamble:}
+\newcommand{\foo}{y}
+::
+
+Inline math that uses the block macro: $\foo$.
+
+:math: {:preamble:} \newcommand{\baz}{z}:: Inline math that uses the inline macro: $\baz$.
+
+$$
+x = \foo
+$$

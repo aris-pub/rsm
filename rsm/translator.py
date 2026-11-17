@@ -4073,6 +4073,8 @@ class HandrailsTranslator(Translator):
 
     def leave_mathblock(self, node: nodes.MathBlock) -> EditCommand:
         batch = super().leave_mathblock(node)
+        if node.preamble:
+            return batch
         # A step that starts with this equation shows its number (leave_step).
         number = None if getattr(node, "_number_in_step", False) else node.full_number
         batch.items.insert(2, self._hr_info_zone_number(number, style="eqn"))
