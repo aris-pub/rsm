@@ -61,10 +61,12 @@ def _load(page: Page, server: str, width: int, height: int = 900, hash: str = ""
     page.goto(f"{server}/{NAME}.html")
     page.wait_for_function(RSM_READY, timeout=10_000)
     page.evaluate("() => localStorage.clear()")
+    # goto with wait_until="load" instead of reload, so the readiness poll below
+    # cannot run in the old page while the new one replaces it (rsm-lxh).
     if hash:
         page.goto(f"{server}/{NAME}.html#{hash}")
     else:
-        page.reload()
+        page.goto(f"{server}/{NAME}.html", wait_until="load")
     page.wait_for_function(RSM_READY, timeout=10_000)
     _settle(page)
 
@@ -113,9 +115,6 @@ def _assert_open_below(g: dict):
 # ---- wide: the right-hand column (zvn.2) -----------------------------------
 
 
-# Failed once in CI (PR #179) with the page still navigating after the reload in
-# _load, and passed on rerun and in 8 cold local runs. See rsm-lxh.
-@pytest.mark.flaky(reruns=2, reruns_delay=1, only_rerun=["Execution context was destroyed"])
 def test_close_asides_in_margin_without_overlap(page: Page, interactive_server: str):
     _load(page, interactive_server, 1280)
     gs = [_geom(page, i) for i in CLOSE]
