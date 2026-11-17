@@ -1172,3 +1172,49 @@ class TestClickableCitations:
         import json
         full = json.dumps(result)
         assert "?" in full
+
+
+class TestStaticWidgetRefText:
+    """rsm-ipz: a :ref: to an :html: block with :static: reads "Figure" only in place
+    of the default kind name "Widget"; a :blockname: is kept as written."""
+
+    @staticmethod
+    def _ref_text(meta: str) -> str:
+        blocks = _blocks(
+            f"""\
+            :html: {{
+              :label: w
+              :static: img/w.png{meta}
+            }}
+
+            <div>live</div>
+
+            ::
+
+            See :ref:w::.
+            """
+        )
+        links = []
+
+        def walk(x):
+            if isinstance(x, dict):
+                if x.get("t") == "Link":
+                    links.append(x)
+                for v in x.values():
+                    walk(v)
+            elif isinstance(x, list):
+                for v in x:
+                    walk(v)
+
+        walk(blocks)
+        assert len(links) == 1, blocks
+        return "".join(i["c"] for i in links[0]["c"][1] if i["t"] == "Str")
+
+    def test_default_widget_reads_figure(self):
+        assert self._ref_text("") == "Figure 1"
+
+    def test_blockname_widgetry_is_kept(self):
+        assert self._ref_text("\n              :blockname: Widgetry") == "Widgetry 1"
+
+    def test_blockname_figure_reads_figure(self):
+        assert self._ref_text("\n              :blockname: Figure") == "Figure 1"
