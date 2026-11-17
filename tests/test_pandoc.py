@@ -1179,7 +1179,7 @@ class TestStaticWidgetRefText:
     of the default kind name "Widget"; a :blockname: is kept as written."""
 
     @staticmethod
-    def _ref_text(meta: str) -> str:
+    def _ref_text(meta: str, ref: str = ":ref:w::") -> str:
         blocks = _blocks(
             f"""\
             :html: {{
@@ -1191,7 +1191,7 @@ class TestStaticWidgetRefText:
 
             ::
 
-            See :ref:w::.
+            See {ref}.
             """
         )
         links = []
@@ -1218,3 +1218,13 @@ class TestStaticWidgetRefText:
 
     def test_blockname_figure_reads_figure(self):
         assert self._ref_text("\n              :blockname: Figure") == "Figure 1"
+
+    # rsm-a7u: link text written by the author is never changed.
+    def test_handwritten_widgetry_is_kept(self):
+        assert self._ref_text("", ":ref:w,Widgetry demo::") == "Widgetry demo"
+
+    def test_handwritten_widget_word_is_kept(self):
+        assert self._ref_text("", ":ref:w,Widget above::") == "Widget above"
+
+    def test_handwritten_text_with_markup_is_kept(self):
+        assert self._ref_text("", ":ref:w,*Widget* above::") == "Widget above"
