@@ -1,73 +1,153 @@
 import { CompletionItem, CompletionItemKind, TextEdit, Range, Position } from 'vscode-languageserver';
 
 /**
- * RSM tag definitions for completion
- * Extracted from rsm/tags.py
+ * RSM tag definitions for completion.
+ * The tag names must match the tags and meta keys in tree-sitter-rsm/grammar.js;
+ * test/unit/layer1/completion.test.ts compares the two. Most descriptions come
+ * from docs/rsm-agent-skill.md.
  */
 const RSM_TAGS = [
   // Document structure
-  { tag: ':manuscript:', description: 'Document root' },
-  { tag: ':section:', description: 'Section' },
+  { tag: ':section:', description: 'Section (closes when the next section begins)' },
   { tag: ':subsection:', description: 'Subsection' },
   { tag: ':subsubsection:', description: 'Subsubsection' },
+  { tag: ':appendix:', description: 'Marks where appendix sections begin (stamp)' },
+  { tag: ':paragraph:', description: 'Paragraph with inline meta' },
+  { tag: ':config:', description: 'Document configuration' },
+  { tag: ':toc:', description: 'Table of contents' },
 
-  // Mathematical constructs
-  { tag: ':theorem:', description: 'Theorem statement' },
-  { tag: ':lemma:', description: 'Lemma statement' },
-  { tag: ':corollary:', description: 'Corollary statement' },
-  { tag: ':proposition:', description: 'Proposition statement' },
-  { tag: ':conjecture:', description: 'Conjecture statement' },
+  // Front matter
+  { tag: ':author:', description: 'Author information block' },
+  { tag: ':abstract:', description: 'Manuscript abstract' },
+
+  // Theorem-like blocks
+  { tag: ':theorem:', description: 'Theorem' },
+  { tag: ':lemma:', description: 'Lemma' },
+  { tag: ':corollary:', description: 'Corollary' },
+  { tag: ':proposition:', description: 'Proposition' },
+  { tag: ':porism:', description: 'Porism (corollary of a proof)' },
   { tag: ':definition:', description: 'Definition' },
   { tag: ':example:', description: 'Example' },
+  { tag: ':exercise:', description: 'Exercise' },
+  { tag: ':problem:', description: 'Problem' },
   { tag: ':remark:', description: 'Remark' },
+
+  // Notes and asides
   { tag: ':note:', description: 'Footnote: call with :note:label::, define with :note: {:label: label} ... ::' },
   { tag: ':aside:', description: 'Aside: call with :aside:label,phrase::, define with :aside: {:label: label} ... ::' },
 
+  // Proofs
+  { tag: ':proof:', description: 'Proof' },
+  { tag: ':sketch:', description: 'Proof sketch' },
+  { tag: ':step:', description: 'Proof step (inside proofs)' },
+  { tag: ':p:', description: 'Subproof (used inside steps)' },
+  { tag: ':calc:', description: 'Calculation: a chain of relations, each a :step: with its reason' },
+
   // Proof constructs
-  { tag: ':proof:', description: 'Proof block' },
-  { tag: ':claim:', description: 'Claim within proof' },
-  { tag: ':step:', description: 'Proof step' },
-  { tag: ':p:', description: 'Justification for claim/step' },
-  { tag: ':qed:', description: 'End of proof' },
-  { tag: ':let:', description: 'Variable introduction' },
-  { tag: ':assume:', description: 'Assumption' },
-  { tag: ':st:', description: 'Such that (with :pick:)' },
-  { tag: ':pick:', description: 'Choose element' },
+  { tag: ':assume:', description: 'Introduce an assumption' },
+  { tag: ':case:', description: 'Prove a special case of the goal' },
+  { tag: ':claim:', description: 'State a mathematical claim' },
+  { tag: ':define:', description: 'Introduce a variable and assumption' },
+  { tag: ':let:', description: 'Introduce a variable and assumption' },
+  { tag: ':new:', description: 'Introduce a variable and assumption' },
+  { tag: ':pick:', description: 'Introduce a variable with a property (pair with :st:)' },
+  { tag: ':prove:', description: 'Set the goal' },
+  { tag: ':st:', description: 'Such that (follows :pick:)' },
+  { tag: ':suffices:', description: 'Change the goal' },
+  { tag: ':suppose:', description: 'Introduce an assumption' },
+  { tag: ':then:', description: 'State a claim under an assumption' },
+  { tag: ':wlog:', description: 'Without loss of generality' },
+  { tag: ':write:', description: 'Introduce notation / a symbol' },
+  { tag: ':qed:', description: 'State that the goal is proven (stamp)' },
 
   // References
-  { tag: ':ref:', description: 'Reference to labeled element' },
-  { tag: ':cite:', description: 'Citation reference' },
-  { tag: ':eqref:', description: 'Equation reference' },
+  { tag: ':ref:', description: 'Internal cross-reference' },
+  { tag: ':cite:', description: 'Bibliography citation' },
+  { tag: ':url:', description: 'External hyperlink' },
+  { tag: ':previous:', description: 'Reference a step by number' },
+  { tag: ':prev:', description: 'Reference the previous step (stamp)' },
+  { tag: ':prev2:', description: 'Reference the step before last (stamp)' },
+  { tag: ':prev3:', description: 'Reference two steps before (stamp)' },
 
-  // Figures and tables
-  { tag: ':figure:', description: 'Figure' },
+  // Math, code and other as-is content
+  { tag: ':math:', description: 'Inline math (as-is content)' },
+  { tag: ':mathblock:', description: 'Display math (as-is content)' },
+  { tag: ':code:', description: 'Inline code (as-is content)' },
+  { tag: ':codeblock:', description: 'Code listing (as-is content)' },
+  { tag: ':algorithm:', description: 'Algorithm listing (as-is content)' },
+  { tag: ':notation:', description: 'Notation macros that the reader can change, one per line' },
+  { tag: ':rawhtml:', description: 'Inline raw HTML (as-is content)' },
+
+  // Figures, widgets and tables
+  { tag: ':figure:', description: 'Figure float' },
+  { tag: ':html:', description: 'Non-figure interactive widget' },
+  { tag: ':video:', description: 'Video asset' },
   { tag: ':table:', description: 'Table' },
-  { tag: ':caption:', description: 'Caption for figure/table' },
+  { tag: ':thead:', description: 'Table header rows' },
+  { tag: ':tbody:', description: 'Table body rows' },
+  { tag: ':tr:', description: 'Table row (short form: cells separated by :)' },
+  { tag: ':td:', description: 'Table cell' },
+  { tag: ':caption:', description: 'Figure/table caption (paragraph-level)' },
 
   // Lists
-  { tag: ':itemize:', description: 'Unordered list' },
-  { tag: ':enumerate:', description: 'Ordered list' },
-  { tag: ':item:', description: 'List item' },
+  { tag: ':itemize:', description: 'Unnumbered list' },
+  { tag: ':enumerate:', description: 'Numbered list' },
 
-  // Front matter
-  { tag: ':title:', description: 'Document title' },
-  { tag: ':author:', description: 'Author' },
-  { tag: ':date:', description: 'Date' },
-  { tag: ':abstract:', description: 'Abstract' },
+  // Inline
+  { tag: ':span:', description: 'Text span, for styling via meta or attaching a :label:' },
+  { tag: ':draft:', description: 'Visible comment / draft note' },
 
   // Bibliography
   { tag: ':references:', description: 'Bibliography section' },
-  { tag: ':bibitem:', description: 'Bibliography entry' },
 
-  // Inline constructs
-  { tag: ':emph:', description: 'Emphasis (italic)' },
-  { tag: ':strong:', description: 'Strong emphasis (bold)' },
-  { tag: ':code:', description: 'Inline code' },
-  { tag: ':url:', description: 'URL link' },
+  // Meta keys with text values
+  { tag: ':affiliation:', description: 'Author institutional affiliation' },
+  { tag: ':alt:', description: 'Alt text for figure images; the fallback of :rawhtml:' },
+  { tag: ':author-note:', description: 'Author note (e.g. "Equal contribution")' },
+  { tag: ':blockname:', description: "Name a block is called by, in place of its type's name" },
+  { tag: ':email:', description: 'Author email' },
+  { tag: ':eyebrow:', description: 'Short label above the manuscript title' },
+  { tag: ':goal:', description: 'Theorem goal' },
+  { tag: ':icon:', description: 'Icon assigned to the block' },
+  { tag: ':label:', description: 'Cross-reference label' },
+  { tag: ':lang:', description: 'Language code (e.g. en, es)' },
+  { tag: ':name:', description: 'Author name' },
+  { tag: ':of:', description: 'Label of the result proved by a proof placed away from it' },
+  { tag: ':orcid:', description: 'Author ORCID identifier' },
+  { tag: ':reftext:', description: 'Label display text for references' },
+  { tag: ':title:', description: 'Block or manuscript title' },
 
-  // Special
-  { tag: ':draft:', description: 'Draft marker' },
-  { tag: ':todo:', description: 'TODO marker' },
+  // Boolean meta keys
+  { tag: ':as-paragraph:', description: 'A figure, widget or video sits at the level of a paragraph: no number, no caption' },
+  { tag: ':collapsed:', description: 'Handrail starts collapsed' },
+  { tag: ':emphas:', description: 'Emphasized span' },
+  { tag: ':isclaim:', description: 'Math block is a claim' },
+  { tag: ':nonum:', description: 'Suppress numbering' },
+  { tag: ':preamble:', description: 'Math block holds macro definitions' },
+  { tag: ':strong:', description: 'Bold span' },
+
+  // List meta keys
+  { tag: ':class:', description: 'CSS classes' },
+  { tag: ':keywords:', description: 'Abstract keywords' },
+  { tag: ':msc:', description: 'Mathematics Subject Classification' },
+
+  // Meta keys with any value
+  { tag: ':accent:', description: 'Accent color (blue, red, green, orange, yellow, purple, pink, gray)' },
+  { tag: ':author-display-first:', description: 'Authors shown at start when >5' },
+  { tag: ':author-display-last:', description: 'Authors shown at end when >5' },
+  { tag: ':citation-style:', description: 'Citation style (numeric or author-year)' },
+  { tag: ':dark:', description: 'Dark-mode figure path' },
+  { tag: ':minimap:', description: 'Show or hide the minimap' },
+  { tag: ':numbering:', description: 'Numbering mode (document, section, none)' },
+  { tag: ':orientation:', description: 'Table of contents tree orientation (horizontal, vertical)' },
+  { tag: ':override-date:', description: 'Override manuscript date' },
+  { tag: ':path:', description: 'Figure path' },
+  { tag: ':scale:', description: 'Figure scale' },
+  { tag: ':static:', description: 'Static/PDF export figure path' },
+  { tag: ':theme:', description: 'Manuscript theme' },
+  { tag: ':toc-depth:', description: 'Table of contents depth' },
+  { tag: ':typography:', description: 'Typography style (sans-serif, serif)' },
+  { tag: ':view:', description: 'Default view of the table of contents (e.g. tree)' },
 ];
 
 /**
