@@ -9,12 +9,19 @@ This document exercises figure options: alt text, dark mode variant, and static 
 
 ## Figure with alt text
 
-:figure: {:path: figure-light.png :alt: A blue rectangle labelled LIGHT}
+:figure: {
+  :path: figure-light.png
+  :alt: A blue rectangle labelled LIGHT
+}
 ::
 
 ## Figure with dark mode variant
 
-:figure: {:path: figure-light.png :dark: figure-dark.png :alt: Colour diagram}
+:figure: {
+  :path: figure-light.png
+  :dark: figure-dark.png
+  :alt: Colour diagram
+}
 ::
 
 ## Figure with static fallback
