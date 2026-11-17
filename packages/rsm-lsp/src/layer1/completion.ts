@@ -196,6 +196,9 @@ export function getTagCompletions(
 export function getPartialTag(line: string, character: number): string | null {
   // Check if we're after a colon
   const beforeCursor = line.substring(0, character);
-  const match = beforeCursor.match(/:([a-z]*)$/);
+  // Names in the grammar start with a letter and then use letters, digits and
+  // hyphens. Requiring the letter first keeps ':-' (an item marker being typed)
+  // and '::2' from counting as a partial tag.
+  const match = beforeCursor.match(/:((?:[a-z][a-z0-9-]*)?)$/);
   return match ? `:${match[1]}` : null;
 }

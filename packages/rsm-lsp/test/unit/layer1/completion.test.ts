@@ -174,3 +174,54 @@ describe('getPartialTag', () => {
     expect(partial).toBe(':theorem');
   });
 });
+
+describe('completion of tag names with hyphens and digits', () => {
+  function complete(line: string): string[] {
+    const partial = getPartialTag(line, line.length);
+    return partial ? getTagCompletions(partial).map((c) => c.label) : [];
+  }
+
+  it('offers :as-paragraph: after :as-', () => {
+    expect(getPartialTag(':as-', 4)).toBe(':as-');
+    expect(complete(':as-')).toEqual([':as-paragraph:']);
+  });
+
+  it('offers :toc-depth: after :toc-', () => {
+    expect(complete('text :toc-')).toEqual([':toc-depth:']);
+  });
+
+  it('offers :prev2: after :prev2', () => {
+    expect(getPartialTag(':prev2', 6)).toBe(':prev2');
+    expect(complete(':prev2')).toEqual([':prev2:']);
+  });
+
+  it('offers :author-note: and :citation-style: after the hyphen', () => {
+    expect(complete(':author-n')).toContain(':author-note:');
+    expect(complete(':citation-')).toEqual([':citation-style:']);
+  });
+
+  it('still offers :as-paragraph: after :as', () => {
+    expect(complete(':as')).toContain(':as-paragraph:');
+  });
+
+  it('treats text after the Halmos as it did before', () => {
+    expect(getPartialTag('end ::', 6)).toBe(':');
+    expect(getPartialTag('::the', 5)).toBe(':the');
+    expect(getPartialTag('::-', 3)).toBeNull();
+    expect(getPartialTag('::2', 3)).toBeNull();
+  });
+
+  it('treats text after the item marker :-: as it did before', () => {
+    expect(getPartialTag(':-', 2)).toBeNull();
+    expect(getPartialTag(':--', 3)).toBeNull();
+    expect(getPartialTag(':-:', 3)).toBe(':');
+    expect(getPartialTag(':-: :the', 8)).toBe(':the');
+  });
+
+  it('does not offer the item markers', () => {
+    const labels = getTagCompletions().map((c) => c.label);
+    for (const marker of [':-:', ':--:', ':---:']) {
+      expect(labels).not.toContain(marker);
+    }
+  });
+});
