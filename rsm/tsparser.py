@@ -384,11 +384,16 @@ _WORD_VALUES = {
 
 _WHOLE_NUMBER_KEYS = {"toc_depth", "author_display_first", "author_display_last"}
 
+# The grammar gives number, word and date values one shared token, so the form
+# of a number or a date is checked here.
+_NUMBER = re.compile(r"\d+(\.\d+)?")
+_DATE = re.compile(r"\d{4}-\d{2}-\d{2}")
+
 _LANG_CODE = re.compile(r"^[a-z]{2,3}(-[A-Z]{2})?$")
 _LANG_CODE_ALLOWED = "a language code such as en, es, fr, en-US or zh-CN"
 
-# What each key accepts, for the message logged when the grammar rejects the
-# shape of its value.
+# What each key accepts, for the message logged when its value has the wrong
+# shape.
 _SHAPE_ALLOWED = {
     "metakey_path": "a file path",
     "metakey_number": "a number, such as 2 or 0.5",
@@ -420,12 +425,16 @@ def _value_is_valid(key: str, value: Any, keykind: str, pair: TSNode) -> bool:
         ok = value in _WORD_VALUES[key]
     elif key in _WHOLE_NUMBER_KEYS:
         ok = value.isdigit()
+    elif keykind == "metakey_number":
+        ok = _NUMBER.fullmatch(value) is not None
     elif keykind == "metakey_date":
-        try:
-            datetime.strptime(value, "%Y-%m-%d")
-            ok = True
-        except ValueError:
-            ok = False
+        # strptime alone also accepts one-digit months and days.
+        ok = _DATE.fullmatch(value) is not None
+        if ok:
+            try:
+                datetime.strptime(value, "%Y-%m-%d")
+            except ValueError:
+                ok = False
     else:
         return True
     if not ok:
