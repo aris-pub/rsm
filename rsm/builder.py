@@ -172,6 +172,19 @@ class HTMLBuilder(BaseBuilder):
             "  </script>\n"
         )
 
+    def _toc_switch_preload_script(self) -> str:
+        """A pre-paint script that shows the table of contents' list/graph
+        buttons from the first paint. tocarcs.js also sets html.has-toc-switch
+        when it wires them. With scripting off it never runs and braiid.css
+        keeps the buttons hidden, since they cannot work."""
+        if 'class="toc-switch"' not in (self.body or ""):
+            return ""
+        return (
+            "\n  <script>\n"
+            "    document.documentElement.classList.add('has-toc-switch');\n"
+            "  </script>\n"
+        )
+
     def make_html_header(self) -> str:
         custom_css_link = ""
         if self.custom_css:
@@ -217,7 +230,10 @@ class HTMLBuilder(BaseBuilder):
           </script>
         """)
 
-        sidebar_preload = self._sidebar_preload_script() + self._asides_preload_script()
+        sidebar_preload = (
+            self._sidebar_preload_script() + self._asides_preload_script()
+            + self._toc_switch_preload_script()
+        )
 
         header = dedent(
             f"""\
@@ -405,7 +421,10 @@ class StandaloneBuilder(HTMLBuilder):
   </script>
 """
 
-        sidebar_preload = self._sidebar_preload_script() + self._asides_preload_script()
+        sidebar_preload = (
+            self._sidebar_preload_script() + self._asides_preload_script()
+            + self._toc_switch_preload_script()
+        )
 
         header = f"""\
 <head>

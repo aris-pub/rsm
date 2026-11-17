@@ -150,6 +150,30 @@ _RAIL_CONTENTS_ICON = _tabler(
     '<path d="M5 17l2 -3"/><path d="M9 10l2 -3"/><path d="M13 7l2 3"/>'
     '<path d="M17 14l2 3"/><path d="M15 14l-2 3"/><path d="M9 14l2 3"/>'
 )
+# Tabler list: the list button of the table of contents' list/graph switch.
+_TOC_LIST_ICON = _tabler(
+    '<path d="M9 6l11 0"/><path d="M9 12l11 0"/><path d="M9 18l11 0"/>'
+    '<path d="M5 6l0 .01"/><path d="M5 12l0 .01"/><path d="M5 18l0 .01"/>'
+)
+
+
+def _toc_switch(tree: bool) -> str:
+    """The list/graph buttons of a table of contents. *tree* is the view shown
+    first. braiid.css hides them until html.has-toc-switch is set, since they
+    only work with scripting on."""
+    buttons = []
+    for view, label, icon in (
+        ("list", "Show as list", _TOC_LIST_ICON),
+        ("tree", "Show as graph", _RAIL_CONTENTS_ICON),
+    ):
+        pressed = "true" if (view == "tree") == tree else "false"
+        buttons.append(
+            f'<button type="button" class="toc-switch-btn" data-toc-view="{view}" '
+            f'title="{label}" aria-label="{label}" aria-pressed="{pressed}">{icon}</button>'
+        )
+    return '<div class="toc-switch">' + "".join(buttons) + "</div>"
+
+
 _RAIL_NOTATION_ICON = _tabler(
     '<path d="M3 19c3.333 -2 5 -4 5 -6c0 -3 -1 -3 -2 -3s-2.032 1.085 -2 3c.034 '
     '2.048 1.658 2.877 2.5 4c1.5 2 2.5 2.5 3.5 1c.667 -1 1.167 -1.833 1.5 -2.5c1 '
@@ -1387,7 +1411,14 @@ class Translator:
                 # Level 2 for the same heading-order reason as the abstract: the
                 # table of contents is front matter between the h1 and the first
                 # numbered h2. Front-matter styling lives in braiid.css.
-                AppendHeading(2, "Table of Contents"),
+                # The heading and the list/graph switch share one row, which
+                # is placed by braiid.css. The switch stays outside the h2 so
+                # its button names are not read as part of the heading.
+                AppendText(
+                    text='<div class="toc-head"><h2>Table of Contents</h2>'
+                    + _toc_switch(node.view == "tree")
+                    + "</div>"
+                ),
                 AppendOpenTag(classes=["toc-wrapper"]),
                 AppendText(text=self._text_toc_tree_svg(node)),
                 AppendNodeTag(node, "ul"),

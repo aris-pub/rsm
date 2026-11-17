@@ -985,7 +985,7 @@ body {
     align-items: center;
   }
   .abstract > .heading.hr > .hr-content-zone > h2,
-  .toc > .heading.hr > .hr-content-zone > h2 {
+  .toc > .heading.hr > .hr-content-zone > .toc-head > h2 {
     font-size: calc(var(--h6-size) * 0.8);
     font-weight: var(--weight-semi);
     color: var(--text-subtle);
@@ -1657,6 +1657,42 @@ body {
   /* TOC tree view: build-time dependency graph shown in place of the list */
   .toc svg.toc-tree {
     display: none;
+  }
+
+  /* The heading row: the "Table of Contents" label at the start and the
+     list/graph buttons at the end. */
+  .toc .toc-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--chunk-sixth);
+    flex: 1;
+  }
+  .toc .toc-switch {
+    display: flex;
+    gap: 2px;
+  }
+  .toc .toc-switch-btn {
+    display: flex;
+    padding: 4px;
+    border: none;
+    border-radius: 6px;
+    background: none;
+    color: var(--text-subtle);
+    cursor: pointer;
+  }
+  .toc .toc-switch-btn svg {
+    width: 20px;
+    height: 20px;
+  }
+  .toc .toc-switch-btn:hover { color: var(--link-default); }
+  .toc .toc-switch-btn[aria-pressed="true"] {
+    background: var(--text-hilite-bg);
+    color: var(--text-body);
+  }
+  .toc .toc-switch-btn:focus-visible {
+    outline: var(--border-thin) solid var(--border-action);
+    outline-offset: 1px;
   }
 
   .toc.tree svg.toc-tree {
@@ -3841,6 +3877,11 @@ a.reference.external:hover::after {
    and no bottom bar eating the screen. The specificity clears the base and
    phone .rail-strip rules. */
 html:not(.has-rail) .manuscriptwrapper .rail-strip { display: none; }
+
+/* The table of contents' list/graph buttons only work once tocarcs.js has
+   wired them. The builder's pre-paint script sets html.has-toc-switch, so with
+   scripting off the buttons are never shown. */
+html:not(.has-toc-switch) .manuscriptwrapper .toc .toc-switch { display: none; }
 
 /* Skip link: the first focusable element on a --sidebar page, so a keyboard
    reader can jump past the strip to the text. Hidden until focused, then shown
