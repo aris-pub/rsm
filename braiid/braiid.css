@@ -3391,19 +3391,6 @@ a.reference.external:hover::after {
   stroke: var(--extra-dark);
 }
 
-/* Show/hide icons based on theme */
-.rsm-theme-toggle .dark-icon {
-  display: none;
-}
-
-.dark-theme .rsm-theme-toggle .dark-icon {
-  display: block;
-}
-
-.dark-theme .rsm-theme-toggle .light-icon {
-  display: none;
-}
-
 /* Dark mode asset variants. display cannot follow color-scheme, so the OS dark
    setting needs its own twin of the .dark-theme rules (guarded by
    :not(.light-theme) so an explicit light choice still wins), the same pattern
@@ -3526,10 +3513,6 @@ a.reference.external:hover::after {
   background-color: var(--gray-200);
 }
 
-.dark-theme .rsm-source-modal-icon-button:hover {
-  background-color: var(--gray-800);
-}
-
 .rsm-source-modal-icon-button svg {
   width: var(--chunk-half);
   height: var(--chunk-half);
@@ -3541,10 +3524,6 @@ a.reference.external:hover::after {
   overflow-y: auto;
   background: var(--gray-100);
   border-radius: var(--radius-md);
-}
-
-.dark-theme .rsm-source-modal-body {
-  background: var(--gray-900);
 }
 
 .rsm-source-modal-body pre {

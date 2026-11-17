@@ -43,9 +43,15 @@ the page head re-applies the stored choice before first paint. With no stored
 choice no class is set, so the page follows the OS. None of this is needed to
 get the right colors: with scripting off the CSS alone follows the OS.
 
+A component rule never needs a `.dark-theme X { color: ... }` override. The
+gray scale and the other primitives already flip, so a rule that picks a
+different primitive under `.dark-theme` picks the light end of the scale in
+dark mode, and the OS dark path never gets that rule at all. The source modal
+had two such rules until rsm-fv2.
+
 `color-scheme` drives colors only. For the few things that switch on `display`
 rather than color (the `.dark-only` / `.light-only` asset variants, the static
-fallback images), the OS path needs an explicit `@media (prefers-color-scheme:
+fallback images, the widget preview stills), the OS path needs an explicit `@media (prefers-color-scheme:
 dark)` twin of the `.dark-theme` rule, guarded by `:root:not(.light-theme)` so
 an explicit light choice still wins.
 
