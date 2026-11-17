@@ -64,7 +64,10 @@ def _load(page: Page, server: str, width: int, height: int = 900, hash: str = ""
     # goto with wait_until="load" instead of reload, so the readiness poll below
     # cannot run in the old page while the new one replaces it (rsm-lxh).
     if hash:
-        page.goto(f"{server}/{NAME}.html#{hash}")
+        # A goto that changes only the fragment does not load the page again,
+        # so leave the page first (rsm-7dq).
+        page.goto("about:blank")
+        page.goto(f"{server}/{NAME}.html#{hash}", wait_until="load")
     else:
         page.goto(f"{server}/{NAME}.html", wait_until="load")
     page.wait_for_function(RSM_READY, timeout=10_000)
