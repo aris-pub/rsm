@@ -36,7 +36,12 @@ def serve_rsm_a11y(page: Any, tmp_path: Path) -> Callable[[str, bool], Any]:
     # Start HTTP server on random available port
     handler = http.server.SimpleHTTPRequestHandler
 
-    def _serve(rsm_source: str, dark_theme: bool = False, sidebar: bool = False) -> Any:
+    def _serve(
+        rsm_source: str,
+        dark_theme: bool = False,
+        sidebar: bool = False,
+        strict: bool = True,
+    ) -> Any:
         # Write RSM source to temp file
         rsm_file = tmp_path / "test.rsm"
         rsm_file.write_text(rsm_source, encoding="utf-8")
@@ -52,7 +57,7 @@ def serve_rsm_a11y(page: Any, tmp_path: Path) -> Callable[[str, bool], Any]:
             write_output=True,
             handrails=True,
             standalone=False,
-            strict=True,
+            strict=strict,
             sidebar=sidebar,
         )
 
