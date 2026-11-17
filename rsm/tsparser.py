@@ -474,14 +474,34 @@ def _log_meta_errors_outside_meta(cst_node: TSNode) -> set[int]:
     replaces the whole meta with an ERROR child of the block, and the block has
     no meta field. The caller skips these ERROR nodes, so the value is ignored
     instead of being shown as an error in the output.
+
+    When the only key of a meta is unknown, the parser also forms no meta, and
+    the braces with everything between them become one ERROR right after the
+    tag. That ERROR is logged the same way. An ERROR that starts with "{" but
+    goes on past the closing "}" (such as a table whose rows failed to parse)
+    holds content, so it is left to be reported as a CST error.
     """
+    skip = {
+        n.id
+        for n in (
+            cst_node.child_by_field_name("tag"),
+            cst_node.child_by_field_name("title"),
+        )
+        if n is not None
+    }
+    after_tag = [c for c in cst_node.named_children if c.id not in skip]
+    first = after_tag[0] if after_tag else None
     ids = set()
     for c in cst_node.named_children:
-        if (
-            c.type == "ERROR"
-            and (c.text or b"").startswith(b"{")
-            and any(n.type in _SHAPE_ALLOWED for n in _descendants(c))
-        ):
+        if c.type != "ERROR" or not (c.text or b"").startswith(b"{"):
+            continue
+        only_braces = (
+            first is not None
+            and c.id == first.id
+            and c.children[0].type == "{"
+            and c.children[-1].type == "}"
+        )
+        if only_braces or any(n.type in _SHAPE_ALLOWED for n in _descendants(c)):
             _log_meta_error(c)
             ids.add(c.id)
     return ids
