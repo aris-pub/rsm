@@ -58,6 +58,10 @@ WRONG_MANUSCRIPT_LOGS = [
         "level": "WRN",
         "msg": "The CST contains errors.",
         "filename": "tsparser.py",
+        "start_row": 1,
+        "start_col": 1,
+        "end_row": 1,
+        "end_col": 3,
     }
 ]
 WRONG_MANUSCRIPT_LOGS_V = [
@@ -90,6 +94,10 @@ WRONG_MANUSCRIPT_LOGS_V = [
         "level": "WRN",
         "msg": "The CST contains errors.",
         "filename": "tsparser.py",
+        "start_row": 1,
+        "start_col": 1,
+        "end_row": 1,
+        "end_col": 3,
     },
     {
         "name": "RSM.tform",

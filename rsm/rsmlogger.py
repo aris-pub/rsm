@@ -95,6 +95,9 @@ class JSONFormatter(logging.Formatter):
             "msg": record.getMessage(),
             "filename": record.filename,
         }
+        for field in ("start_row", "start_col", "end_row", "end_col"):
+            if hasattr(record, field):
+                output[field] = getattr(record, field)
         if self.log_lineno:
             output["lineno"] = record.lineno
         if self.log_time:
