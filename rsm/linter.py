@@ -9,6 +9,7 @@ RSM Linter: analyze the manuscript tree and log linting messages.
 import logging
 
 from . import nodes
+from .tsparser import _user_position
 
 logger = logging.getLogger("RSM")
 
@@ -38,11 +39,7 @@ class Linter:
 
     def _extra(self, node: nodes.Node) -> dict:
         """Make the extra arguments for the logger.lint call."""
-        # Most editors start counting lines of code at 1, but TS starts at 0
-        return {
-            "start_row": node.start_point[0] + 1,
-            "start_col": node.start_point[1] + 1,
-        }
+        return _user_position(node.start_point, node.end_point)
 
     def lint_manuscript_title(self) -> None:
         """Manuscript should have a title."""

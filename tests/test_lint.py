@@ -11,6 +11,10 @@ EMPTY_MANUSCRIPT_LOGS = [
         "level": "LINT",
         "msg": "Manuscript with no title",
         "filename": "linter.py",
+        "start_row": 1,
+        "start_col": 2,
+        "end_row": 1,
+        "end_col": 2,
     }
 ]
 
@@ -21,12 +25,20 @@ WRONG_MANUSCRIPT_LOGS = [
         "level": "WRN",
         "msg": "The CST contains errors.",
         "filename": "tsparser.py",
+        "start_row": 1,
+        "start_col": 1,
+        "end_row": 1,
+        "end_col": 3,
     },
     {
         "name": "RSM",
         "level": "LINT",
         "msg": "Manuscript with no title",
         "filename": "linter.py",
+        "start_row": 1,
+        "start_col": 1,
+        "end_row": 1,
+        "end_col": 3,
     },
 ]
 

@@ -5,9 +5,10 @@ import logging
 import subprocess
 
 import pytest
+import ujson as json
 
 import rsm
-from rsm.rsmlogger import logger
+from rsm.rsmlogger import JSONFormatter, logger
 
 # Line 2, column 3 holds ":accent: bogus".
 # Line 7, column 23 holds the second "," in the span meta.
@@ -122,3 +123,85 @@ def test_rsm_check_lint_format_is_1_based(tmp_path):
     assert any(line.startswith("src:2:3: ERROR: Invalid value for :accent:") for line in lines), proc.stderr
     assert any(line.startswith("src:7:23: ERROR: Parse error in meta") for line in lines), proc.stderr
     assert "src:9:1: WRN: The CST contains errors." in lines, proc.stderr
+
+
+# The section and the manuscript start at line 1 and the math block at line 5.
+# The section ends at line 7, column 3, and the manuscript at line 8, column 1.
+LINT_SRC = "## Sec\n\nHello.\n\n$$\nx\n$$\n"
+
+POSITION_FIELDS = ("start_row", "start_col", "end_row", "end_col")
+
+
+@pytest.fixture
+def lint_stderr(capsys):
+    def run(src: str, fmt: str) -> str:
+        try:
+            capsys.readouterr()
+            rsm.lint(src, log_format=fmt, log_time=False, log_lineno=False)
+            return capsys.readouterr().err
+        finally:
+            logger.handlers.clear()
+
+    return run
+
+
+def _json_records(err: str) -> dict[str, dict]:
+    return {r["msg"]: r for r in map(json.loads, err.strip().split("\n"))}
+
+
+def _json_point(rec: dict) -> tuple[int, ...]:
+    return tuple(rec[k] for k in POSITION_FIELDS)
+
+
+def test_rsm_format_prints_lint_messages(lint_stderr):
+    err = lint_stderr(LINT_SRC, "rsm")
+    assert "Logging error" not in err, err
+    assert "Manuscript with no title" in err
+    assert "| (1, 1) - (8, 1) |" in err
+    assert "Section with no label" in err
+    assert "| (1, 1) - (7, 3) |" in err
+    assert "MathBlock must be direct child of Paragraph" in err
+    assert "| (5, 1) - (7, 3) |" in err
+
+
+def test_rsm_format_prints_lint_messages_with_parse_error(lint_stderr):
+    err = lint_stderr("A.\n\n::\n", "rsm")
+    assert "Logging error" not in err, err
+    assert "The CST contains errors." in err
+    assert "| (3, 1) - (3, 3) |" in err
+    assert "Manuscript with no title" in err
+    assert "| (1, 1) - (4, 1) |" in err
+
+
+def test_json_format_has_positions_of_lint_messages(lint_stderr):
+    recs = _json_records(lint_stderr(LINT_SRC, "json"))
+    assert _json_point(recs["Manuscript with no title"]) == (1, 1, 8, 1)
+    assert _json_point(recs["Section with no label"]) == (1, 1, 7, 3)
+
+
+def test_json_format_has_positions_of_parse_errors(stderr_logs):
+    recs = _json_records("\n".join(stderr_logs("json")))
+    assert _json_point(recs["The CST contains errors."]) == (9, 1, 9, 3)
+    (meta,) = [r for m, r in recs.items() if m.startswith("Parse error in meta")]
+    assert _json_point(meta) == (7, 23, 7, 24)
+
+
+def test_json_format_leaves_out_positions_that_a_record_lacks():
+    rec = logging.LogRecord("RSM", logging.WARNING, "x.py", 1, "No position.", None, None)
+    out = json.loads(JSONFormatter(log_time=False, log_lineno=False).format(rec))
+    assert not set(POSITION_FIELDS) & set(out)
+
+
+@pytest.mark.slow
+def test_rsm_check_rsm_format_prints_lint_messages(tmp_path):
+    src_file = tmp_path / "t.rsm"
+    src_file.write_text("A.\n\n::\n")
+    proc = subprocess.run(
+        ["rsm", "check", str(src_file), "--log-format", "rsm"],
+        capture_output=True,
+        text=True,
+    )
+    assert "Logging error" not in proc.stderr, proc.stderr
+    assert "| (3, 1) - (3, 3) |" in proc.stderr, proc.stderr
+    assert "Manuscript with no title" in proc.stderr, proc.stderr
+    assert "| (1, 1) - (4, 1) |" in proc.stderr, proc.stderr
