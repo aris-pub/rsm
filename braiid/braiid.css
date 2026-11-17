@@ -3350,47 +3350,6 @@ a.reference.external:hover::after {
   opacity: 1;
 }
 
-/* Dark mode toggle button */
-.rsm-theme-toggle {
-  position: fixed;
-  top: 1rem;
-  right: 1rem;
-  z-index: 1000;
-  width: 2.5rem;
-  height: 2.5rem;
-  border-radius: var(--radius-full);
-  border: var(--border-thin) solid var(--border-primary);
-  background-color: var(--surface-primary);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s ease;
-  box-shadow: var(--shadow-soft);
-  padding: 0;
-}
-
-.rsm-theme-toggle:hover {
-  box-shadow: var(--shadow-soft), var(--shadow-border);
-  background-color: var(--surface-hover);
-  transform: scale(1.1);
-}
-
-.rsm-theme-toggle:active {
-  transform: scale(0.95);
-}
-
-.rsm-theme-toggle:focus-visible {
-  outline: var(--border-thin) solid var(--border-action);
-  outline-offset: var(--border-thin);
-}
-
-.rsm-theme-toggle svg {
-  width: 1.25rem;
-  height: 1.25rem;
-  stroke: var(--extra-dark);
-}
-
 /* Dark mode asset variants. display cannot follow color-scheme, so the OS dark
    setting needs its own twin of the .dark-theme rules (guarded by
    :not(.light-theme) so an explicit light choice still wins), the same pattern
@@ -3435,12 +3394,6 @@ a.reference.external:hover::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
-  }
-
-  /* Disable transforms */
-  .rsm-theme-toggle:hover,
-  .rsm-theme-toggle:active {
-    transform: none !important;
   }
 }
 
@@ -3715,7 +3668,7 @@ a.reference.external:hover::after {
      hides every form it takes (desktop side panel and mobile bottom-sheet
      drawer share the .proof-rail class). The handrail gutter holds collapse
      chevrons and the dots menu; the back-pill, focus-mode exit bar, toasts,
-     tooltips, theme toggle, and the source modal are all transient overlays. */
+     tooltips and the source modal are all transient overlays. */
   .proof-rail,
   .rail-strip,
   .ui-tip,
@@ -3725,7 +3678,6 @@ a.reference.external:hover::after {
   .proof-focus-exit,
   .toast,
   .tooltipster-base,
-  .rsm-theme-toggle,
   .rsm-source-modal,
   .rsm-source {
     display: none !important;

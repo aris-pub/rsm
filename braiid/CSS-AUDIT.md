@@ -8,7 +8,7 @@ need a newer browser say so.
 Page layout is out of scope here. The author decided that page layout belongs
 in CSS, not JavaScript; rsm-j51 covers moving `layout()` out of sidebar.js into
 braiid.css with container queries, and the `--rail-ml` / `--rail-mw` rules
-under `html.has-rail` (around line 3934) go with it.
+under `html.has-rail` (around line 3886) go with it.
 
 ## Already modern
 
@@ -21,7 +21,7 @@ under `html.has-rail` (around line 3934) go with it.
 ## Proposals
 
 1. **Source modal as a `<dialog>`.**
-   Location: `.rsm-source-modal` (line 3467) and `showSource()` in
+   Location: `.rsm-source-modal` (line 3420) and `showSource()` in
    rsm/static/handrails.js.
    Today: a fixed `div` covers the page with `left/top: 0` and `width/height:
    100%`, a `z-index` of 2000 and a fixed `rgba(0, 0, 0, 0.4)` backdrop.
@@ -45,8 +45,8 @@ under `html.has-rail` (around line 3934) go with it.
    Gain: one source for each color, and the tints adapt to dark mode.
 
 3. **One theme flag for the `display` twins.**
-   Location: `.dark-only` / `.light-only` (line 3398), the static fallbacks
-   (line 3421) and `.widget-preview-still` (line 4097).
+   Location: `.dark-only` / `.light-only` (line 3357), the static fallbacks
+   (line 3380) and `.widget-preview-still` (line 4049).
    Today: each `display` switch is written twice, once under `.dark-theme`
    and once under `@media (prefers-color-scheme: dark)` with
    `:root:not(.light-theme)`.
@@ -65,27 +65,17 @@ under `html.has-rail` (around line 3934) go with it.
    Gain: the panel fits the visible area on mobile browsers.
 
 5. **Fluid root font size.**
-   Location: `:root` `font-size` 12px (line 26), 14px from 640px (line 3453)
-   and 16px from 1024px (line 3461).
+   Location: `:root` `font-size` 12px (line 26), 14px from 640px (line 3406)
+   and 16px from 1024px (line 3414).
    Today: the root font size jumps at two breakpoints, which is also why media
    query `rem` values do not match the page's `rem` (noted in rsm-j51).
    Proposed: `font-size: clamp(12px, <slope>, 16px)`.
    Gain: no jumps and one rule. This changes the type size between the
    breakpoints, so it is a design decision, not only a cleanup.
 
-6. **`transition: all` on the theme toggle.**
-   Location: `.rsm-theme-toggle` (line 3354 onward, `transition: all` at line
-   3368).
-   Today: no page has this button any more (the theme control moved to the
-   sidebar's Reading tab), so the whole `.rsm-theme-toggle` block, its
-   reduced-motion rule (around line 3441) and its print entry (around line
-   3728) are unused.
-   Proposed: delete the block.
-   Gain: less dead CSS.
-
-7. **Hand-placed popups to the popover API and anchor positioning.**
+6. **Hand-placed popups to the popover API and anchor positioning.**
    Location: the many fixed or absolute popups with their own `z-index`
-   (24 `z-index` values in the file: menus, tooltips, the rail panel).
+   (23 `z-index` values in the file: menus, tooltips, the rail panel).
    Today: JavaScript computes positions and the `z-index` values keep the
    popups in order.
    Proposed: `popover` plus CSS anchor positioning (`anchor-name`,
