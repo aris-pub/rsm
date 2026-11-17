@@ -92,3 +92,60 @@ def test_wide_content_scrolls_horizontally_without_page_scroll(page: Page, tmp_p
     assert page.evaluate(
         "() => document.documentElement.scrollWidth <= document.documentElement.clientWidth"
     )
+
+
+# The absolute span sticks out 5px below its box, as the touch areas of a
+# widget's buttons do, so the figure child that holds it overflows by 5px.
+TALL_WIDGET = """# W
+
+:html: {
+  :label: tall
+}
+
+<div class="tall-body" style="position:relative;height:60px"><span style="position:absolute;bottom:-5px;left:0;width:10px;height:10px"></span></div>
+
+::
+
+:html: {
+  :label: wide
+}
+
+<div class="wide-body" style="width:2000px;height:40px"></div>
+
+::
+"""
+
+
+def test_figure_child_does_not_scroll_vertically(page: Page, tmp_path):
+    """A figure child that overflows its box by a few pixels clips the overflow
+    instead of showing a vertical scrollbar, and wide content in a figure child
+    still scrolls sideways (rsm-ie0)."""
+    html = rsm.build(TALL_WIDGET, handrails=True, lint=False, standalone=True)
+    out = tmp_path / "tall.html"
+    out.write_text(html)
+
+    page.set_viewport_size({"width": 1000, "height": 700})
+    page.goto(out.as_uri(), wait_until="load")
+    page.wait_for_timeout(300)
+
+    tall = "figure#tall > *:not(figcaption):has(.tall-body)"
+    box = page.eval_on_selector(
+        tall,
+        """e => { const s = getComputedStyle(e);
+                  return {sh: e.scrollHeight, ch: e.clientHeight,
+                          cw: e.clientWidth, ow: e.offsetWidth,
+                          borders: parseFloat(s.borderLeftWidth)
+                                   + parseFloat(s.borderRightWidth),
+                          oy: s.overflowY, ox: s.overflowX}; }""",
+    )
+    assert box["sh"] > box["ch"], box  # the child does overflow vertically
+    assert box["ox"] == "auto", box
+    assert box["oy"] == "hidden", box
+    # A vertical scrollbar would take its width out of clientWidth.
+    assert box["ow"] - box["cw"] == box["borders"], box
+
+    wide = "figure#wide > *:not(figcaption):has(.wide-body)"
+    wbox = page.eval_on_selector(wide, "e => ({sw: e.scrollWidth, cw: e.clientWidth})")
+    assert wbox["sw"] > wbox["cw"], wbox
+    page.eval_on_selector(wide, "e => { e.scrollLeft = 9999; }")
+    assert page.eval_on_selector(wide, "e => e.scrollLeft") > 0
