@@ -453,6 +453,23 @@ var RSM = (() => {
       }
     }
   }
+  function definePreambles() {
+    document.querySelectorAll(".math-preamble").forEach((el) => {
+      let src = el.dataset.latex;
+      if (src === void 0) {
+        const text = el.textContent.trim();
+        const inline = text.startsWith("\\(") && text.endsWith("\\)");
+        const display = text.startsWith("$$") && text.endsWith("$$");
+        if (!inline && !display) return;
+        src = text.slice(2, -2);
+      }
+      try {
+        window.MathJax.tex2mml(src);
+      } catch (err) {
+        console.error("math preamble:", err);
+      }
+    });
+  }
   function rawMath(root2) {
     const targets = [];
     root2.querySelectorAll("span.math").forEach((el) => {
@@ -481,6 +498,7 @@ var RSM = (() => {
     const targets = rawMath(element);
     if (!targets.length) return;
     defineNotation();
+    definePreambles();
     await window.MathJax.typesetPromise(targets);
   }
   function retypesetMath(root2 = document) {
@@ -506,6 +524,7 @@ var RSM = (() => {
       window.MathJax.typesetClear([el]);
       el.textContent = display ? `$$${latex}$$` : `\\(${latex}\\)`;
       defineNotation();
+      definePreambles();
       await window.MathJax.typesetPromise([el]);
     })));
   }
