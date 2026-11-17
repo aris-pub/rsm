@@ -510,7 +510,9 @@ class PandocTranslator:
         # For PDF export, :html: widgets with a :static: fallback are rendered
         # as figures — use "Figure" instead of "Widget" in cross-references.
         # Checking the kind name keeps a :blockname: such as "Widgetry" as written.
-        if (isinstance(node.target, nodes.Html)
+        # Link text written by the author (overwrite_reftext) is never changed.
+        if (not node.overwrite_reftext
+                and isinstance(node.target, nodes.Html)
                 and getattr(node.target, "static", None)
                 and node.target.kindname == "Widget"
                 and text.startswith("Widget")):
