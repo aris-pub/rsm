@@ -477,7 +477,9 @@ body {
 
 /* General utilities */
 .manuscriptwrapper {
-  .error {background-color: var(--error-100);}
+  /* error-900 is the lightest red that clears WCAG AA on the error-100
+     background in both themes (8.2:1 light, 6.4:1 dark). */
+  .error {background-color: var(--error-100); color: var(--error-900);}
   .node-with-no-class {background-color: var(--error-100);}
   .reference.unknown {background-color: var(--error-100);}
   .hide {display: none !important;}

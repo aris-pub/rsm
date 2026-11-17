@@ -368,24 +368,44 @@ def _normalize_text(root: TSNode) -> str:
             if not run_is_text:
                 continue
             run = list(run_generator)
+            if len(run) < 2:
+                continue
 
-            if len(run) == 2:
-                first, last = run
-                first.text = first.text.rstrip() + " " + last.text.lstrip()
-                last.remove_self()
+            # Watch the use of rstrip, strip, and lstrip here.
+            pieces = [
+                run[0].text.rstrip(),
+                *[t.text.strip() for t in run[1:-1]],
+                run[-1].text.lstrip(),
+            ]
 
-            elif len(run) > 2:
-                # Watch the use of rstrip, strip, and lstrip here.
-                first, rest = run[0], run[1:]
-                first.text = (
-                    first.text.rstrip()
-                    + " "
-                    + " ".join([t.text.strip() for t in run[1:-1]])
-                    + " "
-                    + run[-1].text.lstrip()
-                )
-                for t in rest:
+            # Error is a subclass of Text, but it must stay its own node: merging
+            # it into the text next to it drops the span that marks it as an
+            # error.  Only plain Text nodes are merged.  The spaces that the merge
+            # would put around an Error go into the plain Text next to it, so the
+            # output text is the same as when everything was merged.
+            kept = []
+            for t, piece in zip(run, pieces):
+                if (
+                    kept
+                    and not isinstance(t, nodes.Error)
+                    and not isinstance(kept[-1][0], nodes.Error)
+                ):
+                    kept[-1][1].append(piece)
                     t.remove_self()
+                else:
+                    kept.append((t, [piece]))
+
+            for i, (t, node_pieces) in enumerate(kept):
+                text = " ".join(node_pieces)
+                is_last = i == len(kept) - 1
+                if not isinstance(t, nodes.Error):
+                    if i > 0:
+                        text = " " + text
+                    if not is_last:
+                        text += " "
+                elif not is_last and isinstance(kept[i + 1][0], nodes.Error):
+                    text += " "
+                t.text = text
 
         if not isinstance(node, nodes.Paragraph) and node.children:
             if isinstance((first := node.children[0]), nodes.Text):
