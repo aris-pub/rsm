@@ -1,3 +1,4 @@
+import rsm
 from conftest import compare_have_want
 
 
@@ -268,3 +269,91 @@ def test_inline_meta_with_space_in_between_braces():
         </body>
         """,
     )
+
+
+META_ERROR_MSG = "Parse error in meta; the text at this position was ignored."
+
+
+def _meta_error_records(caplog):
+    return [r for r in caplog.records if r.getMessage() == META_ERROR_MSG]
+
+
+def test_block_meta_continuation_line_is_logged(caplog):
+    """A block meta value wrapped onto a second line is a parse error inside the
+    meta. It is logged with its position, and the build goes on (rsm-sv0)."""
+    src = (
+        ":figure: {\n"
+        "  :path: a.png\n"
+        "  :alt: one\n"
+        "    two\n"
+        "}\n"
+        "\n"
+        ":caption: C.\n"
+        "\n"
+        "::\n"
+    )
+    h = rsm.render(src, handrails=False, source_offsets=False)
+    records = _meta_error_records(caplog)
+    assert len(records) == 1, caplog.text
+    rec = records[0]
+    assert rec.levelname == "ERROR"
+    assert rec.name == "RSM.parse"
+    assert (rec.start_row, rec.start_col, rec.end_row) == (3, 0, 3), caplog.text
+    assert 'alt="one"' in h, h
+    assert "[CST error" not in h, h
+    assert "two" not in h, h
+
+
+def test_block_meta_without_errors_logs_nothing(caplog):
+    src = ":figure: {\n  :path: a.png\n  :alt: one two\n}\n\n:caption: C.\n\n::\n"
+    rsm.render(src, handrails=False, source_offsets=False)
+    assert not _meta_error_records(caplog), caplog.text
+    assert "The CST contains errors." not in caplog.text, caplog.text
+
+
+def test_block_meta_multiline_list_logs_nothing(caplog):
+    src = ":abstract: {\n  :keywords: {a,\n    b}\n}\n\nX.\n\n::\n"
+    h = rsm.render(src, handrails=False, source_offsets=False)
+    assert not _meta_error_records(caplog), caplog.text
+    assert "The CST contains errors." not in caplog.text, caplog.text
+    assert "Keywords: a, b" in h, h
+
+
+def test_block_meta_three_line_value(caplog):
+    """With a third line, the parser ends the meta after the :alt: line (a
+    MISSING "}" node, not an ERROR node), so nothing is reported inside the meta.
+    The later lines and the caption become a paragraph inside the figure, and
+    the existing warning points at the closing brace (row 5), not at "two"
+    (row 3). This test records that behavior; see rsm-sv0."""
+    src = (
+        ":figure: {\n"
+        "  :path: a.png\n"
+        "  :alt: one\n"
+        "    two\n"
+        "    three\n"
+        "}\n"
+        "\n"
+        ":caption: C.\n"
+        "\n"
+        "::\n"
+    )
+    h = rsm.render(src, handrails=False, source_offsets=False)
+    assert not _meta_error_records(caplog), caplog.text
+    cst_warnings = [
+        r for r in caplog.records if r.getMessage() == "The CST contains errors."
+    ]
+    assert len(cst_warnings) == 1, caplog.text
+    assert cst_warnings[0].start_row == 5, caplog.text
+    assert 'alt="one"' in h, h
+    assert "two three" in h, h
+
+
+def test_inline_meta_error_is_logged(caplog):
+    """Inline meta goes through the same code as block meta, so a parse error
+    inside it is logged too."""
+    src = "A :span: {:title: a,, :class: b} x:: b.\n"
+    h = rsm.render(src, handrails=False, source_offsets=False)
+    records = _meta_error_records(caplog)
+    assert len(records) == 1, caplog.text
+    assert records[0].start_row == 0, caplog.text
+    assert "[CST error" not in h, h

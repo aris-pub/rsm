@@ -344,6 +344,20 @@ def _parse_metakey_bool(cst_key: TSNode, _: TSNode) -> tuple[str, bool]:
 
 
 def _parse_meta_into_dict(node: TSNode) -> dict[str, Any]:
+    # Only the pair children are read below, so an ERROR child (such as a meta
+    # value wrapped onto a second line) would otherwise be dropped with no message.
+    for err in [c for c in node.named_children if c.type == "ERROR"]:
+        start_row, start_col = err.start_point
+        end_row, end_col = err.end_point
+        logger.error(
+            "Parse error in meta; the text at this position was ignored.",
+            extra={
+                "start_row": start_row,
+                "start_col": start_col,
+                "end_row": end_row,
+                "end_col": end_col,
+            },
+        )
     pairs = {}
     for pair in [c for c in node.named_children if c.type.endswith("pair")]:
         if len(pair.named_children) == 1:  # bool meta key
