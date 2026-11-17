@@ -630,7 +630,8 @@ body {
 /* Back pill: a transient affordance over the native browser Back button
    (onload.js shows it after an in-document jump). Reading-first, so it stays out
    of the way: a small floating pill, bottom-centre, that fades in on a jump and
-   out again on Back or when the reader scrolls away. */
+   out again on Back, when the reader scrolls away, or after 8 seconds with no
+   use. */
 .rsm-back-pill {
   position: fixed;
   left: 50%;

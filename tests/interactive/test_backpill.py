@@ -78,3 +78,92 @@ def test_pill_dismisses_when_reader_scrolls_away(page: Page, interactive_server:
         "() => !document.querySelector('.rsm-back-pill').classList.contains('is-visible')",
         timeout=3000,
     )
+
+
+# The pill also fades out after 8 seconds with no use. These tests use
+# Playwright's clock so they do not wait 8 real seconds.
+HIDE_MS = 8000
+
+
+def _jump_with_clock(page: Page, server: str):
+    page.clock.install()
+    _load(page, server)
+    ref = page.locator('.manuscript a.reference[href="#thm-x"]').first
+    ref.scroll_into_view_if_needed()
+    page.wait_for_timeout(200)
+    ref.click()
+    page.wait_for_selector(PILL_VISIBLE, timeout=3000)
+
+
+def _pill_visible(page: Page) -> bool:
+    return page.evaluate(
+        "() => document.querySelector('.rsm-back-pill').classList.contains('is-visible')"
+    )
+
+
+def _jump_to_other_block(page: Page):
+    target = page.evaluate(
+        "() => [...document.querySelectorAll('.manuscript [id]')]"
+        ".map(e => e.id).find(id => id && id !== 'thm-x' && id !== 'top')"
+    )
+    page.evaluate(f"() => {{ window.location.hash = {target!r}; }}")
+    page.wait_for_function(f"() => window.location.hash === '#{target}'", timeout=3000)
+    page.wait_for_selector(PILL_VISIBLE, timeout=3000)
+
+
+def test_pill_hides_after_8_seconds(page: Page, interactive_server: str):
+    _jump_with_clock(page, interactive_server)
+    page.clock.fast_forward(HIDE_MS - 500)
+    assert _pill_visible(page)
+    page.clock.fast_forward(1000)
+    assert not _pill_visible(page)
+
+
+def test_hover_pauses_timer_and_leaving_restarts_it(page: Page, interactive_server: str):
+    _jump_with_clock(page, interactive_server)
+    page.locator(PILL).hover()
+    page.clock.fast_forward(HIDE_MS + 2000)
+    assert _pill_visible(page)
+    page.mouse.move(5, 5)
+    page.clock.fast_forward(HIDE_MS - 500)
+    assert _pill_visible(page)
+    page.clock.fast_forward(1000)
+    assert not _pill_visible(page)
+
+
+def test_focus_pauses_timer_and_blur_restarts_it(page: Page, interactive_server: str):
+    _jump_with_clock(page, interactive_server)
+    page.locator(PILL).focus()
+    page.clock.fast_forward(HIDE_MS + 2000)
+    assert _pill_visible(page)
+    page.evaluate("() => document.activeElement.blur()")
+    page.clock.fast_forward(HIDE_MS - 500)
+    assert _pill_visible(page)
+    page.clock.fast_forward(1000)
+    assert not _pill_visible(page)
+
+
+def test_second_jump_restarts_timer(page: Page, interactive_server: str):
+    _jump_with_clock(page, interactive_server)
+    page.clock.fast_forward(HIDE_MS - 3000)
+    assert _pill_visible(page)
+    _jump_to_other_block(page)
+    page.clock.fast_forward(HIDE_MS - 500)
+    assert _pill_visible(page)
+    page.clock.fast_forward(1000)
+    assert not _pill_visible(page)
+
+
+def test_scroll_hiding_clears_timer(page: Page, interactive_server: str):
+    _jump_with_clock(page, interactive_server)
+    page.clock.fast_forward(HIDE_MS - 3000)
+    page.evaluate("() => window.scrollTo(0, 0)")
+    page.wait_for_function(
+        "() => !document.querySelector('.rsm-back-pill').classList.contains('is-visible')",
+        timeout=3000,
+    )
+    # A timer left over from the first jump would hide the pill 3 seconds into
+    # this second jump.
+    _jump_to_other_block(page)
+    page.clock.fast_forward(HIDE_MS - 500)
+    assert _pill_visible(page)
