@@ -2746,7 +2746,11 @@ body {
   overflow-y: hidden; }
 .manuscriptwrapper figure > *:not(figcaption) {
   max-width: 100%;
-  overflow-x: auto; }
+  overflow-x: auto;
+  /* As on the figure: without this, overflow-x:auto makes overflow-y auto, and
+     a child a few pixels taller than its box (the touch areas of a widget's
+     buttons) shows a vertical scrollbar (rsm-ie0). */
+  overflow-y: hidden; }
 /* An :as-paragraph: asset is laid out as a paragraph: the <figure> is itself the
    handrail, so it keeps the paragraph's spacing, and it must not clip the rail
    zones that hr-offset places outside its box. Its picture, video or widget is
