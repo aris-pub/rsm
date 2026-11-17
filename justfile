@@ -85,7 +85,7 @@ grammar:
 
 # Rebuild the standalone JS bundle (IIFE with window.RSM global)
 js-bundle:
-    npx esbuild rsm/static/onload.js --bundle --format=iife --global-name=RSM --outfile=rsm/static/rsm-standalone.js
+    npx --yes esbuild@0.28.2 rsm/static/onload.js --bundle --format=iife --global-name=RSM --outfile=rsm/static/rsm-standalone.js
 
 # Rebuild all compiled artifacts (JS bundle + tree-sitter grammar)
 build: js-bundle grammar
