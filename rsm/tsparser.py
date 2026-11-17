@@ -47,6 +47,23 @@ from .util import EscapedString
 logger = logging.getLogger("RSM").getChild("parse")
 
 
+def _user_position(
+    start_point: tuple[int, int], end_point: tuple[int, int]
+) -> dict[str, int]:
+    """Make the position fields of a log record from tree-sitter points.
+
+    Tree-sitter counts rows and columns from 0. Editors and the linter count
+    from 1, so every position printed for a user is shifted by 1 here.
+    """
+    (start_row, start_col), (end_row, end_col) = start_point, end_point
+    return {
+        "start_row": start_row + 1,
+        "start_col": start_col + 1,
+        "end_row": end_row + 1,
+        "end_col": end_col + 1,
+    }
+
+
 class RSMParserError(Exception):
     """Raised when there is an irrecoverable error during parser.
 
@@ -389,17 +406,12 @@ def _allowed_values(key: str, keykind: str) -> str:
 
 
 def _log_bad_value(key: str, value: str, allowed: str, node: TSNode) -> None:
-    (start_row, start_col), (end_row, end_col) = node.start_point, node.end_point
+    pos = _user_position(node.start_point, node.end_point)
     logger.error(
-        f"Invalid value for :{key.replace('_', '-')}: on line {start_row + 1}: "
+        f"Invalid value for :{key.replace('_', '-')}: on line {pos['start_row']}: "
         f"{value!r}. Allowed values: {allowed}. The value is ignored and the "
         "default is used.",
-        extra={
-            "start_row": start_row,
-            "start_col": start_col,
-            "end_row": end_row,
-            "end_col": end_col,
-        },
+        extra=pos,
     )
 
 
@@ -433,16 +445,9 @@ def _log_meta_error(err: TSNode) -> None:
         if n.type in _SHAPE_ALLOWED and n.named_children
     ]
     if not keys:
-        start_row, start_col = err.start_point
-        end_row, end_col = err.end_point
         logger.error(
             "Parse error in meta; the text at this position was ignored.",
-            extra={
-                "start_row": start_row,
-                "start_col": start_col,
-                "end_row": end_row,
-                "end_col": end_col,
-            },
+            extra=_user_position(err.start_point, err.end_point),
         )
         return
     text = err.text or b""
@@ -751,13 +756,7 @@ def _check_raw_html(raw: nodes.RawHtml) -> None:
 
     The grammar keeps :rawhtml: out of reftext, but a span inside reftext can
     still hold one, and a link cannot hold live HTML."""
-    (start_row, start_col), (end_row, end_col) = raw.start_point, raw.end_point
-    extra = {
-        "start_row": start_row,
-        "start_col": start_col,
-        "end_row": end_row,
-        "end_col": end_col,
-    }
+    extra = _user_position(raw.start_point, raw.end_point)
     link = raw.parent
     while link is not None and not isinstance(
         link, (nodes.BaseReference, nodes.NoteCall)
@@ -972,19 +971,11 @@ def _abstractify(cst: TSTree) -> nodes.Manuscript:
             elif isinstance(ast_node, nodes.Text):
                 ast_node.text = cst_node.text.decode("utf-8")
         elif ast_node_type == "ERROR":
-            start_row, start_col = cst_node.start_point
-            end_row, end_col = cst_node.end_point
-            logger.warning(
-                "The CST contains errors.",
-                extra={
-                    "start_row": start_row,
-                    "start_col": start_col,
-                    "end_row": end_row,
-                    "end_col": end_col,
-                },
-            )
+            pos = _user_position(cst_node.start_point, cst_node.end_point)
+            logger.warning("The CST contains errors.", extra=pos)
             ast_node = nodes.Error(
-                f"[CST error at ({start_row}, {start_col}) - ({end_row}, {end_col})]",
+                f"[CST error at ({pos['start_row']}, {pos['start_col']}) - "
+                f"({pos['end_row']}, {pos['end_col']})]",
                 start_point=cst_node.start_point,
                 end_point=cst_node.end_point,
             )

@@ -95,7 +95,7 @@ def test_bad_config_word_is_logged_and_default_used(caplog, key, bad, attr, defa
     rec = records[0]
     msg = rec.getMessage()
     assert "line 5" in msg and bad in msg and allowed in msg, msg
-    assert (rec.start_row, rec.start_col, rec.end_row) == (4, 2, 4), caplog.text
+    assert (rec.start_row, rec.start_col, rec.end_row) == (5, 3, 5), caplog.text
 
 
 def test_bad_config_word_does_not_stop_the_build(caplog):
