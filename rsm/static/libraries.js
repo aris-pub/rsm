@@ -161,6 +161,29 @@ function defineNotation() {
   }
 }
 
+// Within one typeset call MathJax compiles all inline math before any display
+// math, so a \newcommand in a display preamble would come too late for the
+// inline math. Running every preamble first defines its macros for all math.
+// A preamble that is not typeset yet has no data-latex, so its source is read
+// from its text.
+function definePreambles() {
+  document.querySelectorAll('.math-preamble').forEach((el) => {
+    let src = el.dataset.latex;
+    if (src === undefined) {
+      const text = el.textContent.trim();
+      const inline = text.startsWith('\\(') && text.endsWith('\\)');
+      const display = text.startsWith('$$') && text.endsWith('$$');
+      if (!inline && !display) return;
+      src = text.slice(2, -2);
+    }
+    try {
+      window.MathJax.tex2mml(src);
+    } catch (err) {
+      console.error('math preamble:', err);
+    }
+  });
+}
+
 // The elements in root that still hold raw \(...\) or $$...$$ source. Each
 // keeps its source in data-latex, which notation re-renders and locate use.
 // In handrails mode a display block's source sits in its .hr-content-zone.
@@ -201,6 +224,7 @@ async function typesetRaw(element) {
   const targets = rawMath(element);
   if (!targets.length) return;
   defineNotation();
+  definePreambles();
   await window.MathJax.typesetPromise(targets);
 }
 
@@ -232,6 +256,7 @@ export function renderMath(latex, el, { display = false } = {}) {
     window.MathJax.typesetClear([el]);
     el.textContent = display ? `$$${latex}$$` : `\\(${latex}\\)`;
     defineNotation();
+    definePreambles();
     await window.MathJax.typesetPromise([el]);
   })));
 }
