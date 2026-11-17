@@ -7,6 +7,7 @@
 # source directory (../rsm/), there needs to be a different conftest.py file in that
 # directory.
 
+import os
 import sys
 from textwrap import dedent
 
@@ -23,6 +24,23 @@ import rsm
 # the pathlib import path is deeper than on the 3.12 CI runners). See potf-icn.
 def pytest_collection_finish(session):
     sys.setrecursionlimit(100)
+
+
+# CI splits the slow browser jobs into shards that run side by side, so a run
+# takes as long as one shard. Every item is kept by exactly one shard, and the
+# choice depends only on the item's position, so all xdist workers in a shard
+# keep the same items.
+def pytest_collection_modifyitems(config, items):
+    shards = int(os.environ.get("RSM_TEST_SHARDS", "1"))
+    if shards <= 1:
+        return
+    shard = int(os.environ["RSM_TEST_SHARD"])
+    keep, drop = [], []
+    for i, item in enumerate(items):
+        (keep if i % shards == shard - 1 else drop).append(item)
+    if drop:
+        config.hook.pytest_deselected(items=drop)
+        items[:] = keep
 
 # Several tests use an empty manuscript.
 EMPTY_WANT = """\

@@ -256,9 +256,17 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 20
 
+    # Four shards side by side keep this job well under the 10-minute run.
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
+
     env:
       PYTEST_ADDOPTS: "--color=yes"
       PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/.pw-browsers
+      RSM_TEST_SHARDS: 4
+      RSM_TEST_SHARD: ${{ matrix.shard }}
 
     steps:
     - name: Checkout the repository and submodules
@@ -322,9 +330,16 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 15
 
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
+
     env:
       PYTEST_ADDOPTS: "--color=yes"
       PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/.pw-browsers
+      RSM_TEST_SHARDS: 4
+      RSM_TEST_SHARD: ${{ matrix.shard }}
 
     steps:
     - name: Checkout the repository and submodules
