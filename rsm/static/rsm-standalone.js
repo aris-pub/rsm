@@ -193,9 +193,9 @@ var RSM = (() => {
       const row = document.createElement("div");
       row.className = "rail-notation-row";
       row.dataset.macro = e.macro;
-      const label = document.createElement("div");
-      label.className = "rail-notation-label";
-      label.textContent = e.label;
+      const label2 = document.createElement("div");
+      label2.className = "rail-notation-label";
+      label2.textContent = e.label;
       const edit = document.createElement("div");
       edit.className = "rail-notation-edit";
       const input = document.createElement("input");
@@ -265,7 +265,7 @@ var RSM = (() => {
       actions.className = "rail-notation-actions";
       actions.append(apply, locate, reset);
       edit.append(input, preview);
-      row.append(label, edit, actions);
+      row.append(label2, edit, actions);
       panel.appendChild(row);
     }
   }
@@ -930,17 +930,17 @@ var RSM = (() => {
       applyMarks();
       setBar();
       const { model, dirs } = active;
-      const label = model.label(model.anchorKey);
+      const label2 = model.label(model.anchorKey);
       const upN = dirs.has("up") ? model.coneUp().size : 0;
       const downN = dirs.has("down") ? model.coneDown().size : 0;
       const noun = model.noun;
       let msg;
       if (upN && downN) {
-        msg = `Showing ${label}'s dependencies: the ${upN} ${noun}s it rests on and the ${downN} that rest on it. Press Escape to clear.`;
+        msg = `Showing ${label2}'s dependencies: the ${upN} ${noun}s it rests on and the ${downN} that rest on it. Press Escape to clear.`;
       } else if (upN) {
-        msg = `Showing the ${upN} ${noun}s that ${label} rests on. Press Escape to clear.`;
+        msg = `Showing the ${upN} ${noun}s that ${label2} rests on. Press Escape to clear.`;
       } else {
-        msg = `Showing the ${downN} ${noun}s that rest on ${label}. Press Escape to clear.`;
+        msg = `Showing the ${downN} ${noun}s that rest on ${label2}. Press Escape to clear.`;
       }
       announce2(msg);
     }
@@ -1381,7 +1381,7 @@ var RSM = (() => {
     const esc = (s) => String(s).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll('"', "&quot;");
     const capLabel = fig.querySelector(":scope > figcaption .label");
     const number = fig.getAttribute("data-number");
-    const label = capLabel && capLabel.textContent.replace(/\s+/g, " ").trim().replace(/\.$/, "") || (number ? `Widget ${number}` : "Widget");
+    const label2 = capLabel && capLabel.textContent.replace(/\s+/g, " ").trim().replace(/\.$/, "") || (number ? `Widget ${number}` : "Widget");
     let body = "";
     const imgs = fig.querySelectorAll(".static-fallback img");
     if (imgs.length) {
@@ -1405,24 +1405,24 @@ var RSM = (() => {
       const text = c.text().trim();
       if (text) body += `<div class="widget-preview-caption">${c.html()}</div>`;
     }
-    return `<div class="widget-preview"><p class="widget-preview-label">${esc(label)}</p>` + body + '<p class="widget-preview-note">Interactive in the manuscript.</p></div>';
+    return `<div class="widget-preview"><p class="widget-preview-label">${esc(label2)}</p>` + body + '<p class="widget-preview-note">Interactive in the manuscript.</p></div>';
   }
   function pinBar(href, title) {
     if (!document.querySelector(".proof-rail")) return "";
     const h = (href || "").replaceAll('"', "&quot;");
     const t = (title || "").replaceAll('"', "&quot;");
     const on = !!pinnedTarget && href === pinnedTarget;
-    const label = on ? PINNED_LABEL : PIN_LABEL;
-    return `<div class="ref-pin-bar"><button type="button" class="ref-pin" data-pin-target="${h}" data-pin-title="${t}" aria-label="${label}" data-tip="${label}" aria-pressed="${on}"${on ? " data-pinned" : ""}>` + (on ? PIN_FILLED_ICON : PIN_ICON) + "</button></div>";
+    const label2 = on ? PINNED_LABEL : PIN_LABEL;
+    return `<div class="ref-pin-bar"><button type="button" class="ref-pin" data-pin-target="${h}" data-pin-title="${t}" aria-label="${label2}" data-tip="${label2}" aria-pressed="${on}"${on ? " data-pinned" : ""}>` + (on ? PIN_FILLED_ICON : PIN_ICON) + "</button></div>";
   }
   function paintPins() {
     for (const btn of document.querySelectorAll(".ref-pin")) {
       const on = !!pinnedTarget && btn.dataset.pinTarget === pinnedTarget;
-      const label = on ? PINNED_LABEL : PIN_LABEL;
+      const label2 = on ? PINNED_LABEL : PIN_LABEL;
       btn.toggleAttribute("data-pinned", on);
       btn.setAttribute("aria-pressed", String(on));
-      btn.setAttribute("aria-label", label);
-      btn.dataset.tip = label;
+      btn.setAttribute("aria-label", label2);
+      btn.dataset.tip = label2;
       btn.innerHTML = on ? PIN_FILLED_ICON : PIN_ICON;
     }
   }
@@ -1743,7 +1743,7 @@ var RSM = (() => {
     if (!singletonMenu) return;
     activeHr = hr;
     hr.classList.add("hr-menu-open");
-    const label = hr.getAttribute("data-menu-label") || "";
+    const label2 = hr.getAttribute("data-menu-label") || "";
     let collapse = hr.getAttribute("data-menu-collapse");
     const collapseAll2 = hr.getAttribute("data-menu-collapse-all");
     if (IS_TOUCH && (!collapse || collapse === "disabled") && hr.querySelector(":scope > .hr-collapse-zone .hr-collapse")) {
@@ -1755,10 +1755,10 @@ var RSM = (() => {
     const labelEl = singletonMenu.querySelector('[data-role="label"]');
     const labelSep = singletonMenu.querySelector('[data-role="label-sep"]');
     if (labelEl) {
-      labelEl.textContent = label;
-      labelEl.parentElement.style.display = label ? "" : "none";
+      labelEl.textContent = label2;
+      labelEl.parentElement.style.display = label2 ? "" : "none";
     }
-    if (labelSep) labelSep.style.display = label ? "" : "none";
+    if (labelSep) labelSep.style.display = label2 ? "" : "none";
     configureItem(singletonMenu.querySelector('[data-role="collapse"]'), collapse);
     configureItem(singletonMenu.querySelector('[data-role="collapse-all"]'), collapseAll2);
     refreshCollapseLabels(hr);
@@ -1872,9 +1872,9 @@ var RSM = (() => {
   function pinBlock(hr) {
     const block = pinnableOf(hr);
     if (!block) return;
-    const label = block.matches("figure") ? block.querySelector("figcaption .label")?.textContent || "Figure" : hr.getAttribute("data-menu-label") || "";
+    const label2 = block.matches("figure") ? block.querySelector("figcaption .label")?.textContent || "Figure" : hr.getAttribute("data-menu-label") || "";
     hideMenu();
-    pinTarget("#" + block.id, label.trim().replace(/\.$/, ""), block);
+    pinTarget("#" + block.id, label2.trim().replace(/\.$/, ""), block);
   }
   function triggerFocus(hr) {
     hideMenu();
@@ -1904,10 +1904,10 @@ var RSM = (() => {
     if (value === "disabled") {
       el.setAttribute("data-tooltip", disabledText);
       el.setAttribute("aria-disabled", "true");
-      const label = el.querySelector(".hr-menu-item-text");
+      const label2 = el.querySelector(".hr-menu-item-text");
       el.setAttribute(
         "aria-label",
-        `${label ? label.textContent.trim() + " " : ""}(unavailable: ${disabledText})`
+        `${label2 ? label2.textContent.trim() + " " : ""}(unavailable: ${disabledText})`
       );
     } else {
       el.removeAttribute("data-tooltip");
@@ -2348,8 +2348,53 @@ var RSM = (() => {
     if (useEl) useEl.setAttribute("href", isShowingStatic ? "#hr-icon-play" : "#hr-icon-image");
   }
 
+  // rsm/static/mathscroll.js
+  var ZONES = ".mathblock > .hr-content-zone";
+  var observer = null;
+  var observed = /* @__PURE__ */ new WeakSet();
+  function zoneOverflows(zone) {
+    return zone.scrollWidth > zone.clientWidth;
+  }
+  function label(zone) {
+    const number = zone.parentElement?.querySelector(":scope > .hr-info-zone .eqn-number");
+    const text = number ? number.textContent.trim() : "";
+    return text ? `Equation ${text}, scrolls horizontally` : "Equation, scrolls horizontally";
+  }
+  function update(zone) {
+    if (zoneOverflows(zone)) {
+      zone.setAttribute("tabindex", "0");
+      zone.setAttribute("role", "region");
+      zone.setAttribute("aria-label", label(zone));
+    } else {
+      zone.removeAttribute("tabindex");
+      zone.removeAttribute("role");
+      zone.removeAttribute("aria-label");
+    }
+  }
+  function refresh(root2 = document) {
+    root2.querySelectorAll(ZONES).forEach(update);
+  }
+  async function setup6(root2 = document) {
+    if (!observer && typeof ResizeObserver !== "undefined") {
+      observer = new ResizeObserver((entries) => entries.forEach((e) => update(e.target)));
+    }
+    root2.querySelectorAll(ZONES).forEach((zone) => {
+      if (observer && !observed.has(zone)) {
+        observer.observe(zone);
+        observed.add(zone);
+      }
+    });
+    refresh(root2);
+    await mathIdle();
+    refresh(root2);
+    if (document.fonts) {
+      document.fonts.ready.then(() => refresh(root2));
+    }
+  }
+
   // rsm/static/keyboard.js
-  function setup6(root2) {
+  var MATH_SCROLL_STEP = 40;
+  function setup7(root2) {
     function ignore(event) {
       if (event.metaKey || event.ctrlKey || event.altKey) return true;
       const t = event.target;
@@ -2423,6 +2468,17 @@ var RSM = (() => {
       event.preventDefault();
       event.stopPropagation();
       menuUpOrDown(document.activeElement, event.key == "ArrowUp" ? "up" : "down");
+    });
+    root2.addEventListener("keydown", (event) => {
+      if (ignore(event)) return;
+      if (!["ArrowLeft", "ArrowRight"].includes(event.key)) return;
+      const block = document.activeElement;
+      if (!block || !block.classList.contains("mathblock")) return;
+      const zone = block.querySelector(":scope > .hr-content-zone");
+      if (!zone || !zoneOverflows(zone)) return;
+      event.preventDefault();
+      event.stopPropagation();
+      zone.scrollBy({ left: event.key == "ArrowRight" ? MATH_SCROLL_STEP : -MATH_SCROLL_STEP });
     });
     root2.addEventListener("keyup", (event) => {
       if (ignore(event)) return;
@@ -2875,7 +2931,7 @@ var RSM = (() => {
   }
 
   // rsm/static/prooftree.js
-  function setup7(root2 = document) {
+  function setup8(root2 = document) {
     const rail = root2.querySelector(".proof-rail");
     if (!rail) return;
     const lsKey = "rsm-sidebar:" + location.pathname;
@@ -3208,18 +3264,18 @@ var RSM = (() => {
       const st = data[active.idx];
       const proofKey = item.dataset.proof;
       panel.innerHTML = "";
-      function makeBlock(role, label, defaultCollapsed) {
+      function makeBlock(role, label2, defaultCollapsed) {
         const key = proofKey + ":" + role;
         const collapsed = key in collapseState ? collapseState[key] : defaultCollapsed;
         const block = document.createElement("div");
         block.className = "rail-state-block rail-" + role + (collapsed ? " collapsed" : "");
         block.setAttribute("role", "group");
-        block.setAttribute("aria-label", label);
+        block.setAttribute("aria-label", label2);
         const head = document.createElement("button");
         head.type = "button";
         head.className = "rail-state-head";
         head.setAttribute("aria-expanded", String(!collapsed));
-        head.innerHTML = '<span class="rail-state-label">' + label + '</span><span class="rail-state-caret" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6l6 -6"/></svg></span>';
+        head.innerHTML = '<span class="rail-state-label">' + label2 + '</span><span class="rail-state-caret" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6l6 -6"/></svg></span>';
         const body = document.createElement("div");
         body.className = "rail-state-body";
         head.addEventListener("click", () => {
@@ -3370,7 +3426,7 @@ var RSM = (() => {
 
   // rsm/static/focusmode.js
   var focusEnabled = () => document.documentElement.getAttribute("data-focus-mode") === "on";
-  function setup8(root2 = document) {
+  function setup9(root2 = document) {
     const rail = root2.querySelector(".proof-rail");
     if (!rail) return;
     let active = null;
@@ -3656,7 +3712,7 @@ var RSM = (() => {
       liveRegion.textContent = msg;
     });
   }
-  function setup9(root2 = document) {
+  function setup10(root2 = document) {
     root2.addEventListener("reorder:toggle", (ev) => {
       const proof = ev.target.closest && ev.target.closest(".proof.hr");
       if (!proof) return;
@@ -3689,8 +3745,8 @@ var RSM = (() => {
       const handle = document.createElement("button");
       handle.type = "button";
       handle.className = "reorder-handle";
-      const label = step.bodyEl.dataset.menuLabel || "this step";
-      handle.setAttribute("aria-label", `Reorder ${label}`);
+      const label2 = step.bodyEl.dataset.menuLabel || "this step";
+      handle.setAttribute("aria-label", `Reorder ${label2}`);
       handle.innerHTML = GRIP;
       step.bodyEl.appendChild(handle);
       wireHandle(handle, step.id, proof, model);
@@ -3839,8 +3895,8 @@ var RSM = (() => {
         if (target !== start && legal.has(target)) {
           flipMove(model, () => applyToBody(model, moveTo(model, id, target)));
           const sib = model.children.get(key) || [];
-          const label = step.bodyEl.dataset.menuLabel || "Step";
-          announce(`${label} moved to position ${sib.indexOf(id) + 1} of ${sib.length}.`);
+          const label2 = step.bodyEl.dataset.menuLabel || "Step";
+          announce(`${label2} moved to position ${sib.indexOf(id) + 1} of ${sib.length}.`);
         } else if (rejected) {
           announce(`Move blocked: ${lastReason}.`);
         }
@@ -4079,7 +4135,7 @@ var RSM = (() => {
       launchToast("Could not copy the view link.", "error");
     }
   }
-  function setup10(root2 = document) {
+  function setup11(root2 = document) {
     if (!window.__shareviewWired) {
       window.__shareviewWired = true;
       document.addEventListener("click", (ev) => {
@@ -4114,7 +4170,7 @@ var RSM = (() => {
     ".tooltipster-content .ref-pin[data-tip]"
   ].join(", ");
   var wired = false;
-  function setup11() {
+  function setup12() {
     if (wired) return;
     if (!document.querySelector(".rail-strip, .proof-rail")) return;
     wired = true;
@@ -4206,7 +4262,7 @@ var RSM = (() => {
   var READING_KEY = "rsm-reading";
   var mm = null;
   var switchObserver = null;
-  function setup12(root2 = document) {
+  function setup13(root2 = document) {
     if (root2 !== document) return;
     if (!document.body || document.body.getAttribute("data-minimap") === "false") return;
     if (!document.querySelector("main.manuscriptwrapper")) return;
@@ -4243,8 +4299,8 @@ var RSM = (() => {
     return Object.keys(FIGURE_KINDS).find((c) => fig.classList.contains(c));
   }
   function figureLabel(fig) {
-    const label = fig.querySelector(":scope > figcaption .label");
-    const text = label ? label.textContent.replace(/\s+/g, " ").trim().replace(/\.$/, "") : "";
+    const label2 = fig.querySelector(":scope > figcaption .label");
+    const text = label2 ? label2.textContent.replace(/\s+/g, " ").trim().replace(/\.$/, "") : "";
     if (text) return text;
     const word = FIGURE_KINDS[figureKind(fig)];
     const number = fig.getAttribute("data-number");
@@ -4634,7 +4690,7 @@ var RSM = (() => {
   // rsm/static/captions.js
   var CAPTIONS = ".manuscript :is(figure, .table-wrapper) > figcaption.hr";
   var listening2 = false;
-  function setup13(root2 = document) {
+  function setup14(root2 = document) {
     for (const cap of root2.querySelectorAll(CAPTIONS)) {
       cap.classList.add("rsm-cap-linked");
       addMarginItem(cap.parentElement, cap);
@@ -4703,17 +4759,17 @@ var RSM = (() => {
         console.error("Loading tocarcs.js FAILED!", err);
       }
       try {
-        setup7(root2);
+        setup8(root2);
       } catch (err) {
         console.error("Loading prooftree.js FAILED!", err);
       }
       try {
-        setup8(root2);
+        setup9(root2);
       } catch (err) {
         console.error("Loading focusmode.js FAILED!", err);
       }
       try {
-        setup9(root2);
+        setup10(root2);
       } catch (err) {
         console.error("Loading reorder.js FAILED!", err);
       }
@@ -4729,7 +4785,7 @@ var RSM = (() => {
       }
       try {
         if (keys) {
-          setup6(root2);
+          setup7(root2);
         }
       } catch (err) {
         console.error("Loading keyboard.js FAILED!", err);
@@ -4767,17 +4823,17 @@ var RSM = (() => {
         console.error("Loading notation panel FAILED!", err);
       }
       try {
-        setup11();
+        setup12();
       } catch (err) {
         console.error("Loading interface tooltips FAILED!", err);
       }
       try {
-        setup10(root2);
+        setup11(root2);
       } catch (err) {
         console.error("Loading shareview.js FAILED!", err);
       }
       try {
-        setup12(root2);
+        setup13(root2);
       } catch (err) {
         console.error("Loading minimap.js FAILED!", err);
       }
@@ -4825,7 +4881,12 @@ var RSM = (() => {
         console.error("Re-observing offset handrails FAILED!", err);
       }
       try {
-        setup13(root2);
+        setup6(root2).catch((err) => console.error("Setting up mathscroll.js FAILED!", err));
+      } catch (err) {
+        console.error("Setting up mathscroll.js FAILED!", err);
+      }
+      try {
+        setup14(root2);
       } catch (err) {
         console.error("Placing captions FAILED!", err);
       }
