@@ -23,6 +23,7 @@ import * as minimap from './minimap.js';
 import * as margin from './margin.js';
 import * as captions from './captions.js';
 import * as asides from './asides.js';
+import * as mathscroll from './mathscroll.js';
 
 // For widgets and figures that render their own math, so they get MathJax with
 // the document's notation without loading a renderer of their own.
@@ -250,6 +251,13 @@ export async function onrender(root = null) {
       handrails.observeOffsetHandrails();
     } catch (err) {
       console.error("Re-observing offset handrails FAILED!", err);
+    }
+
+    // Wide display math: a Tab stop only while it overflows (idempotent)
+    try {
+      mathscroll.setup(root).catch((err) => console.error("Setting up mathscroll.js FAILED!", err));
+    } catch (err) {
+      console.error("Setting up mathscroll.js FAILED!", err);
     }
 
     // Captions into the margin column (idempotent, picks up replaced DOM)

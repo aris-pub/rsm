@@ -3,6 +3,10 @@
 // Keyboard interaction
 //
 import { toggleHandrail, collapseAll, toggleMenuFor, closeMenu, menuOpenOn } from './handrails.js';
+import { zoneOverflows } from './mathscroll.js';
+
+// Chromium scrolls 40px for one arrow key press on a focused scroll container.
+const MATH_SCROLL_STEP = 40;
 
 export function setup(root) {
   // Single-key shortcuts must not preempt the browser. Bail when a modifier is
@@ -75,6 +79,19 @@ export function setup(root) {
     event.preventDefault();
     event.stopPropagation();
     menuUpOrDown(document.activeElement, event.key == "ArrowUp" ? "up" : "down");
+  });
+  // The mathblock is focusable but its content zone is the scroll container,
+  // so the browser does not scroll the zone for arrow keys on the block.
+  root.addEventListener('keydown', (event) => {
+    if (ignore(event)) return;
+    if (!["ArrowLeft", "ArrowRight"].includes(event.key)) return;
+    const block = document.activeElement;
+    if (!block || !block.classList.contains("mathblock")) return;
+    const zone = block.querySelector(":scope > .hr-content-zone");
+    if (!zone || !zoneOverflows(zone)) return;
+    event.preventDefault();
+    event.stopPropagation();
+    zone.scrollBy({ left: event.key == "ArrowRight" ? MATH_SCROLL_STEP : -MATH_SCROLL_STEP });
   });
   root.addEventListener("keyup", (event) => {
     if (ignore(event)) return;
