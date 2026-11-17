@@ -1081,6 +1081,41 @@ class Translator:
                 "a visit_* or leave_* method?"
             ) from ex
 
+    @staticmethod
+    def _terminal_block_in_p(node: nodes.TerminalBlock) -> bool:
+        """Whether a terminal block sits in a <p> opened by its parent.
+
+        Paragraphs and note and aside definitions open a <p>. Captions and list
+        items are paragraphs in the tree but open no <p> of their own.
+        """
+        return isinstance(node.parent, (nodes.Paragraph, nodes.Note)) and not isinstance(
+            node.parent, nodes.Caption
+        )
+
+    def _close_p_before(self, node: nodes.TerminalBlock) -> list[EditCommand]:
+        """Commands that close the parent's <p> before a terminal block.
+
+        A paragraph never starts with a terminal block, so text always comes
+        before it and the <p> is open. See visit_paragraph().
+        """
+        return [AppendText("</p>")] if self._terminal_block_in_p(node) else []
+
+    def _reopen_p_after(self, node: nodes.TerminalBlock, closing: EditCommand) -> EditCommand:
+        """Open a new <p> after a terminal block when more of the paragraph follows.
+
+        ``closing`` holds the block's own closing commands. Asides moved to the end
+        of the paragraph do not count as more content: they go after it. The new
+        <p> is closed when the parent is left (leave_paragraph, leave_note).
+        """
+        if not self._terminal_block_in_p(node):
+            return closing
+        nxt = node.next_sibling()
+        if not nxt or isinstance(nxt, nodes.Aside):
+            return closing
+        node.parent._must_close_p_tag = True
+        items = closing.items if isinstance(closing, EditCommandBatch) else [closing]
+        return AppendBatch([*items, AppendText("<p>")])
+
     def visit_manuscript(self, node: nodes.Manuscript) -> EditCommand:
         accent = getattr(node, 'accent', 'blue')
         lang = getattr(node, 'lang', 'en')
@@ -1295,11 +1330,7 @@ class Translator:
         ]
         # An aside at the end of the paragraph closes the <p> itself, see
         # visit_aside().
-        if (
-            node.first_of_type(nodes.MathBlock)
-            or node.first_of_type(nodes.CodeBlock)
-            or node.first_of_type(nodes.Aside)
-        ):
+        if node.first_of_type(nodes.TerminalBlock) or node.first_of_type(nodes.Aside):
             items.append(AppendOpenTagManualClose(tag="p", newline_inner=False))
         else:
             items.append(AppendOpenTag(tag="p", newline_inner=False))
@@ -1331,10 +1362,16 @@ class Translator:
         )
 
     def visit_enumerate(self, node: nodes.Enumerate) -> EditCommand:
-        return AppendNodeTag(node, "ol")
+        return AppendBatchAndDefer([*self._close_p_before(node), AppendNodeTag(node, "ol")])
+
+    def leave_enumerate(self, node: nodes.Enumerate) -> EditCommand:
+        return self._reopen_p_after(node, self.leave_node(node))
 
     def visit_itemize(self, node: nodes.Itemize) -> EditCommand:
-        return AppendNodeTag(node, "ul")
+        return AppendBatchAndDefer([*self._close_p_before(node), AppendNodeTag(node, "ul")])
+
+    def leave_itemize(self, node: nodes.Itemize) -> EditCommand:
+        return self._reopen_p_after(node, self.leave_node(node))
 
     def visit_item(self, node: nodes.Item) -> EditCommand:
         return AppendNodeTag(node, "li")
@@ -1560,8 +1597,8 @@ class Translator:
     def visit_note(self, node: nodes.Note) -> EditCommand:
         # A footnote is an entry of the notes list and starts with its number. An
         # aside sits below the block that calls it and has no number. Both are a
-        # paragraph. The mathblock and codeblock visitors close and reopen the <p>
-        # as they do inside an ordinary paragraph.
+        # paragraph. The terminal block visitors close and reopen the <p> as they
+        # do inside an ordinary paragraph.
         is_aside = isinstance(node, nodes.Aside)
         attrs: dict = {"data-note-kind": node.kind}
         if not is_aside:
@@ -1574,7 +1611,7 @@ class Translator:
         items: list[EditCommand] = [
             AppendNodeTag(node, "li" if in_list else "div", extra_attrs=attrs)
         ]
-        if node.first_of_type(nodes.MathBlock) or node.first_of_type(nodes.CodeBlock):
+        if node.first_of_type(nodes.TerminalBlock):
             items.append(AppendOpenTagManualClose(tag="p", newline_inner=False))
         else:
             items.append(AppendOpenTag(tag="p", newline_inner=False))
@@ -1587,13 +1624,13 @@ class Translator:
     def visit_aside(self, node: nodes.Aside) -> EditCommand:
         # The transformer moves an aside to the end of the paragraph or list item
         # that calls it. In a paragraph, the first aside closes the paragraph's
-        # open <p>, unless a mathblock or codeblock just before it already did.
+        # open <p>, unless a terminal block just before it already did.
         cmd = Translator.visit_note(self, node)
         parent = node.parent
         if not isinstance(parent, nodes.Paragraph):
             return cmd
         prev = node.prev_sibling()
-        if isinstance(prev, (nodes.Aside, nodes.MathBlock, nodes.CodeBlock)):
+        if isinstance(prev, (nodes.Aside, nodes.TerminalBlock)):
             return cmd
         parent._must_close_p_tag = False
         return AppendBatchAndDefer([AppendText("</p>"), *cmd.items])
@@ -1631,12 +1668,7 @@ class Translator:
         )
 
     def visit_mathblock(self, node: nodes.MathBlock) -> EditCommand:
-        commands = []
-        if isinstance(node.parent, (nodes.Paragraph, nodes.Note)):
-            # A paragraph that contains a mathblock cannot _start_ with a mathblock,
-            # so this mathblock must always contain some previous siblings that must
-            # be enclosed in <p> tags.  (See comment in visit_paragraph().)
-            commands.append(AppendText("</p>"))
+        commands = self._close_p_before(node)
         if node.preamble:
             node.classes.append("math-preamble")
         commands.append(AppendNodeTag(node, "div"))
@@ -1644,28 +1676,7 @@ class Translator:
         return AppendBatchAndDefer(commands)
 
     def leave_mathblock(self, node: nodes.MathBlock) -> EditCommand:
-        # See also the comment in visit_paragraph().
-        batch = self.leave_node(node)
-
-        # The paragraph-specific logic only applies when the parent is a BaseParagraph
-        # With grammar changes, MathBlocks can now have other types of parents
-        if not isinstance(node.parent, nodes.BaseParagraph):
-            return batch
-
-        # In case this mathblock is the last child of the paragraph, there is nothing
-        # special to do since visit_mathblock() already handled the remaining </p> tag.
-        # Asides moved to the end of the paragraph do not count: they go after it.
-        if not node.next_sibling() or isinstance(node.next_sibling(), nodes.Aside):
-            return batch
-
-        # If there are more children, we need to close this mathblock, start a new <p>
-        # tag, and defer its closing.  This tag must close at the time that we leave the
-        # parent paragraph.  The least hacky way I found to control the parent node's
-        # deferred commands was to use a special attribute.
-        else:
-            node.parent._must_close_p_tag = True
-            batch.items.append(AppendText("<p>"))
-            return AppendBatch(batch.items)
+        return self._reopen_p_after(node, self.leave_node(node))
 
     def leave_paragraph(self, node: nodes.Paragraph) -> EditCommand:
         batch = self.leave_node(node)
@@ -1717,9 +1728,7 @@ class Translator:
         return AppendBatchAndDefer(items)
 
     def visit_codeblock(self, node: nodes.CodeBlock) -> EditCommand:
-        items = []
-        if isinstance(node.parent, nodes.BaseParagraph):
-            items.append(AppendText("</p>"))
+        items = self._close_p_before(node)
         items += [
             AppendNodeTag(node, "div", newline_inner=True, newline_outer=True),
             AppendOpenTag("pre"),
@@ -1727,22 +1736,19 @@ class Translator:
         return AppendBatchAndDefer(items)
 
     def leave_codeblock(self, node: nodes.CodeBlock) -> EditCommand:
-        batch = self.leave_node(node)
-        if not isinstance(node.parent, nodes.BaseParagraph):
-            return batch
-        if not node.next_sibling() or isinstance(node.next_sibling(), nodes.Aside):
-            return batch
-        node.parent._must_close_p_tag = True
-        batch.items.append(AppendText("<p>"))
-        return AppendBatch(batch.items)
+        return self._reopen_p_after(node, self.leave_node(node))
 
     def visit_algorithm(self, node: nodes.Algorithm) -> EditCommand:
         return AppendBatchAndDefer(
             [
+                *self._close_p_before(node),
                 AppendOpenTag(id=node.label, classes=["algorithm"]),
                 AppendOpenTag("pre", classes=["pseudocode"]),
             ]
         )
+
+    def leave_algorithm(self, node: nodes.Algorithm) -> EditCommand:
+        return self._reopen_p_after(node, self.leave_node(node))
 
     def visit_notation(self, node: nodes.Notation) -> EditCommand:
         # Emit the rebindable-notation entries as data for the frontend, which
@@ -3650,16 +3656,23 @@ class HandrailsTranslator(Translator):
         return AppendBatchAndDefer([cmd.items[0], wrapper, *cmd.items[1:]])
 
     def visit_enumerate(self, node: nodes.Enumerate) -> EditCommand:
-        batch = self._replace_node_with_handrails(node, collapse_in_hr=False)
-        if "hr-hidden" not in batch.items[0].classes:
-            batch.items[0].classes.append("hr-hidden")
-        batch.items.append(super().visit_enumerate(node))
-        return batch
+        return self._list_handrails(node, "ol")
 
     def leave_enumerate(self, node: nodes.Enumerate) -> EditCommand:
         batch = super().leave_node(node)
         batch.items.insert(-1, self._hr_info_zone_icon(getattr(node, "icon", None)))
-        return batch
+        return self._reopen_p_after(node, batch)
+
+    def _list_handrails(self, node: nodes.Itemize | nodes.Enumerate, tag: str) -> EditCommand:
+        batch = self._replace_node_with_handrails(node, collapse_in_hr=False)
+        if "hr-hidden" not in batch.items[0].classes:
+            batch.items[0].classes.append("hr-hidden")
+        # Inside a paragraph, a list gets the same offset as display math.
+        if self._terminal_block_in_p(node) and "hr-offset" not in batch.items[0].classes:
+            batch.items[0].classes.append("hr-offset")
+        return AppendBatchAndDefer(
+            [*self._close_p_before(node), *batch.items, AppendNodeTag(node, tag)]
+        )
 
     def visit_itemize(self, node: nodes.Itemize) -> EditCommand:
         # Don't add handrails to itemize lists inside Contents (TOC)
@@ -3671,11 +3684,7 @@ class HandrailsTranslator(Translator):
             if isinstance(current, nodes.Contents):
                 return super().visit_itemize(node)
             current = current.parent
-        batch = self._replace_node_with_handrails(node, collapse_in_hr=False)
-        if "hr-hidden" not in batch.items[0].classes:
-            batch.items[0].classes.append("hr-hidden")
-        batch.items.append(super().visit_itemize(node))
-        return batch
+        return self._list_handrails(node, "ul")
 
     def leave_itemize(self, node: nodes.Itemize) -> EditCommand:
         # Don't add handrails to itemize lists inside Contents (TOC)
@@ -3689,7 +3698,7 @@ class HandrailsTranslator(Translator):
             current = current.parent
         batch = super().leave_node(node)
         batch.items.insert(-1, self._hr_info_zone_icon(getattr(node, "icon", None)))
-        return batch
+        return self._reopen_p_after(node, batch)
 
     def _asset_handrails(self, node, with_fallback: bool = True) -> EditCommand:
         if node.as_paragraph:
@@ -3830,10 +3839,9 @@ class HandrailsTranslator(Translator):
 
     def visit_codeblock(self, node: nodes.CodeBlock) -> EditCommand:
         batch = self._replace_node_with_handrails(node, collapse_in_hr=False)
-        handrail_idx = 0
-        if isinstance(node.parent, (nodes.Paragraph, nodes.Note)):
-            batch.items.insert(0, AppendText("</p>"))
-            handrail_idx = 1
+        close_p = self._close_p_before(node)
+        batch.items[:0] = close_p
+        handrail_idx = len(close_p)
         offset_class = ["hr-offset"] if isinstance(node.parent, (nodes.Paragraph, nodes.Note)) else []
         batch.items[handrail_idx].classes += ["hr-hidden"] + offset_class
         batch.items.append(AppendOpenTag("pre"))
@@ -3844,22 +3852,29 @@ class HandrailsTranslator(Translator):
         base_batch.items.insert(
             -1, self._hr_info_zone_icon(getattr(node, "icon", None))
         )
-        return base_batch
+        return self._reopen_p_after(node, base_batch)
 
     def visit_algorithm(self, node: nodes.Algorithm) -> EditCommand:
-        cmd = super().visit_algorithm(node)
         batch = self._replace_node_with_handrails(node, collapse_in_hr=False)
         if "hr-hidden" not in batch.items[0].classes:
             batch.items[0].classes.append("hr-hidden")
-        batch = AppendBatchAndDefer([*batch.items, *cmd.items[1:]])
-        return batch
+        # Inside a paragraph, an algorithm gets the same offset as display math.
+        if self._terminal_block_in_p(node) and "hr-offset" not in batch.items[0].classes:
+            batch.items[0].classes.append("hr-offset")
+        return AppendBatchAndDefer(
+            [
+                *self._close_p_before(node),
+                *batch.items,
+                AppendOpenTag("pre", classes=["pseudocode"]),
+            ]
+        )
 
     @auto_leave_deferred
     def leave_algorithm(self, node: nodes.Algorithm, base_batch) -> EditCommand:
         base_batch.items.insert(
             -1, self._hr_info_zone_icon(getattr(node, "icon", None))
         )
-        return base_batch
+        return self._reopen_p_after(node, base_batch)
 
     def visit_theorem(self, node: nodes.Theorem) -> EditCommand:
         batch = super().visit_theorem(node)
@@ -4062,10 +4077,9 @@ class HandrailsTranslator(Translator):
             collapse_in_hr=False,
             menu_label="Equation" if node.nonum else node.long_reftext,
         )
-        handrail_idx = 0
-        if isinstance(node.parent, (nodes.Paragraph, nodes.Note)):
-            batch.items.insert(0, AppendText("</p>"))
-            handrail_idx = 1
+        close_p = self._close_p_before(node)
+        batch.items[:0] = close_p
+        handrail_idx = len(close_p)
         batch.items.append(AppendTextAndDefer("$$\n", "\n$$"))
         offset_class = ["hr-offset"] if isinstance(node.parent, (nodes.Paragraph, nodes.Note)) else []
         batch.items[handrail_idx].classes += ["hr-hidden"] + offset_class

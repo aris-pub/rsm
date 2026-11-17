@@ -1381,11 +1381,20 @@ class NoteCall(NodeWithChildren):
         return super()._attrs_for_repr_and_eq() + ["target", "tag"]
 
 
-class Enumerate(NodeWithChildren):
+class TerminalBlock(NodeWithChildren):
+    """A block that may stand inside a paragraph, between two runs of its text.
+
+    Display math, code blocks, lists and algorithms are terminal blocks. Inside a
+    paragraph, the HTML output closes the paragraph's <p> before the block and
+    opens a new one after it when more text follows.
+    """
+
+
+class Enumerate(TerminalBlock):
     pass
 
 
-class Itemize(NodeWithChildren):
+class Itemize(TerminalBlock):
     pass
 
 
@@ -1433,7 +1442,7 @@ class Math(NodeWithChildren):
         self.preamble = preamble
 
 
-class MathBlock(NodeWithChildren):
+class MathBlock(TerminalBlock):
     autonumber = True
     _number_within = Section
     classreftext: ClassVar[str] = "({number})"
@@ -1491,7 +1500,7 @@ class RawHtml(NodeWithChildren):
         return result
 
 
-class CodeBlock(NodeWithChildren):
+class CodeBlock(TerminalBlock):
     classreftext: ClassVar[str] = "Code Block {number}"
     newmetakeys: ClassVar[set] = {"lang"}
 
@@ -1501,7 +1510,7 @@ class CodeBlock(NodeWithChildren):
         self.source = SourceCode(source, lang)
 
 
-class Algorithm(NodeWithChildren):
+class Algorithm(TerminalBlock):
     r"""Algorithm pseudocode.
 
     Notes
