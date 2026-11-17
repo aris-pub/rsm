@@ -1308,6 +1308,11 @@ body {
   overflow-x: auto;
   overflow-y: hidden;
 }
+/* mathscroll.js makes an overflowing zone a Tab stop (rsm-dvb). */
+.manuscriptwrapper .mathblock > .hr-content-zone:focus-visible {
+  outline: var(--border-thin) solid var(--border-action);
+  outline-offset: 2px;
+}
 .manuscriptwrapper .mathblock.hr-offset > .hr-info-zone {
   top: 0;
   bottom: 0;
