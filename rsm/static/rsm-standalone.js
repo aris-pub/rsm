@@ -2351,7 +2351,7 @@ var RSM = (() => {
   // rsm/static/mathscroll.js
   var ZONES = ".mathblock > .hr-content-zone";
   var observer = null;
-  var observed = /* @__PURE__ */ new WeakSet();
+  var observed = /* @__PURE__ */ new Set();
   function zoneOverflows(zone) {
     return zone.scrollWidth > zone.clientWidth;
   }
@@ -2378,6 +2378,12 @@ var RSM = (() => {
     if (!observer && typeof ResizeObserver !== "undefined") {
       observer = new ResizeObserver((entries) => entries.forEach((e) => update(e.target)));
     }
+    observed.forEach((zone) => {
+      if (!zone.isConnected) {
+        observer.unobserve(zone);
+        observed.delete(zone);
+      }
+    });
     root2.querySelectorAll(ZONES).forEach((zone) => {
       if (observer && !observed.has(zone)) {
         observer.observe(zone);
