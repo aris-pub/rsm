@@ -206,7 +206,7 @@ _READING_CONTROLS = [
     ("theme", "Theme",
      [("system", "System"), ("light", "Light"), ("dark", "Dark")], "system"),
     # The document map at the right edge (minimap.js watches the attribute).
-    # Left out when the author turned the map off with :minimap: false.
+    # Left out when the author turned the map off with :no-minimap:.
     ("minimap", "Map",
      [("on", "Show the document map"), ("off", "Hide the document map")], "on"),
 ]
@@ -261,11 +261,8 @@ def _reading_tile(control: str, value: str) -> str:
 
 
 def minimap_enabled(tree: Any) -> bool:
-    """False when the author wrote :config: { :minimap: false }."""
-    value = getattr(tree, "minimap", True)
-    if isinstance(value, str):
-        return value.strip().lower() not in {"false", "off", "no"}
-    return bool(value)
+    """False when the author wrote :config: { :no-minimap: }."""
+    return not getattr(tree, "no_minimap", False)
 
 
 def _make_reading_panel(typeface_default: str = "sans", minimap: bool = True) -> str:

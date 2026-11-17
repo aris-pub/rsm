@@ -31,6 +31,7 @@ functions (mostly private ones) that are useful during the parsing process.
 import logging
 import re
 from collections.abc import Callable
+from datetime import datetime
 from itertools import groupby
 from typing import Any
 
@@ -334,7 +335,19 @@ def _parse_metakey_text(cst_key: TSNode, cst_val: TSNode) -> tuple[str, str]:
     return key, val
 
 
-def _parse_metakey_any(cst_key: TSNode, cst_val: TSNode) -> tuple[str, str]:
+def _parse_metakey_path(cst_key: TSNode, cst_val: TSNode) -> tuple[str, str]:
+    return _parse_metakey_text(cst_key, cst_val)
+
+
+def _parse_metakey_number(cst_key: TSNode, cst_val: TSNode) -> tuple[str, str]:
+    return _parse_metakey_text(cst_key, cst_val)
+
+
+def _parse_metakey_word(cst_key: TSNode, cst_val: TSNode) -> tuple[str, str]:
+    return _parse_metakey_text(cst_key, cst_val)
+
+
+def _parse_metakey_date(cst_key: TSNode, cst_val: TSNode) -> tuple[str, str]:
     return _parse_metakey_text(cst_key, cst_val)
 
 
@@ -343,10 +356,83 @@ def _parse_metakey_bool(cst_key: TSNode, _: TSNode) -> tuple[str, bool]:
     return key, True
 
 
-def _parse_meta_into_dict(node: TSNode) -> dict[str, Any]:
-    # Only the pair children are read below, so an ERROR child (such as a meta
-    # value wrapped onto a second line) would otherwise be dropped with no message.
-    for err in [c for c in node.named_children if c.type == "ERROR"]:
+_WORD_VALUES = {
+    "accent": ("blue", "red", "green", "orange", "yellow", "purple", "pink", "gray"),
+    "numbering": ("document", "section", "none"),
+    "typography": ("sans-serif", "serif"),
+    "citation_style": ("numeric", "parens-author-year", "author-parens-year"),
+    "view": ("list", "tree"),
+    "orientation": nodes.Contents.orientations,
+}
+
+_WHOLE_NUMBER_KEYS = {"toc_depth", "author_display_first", "author_display_last"}
+
+_LANG_CODE = re.compile(r"^[a-z]{2,3}(-[A-Z]{2})?$")
+_LANG_CODE_ALLOWED = "a language code such as en, es, fr, en-US or zh-CN"
+
+# What each key accepts, for the message logged when the grammar rejects the
+# shape of its value.
+_SHAPE_ALLOWED = {
+    "metakey_path": "a file path",
+    "metakey_number": "a number, such as 2 or 0.5",
+    "metakey_word": "a single word",
+    "metakey_date": "a date written YYYY-MM-DD, such as 2025-01-15",
+}
+
+
+def _allowed_values(key: str, keykind: str) -> str:
+    if key in _WORD_VALUES:
+        return ", ".join(_WORD_VALUES[key])
+    if key in _WHOLE_NUMBER_KEYS:
+        return "a whole number, such as 2"
+    return _SHAPE_ALLOWED[keykind]
+
+
+def _log_bad_value(key: str, value: str, allowed: str, node: TSNode) -> None:
+    (start_row, start_col), (end_row, end_col) = node.start_point, node.end_point
+    logger.error(
+        f"Invalid value for :{key.replace('_', '-')}: on line {start_row + 1}: "
+        f"{value!r}. Allowed values: {allowed}. The value is ignored and the "
+        "default is used.",
+        extra={
+            "start_row": start_row,
+            "start_col": start_col,
+            "end_row": end_row,
+            "end_col": end_col,
+        },
+    )
+
+
+def _value_is_valid(key: str, value: Any, keykind: str, pair: TSNode) -> bool:
+    if key in _WORD_VALUES:
+        ok = value in _WORD_VALUES[key]
+    elif key in _WHOLE_NUMBER_KEYS:
+        ok = value.isdigit()
+    elif keykind == "metakey_date":
+        try:
+            datetime.strptime(value, "%Y-%m-%d")
+            ok = True
+        except ValueError:
+            ok = False
+    else:
+        return True
+    if not ok:
+        _log_bad_value(key, value, _allowed_values(key, keykind), pair)
+    return ok
+
+
+def _log_meta_error(err: TSNode) -> None:
+    """Log an ERROR node found where meta is.
+
+    When the ERROR holds a key whose value has the wrong shape (the grammar
+    rejects it), the message names that key and its allowed values.
+    """
+    keys = [
+        n
+        for n in _descendants(err)
+        if n.type in _SHAPE_ALLOWED and n.named_children
+    ]
+    if not keys:
         start_row, start_col = err.start_point
         end_row, end_col = err.end_point
         logger.error(
@@ -358,13 +444,80 @@ def _parse_meta_into_dict(node: TSNode) -> dict[str, Any]:
                 "end_col": end_col,
             },
         )
+        return
+    text = err.text or b""
+    for i, cst_key in enumerate(keys):
+        end = keys[i + 1].start_byte if i + 1 < len(keys) else err.end_byte
+        value = text[cst_key.end_byte - err.start_byte : end - err.start_byte]
+        value = value.decode("utf-8").strip().rstrip("}").strip()
+        key = cst_key.named_children[0].type
+        _log_bad_value(key, value, _allowed_values(key, cst_key.type), cst_key)
+
+
+def _descendants(node: TSNode) -> list[TSNode]:
+    out = []
+    for c in node.named_children:
+        out.append(c)
+        out.extend(_descendants(c))
+    return out
+
+
+def _log_meta_errors_outside_meta(cst_node: TSNode) -> set[int]:
+    """Log the ERROR children of *cst_node* that hold a meta key and return their ids.
+
+    When the only pair of a meta has a value of the wrong shape, the parser
+    replaces the whole meta with an ERROR child of the block, and the block has
+    no meta field. The caller skips these ERROR nodes, so the value is ignored
+    instead of being shown as an error in the output.
+    """
+    ids = set()
+    for c in cst_node.named_children:
+        if (
+            c.type == "ERROR"
+            and (c.text or b"").startswith(b"{")
+            and any(n.type in _SHAPE_ALLOWED for n in _descendants(c))
+        ):
+            _log_meta_error(c)
+            ids.add(c.id)
+    return ids
+
+
+def _parse_meta_into_dict(node: TSNode) -> dict[str, Any]:
+    # Only the pair children are read below, so an ERROR child (such as a meta
+    # value wrapped onto a second line) would otherwise be dropped with no message.
+    # A value such as "dark blue" for a word key parses as the pair
+    # (:accent: dark) followed by an ERROR holding "blue" on the same line. The
+    # ERROR is the rest of the value, so the whole value is reported and the
+    # pair is dropped.
+    cut_short = set()
+    for err in [c for c in node.named_children if c.type == "ERROR"]:
+        prev = err.prev_named_sibling
+        if (
+            prev is not None
+            and prev.type.endswith("pair")
+            and len(prev.named_children) == 2
+            and prev.named_children[0].type in _SHAPE_ALLOWED
+            and prev.end_point[0] == err.start_point[0]
+        ):
+            cst_key = prev.named_children[0]
+            key = cst_key.named_children[0].type
+            value = (prev.named_children[1].text or b"").decode("utf-8").strip()
+            value += " " + (err.text or b"").decode("utf-8").strip()
+            _log_bad_value(key, value, _allowed_values(key, cst_key.type), prev)
+            cut_short.add(prev.id)
+        else:
+            _log_meta_error(err)
     pairs = {}
     for pair in [c for c in node.named_children if c.type.endswith("pair")]:
+        if pair.id in cut_short:
+            continue
         if len(pair.named_children) == 1:  # bool meta key
             cst_key, cst_val = pair.named_children[0], None
         else:
             cst_key, cst_val = pair.named_children
         key, val = globals()[f"_parse_{cst_key.type}"](cst_key, cst_val)
+        if not _value_is_valid(key, val, cst_key.type, pair):
+            continue
         pairs[key] = val
     return pairs
 
@@ -717,6 +870,8 @@ def _abstractify(cst: TSTree) -> nodes.Manuscript:
                 ast_root_node = ast_node
             if meta:
                 ast_node.ingest_dict_as_meta(_parse_meta_into_dict(meta))
+            else:
+                skip_these_ids |= _log_meta_errors_outside_meta(cst_node)
 
             if parent and isinstance(parent, nodes.NodeWithChildren):
                 parent.append(ast_node)
@@ -782,51 +937,15 @@ def _abstractify(cst: TSTree) -> nodes.Manuscript:
                 if meta:
                     config_dict = _parse_meta_into_dict(meta)
 
-                    # Validate numbering value
-                    if "numbering" in config_dict:
-                        valid_numbering = ["document", "section", "none"]
-                        if config_dict["numbering"] not in valid_numbering:
-                            raise RSMParserError(
-                                msg=f"Invalid numbering value: {config_dict['numbering']}. "
-                                    f"Must be one of: {', '.join(valid_numbering)}"
-                            )
-
-                    # Validate accent value
-                    if "accent" in config_dict:
-                        valid_accents = ["blue", "red", "green", "orange", "yellow", "purple", "pink", "gray"]
-                        if config_dict["accent"] not in valid_accents:
-                            raise RSMParserError(
-                                msg=f"Invalid accent value: {config_dict['accent']}. "
-                                    f"Must be one of: {', '.join(valid_accents)}"
-                            )
-
-                    # Validate typography value
-                    if "typography" in config_dict:
-                        valid_typography = ["sans-serif", "serif"]
-                        if config_dict["typography"] not in valid_typography:
-                            raise RSMParserError(
-                                msg=f"Invalid typography value: {config_dict['typography']}. "
-                                    f"Must be one of: {', '.join(valid_typography)}"
-                            )
-
-                    # Validate citation-style value
-                    if "citation_style" in config_dict:
-                        valid_styles = ["numeric", "parens-author-year", "author-parens-year"]
-                        if config_dict["citation_style"] not in valid_styles:
-                            raise RSMParserError(
-                                msg=f"Invalid citation-style value: {config_dict['citation_style']}. "
-                                    f"Must be one of: {', '.join(valid_styles)}"
-                            )
-
-                    # Validate lang value (basic format check for language codes)
-                    if "lang" in config_dict:
-                        import re
-                        # Allow formats like: en, es, fr, en-US, zh-CN
-                        if not re.match(r'^[a-z]{2,3}(-[A-Z]{2})?$', config_dict["lang"]):
-                            raise RSMParserError(
-                                msg=f"Invalid lang value: {config_dict['lang']}. "
-                                    f"Must be a valid language code (e.g., en, es, fr, en-US, zh-CN)"
-                            )
+                    # :lang: also names the language of code blocks, so it
+                    # is checked as a language code only here.
+                    if "lang" in config_dict and not _LANG_CODE.match(config_dict["lang"]):
+                        pair = next(
+                            p
+                            for p in meta.named_children
+                            if p.type == "pair" and p.named_children[0].named_children[0].type == "lang"
+                        )
+                        _log_bad_value("lang", config_dict.pop("lang"), _LANG_CODE_ALLOWED, pair)
 
                     # Handle override_date -> date mapping
                     if "override_date" in config_dict:
@@ -834,6 +953,8 @@ def _abstractify(cst: TSTree) -> nodes.Manuscript:
                     # Inject config into manuscript node
                     if ast_root_node:
                         ast_root_node.ingest_dict_as_meta(config_dict)
+                else:
+                    skip_these_ids |= _log_meta_errors_outside_meta(cst_node)
                 # Don't create a node, skip this block entirely
                 continue
 
@@ -880,13 +1001,8 @@ def _abstractify(cst: TSTree) -> nodes.Manuscript:
         meta = cst_node.child_by_field_name("meta")
         if meta:
             ast_node.ingest_dict_as_meta(_parse_meta_into_dict(meta))
-            if isinstance(ast_node, nodes.Contents):
-                valid = nodes.Contents.orientations
-                if ast_node.orientation not in valid:
-                    raise RSMParserError(
-                        msg=f"Invalid :toc: orientation value: {ast_node.orientation}. "
-                            f"Must be one of: {', '.join(valid)}"
-                    )
+        else:
+            skip_these_ids |= _log_meta_errors_outside_meta(cst_node)
 
         # process some special tags
         if ast_node_type in ["math", "code", "mathblock", "codeblock", "algorithm", "notation"]:

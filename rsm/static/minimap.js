@@ -11,7 +11,7 @@
 // rsm-minimap-on class on <html>), so with scripting off, or if mounting fails,
 // the reader keeps the native scrollbar.
 //
-// Off switches: the author's :config: { :minimap: false } (body[data-minimap])
+// Off switches: the author's :config: { :no-minimap: } (body[data-minimap])
 // and the reader's Reading view toggle (html[data-reading-minimap], persisted in
 // the rsm-reading localStorage object by prooftree.js).
 

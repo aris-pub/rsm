@@ -8,7 +8,7 @@ import pytest
 import rsm
 import rsm.nodes as nodes
 from rsm import app
-from rsm.tsparser import RSMParserError, TSParser
+from rsm.tsparser import TSParser
 
 BODY = """
 ## One
@@ -177,16 +177,16 @@ def test_orientation_independent_of_view():
 
 
 @pytest.mark.parametrize("bad", ["diagonal", "Horizontal", "left-to-right"])
-def test_invalid_orientation_errors(bad):
-    with pytest.raises(RSMParserError, match=r"Invalid :toc: orientation value: " + bad):
-        TSParser().parse(_src(f":view: tree, :orientation: {bad}"))
+def test_invalid_orientation_is_logged_and_vertical_used(caplog, bad):
+    tree = TSParser().parse(_src(f":view: tree, :orientation: {bad}"))
+    toc = next(iter(tree.traverse(nodeclass=nodes.Contents)))
+    assert toc.orientation == "vertical"
+    assert f"Invalid value for :orientation: on line 5: '{bad}'" in caplog.text
 
 
 def test_invalid_orientation_message_names_the_choices(caplog):
-    with pytest.raises(RSMParserError, match="Must be one of: horizontal, vertical"):
-        TSParser().parse(_src(":orientation: sideways"))
-    # The build stops with the message, as for the other invalid meta values.
+    # The build goes on, as for the other invalid meta values.
     with caplog.at_level(logging.ERROR, logger="RSM"):
         html = rsm.render(_src(":orientation: sideways"), handrails=False)
-    assert html == ""
-    assert "Invalid :toc: orientation value: sideways" in caplog.text
+    assert html != ""
+    assert "Allowed values: horizontal, vertical" in caplog.text
