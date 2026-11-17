@@ -18,7 +18,7 @@ def test_inline_cannot_contain_block():
         <section class="level-1">
 
         <h1>My Title</h1>
-        <span class="error" data-nodeid="1">[CST error at (2, 0) - (2, 71)]</span>
+        <span class="error" data-nodeid="1">[CST error at (3, 1) - (3, 72)]</span>
         </section>
 
         </div>
@@ -66,7 +66,7 @@ def test_paragraph_ends_at_block():
         </div>
 
         </section>
-        <span class="error" data-nodeid="6">[CST error at (3, 23) - (3, 25)]</span>
+        <span class="error" data-nodeid="6">[CST error at (4, 24) - (4, 26)]</span>
         </section>
 
         </div>

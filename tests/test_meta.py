@@ -90,7 +90,7 @@ def test_list_no_braces():
         <section class="level-1">
 
         <h1>My Title</h1>
-        <span class="error" data-nodeid="1">[CST error at (2, 0) - (2, 28)]</span>
+        <span class="error" data-nodeid="1">[CST error at (3, 1) - (3, 29)]</span>
         <div class="paragraph" data-nodeid="2">
 
         <p>This paragraph has only one type</p>
@@ -298,7 +298,7 @@ def test_block_meta_continuation_line_is_logged(caplog):
     rec = records[0]
     assert rec.levelname == "ERROR"
     assert rec.name == "RSM.parse"
-    assert (rec.start_row, rec.start_col, rec.end_row) == (3, 0, 3), caplog.text
+    assert (rec.start_row, rec.start_col, rec.end_row) == (4, 1, 4), caplog.text
     assert 'alt="one"' in h, h
     assert "[CST error" not in h, h
     assert "two" not in h, h
@@ -323,8 +323,8 @@ def test_block_meta_three_line_value(caplog):
     """With a third line, the parser ends the meta after the :alt: line (a
     MISSING "}" node, not an ERROR node), so nothing is reported inside the meta.
     The later lines and the caption become a paragraph inside the figure, and
-    the existing warning points at the closing brace (row 5), not at "two"
-    (row 3). This test records that behavior; see rsm-sv0."""
+    the existing warning points at the closing brace (line 6), not at "two"
+    (line 4). This test records that behavior; see rsm-sv0."""
     src = (
         ":figure: {\n"
         "  :path: a.png\n"
@@ -343,7 +343,7 @@ def test_block_meta_three_line_value(caplog):
         r for r in caplog.records if r.getMessage() == "The CST contains errors."
     ]
     assert len(cst_warnings) == 1, caplog.text
-    assert cst_warnings[0].start_row == 5, caplog.text
+    assert cst_warnings[0].start_row == 6, caplog.text
     assert 'alt="one"' in h, h
     assert "two three" in h, h
 
@@ -355,5 +355,5 @@ def test_inline_meta_error_is_logged(caplog):
     h = rsm.render(src, handrails=False, source_offsets=False)
     records = _meta_error_records(caplog)
     assert len(records) == 1, caplog.text
-    assert records[0].start_row == 0, caplog.text
+    assert records[0].start_row == 1, caplog.text
     assert "[CST error" not in h, h
