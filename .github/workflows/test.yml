@@ -202,7 +202,7 @@ jobs:
     # tree-sitter-rsm source build works at any Python (like the pytest jobs).
     # Baselines are regenerated on this runner arch; the pinned Playwright version
     # keeps Chromium (and its rendering) fixed.
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
 
     env:
@@ -253,7 +253,7 @@ jobs:
         retention-days: 7
 
   interactive-tests:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
 
     env:
@@ -319,7 +319,7 @@ jobs:
   accessibility-tests:
     # Linux (amd64) instead of the scarce macOS pool. These are axe-core rule
     # checks (no pixel snapshots), so rendering platform doesn't matter.
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
 
     env:
