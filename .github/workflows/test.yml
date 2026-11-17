@@ -37,6 +37,29 @@ jobs:
             - 'pyproject.toml'
             - 'uv.lock'
 
+  bundle-check:
+    # rsm-standalone.js is committed, so a change to the reader JS without a
+    # rebuild leaves standalone pages running old code. Rebuild it with the
+    # pinned esbuild from the justfile and fail if the result differs.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
+      with:
+        node-version: '22'
+    - name: Rebuild rsm-standalone.js
+      run: |
+        cmd=$(grep -E '^\s+npx .*esbuild' justfile | sed 's/^ *//')
+        echo "$cmd"
+        eval "$cmd"
+    - name: Fail if the committed bundle is out of date
+      run: |
+        git diff --exit-code --stat rsm/static/rsm-standalone.js || {
+          echo "rsm/static/rsm-standalone.js is out of date. Run 'just js-bundle' and commit the result."
+          exit 1
+        }
+
   lsp-tests:
     needs: changes
     if: ${{ needs.changes.outputs.lsp == 'true' }}
