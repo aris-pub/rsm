@@ -189,7 +189,8 @@ def test_removed_keys_are_unknown(caplog, line):
     html = rsm.render(src, handrails=True, sidebar=True)
     assert 'data-accent="red"' in html
     assert 'data-minimap="false"' not in html
-    assert "Parse error in meta" in caplog.text
+    key = line.split(":")[1]
+    assert f"Unknown meta key :{key}:" in caplog.text, caplog.text
 
 
 @pytest.mark.parametrize(
