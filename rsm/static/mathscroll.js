@@ -10,7 +10,7 @@ import { mathIdle } from './libraries.js';
 const ZONES = '.mathblock > .hr-content-zone';
 
 let observer = null;
-const observed = new WeakSet();
+const observed = new Set();
 
 export function zoneOverflows(zone) {
   return zone.scrollWidth > zone.clientWidth;
@@ -44,6 +44,14 @@ export async function setup(root = document) {
   if (!observer && typeof ResizeObserver !== 'undefined') {
     observer = new ResizeObserver((entries) => entries.forEach((e) => update(e.target)));
   }
+  // Studio replaces the page HTML on each re-render. Zones removed with the old
+  // HTML are unobserved so that the observer does not keep them in memory.
+  observed.forEach((zone) => {
+    if (!zone.isConnected) {
+      observer.unobserve(zone);
+      observed.delete(zone);
+    }
+  });
   root.querySelectorAll(ZONES).forEach((zone) => {
     if (observer && !observed.has(zone)) {
       observer.observe(zone);

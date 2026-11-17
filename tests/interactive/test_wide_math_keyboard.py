@@ -96,3 +96,49 @@ def test_tab_stop_follows_resize(page: Page, interactive_server: str):
         arg=zone.element_handle(),
         timeout=3_000,
     )
+
+
+# The test wraps ResizeObserver before the page loads to record which elements
+# are observed, since a ResizeObserver offers no way to list them.
+TRACK_OBSERVED = """
+(() => {
+  const observed = new Set();
+  const proto = ResizeObserver.prototype;
+  const observe = proto.observe;
+  const unobserve = proto.unobserve;
+  proto.observe = function (el, opts) { observed.add(el); return observe.call(this, el, opts); };
+  proto.unobserve = function (el) { observed.delete(el); return unobserve.call(this, el); };
+  window.__observedByResizeObservers = observed;
+})();
+"""
+
+
+def test_rerender_unobserves_removed_zones(page: Page, interactive_server: str):
+    """rsm-y2m: Studio replaces the page HTML on each keystroke and runs
+    onrender. Zones removed from the page must stop being observed."""
+    page.add_init_script(TRACK_OBSERVED)
+    zones = open_fixture(page, interactive_server, 320)
+    count = zones.count()
+    result = page.evaluate(
+        """async (zones) => {
+        const observed = window.__observedByResizeObservers;
+        const old = [...document.querySelectorAll(zones)];
+        const before = old.filter((z) => observed.has(z)).length;
+        for (const z of old) {
+          const block = z.parentElement;
+          block.replaceWith(block.cloneNode(true));
+        }
+        const onload = await import('/static/onload.js');
+        await onload.onrender();
+        const fresh = [...document.querySelectorAll(zones)];
+        return {
+          before,
+          oldStillObserved: old.filter((z) => observed.has(z)).length,
+          freshObserved: fresh.filter((z) => observed.has(z)).length,
+        };
+    }""",
+        ZONES,
+    )
+    assert result["before"] == count
+    assert result["oldStillObserved"] == 0
+    assert result["freshObserved"] == count
