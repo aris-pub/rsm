@@ -59,7 +59,6 @@ meta, then body content:
 }
 
 :config: {
-  :theme: default
   :accent: blue
   :typography: sans-serif
   :numbering: section
@@ -93,9 +92,9 @@ meta, then body content:
 `:label:` and `:title:`, and `:eyebrow:`: a short label set above the title, such as
 `Preprint` or `Lecture notes`.
 
-**`:config:`** is a block tag for document-wide settings: `:theme:`, `:accent:`,
+**`:config:`** is a block tag for document-wide settings: `:accent:`,
 `:typography:`, `:numbering:`, `:citation-style:`, `:override-date:`, `:toc-depth:`,
-`:author-display-first:`, `:author-display-last:`. It appears as a top-level block, closed
+`:author-display-first:`, `:author-display-last:`, `:no-minimap:`. It appears as a top-level block, closed
 with `::`.
 
 **Section shortcuts:** `##`, `###`, `####` work like Markdown headings. They can also be
@@ -350,7 +349,6 @@ key-value pairs; inline meta uses comma-separated pairs inside `{...}`.
 | `:goal:` | Theorem goal |
 | `:icon:` | Icon assigned to the block |
 | `:label:` | Cross-reference label |
-| `:lang:` | Language code (e.g. `en`, `es`) |
 | `:name:` | Author name |
 | `:orcid:` | Author ORCID identifier |
 | `:reftext:` | Label display text for references |
@@ -363,6 +361,7 @@ key-value pairs; inline meta uses comma-separated pairs inside `{...}`.
 | `:as-paragraph:` | A figure, widget or video sits at the level of a paragraph: no number, no caption |
 | `:emphas:` | Emphasized span |
 | `:isclaim:` | Math block is a claim |
+| `:no-minimap:` | Turn the minimap off (in `:config:`) |
 | `:nonum:` | Suppress numbering |
 | `:strong:` | Bold span |
 
@@ -374,22 +373,45 @@ key-value pairs; inline meta uses comma-separated pairs inside `{...}`.
 | `:keywords:` | Abstract keywords |
 | `:msc:` | Mathematics Subject Classification |
 
-**Any-value keys** (parsed as-is):
+Path, number, word and date values end at `}`, at the end of the line, and in inline
+meta also at a comma. A value of the wrong form, or a word that is not one of the allowed
+values, is logged as an error with its line and the allowed values. The value is ignored,
+the key keeps its default, and the build goes on.
+
+**Path keys** (a file path, which may contain spaces):
+
+| Key | Description |
+|-----|-------------|
+| `:dark:` | Dark-mode figure path |
+| `:path:` | Figure path |
+| `:static:` | Static/PDF export figure path |
+
+**Number keys**:
+
+| Key | Description |
+|-----|-------------|
+| `:author-display-first:` | Authors shown at start when >5 (whole number) |
+| `:author-display-last:` | Authors shown at end when >5 (whole number) |
+| `:scale:` | Figure scale (a number such as `0.5`) |
+| `:toc-depth:` | Table of contents depth (whole number) |
+
+**Word keys** (one word from a fixed list):
 
 | Key | Description |
 |-----|-------------|
 | `:accent:` | Accent color (blue, red, green, orange, yellow, purple, pink, gray) |
-| `:author-display-first:` | Authors shown at start when >5 |
-| `:author-display-last:` | Authors shown at end when >5 |
-| `:dark:` | Dark-mode figure path |
+| `:citation-style:` | Citation style (numeric, parens-author-year, author-parens-year) |
+| `:lang:` | In `:config:`, a language code (e.g. `en`, `es`, `en-US`); in code, the code's language (e.g. `python`) |
 | `:numbering:` | Numbering mode (document, section, none) |
-| `:override-date:` | Override manuscript date |
-| `:path:` | Figure path |
-| `:scale:` | Figure scale |
-| `:static:` | Static/PDF export figure path |
-| `:theme:` | Manuscript theme |
-| `:toc-depth:` | Table of contents depth |
+| `:orientation:` | Table of contents tree orientation (horizontal, vertical) |
 | `:typography:` | Typography style (sans-serif, serif) |
+| `:view:` | Table of contents view (list, tree) |
+
+**Date keys**:
+
+| Key | Description |
+|-----|-------------|
+| `:override-date:` | Override manuscript date, written YYYY-MM-DD |
 
 
 ## Proof Architecture

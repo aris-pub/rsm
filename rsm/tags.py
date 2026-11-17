@@ -143,8 +143,8 @@ author_display_first = MetaTagInfo(None, int)
 """Number of authors to display at start when >5 authors."""
 author_display_last = MetaTagInfo(None, int)
 """Number of authors to display at end when >5 authors."""
-minimap = MetaTagInfo(None, bool)
-"""Whether to show the minimap (true or false), set in the config block."""
+no_minimap = MetaTagInfo(None, bool)
+"""Turn the minimap off, set in the config block."""
 author_note = MetaTagInfo(None, str)
 """Author note (e.g., 'Equal contribution')."""
 as_paragraph = MetaTagInfo(None, bool)
@@ -203,8 +203,6 @@ static = MetaTagInfo(None, Path)
 """Path to alternate figure for static/PDF export."""
 strong = MetaTagInfo(None, bool)
 """Whether span is strong."""
-theme = MetaTagInfo(None, str)
-"""Manuscript theme."""
 title = MetaTagInfo(None, str)
 """Manuscript or section title."""
 toc_depth = MetaTagInfo(None, int)

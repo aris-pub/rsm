@@ -818,7 +818,7 @@ def test_print_hides_the_strip(page: Page, interactive_server: str):
 
 
 def test_body_flag_keeps_the_strip_off(page: Page, interactive_server: str):
-    # What :config: { :minimap: false } emits (body[data-minimap="false"]).
+    # What :config: { :no-minimap: } emits (body[data-minimap="false"]).
     page.set_viewport_size(DESKTOP)
     page.route(
         "**/minimap.html",
@@ -845,7 +845,7 @@ def test_minimap_works_without_the_sidebar(page: Page, interactive_server: str):
 
 
 def test_config_flag_removes_the_strip(page: Page, tmp_path: Path):
-    src = "# Off\n\n:config: {\n  :minimap: false\n}\n::\n\n## One\n\nText.\n"
+    src = "# Off\n\n:config: {\n  :no-minimap:\n}\n::\n\n## One\n\nText.\n"
     (tmp_path / "off.rsm").write_text(src)
     rsm.build(
         path=str(tmp_path / "off.rsm"),

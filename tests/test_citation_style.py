@@ -107,13 +107,10 @@ def test_year_stays_with_author_via_nbsp():
     assert "Knuth, 2014" not in html  # the breakable-space form must not appear
 
 
-def test_invalid_citation_style_is_rejected():
-    import pytest
-
-    import rsm.tsparser
-
-    with pytest.raises(rsm.tsparser.RSMParserError, match="citation-style"):
-        _build("sideways", "knuth")
+def test_invalid_citation_style_is_logged_and_numeric_used(caplog):
+    html = _build("sideways", "knuth")
+    assert "Invalid value for :citation-style:" in caplog.text
+    assert _cite_text(html) == _cite_text(_build(None, "knuth"))
 
 
 # Bibliography ordering and year-suffix disambiguation. bA and bB share an

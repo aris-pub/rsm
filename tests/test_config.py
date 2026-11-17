@@ -11,7 +11,6 @@ def test_config_simple():
         :config: {
           :toc-depth: 3
           :numbering: section
-          :theme: blue
         }
         ::
 
@@ -391,12 +390,11 @@ def test_config_multiple_blocks_error():
         """)
 
 
-def test_config_invalid_numbering_value():
-    """Test that invalid numbering value raises an error."""
-    from rsm.tsparser import TSParser, RSMParserError
+def test_config_invalid_numbering_value_is_logged(caplog):
+    """An invalid numbering value is logged as an error, and the default is used."""
+    from rsm.tsparser import TSParser
 
-    with pytest.raises(RSMParserError, match="Invalid numbering value"):
-        TSParser().parse("""\
+    tree = TSParser().parse("""\
         # Title
 
         :config: {
@@ -406,6 +404,8 @@ def test_config_invalid_numbering_value():
 
         ## Content
         """)
+    assert tree.numbering == "section"
+    assert "Invalid value for :numbering: on line 4: 'invalid'" in caplog.text
 
 
 def test_config_accent_purple():
@@ -589,12 +589,11 @@ def test_config_accent_all_colors():
         )
 
 
-def test_config_invalid_accent_raises_error():
-    """Test that invalid accent value raises an error."""
-    from rsm.tsparser import TSParser, RSMParserError
+def test_config_invalid_accent_is_logged(caplog):
+    """An invalid accent value is logged as an error, and the default is used."""
+    from rsm.tsparser import TSParser
 
-    with pytest.raises(RSMParserError, match="Invalid accent value"):
-        TSParser().parse("""\
+    tree = TSParser().parse("""\
         # Title
 
         :config: {
@@ -602,6 +601,8 @@ def test_config_invalid_accent_raises_error():
         }
         ::
         """)
+    assert tree.accent == "blue"
+    assert "Invalid value for :accent: on line 4: 'hotpink'" in caplog.text
 
 
 def test_config_typography_serif():
@@ -723,12 +724,11 @@ def test_config_typography_with_accent():
     )
 
 
-def test_config_invalid_typography_raises_error():
-    """Test that invalid typography value raises an error."""
-    from rsm.tsparser import TSParser, RSMParserError
+def test_config_invalid_typography_is_logged(caplog):
+    """An invalid typography value is logged as an error, and the default is used."""
+    from rsm.tsparser import TSParser
 
-    with pytest.raises(RSMParserError, match="Invalid typography value"):
-        TSParser().parse("""\
+    tree = TSParser().parse("""\
         # Title
 
         :config: {
@@ -736,6 +736,8 @@ def test_config_invalid_typography_raises_error():
         }
         ::
         """)
+    assert tree.typography == "sans-serif"
+    assert "Invalid value for :typography: on line 4: 'comic-sans'" in caplog.text
 
 
 def test_config_lang_spanish():
@@ -856,12 +858,11 @@ def test_config_lang_default_en():
     )
 
 
-def test_config_invalid_lang_raises_error():
-    """Test that invalid lang value raises an error."""
-    from rsm.tsparser import TSParser, RSMParserError
+def test_config_invalid_lang_is_logged(caplog):
+    """An invalid lang value is logged as an error, and the default is used."""
+    from rsm.tsparser import TSParser
 
-    with pytest.raises(RSMParserError, match="Invalid lang value"):
-        TSParser().parse("""\
+    tree = TSParser().parse("""\
         # Title
 
         :config: {
@@ -869,3 +870,5 @@ def test_config_invalid_lang_raises_error():
         }
         ::
         """)
+    assert tree.lang == "en"
+    assert "Invalid value for :lang: on line 4: 'invalid123'" in caplog.text
