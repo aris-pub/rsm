@@ -1,0 +1,26 @@
+# Contents Switch In The Sidebar
+
+:toc:
+::
+
+## Introduction
+  {:label: sec-intro}
+
+:notation:
+  \eig $\lambda$ eigenvalue
+::
+
+We :write: $\eig$ for the spectral radius :: throughout.
+
+## A section whose title is far too long to fit on one line of the narrow sidebar panel
+  {:label: sec-long}
+
+This builds on :ref:sec-intro::.
+
+### A subsection
+
+More text.
+
+## Results
+
+This builds on :ref:sec-long::.

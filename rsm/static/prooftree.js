@@ -110,12 +110,31 @@ export function setup(root = document) {
     const layout = Object.assign(saved, {
       docView: rail.classList.contains("doc-view-notation") ? "notation" : "doc-map",
       proofView: rail.classList.contains("proof-view-state") ? "state" : "proof-map",
-    }, extra || {});
+    }, docMap ? { contentsView: docMap.classList.contains("tree") ? "tree" : "list" } : {},
+    extra || {});
     try {
       localStorage.setItem(lsKey, JSON.stringify(layout));
     } catch (e) {
       /* localStorage unavailable; layout stays session-only */
     }
+  }
+
+  // The Contents view shows the sections as a graph or as a list. This choice
+  // is separate from the one for the table of contents in the page.
+  const docMap = rail.querySelector(".rail-doc-map");
+  const contentsButtons = rail.querySelectorAll(".rail-toc-switch .toc-switch-btn");
+  function setContentsView(tree) {
+    if (!docMap) return;
+    docMap.classList.toggle("tree", tree);
+    for (const btn of contentsButtons) {
+      btn.setAttribute("aria-pressed", String((btn.dataset.tocView === "tree") === tree));
+    }
+  }
+  for (const btn of contentsButtons) {
+    btn.addEventListener("click", () => {
+      setContentsView(btn.dataset.tocView === "tree");
+      saveLayout();
+    });
   }
 
   // The phone sheet's text tabs switch a scope's two views.
@@ -244,6 +263,7 @@ export function setup(root = document) {
         selectSubview(saved.docView === "notation" ? "notation" : "doc-map");
       }
       if (saved.proofView) selectSubview(saved.proofView === "state" ? "state" : "proof-map");
+      if (saved.contentsView) setContentsView(saved.contentsView === "tree");
     }
   } catch (e) {
     /* ignore malformed saved layout */

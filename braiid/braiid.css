@@ -985,7 +985,7 @@ body {
     align-items: center;
   }
   .abstract > .heading.hr > .hr-content-zone > h2,
-  .toc > .heading.hr > .hr-content-zone > h2 {
+  .toc > .heading.hr > .hr-content-zone > .toc-head > h2 {
     font-size: calc(var(--h6-size) * 0.8);
     font-weight: var(--weight-semi);
     color: var(--text-subtle);
@@ -1659,6 +1659,42 @@ body {
     display: none;
   }
 
+  /* The heading row: the "Table of Contents" label at the start and the
+     list/graph buttons at the end. */
+  .toc .toc-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--chunk-sixth);
+    flex: 1;
+  }
+  .toc-switch {
+    display: flex;
+    gap: 2px;
+  }
+  .toc-switch-btn {
+    display: flex;
+    padding: 4px;
+    border: none;
+    border-radius: 6px;
+    background: none;
+    color: var(--text-subtle);
+    cursor: pointer;
+  }
+  .toc-switch-btn svg {
+    width: 20px;
+    height: 20px;
+  }
+  .toc-switch-btn:hover { color: var(--link-default); }
+  .toc-switch-btn[aria-pressed="true"] {
+    background: var(--text-hilite-bg);
+    color: var(--text-body);
+  }
+  .toc-switch-btn:focus-visible {
+    outline: var(--border-thin) solid var(--border-action);
+    outline-offset: 1px;
+  }
+
   .toc.tree svg.toc-tree {
     display: block;
     max-width: 100%;
@@ -1945,6 +1981,18 @@ body {
   }
   .rail-tab:focus-visible { border-radius: var(--radius-md); }
 
+  /* The Contents view's list/graph buttons sit at the end of the title row,
+     so the head is a wrapping row and the hint takes a line of its own. */
+  .rail-head {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .rail-title { flex: 1 1 0; min-width: 0; }
+  .rail-hint { flex-basis: 100%; }
+  .rail-toc-switch { margin-left: auto; }
+  .proof-rail:not(.scope-document.doc-view-map) .rail-toc-switch { display: none; }
+
   /* Reading: every option is a small preview tile. In the narrow desktop
      panel each label sits above its tiles; the phone sheet puts them side by
      side. */
@@ -2087,6 +2135,22 @@ body {
   .proof-rail.doc-view-map .rail-notation { display: none; }
   .proof-rail.doc-view-notation .rail-doc-map { display: none; }
   .rail-doc-map { display: flex; align-items: center; justify-content: center; min-height: 0; }
+  /* The Contents view as a list: the page's list, one line per entry. A title
+     too long for the panel ends in an ellipsis instead of scrolling sideways. */
+  .rail-doc-map.tree ul.contents { display: none; }
+  .rail-doc-map:not(.tree) svg.toc-tree { display: none; }
+  .rail-doc-map:not(.tree) {
+    display: block;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+  .rail-doc-map ul.contents { margin: 0; }
+  .rail-doc-map ul.contents a {
+    display: block;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
 
   .proof-rail-item { display: none; min-height: 0; }
   /* A little more breathing room below the sub-tabs than the row gap alone. */
@@ -3842,6 +3906,11 @@ a.reference.external:hover::after {
    phone .rail-strip rules. */
 html:not(.has-rail) .manuscriptwrapper .rail-strip { display: none; }
 
+/* The table of contents' list/graph buttons only work once tocarcs.js has
+   wired them. The builder's pre-paint script sets html.has-toc-switch, so with
+   scripting off the buttons are never shown. */
+html:not(.has-toc-switch) .manuscriptwrapper .toc .toc-switch { display: none; }
+
 /* Skip link: the first focusable element on a --sidebar page, so a keyboard
    reader can jump past the strip to the text. Hidden until focused, then shown
    as a small chip at the top left, in either theme. */
@@ -3974,6 +4043,7 @@ html:not(.has-rail) .manuscriptwrapper .rail-strip { display: none; }
   /* With tabs in place of the title, the hint shares their row, at the right. */
   .manuscriptwrapper .proof-rail.has-tabs .rail-head {
     flex-direction: row;
+    flex-wrap: nowrap;
     align-items: center;
     gap: var(--chunk-third);
   }
@@ -3983,6 +4053,7 @@ html:not(.has-rail) .manuscriptwrapper .rail-strip { display: none; }
     text-align: right;
     order: 2;
   }
+  .manuscriptwrapper .proof-rail.has-tabs .rail-toc-switch { order: 3; }
 
   /* Reading in the sheet: label beside its tiles; no Width (the column already
      fills the screen). */

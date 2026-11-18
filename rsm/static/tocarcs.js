@@ -141,6 +141,32 @@ export function drawAll(root = document) {
   });
 }
 
+// Show a table of contents as a graph (tree) or as a list, and keep its
+// list/graph buttons in step. The handrail menu item and the buttons both
+// switch views through here.
+export function setTocView(toc, tree) {
+  toc.classList.toggle("tree", tree);
+  // A TOC that started as a list was skipped when trees were wired for hover
+  // at load. drawAll skips trees already wired, so this is safe on every switch.
+  if (tree) drawAll(toc);
+  for (const btn of toc.querySelectorAll(".toc-switch-btn")) {
+    btn.setAttribute("aria-pressed", String((btn.dataset.tocView === "tree") === tree));
+  }
+}
+
+function setupSwitch(root) {
+  const buttons = root.querySelectorAll(".toc .toc-switch-btn");
+  if (!buttons.length) return;
+  for (const btn of buttons) {
+    btn.addEventListener("click", () => {
+      const toc = btn.closest(".toc");
+      if (toc) setTocView(toc, btn.dataset.tocView === "tree");
+    });
+  }
+  document.documentElement.classList.add("has-toc-switch");
+}
+
 export function setup(root = document) {
   drawAll(root);
+  setupSwitch(root);
 }

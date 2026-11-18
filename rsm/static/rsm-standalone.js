@@ -653,8 +653,27 @@ var RSM = (() => {
       wireTree(svg);
     });
   }
+  function setTocView(toc, tree) {
+    toc.classList.toggle("tree", tree);
+    if (tree) drawAll(toc);
+    for (const btn of toc.querySelectorAll(".toc-switch-btn")) {
+      btn.setAttribute("aria-pressed", String(btn.dataset.tocView === "tree" === tree));
+    }
+  }
+  function setupSwitch(root2) {
+    const buttons = root2.querySelectorAll(".toc .toc-switch-btn");
+    if (!buttons.length) return;
+    for (const btn of buttons) {
+      btn.addEventListener("click", () => {
+        const toc = btn.closest(".toc");
+        if (toc) setTocView(toc, btn.dataset.tocView === "tree");
+      });
+    }
+    document.documentElement.classList.add("has-toc-switch");
+  }
   function setup(root2 = document) {
     drawAll(root2);
+    setupSwitch(root2);
   }
 
   // rsm/static/deplens.js
@@ -2323,8 +2342,8 @@ var RSM = (() => {
   function toggleTocView(hr, menuItem) {
     const toc = hr.closest(".toc");
     if (!toc) return;
-    const isTree = toc.classList.toggle("tree");
-    if (isTree) drawAll(toc);
+    const isTree = !toc.classList.contains("tree");
+    setTocView(toc, isTree);
     if (menuItem) {
       const textEl = menuItem.querySelector(".hr-menu-item-text");
       if (textEl) textEl.textContent = isTree ? "View as list" : "View as tree";
@@ -3004,14 +3023,34 @@ var RSM = (() => {
       } catch (e) {
         saved = {};
       }
-      const layout = Object.assign(saved, {
-        docView: rail.classList.contains("doc-view-notation") ? "notation" : "doc-map",
-        proofView: rail.classList.contains("proof-view-state") ? "state" : "proof-map"
-      }, extra || {});
+      const layout = Object.assign(
+        saved,
+        {
+          docView: rail.classList.contains("doc-view-notation") ? "notation" : "doc-map",
+          proofView: rail.classList.contains("proof-view-state") ? "state" : "proof-map"
+        },
+        docMap ? { contentsView: docMap.classList.contains("tree") ? "tree" : "list" } : {},
+        extra || {}
+      );
       try {
         localStorage.setItem(lsKey, JSON.stringify(layout));
       } catch (e) {
       }
+    }
+    const docMap = rail.querySelector(".rail-doc-map");
+    const contentsButtons = rail.querySelectorAll(".rail-toc-switch .toc-switch-btn");
+    function setContentsView(tree) {
+      if (!docMap) return;
+      docMap.classList.toggle("tree", tree);
+      for (const btn of contentsButtons) {
+        btn.setAttribute("aria-pressed", String(btn.dataset.tocView === "tree" === tree));
+      }
+    }
+    for (const btn of contentsButtons) {
+      btn.addEventListener("click", () => {
+        setContentsView(btn.dataset.tocView === "tree");
+        saveLayout();
+      });
     }
     for (const row of rail.querySelectorAll(".rail-subtabs")) {
       row.addEventListener("click", (ev) => {
@@ -3114,6 +3153,7 @@ var RSM = (() => {
           selectSubview(saved.docView === "notation" ? "notation" : "doc-map");
         }
         if (saved.proofView) selectSubview(saved.proofView === "state" ? "state" : "proof-map");
+        if (saved.contentsView) setContentsView(saved.contentsView === "tree");
       }
     } catch (e) {
     }

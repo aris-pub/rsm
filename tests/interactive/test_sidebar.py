@@ -99,11 +99,12 @@ def test_panel_head_names_the_view(page: Page, interactive_server: str):
     _load(page, interactive_server)
     _show(page, "contents")
     assert page.locator(".rail-title").inner_text() == "Contents"
-    assert "dependency graph" in page.locator(".rail-hint").inner_text()
+    # The author removed the Contents hint (rsm-ucv).
+    assert not page.locator(".rail-hint").is_visible()
     _show(page, "notation")
     assert page.locator(".rail-title").inner_text() == "Notation"
     assert "Rename a symbol" in page.locator(".rail-hint").inner_text()
-    # Every view says what it shows.
+    # Every other view says what it shows.
     for view in ("steps", "state", "pinned", "reading"):
         _show(page, view)
         assert page.locator(".rail-hint").is_visible(), view

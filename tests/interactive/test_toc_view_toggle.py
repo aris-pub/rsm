@@ -80,3 +80,77 @@ def test_tree_toc_in_the_text_previews_like_the_sidebar(page: Page, interactive_
     tip = page.locator(".tooltipster-base").last
     expect(tip).to_be_visible(timeout=3000)
     expect(tip).to_contain_text("First section")
+
+
+# ---- the list/graph icons on the heading line (rsm-ucv) ----
+
+
+def _icon(page: Page, view: str):
+    return page.locator(f"nav.toc .toc-switch button[data-toc-view='{view}']")
+
+
+def test_icons_switch_the_view(page: Page, interactive_server: str):
+    errors = []
+    page.on("pageerror", lambda e: errors.append(str(e)))
+    page.goto(f"{interactive_server}/toc-view.html")
+    page.wait_for_function(RSM_READY, timeout=10_000)
+
+    toc = page.locator("nav.toc")
+    svg = toc.locator("svg.toc-tree")
+    list_btn, tree_btn = _icon(page, "list"), _icon(page, "tree")
+    expect(list_btn).to_be_visible()
+    expect(tree_btn).to_be_visible()
+    expect(list_btn).to_have_attribute("aria-pressed", "true")
+    expect(tree_btn).to_have_attribute("aria-pressed", "false")
+
+    tree_btn.click()
+    expect(toc).to_have_class("toc tree")
+    expect(svg).to_be_visible()
+    expect(list_btn).to_have_attribute("aria-pressed", "false")
+    expect(tree_btn).to_have_attribute("aria-pressed", "true")
+    assert svg.get_attribute("data-wired") == "1"
+
+    # Clicking the icon of the view on screen keeps that view.
+    tree_btn.click()
+    expect(toc).to_have_class("toc tree")
+
+    list_btn.click()
+    expect(toc).to_have_class("toc")
+    expect(svg).to_be_hidden()
+    expect(list_btn).to_have_attribute("aria-pressed", "true")
+    expect(tree_btn).to_have_attribute("aria-pressed", "false")
+    assert errors == [], errors
+
+
+def test_icons_and_menu_item_stay_in_step(page: Page, interactive_server: str):
+    page.goto(f"{interactive_server}/toc-view.html")
+    page.wait_for_function(RSM_READY, timeout=10_000)
+    text = _toc_view_item(page).locator(".hr-menu-item-text")
+
+    # Menu item first: the icons follow.
+    _open_menu(page)
+    _toc_view_item(page).click()
+    page.keyboard.press("Escape")
+    expect(_icon(page, "tree")).to_have_attribute("aria-pressed", "true")
+    expect(_icon(page, "list")).to_have_attribute("aria-pressed", "false")
+
+    # Icon first: the menu item follows.
+    _icon(page, "list").click()
+    _open_menu(page)
+    expect(text).to_have_text("View as tree")
+    page.keyboard.press("Escape")
+    _icon(page, "tree").click()
+    _open_menu(page)
+    expect(text).to_have_text("View as list")
+
+
+def test_icons_are_hidden_without_scripting(browser, interactive_server: str):
+    ctx = browser.new_context(java_script_enabled=False)
+    try:
+        page = ctx.new_page()
+        page.goto(f"{interactive_server}/toc-view.html")
+        page.wait_for_load_state("load")
+        expect(page.locator("nav.toc .toc-switch")).to_be_attached()
+        expect(page.locator("nav.toc .toc-switch")).to_be_hidden()
+    finally:
+        ctx.close()
