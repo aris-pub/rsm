@@ -313,8 +313,11 @@ function revealHashTarget(id) {
 // in-document jump (a hashchange to a block) the pill appears; clicking it calls
 // history.back() to return the reader. It owns NO navigation state: native
 // history is the source of truth, this is purely a discoverable, demoable handle
-// on it. Dismisses on Back (the hash clears) or when the reader scrolls away.
+// on it. Dismisses on Back (the hash clears), when the reader scrolls away, or
+// after BACK_PILL_HIDE_MS with no use.
+const BACK_PILL_HIDE_MS = 8000;
 let __backPillScroll = null;
+let __backPillTimer = null;
 
 function setupBackPill() {
   if (document.querySelector(".rsm-back-pill")) return;
@@ -324,7 +327,27 @@ function setupBackPill() {
   pill.setAttribute("aria-label", "Back to where you were");
   pill.innerHTML = '<span class="rsm-back-pill-arrow" aria-hidden="true">←</span> Back';
   pill.addEventListener("click", () => window.history.back());
+  pill.addEventListener("pointerenter", clearBackPillTimer);
+  pill.addEventListener("focusin", clearBackPillTimer);
+  pill.addEventListener("pointerleave", () => startBackPillTimer(pill));
+  pill.addEventListener("focusout", () => startBackPillTimer(pill));
   document.body.appendChild(pill);
+}
+
+// A new jump can happen while the pointer is on the pill or the pill has
+// focus, so the hover and focus check runs here and not only in the listeners.
+function startBackPillTimer(pill) {
+  clearBackPillTimer();
+  if (!pill.classList.contains("is-visible")) return;
+  if (pill.matches(":hover") || pill.contains(document.activeElement)) return;
+  __backPillTimer = setTimeout(hideBackPill, BACK_PILL_HIDE_MS);
+}
+
+function clearBackPillTimer() {
+  if (__backPillTimer !== null) {
+    clearTimeout(__backPillTimer);
+    __backPillTimer = null;
+  }
 }
 
 function showBackPill() {
@@ -339,11 +362,13 @@ function showBackPill() {
     if (Math.abs(window.scrollY - landingY) > window.innerHeight * 0.33) hideBackPill();
   };
   window.addEventListener("scroll", __backPillScroll, { passive: true });
+  startBackPillTimer(pill);
 }
 
 function hideBackPill() {
   const pill = document.querySelector(".rsm-back-pill");
   if (pill) pill.classList.remove("is-visible");
+  clearBackPillTimer();
   if (__backPillScroll) {
     window.removeEventListener("scroll", __backPillScroll);
     __backPillScroll = null;
