@@ -24,6 +24,7 @@ place is of utmost importance.
 
 """
 
+import copy
 import logging
 import re
 from collections import defaultdict
@@ -859,7 +860,14 @@ class Transformer:
         for sec in self.tree.traverse(nodeclass=nodes.Section):
             item = nodes.Item()
             reftext = f"{sec.title}" if sec.nonum else f"{sec.full_number}. {sec.title}"
-            item.append(nodes.Reference(target=sec, overwrite_reftext=reftext))
+            ref = nodes.Reference(target=sec, overwrite_reftext=reftext)
+            if sec.title_nodes:
+                number = [] if sec.nonum else [nodes.Text(f"{sec.full_number}. ")]
+                # A copy, because rendering a title changes its nodes (math
+                # takes the punctuation after it), and the heading renders them
+                # too. A title holds no links, so the copy holds nothing else.
+                ref.reftext_nodes = number + copy.deepcopy(sec.title_nodes)
+            item.append(ref)
 
             # The order of the `if isinstance(...)` statements here matters because all
             # Subsections are also Sections so isinstance(sec, nodes.Section) evaluates

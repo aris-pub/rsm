@@ -496,7 +496,7 @@ def _log_meta_errors_outside_meta(cst_node: TSNode) -> set[int]:
         n.id
         for n in (
             cst_node.child_by_field_name("tag"),
-            cst_node.child_by_field_name("title"),
+            *cst_node.children_by_field_name("title"),
         )
         if n is not None
     }
@@ -756,6 +756,45 @@ def _depth_jump_error(item: "nodes.Item") -> "nodes.Error":
     )
 
 
+# The grammar parses these tags in a heading only so that they can be reported
+# here: a heading does not hold links, note calls or raw HTML.
+_NOT_IN_HEADING = {
+    "ref", "cite", "url", "note", "aside", "rawhtml",
+    "previous", "prev", "prev2", "prev3",
+}
+
+
+def _drop_tags_not_allowed_in_heading(title_children: list[TSNode]) -> list[TSNode]:
+    kept = []
+    for c in title_children:
+        tag = c.named_children[0].type if c.type == "specialinline" else ""
+        if tag in _NOT_IN_HEADING:
+            pos = _user_position(c.start_point, c.end_point)
+            logger.error(
+                f"A :{tag}: on line {pos['start_row']} is not allowed in a heading "
+                "and is left out",
+                extra=pos,
+            )
+            continue
+        kept.append(c)
+    return kept
+
+
+def _join_title_text(children: list[nodes.Node]) -> list[nodes.Node]:
+    """Merge neighbouring Text nodes, which are left where a tag was taken out
+    of a heading, with one space where either side had one."""
+    joined: list[nodes.Node] = []
+    for c in children:
+        if joined and isinstance(c, nodes.Text) and isinstance(joined[-1], nodes.Text):
+            left, right = joined[-1].text, c.text
+            gap = " " if left[-1:].isspace() or right[:1].isspace() else ""
+            joined[-1].text = left.rstrip() + gap + right.lstrip()
+            c.remove_self()
+            continue
+        joined.append(c)
+    return joined
+
+
 def _flatten_reftext(reftext_nodes: "list[nodes.Node]") -> str:
     """Plain-text version of a marked-up reftext, for string contexts (the link
     title / accessible name / fallback). Collects the text of every Text node in
@@ -840,6 +879,8 @@ def _abstractify(cst: TSTree) -> nodes.Manuscript:
     # holder collects the inline children as the main loop builds them; after the
     # loop they move onto the reference node's reftext_nodes.
     reftext_builds: list[tuple[nodes.Node, nodes.Span]] = []
+    # The same for headings whose title carries inline markup.
+    title_builds: list[tuple[nodes.Heading, nodes.Span]] = []
     raw_html_nodes: list[nodes.RawHtml] = []
     stack = [(None, cst.root_node)]
     while stack:
@@ -899,13 +940,22 @@ def _abstractify(cst: TSTree) -> nodes.Manuscript:
                 end_point=cst_node.end_point,
             )
 
-            if section_title := cst_node.child_by_field_name("title"):
-                # Sections with a hastag shurtcut ("# Section Title") have the title as
-                # a text child node with field name 'title', so we must extract that
-                # here. Sections with a tag (":section:") have the title as a meta key,
-                # so that is handled when meta is ingested.
-                ast_node.title = section_title.text.decode("utf-8").strip()
-                skip_these_ids.add(section_title.id)
+            # Sections with a hastag shurtcut ("# Section Title") have the title as
+            # children with field name 'title', so we must extract that here.
+            # Sections with a tag (":section:") have the title as a meta key, so
+            # that is handled when meta is ingested.
+            title_children = cst_node.children_by_field_name("title")
+            for c in title_children:
+                skip_these_ids.add(c.id)
+            title_children = _drop_tags_not_allowed_in_heading(title_children)
+            if len(title_children) > 1 or any(
+                c.type != "text" for c in title_children
+            ):
+                holder = nodes.Span()
+                title_builds.append((ast_node, holder))
+                stack += reversed([(holder, c) for c in title_children])
+            elif title_children:
+                ast_node.title = title_children[0].text.decode("utf-8").strip()
 
             if isinstance(ast_node, nodes.Manuscript):
                 ast_root_node = ast_node
@@ -1166,6 +1216,17 @@ def _abstractify(cst: TSTree) -> nodes.Manuscript:
             c.parent = ref_node
         ref_node.reftext_nodes = children
         ref_node.overwrite_reftext = _flatten_reftext(children).strip()
+
+    # The title nodes stay children of their holder (unlike reftext nodes), so
+    # that a node in the title can find its siblings when it is rendered.
+    for heading, holder in title_builds:
+        children = _join_title_text(list(holder.children))
+        if isinstance(children[0], nodes.Text):
+            children[0].text = children[0].text.lstrip()
+        if isinstance(children[-1], nodes.Text):
+            children[-1].text = children[-1].text.rstrip()
+        heading.title_nodes = children
+        heading.title = _flatten_reftext(children).strip()
 
     for raw in raw_html_nodes:
         _check_raw_html(raw)

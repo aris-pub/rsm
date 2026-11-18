@@ -1128,6 +1128,9 @@ class Heading(NodeWithChildren):
     def __init__(self, title: str = "", **kwargs: Any) -> None:
         super().__init__(**kwargs)
         self.title = title
+        # The inline nodes of a title that holds markup, for the HTML. title then
+        # holds the plain text, for places that cannot hold markup.
+        self.title_nodes: list[Node] = []
 
 
 class Manuscript(Heading):
