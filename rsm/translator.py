@@ -1157,7 +1157,7 @@ class Translator:
             batch.items.append(AppendParagraph(node.eyebrow, classes=["manuscript-eyebrow"]))
 
         if node.title:
-            batch.items.append(AppendHeading(1, html_escape(node.title, quote=False)))
+            batch.items.append(AppendHeading(1, self._title_html(node)))
 
         if node.date:
             from datetime import datetime
@@ -1375,10 +1375,9 @@ class Translator:
 
     def visit_section(self, node: nodes.Section) -> EditCommand:
         node.classes.insert(0, f"level-{node.level}")
-        heading = (
-            f"{node.full_number}. {node.title}" if not node.nonum else f"{node.title}"
-        )
-        heading = html_escape(heading, quote=False)
+        heading = self._title_html(node)
+        if not node.nonum:
+            heading = f"{node.full_number}. {heading}"
         return AppendBatchAndDefer(
             [
                 AppendNodeTag(node, "section"),
@@ -1832,6 +1831,11 @@ class Translator:
 
     def visit_construct(self, node: nodes.Construct) -> EditCommand:
         return self._node_tag(node, tag="span", newline_inner=False, newline_outer=False)
+
+    def _title_html(self, node: nodes.Heading) -> str:
+        if node.title_nodes:
+            return self._render_inline_nodes(node.title_nodes)
+        return html_escape(node.title, quote=False)
 
     def _render_inline_nodes(self, inline_nodes: list[nodes.Node]) -> str:
         """Render a list of inline nodes to an HTML string using this

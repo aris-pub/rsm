@@ -272,10 +272,9 @@ def test_aside_phrase_shows_the_fallback(caplog):
 # ── Headings and titles ──────────────────────────────────────────────────────
 
 
-def test_not_part_of_a_heading_or_title():
-    """A heading holds plain text only. An inline tag after the title text
-    starts the section's first paragraph (as :code: does), so the raw HTML
-    never reaches the heading, the table of contents or <title>."""
+def test_not_part_of_a_heading_or_title(caplog):
+    """Raw HTML is not allowed in a heading. It is left out with an error, so
+    it never reaches the heading, the table of contents or <title>."""
     src = dedent(
         """\
         # Doc :rawhtml:{:alt: d} <b>m</b> ::
@@ -287,14 +286,16 @@ def test_not_part_of_a_heading_or_title():
         Text.
         """
     )
-    tree = _tree(src)
+    with caplog.at_level(logging.WARNING):
+        tree = _tree(src)
     assert tree.title == "Doc"
     sec = tree.first_of_type(nodes.Section)
     assert sec.title == "Sec"
+    assert sum(":rawhtml:" in r.getMessage() for r in caplog.records) == 2
     html = rsm.build(src, handrails=True, lint=False)
     assert "<title>Doc</title>" in html
-    assert html.count("<b>s</b>") == 1
-    assert html.count("<b>m</b>") == 1
+    assert "<b>s</b>" not in html
+    assert "<b>m</b>" not in html
     assert "rawhtml" not in html.split("<h1>")[1].split("</h1>")[0]
 
 

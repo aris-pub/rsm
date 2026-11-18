@@ -101,6 +101,13 @@ with `::`.
 written as `:section:`, `:subsection:`, `:subsubsection:` with a `{:title: ...}` meta
 key. Section-form tags do not need a Halmos — they close implicitly.
 
+**A heading's title runs to the end of its line** and may hold inline markup: math
+(`$...$`), `*italic*`, `**bold**`, code and `:span:`. Links (`:ref:`, `:url:`,
+`:cite:`), note and aside calls and `:rawhtml:` are not allowed in a heading: RSM
+leaves them out and logs an error. Where only plain text fits (the browser tab, the
+sidebar's Contents list, the section graph), the title is shown without markup, with
+math as its TeX source.
+
 **Sections can carry meta** on the line after the heading:
 
 ```
@@ -278,7 +285,7 @@ Consider a chain of circles :rawhtml:{:alt: the circle $C_0$} <mtp-display model
 - Allowed wherever inline content is: paragraphs, spans, `**bold**`, `*italic*`,
   theorems, captions, list items and table cells. Not in a link's text (`:ref:` or
   `:url:` reftext, an aside's phrase): there the fallback is shown, with a warning.
-  Headings and titles hold plain text only.
+  Not in a heading: there it is left out, with an error.
 - Write phrasing content (elements that may sit inside a `<p>`, such as `<span>`,
   `<svg>` or a custom element). A `<div>` or another block element ends the paragraph
   early in the browser.
