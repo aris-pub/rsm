@@ -1,3 +1,5 @@
+import pytest
+
 import rsm
 from conftest import compare_have_want
 
@@ -359,80 +361,147 @@ def test_inline_meta_error_is_logged(caplog):
     assert "[CST error" not in h, h
 
 
+def _unknown_key_records(caplog, key="colour"):
+    return [
+        r for r in caplog.records if r.getMessage() == f"Unknown meta key :{key}:"
+    ]
+
+
+def _render(src):
+    return rsm.render(src, handrails=False, source_offsets=False)
+
+
+def _assert_one_unknown_key(caplog, h, start, key="colour"):
+    """The unknown key is logged once, with its 1-based position, and nothing
+    about it reaches the page (rsm-15f)."""
+    records = _unknown_key_records(caplog, key)
+    assert len(records) == 1, caplog.text
+    assert records[0].levelname == "ERROR"
+    assert records[0].name == "RSM.parse"
+    assert (records[0].start_row, records[0].start_col) == start, caplog.text
+    assert not _meta_error_records(caplog), caplog.text
+    assert "The CST contains errors." not in caplog.text, caplog.text
+    assert "[CST error" not in h, h
+    assert key not in h, h
+
+
 def _only_unknown_key(tag, body=""):
     return f":{tag}: {{\n  :colour: blue\n}}\n{body}::\n"
 
 
 def test_config_with_only_unknown_key_is_logged(caplog):
-    """With no known key the parser forms no meta, and the braces become an
-    ERROR right after the tag (rsm-15f)."""
-    h = rsm.render(
-        ":config: {\n  :minimap: false\n}\n::\n\nBody.\n",
-        handrails=False,
-        source_offsets=False,
-    )
-    records = _meta_error_records(caplog)
-    assert len(records) == 1, caplog.text
-    assert records[0].levelname == "ERROR"
-    assert (records[0].start_row, records[0].start_col) == (1, 10), caplog.text
-    assert "The CST contains errors." not in caplog.text, caplog.text
-    assert "minimap" not in h, h
-    assert "[CST error" not in h, h
+    h = _render(":config: {\n  :minimap: false\n}\n::\n\nBody.\n")
+    _assert_one_unknown_key(caplog, h, (2, 3), key="minimap")
+    assert "Body." in h, h
 
 
 def test_theorem_with_only_unknown_key_is_logged(caplog):
-    h = rsm.render(
-        _only_unknown_key("theorem", "Body.\n"), handrails=False, source_offsets=False
-    )
-    records = _meta_error_records(caplog)
-    assert len(records) == 1, caplog.text
-    assert (records[0].start_row, records[0].start_col) == (1, 11), caplog.text
-    assert (records[0].end_row, records[0].end_col) == (3, 2), caplog.text
-    assert "The CST contains errors." not in caplog.text, caplog.text
-    assert "[CST error" not in h, h
-    assert "colour" not in h, h
+    h = _render(_only_unknown_key("theorem", "Body.\n"))
+    _assert_one_unknown_key(caplog, h, (2, 3))
+    rec = _unknown_key_records(caplog)[0]
+    assert (rec.end_row, rec.end_col) == (2, 16), caplog.text
     assert "Body." in h, h
 
 
 def test_figure_with_only_unknown_key_is_logged(caplog):
-    h = rsm.render(_only_unknown_key("figure"), handrails=False, source_offsets=False)
-    assert len(_meta_error_records(caplog)) == 1, caplog.text
-    assert "The CST contains errors." not in caplog.text, caplog.text
-    assert "[CST error" not in h, h
-    assert "colour" not in h, h
+    h = _render(_only_unknown_key("figure"))
+    _assert_one_unknown_key(caplog, h, (2, 3))
 
 
 def test_section_with_only_unknown_key_is_logged(caplog):
-    h = rsm.render(
-        ":section: {\n  :colour: blue\n}\n\nBody.\n\n::\n",
-        handrails=False,
-        source_offsets=False,
-    )
-    assert len(_meta_error_records(caplog)) == 1, caplog.text
-    assert "colour" not in h, h
+    h = _render(":section: {\n  :colour: blue\n}\n\nBody.\n")
+    _assert_one_unknown_key(caplog, h, (2, 3))
+    assert "Body." in h, h
+
+
+def test_one_line_meta_with_unknown_key_is_logged(caplog):
+    h = _render(":theorem: {:colour: blue}\nBody.\n::\n")
+    _assert_one_unknown_key(caplog, h, (1, 12))
+    assert "Body." in h, h
+
+
+def test_unknown_key_without_value_is_logged(caplog):
+    h = _render(":theorem: {\n  :colour:\n  :label: thm\n}\nBody.\n::\n")
+    _assert_one_unknown_key(caplog, h, (2, 3))
+    assert 'id="thm"' in h, h
+    assert "Body." in h, h
+
+
+def test_unknown_key_next_to_known_keys_is_logged(caplog):
+    h = _render(":theorem: {\n  :label: thm\n  :colour: blue\n  :nonum:\n}\nBody.\n::\n")
+    _assert_one_unknown_key(caplog, h, (3, 3))
+    assert 'id="thm"' in h, h
+    assert "Body." in h, h
+
+
+def test_inline_meta_with_unknown_key_is_logged(caplog):
+    h = _render("A :span: {:colour: blue, :strong:} word :: b.\n")
+    _assert_one_unknown_key(caplog, h, (1, 11))
+    assert "<strong>word</strong>" in h, h
+
+
+@pytest.mark.parametrize(
+    "tag,body,content",
+    [
+        ("mathblock", "x = 1\n", "x = 1"),
+        ("codeblock", "x = 1\n", "x = 1"),
+        ("algorithm", "x = 1\n", "x = 1"),
+        ("notation", "\\eig $\\lambda$ eigenvalue\n", "eigenvalue"),
+    ],
+)
+def test_asis_block_with_only_unknown_key_is_logged(caplog, tag, body, content):
+    h = _render(f"# T\n\n{_only_unknown_key(tag, body)}\nAfter.\n")
+    _assert_one_unknown_key(caplog, h, (4, 3))
+    assert content in h, h
+    assert "After." in h, h
+
+
+def test_table_with_only_unknown_key_is_logged(caplog):
+    h = _render(":table: {\n  :colour: blue\n}\n:tbody:\n:tr: :td: a :: ::\n::\n::\n")
+    _assert_one_unknown_key(caplog, h, (2, 3))
+    assert ">a</td>" in h, h
+
+
+def test_manuscript_meta_with_only_unknown_key_is_logged(caplog):
+    h = _render("# Title\n{\n  :colour: blue\n}\n\nBody.\n")
+    _assert_one_unknown_key(caplog, h, (3, 3))
+    assert "Title" in h, h
     assert "Body." in h, h
 
 
 def test_known_meta_key_logs_nothing(caplog):
-    h = rsm.render(
-        ":theorem: {\n  :label: thm\n}\nBody.\n::\n",
-        handrails=False,
-        source_offsets=False,
-    )
+    h = _render(":theorem: {\n  :label: thm\n}\nBody.\n::\n")
     assert not _meta_error_records(caplog), caplog.text
+    assert not [r for r in caplog.records if "Unknown meta key" in r.getMessage()]
     assert "The CST contains errors." not in caplog.text, caplog.text
     assert "Body." in h, h
 
 
-def test_content_error_after_tag_is_still_reported(caplog):
-    """A table whose content fails to parse gives an ERROR right after the tag
-    that starts with the meta braces but also holds the rows. It is not only a
-    meta, so it is reported as a CST error as before."""
-    h = rsm.render(
-        ":table: {\n  :colour: blue\n}\n:tr: :td: a ::\n::\n::\n",
-        handrails=False,
-        source_offsets=False,
-    )
+@pytest.mark.parametrize("key", [":Colour:", ":colour_x:"])
+def test_key_of_another_shape_as_only_key_is_logged(caplog, key):
+    """The unknown-key rule matches only lowercase letters, digits and hyphens,
+    so this meta does not form. The ERROR after the tag is logged once as a
+    meta error (rsm-15f)."""
+    h = _render(f":theorem: {{\n  {key} blue\n}}\nBody.\n::\n")
+    assert len(_meta_error_records(caplog)) == 1, caplog.text
+    assert not [r for r in caplog.records if "Unknown meta key" in r.getMessage()]
+    assert "The CST contains errors." not in caplog.text, caplog.text
+    assert "[CST error" not in h, h
+    assert "Body." in h, h
+
+
+def test_empty_meta_logs_nothing(caplog):
+    h = _render(":theorem: {}\nBody.\n::\n")
     assert not _meta_error_records(caplog), caplog.text
+    assert not [r for r in caplog.records if "Unknown meta key" in r.getMessage()]
+    assert "The CST contains errors." not in caplog.text, caplog.text
+    assert "Body." in h, h
+
+
+def test_content_error_after_unknown_key_is_still_reported(caplog):
+    """The meta forms, so its unknown key is logged. The rows that fail to parse
+    (a :tr: outside :tbody:) are still reported as a CST error."""
+    h = _render(":table: {\n  :colour: blue\n}\n:tr: :td: a ::\n::\n::\n")
+    assert len(_unknown_key_records(caplog)) == 1, caplog.text
     assert "The CST contains errors." in caplog.text, caplog.text
     assert "[CST error" in h, h

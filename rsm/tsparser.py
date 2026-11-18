@@ -484,11 +484,13 @@ def _log_meta_errors_outside_meta(cst_node: TSNode) -> set[int]:
     no meta field. The caller skips these ERROR nodes, so the value is ignored
     instead of being shown as an error in the output.
 
-    When the only key of a meta is unknown, the parser also forms no meta, and
-    the braces with everything between them become one ERROR right after the
-    tag. That ERROR is logged the same way. An ERROR that starts with "{" but
-    goes on past the closing "}" (such as a table whose rows failed to parse)
-    holds content, so it is left to be reported as a CST error.
+    An unknown key written like a real key (lowercase letters, digits and
+    hyphens) forms a meta and is logged in _parse_meta_into_dict. A key with
+    another shape (such as :Colour: or :colour_x:) does not, so when it is the
+    only key of a multi-line meta, the braces with everything between them
+    become one ERROR right after the tag. That ERROR is logged the same way. An
+    ERROR that starts with "{" but goes on past the closing "}" holds content,
+    so it is left to be reported as a CST error.
     """
     skip = {
         n.id
@@ -544,6 +546,17 @@ def _parse_meta_into_dict(node: TSNode) -> dict[str, Any]:
     pairs = {}
     for pair in [c for c in node.named_children if c.type.endswith("pair")]:
         if pair.id in cut_short:
+            continue
+        if pair.named_children[0].type == "metakey_unknown":
+            # For an empty meta ("{}"), error recovery inserts a MISSING key
+            # that has no text. The author wrote no key, so nothing is logged.
+            if pair.named_children[0].is_missing:
+                continue
+            name = (pair.named_children[0].text or b"").decode("utf-8")
+            logger.error(
+                f"Unknown meta key {name}",
+                extra=_user_position(pair.start_point, pair.end_point),
+            )
             continue
         if len(pair.named_children) == 1:  # bool meta key
             cst_key, cst_val = pair.named_children[0], None

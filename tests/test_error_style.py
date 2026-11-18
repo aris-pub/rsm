@@ -74,7 +74,8 @@ def test_error_text_keeps_spaces_around_it():
     html = _render(PARAGRAPH, False)
     paragraph = html[html.find("<p") : html.find("</p>")]
     text = re.sub(r"<[^>]+>", "", paragraph.split(">", 1)[1])
-    assert re.search(r"Some text \[CST error at [^\]]*\] bogus: more text\.", text), text
+    # The whole unknown tag ":bogus:" is one parse error (rsm-15f).
+    assert re.search(r"Some text \[CST error at [^\]]*\] more text\.", text), text
 
 
 def test_error_rule_sets_red_text():
