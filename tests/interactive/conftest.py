@@ -1,38 +1,33 @@
 """Pytest fixtures for interactive behavior tests.
 
-These tests drive a real browser (via Playwright) against a running rsm serve
-instance to verify JS behavior: toasts, tooltips, clipboard, and iframe contexts.
+These tests drive a real browser (via Playwright) against a running static
+file server to verify JS behavior: toasts, tooltips, clipboard, and iframe contexts.
 """
 
 import contextlib
+import functools
+import http.server
 import os
-import socket
-import subprocess
-import time
-from contextlib import closing
+import threading
 from pathlib import Path
 from typing import Any
 
 import pytest
+
 import rsm
 
 
-def _find_free_port() -> int:
-    with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as s:
-        s.bind(("", 0))
-        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        return s.getsockname()[1]
+class _Server(http.server.ThreadingHTTPServer):
+    daemon_threads = True
+    # The default of 5 is too small: Chromium opens many connections at once
+    # for a page's scripts and styles, and the ones that overflow wait for a
+    # TCP retry, so the page loads seconds late and tests time out.
+    request_queue_size = 128
 
 
-def _wait_for_server(port: int, timeout: float = 10.0) -> None:
-    deadline = time.monotonic() + timeout
-    while time.monotonic() < deadline:
-        try:
-            with closing(socket.create_connection(("127.0.0.1", port), timeout=0.5)):
-                return
-        except OSError:
-            time.sleep(0.1)
-    raise RuntimeError(f"rsm serve did not start on port {port} within {timeout}s")
+class _QuietHandler(http.server.SimpleHTTPRequestHandler):
+    def log_message(self, format, *args):
+        pass
 
 
 @contextlib.contextmanager
@@ -120,30 +115,18 @@ def interactive_server(tmp_path_factory: Any):
 
     _write_iframe_hosts(serve_dir)
 
-    port = _find_free_port()
-    # The server's output goes to a file, never to an unread pipe. livereload
-    # logs a line for every page that connects, and once an unread pipe's buffer
-    # is full (64KB on Linux) that write blocks and the whole server freezes, so
-    # every later page load times out.
-    log = open(serve_dir / "rsm-serve.log", "w")
-    proc = subprocess.Popen(
-        ["uv", "run", "rsm", "serve", "--port", str(port), "--no-browser"],
-        cwd=serve_dir,
-        stdout=log,
-        stderr=subprocess.STDOUT,
-    )
-
+    # A plain static server, not `rsm serve`: livereload reloads every
+    # connected page once about 3 seconds after it starts, which interrupts
+    # whichever test is loading a page at that moment.
+    handler = functools.partial(_QuietHandler, directory=str(serve_dir))
+    httpd = _Server(("127.0.0.1", 0), handler)
+    thread = threading.Thread(target=httpd.serve_forever, daemon=True)
+    thread.start()
     try:
-        _wait_for_server(port)
-        yield f"http://127.0.0.1:{port}"
+        yield f"http://127.0.0.1:{httpd.server_address[1]}"
     finally:
-        proc.terminate()
-        try:
-            proc.wait(timeout=5)
-        except subprocess.TimeoutExpired:
-            proc.kill()
-        log.close()
-
+        httpd.shutdown()
+        httpd.server_close()
 
 
 @pytest.fixture(scope="session")
