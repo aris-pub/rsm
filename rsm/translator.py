@@ -1157,7 +1157,7 @@ class Translator:
             batch.items.append(AppendParagraph(node.eyebrow, classes=["manuscript-eyebrow"]))
 
         if node.title:
-            batch.items.append(AppendHeading(1, node.title))
+            batch.items.append(AppendHeading(1, html_escape(node.title, quote=False)))
 
         if node.date:
             from datetime import datetime
@@ -1362,7 +1362,9 @@ class Translator:
         if node.title:
             items.append(
                 AppendOpenCloseTag(
-                    tag="span", content=f"{node.title}.", classes=["pg-label"]
+                    tag="span",
+                    content=html_escape(f"{node.title}.", quote=False),
+                    classes=["pg-label"],
                 )
             )
 
@@ -1376,6 +1378,7 @@ class Translator:
         heading = (
             f"{node.full_number}. {node.title}" if not node.nonum else f"{node.title}"
         )
+        heading = html_escape(heading, quote=False)
         return AppendBatchAndDefer(
             [
                 AppendNodeTag(node, "section"),
@@ -1875,9 +1878,9 @@ class Translator:
             # plain-reftext path.
             reftext = self._render_inline_nodes(reftext_nodes).strip()
         elif hasattr(node, "overwrite_reftext") and node.overwrite_reftext:
-            reftext = node.overwrite_reftext
+            reftext = html_escape(node.overwrite_reftext, quote=False)
         else:
-            reftext = getattr(tgt, "reftext", tgt)
+            reftext = html_escape(str(getattr(tgt, "reftext", tgt)), quote=False)
         classes = node.classes
         if not isinstance(node, nodes.URL) and "reference" not in classes:
             classes.insert(0, "reference")
