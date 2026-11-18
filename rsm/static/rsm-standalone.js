@@ -2926,7 +2926,7 @@ var RSM = (() => {
       else select(id);
     });
     document.addEventListener("rail:unpin", () => {
-      if (isPhone() && open) setOpen(false, { persist: false });
+      if (open) setOpen(false, { persist: false });
     });
     document.addEventListener("rail:pin", (ev) => {
       const persist = !(ev.detail && ev.detail.transient);

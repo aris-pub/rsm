@@ -101,6 +101,7 @@ class TestPinToSidebar:
         page.locator(".rail-pin-close").click()
         rail = page.locator(".proof-rail")
         expect(rail).not_to_have_class(re.compile(r"\bhas-pin\b"))
+        page.click('.rail-strip-btn[data-view="pinned"]')
         expect(page.locator(".rail-pinned-empty")).to_be_visible()
         expect(page.locator(".rail-pinned-body")).to_be_hidden()
 
@@ -209,7 +210,7 @@ class TestPinnedHeader:
         expect(page.locator(".rail-pin-close")).to_be_visible()
 
 
-class TestUnpinClosesTheSheetOnPhones:
+class TestUnpinClosesThePanel:
     def _pinned_sheet(self, page, interactive_server):
         _load(page, interactive_server)
         _pin(page, "#thm-x")
@@ -234,8 +235,7 @@ class TestUnpinClosesTheSheetOnPhones:
         finally:
             ctx.close()
 
-    def test_unpin_keeps_the_panel_open_on_desktop(self, page: Page, interactive_server: str):
+    def test_unpin_closes_the_panel_on_desktop(self, page: Page, interactive_server: str):
         self._pinned_sheet(page, interactive_server)
         page.locator(".rail-pin-close").click()
-        expect(page.locator(".rail-pinned-empty")).to_be_visible()
-        assert page.evaluate("document.documentElement.classList.contains('rail-open')")
+        page.wait_for_function("() => !document.documentElement.classList.contains('rail-open')", timeout=3000)
