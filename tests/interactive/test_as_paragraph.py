@@ -87,12 +87,14 @@ CLICK_SRC = """# Doc
 
 Some text before the widget.
 
-:html: {
+:figure: {
   :label: w
   :as-paragraph:
 }
 
+:htmlblock:
 <div id="widget" style="height: 120px; background: teal"><button id="widget-button">Go</button></div>
+::
 
 ::
 """
@@ -133,12 +135,14 @@ SELECT_SRC = """# Doc
 
 ## Sec
 
-:html: {
+:figure: {
   :label: w
   :as-paragraph:
 }
 
+:htmlblock:
 <p id="widget-text">Text inside a widget that the reader can select.</p>
+::
 
 ::
 """
@@ -168,12 +172,14 @@ NESTED_SRC = """# Doc
   :blockname: Hints
 }
 
-  :html: {
+  :figure: {
     :label: w
     :as-paragraph:
   }
 
+  :htmlblock:
   <div id="nested-widget" style="height: 120px; background: teal"></div>
+  ::
 
   ::
 

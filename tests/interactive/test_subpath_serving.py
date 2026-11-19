@@ -29,7 +29,7 @@ $$
 :caption: A plot.
 ::
 
-:html: {
+:figure: {
   :path: figs/widget.html
   :label: fig-widget
 }

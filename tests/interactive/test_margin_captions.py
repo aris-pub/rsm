@@ -31,7 +31,7 @@ FIXTURES = Path(__file__).parent / "fixtures"
 KINDS = {
     "figure": ("figure#fig-a", "Figure"),
     "table": (".table-wrapper:has(> #tab-a)", "Table"),
-    "widget": ("figure#wid-a", "Widget"),
+    "widget": ("figure#wid-a", "Figure"),
     "video": ("figure#vid-a", "Video"),
 }
 ALL_BLOCKS = [

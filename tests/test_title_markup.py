@@ -161,7 +161,7 @@ def test_math_in_section_tag_title():
     "tag, title",
     [
         (":ref:", "See :ref:lbl:: here"),
-        (":rawhtml:", "See :rawhtml:{:alt: s} <b>s</b> :: here"),
+        (":html:", "See :html:{:alt: s} <b>s</b> :: here"),
     ],
 )
 def test_links_and_raw_html_are_left_out_of_a_title(tag, title, caplog):

@@ -26,7 +26,7 @@ FIGURE = """\
 """
 
 WIDGET = """\
-:html: {
+:figure: {
   :path: widget.html
 }
 :caption: Some text :bogus: more text.

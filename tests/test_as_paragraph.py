@@ -1,4 +1,4 @@
-""":as-paragraph: on :figure:, :html: and :video: blocks.
+""":as-paragraph: on :figure:, :figure: and :video: blocks.
 
     :figure: {
       :as-paragraph:
@@ -23,11 +23,11 @@ from rsm import app
 
 BODIES = {
     "figure": ":figure: {{\n  :label: x\n  :path: assets/a.png{meta}\n}}\n\n{caption}::\n",
-    "html": ":html: {{\n  :label: x{meta}\n}}\n\n<div>live</div>\n\n{caption}::\n",
+    "html": ":figure: {{\n  :label: x{meta}\n}}\n\n:htmlblock:\n<div>live</div>\n::\n\n{caption}::\n",
     "video": ":video: {{\n  :label: x\n  :path: assets/demo.mp4{meta}\n}}\n\n{caption}::\n",
 }
-CLASS = {"figure": nodes.Figure, "html": nodes.Html, "video": nodes.Video}
-KIND = {"figure": "Figure", "html": "Widget", "video": "Video"}
+CLASS = {"figure": nodes.Figure, "html": nodes.Figure, "video": nodes.Video}
+KIND = {"figure": "Figure", "html": "Figure", "video": "Video"}
 KINDS = list(BODIES)
 ASP = "\n  :as-paragraph:"
 
@@ -61,8 +61,8 @@ def _node(src: str, cls: type) -> nodes.Node:
 
 
 def _open_tag(html: str, nodeid_class: str) -> str:
-    """The opening tag of the <figure> whose class list starts with nodeid_class."""
-    match = re.search(rf'<figure[^>]*class="{nodeid_class}[^"]*"[^>]*>', html)
+    """The opening tag of the <figure> whose class list holds nodeid_class."""
+    match = re.search(rf'<figure[^>]*class="[^"]*\b{nodeid_class}\b[^"]*"[^>]*>', html)
     assert match, html
     return match.group(0)
 
@@ -127,12 +127,14 @@ def test_shared_counter_unaffected():
         }
         ::
 
-        :html: {
+        :figure: {
           :label: b
           :as-paragraph:
         }
 
+        :htmlblock:
         <div>live</div>
+        ::
 
         ::
 
@@ -144,7 +146,7 @@ def test_shared_counter_unaffected():
         """
     )
     assets = list(_tree(src).traverse(nodeclass=nodes.Asset))
-    assert [n.reftext for n in assets] == ["Figure 1.1", "Widget", "Figure 1.2"]
+    assert [n.reftext for n in assets] == ["Figure 1.1", "Figure", "Figure 1.2"]
 
 
 @pytest.mark.parametrize("kind", KINDS)
@@ -207,7 +209,8 @@ def test_nested_classes_match_a_paragraph(kind):
     para = re.search(r'<div id="n\d+" class="paragraph ([^"]*)"', html).group(1)
     tag = _open_tag(html, kind)
     classes = tag.split('class="')[1].split('"')[0].split()
-    assert para.split() == [c for c in classes if c not in {kind, "as-paragraph"}]
+    own = {kind, "figure", "html", "as-paragraph"}
+    assert para.split() == [c for c in classes if c not in own]
     assert "hr-offset" in classes
 
 
@@ -264,13 +267,15 @@ def test_figure_keeps_asset_meta():
 def test_html_keeps_static_fallback():
     src = dedent(
         """\
-        :html: {
+        :figure: {
           :as-paragraph:
           :static: assets/w.png
           :alt: A widget.
         }
 
+        :htmlblock:
         <div>live</div>
+        ::
 
         ::
         """
@@ -292,7 +297,7 @@ def test_html_keeps_static_fallback():
 
 
 def test_html_alt_kept_for_preview():
-    src = ":html: {\n  :as-paragraph:\n  :alt: A widget.\n}\n\n<div>live</div>\n\n::\n"
+    src = ":figure: {\n  :as-paragraph:\n  :alt: A widget.\n}\n\n:htmlblock:\n<div>live</div>\n::\n\n::\n"
     html = rsm.render(src, handrails=True)
     assert 'data-alt="A widget."' in _open_tag(html, "html")
 

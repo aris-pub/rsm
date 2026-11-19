@@ -155,7 +155,7 @@ def test_heading_and_toc_both_render_math_before_punctuation():
         (":cite:", "## See :cite:k:: here\n\nText.\n"),
         (":url:", "## See :url:https://a.org:: here\n\nText.\n"),
         (":note:", "## See :note:n:: here\n\nText.\n"),
-        (":rawhtml:", "## See :rawhtml:{:alt: s} <b>s</b> :: here\n\nText.\n"),
+        (":html:", "## See :html:{:alt: s} <b>s</b> :: here\n\nText.\n"),
     ],
 )
 def test_links_and_raw_html_are_left_out_of_a_heading(tag, src, caplog):

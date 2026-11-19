@@ -103,7 +103,7 @@ key. Section-form tags do not need a Halmos — they close implicitly.
 
 **A heading's title runs to the end of its line** and may hold inline markup: math
 (`$...$`), `*italic*`, `**bold**`, code and `:span:`. Links (`:ref:`, `:url:`,
-`:cite:`), note and aside calls and `:rawhtml:` are not allowed in a heading: RSM
+`:cite:`), note and aside calls and `:html:` are not allowed in a heading: RSM
 leaves them out and logs an error. Where only plain text fits (the browser tab, the
 sidebar's Contents list, the section graph), the title is shown without markup, with
 math as its TeX source. A `:title:` meta value follows the same rules, as in
@@ -139,7 +139,7 @@ math as its TeX source. A `:title:` meta value follows the same rules, as in
 | `:example:` | Example |
 | `:exercise:` | Exercise |
 | `:figure:` | Figure float |
-| `:html:` | Non-figure interactive widget |
+| `:htmlblock:` | A block of raw HTML (as-is content, see below) |
 | `:itemize:` | Unnumbered list |
 | `:lemma:` | Lemma |
 | `:mathblock:` | Display math (as-is content) |
@@ -178,10 +178,10 @@ In Section 1 the header reads "Hint 1.1." (or "Hint." with `:nonum:`), and
 `:ref:hint-inversion::` reads "Hint 1.1". The block is still a remark: it is numbered with the other
 theorem-like blocks and keeps the class `remark`.
 
-`:figure:`, `:html:`, `:video:` and `:table:` also accept `:blockname:`. With
-`:blockname: Figure`, an `:html:` block's caption label reads "Figure 1.1." and a `:ref:`
-to it reads "Figure 1.1", in place of "Widget". It is still numbered with the figures.
-Other blocks ignore `:blockname:`.
+`:figure:`, `:video:` and `:table:` also accept `:blockname:`. With `:blockname: Chart`,
+a figure's caption label reads "Chart 1.1." and a `:ref:` to it reads "Chart 1.1", in
+place of "Figure". It is still numbered with the figures. Other blocks ignore
+`:blockname:`.
 
 ### Inline Tags — General
 
@@ -251,7 +251,7 @@ We look for a map into :aside:hilbert,some Euclidean space:: such that ...
 |-----|----------|-------------|
 | `:math:` | `$...$` | Inline math (as-is content) |
 | `:code:` | `` `...` `` | Inline code (as-is content) |
-| `:rawhtml:` | none | Inline raw HTML (as-is content, see below) |
+| `:html:` | none | Inline raw HTML (as-is content, see below) |
 | `:ref:` | — | Internal cross-reference |
 | `:cite:` | — | Bibliography citation |
 | `:url:` | — | External hyperlink |
@@ -264,14 +264,14 @@ We look for a map into :aside:hilbert,some Euclidean space:: such that ...
 
 **Emphasis shortcuts:** `**bold**` = `:span:{:strong:}bold::`, `*italic*` = `:span:{:emphas:}italic::`.
 
-### Inline Raw HTML
+### Raw HTML
 
-`:rawhtml:` puts raw HTML inside a sentence, written into the HTML page exactly as
+`:html:` puts raw HTML inside a sentence, written into the HTML page exactly as
 typed, with no escaping. It is built like the long form of `:code:`: the HTML runs up
 to the first `::`, and `:alt:` in the optional meta block is the fallback.
 
 ```
-Consider a chain of circles :rawhtml:{:alt: the circle $C_0$} <mtp-display model="pappus" name="c0"></mtp-display> ::, each tangent to the next.
+Consider a chain of circles :html:{:alt: the circle $C_0$} <mtp-display model="pappus" name="c0"></mtp-display> ::, each tangent to the next.
 ```
 
 - The HTML cannot contain `::`, cannot start with a colon, and cannot be empty.
@@ -290,8 +290,19 @@ Consider a chain of circles :rawhtml:{:alt: the circle $C_0$} <mtp-display model
 - Write phrasing content (elements that may sit inside a `<p>`, such as `<span>`,
   `<svg>` or a custom element). A `<div>` or another block element ends the paragraph
   early in the browser.
-- `:html:` is a different tag: a block that holds a widget, from a file (`:path:`) or
-  written inside it.
+
+`:htmlblock:` is the block form. Its body runs from the line after the tag to the
+closing `::`, and is written into the page as is, with no paragraph or handrail
+around it. It is not numbered. `:alt:` is its fallback, as for `:html:`.
+
+```
+:htmlblock: {:alt: A slider that sets $k$}
+<input type="range" min="1" max="10" id="k-slider">
+::
+```
+
+To number HTML and give it a caption, put it in a `:figure:`, either from a file
+(`:path: chart.html`) or as an `:htmlblock:` inside the figure (see Figures).
 
 ### Inline Tags — Proof Constructs
 
@@ -358,9 +369,9 @@ starts the next pair. A colon anywhere else stays in the value, as in `Ratio 3:1
 | Key | Description |
 |-----|-------------|
 | `:affiliation:` | Author institutional affiliation |
-| `:alt:` | Alt text for figure images; the fallback of `:rawhtml:` |
+| `:alt:` | Alt text for figure images; the fallback of `:html:` and `:htmlblock:` |
 | `:author-note:` | Author note (e.g. "Equal contribution") |
-| `:blockname:` | Name a theorem-like block, figure, widget, video or table is called by, in place of its type's name |
+| `:blockname:` | Name a theorem-like block, figure, video or table is called by, in place of its type's name |
 | `:email:` | Author email |
 | `:eyebrow:` | Short label above the manuscript title |
 | `:goal:` | Theorem goal |
@@ -375,7 +386,7 @@ starts the next pair. A colon anywhere else stays in the value, as in `Ratio 3:1
 
 | Key | Description |
 |-----|-------------|
-| `:as-paragraph:` | A figure, widget or video sits at the level of a paragraph: no number, no caption |
+| `:as-paragraph:` | A figure or video sits at the level of a paragraph: no number, no caption |
 | `:emphas:` | Emphasized span |
 | `:isclaim:` | Math block is a claim |
 | `:no-minimap:` | Turn the minimap off (in `:config:`) |
@@ -943,18 +954,29 @@ Key properties of the operator:
 
 ::
 
-:html: {
+:figure: {
   :path: interactive_chart.html
-  :label: widget-chart
+  :label: fig-chart
+  :static: interactive_chart.png
 }
 
   :caption: Interactive visualization of the data.
 
 ::
 
-**Figures vs. widgets.** Use `:figure:` for any figure, including one drawn as inline SVG or HTML. Point `:path:` at an HTML fragment file (for example a `fig.html` that contains `<svg>...</svg>`), and its markup is inlined into the page, so it picks up the page CSS variables (dark mode, accent color) and is labelled "Figure". A raw image file (`.png`, `.jpg`, `.svg`) is embedded as an `<img>` and cannot see those variables. Reserve `:html:` for non-figure interactive widgets. Its reference label is "Widget", not "Figure", unless it has `:blockname: Figure`.
+:figure: {:label: fig-canvas :alt: A canvas that draws the orbit.}
 
-**Figures as paragraphs.** With `:as-paragraph:`, a `:figure:`, `:html:` or `:video:` sits at the level of a paragraph instead of being a block. Use it for a picture that belongs to the text around it, for example inside a theorem-like block:
+  :htmlblock:
+  <canvas id="orbit"></canvas>
+  ::
+
+  :caption: The orbit, drawn live.
+
+::
+
+**Figures that hold HTML.** A `:figure:` holds HTML from a file named by `:path:` (an HTML fragment, for example a `fig.html` that contains `<svg>...</svg>`), or from an `:htmlblock:` inside it. The markup is written into the page, so it picks up the page CSS variables (dark mode, accent color). A raw image file (`.png`, `.jpg`, `.svg`) is embedded as an `<img>` and cannot see those variables. A copy of the page's own content (a reference preview, for example) shows the figure's `:static:` image, or else its `:alt:`, in place of the live HTML, and so does output other than HTML (pandoc export). Without either, pandoc export writes a note to see the online version.
+
+**Figures as paragraphs.** With `:as-paragraph:`, a `:figure:` or `:video:` sits at the level of a paragraph instead of being a block. Use it for a picture that belongs to the text around it, for example inside a theorem-like block:
 
 ```rsm
 :remark: {
@@ -974,7 +996,7 @@ Key properties of the operator:
 ::
 ```
 
-It takes no number, and the next figure is numbered as if it were not there. A `:caption:` given to it is ignored, with a warning. It has a handrail like a paragraph's, labeled with its kind ("Figure", "Widget", "Video", or its `:blockname:`), and is never wider than the text column. Every other key still works (`:path:`, `:dark:`, `:static:`, `:alt:`, `:scale:`, `:label:`...). A `:ref:` to it reads its kind with no number, as for any unnumbered block. It is allowed anywhere a paragraph is.
+It takes no number, and the next figure is numbered as if it were not there. A `:caption:` given to it is ignored, with a warning. It has a handrail like a paragraph's, labeled with its kind ("Figure", "Video", or its `:blockname:`), and is never wider than the text column. Every other key still works (`:path:`, `:dark:`, `:static:`, `:alt:`, `:scale:`, `:label:`...). A `:ref:` to it reads its kind with no number, as for any unnumbered block. It is allowed anywhere a paragraph is.
 
 :table: {:label: tbl-results}
 

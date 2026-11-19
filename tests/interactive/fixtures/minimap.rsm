@@ -32,7 +32,7 @@ Filler text that pads the section so the document is long enough to scroll. Fill
 
 Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. 
 
-:html: {
+:figure: {
   :label: wid-ornament
   :path: minimap-widget.html
   :nonum:
@@ -117,7 +117,7 @@ Filler text that pads the section so the document is long enough to scroll. Fill
 
 ::
 
-:html: {
+:figure: {
   :label: wid-a
   :path: minimap-widget.html
 }
@@ -136,7 +136,7 @@ Filler text that pads the section so the document is long enough to scroll. Fill
 
 Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. Filler text that pads the section so the document is long enough to scroll. 
 
-:html: {
+:figure: {
   :label: wid-bare
   :path: minimap-widget.html
 }

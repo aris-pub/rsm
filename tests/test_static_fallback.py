@@ -106,14 +106,16 @@ def test_static_fallback_no_dark_when_unset():
 
 
 def test_html_block_static_fallback_has_noscript():
-    """The :html: block path uses the same fallback machinery as :figure:."""
+    """The :figure: block path uses the same fallback machinery as :figure:."""
     html = _render(
         """
-        :html: {
+        :figure: {
           :static: assets/widget-static.png
         }
 
+        :htmlblock:
         <div id="widget">interactive</div>
+        ::
 
         ::
         """
@@ -184,16 +186,18 @@ def test_static_fallback_without_alt_or_caption_is_empty(caplog):
 
 
 def test_html_block_without_static_carries_alt():
-    """An :html: block with :alt: but no :static: has no image to put the alt
+    """An :figure: block with :alt: but no :static: has no image to put the alt
     on, so the figure carries it as data-alt for the reference preview, escaped
     (rsm-9wa). With a :static:, the alt stays on the image only."""
     html = _render(
         """
-        :html: {
+        :figure: {
           :alt: A "quoted" <widget>.
         }
 
+        :htmlblock:
         <div>live</div>
+        ::
 
         ::
         """
@@ -201,12 +205,14 @@ def test_html_block_without_static_carries_alt():
     assert 'data-alt="A &quot;quoted&quot; &lt;widget&gt;."' in html
     html = _render(
         """
-        :html: {
+        :figure: {
           :static: assets/widget-static.png
           :alt: A widget.
         }
 
+        :htmlblock:
         <div>live</div>
+        ::
 
         ::
         """

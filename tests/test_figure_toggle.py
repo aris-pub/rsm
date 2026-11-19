@@ -8,7 +8,7 @@ class TestDataStaticAttribute:
 
     def test_html_node_has_data_static(self):
         html = rsm.render(
-            "## S\n\n:html: {\n  :path: widget.html\n  :static: fallback.png\n}\n::\n",
+            "## S\n\n:figure: {\n  :path: widget.html\n  :static: fallback.png\n}\n::\n",
             handrails=False,
         )
         assert 'data-static=' in html
@@ -29,7 +29,7 @@ class TestDataStaticAttribute:
 
     def test_data_static_on_html_without_static(self):
         html = rsm.render(
-            "## S\n\n:html: {\n  :path: widget.html\n}\n::\n",
+            "## S\n\n:figure: {\n  :path: widget.html\n}\n::\n",
             handrails=False,
         )
         assert 'data-static' not in html
@@ -40,7 +40,7 @@ class TestStaticFallbackImage:
 
     def test_html_node_has_fallback_img(self):
         html = rsm.render(
-            "## S\n\n:html: {\n  :path: widget.html\n  :static: fallback.png\n}\n::\n",
+            "## S\n\n:figure: {\n  :path: widget.html\n  :static: fallback.png\n}\n::\n",
             handrails=False,
         )
         assert 'class="static-fallback"' in html
@@ -66,14 +66,14 @@ class TestStaticToggleMenuItem:
 
     def test_menu_item_enabled_with_static(self):
         html = rsm.render(
-            "## S\n\n:html: {\n  :path: widget.html\n  :static: fallback.png\n}\n:caption: Widget.\n::\n",
+            "## S\n\n:figure: {\n  :path: widget.html\n  :static: fallback.png\n}\n:caption: Widget.\n::\n",
             handrails=True,
         )
         assert 'data-menu-static-toggle="true"' in html
 
     def test_menu_item_disabled_without_static(self):
         html = rsm.render(
-            "## S\n\n:html: {\n  :path: widget.html\n}\n:caption: Widget.\n::\n",
+            "## S\n\n:figure: {\n  :path: widget.html\n}\n:caption: Widget.\n::\n",
             handrails=True,
         )
         assert 'data-menu-static-toggle="disabled"' in html

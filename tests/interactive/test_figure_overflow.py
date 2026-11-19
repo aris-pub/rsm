@@ -98,19 +98,23 @@ def test_wide_content_scrolls_horizontally_without_page_scroll(page: Page, tmp_p
 # widget's buttons do, so the figure child that holds it overflows by 5px.
 TALL_WIDGET = """# W
 
-:html: {
+:figure: {
   :label: tall
 }
 
+:htmlblock:
 <div class="tall-body" style="position:relative;height:60px"><span style="position:absolute;bottom:-5px;left:0;width:10px;height:10px"></span></div>
+::
 
 ::
 
-:html: {
+:figure: {
   :label: wide
 }
 
+:htmlblock:
 <div class="wide-body" style="width:2000px;height:40px"></div>
+::
 
 ::
 """

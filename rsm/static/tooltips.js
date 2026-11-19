@@ -7,7 +7,7 @@ import { typesetMath } from "./libraries.js";
 import { previewWanted } from "./asides.js";
 import { cloneWithoutRawHtml, withoutRawHtml } from "./rawhtml.js";
 
-// Like $el.clone(), but a :rawhtml: in the copy shows its fallback (rawhtml.js).
+// Like $el.clone(), but an :html: or :htmlblock: in the copy shows its fallback (rawhtml.js).
 const copyOf = ($el) => $($el.toArray().map(cloneWithoutRawHtml));
 
 // Tabler pin, outline (not pinned) and filled (pinned).
@@ -117,13 +117,13 @@ function buildExcerpt(rawHref) {
   }
   content = withWidgetStills(content);
   // The branches above that read the live target's HTML directly copy its
-  // :rawhtml: too.
+  // :html: and :htmlblock: too.
   content = withoutRawHtml(content);
   return { content: content || "", error: content ? null : "unsupported" };
 }
 
-// An excerpt's HTML with each widget (:html: block) inside it swapped for its
-// still image, or else its alt text, as a widget alone is (widgetPreview): a live
+// An excerpt's HTML with each figure that holds HTML inside it swapped for its
+// still image, or else its alt text, as such a figure alone is (widgetPreview): a live
 // copy attaches to the original's scripts and state, and two copies of one
 // control can fight over it.
 function withWidgetStills(html) {
@@ -147,7 +147,7 @@ function withWidgetStills(html) {
   return t.innerHTML;
 }
 
-// The excerpt of an :html: block (a widget). A copy of the live widget does not
+// The excerpt of a figure that holds HTML. A copy of the live HTML does not
 // work out of its place (its styles and scripts are tied to the original), so
 // show its number, its still image when it has one (both light and dark, and
 // braiid.css shows the one for the current theme, so a pinned excerpt follows a
@@ -160,7 +160,7 @@ function widgetPreview(fig) {
   const number = fig.getAttribute("data-number");
   const label =
     (capLabel && capLabel.textContent.replace(/\s+/g, " ").trim().replace(/\.$/, "")) ||
-    (number ? `Widget ${number}` : "Widget");
+    (number ? `Figure ${number}` : "Figure");
   let body = "";
   const imgs = fig.querySelectorAll(".static-fallback img");
   if (imgs.length) {

@@ -79,7 +79,7 @@ SIDEBAR_FIXTURES = {
     "toc_switch_sidebar",
 }
 
-# Fixtures whose :html: assets must be read at build time. Asset paths resolve
+# Fixtures whose :figure: assets must be read at build time. Asset paths resolve
 # from the working directory, so these build from inside the fixtures folder.
 ASSET_FIXTURES = {"minimap"}
 

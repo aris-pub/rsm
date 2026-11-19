@@ -746,13 +746,19 @@ def _figure_number(node: nodes.Node) -> str | None:
 
 def _asset_classes(node: nodes.Asset) -> list[str]:
     """Extra classes of an asset's <figure>. braiid.css caps the content of an
-    :as-paragraph: asset at the width of the column by this class."""
-    return ["as-paragraph"] if node.as_paragraph else []
+    :as-paragraph: asset at the width of the column by this class. A figure that
+    shows HTML is marked "html": reference previews swap it for its still image
+    or its alt text (tooltips.js), as a copy of live HTML would be a second live
+    copy."""
+    classes = ["as-paragraph"] if node.as_paragraph else []
+    if isinstance(node, nodes.Figure) and node.holds_html:
+        classes.append("html")
+    return classes
 
 
 def _in_paragraph_asset(node: nodes.Node) -> bool:
-    """Whether node is the body of an :as-paragraph: asset (a widget's inline
-    HTML), which sits inside the asset's own paragraph handrail and so gets none."""
+    """Whether node is the body of an :as-paragraph: asset, which sits inside
+    the asset's own paragraph handrail and so gets none."""
     return isinstance(node.parent, nodes.Asset) and node.parent.as_paragraph
 
 
@@ -781,12 +787,12 @@ class AppendNodeTag(AppendOpenTag):
         if isinstance(node, nodes.Asset) and node.static:
             static_src = self._resolve_image_src(node.static) if hasattr(self, '_resolve_image_src') else str(node.static)
             kwargs["data-static"] = static_src
-        elif isinstance(node, nodes.Html) and node.alt:
+        elif isinstance(node, nodes.Figure) and node.holds_html and node.alt:
             # Without a still image the alt text appears nowhere else in the
-            # page, and a reference preview of the widget shows it instead.
+            # page, and a reference preview of the figure shows it instead.
             kwargs["data-alt"] = html_escape(node.alt, quote=True)
-        # Figures, widgets and videos carry their number, so the minimap can
-        # label one that has no caption (and so no visible "Widget 4.3" label).
+        # Figures and videos carry their number, so the minimap can
+        # label one that has no caption (and so no visible "Figure 4.3" label).
         figure_number = _figure_number(node)
         if figure_number:
             kwargs["data-number"] = figure_number
@@ -1759,6 +1765,27 @@ class Translator:
             items.append(AppendTextAndDefer("", node.html))
         return AppendBatchAndDefer(items)
 
+    def _htmlblock_html(self, node: nodes.HtmlBlock) -> str:
+        """An :htmlblock: as one string, as visit_htmlblock writes it."""
+        alt = ""
+        if node.children:
+            alt = f'<div class="rawhtml-alt" hidden>{self._render_inline_nodes(list(node.children))}</div>'
+        return f'<div class="htmlblock rawhtml">{alt}{node.html}</div>'
+
+    def visit_htmlblock(self, node: nodes.HtmlBlock) -> EditCommand:
+        # Written as an inline :html: is (see visit_rawhtml), in a div. The
+        # "rawhtml" class lets copies of the page swap in the fallback.
+        items: list[EditCommand] = [
+            AppendNodeTag(node, "div", additional_classes=["rawhtml"])
+        ]
+        if node.children:
+            items.append(
+                AppendTextAndDefer('<div class="rawhtml-alt" hidden>', "</div>" + node.html)
+            )
+        else:
+            items.append(AppendTextAndDefer("", node.html))
+        return AppendBatchAndDefer(items)
+
     def visit_codeblock(self, node: nodes.CodeBlock) -> EditCommand:
         items = self._close_p_before(node)
         items += [
@@ -1792,18 +1819,10 @@ class Translator:
         )
 
     def visit_text(self, node: nodes.Text) -> EditCommand:
-        # Raw HTML inside an :html: block is emitted verbatim. Everything else
-        # (math source especially, but also prose) is HTML-escaped so a <, > or &
-        # cannot open a tag; the client math renderer reads the DOM text content,
-        # which the browser decodes back to the original characters.
-        ancestor = node.parent
-        while ancestor is not None:
-            # The fallback of a :rawhtml: is text even inside an :html: block.
-            if isinstance(ancestor, nodes.RawHtml):
-                break
-            if isinstance(ancestor, nodes.Html):
-                return AppendText(node.text)
-            ancestor = ancestor.parent
+        # Text (math source especially, but also prose) is HTML-escaped so a <,
+        # > or & cannot open a tag; the client math renderer reads the DOM text
+        # content, which the browser decodes back to the original characters.
+        # Raw HTML is not text: it is kept on RawHtml and HtmlBlock nodes.
         text = (
             node.text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
         )
@@ -2406,9 +2425,11 @@ class Translator:
         """Detect content type from path and return appropriate HTML."""
         path_str = str(node.path).lower()
 
-        # An asset with no real path (e.g. an inline :html: block whose markup
-        # is carried by its own children) has nothing to render here, and must
-        # not fall through to the image branch, which would emit <img src=".">.
+        if isinstance(node, nodes.Figure) and node.htmlblock is not None:
+            return self._htmlblock_html(node.htmlblock)
+
+        # An asset with no real path has nothing to render here, and must not
+        # fall through to the image branch, which would emit <img src=".">.
         if not path_str or path_str == ".":
             return ""
 
@@ -2519,15 +2540,6 @@ class Translator:
             [
                 AppendNodeTag(node, "figure", additional_classes=_asset_classes(node)),
                 AppendText(self._detect_content_type_and_render(node)),
-            ]
-        )
-
-    def visit_html(self, node: nodes.Html) -> EditCommand:
-        return AppendBatchAndDefer(
-            [
-                AppendNodeTag(node, "figure", additional_classes=_asset_classes(node)),
-                AppendText(self._detect_content_type_and_render(node)),
-                AppendText(self._static_fallback_img(node)),
             ]
         )
 
@@ -3256,8 +3268,8 @@ class HandrailsTranslator(Translator):
         return AppendText(text=html)
 
     def _make_source_div(self):
-        # Escaped, or any HTML in the source (a :rawhtml: body, an :html:
-        # block) would become live elements in the page a second time. The
+        # Escaped, or any HTML in the source (an :html: or :htmlblock: body)
+        # would become live elements in the page a second time. The
         # Source menu item reads the div's textContent, which is the source.
         src = html_escape(self.tree.src, quote=False)
         return AppendText(text=f'<div class="rsm-source hide">{src}</div>')
@@ -3809,12 +3821,17 @@ class HandrailsTranslator(Translator):
             + self._hr_info_zone_icon(None).make_text()
             + "</div>"
         )
-        return AppendBatchAndDefer([AppendNodeTag(node, "figure"), AppendText(body)])
+        return AppendBatchAndDefer(
+            [
+                AppendNodeTag(node, "figure", additional_classes=_asset_classes(node)),
+                AppendText(body),
+            ]
+        )
 
     def _paragraph_asset_handrails(self, node, with_fallback: bool) -> EditCommand:
         # The <figure> is itself the handrail, with the classes a paragraph at the
         # same depth gets, because it has no caption to carry the menu. Its
-        # rendered content and any body (a widget's inline HTML) share the one
+        # rendered content and any body (such as an :htmlblock:) share the one
         # content zone, which is where the static toggle swaps them for the
         # fallback.
         menu_zone, menu_attrs = self._hr_menu_zone(
@@ -3854,12 +3871,6 @@ class HandrailsTranslator(Translator):
     def leave_figure(self, node: nodes.Figure) -> EditCommand:
         return self._leave_asset(node)
 
-    def visit_html(self, node: nodes.Html) -> EditCommand:
-        return self._asset_handrails(node)
-
-    def leave_html(self, node: nodes.Html) -> EditCommand:
-        return self._leave_asset(node)
-
     def visit_video(self, node: nodes.Video) -> EditCommand:
         return self._asset_handrails(node, with_fallback=False)
 
@@ -3882,7 +3893,7 @@ class HandrailsTranslator(Translator):
         if isinstance(parent, nodes.Table):
             items.append(AppendText("\n</table>\n"))
         has_static = isinstance(parent, nodes.Asset) and parent.static
-        # The rail names the captioned block ("Figure", "Widget", "Table"), the
+        # The rail names the captioned block ("Figure", "Video", "Table"), the
         # same word the caption's own label starts with.
         kind = parent.classreftext.format(nodeclass=parent.kindname, number="").strip()
         menu_zone, menu_attrs = self._hr_menu_zone(

@@ -1,11 +1,11 @@
-""":blockname: on :figure:, :html:, :video: and :table: blocks.
+""":blockname: on :figure:, :figure:, :video: and :table: blocks.
 
-    :html: {
+    :figure: {
       :blockname: Figure
     }
 
 The caption label reads "Figure 1.1.", a :ref: to it reads "Figure 1.1", and so does
-the handrail menu label of its caption. Numbering is unchanged: an :html: block still
+the handrail menu label of its caption. Numbering is unchanged: an :figure: block still
 shares its counter with figures.
 """
 
@@ -18,7 +18,7 @@ import rsm.nodes as nodes
 from rsm import app
 
 BODIES = {
-    "html": ":html: {{\n  :label: x{meta}\n}}\n\n<div>live</div>\n\n:caption: A caption.\n\n::\n",
+    "html": ":figure: {{\n  :label: x{meta}\n}}\n\n:htmlblock:\n<div>live</div>\n::\n\n:caption: A caption.\n\n::\n",
     "figure": (
         ":figure: {{\n  :label: x\n  :path: assets/a.png{meta}\n}}\n\n"
         ":caption: A caption.\n\n::\n"
@@ -33,10 +33,10 @@ BODIES = {
     ),
 }
 
-DEFAULT = {"html": "Widget", "figure": "Figure", "video": "Video", "table": "Table"}
+DEFAULT = {"html": "Figure", "figure": "Figure", "video": "Video", "table": "Table"}
 # Tables are numbered across the whole manuscript, assets within their section.
 NUMBER = {"html": "1.1", "figure": "1.1", "video": "1.1", "table": "1"}
-CLASS = {"html": nodes.Html, "figure": nodes.Figure, "video": nodes.Video, "table": nodes.Table}
+CLASS = {"html": nodes.Figure, "figure": nodes.Figure, "video": nodes.Video, "table": nodes.Table}
 KINDS = list(BODIES)
 
 
@@ -146,15 +146,19 @@ def test_numbering_unchanged():
         }
         ::
 
-        :html: {:label: b, :blockname: Figure}
+        :figure: {:label: b, :blockname: Figure}
 
+        :htmlblock:
         <div>live</div>
+        ::
 
         ::
 
-        :html: {:label: c}
+        :figure: {:label: c}
 
+        :htmlblock:
         <div>live</div>
+        ::
 
         ::
 
@@ -194,7 +198,7 @@ def test_numbering_unchanged():
     assert [n.reftext for n in assets] == [
         "Figure 1.1",
         "Figure 1.2",
-        "Widget 1.3",
+        "Figure 1.3",
         "Diagram 1.4",
     ]
     assert [n.reftext for n in tables] == ["Data 1", "Table 2"]

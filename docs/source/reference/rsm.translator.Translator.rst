@@ -49,7 +49,6 @@ Qualified name: ``rsm.translator.Translator``
       ~Translator.visit_enumerate
       ~Translator.visit_error
       ~Translator.visit_figure
-      ~Translator.visit_html
       ~Translator.visit_item
       ~Translator.visit_itemize
       ~Translator.visit_manuscript

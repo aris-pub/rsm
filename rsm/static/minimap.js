@@ -75,13 +75,13 @@ function headingText(section) {
   return h ? h.textContent.replace(/\s+/g, " ").trim() : "";
 }
 
-const FIGURE_KINDS = { html: "Widget", video: "Video", figure: "Figure" };
+const FIGURE_KINDS = { video: "Video", figure: "Figure" };
 
 function figureKind(fig) {
   return Object.keys(FIGURE_KINDS).find((c) => fig.classList.contains(c));
 }
 
-// The caption's label ("Widget 4.2"). Without a caption, the same words from
+// The caption's label ("Figure 4.2"). Without a caption, the same words from
 // the block's number, or the kind word alone for an unnumbered block.
 function figureLabel(fig) {
   const label = fig.querySelector(":scope > figcaption .label");
@@ -131,8 +131,8 @@ function collectMarks(main) {
     });
   }
 
-  // Every :figure:, :html: and :video: block, with or without a caption or a
-  // number. A <figure> inside a widget's own HTML is part of that widget, not
+  // Every :figure: and :video: block, with or without a caption or a
+  // number. A <figure> inside a figure's own HTML is part of that HTML, not
   // an RSM block (it has no data-nodeid).
   for (const fig of main.querySelectorAll("figure[data-nodeid]")) {
     if (!figureKind(fig) || inChrome(fig) || fig.parentElement.closest("figure")) continue;

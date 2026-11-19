@@ -3,23 +3,27 @@
 ## Widgets
   {:label: sec-widgets}
 
-:html: {
+:figure: {
   :label: wid-still
   :static: fixtures-static-light.png
   :dark: fixtures-static-dark.png
   :alt: A still picture of the widget.
 }
 
+:htmlblock:
 <div class="live-widget" style="width:300px;height:120px;background:#406">interactive widget</div>
+::
 
 ::
 
-:html: {
+:figure: {
   :label: wid-bare
   :alt: A widget with no still picture.
 }
 
+:htmlblock:
 <div class="live-widget" style="width:300px;height:120px;background:#640">another widget</div>
+::
 
 ::
 

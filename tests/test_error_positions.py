@@ -59,7 +59,7 @@ def test_cst_error_position_is_1_based(caplog):
 
 def test_rawhtml_warning_position_is_1_based(caplog):
     with caplog.at_level(logging.WARNING):
-        _render("A :rawhtml: <b>x</b> :: b.\n")
+        _render("A :html: <b>x</b> :: b.\n")
     (rec,) = _records(caplog, "has no :alt:")
     assert (rec.start_row, rec.start_col) == (1, 3), caplog.text
 

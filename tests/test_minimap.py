@@ -98,13 +98,13 @@ FIGURES_SRC = """\
 :caption: A caption.
 ::
 
-:html: {
+:figure: {
   :label: wid-bare
   :path: missing.html
 }
 ::
 
-:html: {
+:figure: {
   :label: wid-orn
   :path: missing.html
   :nonum:

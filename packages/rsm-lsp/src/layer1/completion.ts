@@ -76,11 +76,11 @@ const RSM_TAGS = [
   { tag: ':codeblock:', description: 'Code listing (as-is content)' },
   { tag: ':algorithm:', description: 'Algorithm listing (as-is content)' },
   { tag: ':notation:', description: 'Notation macros that the reader can change, one per line' },
-  { tag: ':rawhtml:', description: 'Inline raw HTML (as-is content)' },
+  { tag: ':html:', description: 'Inline raw HTML (as-is content)' },
+  { tag: ':htmlblock:', description: 'A block of raw HTML (as-is content)' },
 
-  // Figures, widgets and tables
+  // Figures and tables
   { tag: ':figure:', description: 'Figure float' },
-  { tag: ':html:', description: 'Non-figure interactive widget' },
   { tag: ':video:', description: 'Video asset' },
   { tag: ':table:', description: 'Table' },
   { tag: ':thead:', description: 'Table header rows' },
@@ -102,7 +102,7 @@ const RSM_TAGS = [
 
   // Meta keys with text values
   { tag: ':affiliation:', description: 'Author institutional affiliation' },
-  { tag: ':alt:', description: 'Alt text for figure images; the fallback of :rawhtml:' },
+  { tag: ':alt:', description: 'Alt text for figure images; the fallback of :html: and :htmlblock:' },
   { tag: ':author-note:', description: 'Author note (e.g. "Equal contribution")' },
   { tag: ':blockname:', description: "Name a block is called by, in place of its type's name" },
   { tag: ':email:', description: 'Author email' },
