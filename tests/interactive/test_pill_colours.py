@@ -20,7 +20,7 @@ from playwright.sync_api import Page
 
 pytestmark = pytest.mark.interactive
 
-RSM_READY = "() => window.__rsmInitialized === true"
+RSM_READY = "() => window.__rsmShown === true"
 MIN_CONTRAST = 3.0
 STATES = ["block-hover", "pill-hover", "active", "active-pill-hover"]
 

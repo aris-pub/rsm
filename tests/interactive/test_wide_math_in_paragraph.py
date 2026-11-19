@@ -15,7 +15,7 @@ from playwright.sync_api import Playwright
 
 pytestmark = pytest.mark.interactive
 
-RSM_READY = "() => window.__rsmInitialized === true"
+RSM_READY = "() => window.__rsmShown === true"
 
 # Every block's content zone must end at or before the column's right edge, and
 # must be allowed to shrink (min-width 0): with min-width: auto a zone grows to

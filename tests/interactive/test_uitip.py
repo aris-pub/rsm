@@ -10,7 +10,7 @@ from playwright.sync_api import Page, expect
 
 pytestmark = pytest.mark.interactive
 
-RSM_READY = "() => window.__rsmInitialized === true"
+RSM_READY = "() => window.__rsmShown === true"
 
 # uitip.js shows the label after this delay (the `show` hover-intent timer).
 HOVER_DELAY_MS = 350

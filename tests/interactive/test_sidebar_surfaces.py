@@ -15,7 +15,7 @@ from playwright.sync_api import Page
 
 pytestmark = pytest.mark.interactive
 
-RSM_READY = "() => window.__rsmInitialized === true"
+RSM_READY = "() => window.__rsmShown === true"
 
 # Distinct sentinels: none is any default gray, so a rule still reading a raw
 # gray cannot accidentally match.

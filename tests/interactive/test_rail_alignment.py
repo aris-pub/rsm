@@ -12,7 +12,7 @@ from playwright.sync_api import Browser
 
 pytestmark = pytest.mark.interactive
 
-RSM_READY = "() => window.__rsmInitialized === true"
+RSM_READY = "() => window.__rsmShown === true"
 
 FIXTURES = ["basic", "asides", "shareview_long", "citations-author-year", "pill", "notes", "calc"]
 

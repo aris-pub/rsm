@@ -14,7 +14,7 @@ from playwright.sync_api import Browser, Page
 
 pytestmark = pytest.mark.interactive
 
-RSM_READY = "() => window.__rsmInitialized === true"
+RSM_READY = "() => window.__rsmShown === true"
 
 # The accent colour (--primary-700) resolved in the page's current theme, read
 # off a throwaway element so the test never hard-codes a theme's rgb.

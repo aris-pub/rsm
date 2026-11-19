@@ -17,7 +17,7 @@ pytestmark = pytest.mark.interactive
 # __rsmInitialized is set before the first render pass, which is where
 # asides.js runs (after math), so also wait for the phrases to be wired.
 RSM_READY = (
-    "() => window.__rsmInitialized === true && !!document.querySelector("
+    "() => window.__rsmShown === true && !!document.querySelector("
     "'a.aside-phrase[aria-controls]')"
 )
 NAME = "asides"

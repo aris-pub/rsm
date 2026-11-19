@@ -2808,7 +2808,7 @@ var RSM = (() => {
       }
       return best ? { el: best, top: bestTop } : null;
     }
-    function holdAnchor2(a) {
+    function holdAnchor(a) {
       if (!a) return;
       const t0 = performance.now();
       let expected = window.scrollY;
@@ -2876,7 +2876,7 @@ var RSM = (() => {
       paintStrip();
       layout();
       requestAnimationFrame(fitGraphs);
-      holdAnchor2(anchor);
+      holdAnchor(anchor);
       if (persist && !isPhone()) api.saveLayout({ view });
     }
     function select(id) {
@@ -4093,36 +4093,13 @@ var RSM = (() => {
     const d = el.getBoundingClientRect().top - want;
     if (Math.abs(d) > 0.5) window.scrollTo({ top: window.scrollY + d, behavior: "instant" });
   }
-  var SETTLE_MS = 1e4;
-  var READER_INPUT = ["wheel", "touchstart", "keydown", "mousedown"];
-  function holdAnchor(state) {
-    if (!state.anchor || !document.getElementById(state.anchor)) return;
-    let done = false;
-    let ro = null;
-    const stop = () => {
-      done = true;
-      if (ro) ro.disconnect();
-      for (const t of READER_INPUT) window.removeEventListener(t, stop, true);
-    };
-    for (const t of READER_INPUT) {
-      window.addEventListener(t, stop, { capture: true, passive: true });
-    }
-    const place2 = () => {
-      if (!done) placeAnchor(state);
-    };
-    place2();
-    requestAnimationFrame(place2);
-    mathIdle().then(() => {
-      place2();
-      return document.fonts && document.fonts.ready;
-    }).then(place2);
-    if (document.fonts && document.fonts.ready) document.fonts.ready.then(place2);
-    const manuscript = document.querySelector(".manuscript");
-    if (manuscript && window.ResizeObserver) {
-      ro = new ResizeObserver(place2);
-      ro.observe(manuscript);
-    }
-    setTimeout(stop, SETTLE_MS);
+  var pendingAnchor = null;
+  function placeSharedAnchor() {
+    const state = pendingAnchor;
+    pendingAnchor = null;
+    if (!state || !state.anchor || !document.getElementById(state.anchor)) return false;
+    placeAnchor(state);
+    return true;
   }
   function applyState(state) {
     if (!state || state.v !== SCHEMA) {
@@ -4133,7 +4110,7 @@ var RSM = (() => {
     restoreFolds(state);
     restoreOrder(state);
     restorePins(state);
-    holdAnchor(state);
+    pendingAnchor = state;
     return true;
   }
   function showResetPill() {
@@ -4886,6 +4863,51 @@ var RSM = (() => {
     } catch (err) {
       console.error("An error occurred during initialization:", err);
     }
+    await revealWhenSettled();
+  }
+  var QUIET_MS = 500;
+  function untilQuiet(el, ms) {
+    return new Promise((resolve) => {
+      if (!el || !window.ResizeObserver) {
+        requestAnimationFrame(() => requestAnimationFrame(resolve));
+        return;
+      }
+      let timer = null;
+      const ro = new ResizeObserver(() => {
+        clearTimeout(timer);
+        timer = setTimeout(() => {
+          ro.disconnect();
+          resolve();
+        }, ms);
+      });
+      ro.observe(el);
+    });
+  }
+  async function revealWhenSettled() {
+    try {
+      await mathIdle();
+    } catch (err) {
+      console.error("Waiting for math FAILED!", err);
+    }
+    try {
+      if (document.fonts) await document.fonts.ready;
+    } catch (err) {
+      console.error("Waiting for fonts FAILED!", err);
+    }
+    await untilQuiet(document.querySelector(".manuscript"), QUIET_MS);
+    let target = null;
+    try {
+      if (!placeSharedAnchor()) {
+        const id = decodeURIComponent(window.location.hash.slice(1));
+        target = id && id !== "top" ? document.getElementById(id) : null;
+        if (target) target.scrollIntoView({ block: "start", behavior: "instant" });
+      }
+    } catch (err) {
+      console.error("Placing the reader FAILED!", err);
+    }
+    if (window.__rsmReveal) window.__rsmReveal();
+    else window.__rsmShown = true;
+    if (target) target.focus({ preventScroll: true });
   }
   var renderInProgress = false;
   async function onrender(root2 = null) {

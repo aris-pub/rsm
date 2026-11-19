@@ -23,7 +23,7 @@ import rsm
 
 pytestmark = pytest.mark.interactive
 
-RSM_READY = "() => window.__rsmInitialized === true"
+RSM_READY = "() => window.__rsmShown === true"
 FIXTURES = Path(__file__).parent / "fixtures"
 
 # The four kinds of captioned block in the fixture, by the selector of the

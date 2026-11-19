@@ -19,7 +19,7 @@ from pathlib import Path
 import pytest
 from playwright.sync_api import Page
 
-RSM_READY = "() => window.__rsmInitialized === true"
+RSM_READY = "() => window.__rsmShown === true"
 
 TOOLTIP_FIXTURE = Path(__file__).parent / "fixtures" / "reference-tooltip.rsm"
 BACK_PILL_FIXTURE = Path(__file__).parent / "fixtures" / "back-pill.rsm"

@@ -7,7 +7,7 @@ from playwright.sync_api import Page, expect
 
 pytestmark = pytest.mark.interactive
 
-RSM_READY = "() => window.__rsmInitialized === true"
+RSM_READY = "() => window.__rsmShown === true"
 
 
 def test_author_year_cite_renders_suffix_and_links(page: Page, interactive_server: str):

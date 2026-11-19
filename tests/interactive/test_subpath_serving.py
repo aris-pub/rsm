@@ -116,7 +116,7 @@ def _watch(page: Page):
 
 
 def _wait_ready(page: Page):
-    page.wait_for_function("() => window.__rsmInitialized === true", timeout=15_000)
+    page.wait_for_function("() => window.__rsmShown === true", timeout=15_000)
     page.wait_for_function(
         "() => document.querySelector('.ps-root') && document.querySelectorAll('mjx-container').length >= 2",
         timeout=15_000,

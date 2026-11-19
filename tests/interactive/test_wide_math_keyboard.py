@@ -17,7 +17,7 @@ ZONES = "div.mathblock > .hr-content-zone"
 def open_fixture(page: Page, server: str, width: int):
     page.set_viewport_size({"width": width, "height": 800})
     page.goto(f"{server}/wide-narrow-math.html")
-    page.wait_for_function("() => window.__rsmInitialized === true", timeout=10_000)
+    page.wait_for_function("() => window.__rsmShown === true", timeout=10_000)
     page.locator(f"{ZONES} mjx-container").first.wait_for(state="attached", timeout=15_000)
     page.evaluate(
         "async () => { await window.rsm.mathIdle(); await document.fonts.ready;"

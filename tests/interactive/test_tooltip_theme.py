@@ -10,7 +10,7 @@ import rsm
 
 pytestmark = pytest.mark.interactive
 
-RSM_READY = "() => window.__rsmInitialized === true"
+RSM_READY = "() => window.__rsmShown === true"
 
 FIXTURE_SRC = (
     "# Tooltip theme\n\n"

@@ -12,7 +12,7 @@ from playwright.sync_api import Page
 
 pytestmark = pytest.mark.interactive
 
-RSM_READY = "() => window.__rsmInitialized === true"
+RSM_READY = "() => window.__rsmShown === true"
 
 
 def test_nested_step_content_zone_clears_info_zone(page: Page, interactive_server: str):

@@ -24,7 +24,12 @@ from playwright.sync_api import Page, expect
 
 pytestmark = pytest.mark.interactive
 
-RSM_READY = "() => window.__rsmInitialized === true"
+RSM_READY = "() => window.__rsmShown === true"
+# The page is shown (rsm-hc8): RSM is ready and the loading class is gone.
+REVEALED = (
+    "() => window.__rsmShown === true"
+    " && !document.documentElement.classList.contains('rsm-loading')"
+)
 SENDER_TOP = 12
 TOLERANCE = 50
 
@@ -32,7 +37,8 @@ TOLERANCE = 50
 # Added some time after RSM is ready, so the restore happens first.
 SLOW_MATH_CSS = ".manuscript .mathblock { padding-top: 140px !important; }"
 SLOW_DELAY_S = 1.5
-SLOW_MATH_SCRIPT = f"""
+def _slow_math_script(delay_s: float) -> str:
+    return f"""
 (() => {{
   const go = () => {{
     if (!window.__rsmInitialized) return setTimeout(go, 20);
@@ -40,11 +46,16 @@ SLOW_MATH_SCRIPT = f"""
       const style = document.createElement('style');
       style.textContent = {SLOW_MATH_CSS!r};
       document.head.appendChild(style);
-    }}, {int(SLOW_DELAY_S * 1000)});
+    }}, {int(delay_s * 1000)});
   }};
   go();
 }})();
 """
+
+
+# A change that comes while the page is still loading: RSM waits for the page
+# to keep its size for 0.5 s before showing it (rsm-hc8), so this lands first.
+DURING_LOADING_S = 0.2
 
 # Chrome's scroll anchoring hides a late shift above the window by adjusting
 # the scroll itself, and only in some cases. Safari has no scroll anchoring.
@@ -66,7 +77,7 @@ LATE_SHIFT_SCRIPT = """
       d.className = 'late-shift';
       d.style.height = '600px';
       m.insertBefore(d, m.firstChild);
-    }, 700);
+    }, 200);
   };
   go();
 })();
@@ -98,7 +109,7 @@ def _load(page: Page, server: str, query: str = "") -> None:
     if page.viewport_size["width"] < 1321:
         page.set_viewport_size({"width": 1400, "height": 900})
     page.goto(f"{server}/shareview_long.html{query}")
-    page.wait_for_function(RSM_READY, timeout=10_000)
+    page.wait_for_function(REVEALED, timeout=10_000)
 
 
 def _fresh_sender(page: Page, server: str) -> None:
@@ -152,7 +163,7 @@ def _copy_view_url(page: Page) -> str:
 def _open_as_recipient(page: Page, url: str, wait_until: str = "load") -> None:
     page.evaluate("() => localStorage.clear()")
     page.goto(url, wait_until=wait_until)
-    page.wait_for_function(RSM_READY, timeout=10_000)
+    page.wait_for_function(REVEALED, timeout=10_000)
     expect(page.locator(".rsm-shared-pill")).to_be_visible(timeout=5000)
 
 
@@ -176,8 +187,8 @@ def _assert_lands_like_sender(page: Page, anchor: str, sender_top: float) -> Non
     assert anchor in _blocks_at(page, sender_top)
 
 
-def _route_slow_math_css(page: Page) -> None:
-    page.add_init_script(SLOW_MATH_SCRIPT)
+def _route_slow_math_css(page: Page, delay_s: float = SLOW_DELAY_S) -> None:
+    page.add_init_script(_slow_math_script(delay_s))
 
 
 def _wait_slow_css(page: Page) -> None:
@@ -244,7 +255,7 @@ class TestLateLayout:
         page.add_init_script(NO_SCROLL_ANCHORING_SCRIPT)
 
     def test_slow_math_stylesheet(self, page: Page, interactive_server: str):
-        _route_slow_math_css(page)
+        _route_slow_math_css(page, DURING_LOADING_S)
         _fresh_sender(page, interactive_server)
         _wait_slow_css(page)
         _place(page, "par-3-4")
@@ -332,6 +343,45 @@ class TestPins:
         lemma.locator(":scope > .hr-border-zone .hr-border-dots").click()
         page.locator('#hr-menu-singleton [data-role="pin"]').click()
         expect(page.locator(".proof-rail")).to_have_class(re.compile(r"\bhas-pin\b"))
+
+    def test_pin_rides_along_and_is_not_saved(
+        self, page: Page, interactive_server: str
+    ):
+        _fresh_sender(page, interactive_server)
+        self._pin_lemma(page)
+        title = page.locator(".rail-pinned-title").inner_text()
+        assert title.startswith("Lemma")
+        _settle(page)
+        _place(page, "par-1-6")
+        sender_top = _top(page, "par-1-6")
+        url = _copy_view_url(page)
+        assert _token(url)["pins"][0]["id"] == "lem-main"
+
+        # The recipient has their own saved settings already.
+        page.evaluate("() => localStorage.clear()")
+        _load(page, interactive_server)
+        saved_before = page.evaluate("() => JSON.stringify({...localStorage})")
+
+        # The page is shown once its layout has settled (rsm-hc8), so the
+        # anchor is in place at the reveal and stays there.
+        page.goto(url)
+        page.wait_for_function(REVEALED, timeout=10_000)
+        _assert_lands_like_sender(page, "par-1-6", sender_top)
+        expect(page.locator(".rsm-shared-pill")).to_be_visible(timeout=5000)
+        rail = page.locator(".proof-rail")
+        expect(rail).to_have_class(re.compile(r"\bhas-pin\b"))
+        expect(page.locator(".rail-pinned-title")).to_have_text(title)
+        expect(page.locator(".rail-pinned-body")).to_contain_text("For every")
+        assert "view=" not in page.evaluate("() => window.location.search")
+        page.wait_for_timeout(600)
+        _assert_lands_like_sender(page, "par-1-6", sender_top)
+
+        assert page.evaluate("() => JSON.stringify({...localStorage})") == saved_before
+        page.reload()
+        page.wait_for_function(REVEALED, timeout=10_000)
+        expect(rail).not_to_have_class(re.compile(r"\bhas-pin\b"))
+        expect(page.locator(".rsm-shared-pill")).to_have_count(0)
+        assert page.evaluate("() => JSON.stringify({...localStorage})") == saved_before
 
     def test_no_pin_no_pins_field(self, page: Page, interactive_server: str):
         _fresh_sender(page, interactive_server)

@@ -4346,3 +4346,45 @@ html.rsm-minimap-on::-webkit-scrollbar { display: none; }
 @media print {
   .rsm-minimap { display: none !important; }
 }
+
+/* Loading (rsm-hc8). A built page is hidden from its first paint until its
+   layout has settled: a pre-paint script in the head sets html.rsm-loading,
+   and onload.js shows the page once math, fonts, folds, the margin column and
+   a shared view or #target are in place (or the script shows it after 3 s).
+   The title, author block and abstract stay visible, and a spinner stands
+   where the rest of the content goes. The rest keeps its layout while hidden
+   (visibility, not display), so scripts can measure it. With scripting off the
+   class is never set and nothing is hidden. */
+.rsm-loading-spinner { display: none; }
+html.rsm-loading .manuscript .rsm-loading-spinner {
+  display: block;
+  /* It follows the reader down the hidden part. It is empty and has no
+     height (the circle is drawn out of flow), so it takes no room and the
+     margins around it join as if it were not there: nothing moves when it
+     goes. */
+  position: sticky;
+  top: 40vh;
+  height: 0;
+}
+html.rsm-loading .manuscript .rsm-loading-spinner::before {
+  content: "";
+  position: absolute;
+  top: var(--chunk-half);
+  left: calc(50% - 0.75rem);
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  border: 2px solid var(--gray-300);
+  border-top-color: var(--primary-600);
+  animation: rsm-spin 0.8s linear infinite;
+}
+html.rsm-loading .manuscript .rsm-loading-spinner ~ * { visibility: hidden; }
+html.rsm-revealing .manuscript .rsm-loading-spinner ~ * {
+  animation: rsm-reveal 0.3s ease-out;
+}
+@keyframes rsm-spin { to { transform: rotate(360deg); } }
+@keyframes rsm-reveal { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  html.rsm-loading .manuscript .rsm-loading-spinner::before { animation: none; }
+  html.rsm-revealing .manuscript .rsm-loading-spinner ~ * { animation: none; }
+}

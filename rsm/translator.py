@@ -1060,6 +1060,21 @@ class Translator:
         #     logger.debug(f"Using {method} for node of class {ogclass}")
         return getattr(cls, method)
 
+    # Set by FullBuildApp: a built page loads behind a spinner (rsm-hc8).
+    loading_spinner = False
+
+    def _spinner_after(self, tree: nodes.Manuscript) -> nodes.Node:
+        """The node that the loading spinner follows: the last author block or
+        abstract before the first section, or else the manuscript itself, whose
+        visit writes the title."""
+        after: nodes.Node = tree
+        for child in tree.children:
+            if isinstance(child, nodes.Section):
+                break
+            if isinstance(child, (nodes.AuthorBlock, nodes.Abstract)):
+                after = child
+        return after
+
     def push_visit(self, stack, node: nodes.Node) -> None:
         stack.append(self.Action(node, "visit", self.get_action_method(node, "visit")))
 
@@ -1076,6 +1091,8 @@ class Translator:
         if self.deferred:
             raise RSMTranslatorError("Something went wrong")
 
+        spinner_after = self._spinner_after(tree) if self.loading_spinner else None
+        spinner_action = "visit" if spinner_after is tree else "leave"
         stack = []
         self.push_visit(stack, tree)
         while stack:
@@ -1087,6 +1104,8 @@ class Translator:
                 for child in reversed(node.children):
                     self.push_visit(stack, child)
             command.execute(self)
+            if node is spinner_after and action == spinner_action:
+                self.body += '\n<div class="rsm-loading-spinner" aria-hidden="true"></div>\n'
 
         if self.deferred:
             raise RSMTranslatorError("Something went wrong")

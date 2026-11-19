@@ -10,7 +10,7 @@ from .conftest import VIEWPORTS
 FIXTURE = Path(__file__).parent / "fixtures" / "figures.rsm"
 IMAGE_DIR = Path(__file__).parent / "fixtures"
 
-RSM_READY = "() => window.__rsmInitialized === true"
+RSM_READY = "() => window.__rsmShown === true"
 
 
 @pytest.mark.visual

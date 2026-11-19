@@ -201,6 +201,68 @@ export async function onload(root = null, { keys = true } = {}) {
   } catch (err) {
     console.error("An error occurred during initialization:", err);
   }
+  await revealWhenSettled();
+}
+
+// How long the manuscript must keep its size before the page is shown. A
+// figure's own script (a plot or a widget) can still be drawing after RSM is
+// done, and RSM cannot know when it finishes, so it waits for the sizes to stop
+// changing instead. The pre-paint script shows the page after 3 s regardless.
+const QUIET_MS = 500;
+
+// Resolves once el has not changed size for ms milliseconds.
+function untilQuiet(el, ms) {
+  return new Promise((resolve) => {
+    if (!el || !window.ResizeObserver) {
+      requestAnimationFrame(() => requestAnimationFrame(resolve));
+      return;
+    }
+    let timer = null;
+    const ro = new ResizeObserver(() => {
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        ro.disconnect();
+        resolve();
+      }, ms);
+    });
+    ro.observe(el);
+  });
+}
+
+// A built page is hidden below its header until its layout has settled
+// (rsm-hc8, see the pre-paint script in builder.py and html.rsm-loading in
+// braiid.css). Math typesetting can load font files that arrive later still,
+// so wait for those too. A shared view's anchor, or else the #target, is
+// placed last, then the page is shown, so nothing moves after the reveal.
+async function revealWhenSettled() {
+  try {
+    await libs.mathIdle();
+  } catch (err) {
+    console.error("Waiting for math FAILED!", err);
+  }
+  try {
+    if (document.fonts) await document.fonts.ready;
+  } catch (err) {
+    console.error("Waiting for fonts FAILED!", err);
+  }
+  await untilQuiet(document.querySelector(".manuscript"), QUIET_MS);
+  let target = null;
+  try {
+    if (!shareview.placeSharedAnchor()) {
+      const id = decodeURIComponent(window.location.hash.slice(1));
+      target = id && id !== "top" ? document.getElementById(id) : null;
+      if (target) target.scrollIntoView({ block: "start", behavior: "instant" });
+    }
+  } catch (err) {
+    console.error("Placing the reader FAILED!", err);
+  }
+  // __rsmShown is set once the page is shown and its fade is over; a page
+  // with no pre-paint script (an RSM fragment placed in another page) was
+  // never hidden.
+  if (window.__rsmReveal) window.__rsmReveal();
+  else window.__rsmShown = true;
+  // Focus could not move to the target while it was hidden.
+  if (target) target.focus({ preventScroll: true });
 }
 
 let renderInProgress = false;

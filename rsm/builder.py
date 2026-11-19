@@ -172,6 +172,33 @@ class HTMLBuilder(BaseBuilder):
             "  </script>\n"
         )
 
+    def _loading_preload_script(self) -> str:
+        """A pre-paint script that hides the page below its title, author block
+        and abstract until onload.js has laid it out (rsm-hc8). onload.js calls
+        __rsmReveal when the layout has settled; the timeout shows the page if
+        that never happens. With scripting off it never runs and nothing is
+        hidden."""
+        if 'class="rsm-loading-spinner"' not in (self.body or ""):
+            return ""
+        return (
+            "\n  <script>\n"
+            "    (function() {\n"
+            "      var root = document.documentElement;\n"
+            "      root.classList.add('rsm-loading');\n"
+            "      window.__rsmReveal = function() {\n"
+            "        if (!root.classList.contains('rsm-loading')) return;\n"
+            "        root.classList.remove('rsm-loading');\n"
+            "        root.classList.add('rsm-revealing');\n"
+            "        setTimeout(function() {\n"
+            "          root.classList.remove('rsm-revealing');\n"
+            "          window.__rsmShown = true;\n"
+            "        }, 400);\n"
+            "      };\n"
+            "      setTimeout(window.__rsmReveal, 3000);\n"
+            "    })();\n"
+            "  </script>\n"
+        )
+
     def _toc_switch_preload_script(self) -> str:
         """A pre-paint script that shows the table of contents' list/graph
         buttons from the first paint. tocarcs.js also sets html.has-toc-switch
@@ -232,7 +259,7 @@ class HTMLBuilder(BaseBuilder):
 
         sidebar_preload = (
             self._sidebar_preload_script() + self._asides_preload_script()
-            + self._toc_switch_preload_script()
+            + self._toc_switch_preload_script() + self._loading_preload_script()
         )
 
         header = dedent(
@@ -423,7 +450,7 @@ class StandaloneBuilder(HTMLBuilder):
 
         sidebar_preload = (
             self._sidebar_preload_script() + self._asides_preload_script()
-            + self._toc_switch_preload_script()
+            + self._toc_switch_preload_script() + self._loading_preload_script()
         )
 
         header = f"""\
