@@ -329,17 +329,16 @@ CST_TYPE_TO_AST_TYPE: dict[str, Callable] = {
 }
 
 
-def _metaval_str(cst_val: TSNode, before_key: bool) -> str:
+def _metaval_str(cst_val: TSNode) -> str:
     """Return a meta value as one line of text.
 
     A value is one text piece per line, with comments between them, so the
-    pieces are joined with single spaces. A comma between pairs is optional and
-    the grammar leaves it in the value before it, so it is dropped here when
-    another key follows.
+    pieces are joined with single spaces. A comma after a pair is optional and
+    the grammar leaves it in the value before it, so it is dropped here.
     """
     pieces = [(c.text or b"").decode("utf-8") for c in cst_val.children if c.type != "comment"]
     val = " ".join(" ".join(pieces).split())
-    if before_key and val.endswith(","):
+    if val.endswith(","):
         val = val[:-1].rstrip()
     return val
 
@@ -515,8 +514,7 @@ def _parse_meta_into_dict(node: TSNode) -> dict[str, Any]:
     for err in [c for c in node.named_children if c.type == "ERROR"]:
         _log_meta_error(err)
     pairs = {}
-    all_pairs = [c for c in node.named_children if c.type.endswith("pair")]
-    for i, pair in enumerate(all_pairs):
+    for pair in [c for c in node.named_children if c.type.endswith("pair")]:
         if pair.named_children[0].type == "metakey_unknown":
             # For an empty meta ("{}"), error recovery inserts a MISSING key
             # that has no text. The author wrote no key, so nothing is logged.
@@ -532,7 +530,7 @@ def _parse_meta_into_dict(node: TSNode) -> dict[str, Any]:
             cst_key, val = pair.named_children[0], None
         else:
             cst_key, cst_val = pair.named_children
-            val = _metaval_str(cst_val, before_key=i + 1 < len(all_pairs))
+            val = _metaval_str(cst_val)
         key, val = globals()[f"_parse_{cst_key.type}"](cst_key, val)
         if not _value_is_valid(key, val, cst_key.type, pair):
             continue

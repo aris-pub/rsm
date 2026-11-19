@@ -323,8 +323,8 @@ content, and close with `::`.  `:qed:` is a stamp.
 Meta appears in `{...}` immediately after a tag. Block meta and inline meta are written
 the same way. A value runs to the next key or to the closing `}`. Line breaks count as
 spaces, so meta may be written on one line or on many, and a value may run over several
-lines. A comma right before a key is dropped, so commas between pairs are optional. A
-comma anywhere else stays in the value.
+lines. A comma at the end of a pair, right before the next key or the closing `}`, is
+dropped, so commas between pairs are optional. A comma anywhere else stays in the value.
 
 ```
 :theorem: {:title: Main Result, :label: thm-main, :icon: star}

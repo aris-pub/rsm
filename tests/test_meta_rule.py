@@ -1,8 +1,8 @@
 """One rule for meta blocks and inline meta (rsm-9kn).
 
 A value runs to the next key or to the closing brace. Newlines count as spaces,
-so a value may run over several lines. A comma right before a key is dropped,
-so commas between pairs are optional. The grammar side is covered by
+so a value may run over several lines. A comma after a pair is dropped, so
+commas between pairs (and after the last one) are optional. The grammar side is covered by
 tree-sitter-rsm/test/corpus/meta.txt."""
 
 import logging
@@ -35,9 +35,11 @@ def _thm(meta: str) -> nodes.Theorem:
         "{\n  :title: A\n  :label: t\n  :nonum:\n  }",
         "{:nonum:, :title: A, :label: t}",
         "{:nonum: :title: A :label: t}",
+        "{:title: A, :label: t, :nonum:,}",
+        "{:nonum:, :title: A, :label: t,}",
     ],
     ids=["one-line-commas", "one-line-bare", "lines-commas", "lines-bare",
-         "bool-first-comma", "bool-first-bare"],
+         "bool-first-comma", "bool-first-bare", "last-bool-comma", "last-value-comma"],
 )
 def test_same_pairs_in_every_form(meta):
     thm = _thm(meta)
@@ -83,7 +85,7 @@ def test_value_over_several_lines(meta, title):
          "Ratio 3:1, see http://a.org"),
         ("{:title: Task #1\\: Masked LM, :label: t}", "Task #1: Masked LM"),
         ("{:title: Note :x and a:b: c :label: t}", "Note :x and a:b: c"),
-        ("{:label: t :title: Ends in a comma,}", "Ends in a comma,"),
+        ("{:label: t :title: Ends in a comma,}", "Ends in a comma"),
     ],
     ids=["mid-comma", "comma-before-key", "colons", "escape", "colon-words",
          "comma-before-brace"],
