@@ -352,6 +352,7 @@ def _parse_metakey_text(cst_key: TSNode, val: str) -> tuple[str, str]:
     return cst_key.named_children[0].type, val
 
 
+_parse_metakey_title = _parse_metakey_text
 _parse_metakey_path = _parse_metakey_text
 _parse_metakey_number = _parse_metakey_text
 _parse_metakey_word = _parse_metakey_text
@@ -725,28 +726,41 @@ def _depth_jump_error(item: "nodes.Item") -> "nodes.Error":
     )
 
 
-# The grammar parses these tags in a heading only so that they can be reported
-# here: a heading does not hold links, note calls or raw HTML.
+# The grammar parses these tags in a heading or a :title: only so that they can
+# be reported here: a title does not hold links, note calls or raw HTML.
 _NOT_IN_HEADING = {
     "ref", "cite", "url", "note", "aside", "rawhtml",
     "previous", "prev", "prev2", "prev3",
 }
 
 
-def _drop_tags_not_allowed_in_heading(title_children: list[TSNode]) -> list[TSNode]:
+def _drop_tags_not_allowed_in_heading(
+    title_children: list[TSNode], where: str = "a heading"
+) -> list[TSNode]:
     kept = []
     for c in title_children:
         tag = c.named_children[0].type if c.type == "specialinline" else ""
         if tag in _NOT_IN_HEADING:
             pos = _user_position(c.start_point, c.end_point)
             logger.error(
-                f"A :{tag}: on line {pos['start_row']} is not allowed in a heading "
+                f"A :{tag}: on line {pos['start_row']} is not allowed in {where} "
                 "and is left out",
                 extra=pos,
             )
             continue
         kept.append(c)
     return kept
+
+
+def _markup_title_children(meta: TSNode) -> list[TSNode]:
+    """The pieces of a :title: value in this meta, if the title holds markup.
+    A plain title is read as text by _parse_meta_into_dict."""
+    for pair in meta.named_children:
+        if pair.type == "pair" and pair.named_children[0].type == "metakey_title":
+            pieces = [c for c in pair.named_children[1].named_children if c.type != "comment"]
+            if any(c.type != "text" for c in pieces):
+                return _drop_tags_not_allowed_in_heading(pieces, "a title")
+    return []
 
 
 def _join_title_text(children: list[nodes.Node]) -> list[nodes.Node]:
@@ -852,6 +866,14 @@ def _abstractify(cst: TSTree) -> nodes.Manuscript:
     title_builds: list[tuple[nodes.Heading, nodes.Span]] = []
     raw_html_nodes: list[nodes.RawHtml] = []
     stack = [(None, cst.root_node)]
+
+    def ingest_meta(ast_node: nodes.Node, meta: TSNode) -> None:
+        ast_node.ingest_dict_as_meta(_parse_meta_into_dict(meta))
+        pieces = _markup_title_children(meta)
+        if pieces and isinstance(ast_node, nodes.Heading):
+            holder = nodes.Span()
+            title_builds.append((ast_node, holder))
+            stack.extend(reversed([(holder, c) for c in pieces]))
     while stack:
         parent, cst_node = stack.pop()
         skip_these_ids = set()
@@ -929,7 +951,7 @@ def _abstractify(cst: TSTree) -> nodes.Manuscript:
             if isinstance(ast_node, nodes.Manuscript):
                 ast_root_node = ast_node
             if meta:
-                ast_node.ingest_dict_as_meta(_parse_meta_into_dict(meta))
+                ingest_meta(ast_node, meta)
             else:
                 skip_these_ids |= _log_meta_errors_outside_meta(cst_node)
 
@@ -1052,7 +1074,7 @@ def _abstractify(cst: TSTree) -> nodes.Manuscript:
         # process meta
         meta = cst_node.child_by_field_name("meta")
         if meta:
-            ast_node.ingest_dict_as_meta(_parse_meta_into_dict(meta))
+            ingest_meta(ast_node, meta)
         else:
             skip_these_ids |= _log_meta_errors_outside_meta(cst_node)
 
@@ -1122,7 +1144,7 @@ def _abstractify(cst: TSTree) -> nodes.Manuscript:
 
             meta = cst_node.child_by_field_name("meta")
             if meta:
-                ast_node.ingest_dict_as_meta(_parse_meta_into_dict(meta))
+                ingest_meta(ast_node, meta)
 
         if ast_node_type == "notecall":
             target_node = cst_node.child_by_field_name("target")
@@ -1190,10 +1212,16 @@ def _abstractify(cst: TSTree) -> nodes.Manuscript:
     # that a node in the title can find its siblings when it is rendered.
     for heading, holder in title_builds:
         children = _join_title_text(list(holder.children))
+        for c in children:
+            # A title written over several lines keeps each line's indent.
+            if isinstance(c, nodes.Text):
+                c.text = re.sub(r"\s+", " ", c.text)
         if isinstance(children[0], nodes.Text):
             children[0].text = children[0].text.lstrip()
         if isinstance(children[-1], nodes.Text):
-            children[-1].text = children[-1].text.rstrip()
+            # A comma at the end of a meta pair is dropped (see _metaval_str).
+            text = children[-1].text.rstrip()
+            children[-1].text = text[:-1].rstrip() if text.endswith(",") else text
         heading.title_nodes = children
         heading.title = _flatten_reftext(children).strip()
 

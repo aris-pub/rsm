@@ -111,10 +111,43 @@ def test_colon_in_paragraph_title():
     assert '<span class="pg-label"> Ratio 3:1. </span>' in html
 
 
-def test_comma_ends_a_paragraph_title(caplog):
-    with caplog.at_level(logging.WARNING):
-        _render(":paragraph: {:title: A, b, :label: p} Body.\n")
-    assert any(r.levelname in ("WARNING", "ERROR") for r in caplog.records)
+def test_comma_in_a_paragraph_title_is_kept():
+    par = _tree(":paragraph: {:title: A, $b$, :label: p} Body.\n").first_of_type(
+        nodes.Paragraph
+    )
+    assert par.title == "A, b"
+    assert par.label == "p"
+
+
+@pytest.mark.parametrize(
+    "meta",
+    [
+        "{\n  :title: Uses $x$ and\n          $y$ here\n  :label: t\n  }",
+        "{:title: Uses $x$ and\n  $y$ here :label: t}",
+    ],
+    ids=["lines", "one-line-style"],
+)
+def test_math_title_over_two_lines(meta):
+    src = f":theorem: {meta}\n  B.\n::\n"
+    html = _flat(_render(src))
+    assert (
+        r'<span class="span desc">Uses <span class="math">\(x\)</span> and '
+        r'<span class="math">\(y\)</span> here</span>'
+    ) in html
+    thm = _tree(src).first_of_type(nodes.Theorem)
+    assert thm.title == "Uses x and y here"
+    assert thm.label == "t"
+
+
+def test_comma_after_math_title_before_brace_is_dropped():
+    src = ":theorem: {:label: t :title: Uses $x$,}\n  B.\n::\n"
+    html = _flat(_render(src))
+    assert f'<span class="span desc">Uses {MATH_X2.replace("x^2", "x")}</span>' in html
+
+
+def test_tag_after_punctuation_in_a_title():
+    html = _flat(_render(":theorem: {:title: A (:code:x::) b}\n  B.\n::\n"))
+    assert '<span class="span desc">A (<span class="code"><code>x</code></span>) b</span>' in html
 
 
 def test_math_in_section_tag_title():
