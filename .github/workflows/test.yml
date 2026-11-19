@@ -181,11 +181,9 @@ jobs:
         cd docs && uv run make doctest
 
   pandoc-tests:
-    runs-on: ${{ matrix.os }}-latest
-
-    strategy:
-      matrix:
-        os: [ubuntu, macos]
+    # RSM's pandoc code does not depend on the system, so one system is
+    # enough. The macOS job was often cancelled for lack of runners.
+    runs-on: ubuntu-latest
 
     env:
       PYTEST_ADDOPTS: "--color=yes"
@@ -209,13 +207,8 @@ jobs:
     - name: Install rsm-lang
       run: uv sync
 
-    - name: Install pandoc (Ubuntu)
-      if: matrix.os == 'ubuntu'
+    - name: Install pandoc
       run: sudo apt-get install -y pandoc
-
-    - name: Install pandoc (macOS)
-      if: matrix.os == 'macos'
-      run: brew install pandoc
 
     - name: Run pandoc tests
       run: uv run pytest -vv tests/test_pandoc.py
