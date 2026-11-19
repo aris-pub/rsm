@@ -17,6 +17,8 @@ from playwright.sync_api import Page, expect
 
 import rsm
 
+pytestmark = pytest.mark.interactive
+
 SLOW_IMG = "http://slow.test/pixel.png"
 PIXEL = bytes.fromhex(
     "89504e470d0a1a0a0000000d4948445200000001000000010806000000"
