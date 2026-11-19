@@ -286,7 +286,8 @@ CST_TYPE_TO_AST_TYPE: dict[str, Callable] = {
     "caption": nodes.Caption,
     "figure": nodes.Figure,
     "video": nodes.Video,
-    "html": nodes.Html,
+    "html": nodes.RawHtml,
+    "htmlblock": nodes.HtmlBlock,
     "construct": nodes.Construct,
     "specialconstruct": nodes.Construct,
     "lemma": nodes.Lemma,
@@ -302,7 +303,6 @@ CST_TYPE_TO_AST_TYPE: dict[str, Callable] = {
     "proof": nodes.Proof,
     "calc": nodes.Calc,
     "proposition": nodes.Proposition,
-    "rawhtml": nodes.RawHtml,
     "ref": nodes.PendingReference,
     "remark": nodes.Remark,
     "section": nodes.Section,
@@ -729,7 +729,7 @@ def _depth_jump_error(item: "nodes.Item") -> "nodes.Error":
 # The grammar parses these tags in a heading or a :title: only so that they can
 # be reported here: a title does not hold links, note calls or raw HTML.
 _NOT_IN_HEADING = {
-    "ref", "cite", "url", "note", "aside", "rawhtml",
+    "ref", "cite", "url", "note", "aside", "html",
     "previous", "prev", "prev2", "prev3",
 }
 
@@ -791,13 +791,13 @@ def _flatten_reftext(reftext_nodes: "list[nodes.Node]") -> str:
     return "".join(parts)
 
 
-# The :alt: of a :rawhtml: is a text meta value, so the grammar does not parse
+# The :alt: of a :html: is a text meta value, so the grammar does not parse
 # the inline math in it. It is split here instead.
 _ALT_MATH = re.compile(r"(?<!\\)\$(.+?)(?<!\\)\$")
 
 
 def _alt_nodes(alt: str) -> list[nodes.Node]:
-    """The fallback of a :rawhtml: as inline nodes: text, and inline math for
+    """The fallback of a :html: as inline nodes: text, and inline math for
     each $...$ in its :alt:."""
     result: list[nodes.Node] = []
     pos = 0
@@ -814,11 +814,11 @@ def _alt_nodes(alt: str) -> list[nodes.Node]:
 
 
 def _check_raw_html(raw: nodes.RawHtml) -> None:
-    """Put the fallback of a :rawhtml: in its place when it is part of a link's
+    """Put the fallback of a :html: in its place when it is part of a link's
     text (a :ref: or :url: reftext, or the phrase of an aside call), and warn
     when it has no fallback at all.
 
-    The grammar keeps :rawhtml: out of reftext, but a span inside reftext can
+    The grammar keeps :html: out of reftext, but a span inside reftext can
     still hold one, and a link cannot hold live HTML."""
     extra = _user_position(raw.start_point, raw.end_point)
     link = raw.parent
@@ -829,14 +829,14 @@ def _check_raw_html(raw: nodes.RawHtml) -> None:
     if link is None:
         if not raw.alt:
             logger.warning(
-                "An inline :rawhtml: has no :alt:, so nothing stands in for it in "
+                "An inline :html: has no :alt:, so nothing stands in for it in "
                 "reference previews and in output other than HTML",
                 extra=extra,
             )
         return
 
     logger.warning(
-        "An inline :rawhtml: inside the text of a link shows its :alt: instead",
+        "An inline :html: inside the text of a link shows its :alt: instead",
         extra=extra,
     )
     fallback = list(raw.children)
@@ -1091,13 +1091,14 @@ def _abstractify(cst: TSTree) -> nodes.Manuscript:
                 child = nodes.Text(text, asis=True)
             ast_node.append(child)
 
-        if ast_node_type == "rawhtml":
+        if ast_node_type in ["html", "htmlblock"]:
             asis = cst_node.named_children[-1]
             assert asis.type == "asis_text"
             ast_node.html = asis.text.decode("utf-8").strip()
             for child in _alt_nodes(ast_node.alt):
                 ast_node.append(child)
-            raw_html_nodes.append(ast_node)
+            if ast_node_type == "html":
+                raw_html_nodes.append(ast_node)
 
         # mathblocks that are marked as claims must be enclosed within a ClaimBlock
         if ast_node_type == "mathblock" and ast_node.isclaim:
@@ -1227,6 +1228,12 @@ def _abstractify(cst: TSTree) -> nodes.Manuscript:
 
     for raw in raw_html_nodes:
         _check_raw_html(raw)
+
+    for fig in list(ast_root_node.traverse(nodeclass=nodes.Figure)):
+        block = next((c for c in fig.children if isinstance(c, nodes.HtmlBlock)), None)
+        if block is not None:
+            block.remove_self()
+            fig.htmlblock = block
 
     _normalize_text(ast_root_node)
     return ast_root_node

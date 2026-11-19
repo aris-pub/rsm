@@ -1503,6 +1503,26 @@ class RawHtml(NodeWithChildren):
         return result
 
 
+class HtmlBlock(NodeWithChildren):
+    """A block of raw HTML, written into the HTML page as is.
+
+    As with :class:`RawHtml`, the HTML is kept in :attr:`html` and the children
+    are the fallback made from :attr:`alt`.
+    """
+
+    newmetakeys: ClassVar[set] = {"alt"}
+
+    def __init__(self, html: str = "", alt: str = "", **kwargs: Any) -> None:
+        super().__init__(**kwargs)
+        self.html = html
+        self.alt = alt
+
+    def to_dict(self) -> dict:
+        result = super().to_dict()
+        result["html"] = self.html
+        return result
+
+
 class CodeBlock(TerminalBlock):
     classreftext: ClassVar[str] = "Code Block {number}"
     newmetakeys: ClassVar[set] = {"lang"}
@@ -2055,19 +2075,20 @@ class Asset(NodeWithChildren):
 
 
 class Figure(Asset):
-    pass
+    def __init__(self, **kwargs: Any) -> None:
+        super().__init__(**kwargs)
+        # An :htmlblock: written inside the figure. The parser moves it here,
+        # out of the children, so that it is rendered where HTML from a file is.
+        self.htmlblock: HtmlBlock | None = None
+
+    @property
+    def holds_html(self) -> bool:
+        """Whether the figure shows HTML, from a file or an :htmlblock:."""
+        return str(self.path).lower().endswith(".html") or self.htmlblock is not None
 
 
 class Video(Asset):
     pass
-
-
-class Html(Asset):
-    _number_as = Figure
-
-    @property
-    def kindname(self) -> str:
-        return self.blockname or "Widget"
 
 
 class Draft(NodeWithChildren):
@@ -2107,7 +2128,6 @@ class Caption(Paragraph):
     possible_parents: ClassVar[set[type["NodeWithChildren"]]] = {
         Figure,
         Video,
-        Html,
         Table,
     }
 

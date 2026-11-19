@@ -1,4 +1,4 @@
-"""Reference previews of :html: blocks (widgets).
+"""Reference previews of :figure: blocks (widgets).
 
 A copy of the live widget does not work out of its place (its styles and
 scripts are tied to the original), so the preview and the pinned excerpt show
@@ -59,7 +59,7 @@ def test_preview_shows_still_image_not_widget(page: Page, interactive_server: st
     tip = _preview(page, "#wid-still")
     expect(tip.locator(".live-widget")).to_have_count(0)
     expect(tip.locator("script, style")).to_have_count(0)
-    expect(tip.locator(".widget-preview-label")).to_have_text("Widget 1.1")
+    expect(tip.locator(".widget-preview-label")).to_have_text("Figure 1.1")
     expect(tip.locator(".widget-preview-note")).to_have_text(NOTE)
     want = "fixtures-static-dark.png" if dark else "fixtures-static-light.png"
     shown = _shown_img_src(tip)
@@ -86,7 +86,7 @@ def test_preview_without_still_image_shows_alt_text(page: Page, interactive_serv
     tip = _preview(page, "#wid-bare")
     expect(tip.locator(".live-widget")).to_have_count(0)
     expect(tip.locator("img")).to_have_count(0)
-    expect(tip.locator(".widget-preview-label")).to_have_text("Widget 1.2")
+    expect(tip.locator(".widget-preview-label")).to_have_text("Figure 1.2")
     expect(tip.locator(".widget-preview-alt")).to_have_text("A widget with no still picture.")
     expect(tip.locator(".widget-preview-note")).to_have_text(NOTE)
 
@@ -100,7 +100,7 @@ def test_pinned_widget_follows_theme_switch(page: Page, interactive_server: str)
     expect(body.locator(".live-widget")).to_have_count(0)
     # The card's header already names the widget, so the body does not repeat it.
     expect(body.locator(".widget-preview-label")).to_have_count(0)
-    expect(page.locator(".rail-pinned")).to_contain_text("Widget 1.1")
+    expect(page.locator(".rail-pinned")).to_contain_text("Figure 1.1")
     # The card is filled and laid out after the click returns, so wait for the
     # image to show rather than reading it once.
     _wait_one_shown(body, "fixtures-static-light.png")
@@ -119,13 +119,15 @@ BLOCK_WITH_WIDGET = """# Doc
 
   Text before the widget.
 
-  :html: {
+  :figure: {
     :as-paragraph:
     :static: still.png
     :alt: The widget at rest.
   }
 
+  :htmlblock:
   <div class="live-widget" style="height: 80px; background: teal"></div>
+  ::
 
   ::
 

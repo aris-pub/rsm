@@ -107,8 +107,8 @@ A raw image path (``.png``, ``.jpg``, ``.svg``) is embedded as an ``<img>``. For
 SVG figure that should follow the page theme (dark mode, accent color), put the SVG
 in an HTML fragment file and use ``:path: fig.html`` (where ``fig.html`` contains
 ``<svg>...</svg>``). RSM inlines the markup so it picks up the page CSS variables, and
-the figure is still labelled "Figure". Use ``:html:`` only for non-figure interactive
-widgets.
+the figure is still labelled "Figure". HTML written in the document goes in an
+``:htmlblock:`` inside the figure.
 
 
 Add inline math

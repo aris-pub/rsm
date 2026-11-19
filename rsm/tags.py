@@ -35,9 +35,12 @@ enumerate = BlockTagInfo(None)  # pylint: disable=redefined-builtin
 example = BlockTagInfo(None)
 """Example."""
 figure = BlockTagInfo(None)
-"""Figure float."""
-html = BlockTagInfo(None)
-"""HTML asset."""
+"""Figure float. It holds an image, a video, or HTML: from a file named by :path:,
+or from an :htmlblock: inside it."""
+htmlblock = BlockTagInfo(None)
+"""A block of raw HTML, written into the HTML page as is:
+``:htmlblock: {:alt: fallback} <div>...</div> ::``. It is not numbered. :alt:
+stands in for the HTML where HTML cannot be, as for :html:."""
 itemize = BlockTagInfo(None)
 """Unnumbered list."""
 lemma = BlockTagInfo(None)
@@ -106,9 +109,9 @@ math = InlineTagInfo(None)
 note = InlineTagInfo(None)
 """Footnote. Call it inline with ``:note:lbl::`` and define it as a block with
 ``:note: {:label: lbl} content ::``. Footnotes are numbered 1, 2, 3 in call order."""
-rawhtml = InlineTagInfo(None)
+html = InlineTagInfo(None)
 """Raw HTML inside a sentence, written into the HTML page as is:
-``:rawhtml:{:alt: fallback} <span>...</span> ::``. The HTML runs up to the first
+``:html:{:alt: fallback} <span>...</span> ::``. The HTML runs up to the first
 ``::``, so it cannot contain one. :alt: (text and inline math) stands in for the
 HTML in output other than HTML and in the copies the page makes of its own content,
 such as reference previews."""
@@ -148,10 +151,10 @@ no_minimap = MetaTagInfo(None, bool)
 author_note = MetaTagInfo(None, str)
 """Author note (e.g., 'Equal contribution')."""
 as_paragraph = MetaTagInfo(None, bool)
-"""Whether a figure, widget or video sits at the level of a paragraph: no number, no
+"""Whether a figure or video sits at the level of a paragraph: no number, no
 caption, and a handrail like a paragraph's."""
 blockname = MetaTagInfo(None, str)
-"""Name a theorem-like block, an asset (figure, widget, video) or a table is called by, in
+"""Name a theorem-like block, an asset (figure, video) or a table is called by, in
 place of its type's name, such as "Hint"."""
 email = MetaTagInfo(None, str)
 """Author email."""
@@ -190,7 +193,7 @@ orcid = MetaTagInfo(None, str)
 override_date = MetaTagInfo(None, datetime)
 """Override manuscript date via config block."""
 alt = MetaTagInfo(None, str)
-"""Alt text for figure images, and the fallback of :rawhtml:."""
+"""Alt text for figure images, and the fallback of :html: and :htmlblock:."""
 dark = MetaTagInfo(None, Path)
 """Path to alternate figure image rendered in dark mode."""
 path = MetaTagInfo(None, Path)

@@ -25,11 +25,11 @@ PHONE = {"width": 375, "height": 720}
 LABELS = [
     "1. Introduction",
     "1.1. Background",
-    "Widget",  # an unnumbered, uncaptioned ornament
+    "Figure",  # an unnumbered, uncaptioned ornament
     "Figure 1.1",
     "2. Results",
-    "Widget 2.1",
-    "Widget 2.2",  # numbered, no caption
+    "Figure 2.1",
+    "Figure 2.2",  # numbered, no caption
     "3. Discussion",
     "Video 3.1",
     "Figure 3.1",
@@ -203,7 +203,7 @@ def test_unnumbered_widget_gets_a_mark_named_by_its_kind(page: Page, interactive
     assert page.locator("#wid-ornament > figcaption").count() == 0
     assert page.locator("#wid-ornament").get_attribute("data-number") is None
     m = next(m for m in _marks(page) if m["id"] == "wid-ornament")
-    assert m["type"] == "figure" and m["label"] == "Widget"
+    assert m["type"] == "figure" and m["label"] == "Figure"
 
 
 def test_figures_inside_a_widget_get_no_mark(page: Page, interactive_server: str):
@@ -229,9 +229,9 @@ def test_numbered_widget_without_a_caption_gets_a_mark_named_by_its_number(
     assert page.locator("#wid-bare > figcaption").count() == 0
     m = next(m for m in _marks(page) if m["id"] == "wid-bare")
     assert m["type"] == "figure"
-    assert m["label"] == "Widget 2.2"
+    assert m["label"] == "Figure 2.2"
     page.mouse.move(_strip_x(page), _track(page)["y"] + m["y"])
-    assert page.locator(".rsm-minimap-tip").inner_text() == "Widget 2.2"
+    assert page.locator(".rsm-minimap-tip").inner_text() == "Figure 2.2"
 
 
 @pytest.mark.parametrize("size", [DESKTOP, PHONE], ids=["1280", "375"])
@@ -326,7 +326,7 @@ def test_hover_near_a_section_mark_shows_its_heading(page: Page, interactive_ser
 def test_hover_shows_figure_labels(page: Page, interactive_server: str):
     _load(page, interactive_server)
     track = _track(page)
-    for label in ("Figure 1.1", "Widget 2.1"):
+    for label in ("Figure 1.1", "Figure 2.1"):
         m = _mark(page, label)
         page.mouse.move(_strip_x(page), track["y"] + m["y"] - 4)
         assert page.locator(".rsm-minimap-tip").inner_text() == label
@@ -379,7 +379,7 @@ def test_click_a_mark_scrolls_it_to_the_centre(page: Page, interactive_server: s
 
 def test_click_a_figure_mark_scrolls_it_to_the_centre(page: Page, interactive_server: str):
     _load(page, interactive_server, reduced=True)
-    m = _mark(page, "Widget 2.1")
+    m = _mark(page, "Figure 2.1")
     page.mouse.click(_strip_x(page), _track(page)["y"] + m["y"])
     _settle_scroll(page)
     assert abs(_top_in_viewport(page, "wid-a") - DESKTOP["height"] / 2) <= 2
@@ -458,7 +458,7 @@ def test_folding_a_proof_moves_the_marks_below_it_up(page: Page, interactive_ser
     page.wait_for_timeout(50)
     page.wait_for_timeout(300)  # past the debounce
     after = {m["label"]: m["y"] for m in _marks(page)}
-    for label in ("Widget 2.1", "3. Discussion", "Figure 3.1", "3.1. Outlook"):
+    for label in ("Figure 2.1", "3. Discussion", "Figure 3.1", "3.1. Outlook"):
         assert after[label] < before[label] - 5, label
     for m in _marks(page):
         assert abs(m["y"] - m["expected"]) <= 2, m
@@ -580,7 +580,7 @@ def test_marks_are_exposed_as_a_list_of_links(page: Page, interactive_server: st
     links = nav.get_by_role("link")
     assert links.all_text_contents() == LABELS
     hrefs = [links.nth(i).get_attribute("href") for i in range(links.count())]
-    assert hrefs[0] == "#sec-intro" and hrefs[LABELS.index("Widget 2.1")] == "#wid-a"
+    assert hrefs[0] == "#sec-intro" and hrefs[LABELS.index("Figure 2.1")] == "#wid-a"
     assert page.locator(".rsm-minimap-track").get_attribute("aria-hidden") == "true"
 
 

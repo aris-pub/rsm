@@ -146,7 +146,7 @@ class PandocTranslator:
         nodes.Draft: None,
         nodes.Algorithm: None,
         nodes.Contents: "_block_toc",
-        nodes.Html: "_block_asset_placeholder",
+        nodes.HtmlBlock: "_block_html",
         nodes.Video: "_block_asset_placeholder",
         nodes.Subproof: "_block_proof",       # same as Proof — recurse into children
         nodes.ClaimBlock: "_block_construct",
@@ -308,7 +308,14 @@ class PandocTranslator:
         inner = self._walk_children_as_blocks(node)
         return [{"t": "Div", "c": [["", [cls], []], inner]}]
 
+    def _block_html(self, node: nodes.HtmlBlock) -> list[dict]:
+        # Raw HTML has no place outside a web page, so its :alt: stands in.
+        inlines = self._walk_children_as_inlines(node)
+        return [{"t": "Para", "c": inlines}] if inlines else []
+
     def _block_figure(self, node: nodes.Figure) -> list[dict]:
+        if node.holds_html and not node.static:
+            return self._block_asset_placeholder(node)
         # Use :static: path for non-web export when available
         path = str(node.static) if node.static else str(node.path)
         alt_text = node.alt or f"Figure {node.full_number or ''}".strip()
@@ -507,16 +514,6 @@ class PandocTranslator:
         text = node.overwrite_reftext or (
             node.target.reftext if hasattr(node.target, "reftext") else str(node.target)
         )
-        # For PDF export, :html: widgets with a :static: fallback are rendered
-        # as figures — use "Figure" instead of "Widget" in cross-references.
-        # Checking the kind name keeps a :blockname: such as "Widgetry" as written.
-        # Link text written by the author (overwrite_reftext) is never changed.
-        if (not node.overwrite_reftext
-                and isinstance(node.target, nodes.Html)
-                and getattr(node.target, "static", None)
-                and node.target.kindname == "Widget"
-                and text.startswith("Widget")):
-            text = "Figure" + text[6:]
         anchor = (
             f"#{node.target.label}"
             if hasattr(node.target, "label") and node.target.label

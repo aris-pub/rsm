@@ -1,4 +1,4 @@
-"""Inline :rawhtml: in a live page.
+"""Inline :html: in a live page.
 
 The page holds each raw HTML body once, where the author wrote it. The copies
 the page makes of its own content (reference previews, the pinned excerpt,
@@ -126,7 +126,7 @@ def test_source_menu_shows_the_markup_as_written(page: Page, interactive_server:
     modal = page.locator(".rsm-source-modal")
     expect(modal).to_be_visible()
     expect(modal.locator("pre")).to_contain_text(
-        ":rawhtml:{:alt: the circle $C_0$} <x-probe></x-probe> ::"
+        ":html:{:alt: the circle $C_0$} <x-probe></x-probe> ::"
     )
     _assert_bodies_untouched(page)
 

@@ -733,10 +733,10 @@ class PandocExportApp(ParserApp):
             # Inject RSM figure numbers: replace #figure( with
             # #figure(supplement: "Figure X.Y", so braiid.typ can render
             # section-relative numbering from the AST.
-            from .nodes import Figure as FigureNode, Html as HtmlNode
+            from .nodes import Figure as FigureNode
             fig_numbers = []
             for node in manuscript.traverse():
-                if isinstance(node, (FigureNode, HtmlNode)) and node.full_number:
+                if isinstance(node, FigureNode) and node.full_number:
                     fig_numbers.append(node.full_number)
             if fig_numbers:
                 fig_idx = 0

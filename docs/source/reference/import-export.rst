@@ -28,7 +28,8 @@ mathematics) to appropriate LaTeX environments.
 **Limitations**:
 
 - Interactive features (handrails, tooltips) have no equivalent in static formats
-- HTML widgets embedded via ``:html:`` are dropped
+- HTML in a figure is replaced by the figure's ``:static:`` image, or a note to see the
+  online version; ``:html:`` and ``:htmlblock:`` are replaced by their ``:alt:``
 - Some cross-reference patterns may not survive the conversion
 
 

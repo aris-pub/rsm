@@ -1,6 +1,6 @@
 // captions.js
 //
-// Captions of every captioned block (figure, widget, video, table) go in the
+// Captions of every captioned block (figure, video, table) go in the
 // margin column when it fits (margin.js), top-aligned with their block, and
 // stay under the block otherwise. Either way the caption's handrail is drawn
 // in the left gutter beside the block, spanning the block's height, never in

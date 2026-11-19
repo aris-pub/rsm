@@ -35,7 +35,7 @@ RSM_WITH_CAPTION = """\
 
     Before the widget.
 
-    :html: {
+    :figure: {
       :path: widget.html
     }
     :caption: This is the widget caption.

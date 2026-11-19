@@ -105,8 +105,8 @@ describe('tag list matches tree-sitter-rsm/grammar.js', () => {
     expect(new Set(labels).size).toBe(labels.length);
   });
 
-  it('offers :rawhtml: and other tags missing before', () => {
-    for (const tag of [':rawhtml:', ':html:', ':video:', ':calc:', ':case:', ':suffices:',
+  it('offers :html:, :htmlblock: and other tags missing before', () => {
+    for (const tag of [':html:', ':htmlblock:', ':video:', ':calc:', ':case:', ':suffices:',
       ':wlog:', ':span:', ':sketch:', ':as-paragraph:', ':goal:']) {
       expect(labels).toContain(tag);
     }

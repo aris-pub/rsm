@@ -284,7 +284,7 @@ A physics paper with interactive web-based visualizations.
    The widget below allows you to explore all three regimes by adjusting the damping
    parameter. Notice how the phase space trajectories change qualitatively between regimes.
 
-   :html: {
+   :figure: {
      :path: _static/widgets/damped_oscillator_widget.html
    }
    :caption: Interactive damped oscillator simulation showing position vs. time and phase

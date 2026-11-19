@@ -198,7 +198,7 @@ def test_video_youtube():
 def test_html_asset():
     compare_have_want(
         have="""\
-        :html: {
+        :figure: {
           :path: tests/assets/test.html
         }
         :caption: Interactive visualization.
@@ -213,7 +213,7 @@ def test_html_asset():
 
         <section class="level-1">
 
-        <figure class="html" data-number="1" data-nodeid="1">
+        <figure class="figure html" data-number="1" data-nodeid="1">
         <div class="interactive-chart">
           <h3>Sample Interactive Chart</h3>
           <canvas id="chart" width="400" height="300"></canvas>
@@ -223,7 +223,7 @@ def test_html_asset():
           </script>
         </div>
         <figcaption>
-        <span class="label">Widget 1. </span>Interactive visualization.
+        <span class="label">Figure 1. </span>Interactive visualization.
         </figcaption>
 
         </figure>
@@ -261,7 +261,7 @@ def test_mixed_asset_numbering():
           :caption: Second figure.
         ::
 
-        :html:{
+        :figure:{
           :path: tests/assets/viz.html
         }
           :caption: First HTML.
@@ -300,12 +300,12 @@ def test_mixed_asset_numbering():
 
         </figure>
 
-        <figure class="html" data-number="3" data-nodeid="10">
+        <figure class="figure html" data-number="3" data-nodeid="10">
         <div class="data-visualization">
           <p>Custom HTML visualization content</p>
         </div>
         <figcaption>
-        <span class="label">Widget 3. </span>First HTML.
+        <span class="label">Figure 3. </span>First HTML.
         </figcaption>
 
         </figure>
@@ -600,10 +600,12 @@ def test_caption_rail_is_named_after_its_block():
         :caption: A video.
         ::
 
-        :html: {
+        :figure: {
         }
 
+        :htmlblock:
         <div>w</div>
+        ::
 
         :caption: A widget.
         ::
@@ -622,7 +624,7 @@ def test_caption_rail_is_named_after_its_block():
     """)
     html = rsm.render(src, handrails=True)
     labels = re.findall(r'<figcaption[^>]*data-menu-label="([^"]+)"', html)
-    assert labels == ["Figure", "Video", "Widget", "Table"]
+    assert labels == ["Figure", "Video", "Figure", "Table"]
 
 
 # A caption's label carries its block's number: "Figure 1. ". A block with no number, because
@@ -637,10 +639,12 @@ UNNUMBERED = dedent("""\
     :caption: A figure.
     ::
 
-    :html: {{{nonum_block}
+    :figure: {{{nonum_block}
     }}
 
+    :htmlblock:
     <div>w</div>
+    ::
 
     :caption: A widget.
     ::
@@ -673,7 +677,7 @@ def test_a_caption_without_a_number_keeps_its_label_without_the_number(case, han
     assert "None" not in html
     assert re.findall(r'<span class="label">([^<]*)</span>', html) == [
         "Figure. ",
-        "Widget. ",
+        "Figure. ",
         "Table. ",
     ]
     for text in ("A figure.", "A widget.", "A table."):
@@ -686,6 +690,6 @@ def test_a_numbered_caption_keeps_its_label():
     )
     assert re.findall(r'<span class="label">([^<]*)</span>', html) == [
         "Figure 1. ",
-        "Widget 2. ",
+        "Figure 2. ",
         "Table 1. ",
     ]

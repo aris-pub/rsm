@@ -85,8 +85,8 @@ def test_prose_and_code_angle_brackets_are_escaped():
 def test_inline_html_asset_content_is_not_escaped():
     import rsm
 
-    src = '# T\n\n:html:\n\n<div id="w"><b>hi</b> a<c</div>\n\n::\n'
+    src = '# T\n\n:figure:\n\n:htmlblock:\n<div id="w"><b>hi</b> a<c</div>\n::\n\n::\n'
     h = rsm.render(src, handrails=False, source_offsets=False)
-    # Raw HTML in an :html: block is verbatim, not escaped like math/prose.
+    # Raw HTML in an :htmlblock: is verbatim, not escaped like math/prose.
     assert '<div id="w"><b>hi</b> a<c</div>' in h
     assert "&lt;div" not in h

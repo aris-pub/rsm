@@ -600,14 +600,14 @@ class TestFindRequiredAssets:
 
 @pytest.mark.slow
 def test_build_keeps_in_page_references_in_html_assets(tmp_path):
-    """An :html: asset that names an element of the page by #id keeps that reference,
+    """An :figure: asset that names an element of the page by #id keeps that reference,
     and the build does not look for a file named after it."""
     (tmp_path / "widget.html").write_text(
         '<x-widget src="#widget-data"></x-widget>\n'
         '<script type="application/json" id="widget-data">{"k": 1}</script>\n'
     )
     src_file = tmp_path / "doc.rsm"
-    src_file.write_text("# Test\n\n:html: {\n  :path: widget.html\n}\n::\n")
+    src_file.write_text("# Test\n\n:figure: {\n  :path: widget.html\n}\n::\n")
 
     result = subprocess.run(
         ["rsm", "build", str(src_file)],

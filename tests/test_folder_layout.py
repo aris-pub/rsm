@@ -19,7 +19,7 @@ Inline math $x + y$.
 :caption: A plot.
 ::
 
-:html: {
+:figure: {
   :path: figs/widget.html
   :label: fig-widget
   :static: figs/static/widget.png

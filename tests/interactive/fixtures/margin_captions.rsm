@@ -60,11 +60,13 @@ A table, a widget and a video, each with a caption.
 
 Text between the table and the widget.
 
-:html: {
+:figure: {
   :label: wid-a
 }
 
+:htmlblock:
 <div style="width:300px;height:120px;background:#406;color:#fff">widget</div>
+::
 
 :caption: A widget caption.
 ::

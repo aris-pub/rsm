@@ -10,7 +10,7 @@ SRC = """\
 
 Some text :bogus: more text.
 
-:html: {
+:figure: {
   :path: widget.html
 }
 :caption: Some text :bogus: more text.

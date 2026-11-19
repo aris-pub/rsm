@@ -1400,7 +1400,7 @@ var RSM = (() => {
     const esc = (s) => String(s).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll('"', "&quot;");
     const capLabel = fig.querySelector(":scope > figcaption .label");
     const number = fig.getAttribute("data-number");
-    const label2 = capLabel && capLabel.textContent.replace(/\s+/g, " ").trim().replace(/\.$/, "") || (number ? `Widget ${number}` : "Widget");
+    const label2 = capLabel && capLabel.textContent.replace(/\s+/g, " ").trim().replace(/\.$/, "") || (number ? `Figure ${number}` : "Figure");
     let body = "";
     const imgs = fig.querySelectorAll(".static-fallback img");
     if (imgs.length) {
@@ -4340,7 +4340,7 @@ var RSM = (() => {
     const h = section.querySelector(":scope > .heading.hr .hr-content-zone :is(h1,h2,h3,h4,h5,h6)") || section.querySelector(":scope > :is(h1,h2,h3,h4,h5,h6)") || section.querySelector(":scope > .heading :is(h1,h2,h3,h4,h5,h6)");
     return h ? h.textContent.replace(/\s+/g, " ").trim() : "";
   }
-  var FIGURE_KINDS = { html: "Widget", video: "Video", figure: "Figure" };
+  var FIGURE_KINDS = { video: "Video", figure: "Figure" };
   function figureKind(fig) {
     return Object.keys(FIGURE_KINDS).find((c) => fig.classList.contains(c));
   }

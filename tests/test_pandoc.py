@@ -1070,7 +1070,7 @@ class TestMissingBlockHandlers:
 
     def test_html_emits_placeholder(self):
         blocks = _blocks("""\
-        :html: {
+        :figure: {
           :path: widget.html
         }
         ::
@@ -1175,19 +1175,21 @@ class TestClickableCitations:
 
 
 class TestStaticWidgetRefText:
-    """rsm-ipz: a :ref: to an :html: block with :static: reads "Figure" only in place
+    """rsm-ipz: a :ref: to an :figure: block with :static: reads "Figure" only in place
     of the default kind name "Widget"; a :blockname: is kept as written."""
 
     @staticmethod
     def _ref_text(meta: str, ref: str = ":ref:w::") -> str:
         blocks = _blocks(
             f"""\
-            :html: {{
+            :figure: {{
               :label: w
               :static: img/w.png{meta}
             }}
 
+            :htmlblock:
             <div>live</div>
+            ::
 
             ::
 

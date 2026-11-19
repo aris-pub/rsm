@@ -23,7 +23,7 @@ class TestPrintStaticFallback:
     def test_widget_swapped_for_static_under_print(
         self, page: Page, interactive_server: str
     ):
-        """For a :html: widget figure (data-static), print media reveals the
+        """For a :figure: widget figure (data-static), print media reveals the
         static image and hides the live widget mount, even though the JS toggle
         was never used."""
         page.goto(f"{interactive_server}/static-fallback.html")
@@ -130,7 +130,7 @@ class TestPrintKeepsContent:
     ):
         page.goto(f"{interactive_server}/static-fallback.html")
         page.wait_for_function(RSM_READY, timeout=10_000)
-        fig = page.locator("figure.figure[data-static]")
+        fig = page.locator("figure.figure:not(.html)[data-static]")
 
         page.emulate_media(media="print")
 

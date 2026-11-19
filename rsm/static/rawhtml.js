@@ -1,7 +1,8 @@
 // rawhtml.js
 //
-// An inline :rawhtml: is written as
+// An inline :html: is written as
 //   <span class="rawhtml"><span class="rawhtml-alt" hidden>fallback</span>HTML</span>
+// and an :htmlblock: the same way, with divs in place of the spans.
 // The page makes copies of its own content (reference previews, the pinned
 // excerpt, the proof State view). In a copy the HTML is replaced by its
 // fallback: a copy of a raw element such as a widget would be a second live
@@ -9,7 +10,7 @@
 // are parsed but never created as live elements (no custom element
 // constructor runs there).
 
-// Replace the HTML of every :rawhtml: under root with its fallback, in place.
+// Replace the HTML of every :html: and :htmlblock: under root with its fallback, in place.
 // A swapped one is marked, as a copy of a copy must keep its fallback.
 function swapIn(root) {
   for (const el of root.querySelectorAll(".rawhtml:not([data-fallback])")) {
@@ -19,7 +20,7 @@ function swapIn(root) {
   }
 }
 
-// An HTML string with the HTML of every :rawhtml: replaced by its fallback.
+// An HTML string with the HTML of every :html: and :htmlblock: replaced by its fallback.
 export function withoutRawHtml(html) {
   if (!html || !html.includes("rawhtml")) return html;
   const t = document.createElement("template");
@@ -29,7 +30,7 @@ export function withoutRawHtml(html) {
 }
 
 // A deep copy of el, like el.cloneNode(true), with the HTML of every
-// :rawhtml: replaced by its fallback.
+// :html: and :htmlblock: replaced by its fallback.
 export function cloneWithoutRawHtml(el) {
   if (!el.matches(".rawhtml") && !el.querySelector(".rawhtml")) {
     return el.cloneNode(true);

@@ -3708,8 +3708,7 @@ a.reference.external:hover::after {
      toggle, see translator._static_fallback_img), so revealing it needs
      !important to beat that inline style. The live mount is every non-fallback
      child of a content-zone inside the figure: the <picture>/<img> for an image
-     figure, or the widget element (and its <script>s) for a :html: figure,
-     which RSM emits as its own .paragraph block inside the same <figure>. */
+     figure, or the HTML (and its <script>s) for a figure that holds HTML. */
   figure[data-static] .static-fallback {
     display: revert !important;
   }
@@ -3719,10 +3718,9 @@ a.reference.external:hover::after {
   figure[data-static] .static-fallback .static-fallback-dark {
     display: none;
   }
-  /* Hide the live mount but keep the caption. A :html: figure renders the static
-     image, the live widget, and the :caption: as three separate handrails (the
-     widget is its own .paragraph block), each with its own .hr-content-zone.
-     Hiding non-fallback content-zone children swaps the live image/widget for
+  /* Hide the live mount but keep the caption. The figcaption has a
+     .hr-content-zone of its own, like the figure's body.
+     Hiding non-fallback content-zone children swaps the live image or HTML for
      the static one, but the figcaption's zone must be excluded or the printed
      caption text would vanish and leave an empty caption box. */
   figure[data-static] .hr-content-zone:not(figcaption *) > :not(.static-fallback):not(noscript) {
@@ -4098,7 +4096,7 @@ html:not(.has-toc-switch) .manuscriptwrapper .toc .toc-switch { display: none; }
 .ui-tip.on { opacity: 1; }
 @media (prefers-reduced-motion: reduce) { .ui-tip { transition: none; } }
 
-/* The excerpt of a widget (an :html: block) in a reference preview or the
+/* The excerpt of a figure that holds HTML in a reference preview or the
    Pinned card: its number, its still image, and a muted line saying the
    interactive version is in the manuscript (tooltips.js widgetPreview). The
    still image switches with the theme through the .static-fallback-light and

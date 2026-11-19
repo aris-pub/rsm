@@ -73,8 +73,6 @@
       
         Heading
       
-        Html
-      
         Item
       
         Itemize
