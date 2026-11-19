@@ -318,14 +318,6 @@ def test_standalone_nested_list_unchanged():
     ) in body, body
 
 
-# Inside a caption the parser ends the caption with a MISSING node and reads the
-# list as the next block, so the tree holds no ERROR node, and RSM reports only
-# ERROR nodes. How to report this case is not decided yet.
-CAPTION_ERROR_NOT_REPORTED = pytest.mark.xfail(
-    strict=True, reason="a MISSING node in the tree is not reported as an error"
-)
-
-
 @pytest.mark.parametrize(
     "src",
     [
@@ -343,7 +335,6 @@ CAPTION_ERROR_NOT_REPORTED = pytest.mark.xfail(
             ":figure: {\n  :path: a.png\n}\n\n  :caption: A caption\n  :itemize:\n\n"
             "    :-: one\n\n  ::\n\n::\n",
             id="list-in-caption",
-            marks=CAPTION_ERROR_NOT_REPORTED,
         ),
         pytest.param(
             ":itemize:\n\n  :-: one\n  :algorithm:\n  x\n  ::\n\n::\n",
@@ -353,7 +344,6 @@ CAPTION_ERROR_NOT_REPORTED = pytest.mark.xfail(
             ":figure: {\n  :path: a.png\n}\n\n  :caption: A caption\n  :algorithm:\n"
             "  x\n  ::\n\n::\n",
             id="algorithm-in-caption",
-            marks=CAPTION_ERROR_NOT_REPORTED,
         ),
     ],
 )

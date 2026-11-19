@@ -76,7 +76,7 @@ meta, then body content:
   Summary of the manuscript.
 ::
 
-:toc:
+:toc: ::
 
 ## First Section
   Content...
@@ -929,7 +929,7 @@ A **bold** and *italic* example.
   A survey of recent results.
 ::
 
-:toc:
+:toc: ::
 
 ## Background
 

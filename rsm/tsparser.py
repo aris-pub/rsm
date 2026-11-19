@@ -517,10 +517,6 @@ def _parse_meta_into_dict(node: TSNode) -> dict[str, Any]:
     pairs = {}
     for pair in [c for c in node.named_children if c.type.endswith("pair")]:
         if pair.named_children[0].type == "metakey_unknown":
-            # For an empty meta ("{}"), error recovery inserts a MISSING key
-            # that has no text. The author wrote no key, so nothing is logged.
-            if pair.named_children[0].is_missing:
-                continue
             name = (pair.named_children[0].text or b"").decode("utf-8")
             logger.error(
                 f"Unknown meta key {name}",
@@ -852,6 +848,53 @@ def _check_raw_html(raw: nodes.RawHtml) -> None:
         c.parent = parent
     siblings[index : index + 1] = fallback
     raw.parent = None
+
+
+def _missing_to_report(root: TSNode) -> list[TSNode]:
+    """The MISSING nodes in the tree that stand for a mistake in the source.
+
+    tree-sitter repairs some invalid input by inserting a token (a MISSING
+    node) instead of making an ERROR node. A paragraph end inserted right
+    before '::' is left out: the scanner cannot find a paragraph end between an
+    inline tag and '::' on the same line, so correct text such as
+    'First, $x$ is real.::' gets one.
+    """
+    src = root.text or b""
+    found = []
+    stack = [root]
+    while stack:
+        node = stack.pop()
+        if node.is_missing:
+            before_halmos = src[node.start_byte :].lstrip(b" \t")[:2] == b"::"
+            if not (node.type == "paragraph_end" and before_halmos):
+                found.append(node)
+        stack.extend(reversed(node.children))
+    return found
+
+
+def _report_missing(cst: TSTree, root: nodes.Manuscript) -> None:
+    """Log each MISSING node to report, and put a CST error in the page right
+    after the deepest node whose source holds it, as for an ERROR node. After,
+    not inside: some blocks drop their content (a :toc:, for one)."""
+    for missing in _missing_to_report(cst.root_node):
+        point = missing.start_point
+        pos = _user_position(point, missing.end_point)
+        logger.warning("The CST contains errors.", extra=pos)
+        holder = root
+        for node in root.traverse(nodeclass=nodes.NodeWithChildren):
+            start, end = tuple(node.start_point), tuple(node.end_point)
+            if start != (-1, -1) and start <= tuple(point) <= end:
+                holder = node
+        error = nodes.Error(
+            f"[CST error at ({pos['start_row']}, {pos['start_col']}) - "
+            f"({pos['end_row']}, {pos['end_col']})]",
+            start_point=point,
+            end_point=missing.end_point,
+        )
+        if holder is root:
+            root.append(error)
+        else:
+            holder.replace_self([holder, error])
 
 
 def _abstractify(cst: TSTree) -> nodes.Manuscript:
@@ -1228,6 +1271,8 @@ def _abstractify(cst: TSTree) -> nodes.Manuscript:
 
     for raw in raw_html_nodes:
         _check_raw_html(raw)
+
+    _report_missing(cst, ast_root_node)
 
     for fig in list(ast_root_node.traverse(nodeclass=nodes.Figure)):
         block = next((c for c in fig.children if isinstance(c, nodes.HtmlBlock)), None)

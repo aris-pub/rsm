@@ -26,7 +26,9 @@ def test_keyboard_jump_to_top_pushes_history_and_back_returns(page: Page, intera
     h_before = page.evaluate("() => history.length")
     assert y_before > 200, f"expected to be scrolled down, got scrollY={y_before}"
 
-    page.evaluate("() => document.querySelector('.manuscript .hr[id]').focus()")
+    # Without preventScroll, focusing the first block would scroll the page up
+    # to it, and Back would rightly return there instead of to y_before.
+    page.evaluate("() => document.querySelector('.manuscript .hr[id]').focus({preventScroll: true})")
     page.keyboard.press("H")
 
     # The jump pushes a history entry, sets the hash, and (smooth-)scrolls up.

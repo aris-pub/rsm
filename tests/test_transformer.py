@@ -58,6 +58,7 @@ def test_duplicate_bibtex_item_warning(caplog):
           journal={Baz},
           year={Bug},
         }
+        ::
         """,
         want="""\
         <body data-accent="blue" data-lang="en" data-typography="sans-serif">

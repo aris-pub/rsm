@@ -118,7 +118,7 @@ class TestWCAGCompliance:
             ":abstract:\n"
             "  An abstract paragraph for the accessibility fixture.\n"
             "::\n\n"
-            ":toc:\n\n"
+            ":toc: ::\n\n"
             "## Introduction\n\nIntro body.\n\n"
             "## Methods\n\nMethods body.\n\n"
             "### Details\n\nDetails body.\n"

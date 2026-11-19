@@ -8,7 +8,7 @@
 ::
 
 :proof:
-  :step: :assume: the chain :html:{:alt: the chain $K$} <x-probe></x-probe> :: is given. ::
+  :step: :assume: the chain :html:{:alt: the chain $K$} <x-probe></x-probe> :: is given. :: ::
   :step: {:label: st-1} It is closed. ::
   :step: :qed: Done by :ref:st-1::. ::
 ::

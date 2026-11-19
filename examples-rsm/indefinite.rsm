@@ -23,7 +23,7 @@ $$
 
 ::
 
-:toc:
+:toc: ::
 
 ## Introduction
   {:label: sec-intro}
@@ -653,6 +653,7 @@ book. ::
       \end{align}
     $$
  ::
+::
 
 
 
