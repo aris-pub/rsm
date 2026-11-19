@@ -216,7 +216,7 @@ def test_author_multiline_affiliation():
         <details class="author-details">
         <summary><div class="icon chevron-down"><svg overflow="visible"><use href="#hr-icon-chevron-down" width="100%" height="100%"/></svg></div>Affiliations</summary>
         <ol class="author-affiliations">
-        <li>Department of Mathematics</li>
+        <li>Department of Mathematics University of Somewhere Building 123</li>
         </ol>
         </details>
         </div>

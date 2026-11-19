@@ -11,7 +11,7 @@ import rsm
 from rsm.rsmlogger import JSONFormatter, logger
 
 # Line 2, column 3 holds ":accent: bogus".
-# Line 7, column 23 holds the second "," in the span meta.
+# Line 7, column 13 holds ":title:", which has no value.
 # Line 9, column 1 holds the stray "::".
 SRC = (
     ":manuscript: {\n"
@@ -20,7 +20,7 @@ SRC = (
     "\n"
     "OK.\n"
     "\n"
-    "Bad :span: {:title: a,, :class: b} x:: here.\n"
+    "Bad :span: {:title: :class: b} x:: here.\n"
     "\n"
     "::\n"
 )
@@ -48,7 +48,7 @@ def test_bad_meta_value_position_is_1_based(caplog):
 def test_meta_parse_error_position_is_1_based(caplog):
     _render(SRC)
     (rec,) = _records(caplog, "Parse error in meta")
-    assert _point(rec) == (7, 23, 7, 24), caplog.text
+    assert _point(rec) == (7, 13, 7, 20), caplog.text
 
 
 def test_cst_error_position_is_1_based(caplog):
@@ -92,7 +92,7 @@ def stderr_logs(capsys):
 def test_lint_format_positions_are_1_based(stderr_logs):
     lines = stderr_logs("lint")
     assert "src:2:3: ERROR: Invalid value for :accent: on line 2: 'bogus'." in "\n".join(lines)
-    assert "src:7:23: ERROR: Parse error in meta" in "\n".join(lines)
+    assert "src:7:13: ERROR: Parse error in meta" in "\n".join(lines)
     assert "src:9:1: WRN: The CST contains errors." in lines
 
 
@@ -100,7 +100,7 @@ def test_rsm_format_positions_are_1_based(stderr_logs):
     text = "\n".join(stderr_logs("rsm"))
     assert "on line 2: 'bogus'" in text
     assert "| (2, 3) - (2, 17) |" in text
-    assert "| (7, 23) - (7, 24) |" in text
+    assert "| (7, 13) - (7, 20) |" in text
     assert "| (9, 1) - (9, 3) |" in text
 
 
@@ -121,7 +121,7 @@ def test_rsm_check_lint_format_is_1_based(tmp_path):
     )
     lines = proc.stderr.strip().split("\n")
     assert any(line.startswith("src:2:3: ERROR: Invalid value for :accent:") for line in lines), proc.stderr
-    assert any(line.startswith("src:7:23: ERROR: Parse error in meta") for line in lines), proc.stderr
+    assert any(line.startswith("src:7:13: ERROR: Parse error in meta") for line in lines), proc.stderr
     assert "src:9:1: WRN: The CST contains errors." in lines, proc.stderr
 
 
@@ -183,7 +183,7 @@ def test_json_format_has_positions_of_parse_errors(stderr_logs):
     recs = _json_records("\n".join(stderr_logs("json")))
     assert _json_point(recs["The CST contains errors."]) == (9, 1, 9, 3)
     (meta,) = [r for m, r in recs.items() if m.startswith("Parse error in meta")]
-    assert _json_point(meta) == (7, 23, 7, 24)
+    assert _json_point(meta) == (7, 13, 7, 20)
 
 
 def test_json_format_leaves_out_positions_that_a_record_lacks():

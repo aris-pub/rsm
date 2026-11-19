@@ -21,8 +21,8 @@ def test_simple():
         ::
 
         :abstract: {
-            :keywords: {spectral graph theory, non-backtracking, interlacing}
-            :msc: {05C50, 05C82, 15A18, 15B99}
+            :keywords: spectral graph theory, non-backtracking, interlacing
+            :msc: 05C50, 05C82, 15A18, 15B99
           }
           first
           second
@@ -36,7 +36,7 @@ def test_simple():
         ## Introduction {
           :title:
           :label: sec-introduction
-          :class: {t1, t2}
+          :class: t1, t2
         }
 
         Lorem ipsum.

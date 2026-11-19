@@ -329,46 +329,36 @@ CST_TYPE_TO_AST_TYPE: dict[str, Callable] = {
 }
 
 
-def _parse_metakey_list(cst_key: TSNode, cst_val: TSNode) -> tuple[str, list[str]]:
+def _metaval_str(cst_val: TSNode) -> str:
+    """Return a meta value as one line of text.
+
+    A value is one text piece per line, with comments between them, so the
+    pieces are joined with single spaces. A comma after a pair is optional and
+    the grammar leaves it in the value before it, so it is dropped here.
+    """
+    pieces = [(c.text or b"").decode("utf-8") for c in cst_val.children if c.type != "comment"]
+    val = " ".join(" ".join(pieces).split())
+    if val.endswith(","):
+        val = val[:-1].rstrip()
+    return val
+
+
+def _parse_metakey_list(cst_key: TSNode, val: str) -> tuple[str, list[str]]:
     key = cst_key.named_children[0].type
-    if cst_val.named_children:
-        val = [
-            c.text.decode("utf-8").strip()
-            for c in cst_val.named_children
-            if c.text is not None
-        ]
-    else:
-        val = [
-            c.text.decode("utf-8").strip()
-            for c in cst_val.named_children
-            if c.text is not None
-        ]
-    return key, val
+    return key, [item.strip() for item in val.split(",") if item.strip()]
 
 
-def _parse_metakey_text(cst_key: TSNode, cst_val: TSNode) -> tuple[str, str]:
-    key = cst_key.named_children[0].type
-    val = cst_val.text.decode("utf-8").strip() if cst_val.text is not None else ""
-    return key, val
+def _parse_metakey_text(cst_key: TSNode, val: str) -> tuple[str, str]:
+    return cst_key.named_children[0].type, val
 
 
-def _parse_metakey_path(cst_key: TSNode, cst_val: TSNode) -> tuple[str, str]:
-    return _parse_metakey_text(cst_key, cst_val)
+_parse_metakey_path = _parse_metakey_text
+_parse_metakey_number = _parse_metakey_text
+_parse_metakey_word = _parse_metakey_text
+_parse_metakey_date = _parse_metakey_text
 
 
-def _parse_metakey_number(cst_key: TSNode, cst_val: TSNode) -> tuple[str, str]:
-    return _parse_metakey_text(cst_key, cst_val)
-
-
-def _parse_metakey_word(cst_key: TSNode, cst_val: TSNode) -> tuple[str, str]:
-    return _parse_metakey_text(cst_key, cst_val)
-
-
-def _parse_metakey_date(cst_key: TSNode, cst_val: TSNode) -> tuple[str, str]:
-    return _parse_metakey_text(cst_key, cst_val)
-
-
-def _parse_metakey_bool(cst_key: TSNode, _: TSNode) -> tuple[str, bool]:
+def _parse_metakey_bool(cst_key: TSNode, _: str | None) -> tuple[str, bool]:
     key = cst_key.named_children[0].type
     return key, True
 
@@ -445,8 +435,8 @@ def _value_is_valid(key: str, value: Any, keykind: str, pair: TSNode) -> bool:
 def _log_meta_error(err: TSNode) -> None:
     """Log an ERROR node found where meta is.
 
-    When the ERROR holds a key whose value has the wrong shape (the grammar
-    rejects it), the message names that key and its allowed values.
+    When the ERROR holds a path, number, word or date key, the message names
+    that key and its allowed values.
     """
     keys = [
         n
@@ -519,34 +509,12 @@ def _log_meta_errors_outside_meta(cst_node: TSNode) -> set[int]:
 
 
 def _parse_meta_into_dict(node: TSNode) -> dict[str, Any]:
-    # Only the pair children are read below, so an ERROR child (such as a meta
-    # value wrapped onto a second line) would otherwise be dropped with no message.
-    # A value such as "dark blue" for a word key parses as the pair
-    # (:accent: dark) followed by an ERROR holding "blue" on the same line. The
-    # ERROR is the rest of the value, so the whole value is reported and the
-    # pair is dropped.
-    cut_short = set()
+    # Only the pair children are read below, so an ERROR child would otherwise
+    # be dropped with no message.
     for err in [c for c in node.named_children if c.type == "ERROR"]:
-        prev = err.prev_named_sibling
-        if (
-            prev is not None
-            and prev.type.endswith("pair")
-            and len(prev.named_children) == 2
-            and prev.named_children[0].type in _SHAPE_ALLOWED
-            and prev.end_point[0] == err.start_point[0]
-        ):
-            cst_key = prev.named_children[0]
-            key = cst_key.named_children[0].type
-            value = (prev.named_children[1].text or b"").decode("utf-8").strip()
-            value += " " + (err.text or b"").decode("utf-8").strip()
-            _log_bad_value(key, value, _allowed_values(key, cst_key.type), prev)
-            cut_short.add(prev.id)
-        else:
-            _log_meta_error(err)
+        _log_meta_error(err)
     pairs = {}
     for pair in [c for c in node.named_children if c.type.endswith("pair")]:
-        if pair.id in cut_short:
-            continue
         if pair.named_children[0].type == "metakey_unknown":
             # For an empty meta ("{}"), error recovery inserts a MISSING key
             # that has no text. The author wrote no key, so nothing is logged.
@@ -559,10 +527,11 @@ def _parse_meta_into_dict(node: TSNode) -> dict[str, Any]:
             )
             continue
         if len(pair.named_children) == 1:  # bool meta key
-            cst_key, cst_val = pair.named_children[0], None
+            cst_key, val = pair.named_children[0], None
         else:
             cst_key, cst_val = pair.named_children
-        key, val = globals()[f"_parse_{cst_key.type}"](cst_key, cst_val)
+            val = _metaval_str(cst_val)
+        key, val = globals()[f"_parse_{cst_key.type}"](cst_key, val)
         if not _value_is_valid(key, val, cst_key.type, pair):
             continue
         pairs[key] = val

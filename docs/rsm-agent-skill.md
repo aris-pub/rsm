@@ -274,8 +274,8 @@ Consider a chain of circles :rawhtml:{:alt: the circle $C_0$} <mtp-display model
 ```
 
 - The HTML cannot contain `::`, cannot start with a colon, and cannot be empty.
-- `:alt:` may hold text and inline math (`$...$`). It cannot hold a comma or a brace,
-  as with any inline meta value.
+- `:alt:` may hold text and inline math (`$...$`). It cannot hold a brace, as with any
+  meta value.
 - Where the HTML cannot be, the fallback stands in: output other than HTML (pandoc
   export), and the copies the page makes of its own content (reference previews, the
   pinned excerpt, the proof State view). Text read out of the document (a still
@@ -320,30 +320,39 @@ content, and close with `::`.  `:qed:` is a stamp.
 
 ## Meta Regions
 
-Meta appears in `{...}` immediately after a tag. Block meta uses newline-separated
-key-value pairs; inline meta uses comma-separated pairs inside `{...}`.
-
-**Block meta** (one pair per line):
+Meta appears in `{...}` immediately after a tag. Block meta and inline meta are written
+the same way. A value runs to the next key or to the closing `}`. Line breaks count as
+spaces, so meta may be written on one line or on many, and a value may run over several
+lines. A comma at the end of a pair, right before the next key or the closing `}`, is
+dropped, so commas between pairs are optional. A comma anywhere else stays in the value.
 
 ```
+:theorem: {:title: Main Result, :label: thm-main, :icon: star}
+
 :theorem: {
   :title: Main Result
   :label: thm-main
   :icon: star
 }
-```
 
-**Inline meta** (comma-separated, on one line):
+:theorem: {
+  :title: A long title that runs
+          onto a second line
+  :label: thm-long
+}
 
-```
 :span:{:strong:, :emphas:} text ::
-:claim:{:label: my-claim} statement ::
-:paragraph:{:icon: bookmark} Text here.
+:span:{:strong: :emphas:} text ::
+:paragraph:{:title: Setup, part one :label: par-setup} Text here.
 ```
+
+A value cannot hold a brace. It also cannot hold a word written like a key, a colon
+after a space followed by letters and a colon (such as ` :label:`), because that word
+starts the next pair. A colon anywhere else stays in the value, as in `Ratio 3:1`.
 
 ### Meta Keys by Type
 
-**Text keys** (value is a string on the same line or rest of line):
+**Text keys** (value is text):
 
 | Key | Description |
 |-----|-------------|
@@ -372,7 +381,7 @@ key-value pairs; inline meta uses comma-separated pairs inside `{...}`.
 | `:nonum:` | Suppress numbering |
 | `:strong:` | Bold span |
 
-**List keys** (value in `{item1, item2, ...}` or a single item):
+**List keys** (items separated by commas, such as `:keywords: graphs, cliques`):
 
 | Key | Description |
 |-----|-------------|
@@ -380,8 +389,7 @@ key-value pairs; inline meta uses comma-separated pairs inside `{...}`.
 | `:keywords:` | Abstract keywords |
 | `:msc:` | Mathematics Subject Classification |
 
-Path, number, word and date values end at `}`, at the end of the line, and in inline
-meta also at a comma. A value of the wrong form, or a word that is not one of the allowed
+A value of the wrong form, or a word that is not one of the allowed
 values, is logged as an error with its line and the allowed values. The value is ignored,
 the key keeps its default, and the build goes on.
 
@@ -802,40 +810,24 @@ as a resolver URL (`https://doi.org/10.1234/x`): either way it produces a single
 
 3. **`:step:` outside proof** — `:step:` is only valid inside `:proof:`, `:sketch:`, `:calc:`, or `:p:`.
 
-4. **Wrong meta separator** — block meta uses newlines between pairs; inline meta uses
-   commas. Mixing them up causes parse failures.
-   ```
-   % WRONG — comma in block meta
-   :theorem: {:title: Foo, :label: bar}
-
-   % CORRECT — newlines in block meta
-   :theorem: {
-     :title: Foo
-     :label: bar
-   }
-
-   % CORRECT — commas in inline meta
-   :span:{:strong:, :emphas:} text ::
-   ```
-
-5. **Subproof closing** — `:p:` needs `:: ::` (its own Halmos then the parent step's).
+4. **Subproof closing** — `:p:` needs `:: ::` (its own Halmos then the parent step's).
    Forgetting the step's `::` is a frequent error.
 
-6. **`:prev:` stamps don't take content** — write `:prev:`, not `:prev: something ::`.
+5. **`:prev:` stamps don't take content** — write `:prev:`, not `:prev: something ::`.
 
-7. **`:toc:` is a block with no content** — close it with `::` like any block. It accepts a
+6. **`:toc:` is a block with no content** — close it with `::` like any block. It accepts a
    meta region (e.g. `:view: tree` to default the table of contents to the dependency
    tree view), but content written inside it is discarded with a warning; the table of
    contents is generated automatically.
 
-8. **Bare text outside paragraphs** — all text must live inside a paragraph context. Top-level
+7. **Bare text outside paragraphs** — all text must live inside a paragraph context. Top-level
    text after a section heading is fine (implicit paragraph), but text floating outside any
    container is not.
 
-9. **`:ref:` format** — the target comes right after the tag with no space before content:
+8. **`:ref:` format** — the target comes right after the tag with no space before content:
    `:ref:label::` or `:ref:label, text::`. Do not write `:ref: label::` (space after tag).
 
-10. **`:cite:` format** — same as ref: `:cite:key::`, not `:cite: key::`.
+9. **`:cite:` format** — same as ref: `:cite:key::`, not `:cite: key::`.
 
 
 ## Working Examples
@@ -919,8 +911,8 @@ A **bold** and *italic* example.
 } ::
 
 :abstract: {
-  :keywords: {networks, algebra}
-  :msc: {05C50, 15A18}
+  :keywords: networks, algebra
+  :msc: 05C50, 15A18
 }
   A survey of recent results.
 ::

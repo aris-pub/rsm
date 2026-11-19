@@ -171,7 +171,7 @@ def test_simple():
 
         ## Introduction {
           :label: sec-introduction
-          :class: {t1, t2}
+          :class: t1, t2
         }
 
         Lorem ipsum.
@@ -186,7 +186,7 @@ def test_simple():
         of text. It has several lines of text. It has several lines of text. It has several
         lines of text.
 
-        :paragraph: {:label: par3, :class: {a, b, c}} This is a paragraph with meta data. It
+        :paragraph: {:label: par3, :class: a, b, c} This is a paragraph with meta data. It
         has several lines of text. It has several lines of text. It has several lines of
         text. It has several lines of text. It has several lines of text.
         """,

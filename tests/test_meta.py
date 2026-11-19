@@ -92,8 +92,8 @@ def test_list_no_braces():
         <section class="level-1">
 
         <h1>My Title</h1>
-        <span class="error" data-nodeid="1">[CST error at (3, 1) - (3, 29)]</span>
-        <div class="paragraph" data-nodeid="2">
+
+        <div class="paragraph t1 t2" data-nodeid="1">
 
         <p>This paragraph has only one type</p>
 
@@ -153,7 +153,7 @@ def test_inline_no_meta_start_with_tag():
 def test_list_within_inline():
     compare_have_want(
         have="""\
-        Foo :span: {:class: {t1, t2}} bar :: baz.
+        Foo :span: {:class: t1, t2} bar :: baz.
         """,
         want="""\
         <body data-accent="blue" data-lang="en" data-typography="sans-serif">
@@ -280,30 +280,19 @@ def _meta_error_records(caplog):
     return [r for r in caplog.records if r.getMessage() == META_ERROR_MSG]
 
 
-def test_block_meta_continuation_line_is_logged(caplog):
-    """A block meta value wrapped onto a second line is a parse error inside the
-    meta. It is logged with its position, and the build goes on (rsm-sv0)."""
-    src = (
-        ":figure: {\n"
-        "  :path: a.png\n"
-        "  :alt: one\n"
-        "    two\n"
-        "}\n"
-        "\n"
-        ":caption: C.\n"
-        "\n"
-        "::\n"
-    )
+@pytest.mark.parametrize(
+    "lines, alt",
+    [(["one", "two"], "one two"), (["one", "two", "three"], "one two three")],
+)
+def test_block_meta_value_over_several_lines(caplog, lines, alt):
+    """A value may run over several lines, which are joined with single
+    spaces (rsm-9kn)."""
+    value = "\n    ".join(lines)
+    src = f":figure: {{\n  :path: a.png\n  :alt: {value}\n}}\n\n:caption: C.\n\n::\n"
     h = rsm.render(src, handrails=False, source_offsets=False)
-    records = _meta_error_records(caplog)
-    assert len(records) == 1, caplog.text
-    rec = records[0]
-    assert rec.levelname == "ERROR"
-    assert rec.name == "RSM.parse"
-    assert (rec.start_row, rec.start_col, rec.end_row) == (4, 1, 4), caplog.text
-    assert 'alt="one"' in h, h
-    assert "[CST error" not in h, h
-    assert "two" not in h, h
+    assert not _meta_error_records(caplog), caplog.text
+    assert "The CST contains errors." not in caplog.text, caplog.text
+    assert f'alt="{alt}"' in h, h
 
 
 def test_block_meta_without_errors_logs_nothing(caplog):
@@ -314,46 +303,17 @@ def test_block_meta_without_errors_logs_nothing(caplog):
 
 
 def test_block_meta_multiline_list_logs_nothing(caplog):
-    src = ":abstract: {\n  :keywords: {a,\n    b}\n}\n\nX.\n\n::\n"
+    src = ":abstract: {\n  :keywords: a,\n    b\n}\n\nX.\n\n::\n"
     h = rsm.render(src, handrails=False, source_offsets=False)
     assert not _meta_error_records(caplog), caplog.text
     assert "The CST contains errors." not in caplog.text, caplog.text
     assert "Keywords: a, b" in h, h
 
 
-def test_block_meta_three_line_value(caplog):
-    """With a third line, the parser ends the meta after the :alt: line (a
-    MISSING "}" node, not an ERROR node), so nothing is reported inside the meta.
-    The later lines and the caption become a paragraph inside the figure, and
-    the existing warning points at the closing brace (line 6), not at "two"
-    (line 4). This test records that behavior; see rsm-sv0."""
-    src = (
-        ":figure: {\n"
-        "  :path: a.png\n"
-        "  :alt: one\n"
-        "    two\n"
-        "    three\n"
-        "}\n"
-        "\n"
-        ":caption: C.\n"
-        "\n"
-        "::\n"
-    )
-    h = rsm.render(src, handrails=False, source_offsets=False)
-    assert not _meta_error_records(caplog), caplog.text
-    cst_warnings = [
-        r for r in caplog.records if r.getMessage() == "The CST contains errors."
-    ]
-    assert len(cst_warnings) == 1, caplog.text
-    assert cst_warnings[0].start_row == 6, caplog.text
-    assert 'alt="one"' in h, h
-    assert "two three" in h, h
-
-
 def test_inline_meta_error_is_logged(caplog):
     """Inline meta goes through the same code as block meta, so a parse error
     inside it is logged too."""
-    src = "A :span: {:title: a,, :class: b} x:: b.\n"
+    src = "A :span: {:title: :class: b} x:: b.\n"
     h = rsm.render(src, handrails=False, source_offsets=False)
     records = _meta_error_records(caplog)
     assert len(records) == 1, caplog.text
