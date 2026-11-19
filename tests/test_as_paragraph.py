@@ -233,7 +233,7 @@ def test_reftext_meta(kind):
 
 @pytest.mark.parametrize("kind", KINDS)
 def test_keeps_common_meta(kind):
-    src = _src(kind, meta=ASP + "\n  :class: {wide, x}\n  :collapsed:")
+    src = _src(kind, meta=ASP + "\n  :class: wide, x\n  :collapsed:")
     html = rsm.render(src, handrails=True)
     tag = _open_tag(html, kind)
     assert "wide" in tag and 'data-start-collapsed="true"' in tag

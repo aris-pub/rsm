@@ -67,7 +67,7 @@ _NODE_TYPE_TO_CLASS = {
     "toc_depth": "tok-property", "scale": "tok-property",
     "static": "tok-property", "theme": "tok-property", "dark": "tok-property",
     "author_display_first": "tok-property", "author_display_last": "tok-property",
-    "metaval_text": "tok-string", "metaval_list_item": "tok-string",
+    "metaval_text": "tok-string", "metaval_list": "tok-string",
     # Bibliography
     "kind": "tok-type", "key": "tok-property", "value": "tok-string",
     # Delimiters

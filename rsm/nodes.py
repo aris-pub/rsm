@@ -1273,7 +1273,7 @@ class Abstract(NodeWithChildren):
     .. rsm::
 
        :abstract: {
-         :keywords: {cosmology, general relativity, black holes}
+         :keywords: cosmology, general relativity, black holes
        }
 
        Black holes emit radiation.
