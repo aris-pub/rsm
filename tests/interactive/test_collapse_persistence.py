@@ -16,7 +16,7 @@ from playwright.sync_api import Page
 
 pytestmark = pytest.mark.interactive
 
-RSM_READY = "() => window.__rsmInitialized === true"
+RSM_READY = "() => window.__rsmShown === true"
 
 # Every block the reader can collapse by clicking its chevron, in document order
 # (stable for a given build), so the Nth entry before reload is the Nth after.

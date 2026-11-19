@@ -10,7 +10,7 @@ from playwright.sync_api import Page
 
 pytestmark = pytest.mark.interactive
 
-RSM_READY = "() => window.__rsmInitialized === true"
+RSM_READY = "() => window.__rsmShown === true"
 
 
 def test_keyboard_jump_to_top_pushes_history_and_back_returns(page: Page, interactive_server: str):

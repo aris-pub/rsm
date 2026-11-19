@@ -185,7 +185,7 @@ def serve_rsm_html(page: Any, tmp_path: Path) -> Callable[[str, bool], Any]:
             page.goto(f"http://127.0.0.1:{port}/test.html")
 
             # Wait for RSM JavaScript initialization to complete
-            page.wait_for_function("() => window.__rsmInitialized === true", timeout=10000)
+            page.wait_for_function("() => window.__rsmShown === true", timeout=10000)
 
             # Wait for fonts to fully load, including dynamically-injected @font-face
             # rules (e.g. MathJax's fonts). A single document.fonts.ready check is unreliable

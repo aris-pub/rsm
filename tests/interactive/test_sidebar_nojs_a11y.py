@@ -49,7 +49,7 @@ def _standalone(tmp_path):
 
 
 def _ready(page: Page) -> None:
-    page.wait_for_function("() => window.__rsmInitialized === true", timeout=10000)
+    page.wait_for_function("() => window.__rsmShown === true", timeout=10000)
 
 
 def test_standalone_folded_block_opens_and_folds_by_keyboard(page: Page, tmp_path):

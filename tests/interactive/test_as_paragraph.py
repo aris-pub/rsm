@@ -106,7 +106,7 @@ def _load_click_doc(page: Page, tmp_path) -> None:
     out.write_text(html)
     page.set_viewport_size({"width": 1280, "height": 800})
     page.goto(out.as_uri(), wait_until="load")
-    page.wait_for_function("() => window.__rsmInitialized === true", timeout=10_000)
+    page.wait_for_function("() => window.__rsmShown === true", timeout=10_000)
 
 
 def test_click_in_as_paragraph_widget_does_not_select_it(page: Page, tmp_path):
@@ -154,7 +154,7 @@ def test_text_in_as_paragraph_widget_can_be_selected(page: Page, tmp_path):
     out.write_text(html)
     page.set_viewport_size({"width": 1280, "height": 800})
     page.goto(out.as_uri(), wait_until="load")
-    page.wait_for_function("() => window.__rsmInitialized === true", timeout=10_000)
+    page.wait_for_function("() => window.__rsmShown === true", timeout=10_000)
     box = page.locator("#widget-text").bounding_box()
     page.mouse.move(box["x"] + 2, box["y"] + box["height"] / 2)
     page.mouse.down()
@@ -195,7 +195,7 @@ def test_click_in_nested_as_paragraph_widget_selects_no_block(page: Page, tmp_pa
     out.write_text(html)
     page.set_viewport_size({"width": 1280, "height": 800})
     page.goto(out.as_uri(), wait_until="load")
-    page.wait_for_function("() => window.__rsmInitialized === true", timeout=10_000)
+    page.wait_for_function("() => window.__rsmShown === true", timeout=10_000)
     page.locator("#nested-widget").click(position={"x": 200, "y": 60})
     assert page.evaluate("() => document.activeElement.closest('.hr') === null"), page.evaluate(
         "() => document.activeElement.className"

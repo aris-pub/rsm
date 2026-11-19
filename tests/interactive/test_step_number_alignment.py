@@ -12,7 +12,7 @@ from playwright.sync_api import Page
 
 pytestmark = pytest.mark.interactive
 
-RSM_READY = "() => window.__rsmInitialized === true"
+RSM_READY = "() => window.__rsmShown === true"
 
 # Collect, for each step's number, its rendered left edge and .subproof depth.
 _COLLECT = """() => {

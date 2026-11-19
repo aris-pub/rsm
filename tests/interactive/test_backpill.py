@@ -12,7 +12,7 @@ from playwright.sync_api import Page
 
 pytestmark = pytest.mark.interactive
 
-RSM_READY = "() => window.__rsmInitialized === true"
+RSM_READY = "() => window.__rsmShown === true"
 PILL = ".rsm-back-pill"
 PILL_VISIBLE = ".rsm-back-pill.is-visible"
 

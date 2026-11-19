@@ -9,7 +9,7 @@ from playwright.sync_api import Page, expect
 
 pytestmark = pytest.mark.interactive
 
-RSM_READY = "() => window.__rsmInitialized === true"
+RSM_READY = "() => window.__rsmShown === true"
 
 # Every character MathJax drew inside the algorithm has its CSS: CHTML draws a
 # character as the ::before content of an mjx-c, which is empty without it.

@@ -10,7 +10,7 @@ from pathlib import Path
 import pytest
 from playwright.sync_api import Page
 
-RSM_READY = "() => window.__rsmInitialized === true"
+RSM_READY = "() => window.__rsmShown === true"
 FIXTURE = Path(__file__).parent / "fixtures" / "toc-horizontal.rsm"
 
 WIDTHS = [("mobile", 375, 667), ("desktop", 1280, 720)]

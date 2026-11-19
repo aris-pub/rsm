@@ -17,7 +17,7 @@ from playwright.sync_api import Page, expect
 
 pytestmark = pytest.mark.interactive
 
-RSM_READY = "() => window.__rsmInitialized === true"
+RSM_READY = "() => window.__rsmShown === true"
 
 _PROBE = r"""() => {
   const hr = [...document.querySelectorAll('.hr')].find(e =>

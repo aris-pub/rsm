@@ -92,7 +92,7 @@ def serve_rsm_a11y(page: Any, tmp_path: Path) -> Callable[[str, bool], Any]:
             page.goto(f"http://127.0.0.1:{port}/test.html")
 
             # Wait for RSM JavaScript initialization to complete
-            page.wait_for_function("() => window.__rsmInitialized === true", timeout=10000)
+            page.wait_for_function("() => window.__rsmShown === true", timeout=10000)
 
             # Wait for fonts to load
             page.evaluate("() => document.fonts.ready")

@@ -14,7 +14,7 @@ from playwright.sync_api import Browser
 
 pytestmark = pytest.mark.interactive
 
-RSM_READY = "() => window.__rsmInitialized === true"
+RSM_READY = "() => window.__rsmShown === true"
 
 STATES = [
     pytest.param("dark", None, "dark", id="dark-os-no-class"),

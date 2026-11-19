@@ -19,7 +19,7 @@ import rsm
 
 pytestmark = pytest.mark.interactive
 
-RSM_READY = "() => window.__rsmInitialized === true"
+RSM_READY = "() => window.__rsmShown === true"
 DESKTOP = {"width": 1280, "height": 800}
 PHONE = {"width": 375, "height": 720}
 LABELS = [

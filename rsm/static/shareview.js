@@ -19,7 +19,6 @@ import { collapseKey, openHandrail, closeHandrail, withoutPersist, launchToast }
 import { extractModel, applyToBody, flatten, isValidOrder } from "./reorder.js";
 import { getNotationMacros, listNotation, reRenderAll } from "./notation.js";
 import { currentPin, pinTarget } from "./tooltips.js";
-import { mathIdle } from "./libraries.js";
 
 const SCHEMA = 1;
 
@@ -219,43 +218,17 @@ function placeAnchor(state) {
   if (Math.abs(d) > 0.5) window.scrollTo({ top: window.scrollY + d, behavior: "instant" });
 }
 
-// How long a late layout change may still move the recipient to the anchor.
-const SETTLE_MS = 10000;
-const READER_INPUT = ["wheel", "touchstart", "keydown", "mousedown"];
+// The anchor of the shared view being restored, placed once the page has
+// settled (onload.js, rsm-hc8), just before the page is shown.
+let pendingAnchor = null;
 
-// Math typesetting and web fonts can finish after the restore and move the
-// layout, so the anchor is placed again when each settles and whenever the manuscript
-// changes size, until the recipient touches the page or SETTLE_MS pass. Input
-// events, not scroll events, tell the reader apart: placing the anchor and the
-// browser's own scroll anchoring both scroll the page too.
-function holdAnchor(state) {
-  if (!state.anchor || !document.getElementById(state.anchor)) return;
-  let done = false;
-  let ro = null;
-  const stop = () => {
-    done = true;
-    if (ro) ro.disconnect();
-    for (const t of READER_INPUT) window.removeEventListener(t, stop, true);
-  };
-  for (const t of READER_INPUT) {
-    window.addEventListener(t, stop, { capture: true, passive: true });
-  }
-  const place = () => {
-    if (!done) placeAnchor(state);
-  };
-  place();
-  requestAnimationFrame(place);
-  // Typeset math can need font files that load only then, so wait for those too.
-  mathIdle()
-    .then(() => { place(); return document.fonts && document.fonts.ready; })
-    .then(place);
-  if (document.fonts && document.fonts.ready) document.fonts.ready.then(place);
-  const manuscript = document.querySelector(".manuscript");
-  if (manuscript && window.ResizeObserver) {
-    ro = new ResizeObserver(place);
-    ro.observe(manuscript);
-  }
-  setTimeout(stop, SETTLE_MS);
+// Place a shared view's anchor. Returns whether there was one to place.
+export function placeSharedAnchor() {
+  const state = pendingAnchor;
+  pendingAnchor = null;
+  if (!state || !state.anchor || !document.getElementById(state.anchor)) return false;
+  placeAnchor(state);
+  return true;
 }
 
 // Apply a decoded view. Folds, reorder and the pin change the layout, so the
@@ -269,7 +242,7 @@ function applyState(state) {
   restoreFolds(state);
   restoreOrder(state);
   restorePins(state);
-  holdAnchor(state);
+  pendingAnchor = state;
   return true;
 }
 

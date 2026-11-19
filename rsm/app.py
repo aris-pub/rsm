@@ -382,6 +382,11 @@ class FullBuildApp(ProcessorApp):
             sidebar,
         )
         self.write_output = write_output
+        # A built page loads behind a spinner (rsm-hc8). rsm.render's output is
+        # a fragment for other pages to place, so it has none.
+        for name, obj, _ in self.tasks:
+            if name == "translator":
+                obj.loading_spinner = True
         if standalone:
             b = builder.StandaloneBuilder(
                 asset_resolver=asset_resolver,

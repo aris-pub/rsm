@@ -14,7 +14,7 @@ from playwright.sync_api import Page, expect
 
 pytestmark = pytest.mark.interactive
 
-RSM_READY = "() => window.__rsmInitialized === true"
+RSM_READY = "() => window.__rsmShown === true"
 
 FOLDED = ".proof.hr[data-start-collapsed]"
 PROOF_HEAD = FOLDED + " > .hr-content-zone > .hr-label"

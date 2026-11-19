@@ -7,7 +7,7 @@ from playwright.sync_api import Page, expect
 
 pytestmark = pytest.mark.interactive
 
-RSM_READY = "() => window.__rsmInitialized === true"
+RSM_READY = "() => window.__rsmShown === true"
 
 
 def test_calc_relation_shown_justification_disclosed(page: Page, interactive_server: str):

@@ -12,7 +12,7 @@ from playwright.sync_api import Browser, Page
 
 pytestmark = pytest.mark.interactive
 
-RSM_READY = "() => window.__rsmInitialized === true"
+RSM_READY = "() => window.__rsmShown === true"
 
 SHOWN = r"""() => {
   const de = document.documentElement;
