@@ -672,6 +672,15 @@ class Node:
                 return (child, len(self.children) - idx - 1) if return_idx else child
         return (None, None) if return_idx else None
 
+    def _siblings(self) -> list["Node"]:
+        """This node and its siblings, in order. The nodes of a link's text have
+        the link as their parent but are kept in its reftext_nodes, not among
+        its children."""
+        children = self.parent.children
+        if any(c is self for c in children):
+            return list(children)
+        return list(getattr(self.parent, "reftext_nodes", None) or children)
+
     def prev_sibling(self, cls: type["Node"] | str | None = None) -> Optional["Node"]:
         """The previous sibling, optionally of a specified type.
 
@@ -716,17 +725,17 @@ class Node:
         if self.parent is None:
             return None
 
-        ids = [id(c) for c in self.parent.children]
-        index = ids.index(id(self))
+        siblings = self._siblings()
+        index = [id(c) for c in siblings].index(id(self))
 
         if cls is None and index:
-            return self.parent.children[index - 1]
+            return siblings[index - 1]
 
         if cls == "self":
             cls = self.__class__
         cls = cast(type["Node"], cls)
 
-        prev_sibs = self.parent.children[:index]
+        prev_sibs = siblings[:index]
         for node in reversed(prev_sibs):
             if isinstance(node, cls):
                 return node
@@ -745,17 +754,17 @@ class Node:
         if self.parent is None:
             return None
 
-        ids = [id(c) for c in self.parent.children]
-        index = ids.index(id(self))
+        siblings = self._siblings()
+        index = [id(c) for c in siblings].index(id(self))
 
-        if cls is None and index < len(self.parent.children) - 1:
-            return self.parent.children[index + 1]
+        if cls is None and index < len(siblings) - 1:
+            return siblings[index + 1]
 
         if cls == "self":
             cls = self.__class__
         cls = cast(type["Node"], cls)
 
-        next_sibs = self.parent.children[index + 1 :]
+        next_sibs = siblings[index + 1 :]
         for node in next_sibs:
             if isinstance(node, cls):
                 return node
