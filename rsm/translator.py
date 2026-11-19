@@ -109,6 +109,7 @@ by ``rsm-build``.
 
 """
 
+import copy
 import logging
 import re
 import textwrap
@@ -1363,7 +1364,7 @@ class Translator:
             items.append(
                 AppendOpenCloseTag(
                     tag="span",
-                    content=html_escape(f"{node.title}.", quote=False),
+                    content=f"{self._title_html(node)}.",
                     classes=["pg-label"],
                 )
             )
@@ -1964,7 +1965,11 @@ class Translator:
         return AppendNodeTag(node)
 
     def _make_title_node(
-        self, label: str, desc: str = "", classes: list = None
+        self,
+        label: str,
+        desc: str = "",
+        classes: list = None,
+        desc_nodes: list[nodes.Node] | None = None,
     ) -> nodes.Node:
         if classes is None:
             classes = ["hr-label"]
@@ -1973,7 +1978,13 @@ class Translator:
             span = nodes.Span(classes=["label"])
             span.append(nodes.Text(text=label))
             para.append(span)
-        if desc:
+        if desc_nodes:
+            span = nodes.Span(classes=["desc"])
+            for n in desc_nodes:
+                n.parent = None
+                span.append(n)
+            para.append(span)
+        elif desc:
             span = nodes.Span(classes=["desc"])
             span.append(nodes.Text(text=desc))
             para.append(span)
@@ -1985,6 +1996,9 @@ class Translator:
             + (f" {node.full_number}" if not node.nonum and node.number else "")
             + (": " if node.title else "."),
             desc=node.title or "",
+            # A copy, because the title nodes stay in their holder, where the
+            # plain-text uses of the title read them.
+            desc_nodes=copy.deepcopy(node.title_nodes) if node.title_nodes else None,
         )
         return AppendBatchAndDefer(
             [

@@ -106,7 +106,8 @@ key. Section-form tags do not need a Halmos — they close implicitly.
 `:cite:`), note and aside calls and `:rawhtml:` are not allowed in a heading: RSM
 leaves them out and logs an error. Where only plain text fits (the browser tab, the
 sidebar's Contents list, the section graph), the title is shown without markup, with
-math as its TeX source.
+math as its TeX source. A `:title:` meta value follows the same rules, as in
+`:theorem: {:title: Bounds on $x$ :label: thm-x}`.
 
 **Sections can carry meta** on the line after the heading:
 
@@ -285,7 +286,7 @@ Consider a chain of circles :rawhtml:{:alt: the circle $C_0$} <mtp-display model
 - Allowed wherever inline content is: paragraphs, spans, `**bold**`, `*italic*`,
   theorems, captions, list items and table cells. Not in a link's text (`:ref:` or
   `:url:` reftext, an aside's phrase): there the fallback is shown, with a warning.
-  Not in a heading: there it is left out, with an error.
+  Not in a heading or a `:title:`: there it is left out, with an error.
 - Write phrasing content (elements that may sit inside a `<p>`, such as `<span>`,
   `<svg>` or a custom element). A `<div>` or another block element ends the paragraph
   early in the browser.
@@ -368,7 +369,7 @@ starts the next pair. A colon anywhere else stays in the value, as in `Ratio 3:1
 | `:name:` | Author name |
 | `:orcid:` | Author ORCID identifier |
 | `:reftext:` | Label display text for references |
-| `:title:` | Block or manuscript title |
+| `:title:` | Block or manuscript title; may hold inline markup, as a heading does |
 
 **Boolean keys** (presence = true, no value needed):
 
