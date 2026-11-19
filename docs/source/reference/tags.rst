@@ -23,7 +23,7 @@ List of all tags
 .. autoclass:: enumerate
 .. autoclass:: example
 .. autoclass:: figure
-.. autoclass:: html
+.. autoclass:: htmlblock
 .. autoclass:: itemize
 .. autoclass:: lemma
 .. autoclass:: mathblock
@@ -57,7 +57,7 @@ List of all tags
 .. autoclass:: draft
 .. autoclass:: math
 .. autoclass:: note
-.. autoclass:: rawhtml
+.. autoclass:: html
 .. autoclass:: ref
 .. autoclass:: span
 .. autoclass:: url
