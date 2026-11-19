@@ -270,14 +270,25 @@ class Transformer:
                 _find_errors(child)
 
         _find_errors(self.parser.cst.root_node)
+        # Invalid input that the parser repaired with an inserted token
+        # (rsm-pn7).
+        from .tsparser import _missing_to_report
+
+        error_nodes += _missing_to_report(self.parser.cst.root_node)
 
         if error_nodes:
             error_messages = []
             for node in error_nodes:
                 start = node.start_point
                 end = node.end_point
+                if node.is_missing:
+                    what = f"missing {node.type}"
+                elif node.text:
+                    what = node.text.decode("utf-8", errors="replace")
+                else:
+                    what = "unknown error"
                 error_messages.append(
-                    f"  - ({start[0]}, {start[1]}) - ({end[0]}, {end[1]}): {node.text.decode('utf-8', errors='replace') if node.text else 'unknown error'}"
+                    f"  - ({start[0]}, {start[1]}) - ({end[0]}, {end[1]}): {what}"
                 )
 
             error_summary = "\n".join(error_messages)

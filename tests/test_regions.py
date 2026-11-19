@@ -31,6 +31,8 @@ def test_inline_cannot_contain_block():
 
 
 def test_paragraph_ends_at_block():
+    # A block tag in the middle of a paragraph's line ends the paragraph, and
+    # is reported as an error at the tag (rsm-pn7).
     compare_have_want(
         have="""\
         # My Title
@@ -66,7 +68,7 @@ def test_paragraph_ends_at_block():
         </div>
 
         </section>
-        <span class="error" data-nodeid="6">[CST error at (4, 24) - (4, 26)]</span>
+        <span class="error" data-nodeid="6">[CST error at (3, 57) - (3, 57)] </span><span class="error" data-nodeid="7">[CST error at (4, 24) - (4, 26)]</span>
         </section>
 
         </div>
