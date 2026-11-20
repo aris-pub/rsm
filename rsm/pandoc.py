@@ -44,6 +44,7 @@ _HTML_SELF_CLOSED = re.compile(r"<[A-Za-z][\w:.-]*" + _HTML_ATTRS + "/>")
 _HTML_ELEMENT = re.compile(
     r"<([A-Za-z][\w:.-]*)\b" + _HTML_ATTRS + r">.*</\1\s*>", re.DOTALL
 )
+_HTML_COMMENT = re.compile(r"<!--(?:(?!-->).)*-->", re.DOTALL)
 
 # Pandoc gives \date{...} as free text; RSM's :override-date: wants ISO 8601.
 # These are the common human-written forms; anything else is left for the LLM
@@ -617,6 +618,21 @@ def _math_label(src: str) -> str | None:
     return m.group(1) if m else None
 
 
+def _can_import_html(raw: str) -> bool:
+    # A comment has no visible output, so dropping it loses nothing worth a
+    # warning.
+    if _HTML_COMMENT.fullmatch(raw.strip()):
+        return False
+    if "::" in raw:
+        logger.warning(
+            "PandocImporter: skipping raw HTML that contains '::', since RSM "
+            "would read it as the end of the tag: %r",
+            raw,
+        )
+        return False
+    return True
+
+
 def _is_whole_html(raw: str) -> bool:
     return any(
         pattern.fullmatch(raw.strip())
@@ -960,6 +976,8 @@ class PandocImporter:
             indented = "\n".join("  " + line for line in raw.strip().splitlines())
             return f":mathblock:\n{indented}\n::\n\n"
         if fmt == "html":
+            if not _can_import_html(raw):
+                return ""
             return f":htmlblock:\n{raw.strip()}\n::\n\n"
         logger.warning("PandocImporter: skipping RawBlock with format '%s'", fmt)
         return ""
@@ -1162,8 +1180,11 @@ class PandocImporter:
         fmt, raw = c
         if fmt == "latex":
             return f":math: {raw} ::"
-        if fmt == "html" and _is_whole_html(raw):
-            return f":html: {raw} ::"
+        if fmt == "html":
+            if not _can_import_html(raw):
+                return ""
+            if _is_whole_html(raw):
+                return f":html: {raw} ::"
         logger.warning("PandocImporter: skipping RawInline with format '%s'", fmt)
         return ""
 

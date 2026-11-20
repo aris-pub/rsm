@@ -279,3 +279,29 @@ def test_split_rawinline_html_is_dropped_with_warning(caplog):
         out = PandocImporter().from_json(_para_with_raw(raw))
         assert raw not in out, out
         assert "skipping RawInline with format 'html'" in caplog.text, raw
+
+
+def _rawblock(raw):
+    return {"blocks": [{"t": "RawBlock", "c": ["html", raw]}]}
+
+
+def test_html_comments_are_dropped_silently(caplog):
+    for ast in (_para_with_raw("<!-- c -->"), _rawblock("<!-- a\nblock comment -->")):
+        caplog.clear()
+        out = PandocImporter().from_json(ast)
+        assert "<!--" not in out, out
+        assert ":html" not in out, out
+        assert caplog.text == ""
+
+
+def test_raw_html_with_double_colon_is_dropped_with_warning(caplog):
+    for ast in (
+        _para_with_raw('<span title="a::b"></span>'),
+        _rawblock("<script>\nx = a::b;\n</script>"),
+    ):
+        caplog.clear()
+        out = PandocImporter().from_json(ast)
+        assert "a::b" not in out, out
+        assert ":html" not in out, out
+        assert "'::'" in caplog.text
+        assert "end of the tag" in caplog.text
