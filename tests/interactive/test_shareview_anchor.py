@@ -343,6 +343,13 @@ class TestPins:
         lemma.locator(":scope > .hr-border-zone .hr-border-dots").click()
         page.locator('#hr-menu-singleton [data-role="pin"]').click()
         expect(page.locator(".proof-rail")).to_have_class(re.compile(r"\bhas-pin\b"))
+        # Pinning opens the panel, and the text column narrows over 0.22s. A
+        # link copied before that ends records a scroll position from a
+        # layout that the recipient never has.
+        page.evaluate(
+            """() => Promise.all(document.querySelector('main.manuscriptwrapper')
+                 .getAnimations().map(a => a.finished))"""
+        )
 
     def test_pin_rides_along_and_is_not_saved(
         self, page: Page, interactive_server: str
