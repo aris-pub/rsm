@@ -18,18 +18,20 @@ const PIN_FILLED_ICON =
 const PIN_LABEL = "Pin to the sidebar";
 const PINNED_LABEL = "Pinned in the sidebar";
 
-// The href and title of the excerpt currently pinned in the sidebar, or null.
-let pinnedTarget = null;
-let pinnedTitle = "";
+// The hrefs of the pinned blocks, newest first.
+const pinned = [];
 
-// What is pinned now, for shareview.js to put in a view link.
-export function currentPin() {
-  return pinnedTarget ? { target: pinnedTarget, title: pinnedTitle } : null;
+// What is pinned now, newest first, for shareview.js to put in a view link.
+export function currentPins() {
+  return [...pinned];
+}
+
+export function isPinned(href) {
+  return pinned.includes(href);
 }
 
 // Build the inert excerpt shown for a reference: a clone of the target with
-// handrails stripped. Shared by the hover tooltip and the pin action so both
-// show exactly the same thing. Returns { content, error }.
+// handrails stripped. Returns { content, error }.
 function buildExcerpt(rawHref) {
   if (!rawHref) return { content: "", error: "no-href" };
   // escape '.' (class) and ':' (protocol) so they read as a selector
@@ -62,7 +64,7 @@ function buildExcerpt(rawHref) {
     // A figure keeps its handrail chrome INSIDE itself: the figcaption is its
     // own hr, with the menu dots (in .hr-border-zone) and data-menu-*
     // attributes. Take the HTML from a stripped clone, like the block branches
-    // below, so a pinned or previewed figure is just the image and caption,
+    // below, so a previewed figure is just the image and caption,
     // with no interactive menu dots or leftover menu metadata.
     clone = copyOf($t);
     stripHandrail(clone);
@@ -194,26 +196,25 @@ function widgetPreview(fig) {
 
 // The pin control in a reference preview: an icon in the preview's top-right
 // corner. Offered only when the page has the sidebar (`--sidebar`), the place a
-// pinned excerpt goes.
-function pinBar(href, title) {
+// pinned block goes.
+function pinBar(href) {
   if (!document.querySelector(".proof-rail")) return "";
   const h = (href || "").replaceAll('"', "&quot;");
-  const t = (title || "").replaceAll('"', "&quot;");
-  const on = !!pinnedTarget && href === pinnedTarget;
+  const on = isPinned(href);
   const label = on ? PINNED_LABEL : PIN_LABEL;
   return (
     '<div class="ref-pin-bar">' +
     `<button type="button" class="ref-pin" data-pin-target="${h}" ` +
-    `data-pin-title="${t}" aria-label="${label}" data-tip="${label}" ` +
+    `aria-label="${label}" data-tip="${label}" ` +
     `aria-pressed="${on}"${on ? " data-pinned" : ""}>` +
     (on ? PIN_FILLED_ICON : PIN_ICON) + "</button></div>"
   );
 }
 
-// Repaint every visible preview's pin control after the pinned excerpt changes.
+// Repaint every visible preview's pin control after the pins change.
 function paintPins() {
   for (const btn of document.querySelectorAll(".ref-pin")) {
-    const on = !!pinnedTarget && btn.dataset.pinTarget === pinnedTarget;
+    const on = isPinned(btn.dataset.pinTarget);
     const label = on ? PINNED_LABEL : PIN_LABEL;
     btn.toggleAttribute("data-pinned", on);
     btn.setAttribute("aria-pressed", String(on));
@@ -223,67 +224,93 @@ function paintPins() {
   }
 }
 
-// Pin the block an href points at: rebuild its excerpt from the target (so it
-// does not depend on a closing tooltip's DOM) and dispatch rail:pin, which
-// prooftree.js (owner of the rail) handles. Used by the preview's pin control
-// and by the handrail menu's Pin item. Returns false if nothing could be pinned.
-// A transient pin (from a shared view link) does not save the open sidebar
-// view, so the recipient's own settings stay as they were.
-export function pinTarget(href, title, origin = document, { transient = false } = {}) {
-  const { content } = buildExcerpt(href);
-  if (!content) return false;
-  // The excerpt lands in the live rail, so strip ids/data-nodeid (as the
-  // tooltip path does) or it duplicates the source block's id and breaks
-  // getElementById and hash navigation.
-  const tmp = document.createElement("div");
-  tmp.innerHTML = content;
-  tmp.querySelectorAll("[id]").forEach((e) => e.removeAttribute("id"));
-  tmp.querySelectorAll(".aside").forEach((e) => e.remove());
-  tmp
-    .querySelectorAll("[data-nodeid]")
-    .forEach((e) => e.removeAttribute("data-nodeid"));
-  // The Pinned card shows the block's label as its header, so drop the block's
-  // own rendered label from the body to avoid showing it twice. Only the
-  // leading one (this block's label). Nested labels stay. Mirrors the State
-  // view, which likewise strips .hr-label from its clone.
-  if (title) {
-    const leadLabel = tmp.querySelector(".hr-label, .widget-preview-label");
-    if (leadLabel) leadLabel.remove();
+const UNPIN_BUTTON =
+  '<button type="button" class="pin-unpin" aria-label="Unpin" data-tip="Unpin">' +
+  '<svg aria-hidden="true"><use href="#hr-icon-unpin" width="100%" height="100%"/></svg>' +
+  "</button>";
+
+// A copy of the block that an href points at, with its handrail, for the
+// Pinned view. Null when the target is not a block with a handrail.
+function pinCopy(href) {
+  const id = decodeURIComponent((href || "").replace(/^#/, ""));
+  const target = id && document.getElementById(id);
+  if (!target || !target.matches(".hr, figure:not(.html)")) return null;
+  const copy = cloneWithoutRawHtml(target);
+  // A figure's handrail sits on its caption.
+  const hr = copy.matches(".hr") ? copy : copy.querySelector(":scope > figcaption.hr");
+  const info = hr && hr.querySelector(":scope > .hr-info-zone");
+  if (!info) return null;
+  // The copy sits in the live page, so ids and node ids would duplicate the
+  // source block's and break getElementById and hash navigation.
+  for (const el of [copy, ...copy.querySelectorAll("[id], [data-nodeid]")]) {
+    el.removeAttribute("id");
+    el.removeAttribute("data-nodeid");
   }
-  pinnedTarget = href;
-  pinnedTitle = title || "";
+  copy.querySelectorAll(".aside").forEach((e) => e.remove());
+  for (const el of [copy, ...copy.querySelectorAll(".hr-menu-open")]) {
+    el.classList.remove("hr-menu-open");
+  }
+  // A step or a nested block draws its handrail in its parent's gutter. In the
+  // panel it stands alone, so it lays out its handrail like a top-level block.
+  copy.classList.remove("hr-offset");
+  hr.classList.add("pin-hr");
+  info.insertAdjacentHTML("afterbegin", UNPIN_BUTTON);
+  const t = document.createElement("template");
+  t.innerHTML = withWidgetStills(copy.outerHTML);
+  const out = t.content.firstElementChild;
+  out.dataset.pinTarget = href;
+  return out;
+}
+
+// Pin the block an href points at and dispatch rail:pin, which prooftree.js
+// (owner of the rail) handles. Used by the preview's pin control and by the
+// handrail menu's Pin item. Pinning a block that is pinned already only shows
+// the Pinned view. Returns false if nothing could be pinned. A transient pin
+// (from a shared view link) does not save the open sidebar view, so the
+// recipient's own settings stay as they were.
+export function pinTarget(href, origin = document, { transient = false } = {}) {
+  if (isPinned(href)) {
+    document.dispatchEvent(
+      new CustomEvent("rail:show", { detail: { view: "pinned", open: true } })
+    );
+    return true;
+  }
+  const node = pinCopy(href);
+  if (!node) return false;
+  pinned.unshift(href);
   origin.dispatchEvent(
-    new CustomEvent("rail:pin", {
-      bubbles: true,
-      detail: { html: tmp.innerHTML, title: title || "", target: href, transient },
-    })
+    new CustomEvent("rail:pin", { bubbles: true, detail: { node, target: href, transient } })
   );
   paintPins();
   return true;
 }
 
-// One delegated handler for every preview's pin control. A click on the control
-// of the excerpt that is already pinned shows it (opens the Pinned view)
-// rather than pinning it again.
+export function unpinTarget(href) {
+  const i = pinned.indexOf(href);
+  if (i < 0) return;
+  pinned.splice(i, 1);
+  document.dispatchEvent(
+    new CustomEvent("rail:unpin", { detail: { target: href, remaining: pinned.length } })
+  );
+  paintPins();
+}
+
+// One delegated handler for every preview's pin control and every pinned
+// block's unpin icon.
 let pinDelegated = false;
 function setupPinDelegation() {
   if (pinDelegated) return;
   pinDelegated = true;
   document.addEventListener("click", (ev) => {
-    const btn = ev.target.closest && ev.target.closest(".ref-pin");
-    if (!btn) return;
-    if (btn.hasAttribute("data-pinned")) {
-      document.dispatchEvent(
-        new CustomEvent("rail:show", { detail: { view: "pinned", open: true } })
-      );
+    if (!ev.target.closest) return;
+    const unpin = ev.target.closest(".pin-unpin");
+    if (unpin) {
+      const copy = unpin.closest("[data-pin-target]");
+      if (copy) unpinTarget(copy.dataset.pinTarget);
       return;
     }
-    pinTarget(btn.dataset.pinTarget, btn.dataset.pinTitle || "", btn);
-  });
-  document.addEventListener("rail:unpin", () => {
-    pinnedTarget = null;
-    pinnedTitle = "";
-    paintPins();
+    const btn = ev.target.closest(".ref-pin");
+    if (btn) pinTarget(btn.dataset.pinTarget, btn);
   });
 }
 
@@ -321,23 +348,7 @@ const PREVIEW_OPTIONS = {
       setTooltipContent(instance, "");
       return;
     }
-    // Title the excerpt like the block names itself ("Equation (1)"), not by
-    // the link text ("(1)"), falling back to the link text.
-    const target = document.getElementById((rawHref || "").replace(/^#/, ""));
-    // A footnote's preview is titled by its number ("Note 2"). Asides have no
-    // number, and the phrase is already in the text, so theirs is "Aside".
-    const marker = helper.origin.classList.contains("note-marker");
-    const aside = helper.origin.classList.contains("aside-phrase");
-    const listed = helper.origin.querySelector(".rail-proof-name");
-    const title = (
-      (listed && listed.textContent) ||
-      (aside && "Aside") ||
-      (marker && `Note ${helper.origin.dataset.noteNumber}`) ||
-      (target && target.getAttribute("data-menu-label")) ||
-      helper.origin.textContent ||
-      ""
-    ).trim().replace(/\.$/, "");
-    setTooltipContent(instance, pinBar(rawHref, title) + content);
+    setTooltipContent(instance, pinBar(rawHref) + content);
   },
   functionReady: function (instance, helper) {
     // The tooltip content is a clone of the target and can carry un-typeset
@@ -480,8 +491,8 @@ export function createTooltips() {
 // stacked with that row's collapse button, so stripHandrail (which drops the
 // whole info zone) would lose it. Keep the rows' info zones, emptied of their
 // controls, so every row keeps the same width. The reasons are dropped, as the
-// page shows them by default: hover previews are built at load and pins at
-// click time, so following the reader's open reasons would make the two differ.
+// page shows them by default: hover previews are built at load, so following
+// the reader's open reasons would show them only in some previews.
 function calcPreview($calc) {
   const clone = copyOf($calc);
   clone.children(".hr-content-zone").children(".step").each((_, row) => {

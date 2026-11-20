@@ -1,7 +1,10 @@
 """Reference previews of a labelled :calc: (rsm-80l).
 
-The preview and the pinned excerpt show the calc as it appears in the page: its
-rows, typeset, and its number, with no handrail controls."""
+The preview shows the calc as it appears in the page: its rows, typeset, and
+its number, with no handrail controls. A pinned calc is a copy of the block
+with its handrail."""
+
+import re
 
 import pytest
 from playwright.sync_api import Page, expect
@@ -60,26 +63,27 @@ def test_preview_shows_rows_and_number(page: Page, interactive_server: str):
     assert num["x"] + num["width"] <= pin["x"]
 
 
-def test_pinned_calc_shows_the_same(page: Page, interactive_server: str):
+def test_pinned_calc_is_a_copy_with_its_handrail(page: Page, interactive_server: str):
     _load(page, interactive_server)
     _preview(page).locator(".ref-pin").click()
-    body = page.locator(".rail-pinned-body")
-    _assert_calc_excerpt(body)
-    expect(page.locator(".rail-pinned")).to_contain_text("Equation (1.1)")
+    copy = page.locator(f'.rail-pinned-body > [data-pin-target="{HREF}"]')
+    expect(copy).to_have_class(re.compile(r"\bcalc\b"))
+    rows = copy.locator(":scope > .hr-content-zone > .step")
+    expect(rows).to_have_count(3)
+    for i in range(3):
+        expect(rows.nth(i).locator(".statement math").first).to_be_visible()
+    assert "\\(" not in copy.inner_text()
+    expect(copy.locator(".eqn-number")).to_have_text("(1.1)")
+    expect(copy.locator(":scope > .hr-border-zone .hr-border-dots")).to_have_count(1)
+    expect(copy.locator(":scope > .hr-info-zone .pin-unpin")).to_have_count(1)
 
 
-
-def test_excerpt_leaves_out_reasons_even_when_open(page: Page, interactive_server: str):
-    # Previews are built at load and pins at click time, so the excerpt always
-    # shows the page's default look (no reasons) and the two always match.
+def test_preview_leaves_out_reasons_even_when_open(page: Page, interactive_server: str):
+    # Previews are built at load, so the preview shows the page's default look
+    # (no reasons) whatever the reader opened since.
     _load(page, interactive_server)
     row = page.locator(".manuscript #eq-chain .step").nth(1)
     row.locator(":scope > .hr-info-zone .hr-collapse").click()
     expect(row.locator(".subproof")).to_be_visible()
     tip = _preview(page)
     expect(tip.locator(".calc-preview .subproof")).to_have_count(0)
-    tip.locator(".ref-pin").click()
-    body = page.locator(".rail-pinned-body")
-    expect(body.locator(".calc-preview .step")).to_have_count(3)
-    expect(body.locator(".calc-preview .subproof")).to_have_count(0)
-    assert "Cauchy-Schwarz" not in body.inner_text()

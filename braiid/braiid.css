@@ -1244,6 +1244,9 @@ body {
     background: var(--surface-page);
     color: var(--gray-900);
   }
+  /* Touch has no hover, so a pinned block's unpin icon shows at rest, like
+     the dots. */
+  .manuscriptwrapper .rail-pinned-body .pin-unpin { opacity: 1; }
   .manuscriptwrapper .hr.hr-menu-open > .hr-border-zone .hr-border-dots {
     background: var(--surface-hover);
   }
@@ -2071,7 +2074,7 @@ body {
   .proof-rail.scope-pinned .rail-proof,
   .proof-rail.scope-pinned .rail-reading { display: none; }
   /* The Pinned tab is always present (like Proof); its section shows an empty
-     state until something is pinned, then swaps to the head + body. */
+     state until something is pinned, then the pinned blocks. */
   .rail-pinned-empty {
     display: none;
     color: var(--gray-700);
@@ -2079,56 +2082,54 @@ body {
     font-size: 0.8rem;
   }
   .proof-rail:not(.has-pin) .rail-pinned-empty { display: block; }
-  .proof-rail:not(.has-pin) .rail-pinned-head,
   .proof-rail:not(.has-pin) .rail-pinned-body { display: none; }
 
-  .rail-pinned-head {
-    display: flex;
-    align-items: center;
-    gap: var(--chunk-sixth);
-    padding-bottom: var(--chunk-sixth);
-    border-bottom: var(--border-thin) solid var(--border-primary);
-    margin-bottom: var(--chunk-sixth);
-  }
-  /* With a block pinned, the panel's own title and hint go and the pinned
-     block's row is the only header ("Pinned · Paragraph"), so the content
-     starts higher. With nothing pinned the usual head stays. */
+  /* With a block pinned, the panel's own title and hint go, so the pins start
+     higher. With nothing pinned the usual head stays. */
   .proof-rail.scope-pinned.has-pin .rail-head { display: none; }
   .proof-rail.scope-pinned.has-pin .rail-pinned { padding-top: var(--chunk-quarter); }
-  .rail-pinned-title::before {
-    content: "Pinned · " / "Pinned: ";
-    font-weight: 400;
-    color: var(--text-subtle);
-  }
-  .rail-pinned-title {
-    flex: 1;
-    min-width: 0;
-    font-size: 0.8rem;
-    font-weight: 600;
-    color: var(--dark);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .rail-pin-close {
-    display: inline-flex;
-    flex-shrink: 0;
-    padding: 0;
-    width: 1.4rem;
-    height: 1.4rem;
-    color: var(--dark);
-    background: none;
-    border: none;
-    cursor: pointer;
-  }
-  .rail-pin-close:hover { color: var(--primary-700); }
-  .rail-pin-close svg { width: 1rem; height: 1rem; }
-  /* The pinned excerpt renders at rail width, no widening; long content scrolls. */
+  /* Each pin is a copy of the block with its own handrail, newest on top, with
+     only a gap between pins. Pins render at rail width; a long stack scrolls. */
   .rail-pinned-body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--chunk-sixth);
     min-height: 0;
     overflow-y: auto;
     font-size: 0.8rem;
   }
+
+  /* The unpin icon sits in the info zone of the pinned block's handrail. The
+     content zone and the info zone align on their first baselines, so the
+     bottom of the icon sits on the baseline of the block's first line (its
+     label, or a paragraph's first line). */
+  .rail-pinned .pin-hr > .hr-content-zone,
+  .rail-pinned .pin-hr > .hr-info-zone { align-self: baseline; }
+  .rail-pinned .pin-hr > .hr-info-zone { padding-top: 0; flex-direction: column; }
+  .pin-unpin {
+    display: block;
+    margin: 0 auto;
+    padding: 0;
+    border: 0;
+    background: none;
+    line-height: 0;
+    color: var(--text-subtle);
+    cursor: pointer;
+    opacity: 0;
+  }
+  /* The drawn glyph ends 2 units above the bottom of its 24-unit box, so the
+     box hangs that far below the baseline. */
+  .pin-unpin svg {
+    width: 1rem;
+    height: 1rem;
+    margin-bottom: calc(-2rem / 24);
+    vertical-align: baseline;
+    stroke: currentColor;
+  }
+  .pin-unpin:hover { color: var(--extra-dark); }
+  /* Like the handrail dots: shown while the mouse is on the pinned block. */
+  .rail-pinned-body > [data-pin-target]:hover .pin-unpin,
+  .pin-unpin:focus-visible { opacity: 1; }
 
   .rail-section { display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
 

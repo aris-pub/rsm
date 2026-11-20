@@ -5,7 +5,7 @@
 
 import * as tocarcs from './tocarcs.js';
 import { lensConeSizes } from './deplens.js';
-import { pinTarget } from './tooltips.js';
+import { pinTarget, unpinTarget, isPinned } from './tooltips.js';
 
 // Blocks a reader can keep open in the sidebar's Pinned view.
 const PINNABLE = [
@@ -19,6 +19,16 @@ function pinnableOf(hr) {
   if (hr.id && PINNABLE.some((c) => hr.classList.contains(c))) return hr;
   if (hr.matches("figcaption")) return hr.closest("figure[id]");
   return null;
+}
+
+// The href that a handrail's Pin or Unpin acts on, or null. A pinned copy has
+// no id, so the copy names its source block in data-pin-target.
+function pinHrefOf(hr) {
+  if (hr.closest(".rail-pinned")) {
+    return hr.matches(".pin-hr") ? hr.closest("[data-pin-target]").dataset.pinTarget : null;
+  }
+  const block = pinnableOf(hr);
+  return block ? "#" + block.id : null;
 }
 
 let singletonMenu = null;
@@ -204,10 +214,18 @@ function showMenuFor(hr) {
     collapseSep.style.display = anyCollapse ? "" : "none";
   }
 
-  // Pin: only with the sidebar, on blocks a reader can pin.
-  const pinnable =
-    !!document.querySelector(".proof-rail .rail-pinned") && !!pinnableOf(hr);
-  configureItem(singletonMenu.querySelector('[data-role="pin"]'), pinnable ? "true" : null);
+  // Pin: only with the sidebar, on blocks a reader can pin. A pinned block
+  // offers Unpin instead, in the text and in the Pinned view.
+  const pinHref = document.querySelector(".proof-rail .rail-pinned") ? pinHrefOf(hr) : null;
+  const pinEl = singletonMenu.querySelector('[data-role="pin"]');
+  configureItem(pinEl, pinHref ? "true" : null);
+  if (pinEl && pinHref) {
+    const on = isPinned(pinHref);
+    const textEl = pinEl.querySelector(".hr-menu-item-text");
+    if (textEl) textEl.textContent = on ? "Unpin" : "Pin";
+    const useEl = pinEl.querySelector("svg use");
+    if (useEl) useEl.setAttribute("href", on ? "#hr-icon-unpin" : "#hr-icon-pin");
+  }
 
   // Configure link and code items
   configureItem(singletonMenu.querySelector('[data-role="link"]'), link);
@@ -374,15 +392,13 @@ function toggleReorder(hr) {
 // Enter focus mode on a step. focusmode.js (set up in onload) listens for the
 // dispatched event, finds the step's proof and rail map, and folds the proof to
 // this step's prerequisite cone. Mirrors toggleReorder's menu->event handoff.
-// Keep this block open in the sidebar's Pinned view, titled by its label.
+// Keep this block open in the sidebar's Pinned view, or take it out.
 function pinBlock(hr) {
-  const block = pinnableOf(hr);
-  if (!block) return;
-  const label = block.matches("figure")
-    ? (block.querySelector("figcaption .label")?.textContent || "Figure")
-    : hr.getAttribute("data-menu-label") || "";
+  const href = pinHrefOf(hr);
+  if (!href) return;
   hideMenu();
-  pinTarget("#" + block.id, label.trim().replace(/\.$/, ""), block);
+  if (isPinned(href)) unpinTarget(href);
+  else pinTarget(href, hr);
 }
 
 function triggerFocus(hr) {
@@ -698,6 +714,8 @@ function loadCollapseState() {
 //     manuscript root), so borrowing an ancestor's nodeid would collide them
 //     all onto root nodeid 0. Their text is the only handle that stays distinct.
 export function collapseKey(hr) {
+  // A pinned copy's fold is not saved, and a view link does not carry it.
+  if (hr.closest(".rail-pinned")) return null;
   const nid = hr.getAttribute("data-nodeid");
   if (nid != null) return "n:" + nid;
   const sec = hr.closest("section");

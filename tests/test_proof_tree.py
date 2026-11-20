@@ -392,3 +392,32 @@ def test_empty_proof_panel_lists_the_proofs():
     assert '<span class="rail-proof-name">Proof of Theorem 1.1</span>' in empty
     assert '<span class="rail-proof-meta">§1 · 3 steps</span>' in empty
     assert empty.count('class="rail-proof-link"') == 1
+
+
+def test_unpin_icon_is_the_pin_with_a_masked_bar():
+    import re
+
+    html = _sidebar(RAIL_SRC)
+    m = re.search(r'<symbol id="hr-icon-unpin"[^>]*>(.*?)</symbol>', html, re.S)
+    assert m, "no unpin icon symbol"
+    inner = m.group(1)
+    # The pin's three paths, drawn through a mask that cuts a gap along the bar.
+    assert '<mask id="hr-icon-unpin-cut"' in inner
+    assert 'mask="url(#hr-icon-unpin-cut)"' in inner
+    for d in (
+        "M15 4.5l-4 4l-4 1.5l-1.5 1.5l7 7l1.5 -1.5l1.5 -4l4 -4",
+        "M9 15l-4.5 4.5",
+        "M14.5 4l5.5 5.5",
+    ):
+        assert d in inner
+    assert inner.count('d="M3 3l18 18"') == 2  # once in the mask, once drawn
+
+
+def test_pinned_view_has_no_single_pin_header():
+    html = _sidebar(RAIL_SRC)
+    assert 'class="rail-section rail-pinned"' in html
+    assert "rail-pinned-head" not in html
+    assert "rail-pinned-title" not in html
+    assert "rail-pin-close" not in html
+    assert 'class="rail-pinned-body"' in html
+    assert "Nothing pinned yet." in html

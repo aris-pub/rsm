@@ -2,7 +2,7 @@
 //
 // Shareable presentation-state link ("read it the way I read it"). A reader's
 // constructed view (fold state, logic-preserving reorder order, notation
-// rebindings, the pinned block, and the block at the top of the window with its
+// rebindings, the pinned blocks, and the block at the top of the window with its
 // offset) is captured on demand into a ?view= URL token and restored on load,
 // turning a private reading into researcher-to-researcher communication.
 //
@@ -18,7 +18,7 @@
 import { collapseKey, openHandrail, closeHandrail, withoutPersist, launchToast } from "./handrails.js";
 import { extractModel, applyToBody, flatten, isValidOrder } from "./reorder.js";
 import { getNotationMacros, listNotation } from "./notation.js";
-import { currentPin, pinTarget } from "./tooltips.js";
+import { currentPins, pinTarget } from "./tooltips.js";
 
 const SCHEMA = 1;
 
@@ -118,12 +118,11 @@ export function captureState() {
   }
   if (Object.keys(notation).length) state.notation = notation;
 
-  // The pinned block, by id. The sidebar holds one pin at a time, but the
-  // field is a list so more can ride along later without a new schema.
-  const pin = currentPin();
-  if (pin && pin.target.startsWith("#")) {
-    state.pins = [{ id: decodeURIComponent(pin.target.slice(1)), title: pin.title }];
-  }
+  // The pinned blocks, by id, newest first.
+  const pins = currentPins()
+    .filter((t) => t.startsWith("#"))
+    .map((t) => decodeURIComponent(t.slice(1)));
+  if (pins.length) state.pins = pins;
 
   const anchor = currentAnchor();
   if (anchor) {
@@ -193,18 +192,20 @@ function restoreOrder(state) {
   }
 }
 
-// Show the sender's pin in the Pinned view for this visit only. Pins are kept in
-// memory, never saved, and the transient flag stops the sidebar from saving
-// "Pinned" as the recipient's open view.
+// Show the sender's pins in the Pinned view for this visit only. Pins are kept
+// in memory, never saved, and the transient flag stops the sidebar from saving
+// "Pinned" as the recipient's open view. Each new pin goes on top, so the
+// oldest is pinned first.
 function restorePins(state) {
-  const pin = Array.isArray(state.pins) ? state.pins[0] : null;
-  if (!pin || !pin.id) return;
-  const el = document.getElementById(pin.id);
-  if (!el) return;
-  try {
-    pinTarget("#" + pin.id, pin.title || "", el, { transient: true });
-  } catch {
-    /* pinning unavailable, skip */
+  if (!Array.isArray(state.pins)) return;
+  for (const id of [...state.pins].reverse()) {
+    const el = typeof id === "string" && document.getElementById(id);
+    if (!el) continue;
+    try {
+      pinTarget("#" + id, el, { transient: true });
+    } catch {
+      /* pinning unavailable, skip */
+    }
   }
 }
 
