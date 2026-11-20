@@ -42,6 +42,13 @@ export async function onload(root = null, { keys = true } = {}) {
   }
 
   try {
+    // A shared view's notation must be in place before the first typeset.
+    try {
+      shareview.preload();
+    } catch (err) {
+      console.error("Reading the shared view FAILED!", err);
+    }
+
     // Load MathJax only when the page has math. pseudocode.js typesets the
     // math in an algorithm with MathJax too.
     if (document.querySelector('span.math, div.mathblock, pre.pseudocode')) {
