@@ -30,6 +30,21 @@ PANDOC_API_VERSION = [1, 23, 1]
 
 _ISO_DATE = re.compile(r"^\d{4}(-\d{2}(-\d{2})?)?$")
 
+# Pandoc splits an element such as <span>...</span> into an opening RawInline,
+# the inlines between, and a closing RawInline. Only a piece that is a whole
+# element on its own can go into :html: without leaving unbalanced tags.
+_HTML_ATTRS = r"""(?:"[^"]*"|'[^']*'|[^'">])*"""
+_HTML_VOID = re.compile(
+    r"<(?:area|base|br|col|embed|hr|img|input|link|meta|source|track|wbr)\b"
+    + _HTML_ATTRS
+    + ">",
+    re.IGNORECASE,
+)
+_HTML_SELF_CLOSED = re.compile(r"<[A-Za-z][\w:.-]*" + _HTML_ATTRS + "/>")
+_HTML_ELEMENT = re.compile(
+    r"<([A-Za-z][\w:.-]*)\b" + _HTML_ATTRS + r">.*</\1\s*>", re.DOTALL
+)
+
 # Pandoc gives \date{...} as free text; RSM's :override-date: wants ISO 8601.
 # These are the common human-written forms; anything else is left for the LLM
 # host pass rather than guessed at.
@@ -602,6 +617,13 @@ def _math_label(src: str) -> str | None:
     return m.group(1) if m else None
 
 
+def _is_whole_html(raw: str) -> bool:
+    return any(
+        pattern.fullmatch(raw.strip())
+        for pattern in (_HTML_VOID, _HTML_SELF_CLOSED, _HTML_ELEMENT)
+    )
+
+
 def _strip_trailing_colon(text: str) -> str:
     # \paragraph titles often end in a colon ("Encoder:"), which breaks RSM meta
     # value parsing and is a run-in convention, not part of the title.
@@ -937,6 +959,8 @@ class PandocImporter:
         if fmt == "latex":
             indented = "\n".join("  " + line for line in raw.strip().splitlines())
             return f":mathblock:\n{indented}\n::\n\n"
+        if fmt == "html":
+            return f":htmlblock:\n{raw.strip()}\n::\n\n"
         logger.warning("PandocImporter: skipping RawBlock with format '%s'", fmt)
         return ""
 
@@ -1138,6 +1162,8 @@ class PandocImporter:
         fmt, raw = c
         if fmt == "latex":
             return f":math: {raw} ::"
+        if fmt == "html" and _is_whole_html(raw):
+            return f":html: {raw} ::"
         logger.warning("PandocImporter: skipping RawInline with format '%s'", fmt)
         return ""
 
