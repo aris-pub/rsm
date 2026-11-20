@@ -307,6 +307,125 @@ class TestUnpin:
         assert _targets(page) == ["#st-1"]
 
 
+def _rail_open(page: Page) -> bool:
+    return page.evaluate("() => document.documentElement.classList.contains('rail-open')")
+
+
+class TestUnpinClosesThePanel:
+    """The panel closes when the last pin is removed, and stays open while
+    pins remain."""
+
+    def test_unpin_last_closes_the_panel_on_desktop(self, page: Page, interactive_server: str):
+        _load(page, interactive_server)
+        _pin(page, "#thm-x")
+        page.wait_for_function("() => document.documentElement.classList.contains('rail-open')")
+        page.locator(f"{PINS}").hover()
+        page.locator(f"{PINS} .pin-unpin").click()
+        page.wait_for_function(
+            "() => !document.documentElement.classList.contains('rail-open')", timeout=3000
+        )
+
+    def test_unpin_with_pins_left_keeps_the_panel_open(
+        self, page: Page, interactive_server: str
+    ):
+        _load(page, interactive_server)
+        _pin(page, "#thm-x")
+        _pin(page, "#st-1")
+        page.wait_for_function("() => document.documentElement.classList.contains('rail-open')")
+        copy = page.locator(f'{PINS}[data-pin-target="#thm-x"]')
+        copy.hover()
+        copy.locator(".pin-unpin").click()
+        expect(page.locator(PINS)).to_have_count(1)
+        page.wait_for_timeout(500)
+        assert _rail_open(page)
+        expect(page.locator(".proof-rail")).to_have_class(re.compile(r"\bscope-pinned\b"))
+        # Unpin from the menu in the text keeps it open too while a pin remains.
+        _open_menu(page, page.locator(".manuscript #thm-x"))
+        page.locator('#hr-menu-singleton [data-role="pin"]').click()
+        _open_menu(page, page.locator(".manuscript #thm-x"))
+        page.locator('#hr-menu-singleton [data-role="pin"]').click()
+        expect(page.locator(PINS)).to_have_count(1)
+        assert _rail_open(page)
+
+    def test_unpin_last_closes_the_sheet_on_a_phone(
+        self, playwright, browser, interactive_server: str
+    ):
+        ctx = browser.new_context(**playwright.devices["iPhone 13"])
+        page = ctx.new_page()
+        try:
+            page.goto(f"{interactive_server}/sidebar.html")
+            page.wait_for_function(RSM_READY, timeout=10_000)
+            theorem = page.locator(".manuscript .theorem").first
+            theorem.scroll_into_view_if_needed()
+            theorem.locator(":scope > .hr-border-zone .hr-border-dots").click()
+            page.locator('#hr-menu-singleton [data-role="pin"]').click()
+            page.wait_for_function(
+                "() => document.documentElement.classList.contains('rail-open')"
+            )
+            page.locator(f"{PINS} .pin-unpin").click()
+            page.wait_for_function(
+                "() => !document.documentElement.classList.contains('rail-open')", timeout=3000
+            )
+        finally:
+            ctx.close()
+
+
+# The unpin icon takes the first line of the info zone, and a number in the
+# same column (an equation's, a step's, a calc's) moves one line down.
+_ICON_AND_NUMBERS = """b => {
+    const icon = b.querySelector('.pin-unpin svg').getBoundingClientRect();
+    const others = [...b.querySelectorAll('.eqn-number, .step-number, .hr-info-zone .hr-collapse')]
+      .filter(e => e.getClientRects().length && !e.closest('.hide'))
+      .map(e => { const r = e.getBoundingClientRect();
+                  return {cls: e.className, top: r.top, bottom: r.bottom, left: r.left, right: r.right}; });
+    return {icon: {top: icon.top, bottom: icon.bottom, left: icon.left, right: icon.right}, others};
+}"""
+
+
+def _assert_numbers_below_icon(copy, number_selector: str) -> None:
+    geom = copy.evaluate(_ICON_AND_NUMBERS)
+    icon = geom["icon"]
+    for o in geom["others"]:
+        overlap = not (
+            o["bottom"] <= icon["top"] + 0.5
+            or o["top"] >= icon["bottom"] - 0.5
+            or o["right"] <= icon["left"] + 0.5
+            or o["left"] >= icon["right"] - 0.5
+        )
+        assert not overlap, (o, icon)
+    num = copy.locator(number_selector).first.bounding_box()
+    assert num["y"] >= icon["bottom"] - 0.5, (num, icon)
+
+
+class TestUnpinIconAndNumbers:
+    def test_step_number_moves_below_the_icon(self, page: Page, interactive_server: str):
+        _load(page, interactive_server)
+        _pin(page, "#st-1")
+        copy = page.locator(f'{PINS}[data-pin-target="#st-1"]')
+        copy.hover()
+        _assert_numbers_below_icon(copy, ".step-number")
+
+    def test_equation_number_moves_below_the_icon(self, page: Page, interactive_server: str):
+        page.set_viewport_size({"width": 1400, "height": 900})
+        page.goto(f"{interactive_server}/pin_targets.html")
+        page.wait_for_function(RSM_READY, timeout=10_000)
+        _pin(page, "#eq-a")
+        copy = page.locator(f'{PINS}[data-pin-target="#eq-a"]')
+        copy.hover()
+        _assert_numbers_below_icon(copy, ".eqn-number")
+
+    def test_calc_number_and_reason_dots_move_below_the_icon(
+        self, page: Page, interactive_server: str
+    ):
+        page.set_viewport_size({"width": 1400, "height": 900})
+        page.goto(f"{interactive_server}/calc_preview.html")
+        page.wait_for_function(RSM_READY, timeout=10_000)
+        _pin(page, "#eq-chain")
+        copy = page.locator(f'{PINS}[data-pin-target="#eq-chain"]')
+        copy.hover()
+        _assert_numbers_below_icon(copy, ".eqn-number")
+
+
 class TestTouch:
     def test_unpin_icon_always_shown_on_touch(self, playwright, browser, interactive_server: str):
         ctx = browser.new_context(**playwright.devices["iPhone 13"])
@@ -367,3 +486,64 @@ class TestPinProofs:
         page.locator('#hr-menu-singleton [data-role="pin"]').click()
         expect(page.locator(".proof-rail")).to_have_class(re.compile(r"\bscope-pinned\b"))
         expect(page.locator(".rail-pinned-body")).to_contain_text("First")
+
+
+class TestPinTargets:
+    """Every pinnable target has a handrail: on itself, as a direct child (a
+    bibliography entry, a footnote), or on its caption (a figure, a table). The
+    copy keeps that handrail, and the unpin icon sits in its info zone.
+    Sections cannot be pinned."""
+
+    def _load(self, page: Page, server: str) -> None:
+        page.set_viewport_size({"width": 1400, "height": 900})
+        page.goto(f"{server}/pin_targets.html")
+        page.wait_for_function(RSM_READY, timeout=10_000)
+
+    @pytest.mark.parametrize(
+        "href, handrail, text",
+        [
+            ("#knuth", ":scope > .hr", "Knuth"),
+            ("#fn-a", ":scope > .hr", "The footnote text."),
+            ("#fig-a", ":scope > figcaption.hr", "A figure a reader can pin."),
+            ("#tab-a", ":scope > figcaption.hr", "A table a reader can pin."),
+        ],
+    )
+    def test_target_pins_with_its_handrail(
+        self, page: Page, interactive_server: str, href: str, handrail: str, text: str
+    ):
+        self._load(page, interactive_server)
+        _pin(page, href)
+        copy = page.locator(f'{PINS}[data-pin-target="{href}"]')
+        expect(copy).to_contain_text(text)
+        hr = copy.locator(handrail)
+        expect(hr).to_have_count(1)
+        icon = hr.locator(":scope > .hr-info-zone .pin-unpin")
+        expect(icon).to_have_count(1)
+        copy.hover()
+        icon.click()
+        expect(page.locator(PINS)).to_have_count(0)
+
+    def test_pinned_table_keeps_its_cells(self, page: Page, interactive_server: str):
+        self._load(page, interactive_server)
+        _pin(page, "#tab-a")
+        copy = page.locator(f'{PINS}[data-pin-target="#tab-a"]')
+        expect(copy.locator("table td")).to_have_count(2)
+
+    def test_table_caption_menu_says_unpin_when_pinned(
+        self, page: Page, interactive_server: str
+    ):
+        self._load(page, interactive_server)
+        _pin(page, "#tab-a")
+        cap = page.locator(".manuscript #tab-a + figcaption.hr")
+        cap.scroll_into_view_if_needed()
+        cap.hover()
+        cap.locator(":scope > .hr-border-zone .hr-border-dots").click()
+        assert _menu_pin_text(page) == "Unpin"
+        page.locator('#hr-menu-singleton [data-role="pin"]').click()
+        expect(page.locator(PINS)).to_have_count(0)
+
+    def test_section_preview_has_no_pin_control(self, page: Page, interactive_server: str):
+        self._load(page, interactive_server)
+        _hover_ref(page, "#sec-targets")
+        expect(page.locator(".tooltipster-base").last).to_be_visible(timeout=3000)
+        expect(page.locator('.ref-pin[data-pin-target="#sec-targets"]')).to_have_count(0)

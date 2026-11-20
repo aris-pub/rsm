@@ -1,0 +1,46 @@
+# Pin targets
+
+## Targets
+  {:label: sec-targets}
+
+A sentence with a footnote.:note:fn-a:: It cites :cite:knuth:: and has an
+aside on :aside:side-a,a phrase::.
+
+:note: {:label: fn-a} The footnote text. ::
+
+:aside: {:label: side-a} The aside text. ::
+
+:figure: {
+  :label: fig-a
+  :path: figure-light.png
+}
+:caption: A figure a reader can pin.
+::
+
+:table: {:label: tab-a}
+
+:tbody:
+
+:tr: :td:cell one:: :td:cell two:: ::
+
+::
+
+:caption: A table a reader can pin.
+
+::
+
+:mathblock: {:label: eq-a}
+  x^2 + y^2 = z^2
+::
+
+See :ref:fig-a::, :ref:tab-a::, :ref:fn-a::, :ref:eq-a:: and :ref:sec-targets::.
+
+:references:
+  @book{knuth,
+    title={Art of computer programming},
+    author={Knuth, Donald E},
+    year={2014},
+    publisher={Addison-Wesley Professional},
+    doi={10.5555/270146}
+  }
+::

@@ -1402,19 +1402,20 @@ var RSM = (() => {
     t.innerHTML = html;
     const widgets = t.content.querySelectorAll("figure.html");
     if (!widgets.length) return html;
-    for (const fig of widgets) {
-      const still = document.createElement("div");
-      const imgs = fig.querySelectorAll(".static-fallback img");
-      if (imgs.length) {
-        still.className = "widget-preview-still";
-        for (const img of imgs) still.append(img.cloneNode());
-      } else {
-        still.className = "widget-preview-alt";
-        still.textContent = fig.getAttribute("data-alt") || "";
-      }
-      fig.replaceWith(still);
-    }
+    for (const fig of widgets) fig.replaceWith(widgetStill(fig));
     return t.innerHTML;
+  }
+  function widgetStill(fig) {
+    const still = document.createElement("div");
+    const imgs = fig.querySelectorAll(".static-fallback img");
+    if (imgs.length) {
+      still.className = "widget-preview-still";
+      for (const img of imgs) still.append(img.cloneNode());
+    } else {
+      still.className = "widget-preview-alt";
+      still.textContent = fig.getAttribute("data-alt") || "";
+    }
+    return still;
   }
   function widgetPreview(fig) {
     const esc = (s) => String(s).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll('"', "&quot;");
@@ -1448,6 +1449,7 @@ var RSM = (() => {
   }
   function pinBar(href) {
     if (!document.querySelector(".proof-rail")) return "";
+    if (!pinBlockOf(targetOf(href))) return "";
     const h = (href || "").replaceAll('"', "&quot;");
     const on = isPinned(href);
     const label2 = on ? PINNED_LABEL : PIN_LABEL;
@@ -1465,14 +1467,26 @@ var RSM = (() => {
     }
   }
   var UNPIN_BUTTON = '<button type="button" class="pin-unpin" aria-label="Unpin" data-tip="Unpin"><svg aria-hidden="true"><use href="#hr-icon-unpin" width="100%" height="100%"/></svg></button>';
-  function pinCopy(href) {
+  function targetOf(href) {
     const id = decodeURIComponent((href || "").replace(/^#/, ""));
-    const target = id && document.getElementById(id);
-    if (!target || !target.matches(".hr, figure:not(.html)")) return null;
-    const copy = cloneWithoutRawHtml(target);
-    const hr = copy.matches(".hr") ? copy : copy.querySelector(":scope > figcaption.hr");
-    const info = hr && hr.querySelector(":scope > .hr-info-zone");
-    if (!info) return null;
+    return id ? document.getElementById(id) : null;
+  }
+  function handrailOf(block) {
+    if (block.matches(".hr")) return block;
+    return block.querySelector(":scope > figcaption.hr") || block.querySelector(":scope > .hr");
+  }
+  function pinBlockOf(target) {
+    if (!target || target.matches("section")) return null;
+    const block = target.matches("table") ? target.closest(".table-wrapper") : target;
+    const hr = block && handrailOf(block);
+    return hr && hr.querySelector(":scope > .hr-info-zone") ? block : null;
+  }
+  function pinCopy(href) {
+    const block = pinBlockOf(targetOf(href));
+    if (!block) return null;
+    const copy = cloneWithoutRawHtml(block);
+    const hr = handrailOf(copy);
+    const info = hr.querySelector(":scope > .hr-info-zone");
     for (const el of [copy, ...copy.querySelectorAll("[id], [data-nodeid]")]) {
       el.removeAttribute("id");
       el.removeAttribute("data-nodeid");
@@ -1484,11 +1498,13 @@ var RSM = (() => {
     copy.classList.remove("hr-offset");
     hr.classList.add("pin-hr");
     info.insertAdjacentHTML("afterbegin", UNPIN_BUTTON);
-    const t = document.createElement("template");
-    t.innerHTML = withWidgetStills(copy.outerHTML);
-    const out = t.content.firstElementChild;
-    out.dataset.pinTarget = href;
-    return out;
+    if (copy.matches("figure.html")) {
+      const zone = copy.querySelector(":scope > .hr:not(figcaption) > .hr-content-zone");
+      if (zone) zone.replaceChildren(widgetStill(block));
+    }
+    for (const fig of copy.querySelectorAll("figure.html")) fig.replaceWith(widgetStill(fig));
+    copy.dataset.pinTarget = href;
+    return copy;
   }
   function pinTarget(href, origin = document, { transient = false } = {}) {
     if (isPinned(href)) {
@@ -1708,7 +1724,9 @@ var RSM = (() => {
   ];
   function pinnableOf(hr) {
     if (hr.id && PINNABLE.some((c) => hr.classList.contains(c))) return hr;
-    if (hr.matches("figcaption")) return hr.closest("figure[id]");
+    if (hr.matches("figcaption")) {
+      return hr.closest("figure[id]") || hr.parentElement.querySelector(":scope > table[id]");
+    }
     return null;
   }
   function pinHrefOf(hr) {
@@ -1716,7 +1734,10 @@ var RSM = (() => {
       return hr.matches(".pin-hr") ? hr.closest("[data-pin-target]").dataset.pinTarget : null;
     }
     const block = pinnableOf(hr);
-    return block ? "#" + block.id : null;
+    if (block) return "#" + block.id;
+    const owner = hr.id ? hr : hr.parentElement;
+    const href = owner && owner.id ? "#" + owner.id : null;
+    return href && isPinned(href) ? href : null;
   }
   var singletonMenu = null;
   var activeHr = null;
@@ -2978,8 +2999,8 @@ var RSM = (() => {
       if (d.open) openView(id, { toggle: false });
       else select(id);
     });
-    document.addEventListener("rail:unpin", () => {
-      if (open) setOpen(false, { persist: false });
+    document.addEventListener("rail:unpin", (ev) => {
+      if (open && !(ev.detail && ev.detail.remaining > 0)) setOpen(false, { persist: false });
     });
     document.addEventListener("rail:pin", (ev) => {
       const persist = !(ev.detail && ev.detail.transient);

@@ -13,22 +13,30 @@ const PINNABLE = [
   "exercise", "proposition", "problem", "porism", "remark", "definition", "proof",
 ];
 
-// The block a handrail's Pin acts on: the block itself, or, for a figure (whose
-// handrail sits on its caption), the figure. Null when it cannot be pinned.
+// The block a handrail's Pin acts on: the block itself, or, for a figure or a
+// table (whose handrail sits on its caption), the figure or table. Null when
+// the menu does not offer Pin.
 function pinnableOf(hr) {
   if (hr.id && PINNABLE.some((c) => hr.classList.contains(c))) return hr;
-  if (hr.matches("figcaption")) return hr.closest("figure[id]");
+  if (hr.matches("figcaption")) {
+    return hr.closest("figure[id]") || hr.parentElement.querySelector(":scope > table[id]");
+  }
   return null;
 }
 
 // The href that a handrail's Pin or Unpin acts on, or null. A pinned copy has
-// no id, so the copy names its source block in data-pin-target.
+// no id, so the copy names its source block in data-pin-target. A block pinned
+// from a reference preview (a step, a bibliography entry) offers Unpin in its
+// menu even when the menu does not offer Pin for it.
 function pinHrefOf(hr) {
   if (hr.closest(".rail-pinned")) {
     return hr.matches(".pin-hr") ? hr.closest("[data-pin-target]").dataset.pinTarget : null;
   }
   const block = pinnableOf(hr);
-  return block ? "#" + block.id : null;
+  if (block) return "#" + block.id;
+  const owner = hr.id ? hr : hr.parentElement;
+  const href = owner && owner.id ? "#" + owner.id : null;
+  return href && isPinned(href) ? href : null;
 }
 
 let singletonMenu = null;

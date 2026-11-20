@@ -134,19 +134,22 @@ function withWidgetStills(html) {
   t.innerHTML = html;
   const widgets = t.content.querySelectorAll("figure.html");
   if (!widgets.length) return html;
-  for (const fig of widgets) {
-    const still = document.createElement("div");
-    const imgs = fig.querySelectorAll(".static-fallback img");
-    if (imgs.length) {
-      still.className = "widget-preview-still";
-      for (const img of imgs) still.append(img.cloneNode());
-    } else {
-      still.className = "widget-preview-alt";
-      still.textContent = fig.getAttribute("data-alt") || "";
-    }
-    fig.replaceWith(still);
-  }
+  for (const fig of widgets) fig.replaceWith(widgetStill(fig));
   return t.innerHTML;
+}
+
+// The still image of a figure that holds HTML, or else its alt text.
+function widgetStill(fig) {
+  const still = document.createElement("div");
+  const imgs = fig.querySelectorAll(".static-fallback img");
+  if (imgs.length) {
+    still.className = "widget-preview-still";
+    for (const img of imgs) still.append(img.cloneNode());
+  } else {
+    still.className = "widget-preview-alt";
+    still.textContent = fig.getAttribute("data-alt") || "";
+  }
+  return still;
 }
 
 // The excerpt of a figure that holds HTML. A copy of the live HTML does not
@@ -199,6 +202,7 @@ function widgetPreview(fig) {
 // pinned block goes.
 function pinBar(href) {
   if (!document.querySelector(".proof-rail")) return "";
+  if (!pinBlockOf(targetOf(href))) return "";
   const h = (href || "").replaceAll('"', "&quot;");
   const on = isPinned(href);
   const label = on ? PINNED_LABEL : PIN_LABEL;
@@ -229,17 +233,37 @@ const UNPIN_BUTTON =
   '<svg aria-hidden="true"><use href="#hr-icon-unpin" width="100%" height="100%"/></svg>' +
   "</button>";
 
-// A copy of the block that an href points at, with its handrail, for the
-// Pinned view. Null when the target is not a block with a handrail.
-function pinCopy(href) {
+function targetOf(href) {
   const id = decodeURIComponent((href || "").replace(/^#/, ""));
-  const target = id && document.getElementById(id);
-  if (!target || !target.matches(".hr, figure:not(.html)")) return null;
-  const copy = cloneWithoutRawHtml(target);
-  // A figure's handrail sits on its caption.
-  const hr = copy.matches(".hr") ? copy : copy.querySelector(":scope > figcaption.hr");
-  const info = hr && hr.querySelector(":scope > .hr-info-zone");
-  if (!info) return null;
+  return id ? document.getElementById(id) : null;
+}
+
+// The handrail of a pinned block that holds the unpin icon: the block's own,
+// else its caption's (figures and tables), else that of its direct child
+// (bibliography entries, footnotes, figures without a caption).
+function handrailOf(block) {
+  if (block.matches(".hr")) return block;
+  return block.querySelector(":scope > figcaption.hr") || block.querySelector(":scope > .hr");
+}
+
+// The block that pinning a target copies, or null when the target cannot be
+// pinned. A table's caption is its sibling, so a table pins with its wrapper.
+// Sections are not pinned.
+function pinBlockOf(target) {
+  if (!target || target.matches("section")) return null;
+  const block = target.matches("table") ? target.closest(".table-wrapper") : target;
+  const hr = block && handrailOf(block);
+  return hr && hr.querySelector(":scope > .hr-info-zone") ? block : null;
+}
+
+// A copy of the block that an href points at, with its handrail, for the
+// Pinned view. Null when the target cannot be pinned.
+function pinCopy(href) {
+  const block = pinBlockOf(targetOf(href));
+  if (!block) return null;
+  const copy = cloneWithoutRawHtml(block);
+  const hr = handrailOf(copy);
+  const info = hr.querySelector(":scope > .hr-info-zone");
   // The copy sits in the live page, so ids and node ids would duplicate the
   // source block's and break getElementById and hash navigation.
   for (const el of [copy, ...copy.querySelectorAll("[id], [data-nodeid]")]) {
@@ -255,11 +279,16 @@ function pinCopy(href) {
   copy.classList.remove("hr-offset");
   hr.classList.add("pin-hr");
   info.insertAdjacentHTML("afterbegin", UNPIN_BUTTON);
-  const t = document.createElement("template");
-  t.innerHTML = withWidgetStills(copy.outerHTML);
-  const out = t.content.firstElementChild;
-  out.dataset.pinTarget = href;
-  return out;
+  // A live copy of HTML attaches to the original's scripts and state, so a
+  // figure that holds HTML shows its still instead. A pinned one keeps its
+  // handrails, with the still in place of the HTML.
+  if (copy.matches("figure.html")) {
+    const zone = copy.querySelector(":scope > .hr:not(figcaption) > .hr-content-zone");
+    if (zone) zone.replaceChildren(widgetStill(block));
+  }
+  for (const fig of copy.querySelectorAll("figure.html")) fig.replaceWith(widgetStill(fig));
+  copy.dataset.pinTarget = href;
+  return copy;
 }
 
 // Pin the block an href points at and dispatch rail:pin, which prooftree.js

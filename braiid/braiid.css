@@ -2118,13 +2118,41 @@ body {
     opacity: 0;
   }
   /* The drawn glyph ends 2 units above the bottom of its 24-unit box, so the
-     box hangs that far below the baseline. */
+     box hangs that far below the baseline. The button's padding holds that
+     part, so a number in the info zone starts on the next line, below the
+     icon. */
+  .pin-unpin { padding-bottom: calc(2rem / 24); }
   .pin-unpin svg {
     width: 1rem;
     height: 1rem;
     margin-bottom: calc(-2rem / 24);
     vertical-align: baseline;
     stroke: currentColor;
+  }
+  /* A calc's number and its first row's reason mark sit in the first row's
+     info zone, which covers the calc's own info zone, where the icon is. In a
+     pinned calc that zone takes no width, as before, but stays in the row's
+     flow and aligns on the row's first baseline. A space as tall as the icon
+     takes its first line, so the number and the mark move one line down. */
+  .rail-pinned .calc.pin-hr > .hr-content-zone > .step:first-child > .hr-content-zone {
+    align-self: baseline;
+  }
+  .rail-pinned .calc.pin-hr > .hr-content-zone > .step:first-child > .hr-info-zone {
+    position: relative;
+    left: auto;
+    align-self: baseline;
+    flex: none;
+    width: 0;
+    padding: 0 0 0 var(--chunk-sixth);
+    margin-right: calc(-1 * var(--chunk-sixth));
+  }
+  .rail-pinned .calc.pin-hr > .hr-content-zone > .step:first-child > .hr-info-zone::before {
+    content: "";
+    display: inline-block;
+    width: 1px;
+    height: 1rem;
+    margin-bottom: calc(-2rem / 24);
+    padding-bottom: calc(2rem / 24);
   }
   .pin-unpin:hover { color: var(--extra-dark); }
   /* Like the handrail dots: shown while the mouse is on the pinned block. */
