@@ -145,3 +145,25 @@ def test_expand_keeps_space_after_macro():
 def test_expand_default_that_uses_another_macro():
     m = {"\\emb": "F", "\\embsq": "\\emb^2"}
     assert _expand("\\embsq", m) == "F^2"
+
+
+def test_expand_leaves_call_with_missing_argument():
+    m = {"\\rad": "\\rho_{#1}", "\\pair": "(#1, #2)"}
+    assert _expand("\\rad", m) == "\\rad"
+    assert _expand("{\\rad}", m) == "{\\rad}"
+    assert _expand("\\pair{a}", m) == "\\pair{a}"
+
+
+def test_expand_stops_on_self_reference():
+    # each level adds one "'", so the count shows where expansion stopped
+    out = _expand("\\emb", {"\\emb": "\\emb'"})
+    assert out == "\\emb" + "'" * 33
+
+
+def test_later_duplicate_declaration_wins():
+    src = (
+        "# T\n\n:notation:\n  \\emb $F$ first\n::\n\n"
+        ":notation:\n  \\emb $G$ second\n::\n\nSee $\\emb(x)$.\n"
+    )
+    text = _page_text(rsm.render(src, handrails=False))
+    assert "\\(G(x)\\)" in text

@@ -133,11 +133,11 @@ function announce(macro) {
   );
 }
 
-// Once on load, so figures start with the reader's stored rebindings.
-export function announceStoredOverrides() {
-  const overrides = loadOverrides();
+// Once on load, so figures start with the notation in force: the reader's
+// stored rebindings and those of a shared view link.
+export function announceChangedNotation() {
   for (const e of listNotation()) {
-    if (e.macro in overrides && overrides[e.macro] !== e.default) announce(e.macro);
+    if (e.current !== e.default) announce(e.macro);
   }
 }
 

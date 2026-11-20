@@ -107,10 +107,9 @@ var RSM = (() => {
       })
     );
   }
-  function announceStoredOverrides() {
-    const overrides = loadOverrides();
+  function announceChangedNotation() {
     for (const e of listNotation()) {
-      if (e.macro in overrides && overrides[e.macro] !== e.default) announce(e.macro);
+      if (e.current !== e.default) announce(e.macro);
     }
   }
   function setMacro(macro, latex) {
@@ -4883,9 +4882,9 @@ var RSM = (() => {
         console.error("Loading notation panel FAILED!", err);
       }
       try {
-        announceStoredOverrides();
+        announceChangedNotation();
       } catch (err) {
-        console.error("Announcing stored notation FAILED!", err);
+        console.error("Announcing changed notation FAILED!", err);
       }
       try {
         setup12();

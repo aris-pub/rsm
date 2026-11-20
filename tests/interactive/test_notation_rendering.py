@@ -5,6 +5,9 @@ must render (lambda), and a reader rebinding (\\eig -> \\mu) must re-render the
 math, persist across reloads, and reject invalid LaTeX.
 """
 
+import base64
+import json
+
 import pytest
 from playwright.sync_api import Browser, Page
 
@@ -267,6 +270,31 @@ def test_no_change_event_on_load_without_overrides(page: Page, interactive_serve
     _load(page, interactive_server)
     page.wait_for_timeout(500)
     assert _events(page) == []
+
+
+def _view_token(state: dict) -> str:
+    raw = json.dumps(state).encode()
+    return base64.urlsafe_b64encode(raw).decode().rstrip("=")
+
+
+def test_shared_view_notation_fires_change_event_on_load(
+    page: Page, interactive_server: str
+):
+    page.add_init_script(_RECORD_EVENTS)
+    token = _view_token({"v": 1, "notation": {"\\eig": "\\mu"}})
+    page.goto(f"{interactive_server}/notation.html?view={token}")
+    _wait_for_math(page)
+    page.wait_for_function("() => window.__notationEvents.length > 0", timeout=10_000)
+    page.wait_for_timeout(300)
+    events = _events(page)
+    assert len(events) == 1
+    assert events[0]["macro"] == "\\eig"
+    assert events[0]["latex"] == "\\mu"
+    assert "μ" in events[0]["inline"]
+    saved = page.evaluate(
+        "() => Object.keys(localStorage).filter((k) => k.startsWith('rsm-notation:'))"
+    )
+    assert saved == []
 
 
 def test_notation_get_returns_current_value(page: Page, interactive_server: str):

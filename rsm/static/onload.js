@@ -184,9 +184,9 @@ export async function onload(root = null, { keys = true } = {}) {
     }
 
     try {
-      notation.announceStoredOverrides();
+      notation.announceChangedNotation();
     } catch (err) {
-      console.error("Announcing stored notation FAILED!", err);
+      console.error("Announcing changed notation FAILED!", err);
     }
 
     // Interface tooltips for the sidebar's controls.
