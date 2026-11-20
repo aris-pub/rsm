@@ -1306,10 +1306,12 @@ var RSM = (() => {
   var PIN_FILLED_ICON = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M15.113 3.21l.094 .083l5.5 5.5a1 1 0 0 1 -1.175 1.59l-3.172 3.171l-1.424 3.797a1 1 0 0 1 -.158 .277l-.07 .08l-1.5 1.5a1 1 0 0 1 -1.32 .082l-.095 -.083l-2.793 -2.792l-3.793 3.792a1 1 0 0 1 -1.497 -1.32l.083 -.094l3.792 -3.793l-2.792 -2.793a1 1 0 0 1 -.083 -1.32l.083 -.094l1.5 -1.5a1 1 0 0 1 .258 -.187l.098 -.042l3.796 -1.425l3.171 -3.17a1 1 0 0 1 1.497 -1.26z"/></svg>';
   var PIN_LABEL = "Pin to the sidebar";
   var PINNED_LABEL = "Pinned in the sidebar";
-  var pinnedTarget = null;
-  var pinnedTitle = "";
-  function currentPin() {
-    return pinnedTarget ? { target: pinnedTarget, title: pinnedTitle } : null;
+  var pinned = [];
+  function currentPins() {
+    return [...pinned];
+  }
+  function isPinned(href) {
+    return pinned.includes(href);
   }
   function buildExcerpt(rawHref) {
     if (!rawHref) return { content: "", error: "no-href" };
@@ -1400,19 +1402,20 @@ var RSM = (() => {
     t.innerHTML = html;
     const widgets = t.content.querySelectorAll("figure.html");
     if (!widgets.length) return html;
-    for (const fig of widgets) {
-      const still = document.createElement("div");
-      const imgs = fig.querySelectorAll(".static-fallback img");
-      if (imgs.length) {
-        still.className = "widget-preview-still";
-        for (const img of imgs) still.append(img.cloneNode());
-      } else {
-        still.className = "widget-preview-alt";
-        still.textContent = fig.getAttribute("data-alt") || "";
-      }
-      fig.replaceWith(still);
-    }
+    for (const fig of widgets) fig.replaceWith(widgetStill(fig));
     return t.innerHTML;
+  }
+  function widgetStill(fig) {
+    const still = document.createElement("div");
+    const imgs = fig.querySelectorAll(".static-fallback img");
+    if (imgs.length) {
+      still.className = "widget-preview-still";
+      for (const img of imgs) still.append(img.cloneNode());
+    } else {
+      still.className = "widget-preview-alt";
+      still.textContent = fig.getAttribute("data-alt") || "";
+    }
+    return still;
   }
   function widgetPreview(fig) {
     const esc = (s) => String(s).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll('"', "&quot;");
@@ -1444,17 +1447,17 @@ var RSM = (() => {
     }
     return `<div class="widget-preview"><p class="widget-preview-label">${esc(label2)}</p>` + body + '<p class="widget-preview-note">Interactive in the manuscript.</p></div>';
   }
-  function pinBar(href, title) {
+  function pinBar(href) {
     if (!document.querySelector(".proof-rail")) return "";
+    if (!pinBlockOf(targetOf(href))) return "";
     const h = (href || "").replaceAll('"', "&quot;");
-    const t = (title || "").replaceAll('"', "&quot;");
-    const on = !!pinnedTarget && href === pinnedTarget;
+    const on = isPinned(href);
     const label2 = on ? PINNED_LABEL : PIN_LABEL;
-    return `<div class="ref-pin-bar"><button type="button" class="ref-pin" data-pin-target="${h}" data-pin-title="${t}" aria-label="${label2}" data-tip="${label2}" aria-pressed="${on}"${on ? " data-pinned" : ""}>` + (on ? PIN_FILLED_ICON : PIN_ICON) + "</button></div>";
+    return `<div class="ref-pin-bar"><button type="button" class="ref-pin" data-pin-target="${h}" aria-label="${label2}" data-tip="${label2}" aria-pressed="${on}"${on ? " data-pinned" : ""}>` + (on ? PIN_FILLED_ICON : PIN_ICON) + "</button></div>";
   }
   function paintPins() {
     for (const btn of document.querySelectorAll(".ref-pin")) {
-      const on = !!pinnedTarget && btn.dataset.pinTarget === pinnedTarget;
+      const on = isPinned(btn.dataset.pinTarget);
       const label2 = on ? PINNED_LABEL : PIN_LABEL;
       btn.toggleAttribute("data-pinned", on);
       btn.setAttribute("aria-pressed", String(on));
@@ -1463,48 +1466,85 @@ var RSM = (() => {
       btn.innerHTML = on ? PIN_FILLED_ICON : PIN_ICON;
     }
   }
-  function pinTarget(href, title, origin = document, { transient = false } = {}) {
-    const { content } = buildExcerpt(href);
-    if (!content) return false;
-    const tmp = document.createElement("div");
-    tmp.innerHTML = content;
-    tmp.querySelectorAll("[id]").forEach((e) => e.removeAttribute("id"));
-    tmp.querySelectorAll(".aside").forEach((e) => e.remove());
-    tmp.querySelectorAll("[data-nodeid]").forEach((e) => e.removeAttribute("data-nodeid"));
-    if (title) {
-      const leadLabel = tmp.querySelector(".hr-label, .widget-preview-label");
-      if (leadLabel) leadLabel.remove();
+  var UNPIN_BUTTON = '<button type="button" class="pin-unpin" aria-label="Unpin" data-tip="Unpin"><svg aria-hidden="true"><use href="#hr-icon-unpin" width="100%" height="100%"/></svg></button>';
+  function targetOf(href) {
+    const id = decodeURIComponent((href || "").replace(/^#/, ""));
+    return id ? document.getElementById(id) : null;
+  }
+  function handrailOf(block) {
+    if (block.matches(".hr")) return block;
+    return block.querySelector(":scope > figcaption.hr") || block.querySelector(":scope > .hr");
+  }
+  function pinBlockOf(target) {
+    if (!target || target.matches("section")) return null;
+    const block = target.matches("table") ? target.closest(".table-wrapper") : target;
+    const hr = block && handrailOf(block);
+    return hr && hr.querySelector(":scope > .hr-info-zone") ? block : null;
+  }
+  function pinCopy(href) {
+    const block = pinBlockOf(targetOf(href));
+    if (!block) return null;
+    const copy = cloneWithoutRawHtml(block);
+    const hr = handrailOf(copy);
+    const info = hr.querySelector(":scope > .hr-info-zone");
+    for (const el of [copy, ...copy.querySelectorAll("[id], [data-nodeid]")]) {
+      el.removeAttribute("id");
+      el.removeAttribute("data-nodeid");
     }
-    pinnedTarget = href;
-    pinnedTitle = title || "";
+    copy.querySelectorAll(".aside").forEach((e) => e.remove());
+    for (const el of [copy, ...copy.querySelectorAll(".hr-menu-open")]) {
+      el.classList.remove("hr-menu-open");
+    }
+    copy.classList.remove("hr-offset");
+    hr.classList.add("pin-hr");
+    info.insertAdjacentHTML("afterbegin", UNPIN_BUTTON);
+    if (copy.matches("figure.html")) {
+      const zone = copy.querySelector(":scope > .hr:not(figcaption) > .hr-content-zone");
+      if (zone) zone.replaceChildren(widgetStill(block));
+    }
+    for (const fig of copy.querySelectorAll("figure.html")) fig.replaceWith(widgetStill(fig));
+    copy.dataset.pinTarget = href;
+    return copy;
+  }
+  function pinTarget(href, origin = document, { transient = false } = {}) {
+    if (isPinned(href)) {
+      document.dispatchEvent(
+        new CustomEvent("rail:show", { detail: { view: "pinned", open: true } })
+      );
+      return true;
+    }
+    const node = pinCopy(href);
+    if (!node) return false;
+    pinned.unshift(href);
     origin.dispatchEvent(
-      new CustomEvent("rail:pin", {
-        bubbles: true,
-        detail: { html: tmp.innerHTML, title: title || "", target: href, transient }
-      })
+      new CustomEvent("rail:pin", { bubbles: true, detail: { node, target: href, transient } })
     );
     paintPins();
     return true;
+  }
+  function unpinTarget(href) {
+    const i = pinned.indexOf(href);
+    if (i < 0) return;
+    pinned.splice(i, 1);
+    document.dispatchEvent(
+      new CustomEvent("rail:unpin", { detail: { target: href, remaining: pinned.length } })
+    );
+    paintPins();
   }
   var pinDelegated = false;
   function setupPinDelegation() {
     if (pinDelegated) return;
     pinDelegated = true;
     document.addEventListener("click", (ev) => {
-      const btn = ev.target.closest && ev.target.closest(".ref-pin");
-      if (!btn) return;
-      if (btn.hasAttribute("data-pinned")) {
-        document.dispatchEvent(
-          new CustomEvent("rail:show", { detail: { view: "pinned", open: true } })
-        );
+      if (!ev.target.closest) return;
+      const unpin = ev.target.closest(".pin-unpin");
+      if (unpin) {
+        const copy = unpin.closest("[data-pin-target]");
+        if (copy) unpinTarget(copy.dataset.pinTarget);
         return;
       }
-      pinTarget(btn.dataset.pinTarget, btn.dataset.pinTitle || "", btn);
-    });
-    document.addEventListener("rail:unpin", () => {
-      pinnedTarget = null;
-      pinnedTitle = "";
-      paintPins();
+      const btn = ev.target.closest(".ref-pin");
+      if (btn) pinTarget(btn.dataset.pinTarget, btn);
     });
   }
   var PREVIEW_OPTIONS = {
@@ -1538,12 +1578,7 @@ var RSM = (() => {
         setTooltipContent(instance, "");
         return;
       }
-      const target = document.getElementById((rawHref || "").replace(/^#/, ""));
-      const marker = helper.origin.classList.contains("note-marker");
-      const aside = helper.origin.classList.contains("aside-phrase");
-      const listed = helper.origin.querySelector(".rail-proof-name");
-      const title = (listed && listed.textContent || aside && "Aside" || marker && `Note ${helper.origin.dataset.noteNumber}` || target && target.getAttribute("data-menu-label") || helper.origin.textContent || "").trim().replace(/\.$/, "");
-      setTooltipContent(instance, pinBar(rawHref, title) + content);
+      setTooltipContent(instance, pinBar(rawHref) + content);
     },
     functionReady: function(instance, helper) {
       const el = instance.elementTooltip ? instance.elementTooltip() : helper.tooltip;
@@ -1689,8 +1724,20 @@ var RSM = (() => {
   ];
   function pinnableOf(hr) {
     if (hr.id && PINNABLE.some((c) => hr.classList.contains(c))) return hr;
-    if (hr.matches("figcaption")) return hr.closest("figure[id]");
+    if (hr.matches("figcaption")) {
+      return hr.closest("figure[id]") || hr.parentElement.querySelector(":scope > table[id]");
+    }
     return null;
+  }
+  function pinHrefOf(hr) {
+    if (hr.closest(".rail-pinned")) {
+      return hr.matches(".pin-hr") ? hr.closest("[data-pin-target]").dataset.pinTarget : null;
+    }
+    const block = pinnableOf(hr);
+    if (block) return "#" + block.id;
+    const owner = hr.id ? hr : hr.parentElement;
+    const href = owner && owner.id ? "#" + owner.id : null;
+    return href && isPinned(href) ? href : null;
   }
   var singletonMenu = null;
   var activeHr = null;
@@ -1804,8 +1851,16 @@ var RSM = (() => {
       const anyCollapse = collapse || collapseAll2;
       collapseSep.style.display = anyCollapse ? "" : "none";
     }
-    const pinnable = !!document.querySelector(".proof-rail .rail-pinned") && !!pinnableOf(hr);
-    configureItem(singletonMenu.querySelector('[data-role="pin"]'), pinnable ? "true" : null);
+    const pinHref = document.querySelector(".proof-rail .rail-pinned") ? pinHrefOf(hr) : null;
+    const pinEl = singletonMenu.querySelector('[data-role="pin"]');
+    configureItem(pinEl, pinHref ? "true" : null);
+    if (pinEl && pinHref) {
+      const on = isPinned(pinHref);
+      const textEl = pinEl.querySelector(".hr-menu-item-text");
+      if (textEl) textEl.textContent = on ? "Unpin" : "Pin";
+      const useEl = pinEl.querySelector("svg use");
+      if (useEl) useEl.setAttribute("href", on ? "#hr-icon-unpin" : "#hr-icon-pin");
+    }
     configureItem(singletonMenu.querySelector('[data-role="link"]'), link);
     const codeEl = singletonMenu.querySelector('[data-role="code"]');
     if (code && code !== "disabled" && !hrHasSource(hr)) {
@@ -1907,11 +1962,11 @@ var RSM = (() => {
     );
   }
   function pinBlock(hr) {
-    const block = pinnableOf(hr);
-    if (!block) return;
-    const label2 = block.matches("figure") ? block.querySelector("figcaption .label")?.textContent || "Figure" : hr.getAttribute("data-menu-label") || "";
+    const href = pinHrefOf(hr);
+    if (!href) return;
     hideMenu();
-    pinTarget("#" + block.id, label2.trim().replace(/\.$/, ""), block);
+    if (isPinned(href)) unpinTarget(href);
+    else pinTarget(href, hr);
   }
   function triggerFocus(hr) {
     hideMenu();
@@ -2130,6 +2185,7 @@ var RSM = (() => {
     }
   }
   function collapseKey(hr) {
+    if (hr.closest(".rail-pinned")) return null;
     const nid = hr.getAttribute("data-nodeid");
     if (nid != null) return "n:" + nid;
     const sec = hr.closest("section");
@@ -2943,8 +2999,8 @@ var RSM = (() => {
       if (d.open) openView(id, { toggle: false });
       else select(id);
     });
-    document.addEventListener("rail:unpin", () => {
-      if (open) setOpen(false, { persist: false });
+    document.addEventListener("rail:unpin", (ev) => {
+      if (open && !(ev.detail && ev.detail.remaining > 0)) setOpen(false, { persist: false });
     });
     document.addEventListener("rail:pin", (ev) => {
       const persist = !(ev.detail && ev.detail.transient);
@@ -3090,23 +3146,22 @@ var RSM = (() => {
       });
     }
     const pinnedBody = rail.querySelector(".rail-pinned-body");
-    const pinnedTitle2 = rail.querySelector(".rail-pinned-title");
     document.addEventListener("rail:pin", (ev) => {
-      if (!pinnedBody) return;
-      pinnedBody.innerHTML = ev.detail.html || "";
-      if (pinnedTitle2) pinnedTitle2.textContent = ev.detail.title || "Pinned";
-      typesetMath(pinnedBody);
+      const node = ev.detail && ev.detail.node;
+      if (!pinnedBody || !node) return;
+      pinnedBody.prepend(node);
+      if (node.classList.contains("hr-collapsed")) openHandrail(node);
+      initCollapseButtons(node);
+      typesetMath(node);
       rail.classList.add("has-pin");
     });
-    const pinClose = rail.querySelector(".rail-pin-close");
-    if (pinClose) {
-      pinClose.addEventListener("click", () => {
-        if (pinnedBody) pinnedBody.innerHTML = "";
-        if (pinnedTitle2) pinnedTitle2.textContent = "";
-        rail.classList.remove("has-pin");
-        document.dispatchEvent(new CustomEvent("rail:unpin"));
-      });
-    }
+    document.addEventListener("rail:unpin", (ev) => {
+      if (!pinnedBody) return;
+      for (const copy of pinnedBody.querySelectorAll(":scope > [data-pin-target]")) {
+        if (copy.dataset.pinTarget === ev.detail.target) copy.remove();
+      }
+      rail.classList.toggle("has-pin", ev.detail.remaining > 0);
+    });
     const READING_KEY2 = "rsm-reading";
     function readReadingPrefs() {
       try {
@@ -4038,10 +4093,8 @@ var RSM = (() => {
     } catch {
     }
     if (Object.keys(notation).length) state.notation = notation;
-    const pin = currentPin();
-    if (pin && pin.target.startsWith("#")) {
-      state.pins = [{ id: decodeURIComponent(pin.target.slice(1)), title: pin.title }];
-    }
+    const pins = currentPins().filter((t) => t.startsWith("#")).map((t) => decodeURIComponent(t.slice(1)));
+    if (pins.length) state.pins = pins;
     const anchor = currentAnchor();
     if (anchor) {
       state.anchor = anchor.id;
@@ -4094,13 +4147,14 @@ var RSM = (() => {
     }
   }
   function restorePins(state) {
-    const pin = Array.isArray(state.pins) ? state.pins[0] : null;
-    if (!pin || !pin.id) return;
-    const el = document.getElementById(pin.id);
-    if (!el) return;
-    try {
-      pinTarget("#" + pin.id, pin.title || "", el, { transient: true });
-    } catch {
+    if (!Array.isArray(state.pins)) return;
+    for (const id of [...state.pins].reverse()) {
+      const el = typeof id === "string" && document.getElementById(id);
+      if (!el) continue;
+      try {
+        pinTarget("#" + id, el, { transient: true });
+      } catch {
+      }
     }
   }
   function placeAnchor(state) {

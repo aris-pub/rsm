@@ -1,4 +1,4 @@
-"""Interactive tests for where a shared view lands, and the pin it carries (rsm-n4k).
+"""Interactive tests for where a shared view lands, and the pins it carries (rsm-n4k).
 
 "Copy this view" records the block at the top of the sender's window. The
 recipient must land on that same block, at the same height, even when:
@@ -8,7 +8,7 @@ recipient must land on that same block, at the same height, even when:
 - the reader is inside an open proof,
 - the layout shifts after the restore (math styles that change late, or
   content inserted late), and
-- the sender had a block pinned (the pin rides along for that visit only).
+- the sender had blocks pinned (the pins ride along for that visit only).
 
 The shareview_long fixture is a long document with a lemma, a proof folded by
 default, an open proof, and five sections of math-heavy labelled paragraphs.
@@ -336,13 +336,15 @@ class TestOldTokens:
 
 
 class TestPins:
-    def _pin_lemma(self, page: Page) -> None:
-        lemma = page.locator("#lem-main")
-        lemma.scroll_into_view_if_needed()
-        lemma.hover()
-        lemma.locator(":scope > .hr-border-zone .hr-border-dots").click()
+    def _pin(self, page: Page, block_id: str) -> None:
+        block = page.locator(f"#{block_id}")
+        block.scroll_into_view_if_needed()
+        block.hover()
+        block.locator(":scope > .hr-border-zone .hr-border-dots").click()
         page.locator('#hr-menu-singleton [data-role="pin"]').click()
-        expect(page.locator(".proof-rail")).to_have_class(re.compile(r"\bhas-pin\b"))
+        expect(
+            page.locator(f'.rail-pinned-body > [data-pin-target="#{block_id}"]')
+        ).to_have_count(1)
         # Pinning opens the panel, and the text column narrows over 0.22s. A
         # link copied before that ends records a scroll position from a
         # layout that the recipient never has.
@@ -351,22 +353,23 @@ class TestPins:
                  .getAnimations().map(a => a.finished))"""
         )
 
-    @pytest.mark.skip(
-        reason="Fails on CI now and then (lands 192px off); revisit with the "
-        "pinning redesign, rsm-agb"
-    )
-    def test_pin_rides_along_and_is_not_saved(
+    def _pinned(self, page: Page) -> list[str]:
+        return page.locator(".rail-pinned-body > [data-pin-target]").evaluate_all(
+            "els => els.map(e => e.dataset.pinTarget)"
+        )
+
+    def test_pins_ride_along_and_are_not_saved(
         self, page: Page, interactive_server: str
     ):
         _fresh_sender(page, interactive_server)
-        self._pin_lemma(page)
-        title = page.locator(".rail-pinned-title").inner_text()
-        assert title.startswith("Lemma")
+        self._pin(page, "lem-main")
+        self._pin(page, "par-1-1")
+        assert self._pinned(page) == ["#par-1-1", "#lem-main"]
         _settle(page)
         _place(page, "par-1-6")
         sender_top = _top(page, "par-1-6")
         url = _copy_view_url(page)
-        assert _token(url)["pins"][0]["id"] == "lem-main"
+        assert _token(url)["pins"] == ["par-1-1", "lem-main"]
 
         # The recipient has their own saved settings already.
         page.evaluate("() => localStorage.clear()")
@@ -381,7 +384,8 @@ class TestPins:
         expect(page.locator(".rsm-shared-pill")).to_be_visible(timeout=5000)
         rail = page.locator(".proof-rail")
         expect(rail).to_have_class(re.compile(r"\bhas-pin\b"))
-        expect(page.locator(".rail-pinned-title")).to_have_text(title)
+        # Newest on top, as the sender had them.
+        assert self._pinned(page) == ["#par-1-1", "#lem-main"]
         expect(page.locator(".rail-pinned-body")).to_contain_text("For every")
         assert "view=" not in page.evaluate("() => window.location.search")
         page.wait_for_timeout(600)
@@ -393,6 +397,16 @@ class TestPins:
         expect(rail).not_to_have_class(re.compile(r"\bhas-pin\b"))
         expect(page.locator(".rsm-shared-pill")).to_have_count(0)
         assert page.evaluate("() => JSON.stringify({...localStorage})") == saved_before
+
+    def test_a_pinned_copy_fold_is_not_carried(self, page: Page, interactive_server: str):
+        _fresh_sender(page, interactive_server)
+        self._pin(page, "lem-main")
+        copy = page.locator('.rail-pinned-body > [data-pin-target="#lem-main"]')
+        copy.hover()
+        copy.locator(":scope > .hr-collapse-zone .hr-collapse").click()
+        expect(copy).to_have_class(re.compile(r"\bhr-collapsed\b"))
+        url = _copy_view_url(page)
+        assert "folds" not in _token(url)
 
     def test_no_pin_no_pins_field(self, page: Page, interactive_server: str):
         _fresh_sender(page, interactive_server)

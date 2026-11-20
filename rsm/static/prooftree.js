@@ -3,16 +3,16 @@
 // The reader sidebar's panel. Scopes and views:
 //   Document - the whole-manuscript section graph (Contents), and Notation
 //   Proof    - the step graph (Steps) and live State of the proof in view
-//   Pinned   - an excerpt kept open beside the text
+//   Pinned   - copies of blocks kept open beside the text
 //   Reading  - typeface, size, line height, width and theme
 // The graphs are pre-rendered SVGs (laid out at build time). This module routes
-// views, auto-follows the proof you are reading, keeps the pinned excerpt and
+// views, auto-follows the proof you are reading, keeps the pinned blocks and
 // the reading settings, and remembers the open view in localStorage. The strip
 // that opens and closes the panel, and the page layout around it, live in
 // sidebar.js.
 
 import { wireTree, pinTreeCurrent } from "./tocarcs.js";
-import { openHandrail } from "./handrails.js";
+import { openHandrail, initCollapseButtons } from "./handrails.js";
 import { createTooltips } from "./tooltips.js";
 import { reRenderAll } from "./notation.js";
 import { typesetMath } from "./libraries.js";
@@ -158,28 +158,28 @@ export function setup(root = document) {
     });
   }
 
-  // Pinned: a referenced excerpt kept open beside the text. tooltips.js
-  // dispatches rail:pin from a preview's pin control or a block's handrail menu.
-  // One pin at a time, so a new pin replaces the old. The excerpt is
-  // runtime-only (not persisted).
+  // Pinned: copies of blocks kept open beside the text, newest on top.
+  // tooltips.js dispatches rail:pin from a preview's pin control or a block's
+  // handrail menu, and rail:unpin from a copy's unpin icon or the menu. Pins
+  // are runtime-only (not persisted).
   const pinnedBody = rail.querySelector(".rail-pinned-body");
-  const pinnedTitle = rail.querySelector(".rail-pinned-title");
   document.addEventListener("rail:pin", (ev) => {
-    if (!pinnedBody) return;
-    pinnedBody.innerHTML = ev.detail.html || "";
-    if (pinnedTitle) pinnedTitle.textContent = ev.detail.title || "Pinned";
-    typesetMath(pinnedBody);
+    const node = ev.detail && ev.detail.node;
+    if (!pinnedBody || !node) return;
+    pinnedBody.prepend(node);
+    // The copy shows the block open even when the block is folded in the text.
+    if (node.classList.contains("hr-collapsed")) openHandrail(node);
+    initCollapseButtons(node);
+    typesetMath(node);
     rail.classList.add("has-pin");
   });
-  const pinClose = rail.querySelector(".rail-pin-close");
-  if (pinClose) {
-    pinClose.addEventListener("click", () => {
-      if (pinnedBody) pinnedBody.innerHTML = "";
-      if (pinnedTitle) pinnedTitle.textContent = "";
-      rail.classList.remove("has-pin");
-      document.dispatchEvent(new CustomEvent("rail:unpin"));
-    });
-  }
+  document.addEventListener("rail:unpin", (ev) => {
+    if (!pinnedBody) return;
+    for (const copy of pinnedBody.querySelectorAll(":scope > [data-pin-target]")) {
+      if (copy.dataset.pinTarget === ev.detail.target) copy.remove();
+    }
+    rail.classList.toggle("has-pin", ev.detail.remaining > 0);
+  });
 
   // ---- reading controls (typeface, size, line height, width, theme) ----
   // Each button sets a root data-reading-* attribute (or the theme class) and

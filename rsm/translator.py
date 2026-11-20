@@ -209,11 +209,6 @@ _RAIL_SHARE_ICON = _tabler(
     '<path d="M11 6l.463 -.536a5 5 0 0 1 7.071 7.072l-.534 .464"/>'
     '<path d="M13 18l-.397 .534a5.068 5.068 0 0 1 -7.127 0a4.972 4.972 0 0 1 0 -7.071l.524 -.463"/>'
 )
-_RAIL_PIN_CLOSE_ICON = (
-    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" '
-    'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
-    '<path d="M18 6l-12 12"/><path d="M6 6l12 12"/></svg>'
-)
 # Reader type controls in the sidebar's Reading view. Each row toggles a root
 # data-reading-* attribute the stylesheet keys on (overriding a CSS variable);
 # the default value carries no attribute, so an untouched reader inherits the
@@ -2803,6 +2798,20 @@ class HandrailsTranslator(Translator):
           <path d="M9 15l-4.5 4.5" />
           <path d="M14.5 4l5.5 5.5" />
         </svg>""",
+        # The pin crossed out by a bar from (3,3) to (21,21). The mask cuts a gap
+        # in the pin along the bar, so the bar stays readable where they cross.
+        "unpin": """<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+          <mask id="hr-icon-unpin-cut" maskUnits="userSpaceOnUse" x="0" y="0" width="24" height="24">
+            <rect width="24" height="24" fill="white" />
+            <path d="M3 3l18 18" stroke="black" stroke-width="5" />
+          </mask>
+          <g mask="url(#hr-icon-unpin-cut)">
+            <path d="M15 4.5l-4 4l-4 1.5l-1.5 1.5l7 7l1.5 -1.5l1.5 -4l4 -4" />
+            <path d="M9 15l-4.5 4.5" />
+            <path d="M14.5 4l5.5 5.5" />
+          </g>
+          <path d="M3 3l18 18" />
+        </svg>""",
         "focus-2": """<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3C4952" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
           <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
           <path d="M12 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" />
@@ -3615,17 +3624,12 @@ class HandrailsTranslator(Translator):
             '<ul class="rail-proof-list">' + "".join(proof_links) + "</ul></div>"
             + "".join(proof_items) + "</div>"
         )
-        # Holds the one currently pinned excerpt (filled by prooftree.js from a
+        # Holds the pinned blocks, newest first (filled by prooftree.js from a
         # reference preview's pin, or a block's handrail menu). Empty when built.
         pinned_section = (
             '<div class="rail-section rail-pinned">'
             '<div class="rail-pinned-empty">'
             "Nothing pinned yet.</div>"
-            '<div class="rail-pinned-head">'
-            '<span class="rail-pinned-title"></span>'
-            '<button type="button" class="rail-pin-close" aria-label="Unpin" '
-            'data-tip="Unpin">' + _RAIL_PIN_CLOSE_ICON + "</button>"
-            "</div>"
             '<div class="rail-pinned-body"></div>'
             "</div>"
         )

@@ -296,11 +296,10 @@ export function setupStrip(strip, rail, api) {
     else select(id);
   });
 
-  // Pinning shows the excerpt.
-  // Unpinning empties the Pinned view, so the panel closes rather than stay
-  // open on the empty state.
-  document.addEventListener("rail:unpin", () => {
-    if (open) setOpen(false, { persist: false });
+  // Pinning shows the pins. Unpinning the last pin empties the Pinned view, so
+  // the panel closes rather than stay open on the empty state.
+  document.addEventListener("rail:unpin", (ev) => {
+    if (open && !(ev.detail && ev.detail.remaining > 0)) setOpen(false, { persist: false });
   });
 
   document.addEventListener("rail:pin", (ev) => {

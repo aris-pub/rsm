@@ -1,9 +1,11 @@
 """Reference previews of :figure: blocks (widgets).
 
 A copy of the live widget does not work out of its place (its styles and
-scripts are tied to the original), so the preview and the pinned excerpt show
+scripts are tied to the original), so the preview shows
 the widget's number, its still image (:static:, or :dark: in dark theme) or else
-its alt text, and the line "Interactive in the manuscript." (rsm-9wa)."""
+its alt text, and the line "Interactive in the manuscript." (rsm-9wa). A pinned
+widget is a copy of the figure with its handrail and the still in place of the
+widget."""
 
 import pytest
 from playwright.sync_api import Page, expect
@@ -95,13 +97,12 @@ def test_pinned_widget_follows_theme_switch(page: Page, interactive_server: str)
     _load(page, interactive_server)
     tip = _preview(page, "#wid-still")
     tip.locator(".ref-pin").click()
-    body = page.locator(".rail-pinned-body")
-    expect(body.locator(".widget-preview-note")).to_have_text(NOTE)
+    # The pin is a copy of the figure with its handrail, the widget swapped for
+    # its still image.
+    body = page.locator('.rail-pinned-body > figure[data-pin-target="#wid-still"]')
+    expect(body.locator(":scope > .hr > .hr-info-zone .pin-unpin")).to_have_count(1)
     expect(body.locator(".live-widget")).to_have_count(0)
-    # The card's header already names the widget, so the body does not repeat it.
-    expect(body.locator(".widget-preview-label")).to_have_count(0)
-    expect(page.locator(".rail-pinned")).to_contain_text("Figure 1.1")
-    # The card is filled and laid out after the click returns, so wait for the
+    # The copy is filled and laid out after the click returns, so wait for the
     # image to show rather than reading it once.
     _wait_one_shown(body, "fixtures-static-light.png")
     page.eval_on_selector("html", "h => h.classList.add('dark-theme')")

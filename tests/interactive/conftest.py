@@ -77,6 +77,7 @@ SIDEBAR_FIXTURES = {
     "calc_preview",
     "rawhtml",
     "toc_switch_sidebar",
+    "pin_targets",
 }
 
 # Fixtures whose :figure: assets must be read at build time. Asset paths resolve
