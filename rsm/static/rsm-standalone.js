@@ -96,11 +96,27 @@ var RSM = (() => {
   function reRenderAll(root2 = document) {
     return retypesetMath(root2);
   }
+  function getMacro(macro) {
+    return getNotationMacros()[macro];
+  }
+  function announce(macro) {
+    const macros = { ...getNotationMacros() };
+    document.dispatchEvent(
+      new CustomEvent("rsm:notation-change", {
+        detail: { macro, latex: macros[macro], macros }
+      })
+    );
+  }
+  function announceChangedNotation() {
+    for (const e of listNotation()) {
+      if (e.current !== e.default) announce(e.macro);
+    }
+  }
   function setMacro(macro, latex) {
     if (!isValid(latex)) return false;
     getNotationMacros()[macro] = latex;
     saveOverride(macro, latex);
-    reRenderAll();
+    reRenderAll().then(() => announce(macro));
     return true;
   }
   function resetMacro(macro) {
@@ -113,7 +129,7 @@ var RSM = (() => {
     }
     if (entry) {
       getNotationMacros()[macro] = entry.default;
-      reRenderAll();
+      reRenderAll().then(() => announce(macro));
     }
   }
   function listNotation() {
@@ -475,14 +491,16 @@ var RSM = (() => {
     root2.querySelectorAll("span.math").forEach((el) => {
       const src = el.textContent;
       if (!src.startsWith("\\(") || !src.endsWith("\\)")) return;
-      el.dataset.latex = src.slice(2, -2);
+      if (el.dataset.latex === void 0) el.dataset.latex = src.slice(2, -2);
+      else el.textContent = `\\(${el.dataset.latex}\\)`;
       targets.push(el);
     });
     root2.querySelectorAll("div.mathblock").forEach((el) => {
       const zone = el.querySelector(".hr-content-zone") || el;
       const src = zone.textContent.trim();
       if (!src.startsWith("$$") || !src.endsWith("$$")) return;
-      el.dataset.latex = src.slice(2, -2).trim();
+      if (el.dataset.latex === void 0) el.dataset.latex = src.slice(2, -2).trim();
+      else zone.textContent = `$$${el.dataset.latex}$$`;
       targets.push(zone);
     });
     return targets;
@@ -865,7 +883,7 @@ var RSM = (() => {
     const rail = root2.querySelector(".proof-rail");
     let active = null;
     let liveRegion2 = null;
-    function announce2(msg) {
+    function announce3(msg) {
       if (!liveRegion2) {
         liveRegion2 = document.createElement("div");
         liveRegion2.className = "deplens-sr-status";
@@ -961,7 +979,7 @@ var RSM = (() => {
       } else {
         msg = `Showing the ${downN} ${noun}s that rest on ${label2}. Press Escape to clear.`;
       }
-      announce2(msg);
+      announce3(msg);
     }
     function teardown() {
       if (!active) return;
@@ -975,7 +993,7 @@ var RSM = (() => {
     function exit() {
       if (!active) return;
       teardown();
-      announce2("Dependency lens cleared.");
+      announce3("Dependency lens cleared.");
     }
     function onKeydown2(ev) {
       if (ev.key === "Escape") exit();
@@ -3515,7 +3533,7 @@ var RSM = (() => {
       return el ? el.textContent.trim() : "";
     }
     let liveRegion2 = null;
-    function announce2(msg) {
+    function announce3(msg) {
       if (!liveRegion2) {
         liveRegion2 = document.createElement("div");
         liveRegion2.className = "focus-sr-status";
@@ -3573,7 +3591,7 @@ var RSM = (() => {
     function exitFocus() {
       if (!active) return;
       teardown();
-      announce2("Full proof restored.");
+      announce3("Full proof restored.");
     }
     function enterFocus(railItem, proofEl, startIdx) {
       const svg = railItem.querySelector("svg.toc-tree");
@@ -3597,7 +3615,7 @@ var RSM = (() => {
       document.addEventListener("keydown", onKeydown2);
       const deps = steps.filter((_, i) => cone.has(String(i))).length - 1;
       const num = stepNumber2(sel);
-      announce2(
+      announce3(
         `Focused step ${num || idx + 1}: showing the ${Math.max(deps, 0)} steps it depends on; press Escape to show the full proof.`
       );
       document.dispatchEvent(new CustomEvent("rsm:focus-enter"));
@@ -3745,7 +3763,7 @@ var RSM = (() => {
   var GRIP = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 5m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"/><path d="M9 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"/><path d="M9 19m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"/><path d="M15 5m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"/><path d="M15 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"/><path d="M15 19m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"/></svg>';
   var reorderState = /* @__PURE__ */ new WeakMap();
   var liveRegion = null;
-  function announce(msg) {
+  function announce2(msg) {
     if (!liveRegion) {
       liveRegion = document.createElement("div");
       liveRegion.className = "reorder-sr-status";
@@ -3800,7 +3818,7 @@ var RSM = (() => {
     }
     document.dispatchEvent(new CustomEvent("rail:show", { detail: { view: "steps" } }));
     reorderState.set(proof, { model, handles });
-    announce(`Reorder mode on, ${model.byId.size} steps. Drag a step's handle to reorder it.`);
+    announce2(`Reorder mode on, ${model.byId.size} steps. Drag a step's handle to reorder it.`);
   }
   function flipMove(model, applyFn) {
     if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
@@ -3834,7 +3852,7 @@ var RSM = (() => {
     if (!st) return;
     for (const h of st.handles) h.remove();
     reorderState.delete(proof);
-    announce("Reorder mode off.");
+    announce2("Reorder mode off.");
   }
   function siblingEls(model, id) {
     const step = model.byId.get(id);
@@ -3942,9 +3960,9 @@ var RSM = (() => {
           flipMove(model, () => applyToBody(model, moveTo(model, id, target)));
           const sib = model.children.get(key) || [];
           const label2 = step.bodyEl.dataset.menuLabel || "Step";
-          announce(`${label2} moved to position ${sib.indexOf(id) + 1} of ${sib.length}.`);
+          announce2(`${label2} moved to position ${sib.indexOf(id) + 1} of ${sib.length}.`);
         } else if (rejected) {
-          announce(`Move blocked: ${lastReason}.`);
+          announce2(`Move blocked: ${lastReason}.`);
         }
       };
       document.addEventListener("pointermove", onMove);
@@ -4760,7 +4778,8 @@ var RSM = (() => {
     renderMath,
     typesetMath,
     // Resolves once all math, including math typeset after the page, is done.
-    mathIdle
+    mathIdle,
+    notation: { get: getMacro }
   });
   async function onload(root2 = null, { keys = true } = {}) {
     if (!root2) root2 = document;
@@ -4861,6 +4880,11 @@ var RSM = (() => {
         createTooltips();
       } catch (err) {
         console.error("Loading notation panel FAILED!", err);
+      }
+      try {
+        announceChangedNotation();
+      } catch (err) {
+        console.error("Announcing changed notation FAILED!", err);
       }
       try {
         setup12();
