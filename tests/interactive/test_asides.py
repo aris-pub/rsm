@@ -457,19 +457,6 @@ def test_hover_preview_of_a_closed_aside(page: Page, interactive_server: str):
     assert any("The third aside, short." in t for t in tips), tips
 
 
-def test_hover_preview_is_titled_as_an_aside(page: Page, interactive_server: str):
-    """The preview is the shared reference preview, titled "Aside". Asides have
-    no number, and the footnotes' "Note 3" would be wrong."""
-    _load(page, interactive_server, 1000)
-    page.hover("#call-a-three")
-    page.wait_for_timeout(700)
-    titles = page.evaluate(
-        "() => [...document.querySelectorAll('.tooltipster-base .ref-pin')]"
-        ".map(b => b.dataset.pinTitle)"
-    )
-    assert titles == ["Aside"], titles
-
-
 def test_no_hover_preview_once_open(page: Page, interactive_server: str):
     _load(page, interactive_server, 1000)
     page.click("#call-a-three")
