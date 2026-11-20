@@ -208,3 +208,100 @@ def test_footnote_inside_a_list_item_is_defined_after_the_list():
     assert not list(tree.traverse(nodeclass=rsm.nodes.Error)), out
     (call,) = tree.traverse(nodeclass=rsm.nodes.NoteCall)
     assert call.definition is not None
+
+
+def _parse_without_errors(out):
+    import rsm
+
+    tree = rsm.transformer.Transformer().transform(rsm.tsparser.TSParser().parse(out))
+    assert not list(tree.traverse(nodeclass=rsm.nodes.Error)), out
+    return tree
+
+
+def _render(out):
+    import rsm
+
+    return rsm.render("# T\n\n" + out, handrails=False, source_offsets=False)
+
+
+def test_rawblock_html_becomes_htmlblock():
+    import rsm
+
+    raw = '<div id="a">\n<input type="range" min="1">\n</div>'
+    out = PandocImporter().from_json({"blocks": [{"t": "RawBlock", "c": ["html", raw]}]})
+    assert out == f":htmlblock:\n{raw}\n::\n\n"
+    tree = _parse_without_errors(out)
+    assert len(list(tree.traverse(nodeclass=rsm.nodes.HtmlBlock))) == 1
+    assert raw in _render(out)
+
+
+def _para_with_raw(raw):
+    return {
+        "blocks": [
+            {
+                "t": "Para",
+                "c": [
+                    *_words("a"),
+                    {"t": "Space"},
+                    {"t": "RawInline", "c": ["html", raw]},
+                    {"t": "Space"},
+                    *_words("b"),
+                ],
+            }
+        ]
+    }
+
+
+def test_whole_rawinline_html_becomes_html():
+    import rsm
+
+    pieces = [
+        "<br>",
+        "<HR>",
+        "<wbr>",
+        '<img src="a.png">',
+        '<img src="a.png"/>',
+        '<circle r="1" />',
+        '<mtp-display model="x"></mtp-display>',
+        "<b>bold <i>x</i></b>",
+    ]
+    for raw in pieces:
+        out = PandocImporter().from_json(_para_with_raw(raw))
+        assert f":html: {raw} ::" in out, out
+        tree = _parse_without_errors(out)
+        assert len(list(tree.traverse(nodeclass=rsm.nodes.RawHtml))) == 1, out
+        assert raw in _render(out), raw
+
+
+def test_split_rawinline_html_is_dropped_with_warning(caplog):
+    for raw in ("<span>", "</span>", '<a href="x">', "<b>x", "<b>x</i>"):
+        caplog.clear()
+        out = PandocImporter().from_json(_para_with_raw(raw))
+        assert raw not in out, out
+        assert "skipping RawInline with format 'html'" in caplog.text, raw
+
+
+def _rawblock(raw):
+    return {"blocks": [{"t": "RawBlock", "c": ["html", raw]}]}
+
+
+def test_html_comments_are_dropped_silently(caplog):
+    for ast in (_para_with_raw("<!-- c -->"), _rawblock("<!-- a\nblock comment -->")):
+        caplog.clear()
+        out = PandocImporter().from_json(ast)
+        assert "<!--" not in out, out
+        assert ":html" not in out, out
+        assert caplog.text == ""
+
+
+def test_raw_html_with_double_colon_is_dropped_with_warning(caplog):
+    for ast in (
+        _para_with_raw('<span title="a::b"></span>'),
+        _rawblock("<script>\nx = a::b;\n</script>"),
+    ):
+        caplog.clear()
+        out = PandocImporter().from_json(ast)
+        assert "a::b" not in out, out
+        assert ":html" not in out, out
+        assert "'::'" in caplog.text
+        assert "end of the tag" in caplog.text
