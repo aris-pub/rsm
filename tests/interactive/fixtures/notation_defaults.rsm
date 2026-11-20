@@ -1,0 +1,13 @@
+# Notation defaults
+
+:notation:
+  \emb $F$ the embedding
+  \dst $D$ the distortion
+  \rad $\rho_{#1}$ the radius at scale j
+::
+
+The map $\emb(x)$ has distortion $\dst(n)$ at radius $\rad{j-1}$.
+
+$$
+\emb(x) \le \dst(n) \rad{j-1}
+$$

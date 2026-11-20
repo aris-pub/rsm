@@ -116,13 +116,38 @@ export function reRenderAll(root = document) {
   return retypesetMath(root);
 }
 
+// The current LaTeX of a macro, for figures that draw symbols themselves:
+// rsm.notation.get("\\eig").
+export function getMacro(macro) {
+  return getNotationMacros()[macro];
+}
+
+// Figures that draw symbols themselves (SVG text, canvas) cannot follow a
+// rebind through MathJax, so they listen for this event.
+function announce(macro) {
+  const macros = { ...getNotationMacros() };
+  document.dispatchEvent(
+    new CustomEvent("rsm:notation-change", {
+      detail: { macro, latex: macros[macro], macros },
+    }),
+  );
+}
+
+// Once on load, so figures start with the reader's stored rebindings.
+export function announceStoredOverrides() {
+  const overrides = loadOverrides();
+  for (const e of listNotation()) {
+    if (e.macro in overrides && overrides[e.macro] !== e.default) announce(e.macro);
+  }
+}
+
 // Rebind a macro to a new LaTeX value: validate, persist, re-render.
 // Returns false and changes nothing if the value is invalid.
 export function setMacro(macro, latex) {
   if (!isValid(latex)) return false;
   getNotationMacros()[macro] = latex;
   saveOverride(macro, latex);
-  reRenderAll();
+  reRenderAll().then(() => announce(macro));
   return true;
 }
 
@@ -138,7 +163,7 @@ export function resetMacro(macro) {
   }
   if (entry) {
     getNotationMacros()[macro] = entry.default;
-    reRenderAll();
+    reRenderAll().then(() => announce(macro));
   }
 }
 

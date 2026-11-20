@@ -479,6 +479,80 @@ def _normalize_doi(doi: str) -> str:
     return doi
 
 
+def _tex_token(latex: str, i: int) -> int:
+    """The index just past the TeX token that starts at i: a control word
+    (\\name), a control symbol (\\ and one character) or one character."""
+    if latex[i] != "\\" or i + 1 == len(latex):
+        return i + 1
+    j = i + 1
+    while j < len(latex) and latex[j].isalpha():
+        j += 1
+    return j if j > i + 1 else i + 2
+
+
+def _tex_argument(latex: str, i: int) -> tuple[str, int] | None:
+    """The undelimited TeX argument at i, read as TeX reads it: spaces are
+    skipped, then a braced group (without its braces) or one token. None when
+    the argument is missing or its braces do not close."""
+    while i < len(latex) and latex[i].isspace():
+        i += 1
+    if i == len(latex) or latex[i] == "}":
+        return None
+    if latex[i] != "{":
+        j = _tex_token(latex, i)
+        return latex[i:j], j
+    depth, j = 0, i
+    while j < len(latex):
+        if latex[j] == "\\":
+            j = _tex_token(latex, j)
+            continue
+        if latex[j] == "{":
+            depth += 1
+        elif latex[j] == "}":
+            depth -= 1
+            if depth == 0:
+                return latex[i + 1 : j], j + 1
+        j += 1
+    return None
+
+
+# A default that calls itself would expand forever; MathJax stops with an error,
+# and here the call is left as written.
+_NOTATION_MAX_DEPTH = 32
+
+
+def expand_notation(latex: str, macros: dict[str, str], _depth: int = 0) -> str:
+    """Replace each call to a notation macro in latex with the macro's default,
+    filling #1..#9 from the call's arguments, and expand the result again."""
+    if _depth > _NOTATION_MAX_DEPTH:
+        return latex
+    out, i = [], 0
+    while i < len(latex):
+        j = _tex_token(latex, i)
+        name = latex[i:j]
+        body = macros.get(name)
+        if body is None:
+            out.append(name)
+            i = j
+            continue
+        params = re.findall(r"#([1-9])", body)
+        args = []
+        for _ in range(max(map(int, params), default=0)):
+            arg = _tex_argument(latex, j)
+            if arg is None:
+                break
+            args.append(arg[0])
+            j = arg[1]
+        else:
+            body = re.sub(r"#([1-9])", lambda m: args[int(m.group(1)) - 1], body)
+            out.append(expand_notation(body, macros, _depth + 1))
+            i = j
+            continue
+        out.append(name)
+        i += len(name)
+    return "".join(out)
+
+
 def _make_tag(
     tag: str,
     id_: str,
@@ -1087,6 +1161,11 @@ class Translator:
         if new:
             self.body = ""
         self.tree = tree
+        self._notation = {
+            e["macro"]: e["default"]
+            for n in tree.traverse(nodeclass=nodes.Notation)
+            for e in n.entries
+        }
 
         if self.deferred:
             raise RSMTranslatorError("Something went wrong")
@@ -1710,16 +1789,39 @@ class Translator:
             batch.items.insert(0, AppendText(f" {backlink}↖</a>"))
         return batch
 
+    def _notation_source(self, node: nodes.Math | nodes.MathBlock, prefix: str = "") -> dict:
+        """With JS off the math source is all a reader sees, and notation macro
+        names mean nothing to a reader, so the source text gets the macros'
+        defaults. notation.js needs the macro calls to rebind them, so the
+        original source goes in data-latex, where libraries.js reads it."""
+        if not self._notation:
+            return {}
+        texts = [c for c in node.children if isinstance(c, nodes.Text)]
+        src = "".join(t.text for t in texts)
+        if expand_notation(src, self._notation) == src:
+            return {}
+        for t in texts:
+            t._nojs_text = expand_notation(t.text, self._notation)
+        latex = prefix + src if isinstance(node, nodes.Math) else src.strip()
+        return {"data-latex": html_escape(latex, quote=True)}
+
     def visit_math(self, node: nodes.Math) -> EditCommand:
         # \( ... \) are the standard TeX inline-math delimiters read by the client renderer
         if node.preamble:
             node.classes.append("math-preamble")
         # A calc relation sits on its own row like display math, so it takes
         # display size while staying left-aligned in the row.
-        opening = r"\(\displaystyle " if self._is_calc_relation(node) else r"\("
+        prefix = r"\displaystyle " if self._is_calc_relation(node) else ""
+        opening = r"\(" + prefix
         return AppendBatchAndDefer(
             [
-                self._node_tag(node, "span", newline_inner=False, newline_outer=False),
+                self._node_tag(
+                    node,
+                    "span",
+                    newline_inner=False,
+                    newline_outer=False,
+                    extra_attrs=self._notation_source(node, prefix),
+                ),
                 AppendTextAndDefer(opening, r"\)"),
             ]
         )
@@ -1728,7 +1830,7 @@ class Translator:
         commands = self._close_p_before(node)
         if node.preamble:
             node.classes.append("math-preamble")
-        commands.append(AppendNodeTag(node, "div"))
+        commands.append(AppendNodeTag(node, "div", extra_attrs=self._notation_source(node)))
         commands.append(AppendTextAndDefer("$$\n", "\n$$"))
         return AppendBatchAndDefer(commands)
 
@@ -1842,9 +1944,8 @@ class Translator:
         # > or & cannot open a tag; the client math renderer reads the DOM text
         # content, which the browser decodes back to the original characters.
         # Raw HTML is not text: it is kept on RawHtml and HtmlBlock nodes.
-        text = (
-            node.text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
-        )
+        text = getattr(node, "_nojs_text", node.text)
+        text = text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
         return AppendText(text)
 
     def visit_error(self, node: nodes.Error) -> EditCommand:
@@ -4188,6 +4289,7 @@ class HandrailsTranslator(Translator):
             node,
             collapse_in_hr=False,
             menu_label="Equation" if node.nonum else node.long_reftext,
+            extra_attrs=self._notation_source(node),
         )
         close_p = self._close_p_before(node)
         batch.items[:0] = close_p

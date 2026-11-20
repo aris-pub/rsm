@@ -187,19 +187,24 @@ function definePreambles() {
 // The elements in root that still hold raw \(...\) or $$...$$ source. Each
 // keeps its source in data-latex, which notation re-renders and locate use.
 // In handrails mode a display block's source sits in its .hr-content-zone.
+// Math that uses notation arrives with data-latex already set: its text has
+// the notation defaults written out for readers without JS, and data-latex
+// keeps the macro calls, which a rebind needs.
 function rawMath(root) {
   const targets = [];
   root.querySelectorAll('span.math').forEach((el) => {
     const src = el.textContent;
     if (!src.startsWith('\\(') || !src.endsWith('\\)')) return;
-    el.dataset.latex = src.slice(2, -2);
+    if (el.dataset.latex === undefined) el.dataset.latex = src.slice(2, -2);
+    else el.textContent = `\\(${el.dataset.latex}\\)`;
     targets.push(el);
   });
   root.querySelectorAll('div.mathblock').forEach((el) => {
     const zone = el.querySelector('.hr-content-zone') || el;
     const src = zone.textContent.trim();
     if (!src.startsWith('$$') || !src.endsWith('$$')) return;
-    el.dataset.latex = src.slice(2, -2).trim();
+    if (el.dataset.latex === undefined) el.dataset.latex = src.slice(2, -2).trim();
+    else zone.textContent = `$$${el.dataset.latex}$$`;
     targets.push(zone);
   });
   return targets;

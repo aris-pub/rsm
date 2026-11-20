@@ -32,6 +32,7 @@ window.rsm = Object.assign(window.rsm || {}, {
   typesetMath: libs.typesetMath,
   // Resolves once all math, including math typeset after the page, is done.
   mathIdle: libs.mathIdle,
+  notation: { get: notation.getMacro },
 });
 
 export async function onload(root = null, { keys = true } = {}) {
@@ -180,6 +181,12 @@ export async function onload(root = null, { keys = true } = {}) {
       tooltips.createTooltips();
     } catch (err) {
       console.error("Loading notation panel FAILED!", err);
+    }
+
+    try {
+      notation.announceStoredOverrides();
+    } catch (err) {
+      console.error("Announcing stored notation FAILED!", err);
     }
 
     // Interface tooltips for the sidebar's controls.

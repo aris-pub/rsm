@@ -65,3 +65,83 @@ def test_raw_lines_not_rendered():
 def test_absent_when_no_block():
     html = rsm.render("# T\n\nNo notation here.\n", handrails=False)
     assert "rsm-notation" not in html
+
+
+DEFAULTS_SRC = """\
+# T
+
+:notation:
+  \\emb $F$ the embedding
+  \\dst $D$ the distortion
+  \\rad $\\rho_{#1}$ the radius at scale j
+::
+
+The map $\\emb(x)$ has distortion $\\dst(n)$ at radius $\\rad{j-1}$.
+
+$$
+\\emb(x) \\le \\dst(n) \\rad{j-1}
+$$
+"""
+
+
+def _page_text(html):
+    body = html[html.find("<body"):]
+    body = re.sub(r"<script.*?</script>", "", body, flags=re.S)
+    return re.sub(r"<[^>]+>", "", body)
+
+
+def test_nojs_math_source_uses_defaults():
+    for handrails in (False, True):
+        text = _page_text(rsm.render(DEFAULTS_SRC, handrails=handrails))
+        for name in ("\\emb", "\\dst", "\\rad"):
+            assert name not in text, (handrails, name)
+        assert "\\(F(x)\\)" in text
+        assert "\\(D(n)\\)" in text
+        assert "\\(\\rho_{j-1}\\)" in text
+        assert "F(x) \\le D(n) \\rho_{j-1}" in text
+
+
+def test_js_source_keeps_macro_calls():
+    for handrails in (False, True):
+        html = rsm.render(DEFAULTS_SRC, handrails=handrails)
+        latex = re.findall(r'data-latex="([^"]*)"', html)
+        assert "\\emb(x)" in latex
+        assert "\\rad{j-1}" in latex
+        assert "\\emb(x) \\le \\dst(n) \\rad{j-1}" in latex
+
+
+def test_math_without_notation_has_no_data_latex():
+    html = rsm.render("# T\n\nPlain $x+1$.\n", handrails=False)
+    assert "data-latex" not in html
+
+
+def _expand(latex, macros):
+    from rsm.translator import expand_notation
+
+    return expand_notation(latex, macros)
+
+
+def test_expand_parameters():
+    m = {"\\rad": "\\rho_{#1}", "\\pair": "(#1, #2)"}
+    assert _expand("\\rad{j-1}", m) == "\\rho_{j-1}"
+    assert _expand("\\pair{a}{b}", m) == "(a, b)"
+    # TeX reads an unbraced argument as one token
+    assert _expand("\\rad j", m) == "\\rho_{j}"
+    assert _expand("\\rad\\alpha", m) == "\\rho_{\\alpha}"
+
+
+def test_expand_matches_whole_control_word():
+    m = {"\\emb": "F"}
+    assert _expand("\\embed + \\emb", m) == "\\embed + F"
+    # \\ is a line break, so the letters after it are not a macro call
+    assert _expand("a \\\\emb", m) == "a \\\\emb"
+
+
+def test_expand_keeps_space_after_macro():
+    # removing the space would turn "\eig x" into the unknown "\lambdax"
+    assert _expand("\\eig x", {"\\eig": "\\lambda"}) == "\\lambda x"
+
+
+def test_expand_default_that_uses_another_macro():
+    m = {"\\emb": "F", "\\embsq": "\\emb^2"}
+    assert _expand("\\embsq", m) == "F^2"

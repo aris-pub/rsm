@@ -6,7 +6,7 @@ math, persist across reloads, and reject invalid LaTeX.
 """
 
 import pytest
-from playwright.sync_api import Page
+from playwright.sync_api import Browser, Page
 
 pytestmark = pytest.mark.interactive
 
@@ -164,6 +164,116 @@ def test_locate_skips_hidden_uses(page: Page, interactive_server: str):
     )
     assert box is not None, "locate should flash a use"
     assert box["w"] > 0 and box["h"] > 0, "locate must flash a visible use, not a hidden one"
+
+
+def test_nojs_shows_default_symbols(browser: Browser, interactive_server: str):
+    ctx = browser.new_context(java_script_enabled=False)
+    try:
+        page = ctx.new_page()
+        page.goto(f"{interactive_server}/notation_defaults.html")
+        text = page.locator("body").inner_text()
+    finally:
+        ctx.close()
+    for name in ("\\emb", "\\dst", "\\rad"):
+        assert name not in text
+    assert "F(x)" in text
+    assert "D(n)" in text
+    assert "\\rho_{j-1}" in text
+
+
+def test_js_rebinds_math_built_with_defaults(page: Page, interactive_server: str):
+    # The page text holds the expanded defaults, so the rebind must typeset
+    # from the macro calls kept in data-latex.
+    page.goto(f"{interactive_server}/notation_defaults.html")
+    _wait_for_math(page)
+    assert _set_macro(page, "\\emb", "\\varphi") is True
+    assert "φ" in _inline(page)
+    assert "φ" in _display(page)
+
+
+# Registered before the page scripts run, so the events fired on load are kept.
+_RECORD_EVENTS = """
+window.__notationEvents = [];
+document.addEventListener("rsm:notation-change", (ev) => {
+  window.__notationEvents.push({
+    ...ev.detail,
+    inline: document.querySelector("span.math").textContent,
+  });
+});
+"""
+
+
+def _events(page: Page):
+    return page.evaluate("() => window.__notationEvents")
+
+
+def test_rebind_fires_change_event_once(page: Page, interactive_server: str):
+    page.add_init_script(_RECORD_EVENTS)
+    _load(page, interactive_server)
+    assert _set_macro(page, "\\eig", "\\mu") is True
+    page.wait_for_timeout(300)
+    events = _events(page)
+    assert len(events) == 1
+    ev = events[0]
+    assert ev["macro"] == "\\eig"
+    assert ev["latex"] == "\\mu"
+    assert ev["macros"] == {"\\eig": "\\mu", "\\edges": "e(#1)"}
+    assert "μ" in ev["inline"], "the event must come after the math is re-rendered"
+
+
+def test_invalid_rebind_fires_no_event(page: Page, interactive_server: str):
+    page.add_init_script(_RECORD_EVENTS)
+    _load(page, interactive_server)
+    assert _set_macro(page, "\\eig", "\\nonexistentcommand") is False
+    page.wait_for_timeout(300)
+    assert _events(page) == []
+
+
+def test_reset_fires_change_event(page: Page, interactive_server: str):
+    page.add_init_script(_RECORD_EVENTS)
+    _load(page, interactive_server)
+    assert _set_macro(page, "\\eig", "\\mu") is True
+    page.evaluate(
+        """async () => {
+            const n = await import('/static/notation.js');
+            const libs = await import('/static/libraries.js');
+            n.resetMacro('\\\\eig');
+            await libs.mathIdle();
+        }"""
+    )
+    page.wait_for_timeout(300)
+    events = _events(page)
+    assert [e["latex"] for e in events] == ["\\mu", "\\lambda"]
+    assert "λ" in events[1]["inline"]
+
+
+def test_stored_override_fires_change_event_on_load(page: Page, interactive_server: str):
+    _load(page, interactive_server)
+    assert _set_macro(page, "\\eig", "\\mu") is True
+    page.add_init_script(_RECORD_EVENTS)
+    page.reload()
+    _wait_for_math(page)
+    page.wait_for_function("() => window.__notationEvents.length > 0", timeout=10_000)
+    page.wait_for_timeout(300)
+    events = _events(page)
+    assert len(events) == 1
+    assert events[0]["macro"] == "\\eig"
+    assert events[0]["latex"] == "\\mu"
+    assert "μ" in events[0]["inline"]
+
+
+def test_no_change_event_on_load_without_overrides(page: Page, interactive_server: str):
+    page.add_init_script(_RECORD_EVENTS)
+    _load(page, interactive_server)
+    page.wait_for_timeout(500)
+    assert _events(page) == []
+
+
+def test_notation_get_returns_current_value(page: Page, interactive_server: str):
+    _load(page, interactive_server)
+    assert page.evaluate("() => window.rsm.notation.get('\\\\eig')") == "\\lambda"
+    assert _set_macro(page, "\\eig", "\\mu") is True
+    assert page.evaluate("() => window.rsm.notation.get('\\\\eig')") == "\\mu"
 
 
 def test_notation_renders_without_errors(page: Page, interactive_server: str):
