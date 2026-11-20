@@ -179,7 +179,8 @@ class TestSeveralPins:
     def test_copy_folds_with_its_own_handrail(self, page: Page, interactive_server: str):
         _load(page, interactive_server)
         _pin(page, "#thm-x")
-        saved = page.evaluate("() => JSON.stringify({...localStorage})")
+        folds = "() => localStorage.getItem('rsm-collapse:' + location.pathname)"
+        saved = page.evaluate(folds)
         copy = page.locator(f'{PINS}[data-pin-target="#thm-x"]')
         copy.hover()
         copy.locator(":scope > .hr-collapse-zone .hr-collapse").click()
@@ -188,8 +189,9 @@ class TestSeveralPins:
         expect(page.locator(".manuscript #thm-x")).not_to_have_class(
             re.compile(r"\bhr-collapsed\b")
         )
-        # A pin's fold is not saved.
-        assert page.evaluate("() => JSON.stringify({...localStorage})") == saved
+        # A pin's fold is not saved. The sidebar saves its open view on its
+        # own schedule, so only the saved folds are compared.
+        assert page.evaluate(folds) == saved
         copy.locator(":scope > .hr-collapse-zone .hr-collapse").click()
         expect(copy).to_contain_text("A claim about")
 
