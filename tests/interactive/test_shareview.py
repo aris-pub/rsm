@@ -7,6 +7,8 @@ original" pill. The reorder.html fixture supplies folds, a reorderable proof, an
 the rail scopes.
 """
 
+import base64
+import json
 from urllib.parse import urlparse, parse_qs
 
 import pytest
@@ -148,6 +150,66 @@ class TestRestore:
         page.wait_for_function(RSM_READY, timeout=10_000)
         expect(page.locator(".rsm-shared-pill")).to_be_visible(timeout=5000)
         assert _step_order(page) == ["stp-setup", "stp-b", "stp-a", "stp-c"]
+
+
+def _token(state: dict) -> str:
+    raw = json.dumps(state).encode()
+    return base64.urlsafe_b64encode(raw).decode().rstrip("=")
+
+
+# Keeps every math render of the paragraph that uses \eig, from before any page
+# script runs, so a render with the default symbol cannot slip by between two
+# checks. The renders are read at the end because MathJax adds the text after it
+# inserts the container.
+RECORD_EIG_RENDERS = """
+  window.__eigRenders = [];
+  new MutationObserver((records) => {
+    for (const r of records) {
+      for (const n of r.addedNodes) {
+        if (n.nodeName !== 'MJX-CONTAINER') continue;
+        const math = n.closest('span.math');
+        if (!math || math.dataset.latex !== '\\\\eig') continue;
+        window.__eigRenders.push(n);
+      }
+    }
+  }).observe(document, { childList: true, subtree: true });
+"""
+
+
+class TestNotationBeforeFirstTypeset:
+    def test_math_is_typeset_once_with_senders_symbol(
+        self, page: Page, interactive_server: str
+    ):
+        page.add_init_script(RECORD_EIG_RENDERS)
+        token = _token({"v": 1, "notation": {"\\eig": "\\mu"}})
+        _load(page, interactive_server, f"?view={token}")
+        expect(page.locator(".rsm-shared-pill")).to_be_visible(timeout=5000)
+        renders = page.evaluate("() => window.__eigRenders.map((n) => n.textContent)")
+        assert len(renders) == 1, renders
+        assert "μ" in renders[0] and "λ" not in renders[0], renders
+
+    def test_shared_notation_is_not_saved(self, page: Page, interactive_server: str):
+        _load(page, interactive_server)
+        page.evaluate("() => localStorage.clear()")
+        token = _token({"v": 1, "notation": {"\\eig": "\\mu"}})
+        _load(page, interactive_server, f"?view={token}")
+        saved = page.evaluate(
+            "() => Object.keys(localStorage).filter((k) => k.startsWith('rsm-notation:'))"
+        )
+        assert saved == []
+
+    def test_other_version_token_leaves_notation_alone(
+        self, page: Page, interactive_server: str
+    ):
+        token = _token({"v": 999, "notation": {"\\eig": "\\mu"}})
+        _load(page, interactive_server, f"?view={token}")
+        in_force = page.evaluate(
+            """async () => {
+              const N = await import('/static/notation.js');
+              return N.getNotationMacros()['\\\\eig'];
+            }"""
+        )
+        assert in_force == "\\lambda"
 
 
 class TestResetPill:

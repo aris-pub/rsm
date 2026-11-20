@@ -17,7 +17,7 @@
 
 import { collapseKey, openHandrail, closeHandrail, withoutPersist, launchToast } from "./handrails.js";
 import { extractModel, applyToBody, flatten, isValidOrder } from "./reorder.js";
-import { getNotationMacros, listNotation, reRenderAll } from "./notation.js";
+import { getNotationMacros, listNotation } from "./notation.js";
 import { currentPin, pinTarget } from "./tooltips.js";
 
 const SCHEMA = 1;
@@ -135,15 +135,15 @@ export function captureState() {
 }
 
 // --- restore ----------------------------------------------------------------
-// Apply the sender's notation rebindings transiently (mutate the shared macros
+// Apply the sender's notation rebindings transiently: mutate the shared macros
 // object directly, never setMacro, so the recipient's own localStorage is left
-// alone) and re-typeset. Runs first so the re-render lands before fold/reorder.
+// alone. This runs before the first typeset (preload), so the math is typeset
+// once, already with the sender's symbols.
 function restoreNotation(state) {
   if (!state.notation) return;
   try {
     const macros = getNotationMacros();
     for (const [m, latex] of Object.entries(state.notation)) macros[m] = latex;
-    reRenderAll();
   } catch {
     /* notation unavailable; skip */
   }
@@ -231,14 +231,14 @@ export function placeSharedAnchor() {
   return true;
 }
 
-// Apply a decoded view. Folds, reorder and the pin change the layout, so the
-// anchor is placed after them.
+// Apply a decoded view, except its notation, which preload() applied already.
+// Folds, reorder and the pin change the layout, so the anchor is placed after
+// them.
 function applyState(state) {
   if (!state || state.v !== SCHEMA) {
     launchToast("This shared view was made for a different version.", "error");
     return false;
   }
-  restoreNotation(state);
   restoreFolds(state);
   restoreOrder(state);
   restorePins(state);
@@ -303,6 +303,30 @@ async function copyView() {
   }
 }
 
+// The ?view token as decoded by preload(), so setup() does not decode it again.
+// Its state is null when the token cannot be decoded.
+let shared = null;
+
+// Read the ?view token and apply only its notation. onload.js calls this before
+// the first typeset, so the math is typeset once with the sender's notation.
+export function preload() {
+  let token = null;
+  try {
+    token = new URLSearchParams(window.location.search).get("view");
+  } catch {
+    token = null;
+  }
+  if (!token) return;
+  let state = null;
+  try {
+    state = decodeToken(token);
+  } catch {
+    state = null;
+  }
+  shared = { state };
+  if (state && state.v === SCHEMA) restoreNotation(state);
+}
+
 export function setup(root = document) {
   // Wire the document-scope "Copy this view" button (delegated, survives the
   // rail being re-rendered).
@@ -318,16 +342,12 @@ export function setup(root = document) {
   }
 
   // Restore a shared view, if the URL carries one.
-  let token = null;
-  try {
-    token = new URLSearchParams(window.location.search).get("view");
-  } catch {
-    token = null;
-  }
-  if (!token) return;
+  if (!shared) return;
+  const { state } = shared;
+  shared = null;
   let ok = false;
   try {
-    ok = applyState(decodeToken(token));
+    ok = state ? applyState(state) : false;
   } catch {
     ok = false;
   }

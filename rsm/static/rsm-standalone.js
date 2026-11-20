@@ -4036,7 +4036,6 @@ var RSM = (() => {
     try {
       const macros = getNotationMacros();
       for (const [m, latex] of Object.entries(state.notation)) macros[m] = latex;
-      reRenderAll();
     } catch {
     }
   }
@@ -4106,7 +4105,6 @@ var RSM = (() => {
       launchToast("This shared view was made for a different version.", "error");
       return false;
     }
-    restoreNotation(state);
     restoreFolds(state);
     restoreOrder(state);
     restorePins(state);
@@ -4158,6 +4156,24 @@ var RSM = (() => {
       launchToast("Could not copy the view link.", "error");
     }
   }
+  var shared = null;
+  function preload() {
+    let token = null;
+    try {
+      token = new URLSearchParams(window.location.search).get("view");
+    } catch {
+      token = null;
+    }
+    if (!token) return;
+    let state = null;
+    try {
+      state = decodeToken(token);
+    } catch {
+      state = null;
+    }
+    shared = { state };
+    if (state && state.v === SCHEMA) restoreNotation(state);
+  }
   function setup11(root2 = document) {
     if (!window.__shareviewWired) {
       window.__shareviewWired = true;
@@ -4169,16 +4185,12 @@ var RSM = (() => {
         }
       });
     }
-    let token = null;
-    try {
-      token = new URLSearchParams(window.location.search).get("view");
-    } catch {
-      token = null;
-    }
-    if (!token) return;
+    if (!shared) return;
+    const { state } = shared;
+    shared = null;
     let ok = false;
     try {
-      ok = applyState(decodeToken(token));
+      ok = state ? applyState(state) : false;
     } catch {
       ok = false;
     }
@@ -4756,6 +4768,11 @@ var RSM = (() => {
       return onrender(root2);
     }
     try {
+      try {
+        preload();
+      } catch (err) {
+        console.error("Reading the shared view FAILED!", err);
+      }
       if (document.querySelector("span.math, div.mathblock, pre.pseudocode")) {
         try {
           await loadMathJax();
