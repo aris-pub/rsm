@@ -584,7 +584,7 @@ requires-dist = [
     { name = "icecream", specifier = ">=2.1.2" },
     { name = "livereload", specifier = ">=2.6.3" },
     { name = "pygments", specifier = ">=2.14.0" },
-    { name = "tree-sitter", specifier = ">=0.25" },
+    { name = "tree-sitter", specifier = ">=0.25,<0.27" },
     { name = "tree-sitter-rsm", editable = "../../tree-sitter-rsm" },
     { name = "ujson", specifier = ">=5.10.0" },
 ]
