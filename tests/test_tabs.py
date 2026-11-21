@@ -178,3 +178,10 @@ def test_reference_to_a_tab_prints_its_title_and_links_to_the_panel():
     ref = soup.find("a", href="#tab-sketch")
     assert ref is not None
     assert re.sub(r"\s+", " ", ref.get_text()).strip() == "Sketch"
+
+
+def test_reference_to_a_tab_group_prints_tabs():
+    soup = _html(SRC + "\nSee :ref:tabs-turan::.\n")
+    ref = soup.find("a", href="#tabs-turan")
+    assert ref is not None
+    assert re.sub(r"\s+", " ", ref.get_text()).strip() == "Tabs"

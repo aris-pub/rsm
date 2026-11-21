@@ -15,6 +15,8 @@ const RSM_TAGS = [
   { tag: ':paragraph:', description: 'Paragraph with inline meta' },
   { tag: ':config:', description: 'Document configuration' },
   { tag: ':toc:', description: 'Table of contents' },
+  { tag: ':tabs:', description: 'Group of tabs, one shown at a time' },
+  { tag: ':tab:', description: 'One tab of a :tabs:, with a :title:' },
 
   // Front matter
   { tag: ':author:', description: 'Author information block' },
