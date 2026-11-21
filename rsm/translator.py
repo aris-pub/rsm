@@ -590,6 +590,9 @@ def _make_tag(
 _HYPHENATED_OPEN = '<span class="hyphenated">'
 _HYPHENATED_CLOSE = "</span>"
 
+# The keyboard hyphen, the Unicode hyphen and the en dash. Not the minus sign.
+_HYPHEN = re.compile("[-\u2010\u2013]")
+
 # Inline nodes that are part of a word when they touch it, as $K$ is in
 # $K$-theory.
 _WORD_PIECES = (
@@ -620,7 +623,7 @@ def _wrap_hyphenated_words(html: str) -> str:
     return re.sub(
         r"<[^>]*>|[^\s<]+",
         lambda m: f"{_HYPHENATED_OPEN}{m.group()}{_HYPHENATED_CLOSE}"
-        if "-" in m.group() and not m.group().startswith("<")
+        if _HYPHEN.search(m.group()) and not m.group().startswith("<")
         else m.group(),
         html,
     )
@@ -648,26 +651,23 @@ def _visible_text(html: str) -> str:
     return html_unescape(re.sub(r"<[^>]*>", "", html))
 
 
-def _has_prose_hyphen(node: nodes.Node, html: str) -> bool:
-    """Whether the text that *node* shows, written as *html*, has a hyphen in
-    prose, as opposed to one in math, code, raw HTML or a bare URL."""
-    if isinstance(node, (nodes.Math, nodes.Code, nodes.RawHtml)):
-        return False
-    if isinstance(node, nodes.URL) and not (
+def _shown_prose(node: nodes.Node, html: str) -> tuple[str, bool]:
+    """The text that *node* shows, written as *html*, and whether a hyphen in
+    it is prose. Math and code inside it count as one letter each, so that
+    their source neither adds spaces nor hyphens."""
+    if isinstance(node, nodes.RawHtml):
+        return _visible_text(node.html), False
+    if isinstance(node, (nodes.Math, nodes.Code)):
+        return "x", False
+    # The inline wrapper writes a newline after its opening tag, which is not
+    # a space that the reader sees between words.
+    html = re.sub(r'(<span class="inline-wrapper">)\n', r"\1", html)
+    html = re.sub(r'<span class="math"[^>]*>[^<]*</span>', "x", html)
+    html = re.sub(r"<code\b[^>]*>.*?</code>", "x", html, flags=re.S)
+    bare_url = isinstance(node, nodes.URL) and not (
         getattr(node, "reftext_nodes", None) or node.overwrite_reftext
-    ):
-        return False
-    if isinstance(node, nodes.NodeWithChildren):
-        for text in node.traverse(nodeclass=nodes.Text):
-            if type(text) is not nodes.Text or "-" not in text.text:
-                continue
-            up = text.parent
-            while up is not node and not isinstance(up, _NOT_PROSE):
-                up = up.parent
-            if up is node:
-                return True
-        return False
-    return "-" in _visible_text(html)
+    )
+    return _visible_text(html), not bare_url
 
 
 def _section_anchor_id(section: "nodes.Section") -> str:
@@ -1261,20 +1261,42 @@ class Translator:
 
         starts = [c._body_start for c in children] + [len(self.body)]
         words: list[tuple[int, int]] = []
+        # The word being read: where it starts and ends, whether a hyphen in
+        # it counts so far, and whether it must be wrapped already. A piece
+        # whose shown text has a space is wrapped whole when a hyphenated
+        # word touches it, so nothing inside it breaks either. Its last word
+        # counts only if text after the piece touches it.
         word: list[int] = []
-        hyphen = False
-
-        def add(start: int, end: int, has_hyphen: bool) -> None:
-            nonlocal hyphen
-            word[:] = [word[0] if word else start, end]
-            hyphen = hyphen or has_hyphen
+        hyphen = must_wrap = after_spaced = False
 
         def end_word() -> None:
-            nonlocal hyphen
-            if word and hyphen:
+            nonlocal hyphen, must_wrap, after_spaced
+            if word and (must_wrap or (hyphen and not after_spaced)):
                 words.append((word[0], word[1]))
             word.clear()
-            hyphen = False
+            hyphen = must_wrap = after_spaced = False
+
+        def add(start: int, end: int, has_hyphen: bool) -> None:
+            nonlocal hyphen, must_wrap, after_spaced
+            if after_spaced:
+                must_wrap = must_wrap or hyphen
+            word[:] = [word[0] if word else start, end]
+            hyphen = hyphen or has_hyphen
+            after_spaced = False
+
+        def add_spaced(start: int, end: int, shown: str, prose: bool) -> None:
+            nonlocal hyphen, must_wrap, after_spaced
+            if shown[0].isspace():
+                end_word()
+            parts = shown.split()
+            first = prose and bool(parts) and bool(_HYPHEN.search(parts[0]))
+            last = prose and bool(parts) and bool(_HYPHEN.search(parts[-1]))
+            if word:
+                must_wrap = must_wrap or hyphen or first
+            word[:] = [word[0] if word else start, end]
+            hyphen, after_spaced = last, True
+            if shown[-1].isspace():
+                end_word()
 
         for child, start, end in zip(children, starts, starts[1:], strict=False):
             html = self.body[start:end]
@@ -1283,17 +1305,13 @@ class Translator:
                     if m.group()[0].isspace():
                         end_word()
                     else:
-                        add(start + m.start(), start + m.end(), "-" in m.group())
-            elif isinstance(child, _WORD_PIECES) and (
-                # Math source may hold spaces, but math is one piece of a word.
-                isinstance(child, nodes.Math)
-                # The fallback of raw HTML is hidden, so only the HTML counts.
-                or not re.search(
-                    r"\s",
-                    _visible_text(child.html if isinstance(child, nodes.RawHtml) else html),
-                )
-            ):
-                add(start, end, _has_prose_hyphen(child, html))
+                        add(start + m.start(), start + m.end(), bool(_HYPHEN.search(m.group())))
+            elif isinstance(child, _WORD_PIECES):
+                shown, prose = _shown_prose(child, html)
+                if re.search(r"\s", shown):
+                    add_spaced(start, end, shown, prose)
+                else:
+                    add(start, end, prose and bool(_HYPHEN.search(shown)))
             else:
                 end_word()
         end_word()

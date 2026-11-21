@@ -2,10 +2,11 @@
 
 Chromium and Firefox may break a line right after a hyphen. RSM wraps each
 hyphenated word in a span that braiid.css styles with white-space: nowrap. A
-hyphenated word is any stretch of text without spaces that contains a hyphen,
-including inline markup, math, code, links, citations and footnote markers that
-touch it. Text that is not prose (math source, code, bare URLs, the page title)
-is left as it is."""
+hyphenated word is any stretch of text without spaces that contains a hyphen
+(the keyboard hyphen, the Unicode hyphen or an en dash), including inline
+markup, math, code, links, citations and footnote markers that touch it. Markup
+that touches such a word is wrapped whole, even when it holds spaces. Text that
+is not prose (math source, code, bare URLs, the page title) is left as it is."""
 
 import re
 from html.parser import HTMLParser
@@ -313,3 +314,66 @@ def test_bibliography_entry():
     assert f'<div class="bib-title">{OPEN}Semi-numerical</span> algorithms</div>' in html
     assert f"{OPEN}Donald-E</span>" in html
     assert f'<div class="bib-venue">{OPEN}Addison-Wesley</span>' in html
+
+
+@pytest.mark.parametrize(
+    "word", ["Cauchy–Schwarz", "3–5", "co‐op"], ids=["en-dash", "range", "hyphen"]
+)
+def test_other_hyphen_characters(word):
+    html = _body(f"The {word} here.")
+    assert f"The {OPEN}{word}</span> here." in html
+
+
+def test_minus_sign_is_not_a_hyphen():
+    html = _body("The a−b here.")
+    assert OPEN not in html
+
+
+def test_en_dash_in_heading_and_strings():
+    html = _render("# T {\n  :eyebrow: Cauchy–Schwarz\n}\n\n## The 3–5 case\n\nBar.\n")
+    assert f"{OPEN}Cauchy–Schwarz</span>" in html
+    assert f"The {OPEN}3–5</span> case</h2>" in html
+
+
+def test_bold_with_space_touching_hyphen_is_one_run():
+    html = _no_nodeids(_body("A **graded Cohen**-Macaulay ring."))
+    word = '<span class="span"><strong>graded Cohen</strong></span>-Macaulay'
+    assert f"A {OPEN}{word}</span> ring." in html
+
+
+def test_bold_with_space_after_hyphen_is_one_run():
+    html = _no_nodeids(_body("A Cohen-*Macaulay ring* here."))
+    word = 'Cohen-<span class="span"><em>Macaulay ring</em></span>'
+    assert f"A {OPEN}{word}</span> here." in html
+
+
+def test_hyphen_inside_bold_touching_text_is_one_run():
+    html = _no_nodeids(_body("A **graded Cohen-**Macaulay ring."))
+    word = '<span class="span"><strong>graded Cohen-</strong></span>Macaulay'
+    assert f"A {OPEN}{word}</span> ring." in html
+
+
+def test_bold_with_space_not_touching_a_hyphenated_word():
+    html = _no_nodeids(_body("A **graded Cohen-Macaulay** ring and **a b**-free x-y."))
+    inner = f'<span class="span"><strong>graded {OPEN}Cohen-Macaulay</span></strong></span>'
+    assert f"A {inner} ring" in html
+    run = f'{OPEN}<span class="span"><strong>a b</strong></span>-free</span>'
+    assert f"and {run} {OPEN}x-y.</span>" in html
+
+
+def test_reference_with_space_touching_hyphen_is_one_run():
+    html = _body("## Intro {:label: intro}\n\nSee :ref:intro::-style text.")
+    word = _word_of(html, "<a")
+    assert _text(word) == "Section 1-style"
+
+
+def test_author_year_citation_touching_hyphen_is_one_run():
+    src = (
+        ":config: {\n  :citation-style: parens-author-year\n}\n::\n\n"
+        "As in :cite:knuth::-style text.\n\n:references:\n  @book{knuth,\n"
+        "    title={Art},\n    author={Knuth, Donald E},\n    year={2014},\n"
+        "    publisher={AW}\n  }\n::"
+    )
+    html = _body(src)
+    word = _word_of(html, "(<a")
+    assert _text(word).replace(" ", " ") == "(Knuth, 2014)-style"

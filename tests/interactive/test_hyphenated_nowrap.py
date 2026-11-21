@@ -26,7 +26,7 @@ MEASURE = """() => {
         if (n.parentElement.closest('.math, strong')) continue;
         const i = n.data.indexOf('theory');
         if (i >= 0) theory = [n, i];
-        const k = n.data.indexOf('K-');
+        const k = n.data.search(/K[-\u2013]/);
         if (k >= 0) plainK = [n, k];
     }
     const rectOf = ([n, i], len) => {
@@ -56,7 +56,9 @@ def _build(word: str, tmp_path) -> str:
 
 
 @pytest.mark.parametrize(
-    "word", ["K-theory", "$K$-theory", "**K**-theory"], ids=["plain", "math", "bold"]
+    "word",
+    ["K-theory", "$K$-theory", "**K**-theory", "**graded K**-theory", "K\u2013theory"],
+    ids=["plain", "math", "bold", "bold-with-space", "en-dash"],
 )
 def test_heading_does_not_break_after_hyphen(page: Page, tmp_path, word):
     page.set_viewport_size({"width": 800, "height": 900})
