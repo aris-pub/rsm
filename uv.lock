@@ -997,7 +997,7 @@ requires-dist = [
     { name = "icecream", specifier = ">=2.1.2" },
     { name = "livereload", specifier = ">=2.6.3" },
     { name = "pygments", specifier = ">=2.14.0" },
-    { name = "tree-sitter", specifier = ">=0.23.2" },
+    { name = "tree-sitter", specifier = ">=0.25" },
     { name = "tree-sitter-rsm", editable = "tree-sitter-rsm" },
     { name = "ujson", specifier = ">=5.10.0" },
 ]
@@ -1354,7 +1354,7 @@ version = "1.5.0"
 source = { editable = "tree-sitter-rsm" }
 
 [package.metadata]
-requires-dist = [{ name = "tree-sitter", marker = "extra == 'core'", specifier = "~=0.22" }]
+requires-dist = [{ name = "tree-sitter", marker = "extra == 'core'", specifier = ">=0.25" }]
 provides-extras = ["core"]
 
 [[package]]
