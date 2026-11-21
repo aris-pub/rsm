@@ -131,7 +131,7 @@ def test_item_with_wrong_parent():
 
         <div class="paragraph" data-nodeid="2">
 
-        <p>Lorem ipsum - Foo bar.</p>
+        <p>Lorem ipsum <span class="hyphenated">-</span> Foo bar.</p>
 
         </div>
 

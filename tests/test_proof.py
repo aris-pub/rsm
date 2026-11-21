@@ -191,7 +191,7 @@ def test_sub_step():
 
         <div class="paragraph" data-nodeid="9">
 
-        <p>Sub-step.</p>
+        <p><span class="hyphenated">Sub-step.</span></p>
 
         </div>
 
@@ -201,7 +201,7 @@ def test_sub_step():
 
         <div class="paragraph" data-nodeid="12">
 
-        <p>Sub-proof.</p>
+        <p><span class="hyphenated">Sub-proof.</span></p>
 
         </div>
 

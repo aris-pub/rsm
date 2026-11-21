@@ -582,6 +582,107 @@ def _make_tag(
     return text
 
 
+# Browsers may break a line right after a hyphen, so each hyphenated word goes
+# in a span that braiid.css styles with white-space: nowrap (rsm-69h). A span,
+# not a word joiner or a non-breaking hyphen, because copying the page then
+# gives the plain source text.
+_HYPHENATED_OPEN = '<span class="hyphenated">'
+_HYPHENATED_CLOSE = "</span>"
+
+# Inline nodes that form one word with the text that touches them, as $K$ does
+# in $K$-theory.
+_WORD_PIECES = (nodes.Math,)
+
+# Text under these nodes is not prose: math source, code, preformatted text,
+# raw HTML and its fallback, notation data and link text.
+_NOT_PROSE = (
+    nodes.Math,
+    nodes.MathBlock,
+    nodes.Code,
+    nodes.CodeBlock,
+    nodes.Algorithm,
+    nodes.RawHtml,
+    nodes.HtmlBlock,
+    nodes.Notation,
+    nodes.BaseReference,
+)
+
+
+def _wrap_hyphenated_words(text: str) -> str:
+    """Wrap each hyphenated word of *text*, which holds no tags, in a no-wrap span."""
+    return re.sub(
+        r"\S+",
+        lambda m: f"{_HYPHENATED_OPEN}{m.group()}{_HYPHENATED_CLOSE}"
+        if "-" in m.group()
+        else m.group(),
+        text,
+    )
+
+
+def unwrap_hyphenated_words(html: str) -> str:
+    """Remove the spans that _wrap_hyphenated_words and _mark_hyphenated_words add."""
+    out, pos = [], 0
+    stack: list[bool] = []
+    for m in re.finditer(r"<span\b[^>]*>|</span>", html):
+        if m.group() == _HYPHENATED_CLOSE:
+            drop = stack.pop()
+        else:
+            drop = m.group() == _HYPHENATED_OPEN
+            stack.append(drop)
+        if drop:
+            out.append(html[pos : m.start()])
+            pos = m.end()
+    out.append(html[pos:])
+    return "".join(out)
+
+
+def _mark_hyphenated_words(parent: "nodes.Node | None", siblings: list) -> None:
+    """Mark where each hyphenated word among *siblings* starts and ends.
+
+    A word may run over several siblings ($K$-theory is a math node and then
+    text), so its span opens in one node and closes in another. A text node
+    keeps its marks as offsets from the end of its text, because the handrails
+    translator removes punctuation from the start of the text after math.
+    """
+    node = parent
+    while node is not None:
+        if isinstance(node, _NOT_PROSE):
+            return
+        node = node.parent
+
+    word: list[tuple[nodes.Node, int, int]] = []
+
+    def end_word() -> None:
+        if any(type(n) is nodes.Text and "-" in n.text[a:b] for n, a, b in word):
+            first, start, _ = word[0]
+            last, _, end = word[-1]
+            if type(first) is nodes.Text:
+                first._hyphenated_marks.append((len(first.text) - start, _HYPHENATED_OPEN))
+            else:
+                first._hyphenated_open = True
+            if type(last) is nodes.Text:
+                last._hyphenated_marks.append((len(last.text) - end, _HYPHENATED_CLOSE))
+            else:
+                last._hyphenated_close = True
+        word.clear()
+
+    for sib in siblings:
+        # Error and SourceCode subclass Text but are not prose.
+        if type(sib) is nodes.Text:
+            sib._hyphenated_marks = []
+            for m in re.finditer(r"\S+|\s+", sib.text):
+                if m.group()[0].isspace():
+                    end_word()
+                else:
+                    word.append((sib, m.start(), m.end()))
+        elif isinstance(sib, _WORD_PIECES):
+            sib._hyphenated_open = sib._hyphenated_close = False
+            word.append((sib, 0, 0))
+        else:
+            end_word()
+    end_word()
+
+
 def _section_anchor_id(section: "nodes.Section") -> str:
     """The id the table of contents and deep links use to reach a section.
 
@@ -1175,9 +1276,10 @@ class Translator:
             if action == "visit":
                 if command.defers:
                     self.push_leave(stack, node)
+                _mark_hyphenated_words(node, node.children)
                 for child in reversed(node.children):
                     self.push_visit(stack, child)
-            command.execute(self)
+            self._execute(node, action, command)
             if node is spinner_after and action == spinner_action:
                 self.body += '\n<div class="rsm-loading-spinner" aria-hidden="true"></div>\n'
 
@@ -1185,6 +1287,17 @@ class Translator:
             raise RSMTranslatorError("Something went wrong")
 
         return self.body
+
+    def _execute(self, node: nodes.Node, action: str, command: EditCommand) -> None:
+        """Execute *command*, with the span of a hyphenated word opened before or
+        closed after *node* when _mark_hyphenated_words marked it so."""
+        if action == "visit" and getattr(node, "_hyphenated_open", False):
+            self.body += _HYPHENATED_OPEN
+        command.execute(self)
+        if getattr(node, "_hyphenated_close", False) and (
+            action == "leave" or not command.defers
+        ):
+            self.body += _HYPHENATED_CLOSE
 
     def visit_node(self, node: nodes.Node) -> EditCommand:
         return AppendBatchAndDefer(
@@ -1939,9 +2052,17 @@ class Translator:
         # > or & cannot open a tag; the client math renderer reads the DOM text
         # content, which the browser decodes back to the original characters.
         # Raw HTML is not text: it is kept on RawHtml and HtmlBlock nodes.
+        def escape(s: str) -> str:
+            return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+
         text = getattr(node, "_nojs_text", node.text)
-        text = text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
-        return AppendText(text)
+        pieces, pos = [], 0
+        for from_end, tag in getattr(node, "_hyphenated_marks", ()):
+            cut = max(len(text) - from_end, pos)
+            pieces += [escape(text[pos:cut]), tag]
+            pos = cut
+        pieces.append(escape(text[pos:]))
+        return AppendText("".join(pieces))
 
     def visit_error(self, node: nodes.Error) -> EditCommand:
         return AppendBatchAndDefer(
@@ -1970,7 +2091,7 @@ class Translator:
     def _title_html(self, node: nodes.Heading) -> str:
         if node.title_nodes:
             return self._render_inline_nodes(node.title_nodes)
-        return html_escape(node.title, quote=False)
+        return _wrap_hyphenated_words(html_escape(node.title, quote=False))
 
     def _render_inline_nodes(self, inline_nodes: list[nodes.Node]) -> str:
         """Render a list of inline nodes to an HTML string using this
@@ -1981,6 +2102,8 @@ class Translator:
         self.body, self.deferred = "", []
         try:
             stack: list = []
+            if inline_nodes:
+                _mark_hyphenated_words(inline_nodes[0].parent, inline_nodes)
             for child in reversed(inline_nodes):
                 self.push_visit(stack, child)
             while stack:
@@ -1989,9 +2112,10 @@ class Translator:
                 if action == "visit":
                     if command.defers:
                         self.push_leave(stack, node)
+                    _mark_hyphenated_words(node, node.children)
                     for child in reversed(node.children):
                         self.push_visit(stack, child)
-                command.execute(self)
+                self._execute(node, action, command)
             return self.body
         finally:
             self.body, self.deferred = saved_body, saved_deferred

@@ -80,7 +80,7 @@ def test_empty_author():
 
         <section class="level-1">
 
-        <h1>The Perron non-backtracking eigenvalue after node addition</h1>
+        <h1>The Perron <span class="hyphenated">non-backtracking</span> eigenvalue after node addition</h1>
 
         <p class="manuscript-date">March 29, 2022</p>
 
