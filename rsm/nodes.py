@@ -185,9 +185,11 @@ class Node:
         """Whether this node's handrail should start collapsed (applied by JS on load)."""
         self.reftext_template: str = reftext_template or self.classreftext
         """Reftext template, or "" to use :attr:`classreftext`."""
-        self.start_point: tuple[int, int] = start_point
+        # Plain tuples, not tree-sitter Points: tree-sitter 0.26's Point cannot
+        # be copied or pickled, and RSM deep-copies heading titles.
+        self.start_point: tuple[int, int] = tuple(start_point)
         """The start point of the corresponding concrete syntax tree node."""
-        self.end_point: tuple[int, int] = end_point
+        self.end_point: tuple[int, int] = tuple(end_point)
         """The end point of the corresponding concrete syntax tree node."""
         self._parent: NodeWithChildren | None = None
 
