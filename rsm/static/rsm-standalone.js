@@ -4167,7 +4167,6 @@ var RSM = (() => {
   var pendingAnchor = null;
   function placeSharedAnchor() {
     const state = pendingAnchor;
-    pendingAnchor = null;
     if (!state || !state.anchor || !document.getElementById(state.anchor)) return false;
     placeAnchor(state);
     return true;
@@ -4950,6 +4949,7 @@ var RSM = (() => {
       } catch (err) {
         console.error("Loading shareview.js FAILED!", err);
       }
+      window.__rsmPlace = placeReader;
       try {
         setup13(root2);
       } catch (err) {
@@ -4978,6 +4978,18 @@ var RSM = (() => {
       ro.observe(el);
     });
   }
+  function placeReader() {
+    try {
+      if (placeSharedAnchor()) return null;
+      const id = decodeURIComponent(window.location.hash.slice(1));
+      const target = id && id !== "top" ? document.getElementById(id) : null;
+      if (target) target.scrollIntoView({ block: "start", behavior: "instant" });
+      return target;
+    } catch (err) {
+      console.error("Placing the reader FAILED!", err);
+      return null;
+    }
+  }
   async function revealWhenSettled() {
     try {
       await mathIdle();
@@ -4990,16 +5002,7 @@ var RSM = (() => {
       console.error("Waiting for fonts FAILED!", err);
     }
     await untilQuiet(document.querySelector(".manuscript"), QUIET_MS);
-    let target = null;
-    try {
-      if (!placeSharedAnchor()) {
-        const id = decodeURIComponent(window.location.hash.slice(1));
-        target = id && id !== "top" ? document.getElementById(id) : null;
-        if (target) target.scrollIntoView({ block: "start", behavior: "instant" });
-      }
-    } catch (err) {
-      console.error("Placing the reader FAILED!", err);
-    }
+    const target = placeReader();
     if (window.__rsmReveal) window.__rsmReveal();
     else window.__rsmShown = true;
     if (target) target.focus({ preventScroll: true });

@@ -17,6 +17,7 @@ default, an open proof, and five sections of math-heavy labelled paragraphs.
 import base64
 import json
 import re
+import time
 from urllib.parse import parse_qs, urlparse
 
 import pytest
@@ -412,3 +413,80 @@ class TestPins:
         _fresh_sender(page, interactive_server)
         url = _copy_view_url(page)
         assert "pins" not in _token(url)
+
+
+# Records where a block sits at the moment the page is shown. The observer is
+# on the document because this runs before the <html> element exists.
+REVEAL_PROBE_SCRIPT = """
+window.__revealTop = null;
+new MutationObserver(() => {
+  const root = document.documentElement;
+  if (!root || window.__revealTop !== null || !window.__probeId) return;
+  if (!root.classList.contains('rsm-revealing')) return;
+  const el = document.getElementById(window.__probeId);
+  window.__revealTop = {top: el.getBoundingClientRect().top, at: performance.now()};
+}).observe(document, {attributes: true, subtree: true, attributeFilter: ['class']});
+"""
+FONT_DELAY_S = 1.5
+
+
+class TestSlowLoad:
+    """Loading takes more than 3 s, so the pre-paint script shows the page before
+    RSM has settled (rsm-y87). The reader must see the target when the page is
+    shown, and see it in the right place once the layout has settled."""
+
+    def _open_with_slow_fonts(self, page: Page, url: str, probe_id: str) -> None:
+        # Each web font arrives FONT_DELAY_S after it was asked for. A route
+        # handler that sleeps would hold the fonts one after the other, and the
+        # test with them, so the requests are held and released here.
+        held = []
+        page.route("**/*.{woff,woff2}", lambda route: held.append((time.time(), route)))
+        page.add_init_script(REVEAL_PROBE_SCRIPT)
+        page.add_init_script(f"window.__probeId = {probe_id!r};")
+        if page.viewport_size["width"] < 1321:
+            page.set_viewport_size({"width": 1400, "height": 900})
+        page.goto(url, wait_until="commit")
+        t0 = time.time()
+        while not page.evaluate(REVEALED):
+            assert time.time() - t0 < 20, "the page was never shown"
+            now = time.time()
+            for item in [h for h in held if now - h[0] >= FONT_DELAY_S]:
+                held.remove(item)
+                item[1].continue_()
+            page.wait_for_timeout(50)
+        for _, route in held:
+            route.continue_()
+        page.unroute("**/*.{woff,woff2}")
+        _settle(page)
+        # RSM waits for the layout to keep its size for 0.5 s, then places the
+        # target again.
+        page.wait_for_timeout(1200)
+
+    def _shown(self, page: Page) -> dict:
+        shown = page.evaluate("() => window.__revealTop")
+        # The 3 s fallback showed the page, not the settled reveal.
+        assert shown["at"] >= 2900, shown
+        return shown
+
+    def test_hash_target_is_in_view_when_the_page_is_shown(
+        self, page: Page, interactive_server: str
+    ):
+        self._open_with_slow_fonts(
+            page, f"{interactive_server}/shareview_long.html#par-4-2", "par-4-2"
+        )
+        shown = self._shown(page)
+        assert 0 <= shown["top"] < 200, shown
+        settled = _top(page, "par-4-2")
+        assert 0 <= settled < 200, settled
+        assert page.evaluate("() => document.activeElement.id") == "par-4-2"
+
+    def test_shared_anchor_is_in_view_when_the_page_is_shown(
+        self, page: Page, interactive_server: str
+    ):
+        token = _encode({"v": 1, "anchor": "par-4-2", "anchorTop": SENDER_TOP})
+        self._open_with_slow_fonts(
+            page, f"{interactive_server}/shareview_long.html?view={token}", "par-4-2"
+        )
+        shown = self._shown(page)
+        assert abs(shown["top"] - SENDER_TOP) <= TOLERANCE, shown
+        _assert_lands_like_sender(page, "par-4-2", SENDER_TOP)
