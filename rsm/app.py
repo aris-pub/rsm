@@ -403,10 +403,16 @@ class FullBuildApp(ProcessorApp):
                 theme_toggle=theme_toggle,
                 menu_position=menu_position,
             )
-        self.add_task(Task("builder", b, b.build))
+        self.add_task(Task("builder", b, self._build))
         self.add_task(
             Task("writer", w := writer.Writer(dstpath=Path(output_dir)), w.write)
         )
+
+    def _build(self, body: str):
+        # The builder sees only the HTML, and :plain-title: appears nowhere in
+        # it, so the value is handed over from the tree.
+        self.builder.plain_title = self.translator.tree.plain_title
+        return self.builder.build(body)
 
     def run(self, initial_args=None) -> str:
         """Run the build pipeline, optionally writing files to disk.

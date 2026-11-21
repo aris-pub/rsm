@@ -146,6 +146,10 @@ citation_style = MetaTagInfo(None, str)
 """Citation style for the manuscript (numeric, parens-author-year, author-parens-year)."""
 eyebrow = MetaTagInfo(None, str)
 """Short label set above the manuscript title, such as "Note" or "Preprint"."""
+plain_title = MetaTagInfo(None, str)
+"""Plain text for the page's <title> (the browser tab), in place of the manuscript
+title. It allows no markup: a $ or a tag in it is an error, and so is another key
+on the same line. Without it, <title> holds the title's text with math as $TeX$."""
 affiliation = MetaTagInfo(None, datetime)
 """Author institutional affiliation."""
 author_display_first = MetaTagInfo(None, int)

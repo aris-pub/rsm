@@ -511,6 +511,26 @@ def _log_meta_errors_outside_meta(cst_node: TSNode) -> set[int]:
     return ids
 
 
+_TAG = re.compile(r":[a-z0-9][a-z0-9-]*:")
+
+
+def _check_plain_title(val: str, pair: TSNode, meta: TSNode) -> None:
+    """Raise when a :plain-title: holds anything other than plain text.
+
+    The parser ends a text value where a key starts after a space, so a tag
+    such as :math: or :label: written after a space shows up as another pair on
+    the same line rather than in the value.
+    """
+    row = pair.start_point[0]
+    same_line = any(
+        c.id != pair.id and c.start_point[0] == row
+        for c in meta.named_children
+        if c.type == "pair"
+    )
+    if "$" in val or _TAG.search(val) or same_line:
+        raise RSMParserError(msg=f"plain-title takes plain text only (line {row + 1})")
+
+
 def _parse_meta_into_dict(node: TSNode) -> dict[str, Any]:
     # Only the pair children are read below, so an ERROR child would otherwise
     # be dropped with no message.
@@ -531,6 +551,8 @@ def _parse_meta_into_dict(node: TSNode) -> dict[str, Any]:
             cst_key, cst_val = pair.named_children
             val = _metaval_str(cst_val)
         key, val = globals()[f"_parse_{cst_key.type}"](cst_key, val)
+        if key == "plain_title":
+            _check_plain_title(val, pair, node)
         if not _value_is_valid(key, val, cst_key.type, pair):
             continue
         pairs[key] = val

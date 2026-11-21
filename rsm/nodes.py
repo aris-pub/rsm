@@ -1150,6 +1150,7 @@ class Manuscript(Heading):
         "eyebrow",
         "lang",
         "numbering",
+        "plain_title",
         "typography",
     }
     nonum = True
@@ -1161,12 +1162,13 @@ class Manuscript(Heading):
         return super().reftext
 
     def __init__(
-        self, src: str = "", date: datetime | None = None, numbering: str = "section", accent: str = "blue", lang: str = "en", typography: str = "sans-serif", citation_style: str = "numeric", eyebrow: str = "", **kwargs: Any
+        self, src: str = "", date: datetime | None = None, numbering: str = "section", accent: str = "blue", lang: str = "en", typography: str = "sans-serif", citation_style: str = "numeric", eyebrow: str = "", plain_title: str = "", **kwargs: Any
     ) -> None:
         super().__init__(**kwargs)
         self.src = src
         self.date = date
         self.eyebrow = eyebrow
+        self.plain_title = plain_title
         self.numbering = numbering
         self.accent = accent
         self.lang = lang
