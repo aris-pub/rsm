@@ -111,7 +111,7 @@ def test_page_title_element_is_not_touched():
     html = rsm.build("# Notes on $K$-theory\n\nBar.\n", handrails=True, standalone=True)
     title = re.search(r"<title>(.*?)</title>", html, re.S).group(1)
     assert "hyphenated" not in title
-    assert title.endswith("</span>-theory")
+    assert title == "Notes on $K$-theory"
 
 
 def test_caption():
