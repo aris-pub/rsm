@@ -20,7 +20,7 @@ dependencies = [
     "icecream >= 2.1.2",
     "livereload >= 2.6.3",
     "pygments >= 2.14.0",
-    "tree-sitter >= 0.23.2",
+    "tree-sitter >= 0.25",
     "tree-sitter-rsm>=1.5.0",
     "ujson >= 5.10.0",
 ]
