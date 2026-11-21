@@ -90,7 +90,10 @@ meta, then body content:
 
 **Manuscript meta** goes in `{...}` right after the `#` title. It accepts keys like
 `:label:` and `:title:`, and `:eyebrow:`: a short label set above the title, such as
-`Preprint` or `Lecture notes`.
+`Preprint` or `Lecture notes`. `:plain-title:` sets the page's `<title>` (the browser
+tab) as plain text, such as `:plain-title: Floor, ceiling, slopes, and K-theory`. It
+must be the last key on its line, and a `$` or a tag in it is an error. Without it,
+`<title>` holds the title's text with math as `$TeX$`.
 
 **`:config:`** is a block tag for document-wide settings: `:accent:`,
 `:typography:`, `:numbering:`, `:citation-style:`, `:override-date:`, `:toc-depth:`,
@@ -379,6 +382,7 @@ starts the next pair. A colon anywhere else stays in the value, as in `Ratio 3:1
 | `:label:` | Cross-reference label |
 | `:name:` | Author name |
 | `:orcid:` | Author ORCID identifier |
+| `:plain-title:` | Plain text for the browser tab, in place of the manuscript title |
 | `:reftext:` | Label display text for references |
 | `:title:` | Block or manuscript title; may hold inline markup, as a heading does |
 

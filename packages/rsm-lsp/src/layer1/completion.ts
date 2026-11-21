@@ -116,6 +116,7 @@ const RSM_TAGS = [
   { tag: ':name:', description: 'Author name' },
   { tag: ':of:', description: 'Label of the result proved by a proof placed away from it' },
   { tag: ':orcid:', description: 'Author ORCID identifier' },
+  { tag: ':plain-title:', description: 'Plain text for the browser tab, in place of the manuscript title' },
   { tag: ':reftext:', description: 'Label display text for references' },
   { tag: ':title:', description: 'Block or manuscript title' },
 

@@ -5,6 +5,7 @@ import logging
 import posixpath
 import re
 from abc import ABC, abstractmethod
+from html import escape
 from pathlib import Path
 from textwrap import dedent
 
@@ -49,6 +50,8 @@ class BaseBuilder(ABC):
         self.custom_css: str | None = custom_css
         self.theme_toggle: bool = theme_toggle
         self.menu_position: str = menu_position
+        # The manuscript's :plain-title:, set by the app before build().
+        self.plain_title: str = ""
         # Default to disk-based asset resolver if none provided
         if asset_resolver is None:
             from .asset_resolver import AssetResolverFromDisk
@@ -300,7 +303,10 @@ class HTMLBuilder(BaseBuilder):
 
         Each piece of math becomes its TeX source between dollar signs, as on
         arXiv. The text keeps its HTML escapes, since <title> needs them too.
+        A :plain-title: replaces all of this.
         """
+        if self.plain_title:
+            return escape(self.plain_title, quote=False)
         mobj = re.search(r"<h1>(.*?)</h1>", self.body, re.S)
         if mobj is None:
             return ""

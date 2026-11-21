@@ -91,6 +91,7 @@ List of all tags
 .. autoclass:: orcid
 .. autoclass:: override_date
 .. autoclass:: path
+.. autoclass:: plain_title
 .. autoclass:: preamble
 .. autoclass:: reftext
 .. autoclass:: scale
