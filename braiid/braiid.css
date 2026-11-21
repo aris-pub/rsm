@@ -2948,6 +2948,15 @@ body {
 .manuscriptwrapper figure video {
   max-width: 100%;
   height: auto; }
+/* The same for the image of an image figure, which otherwise keeps its natural
+   pixel width and scrolls sideways, cut off, when it is wider than the column
+   (rsm-cj3). The selector names only the <img> (or <picture> + <img>) that RSM
+   writes for the figure's :path:, so images inside a figure's HTML keep their
+   own sizes. */
+.manuscriptwrapper figure > .hr > .hr-content-zone > img,
+.manuscriptwrapper figure > .hr > .hr-content-zone > picture > img {
+  max-width: 100%;
+  height: auto; }
 
 
 /* Other */
