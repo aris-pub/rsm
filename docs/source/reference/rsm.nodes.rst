@@ -131,6 +131,8 @@
       
         Subsubsection
       
+        Tab
+      
         Table
       
         TableBody
@@ -140,6 +142,8 @@
         TableHead
       
         TableRow
+      
+        Tabs
       
         Text
       

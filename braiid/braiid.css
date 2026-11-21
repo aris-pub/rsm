@@ -3715,6 +3715,95 @@ a.reference.external:hover::after {
   height: 0.85rem;
 }
 
+/* Tabs (:tabs:). Each tab is a radio input, its label and its panel, in that
+   order, all children of the group. The group is a wrapping flex row: the
+   labels form the row of tabs, and each panel takes order 1 and a full line, so
+   the panels sit below the row. The label after a checked input is the selected
+   tab and the panel after it is the one shown, so switching needs no script.
+   onload.js checks the input of a tab that holds the target of a link.
+
+   At section level the blocks in a panel have their own handrail columns, so
+   the row of tabs is inset by those columns to line up with the text, and the
+   panels take the inset back. Inside a block, nested blocks draw their handrails
+   outside their own box, so there is no inset. */
+.manuscriptwrapper .tabs {
+  --tabs-inset-start: var(--hr-left-total);
+  --tabs-inset-end: var(--hr-right-total);
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: var(--chunk-half);
+  padding-inline: var(--tabs-inset-start) var(--tabs-inset-end);
+}
+.manuscriptwrapper .hr .tabs {
+  --tabs-inset-start: 0px;
+  --tabs-inset-end: 0px;
+}
+/* Hidden like .visually-hidden: the input stays focusable, and the arrow keys
+   move between the tabs of a group. */
+.manuscriptwrapper .tabs > .tab-input {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+.manuscriptwrapper .tabs > .tab-label {
+  cursor: pointer;
+  color: var(--text-subtle);
+  padding-block: var(--chunk-sixth);
+  /* The underline of the selected tab sits on the rule under the row. */
+  margin-block-end: calc(-1 * var(--border-extrathin));
+  border-bottom: var(--border-thin) solid transparent;
+}
+.manuscriptwrapper .tabs > .tab-label:hover {
+  color: var(--text-action-hover);
+}
+.manuscriptwrapper .tabs > .tab-input:checked + .tab-label {
+  color: var(--text-body);
+  font-weight: var(--weight-semi);
+  border-bottom-color: var(--border-action);
+}
+.manuscriptwrapper .tabs > .tab-input:focus-visible + .tab-label {
+  outline: var(--border-thin) solid var(--border-action);
+  outline-offset: var(--border-thin);
+  border-radius: var(--radius-md);
+}
+.manuscriptwrapper .tabs > .tab {
+  display: none;
+  order: 1;
+  flex: 0 0 calc(100% + var(--tabs-inset-start) + var(--tabs-inset-end));
+  margin-inline: calc(-1 * var(--tabs-inset-start)) calc(-1 * var(--tabs-inset-end));
+  min-width: 0;
+}
+.manuscriptwrapper .tabs > .tab-input:checked + .tab-label + .tab {
+  display: block;
+}
+/* The rule under the row of tabs, from the left edge of the text to the info
+   column. */
+.manuscriptwrapper .tabs > .tab::before {
+  content: "";
+  display: block;
+  height: var(--border-extrathin);
+  background: var(--border-primary);
+  margin-inline: var(--tabs-inset-start) var(--tabs-inset-end);
+  margin-block-end: var(--chunk-third);
+}
+/* With scripting off, a link to a block in a tab that is not selected would go
+   nowhere, so every panel shows and the row of tabs is hidden. */
+@media (scripting: none) {
+  .manuscriptwrapper .tabs > :is(.tab-input, .tab-label) { display: none; }
+  .manuscriptwrapper .tabs > .tab { display: block; }
+  .manuscriptwrapper .tabs > .tab::before { content: none; }
+}
+
 /* Print / PDF.
 
    Browsers export PDF with JavaScript ON, so the JS-off <noscript> path never
@@ -3761,6 +3850,10 @@ a.reference.external:hover::after {
      drawer share the .proof-rail class). The handrail gutter holds collapse
      chevrons and the dots menu; the back-pill, focus-mode exit bar, toasts,
      tooltips and the source modal are all transient overlays. */
+  /* Every tab prints, without the row of tabs. */
+  .manuscriptwrapper .tabs > .tab { display: block !important; }
+  .manuscriptwrapper .tabs > .tab::before { content: none; }
+  .manuscriptwrapper .tabs > :is(.tab-input, .tab-label),
   .proof-rail,
   .rail-strip,
   .ui-tip,

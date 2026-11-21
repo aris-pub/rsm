@@ -111,6 +111,48 @@ the figure is still labelled "Figure". HTML written in the document goes in an
 ``:htmlblock:`` inside the figure.
 
 
+Show blocks in tabs
+*******************
+
+Put blocks that the reader compares or chooses between in tabs, so that only one
+shows at a time, for example several figures in the same place:
+
+.. rsm::
+
+   :tabs: {:label: tabs-plots}
+
+     :tab: {:title: Diagram}
+
+       :figure: {:label: fig-diagram, :path: _static/images/diagram.svg}
+         :caption: The concept.
+       ::
+
+     ::
+
+     :tab: {:title: Performance}
+
+       :figure: {:label: fig-perf, :path: _static/images/performance-plot.svg}
+         :caption: Measured performance.
+       ::
+
+     ::
+
+   ::
+
+A ``:tabs:`` holds only ``:tab:`` blocks. Each ``:tab:`` needs a ``:title:``, which
+names it in the row of tabs and may hold math, and holds any blocks: figures,
+paragraphs, a sketch, a proof. A proof sketch and the full proof work well as two
+tabs. Blocks in a tab keep their numbers, so the figures above are numbered as if
+there were no tabs.
+
+A ``:ref:`` to a block in a tab that is not selected selects that tab. A ``:ref:``
+to a ``:tab:`` label prints its title. In print, and in a browser with JavaScript
+turned off, every tab shows, one after the other.
+
+A ``:tabs:`` cannot sit inside another ``:tabs:``, and a ``:tab:`` cannot hold the
+``:step:`` blocks of a proof. A ``:tab:`` can hold a whole proof.
+
+
 Add inline math
 ***************
 

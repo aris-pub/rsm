@@ -78,6 +78,7 @@ SIDEBAR_FIXTURES = {
     "rawhtml",
     "toc_switch_sidebar",
     "pin_targets",
+    "tabs",
 }
 
 # Fixtures whose :figure: assets must be read at build time. Asset paths resolve

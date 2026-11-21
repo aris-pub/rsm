@@ -36,6 +36,8 @@ List of all tags
 .. autoclass:: sketch
 .. autoclass:: subsection
 .. autoclass:: subsubsection
+.. autoclass:: tab
+.. autoclass:: tabs
 .. autoclass:: theorem
 .. autoclass:: toc
 .. autoclass:: video

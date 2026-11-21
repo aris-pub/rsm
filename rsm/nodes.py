@@ -1804,6 +1804,43 @@ class Sketch(NodeWithChildren):
     has_handrail = True
 
 
+class Tabs(NodeWithChildren):
+    """A group of :class:`Tab` blocks, of which the reader sees one at a time.
+
+    .. code-block:: text
+
+       :tabs: {:label: tabs-turan}
+
+         :tab: {:title: Sketch}
+           :sketch: Make $G$ complete multipartite. ::
+         ::
+
+         :tab: {:title: Proof}
+           :proof: ... ::
+         ::
+
+       ::
+
+    A group holds only :tab: blocks and cannot sit inside another group. It has
+    no handrail and no number. Blocks inside its tabs keep their own numbers.
+
+    """
+
+
+class Tab(Heading):
+    """One tab of a :class:`Tabs` group. Its :title: names it in the row of tabs,
+    and a :ref: to its label prints the title."""
+
+    possible_parents: ClassVar[set[type["NodeWithChildren"]]] = {Tabs}
+
+    @property
+    def reftext(self) -> str:
+        return self.title
+
+
+Tabs.possible_children = {Tab}
+
+
 class Calc(NodeWithChildren):
     """A calculation: a chain of relations, each with its justification.
 

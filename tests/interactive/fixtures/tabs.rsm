@@ -1,0 +1,84 @@
+# Tabs
+
+## Section
+{:label: sec}
+
+A paragraph before the tabs, see :ref:fig-b:: and :ref:tab-proof::.
+
+:tabs: {:label: tabs-fig}
+
+  :tab: {:title: First}
+
+    :figure: {:label: fig-a, :path: figure-light.png}
+
+      :caption: The first figure.
+
+    ::
+
+  ::
+
+  :tab: {:title: Second}
+
+    :figure: {:label: fig-b, :path: figure-light.png}
+
+      :caption: The second figure.
+
+    ::
+
+  ::
+
+::
+
+:theorem: {:label: thm}
+
+  A statement.
+
+::
+
+:tabs:
+
+  :tab: {:title: Sketch}
+
+    :sketch: A short idea. ::
+
+  ::
+
+  :tab: {:title: Proof, :label: tab-proof}
+
+    :proof: {:of: thm}
+
+      :step: {:label: stp-one} A claim.
+
+        A reason for it.
+
+      ::
+
+    ::
+
+  ::
+
+::
+
+A paragraph after the tabs.
+
+:remark:
+
+  A remark that holds tabs.
+
+  :tabs:
+
+    :tab: {:title: One}
+
+      Inside one.
+
+    ::
+
+    :tab: {:title: Two}
+
+      Inside two.
+
+    ::
+
+  ::
+
+::

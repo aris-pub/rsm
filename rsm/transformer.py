@@ -172,6 +172,7 @@ class Transformer:
 
         self.prepare_paragraph_assets()
         self.check_calc_rows()
+        self.check_tabs()
         self.collect_labels()
         self.parse_notation()
         self.resolve_pending_references()
@@ -332,6 +333,25 @@ class Transformer:
                         f"A :step: inside a :calc: cannot have a label "
                         f"(found '{row.label}'). Label the :calc: instead."
                     )
+
+    def check_tabs(self) -> None:
+        """Reject a :tab: without a :title: and a :tabs: inside another :tabs:.
+
+        The title is the only name a tab has in the row of tabs.
+
+        Raises
+        ------
+        RSMTransformerError
+            If a tab has no title, or a group of tabs sits inside another one.
+        """
+        for group in self.tree.traverse(nodeclass=nodes.Tabs):
+            if group.first_ancestor_of_type(nodes.Tabs) is not None:
+                raise RSMTransformerError(
+                    "A :tabs: cannot sit inside another :tabs:."
+                )
+            for tab in group.children:
+                if not tab.title:
+                    raise RSMTransformerError("Every :tab: needs a :title:.")
 
     def collect_labels(self) -> None:
         """Find all nodes with labels.
