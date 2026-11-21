@@ -751,7 +751,7 @@ version = "1.5.0"
 source = { editable = "../../tree-sitter-rsm" }
 
 [package.metadata]
-requires-dist = [{ name = "tree-sitter", marker = "extra == 'core'", specifier = ">=0.25" }]
+requires-dist = [{ name = "tree-sitter", marker = "extra == 'core'", specifier = ">=0.25,<0.27" }]
 provides-extras = ["core"]
 
 [[package]]
