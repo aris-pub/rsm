@@ -2148,6 +2148,30 @@ class Translator:
         node.__class__.__name__.lower()
         return AppendBatchAndDefer([AppendNodeTag(node)])
 
+    def visit_tabs(self, node: nodes.Tabs) -> EditCommand:
+        return AppendBatchAndDefer([AppendNodeTag(node)])
+
+    def visit_tab(self, node: nodes.Tab) -> EditCommand:
+        # Each tab is a radio input, its label and its panel, in that order:
+        # braiid.css shows the panel that follows a checked input and puts the
+        # labels in one row above the panels. All radios of a group share one
+        # name, so the browser keeps exactly one checked.
+        radio_id = f"tab-{node.nodeid}"
+        first = node.parent.children[0] is node
+        radio = (
+            f'\n<input type="radio" class="tab-input" name="tabs-{node.parent.nodeid}"'
+            f' id="{radio_id}"{" checked" if first else ""}>'
+        )
+        label = AppendOpenCloseTag(
+            "label",
+            self._title_html(node),
+            classes=["tab-label"],
+            newline_inner=False,
+            **{"for": radio_id},
+        )
+        panel = AppendNodeTag(node, extra_attrs={"data-tab": radio_id})
+        return AppendBatchAndDefer([AppendText(radio), label, panel])
+
     def visit_sketch(self, node: nodes.Sketch) -> EditCommand:
         title = self._make_title_node(label="Proof sketch.")
         return AppendBatchAndDefer(

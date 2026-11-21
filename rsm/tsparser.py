@@ -312,6 +312,8 @@ CST_TYPE_TO_AST_TYPE: dict[str, Callable] = {
     "spanstrong": lambda **kwargs: nodes.Span(strong=True, **kwargs),
     "step": nodes.Step,
     "subproof": nodes.Subproof,
+    "tab": nodes.Tab,
+    "tabs": nodes.Tabs,
     "subsection": nodes.Subsection,
     "subsubsection": nodes.Subsubsection,
     "span": nodes.Span,

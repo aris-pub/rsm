@@ -376,12 +376,25 @@ function revealHashTarget(id) {
   if (!el) return null;
   if (!el.hasAttribute("tabindex")) el.setAttribute("tabindex", "-1");
   const opened = handrails.expandAncestorsTo(el);
+  const switched = selectTabsTo(el);
   // Native hash navigation restores scroll but NOT focus, so move focus here.
   el.focus({ preventScroll: true });
-  // When we had to expand a fold, the native jump scrolled while the target was
-  // still hidden, so its position is stale: reposition it into view.
-  if (opened) el.scrollIntoView({ block: "center" });
+  // When we had to expand a fold or select a tab, the native jump scrolled while
+  // the target was still hidden, so its position is stale: reposition it into view.
+  if (opened || switched) el.scrollIntoView({ block: "center" });
   return el;
+}
+
+
+// A target inside a tab that is not selected is display:none, so the native jump
+// cannot reach it. Check the radio input of its tab (braiid.css shows the panel
+// after a checked input; tabs do not nest). Returns whether the tab changed.
+function selectTabsTo(el) {
+  const panel = el.closest(".tabs > .tab");
+  const radio = panel && document.getElementById(panel.dataset.tab);
+  if (!radio || radio.checked) return false;
+  radio.checked = true;
+  return true;
 }
 
 

@@ -62,6 +62,12 @@ section = BlockTagInfo(None)
 """Section."""
 sketch = BlockTagInfo(None)
 """Proof sketch."""
+tabs = BlockTagInfo(None)
+"""A group of ``:tab:`` blocks, of which the reader sees one at a time. Holds only
+``:tab:`` blocks and cannot sit inside another ``:tabs:``."""
+tab = BlockTagInfo(None)
+"""One tab of a ``:tabs:``. Needs a ``:title:``, which names it in the row of tabs.
+Holds any blocks except proof steps."""
 subsection = BlockTagInfo(None)
 """Subsection."""
 subsubsection = BlockTagInfo(None)
@@ -207,7 +213,7 @@ static = MetaTagInfo(None, Path)
 strong = MetaTagInfo(None, bool)
 """Whether span is strong."""
 title = MetaTagInfo(None, str)
-"""Manuscript or section title."""
+"""Title of the manuscript, a section, a theorem or a ``:tab:``."""
 toc_depth = MetaTagInfo(None, int)
 """Table of contents depth."""
 view = MetaTagInfo(None, str)

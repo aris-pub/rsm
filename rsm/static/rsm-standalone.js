@@ -5075,9 +5075,17 @@ var RSM = (() => {
     if (!el) return null;
     if (!el.hasAttribute("tabindex")) el.setAttribute("tabindex", "-1");
     const opened = expandAncestorsTo(el);
+    const switched = selectTabsTo(el);
     el.focus({ preventScroll: true });
-    if (opened) el.scrollIntoView({ block: "center" });
+    if (opened || switched) el.scrollIntoView({ block: "center" });
     return el;
+  }
+  function selectTabsTo(el) {
+    const panel = el.closest(".tabs > .tab");
+    const radio = panel && document.getElementById(panel.dataset.tab);
+    if (!radio || radio.checked) return false;
+    radio.checked = true;
+    return true;
   }
   var BACK_PILL_HIDE_MS = 8e3;
   var __backPillScroll = null;
