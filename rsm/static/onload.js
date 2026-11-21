@@ -203,6 +203,9 @@ export async function onload(root = null, { keys = true } = {}) {
     } catch (err) {
       console.error("Loading shareview.js FAILED!", err);
     }
+    // If the page is still loading after 3 s, the pre-paint script calls this
+    // to place the reader before it shows the page (rsm-y87).
+    window.__rsmPlace = placeReaderEarly;
 
     // Document minimap. Mounted after the first typeset so the marks are
     // measured against rendered math.
@@ -243,11 +246,45 @@ function untilQuiet(el, ms) {
   });
 }
 
+// Scroll to a shared view's anchor, or else to the #target. Returns the
+// #target element, or null.
+function placeReader() {
+  try {
+    if (shareview.placeSharedAnchor()) return null;
+    const id = decodeURIComponent(window.location.hash.slice(1));
+    const target = id && id !== "top" ? document.getElementById(id) : null;
+    if (target) target.scrollIntoView({ block: "start", behavior: "instant" });
+    return target;
+  } catch (err) {
+    console.error("Placing the reader FAILED!", err);
+    return null;
+  }
+}
+
+// Only the reader's own input counts: RSM's scrolling to the target fires
+// scroll events too, and must not stop the second placement.
+const READER_INPUT = ["wheel", "touchstart", "pointerdown", "keydown"];
+let readerActed = false;
+const noteReaderInput = () => { readerActed = true; };
+
+// Called by the pre-paint script just before it shows a page that has not
+// settled. A reader who acts on the shown page keeps their place: the target
+// is not placed again once the page settles.
+function placeReaderEarly() {
+  placeReader();
+  for (const type of READER_INPUT) {
+    window.addEventListener(type, noteReaderInput, { capture: true, passive: true });
+  }
+}
+
 // A built page is hidden below its header until its layout has settled
 // (rsm-hc8, see the pre-paint script in builder.py and html.rsm-loading in
 // braiid.css). Math typesetting can load font files that arrive later still,
 // so wait for those too. A shared view's anchor, or else the #target, is
-// placed last, then the page is shown, so nothing moves after the reveal.
+// placed last, then the page is shown, so nothing moves after the reveal. If
+// the pre-paint script showed the page first, the reader is placed again here,
+// so the page moves only by how far the layout shifted since then, unless the
+// reader has scrolled, clicked or pressed a key in the meantime.
 async function revealWhenSettled() {
   try {
     await libs.mathIdle();
@@ -260,16 +297,10 @@ async function revealWhenSettled() {
     console.error("Waiting for fonts FAILED!", err);
   }
   await untilQuiet(document.querySelector(".manuscript"), QUIET_MS);
-  let target = null;
-  try {
-    if (!shareview.placeSharedAnchor()) {
-      const id = decodeURIComponent(window.location.hash.slice(1));
-      target = id && id !== "top" ? document.getElementById(id) : null;
-      if (target) target.scrollIntoView({ block: "start", behavior: "instant" });
-    }
-  } catch (err) {
-    console.error("Placing the reader FAILED!", err);
+  for (const type of READER_INPUT) {
+    window.removeEventListener(type, noteReaderInput, { capture: true });
   }
+  const target = readerActed ? null : placeReader();
   // __rsmShown is set once the page is shown and its fade is over; a page
   // with no pre-paint script (an RSM fragment placed in another page) was
   // never hidden.

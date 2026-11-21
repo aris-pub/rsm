@@ -183,8 +183,9 @@ class HTMLBuilder(BaseBuilder):
         """A pre-paint script that hides the page below its title, author block
         and abstract until onload.js has laid it out (rsm-hc8). onload.js calls
         __rsmReveal when the layout has settled; the timeout shows the page if
-        that never happens. With scripting off it never runs and nothing is
-        hidden."""
+        that never happens. Before the timeout shows the page, it calls
+        __rsmPlace, which onload.js defines, to scroll to the link's target
+        (rsm-y87). With scripting off it never runs and nothing is hidden."""
         if 'class="rsm-loading-spinner"' not in (self.body or ""):
             return ""
         return (
@@ -201,7 +202,11 @@ class HTMLBuilder(BaseBuilder):
             "          window.__rsmShown = true;\n"
             "        }, 400);\n"
             "      };\n"
-            "      setTimeout(window.__rsmReveal, 3000);\n"
+            "      setTimeout(function() {\n"
+            "        if (!root.classList.contains('rsm-loading')) return;\n"
+            "        if (window.__rsmPlace) window.__rsmPlace();\n"
+            "        window.__rsmReveal();\n"
+            "      }, 3000);\n"
             "    })();\n"
             "  </script>\n"
         )

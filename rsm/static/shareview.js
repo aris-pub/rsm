@@ -220,13 +220,13 @@ function placeAnchor(state) {
 }
 
 // The anchor of the shared view being restored, placed once the page has
-// settled (onload.js, rsm-hc8), just before the page is shown.
+// settled (onload.js, rsm-hc8), just before the page is shown. If the page is
+// shown before it settles, the anchor is placed then too (rsm-y87).
 let pendingAnchor = null;
 
 // Place a shared view's anchor. Returns whether there was one to place.
 export function placeSharedAnchor() {
   const state = pendingAnchor;
-  pendingAnchor = null;
   if (!state || !state.anchor || !document.getElementById(state.anchor)) return false;
   placeAnchor(state);
   return true;
