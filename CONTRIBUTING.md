@@ -13,7 +13,7 @@ RSM is a community-owned project. We expect all contributors to:
 
 ### Prerequisites
 
-- Python 3.10+
+- Python 3.11+
 - [uv](https://docs.astral.sh/uv/) package manager
 - `just` command runner
 - (Optional) `tree-sitter` CLI for grammar development
@@ -66,7 +66,7 @@ RSM is a community-owned project. We expect all contributors to:
 
 ### Code Style
 
-- **Linter**: ruff (configured for Python 3.10+)
+- **Linter**: ruff (configured for Python 3.11+)
 - **Type Checker**: mypy with strict settings
 - **Format**: Run `just lint` to format code
 - **Comments**: Only add comments that explain *why*, not *what*

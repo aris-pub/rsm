@@ -85,7 +85,7 @@ no runtime dependency on esbuild.
 ## Development Setup
 
 ### Prerequisites
-- Python 3.10 or higher
+- Python 3.11 or higher
 - [uv](https://docs.astral.sh/uv/) - Fast Python package installer
 - [just](https://just.systems/) - Command runner
 
