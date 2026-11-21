@@ -4949,7 +4949,7 @@ var RSM = (() => {
       } catch (err) {
         console.error("Loading shareview.js FAILED!", err);
       }
-      window.__rsmPlace = placeReader;
+      window.__rsmPlace = placeReaderEarly;
       try {
         setup13(root2);
       } catch (err) {
@@ -4990,6 +4990,17 @@ var RSM = (() => {
       return null;
     }
   }
+  var READER_INPUT = ["wheel", "touchstart", "pointerdown", "keydown"];
+  var readerActed = false;
+  var noteReaderInput = () => {
+    readerActed = true;
+  };
+  function placeReaderEarly() {
+    placeReader();
+    for (const type of READER_INPUT) {
+      window.addEventListener(type, noteReaderInput, { capture: true, passive: true });
+    }
+  }
   async function revealWhenSettled() {
     try {
       await mathIdle();
@@ -5002,7 +5013,10 @@ var RSM = (() => {
       console.error("Waiting for fonts FAILED!", err);
     }
     await untilQuiet(document.querySelector(".manuscript"), QUIET_MS);
-    const target = placeReader();
+    for (const type of READER_INPUT) {
+      window.removeEventListener(type, noteReaderInput, { capture: true });
+    }
+    const target = readerActed ? null : placeReader();
     if (window.__rsmReveal) window.__rsmReveal();
     else window.__rsmShown = true;
     if (target) target.focus({ preventScroll: true });

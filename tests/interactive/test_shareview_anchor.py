@@ -435,7 +435,9 @@ class TestSlowLoad:
     RSM has settled (rsm-y87). The reader must see the target when the page is
     shown, and see it in the right place once the layout has settled."""
 
-    def _open_with_slow_fonts(self, page: Page, url: str, probe_id: str) -> None:
+    def _open_with_slow_fonts(
+        self, page: Page, url: str, probe_id: str, reader=None
+    ) -> None:
         # Each web font arrives FONT_DELAY_S after it was asked for. A route
         # handler that sleeps would hold the fonts one after the other, and the
         # test with them, so the requests are held and released here.
@@ -454,6 +456,10 @@ class TestSlowLoad:
                 held.remove(item)
                 item[1].continue_()
             page.wait_for_timeout(50)
+        # What the reader does after the early reveal, while fonts are still
+        # arriving, so before RSM places the target again.
+        if reader:
+            reader()
         for _, route in held:
             route.continue_()
         page.unroute("**/*.{woff,woff2}")
@@ -490,3 +496,49 @@ class TestSlowLoad:
         shown = self._shown(page)
         assert abs(shown["top"] - SENDER_TOP) <= TOLERANCE, shown
         _assert_lands_like_sender(page, "par-4-2", SENDER_TOP)
+
+    def test_reader_scroll_after_the_early_reveal_is_kept(
+        self, page: Page, interactive_server: str
+    ):
+        read_at = {}
+
+        def scroll():
+            page.mouse.move(700, 400)
+            page.mouse.wheel(0, 600)
+            page.wait_for_timeout(200)
+            read_at["top"] = _top(page, "par-4-2")
+
+        self._open_with_slow_fonts(
+            page, f"{interactive_server}/shareview_long.html#par-4-2", "par-4-2", scroll
+        )
+        assert 0 <= self._shown(page)["top"] < 200
+        assert read_at["top"] < -400, read_at
+        # The page is not pulled back to the target.
+        assert abs(_top(page, "par-4-2") - read_at["top"]) <= TOLERANCE, read_at
+
+    def test_reader_click_after_the_early_reveal_keeps_the_page_still(
+        self, page: Page, interactive_server: str
+    ):
+        # The layout then shifts, and placing the anchor again would move the
+        # page under the reader. Scroll anchoring is off so the shift shows.
+        page.add_init_script(NO_SCROLL_ANCHORING_SCRIPT)
+        read_at = {}
+
+        def click():
+            page.mouse.click(700, 400)
+            read_at["y"] = page.evaluate("() => scrollY")
+            page.evaluate(
+                """() => {
+                  const m = document.querySelector('.manuscript');
+                  const d = document.createElement('div');
+                  d.style.height = '600px';
+                  m.insertBefore(d, m.firstChild);
+                }"""
+            )
+
+        token = _encode({"v": 1, "anchor": "par-4-2", "anchorTop": SENDER_TOP})
+        self._open_with_slow_fonts(
+            page, f"{interactive_server}/shareview_long.html?view={token}", "par-4-2", click
+        )
+        assert abs(self._shown(page)["top"] - SENDER_TOP) <= TOLERANCE
+        assert abs(page.evaluate("() => scrollY") - read_at["y"]) <= 2, read_at

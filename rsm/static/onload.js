@@ -205,7 +205,7 @@ export async function onload(root = null, { keys = true } = {}) {
     }
     // If the page is still loading after 3 s, the pre-paint script calls this
     // to place the reader before it shows the page (rsm-y87).
-    window.__rsmPlace = placeReader;
+    window.__rsmPlace = placeReaderEarly;
 
     // Document minimap. Mounted after the first typeset so the marks are
     // measured against rendered math.
@@ -261,13 +261,30 @@ function placeReader() {
   }
 }
 
+// Only the reader's own input counts: RSM's scrolling to the target fires
+// scroll events too, and must not stop the second placement.
+const READER_INPUT = ["wheel", "touchstart", "pointerdown", "keydown"];
+let readerActed = false;
+const noteReaderInput = () => { readerActed = true; };
+
+// Called by the pre-paint script just before it shows a page that has not
+// settled. A reader who acts on the shown page keeps their place: the target
+// is not placed again once the page settles.
+function placeReaderEarly() {
+  placeReader();
+  for (const type of READER_INPUT) {
+    window.addEventListener(type, noteReaderInput, { capture: true, passive: true });
+  }
+}
+
 // A built page is hidden below its header until its layout has settled
 // (rsm-hc8, see the pre-paint script in builder.py and html.rsm-loading in
 // braiid.css). Math typesetting can load font files that arrive later still,
 // so wait for those too. A shared view's anchor, or else the #target, is
 // placed last, then the page is shown, so nothing moves after the reveal. If
 // the pre-paint script showed the page first, the reader is placed again here,
-// so the page moves only by how far the layout shifted since then.
+// so the page moves only by how far the layout shifted since then, unless the
+// reader has scrolled, clicked or pressed a key in the meantime.
 async function revealWhenSettled() {
   try {
     await libs.mathIdle();
@@ -280,7 +297,10 @@ async function revealWhenSettled() {
     console.error("Waiting for fonts FAILED!", err);
   }
   await untilQuiet(document.querySelector(".manuscript"), QUIET_MS);
-  const target = placeReader();
+  for (const type of READER_INPUT) {
+    window.removeEventListener(type, noteReaderInput, { capture: true });
+  }
+  const target = readerActed ? null : placeReader();
   // __rsmShown is set once the page is shown and its fade is over; a page
   // with no pre-paint script (an RSM fragment placed in another page) was
   // never hidden.
