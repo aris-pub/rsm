@@ -154,9 +154,12 @@ release level:
 
         echo "==> Releasing tree-sitter-rsm $GRAMMAR_CURRENT -> v$GRAMMAR_VERSION ($GRAMMAR_COMMITS new commits)"
         cd tree-sitter-rsm
-        sed -i.bak "s/\"version\": \"[0-9.]*\"/\"version\": \"$GRAMMAR_VERSION\"/" package.json
-        sed -i.bak "s/^version = \"[0-9.]*\"/version = \"$GRAMMAR_VERSION\"/" Cargo.toml pyproject.toml
-        rm -f package.json.bak Cargo.toml.bak pyproject.toml.bak
+        # The generator knows every file that holds the version, including
+        # tree-sitter.json, which it copies into the parser. `--no` fails
+        # instead of downloading an untested CLI when node_modules is missing.
+        npm exec --no -- tree-sitter version "$GRAMMAR_VERSION"
+        npm install --package-lock-only --ignore-scripts
+        npm exec --no -- tree-sitter generate
         git commit -am "Release $GRAMMAR_VERSION"
         git tag -- "v$GRAMMAR_VERSION"
         git push origin main
