@@ -2,7 +2,7 @@
 name = "rsmify"
 version = "0.1.0"
 description = "arXiv-to-RSM personal reader: fetch an arXiv paper, convert it via RSM, serve the HTML"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 dependencies = [
     "fastapi>=0.115",
     "uvicorn[standard]>=0.30",
@@ -23,7 +23,7 @@ include = ["rsmify*"]
 
 [tool.ruff]
 line-length = 88
-target-version = "py310"
+target-version = "py311"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
