@@ -22,6 +22,10 @@ MATHJAX_FONTS = f"{MATHJAX_DIR}/output/chtml/fonts/woff-v2"
 
 _ASSET_REF_RE = re.compile(r'((?:src|srcset|data-static)=")(.*?)(")')
 
+_MATH_SPAN_RE = re.compile(
+    r'<span class="math\b[^"]*"[^>]*>\\\((.*?)\\\)</span>', re.S
+)
+
 
 class BaseBuilder(ABC):
     """Use HTML body as a string and create a WebManuscript."""
@@ -292,11 +296,16 @@ class HTMLBuilder(BaseBuilder):
         return ""
 
     def _extract_title(self) -> str:
-        mobj = re.search(r"<h1>(.*?)</h1>", self.body)
+        """The text of the first <h1>, for <title>, which cannot hold markup.
+
+        Each piece of math becomes its TeX source between dollar signs, as on
+        arXiv. The text keeps its HTML escapes, since <title> needs them too.
+        """
+        mobj = re.search(r"<h1>(.*?)</h1>", self.body, re.S)
         if mobj is None:
             return ""
-        else:
-            return mobj.group(1)
+        title = _MATH_SPAN_RE.sub(r"$\1$", mobj.group(1))
+        return " ".join(re.sub(r"<[^>]*>", "", title).split())
 
 
 class StandaloneBuilder(HTMLBuilder):
