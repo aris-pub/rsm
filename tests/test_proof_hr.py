@@ -500,7 +500,7 @@ def test_sub_step():
 
         <div class="hr-content-zone">
 
-        <p>Sub-step.</p>
+        <p><span class="hyphenated">Sub-step.</span></p>
 
         </div>
 
@@ -557,7 +557,7 @@ def test_sub_step():
 
         <div class="hr-content-zone">
 
-        <p>Sub-Proof.</p>
+        <p><span class="hyphenated">Sub-Proof.</span></p>
 
         </div>
 

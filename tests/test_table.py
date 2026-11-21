@@ -709,7 +709,7 @@ def test_real_life_example():
         </table>
 
         <figcaption>
-        <span class="label">Table 1. </span>Values of <span class="math" data-nodeid="36">\(\epsilon\)</span> and <span class="math" data-nodeid="39">\(\delta\)</span> for select subgraphs of Gr-Qc.
+        <span class="label">Table 1. </span>Values of <span class="math" data-nodeid="36">\(\epsilon\)</span> and <span class="math" data-nodeid="39">\(\delta\)</span> for select subgraphs of <span class="hyphenated">Gr-Qc.</span>
         </figcaption>
 
         </div>
@@ -807,7 +807,7 @@ def test_real_life_example_different_spacing():
         </table>
 
         <figcaption>
-        <span class="label">Table 1. </span>Values of <span class="math" data-nodeid="36">\(\epsilon\)</span> and <span class="math" data-nodeid="39">\(\delta\)</span> for select subgraphs of Gr-Qc.
+        <span class="label">Table 1. </span>Values of <span class="math" data-nodeid="36">\(\epsilon\)</span> and <span class="math" data-nodeid="39">\(\delta\)</span> for select subgraphs of <span class="hyphenated">Gr-Qc.</span>
         </figcaption>
 
         </div>

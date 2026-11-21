@@ -1632,6 +1632,12 @@ body {
   white-space: nowrap;
 }
 
+/* Chromium and Firefox may break a line right after a hyphen. The translator
+   wraps each hyphenated word in this span so the word stays whole (rsm-69h). */
+.manuscriptwrapper .hyphenated {
+  white-space: nowrap;
+}
+
 
 /* Icons */
 .manuscriptwrapper .icon svg {

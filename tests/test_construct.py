@@ -197,7 +197,7 @@ def test_real_life_example():
 
         <div class="paragraph" data-nodeid="71">
 
-        <p><span class="math" data-nodeid="72">\(G\)</span> has no self-loops by assumption.</p>
+        <p><span class="math" data-nodeid="72">\(G\)</span> has no <span class="hyphenated">self-loops</span> by assumption.</p>
 
         </div>
 
@@ -221,7 +221,7 @@ def test_real_life_example():
 
         <div class="paragraph" data-nodeid="93">
 
-        <p>Since <span class="math" data-nodeid="95">\(G\)</span> has only one node, and it has no self-loops.</p>
+        <p>Since <span class="math" data-nodeid="95">\(G\)</span> has only one node, and it has no <span class="hyphenated">self-loops.</span></p>
 
         </div>
 
@@ -360,7 +360,7 @@ def test_real_life_example():
 
         <div class="paragraph" data-nodeid="216">
 
-        <p>where in the right-most term in third equation we have used the fact that for every node <span class="math" data-nodeid="218">\(u\)</span> in <span class="math" data-nodeid="221">\(V(G) \setminus W \setminus v\)</span> we have <span class="math" data-nodeid="224">\(\deg_H(u) = \deg_G(u)\)</span>.</p>
+        <p>where in the <span class="hyphenated">right-most</span> term in third equation we have used the fact that for every node <span class="math" data-nodeid="218">\(u\)</span> in <span class="math" data-nodeid="221">\(V(G) \setminus W \setminus v\)</span> we have <span class="math" data-nodeid="224">\(\deg_H(u) = \deg_G(u)\)</span>.</p>
 
         </div>
 

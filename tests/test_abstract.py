@@ -50,7 +50,7 @@ def test_simple():
 
         <section class="level-1">
 
-        <h1>The Perron non-backtracking eigenvalue after node addition</h1>
+        <h1>The Perron <span class="hyphenated">non-backtracking</span> eigenvalue after node addition</h1>
 
         <p class="manuscript-date">March 29, 2022</p>
 
@@ -81,7 +81,7 @@ def test_simple():
 
         </div>
 
-        <p class="keywords">Keywords: spectral graph theory, non-backtracking, interlacing</p>
+        <p class="keywords">Keywords: spectral graph theory, <span class="hyphenated">non-backtracking,</span> interlacing</p>
 
         <p class="msc">MSC: 05C50, 05C82, 15A18, 15B99</p>
 

@@ -80,7 +80,7 @@ def test_empty_author():
 
         <section class="level-1">
 
-        <h1>The Perron non-backtracking eigenvalue after node addition</h1>
+        <h1>The Perron <span class="hyphenated">non-backtracking</span> eigenvalue after node addition</h1>
 
         <p class="manuscript-date">March 29, 2022</p>
 
@@ -131,7 +131,7 @@ def test_author_with_orcid():
         <ol class="author-affiliations">
         <li>Some University</li>
         </ol>
-        <p class="author-orcid">Leo Torres: 0000-0001-2345-6789</p>
+        <p class="author-orcid">Leo Torres: <span class="hyphenated">0000-0001-2345-6789</span></p>
         </details>
         </div>
 
