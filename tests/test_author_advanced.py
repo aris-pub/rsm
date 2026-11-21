@@ -480,8 +480,8 @@ def test_complex_author_combination():
         <li value="2"><sup>2</sup>Harvard</li>
         </ol>
         <p class="author-note">Equal contribution</p>
-        <p class="author-orcid">Alice: 0000-0001-1111-1111</p>
-        <p class="author-orcid">Carol: 0000-0002-2222-2222</p>
+        <p class="author-orcid">Alice: <span class="hyphenated">0000-0001-1111-1111</span></p>
+        <p class="author-orcid">Carol: <span class="hyphenated">0000-0002-2222-2222</span></p>
         </details>
         </div>
 

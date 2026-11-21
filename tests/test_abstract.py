@@ -81,7 +81,7 @@ def test_simple():
 
         </div>
 
-        <p class="keywords">Keywords: spectral graph theory, non-backtracking, interlacing</p>
+        <p class="keywords">Keywords: spectral graph theory, <span class="hyphenated">non-backtracking,</span> interlacing</p>
 
         <p class="msc">MSC: 05C50, 05C82, 15A18, 15B99</p>
 

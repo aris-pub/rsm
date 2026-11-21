@@ -131,7 +131,7 @@ def test_author_with_orcid():
         <ol class="author-affiliations">
         <li>Some University</li>
         </ol>
-        <p class="author-orcid">Leo Torres: 0000-0001-2345-6789</p>
+        <p class="author-orcid">Leo Torres: <span class="hyphenated">0000-0001-2345-6789</span></p>
         </details>
         </div>
 

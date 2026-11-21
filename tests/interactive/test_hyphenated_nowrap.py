@@ -4,7 +4,7 @@ Chromium and Firefox allow a line break after a hyphen, which left "theory"
 alone on the next line of the heading "Floor, ceiling, slopes, and K-theory" at
 some widths. RSM wraps each hyphenated word in a no-wrap span, so the word moves
 to the next line whole. The math case ($K$-theory) is a math element followed by
-the text "-theory", and must stay whole too.
+the text "-theory", and must stay whole too, as must **K**-theory.
 """
 
 import pytest
@@ -23,7 +23,7 @@ MEASURE = """() => {
     let theory = null, plainK = null;
     while (walker.nextNode()) {
         const n = walker.currentNode;
-        if (n.parentElement.closest('.math')) continue;
+        if (n.parentElement.closest('.math, strong')) continue;
         const i = n.data.indexOf('theory');
         if (i >= 0) theory = [n, i];
         const k = n.data.indexOf('K-');
@@ -35,8 +35,8 @@ MEASURE = """() => {
         r.setEnd(n, i + len);
         return r.getClientRects()[0];
     };
-    const math = h.querySelector('.math');
-    const k = math ? math.getBoundingClientRect() : rectOf(plainK, 1);
+    const piece = h.querySelector('.math, strong');
+    const k = piece ? piece.getBoundingClientRect() : rectOf(plainK, 1);
     const t = rectOf(theory, 6);
     const lineHeight = parseFloat(getComputedStyle(h).lineHeight);
     return {
@@ -55,7 +55,9 @@ def _build(word: str, tmp_path) -> str:
     return out.as_uri()
 
 
-@pytest.mark.parametrize("word", ["K-theory", "$K$-theory"], ids=["plain", "math"])
+@pytest.mark.parametrize(
+    "word", ["K-theory", "$K$-theory", "**K**-theory"], ids=["plain", "math", "bold"]
+)
 def test_heading_does_not_break_after_hyphen(page: Page, tmp_path, word):
     page.set_viewport_size({"width": 800, "height": 900})
     page.goto(_build(word, tmp_path), wait_until="load")
