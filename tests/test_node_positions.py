@@ -1,9 +1,9 @@
 """Nodes store source positions as plain (row, column) tuples.
 
 tree-sitter 0.26 rewrote its Point type in C without a way to rebuild it, so
-copy.deepcopy and pickle fail on it. RSM deep-copies heading titles for the
-table of contents and for references, so a heading with math in it failed to
-build with tree-sitter 0.26.
+copy.deepcopy and pickle.loads fail on it. RSM deep-copies heading titles for
+the table of contents and for references, so a heading with math in it failed
+to build with tree-sitter 0.26.
 """
 
 import copy
@@ -39,7 +39,8 @@ def test_heading_title_can_be_copied_and_pickled():
     section = next(tree.traverse(nodeclass=nodes.Section))
     copied = copy.deepcopy(section.title_nodes)
     assert [n.start_point for n in copied] == [n.start_point for n in section.title_nodes]
-    pickle.dumps(section.title_nodes)
+    loaded = pickle.loads(pickle.dumps(section.title_nodes))
+    assert [n.start_point for n in loaded] == [n.start_point for n in section.title_nodes]
 
 
 def test_heading_with_math_builds_with_a_toc():
