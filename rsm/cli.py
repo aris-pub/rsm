@@ -121,6 +121,8 @@ def _cmd_export(args: Namespace) -> int:
     else:
         kwargs["path"] = args.src
     result = app.pandoc_export(**kwargs)
+    if result is None:
+        return 1
     if result and not args.output:
         print(result)
     return 0
@@ -189,6 +191,8 @@ def _cmd_parse(args: Namespace) -> int:
     # Parse the document
     parser = app.ParserApp(**kwargs)
     manuscript = parser.run()
+    if manuscript is None:
+        return 1
 
     # Serialize to JSON
     ast_dict = manuscript.to_dict()
