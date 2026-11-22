@@ -1134,13 +1134,20 @@ class AppendHalmos(AppendOpenCloseTag):
 
 
 class AppendExternalTree(AppendText):
-    def __init__(self, root: nodes.Node, handrails: bool = False):
+    """Translate a node that is not in the tree, such as a block's title."""
+
+    def __init__(self, root: nodes.Node, translator: "Translator"):
         super().__init__()
         self.root = root
-        self.cls = HandrailsTranslator if handrails else Translator
+        self.translator = translator
 
     def make_text(self) -> str:
-        return self.cls(quiet=True).translate(self.root)
+        # The new translator reads the document's notation and settings (such
+        # as the citation style) from the tree that the main one translates.
+        other = Translator(quiet=True)
+        other.tree = self.translator.tree
+        other._notation = self.translator._notation
+        return other._walk(self.root)
 
 
 class EditCommandBatch(EditCommand):
@@ -1417,14 +1424,16 @@ class Translator:
             for n in tree.traverse(nodeclass=nodes.Notation)
             for e in n.entries
         }
+        spinner_after = self._spinner_after(tree) if self.loading_spinner else None
+        return self._walk(tree, spinner_after)
 
+    def _walk(self, root: nodes.Node, spinner_after: nodes.Node | None = None) -> str:
         if self.deferred:
             raise RSMTranslatorError("Something went wrong")
 
-        spinner_after = self._spinner_after(tree) if self.loading_spinner else None
-        spinner_action = "visit" if spinner_after is tree else "leave"
+        spinner_action = "visit" if spinner_after is root else "leave"
         stack: list[Translator.Action] = []
-        self.push_visit(stack, tree)
+        self.push_visit(stack, root)
         while stack:
             node, action, method = stack.pop()
             command = method(self, node)
@@ -2488,7 +2497,7 @@ class Translator:
         return AppendBatchAndDefer(
             [
                 AppendNodeTag(node, additional_classes=["theorem"]),
-                AppendExternalTree(title),
+                AppendExternalTree(title, self),
             ]
         )
 
@@ -2530,7 +2539,7 @@ class Translator:
         return AppendBatchAndDefer(
             [
                 AppendNodeTag(node),
-                AppendExternalTree(title),
+                AppendExternalTree(title, self),
             ]
         )
 
@@ -2559,7 +2568,7 @@ class Translator:
         return AppendBatchAndDefer(
             [
                 AppendNodeTag(node, extra_attrs=extra_attrs),
-                AppendExternalTree(title),
+                AppendExternalTree(title, self),
             ]
         )
 

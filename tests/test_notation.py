@@ -167,3 +167,15 @@ def test_later_duplicate_declaration_wins():
     )
     text = _page_text(rsm.render(src, handrails=False))
     assert "\\(G(x)\\)" in text
+
+
+def test_theorem_title_math_uses_the_notation():
+    src = (
+        "# T\n\n:notation:\n  \\emb $F$ the embedding\n::\n\n"
+        ":theorem: {:title: On $\\emb(x)$}\n  Body.\n::\n"
+    )
+    for handrails in (False, True):
+        html = rsm.render(src, handrails=handrails)
+        assert "\\emb" not in _page_text(html), handrails
+        assert "\\(F(x)\\)" in _page_text(html), handrails
+        assert re.findall(r'data-latex="([^"]*)"', html) == ["\\emb(x)"], handrails
