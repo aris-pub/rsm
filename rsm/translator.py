@@ -2867,6 +2867,9 @@ class Translator:
     def _resolve_html_content(self, path: str | Path) -> str:
         """Resolve an HTML asset file and return processed content."""
         content = self.asset_resolver.resolve_asset(str(path))
+        if isinstance(content, bytes):
+            logger.error(f"HTML asset {path} is not UTF-8 text")
+            content = None
         if content is None:
             return f'<div class="html-error">Unable to load HTML asset: {path}</div>'
 
