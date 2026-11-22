@@ -3,10 +3,10 @@
  */
 
 import { Diagnostic } from 'vscode-languageserver';
-import { ASTNode } from '../layer2/ast';
-import { checkReferences } from './rules/references';
-import { checkStructure } from './rules/structure';
-import { logger } from '../utils/logger';
+import { ASTNode } from '../layer2/ast.js';
+import { checkReferences } from './rules/references.js';
+import { checkStructure } from './rules/structure.js';
+import { logger } from '../utils/logger.js';
 
 /**
  * Run all semantic diagnostics on the AST

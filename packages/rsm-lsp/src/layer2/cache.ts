@@ -2,8 +2,8 @@
  * AST caching to avoid redundant Python subprocess calls
  */
 
-import { ASTNode } from './ast';
-import { logger } from '../utils/logger';
+import { ASTNode } from './ast.js';
+import { logger } from '../utils/logger.js';
 
 export interface CachedAST {
   ast: ASTNode;

@@ -7,8 +7,8 @@ import { spawn } from 'child_process';
 import { writeFile, unlink } from 'fs/promises';
 import { tmpdir } from 'os';
 import { join } from 'path';
-import { ASTNode } from './ast';
-import { logger } from '../utils/logger';
+import { ASTNode } from './ast.js';
+import { logger } from '../utils/logger.js';
 
 export interface ParseResult {
   ast: ASTNode;

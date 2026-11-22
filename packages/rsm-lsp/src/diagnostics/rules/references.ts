@@ -3,8 +3,8 @@
  */
 
 import { Diagnostic, DiagnosticSeverity } from 'vscode-languageserver';
-import { ASTNode, findNodesByType, extractLabels, extractReferences } from '../../layer2/ast';
-import { tuplesToRange } from '../../utils/location';
+import { ASTNode, findNodesByType, extractLabels, extractReferences } from '../../layer2/ast.js';
+import { tuplesToRange } from '../../utils/location.js';
 
 /**
  * Check for undefined label references

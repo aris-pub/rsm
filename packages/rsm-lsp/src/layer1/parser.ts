@@ -1,11 +1,10 @@
 import Parser, { SyntaxNode, Tree } from 'tree-sitter';
 import { Diagnostic, DiagnosticSeverity } from 'vscode-languageserver';
-import { pointsToRange } from '../utils/location';
-import { logger } from '../utils/logger';
-
-// Import tree-sitter-rsm parser
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const TreeSitterRSM = require('tree-sitter-rsm');
+import { pointsToRange } from '../utils/location.js';
+// The package's "main" names a directory, which Node deprecates for ES
+// modules (DEP0151), so import the entry file itself.
+import TreeSitterRSM from 'tree-sitter-rsm/bindings/node/index.js';
+import { logger } from '../utils/logger.js';
 
 /**
  * Wrapper around tree-sitter parser for RSM documents

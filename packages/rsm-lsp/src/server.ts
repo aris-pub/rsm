@@ -16,23 +16,23 @@ import {
   SemanticTokensLegend,
   DocumentSymbolParams,
   DocumentSymbol,
-} from 'vscode-languageserver/node';
+} from 'vscode-languageserver/node.js';
 
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import { RsmParser, ParseTreeCache } from './layer1/parser';
-import { getTagCompletions, getPartialTag } from './layer1/completion';
-import { extractLabels, extractReferences } from './layer1/navigation';
+import { RsmParser, ParseTreeCache } from './layer1/parser.js';
+import { getTagCompletions, getPartialTag } from './layer1/completion.js';
+import { extractLabels, extractReferences } from './layer1/navigation.js';
 import {
   SemanticTokensProvider,
   TOKEN_TYPES,
   TOKEN_MODIFIERS,
-} from './layer1/semanticTokens';
-import { extractDocumentSymbols } from './layer1/documentSymbols';
-import { parseWithPython } from './layer2/python';
-import { ASTCache, Debouncer } from './layer2';
-import { runSemanticDiagnostics } from './diagnostics/engine';
-import { isPositionInRange } from './utils/location';
-import { logger } from './utils/logger';
+} from './layer1/semanticTokens.js';
+import { extractDocumentSymbols } from './layer1/documentSymbols.js';
+import { parseWithPython } from './layer2/python.js';
+import { ASTCache, Debouncer } from './layer2/index.js';
+import { runSemanticDiagnostics } from './diagnostics/engine.js';
+import { isPositionInRange } from './utils/location.js';
+import { logger } from './utils/logger.js';
 
 // Create LSP connection
 const connection = createConnection(ProposedFeatures.all);
@@ -282,7 +282,7 @@ connection.onDocumentSymbol((params: DocumentSymbolParams): DocumentSymbol[] => 
 });
 
 // Custom requests for source/preview navigation
-import { findNodeById, findNodeAtPosition } from './layer2/ast';
+import { findNodeById, findNodeAtPosition } from './layer2/ast.js';
 
 connection.onRequest('rsm/nodePosition', (params: { textDocument: { uri: string }; nodeid: number }) => {
   const uri = params.textDocument.uri;

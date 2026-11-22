@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
-import { getTagCompletions, getPartialTag } from '../../../src/layer1/completion';
+import { getTagCompletions, getPartialTag } from '../../../src/layer1/completion.js';
 import { CompletionItemKind } from 'vscode-languageserver';
 
 const GRAMMAR_PATH = resolve(__dirname, '../../../../../tree-sitter-rsm/grammar.js');

@@ -1,7 +1,7 @@
 import { Tree, SyntaxNode } from 'tree-sitter';
 import { DocumentSymbol, SymbolKind, Range } from 'vscode-languageserver';
-import { pointsToRange } from '../utils/location';
-import { logger } from '../utils/logger';
+import { pointsToRange } from '../utils/location.js';
+import { logger } from '../utils/logger.js';
 
 /**
  * Map RSM node types to LSP SymbolKind

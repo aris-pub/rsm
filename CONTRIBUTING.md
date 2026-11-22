@@ -35,7 +35,7 @@ RSM is a community-owned project. We expect all contributors to:
 
    This installs:
    - `rsm-lang` in editable mode
-   - `tree-sitter-rsm` from PyPI (pre-built wheel)
+   - `tree-sitter-rsm` from the submodule, compiled during the install
    - All development and documentation dependencies
 
 3. **Install pre-commit hooks (optional but recommended)**
@@ -82,10 +82,7 @@ All changes should include test coverage:
 
 ```bash
 # Run fast tests only (recommended during development)
-just test
-
-# Run all tests including slow ones
-just test-all
+just test-fast
 
 # Run only slow tests
 just test-slow
@@ -106,7 +103,7 @@ RSM includes a standalone JavaScript bundle (`rsm/static/rsm-standalone.js`) tha
 
 **How to rebuild**:
 ```bash
-just rebuild-js-bundle
+just js-bundle
 ```
 
 This bundles `onload.js` and dependencies into a single IIFE that exposes `RSM.onload()` and `RSM.onrender()`.
@@ -117,7 +114,7 @@ This bundles `onload.js` and dependencies into a single IIFE that exposes `RSM.o
 
 If you need to modify `tree-sitter-rsm/grammar.js`:
 
-1. **Switch to local grammar development**
+1. **Install the grammar's npm packages, which include the tree-sitter CLI**
    ```bash
    just install-local
    ```
@@ -130,7 +127,7 @@ If you need to modify `tree-sitter-rsm/grammar.js`:
    just grammar
    ```
 
-   This regenerates the parser, rebuilds the C extension, and reinstalls the package.
+   This regenerates the parser and rebuilds both the Node addon (used by the LSP) and the Python package.
 
 ### Documentation
 
@@ -198,16 +195,15 @@ tree-sitter-rsm/       # Grammar submodule (tree-sitter)
 ```bash
 just                    # List all available commands
 just install            # Install development dependencies
-just install-local      # Install with local grammar (for grammar dev)
-just test               # Run fast tests
-just test-all           # Run all tests (including slow)
+just install-local      # Also install the grammar's npm packages (for grammar dev)
+just test-fast          # Run fast tests
+just test-slow          # Run slow tests
 just lint               # Format and check code
 just typecheck          # Run mypy type checking
-just check              # Run lint + tests + typecheck
 just docs               # Build documentation
 just docs-serve         # Serve docs with live reload
 just grammar            # Rebuild tree-sitter grammar (advanced)
-just rebuild-js-bundle  # Rebuild standalone JS bundle
+just js-bundle          # Rebuild standalone JS bundle
 ```
 
 ## Getting Help

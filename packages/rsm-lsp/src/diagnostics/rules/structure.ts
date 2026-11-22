@@ -3,8 +3,8 @@
  */
 
 import { Diagnostic, DiagnosticSeverity } from 'vscode-languageserver';
-import { ASTNode, findNodesByType, isNodeOfType } from '../../layer2/ast';
-import { tuplesToRange } from '../../utils/location';
+import { ASTNode, findNodesByType, isNodeOfType } from '../../layer2/ast.js';
+import { tuplesToRange } from '../../utils/location.js';
 
 /**
  * Check if manuscript has a title

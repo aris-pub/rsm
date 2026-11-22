@@ -1,10 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { RsmParser } from '../../../src/layer1/parser';
+import { RsmParser } from '../../../src/layer1/parser.js';
 import {
   SemanticTokensProvider,
   TOKEN_TYPES,
   TOKEN_MODIFIERS,
-} from '../../../src/layer1/semanticTokens';
+} from '../../../src/layer1/semanticTokens.js';
 
 describe('SemanticTokensProvider', () => {
   const parser = new RsmParser();

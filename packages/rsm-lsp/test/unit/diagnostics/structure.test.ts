@@ -6,8 +6,8 @@ import {
   checkTheoremsWithoutLabels,
   checkEmptySections,
   checkStructure,
-} from '../../../src/diagnostics/rules/structure';
-import { ASTNode } from '../../../src/layer2/ast';
+} from '../../../src/diagnostics/rules/structure.js';
+import { ASTNode } from '../../../src/layer2/ast.js';
 
 describe('Structure diagnostics', () => {
   describe('checkMissingTitle', () => {

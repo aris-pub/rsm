@@ -3,8 +3,8 @@
  * Test semantic diagnostics
  */
 
-const { parseWithPython } = require('./dist/layer2/python');
-const { runSemanticDiagnostics } = require('./dist/diagnostics/engine');
+import { parseWithPython } from './dist/layer2/python.js';
+import { runSemanticDiagnostics } from './dist/diagnostics/engine.js';
 
 const testDoc = `# Test Document
 
