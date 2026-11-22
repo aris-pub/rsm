@@ -72,7 +72,10 @@ def test_author_parens_year_single_author():
 
 
 def test_three_authors_all_spelled_out():
-    assert _cite_text(_build("parens-author-year", "three")) == "(Arora, Lee and Naor, 2008)"
+    assert (
+        _cite_text(_build("parens-author-year", "three"))
+        == "(Arora, Lee and Naor, 2008)"
+    )
 
 
 def test_four_authors_use_et_al():
@@ -80,7 +83,10 @@ def test_four_authors_use_et_al():
 
 
 def test_author_parens_year_three_authors():
-    assert _cite_text(_build("author-parens-year", "three")) == "Arora, Lee and Naor (2008)"
+    assert (
+        _cite_text(_build("author-parens-year", "three"))
+        == "Arora, Lee and Naor (2008)"
+    )
 
 
 def test_parens_multiple_keys():
@@ -151,7 +157,12 @@ def _bib_text(html, label):
 
 
 def test_bibliography_sorted_by_author_then_year():
-    assert _bib_order(_build2("parens-author-year")) == ["arora08", "bA", "bB", "knuth14"]
+    assert _bib_order(_build2("parens-author-year")) == [
+        "arora08",
+        "bA",
+        "bB",
+        "knuth14",
+    ]
 
 
 def test_bibliography_keeps_source_order_in_numeric():
@@ -166,8 +177,14 @@ def test_year_suffix_in_bibliography():
 
 
 def test_year_suffix_in_cite():
-    assert _cite_text(_build2("parens-author-year", "See :cite:bA::.")) == "(Bourgain, 1985a)"
-    assert _cite_text(_build2("parens-author-year", "See :cite:bB::.")) == "(Bourgain, 1985b)"
+    assert (
+        _cite_text(_build2("parens-author-year", "See :cite:bA::."))
+        == "(Bourgain, 1985a)"
+    )
+    assert (
+        _cite_text(_build2("parens-author-year", "See :cite:bB::."))
+        == "(Bourgain, 1985b)"
+    )
 
 
 def test_bibliography_unnumbered_in_author_year():
@@ -178,5 +195,7 @@ def test_bibliography_unnumbered_in_author_year():
 
 def test_bibliography_numbered_in_numeric():
     html = _build2("numeric")
-    m = re.search(r'id="knuth14" class="bibitem".*?<span class="bib-num">(\d+)</span>', html, re.S)
+    m = re.search(
+        r'id="knuth14" class="bibitem".*?<span class="bib-num">(\d+)</span>', html, re.S
+    )
     assert m, "numeric entry has no number pill"

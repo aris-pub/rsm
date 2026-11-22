@@ -1,5 +1,4 @@
 import rsm
-
 from conftest import compare_have_want
 
 

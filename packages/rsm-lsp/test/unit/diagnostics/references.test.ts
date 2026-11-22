@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { DiagnosticSeverity } from 'vscode-languageserver';
-import { checkUndefinedReferences, checkUndefinedCitations, checkReferences } from '../../../src/diagnostics/rules/references';
-import { ASTNode } from '../../../src/layer2/ast';
+import { checkUndefinedReferences, checkUndefinedCitations, checkReferences } from '../../../src/diagnostics/rules/references.js';
+import { ASTNode } from '../../../src/layer2/ast.js';
 
 describe('Reference diagnostics', () => {
   describe('checkUndefinedReferences', () => {

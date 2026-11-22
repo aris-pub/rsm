@@ -322,9 +322,7 @@ def test_inline_meta_error_is_logged(caplog):
 
 
 def _unknown_key_records(caplog, key="colour"):
-    return [
-        r for r in caplog.records if r.getMessage() == f"Unknown meta key :{key}:"
-    ]
+    return [r for r in caplog.records if r.getMessage() == f"Unknown meta key :{key}:"]
 
 
 def _render(src):
@@ -388,7 +386,9 @@ def test_unknown_key_without_value_is_logged(caplog):
 
 
 def test_unknown_key_next_to_known_keys_is_logged(caplog):
-    h = _render(":theorem: {\n  :label: thm\n  :colour: blue\n  :nonum:\n}\nBody.\n::\n")
+    h = _render(
+        ":theorem: {\n  :label: thm\n  :colour: blue\n  :nonum:\n}\nBody.\n::\n"
+    )
     _assert_one_unknown_key(caplog, h, (3, 3))
     assert 'id="thm"' in h, h
     assert "Body." in h, h

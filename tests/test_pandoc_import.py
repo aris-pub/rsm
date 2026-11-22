@@ -62,13 +62,25 @@ def test_figure_empty_path_degrades_to_caption_only():
                 "t": "Figure",
                 "c": [
                     ["", [], []],
-                    [None, [{"t": "Para", "c": [
-                        {"t": "Str", "c": "A"}, {"t": "Space"},
-                        {"t": "Str", "c": "caption"},
-                    ]}]],
-                    [{"t": "Plain", "c": [
-                        {"t": "Image", "c": [["", [], []], [], ["", ""]]}
-                    ]}],
+                    [
+                        None,
+                        [
+                            {
+                                "t": "Para",
+                                "c": [
+                                    {"t": "Str", "c": "A"},
+                                    {"t": "Space"},
+                                    {"t": "Str", "c": "caption"},
+                                ],
+                            }
+                        ],
+                    ],
+                    [
+                        {
+                            "t": "Plain",
+                            "c": [{"t": "Image", "c": [["", [], []], [], ["", ""]]}],
+                        }
+                    ],
                 ],
             }
         ]
@@ -79,6 +91,7 @@ def test_figure_empty_path_degrades_to_caption_only():
     assert ":path:" not in out
     assert "A caption" in out
     import rsm
+
     html = rsm.render("# T\n\n" + out, handrails=False, source_offsets=False)
     assert 'class="error"' not in html, out
 
@@ -90,20 +103,40 @@ def test_author_name_drops_thanks_footnote_and_parses():
     ast = {
         "meta": {
             "title": {"t": "MetaInlines", "c": [{"t": "Str", "c": "T"}]},
-            "author": {"t": "MetaList", "c": [
-                {"t": "MetaInlines", "c": [
-                    {"t": "Str", "c": "Ashish"}, {"t": "Space"},
-                    {"t": "Str", "c": "Vaswani"},
-                    {"t": "Note", "c": [{"t": "Para", "c": [
-                        {"t": "Str", "c": "Equal"}, {"t": "Space"},
-                        {"t": "Str", "c": "contribution."},
-                    ]}]},
-                ]},
-                {"t": "MetaInlines", "c": [
-                    {"t": "Str", "c": "Noam"}, {"t": "Space"},
-                    {"t": "Str", "c": "Shazeer"},
-                ]},
-            ]},
+            "author": {
+                "t": "MetaList",
+                "c": [
+                    {
+                        "t": "MetaInlines",
+                        "c": [
+                            {"t": "Str", "c": "Ashish"},
+                            {"t": "Space"},
+                            {"t": "Str", "c": "Vaswani"},
+                            {
+                                "t": "Note",
+                                "c": [
+                                    {
+                                        "t": "Para",
+                                        "c": [
+                                            {"t": "Str", "c": "Equal"},
+                                            {"t": "Space"},
+                                            {"t": "Str", "c": "contribution."},
+                                        ],
+                                    }
+                                ],
+                            },
+                        ],
+                    },
+                    {
+                        "t": "MetaInlines",
+                        "c": [
+                            {"t": "Str", "c": "Noam"},
+                            {"t": "Space"},
+                            {"t": "Str", "c": "Shazeer"},
+                        ],
+                    },
+                ],
+            },
         },
         "blocks": [],
     }
@@ -152,7 +185,9 @@ def test_footnote_becomes_call_and_definition_after_the_paragraph():
     assert "text. :note:note-1:: More text." in out
     definition = ":note: {:label: note-1} The note. ::"
     assert definition in out
-    assert out.index("More text.") < out.index(definition) < out.index("Next paragraph.")
+    assert (
+        out.index("More text.") < out.index(definition) < out.index("Next paragraph.")
+    )
 
     tree = rsm.transformer.Transformer().transform(rsm.tsparser.TSParser().parse(out))
     (call,) = tree.traverse(nodeclass=rsm.nodes.NoteCall)
@@ -228,7 +263,9 @@ def test_rawblock_html_becomes_htmlblock():
     import rsm
 
     raw = '<div id="a">\n<input type="range" min="1">\n</div>'
-    out = PandocImporter().from_json({"blocks": [{"t": "RawBlock", "c": ["html", raw]}]})
+    out = PandocImporter().from_json(
+        {"blocks": [{"t": "RawBlock", "c": ["html", raw]}]}
+    )
     assert out == f":htmlblock:\n{raw}\n::\n\n"
     tree = _parse_without_errors(out)
     assert len(list(tree.traverse(nodeclass=rsm.nodes.HtmlBlock))) == 1

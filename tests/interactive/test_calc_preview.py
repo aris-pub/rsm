@@ -32,7 +32,9 @@ def _preview(page: Page):
     ref = page.locator(f'.manuscript a.reference[href="{HREF}"]').first
     ref.scroll_into_view_if_needed()
     ref.hover()
-    tip = page.locator(f'.tooltipster-base:has(.ref-pin[data-pin-target="{HREF}"])').last
+    tip = page.locator(
+        f'.tooltipster-base:has(.ref-pin[data-pin-target="{HREF}"])'
+    ).last
     expect(tip).to_be_visible(timeout=3000)
     return tip
 

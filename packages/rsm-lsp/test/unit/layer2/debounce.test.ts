@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { Debouncer } from '../../../src/layer2/debounce';
+import { Debouncer } from '../../../src/layer2/debounce.js';
 
 describe('Debouncer', () => {
   let debouncer: Debouncer;

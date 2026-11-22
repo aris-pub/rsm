@@ -28,7 +28,9 @@ PIXEL = bytes.fromhex(
 
 SECTIONS = "\n\n".join(
     f"## Section {i}\n{{:label: sec-{i}}}\n\n"
-    + "\n\n".join(f"Paragraph {i}.{j} with $x_{{{i}}} + y^{{{j}}}$ in it." for j in range(8))
+    + "\n\n".join(
+        f"Paragraph {i}.{j} with $x_{{{i}}} + y^{{{j}}}$ in it." for j in range(8)
+    )
     for i in range(1, 7)
 )
 
@@ -58,7 +60,9 @@ REVEALED = (
 
 def _build(tmp_path, src: str = DOC, sidebar: bool = True):
     out = tmp_path / "page.html"
-    out.write_text(rsm.build(src, handrails=True, lint=False, standalone=True, sidebar=sidebar))
+    out.write_text(
+        rsm.build(src, handrails=True, lint=False, standalone=True, sidebar=sidebar)
+    )
     return out.as_uri()
 
 
@@ -106,7 +110,9 @@ def _visibility(page: Page, selector: str) -> str:
 def test_title_and_abstract_show_while_the_rest_waits(page: Page, tmp_path):
     page.set_viewport_size({"width": 1400, "height": 900})
     held = _goto_held(page, _build(tmp_path))
-    assert page.evaluate("() => document.documentElement.classList.contains('rsm-loading')")
+    assert page.evaluate(
+        "() => document.documentElement.classList.contains('rsm-loading')"
+    )
     assert _visibility(page, ".manuscript h1") == "visible"
     assert _visibility(page, ".manuscript .author-block") == "visible"
     assert _visibility(page, ".manuscript .abstract") == "visible"
@@ -114,8 +120,12 @@ def test_title_and_abstract_show_while_the_rest_waits(page: Page, tmp_path):
     assert _visibility(page, ".manuscript nav.toc") == "hidden"
     assert _spinner_shown(page)
     # The spinner sits below the abstract.
-    abstract_bottom = page.eval_on_selector(".abstract", "el => el.getBoundingClientRect().bottom")
-    spinner_top = page.eval_on_selector(".rsm-loading-spinner", "el => el.getBoundingClientRect().top")
+    abstract_bottom = page.eval_on_selector(
+        ".abstract", "el => el.getBoundingClientRect().bottom"
+    )
+    spinner_top = page.eval_on_selector(
+        ".rsm-loading-spinner", "el => el.getBoundingClientRect().top"
+    )
     assert spinner_top >= abstract_bottom - 1
     held.release()
 
@@ -160,10 +170,12 @@ def test_a_stuck_load_shows_the_page_after_3_seconds(page: Page, tmp_path):
     page.goto(_build(tmp_path), wait_until="commit")
     t0 = time.time()
     page.wait_for_function(
-        "() => document.documentElement.classList.contains('rsm-loading')", timeout=3_000
+        "() => document.documentElement.classList.contains('rsm-loading')",
+        timeout=3_000,
     )
     page.wait_for_function(
-        "() => !document.documentElement.classList.contains('rsm-loading')", timeout=6_000
+        "() => !document.documentElement.classList.contains('rsm-loading')",
+        timeout=6_000,
     )
     waited = time.time() - t0
     assert 2.5 <= waited <= 4.5, waited
@@ -175,9 +187,14 @@ def test_without_javascript_nothing_is_hidden(browser, tmp_path):
     url = _build(tmp_path)
     context = browser.new_context(java_script_enabled=False)
     page = context.new_page()
-    page.route(SLOW_IMG, lambda route: route.fulfill(status=200, content_type="image/png", body=PIXEL))
+    page.route(
+        SLOW_IMG,
+        lambda route: route.fulfill(status=200, content_type="image/png", body=PIXEL),
+    )
     page.goto(url)
-    assert not page.evaluate("() => document.documentElement.classList.contains('rsm-loading')")
+    assert not page.evaluate(
+        "() => document.documentElement.classList.contains('rsm-loading')"
+    )
     assert _visibility(page, "#sec-1") == "visible"
     expect(page.locator(".rsm-loading-spinner")).to_be_hidden()
     context.close()
@@ -187,9 +204,10 @@ def test_reduced_motion_has_no_fade(page: Page, tmp_path):
     page.emulate_media(reduced_motion="reduce")
     _goto_and_release(page, _build(tmp_path))
     page.wait_for_function(REVEALED, timeout=10_000)
-    assert page.eval_on_selector(
-        "#sec-1", "el => getComputedStyle(el).animationName"
-    ) == "none"
+    assert (
+        page.eval_on_selector("#sec-1", "el => getComputedStyle(el).animationName")
+        == "none"
+    )
 
 
 @pytest.mark.parametrize(
@@ -200,8 +218,10 @@ def test_reduced_motion_has_no_fade(page: Page, tmp_path):
     ],
     ids=["no-abstract", "title-only"],
 )
-def test_the_spinner_follows_the_last_part_of_the_header(page: Page, tmp_path, head, before):
-    src = head + f"## One\n\nText :html:{{:alt: a pixel}} <img src=\"{SLOW_IMG}\"> ::.\n"
+def test_the_spinner_follows_the_last_part_of_the_header(
+    page: Page, tmp_path, head, before
+):
+    src = head + f'## One\n\nText :html:{{:alt: a pixel}} <img src="{SLOW_IMG}"> ::.\n'
     held = _goto_held(page, _build(tmp_path, src))
     assert _visibility(page, before) == "visible"
     assert _visibility(page, ".manuscript section.level-2") == "hidden"
@@ -221,8 +241,12 @@ def test_the_spinner_takes_no_room(page: Page, tmp_path):
     # Nothing below the header may move when the spinner goes.
     page.set_viewport_size({"width": 1400, "height": 900})
     held = _goto_held(page, _build(tmp_path))
-    before = page.eval_on_selector("#sec-1", "el => el.getBoundingClientRect().top + scrollY")
+    before = page.eval_on_selector(
+        "#sec-1", "el => el.getBoundingClientRect().top + scrollY"
+    )
     held.release()
     page.wait_for_function(REVEALED, timeout=10_000)
-    after = page.eval_on_selector("#sec-1", "el => el.getBoundingClientRect().top + scrollY")
+    after = page.eval_on_selector(
+        "#sec-1", "el => el.getBoundingClientRect().top + scrollY"
+    )
     assert abs(after - before) <= 1, (before, after)

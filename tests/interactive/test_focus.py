@@ -26,7 +26,9 @@ def _load(page: Page, server: str) -> None:
     page.wait_for_function(RSM_READY, timeout=10_000)
     # Focus mode is opt-in (potf-i4g): enable it for the tests. The triggers and
     # the menu item check this flag live, so setting it after load suffices.
-    page.evaluate("() => document.documentElement.setAttribute('data-focus-mode', 'on')")
+    page.evaluate(
+        "() => document.documentElement.setAttribute('data-focus-mode', 'on')"
+    )
 
 
 def _open_step_menu(page: Page, step_id: str):
@@ -80,7 +82,9 @@ class TestFocusEnter:
         expect(page.locator(".proof-rail")).to_have_class(re.compile(r"\bfocusing\b"))
         expect(page.locator(".proof-focus-exit")).to_be_visible()
         # The sidebar opens on Proof steps so the dimmed cone is visible.
-        expect(page.locator(".proof-rail")).to_have_class(re.compile(r"\bscope-proof\b"))
+        expect(page.locator(".proof-rail")).to_have_class(
+            re.compile(r"\bscope-proof\b")
+        )
         expect(page.locator(".proof-rail")).to_have_class(re.compile(r"\bopen\b"))
 
     def test_noncone_steps_collapse_cone_steps_stay_open(
@@ -109,9 +113,7 @@ class TestFocusExit:
         assert _collapsed(page, "stp-b") is False
         assert _collapsed(page, "stp-c") is False
 
-    def test_exit_button_exits_and_restores(
-        self, page: Page, interactive_server: str
-    ):
+    def test_exit_button_exits_and_restores(self, page: Page, interactive_server: str):
         _load(page, interactive_server)
         _focus_step(page, "stp-a")
         proof = page.locator(".proof.hr").first
@@ -125,9 +127,7 @@ class TestFocusExit:
 
 
 class TestFocusAccessibility:
-    def test_live_region_announces_on_enter(
-        self, page: Page, interactive_server: str
-    ):
+    def test_live_region_announces_on_enter(self, page: Page, interactive_server: str):
         _load(page, interactive_server)
         _focus_step(page, "stp-a")
         status = page.locator(".focus-sr-status")

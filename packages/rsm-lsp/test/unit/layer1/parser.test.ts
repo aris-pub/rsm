@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { RsmParser, ParseTreeCache } from '../../../src/layer1/parser';
+import { RsmParser, ParseTreeCache } from '../../../src/layer1/parser.js';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 

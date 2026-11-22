@@ -471,7 +471,11 @@ class Node:
     @property
     def number_within(self) -> type["Node"]:
         # Check instance attribute first (for config overrides), then class attribute
-        return getattr(self, '_number_within_override', None) or self.__class__._number_within or Manuscript
+        return (
+            getattr(self, "_number_within_override", None)
+            or self.__class__._number_within
+            or Manuscript
+        )
 
     @property
     def number_as(self) -> type["Node"]:
@@ -1164,7 +1168,17 @@ class Manuscript(Heading):
         return super().reftext
 
     def __init__(
-        self, src: str = "", date: datetime | None = None, numbering: str = "section", accent: str = "blue", lang: str = "en", typography: str = "sans-serif", citation_style: str = "numeric", eyebrow: str = "", plain_title: str = "", **kwargs: Any
+        self,
+        src: str = "",
+        date: datetime | None = None,
+        numbering: str = "section",
+        accent: str = "blue",
+        lang: str = "en",
+        typography: str = "sans-serif",
+        citation_style: str = "numeric",
+        eyebrow: str = "",
+        plain_title: str = "",
+        **kwargs: Any,
     ) -> None:
         super().__init__(**kwargs)
         self.src = src
@@ -1464,7 +1478,9 @@ class MathBlock(TerminalBlock):
     classreftext: ClassVar[str] = "({number})"
     newmetakeys: ClassVar[set] = {"isclaim", "preamble"}
 
-    def __init__(self, isclaim: bool = False, preamble: bool = False, **kwargs: Any) -> None:
+    def __init__(
+        self, isclaim: bool = False, preamble: bool = False, **kwargs: Any
+    ) -> None:
         super().__init__(**kwargs)
         self.isclaim = isclaim
         self.preamble = preamble
@@ -1765,7 +1781,7 @@ class Cite(Node):
         result["targetlabels"] = list(self.targetlabels)
         unknown = [
             label
-            for label, target in zip(self.targetlabels, self.targets)
+            for label, target in zip(self.targetlabels, self.targets, strict=True)
             if type(target).__name__ == "UnknownBibitem"
         ]
         if unknown:

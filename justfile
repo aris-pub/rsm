@@ -12,10 +12,10 @@ default:
 install:
     uv sync
 
-# Install with local tree-sitter-rsm for grammar development
+# Install the grammar's npm packages too (the tree-sitter CLI), for grammar development
 install-local:
     uv sync
-    uv pip install -e tree-sitter-rsm --no-build-isolation
+    cd tree-sitter-rsm && npm ci
 
 # Run fast tests (skip slow, visual, accessibility, and interactive tests)
 test-fast:
@@ -75,12 +75,14 @@ grammar:
     set -euo pipefail
     cd tree-sitter-rsm
     echo "Regenerating parser from grammar.js..."
-    npx tree-sitter generate
-    echo "Rebuilding C extension..."
-    make
-    echo "Reinstalling tree-sitter-rsm package..."
+    npm exec --no -- tree-sitter generate
+    # node-gyp-build skips the compile when an addon already exists, so the
+    # LSP would keep loading the old parser without --build-from-source.
+    echo "Rebuilding the Node addon..."
+    npm rebuild --build-from-source
     cd ..
-    uv pip install -e tree-sitter-rsm --reinstall-package tree-sitter-rsm
+    echo "Rebuilding the Python package..."
+    uv sync --reinstall-package tree-sitter-rsm
     echo "Done! tree-sitter-rsm rebuilt successfully"
 
 # Rebuild the standalone JS bundle (IIFE with window.RSM global)

@@ -13,7 +13,10 @@ def test_no_inline_menu_content():
     assert 'class="hr-menu-zone"' in html
     # Menu zones inside handrails should be empty (content only in singleton)
     import re
-    zone_contents = re.findall(r'<div class="hr-menu-zone">\s*(.*?)\s*</div>', html, re.DOTALL)
+
+    zone_contents = re.findall(
+        r'<div class="hr-menu-zone">\s*(.*?)\s*</div>', html, re.DOTALL
+    )
     for content in zone_contents:
         assert content.strip() == "", f"Menu zone should be empty, got: {content[:50]}"
 
@@ -22,9 +25,9 @@ def test_menu_data_attributes_on_handrail():
     """Each handrail should have data-menu-* attributes."""
     src = "A paragraph.\n"
     html = rsm.render(src, handrails=True)
-    assert 'data-menu-label=' in html
-    assert 'data-menu-link=' in html
-    assert 'data-menu-code=' in html
+    assert "data-menu-label=" in html
+    assert "data-menu-link=" in html
+    assert "data-menu-code=" in html
 
 
 def test_menu_data_attributes_vary_by_type():
@@ -42,7 +45,9 @@ def test_menu_data_attributes_vary_by_type():
     """)
     html = rsm.render(src, handrails=True)
     # Theorem should have a label
-    theorem_match = re.search(r'class="[^"]*theorem[^"]*"[^>]*data-menu-label="Theorem 1"', html)
+    theorem_match = re.search(
+        r'class="[^"]*theorem[^"]*"[^>]*data-menu-label="Theorem 1"', html
+    )
     assert theorem_match, "Theorem should have data-menu-label"
     # Step inside proof should have collapse
     step_match = re.search(r'class="[^"]*step[^"]*"[^>]*data-menu-collapse', html)
@@ -61,7 +66,9 @@ def test_singleton_menu_has_all_possible_items():
     src = "A paragraph.\n"
     html = rsm.render(src, handrails=True)
     # Find the singleton
-    match = re.search(r'id="hr-menu-singleton"[^>]*>(.+?)</div>\s*</div>', html, re.DOTALL)
+    match = re.search(
+        r'id="hr-menu-singleton"[^>]*>(.+?)</div>\s*</div>', html, re.DOTALL
+    )
     assert match, "Singleton menu should exist"
     menu_html = match.group(1)
     assert "Copy link" in menu_html

@@ -70,7 +70,9 @@ def test_other_markup_in_theorem_title(title, inner):
 def test_plain_theorem_title_is_unchanged():
     html = _flat(_render(":theorem: {:title: Plain words}\n  B.\n::\n"))
     assert '<span class="span desc">Plain words</span>' in html
-    thm = _tree(":theorem: {:title: Plain words}\n  B.\n::\n").first_of_type(nodes.Theorem)
+    thm = _tree(":theorem: {:title: Plain words}\n  B.\n::\n").first_of_type(
+        nodes.Theorem
+    )
     assert thm.title == "Plain words"
     assert thm.title_nodes == []
 
@@ -147,13 +149,14 @@ def test_comma_after_math_title_before_brace_is_dropped():
 
 def test_tag_after_punctuation_in_a_title():
     html = _flat(_render(":theorem: {:title: A (:code:x::) b}\n  B.\n::\n"))
-    assert '<span class="span desc">A (<span class="code"><code>x</code></span>) b</span>' in html
+    assert (
+        '<span class="span desc">A (<span class="code"><code>x</code></span>) b</span>'
+        in html
+    )
 
 
 def test_math_in_section_tag_title():
-    html = _render(
-        ":section:\n  {\n  :title: The case $k=2$\n  :label: s\n  }\n\nB.\n"
-    )
+    html = _render(":section:\n  {\n  :title: The case $k=2$\n  :label: s\n  }\n\nB.\n")
     assert r'<h2>1. The case <span class="math">\(k=2\)</span></h2>' in html
 
 

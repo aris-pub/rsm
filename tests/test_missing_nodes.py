@@ -95,7 +95,11 @@ def test_the_fixed_examples_and_fixtures_have_no_errors(path, caplog):
 
 @pytest.mark.parametrize(
     "src",
-    [":theorem: {}\n  Body.\n::\n", ":paragraph: {} Body.\n", "A :span:{}word:: here.\n"],
+    [
+        ":theorem: {}\n  Body.\n::\n",
+        ":paragraph: {} Body.\n",
+        "A :span:{}word:: here.\n",
+    ],
     ids=["block", "paragraph", "span"],
 )
 def test_an_empty_meta_is_valid(src, caplog):

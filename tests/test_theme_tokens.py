@@ -92,7 +92,9 @@ def test_every_token_keeps_its_pairing():
             # Same value in both themes: resolves through its base token, so the
             # dark override is dropped and :root keeps the original reference.
             if value != rec["light"]:
-                problems.append(f"{key}: redundant ref changed {value!r} != {rec['light']!r}")
+                problems.append(
+                    f"{key}: redundant ref changed {value!r} != {rec['light']!r}"
+                )
         elif cat == "dark-only":
             # No light counterpart (only consumed in the dark half of another
             # token), so it stays a single plain value on :root.
@@ -103,11 +105,12 @@ def test_every_token_keeps_its_pairing():
 
 # --- rsm-2sx: figure caption link contrast must meet WCAG AA in both themes ---
 
+
 def _hex_to_rgb(h):
     h = h.lstrip("#")
     if len(h) == 3:
         h = "".join(c * 2 for c in h)
-    return tuple(int(h[i:i + 2], 16) for i in (0, 2, 4))
+    return tuple(int(h[i : i + 2], 16) for i in (0, 2, 4))
 
 
 def _rel_luminance(hexc):
@@ -291,4 +294,6 @@ def test_no_accent_derived_token_stranded_on_root():
     bare = _bare_data_accent_block()
     derived = _accent_derived({**root, **bare})
     stranded = sorted(k for k in derived if k in root and k not in bare)
-    assert not stranded, f"accent-derived tokens still on :root (render blue): {stranded}"
+    assert not stranded, (
+        f"accent-derived tokens still on :root (render blue): {stranded}"
+    )

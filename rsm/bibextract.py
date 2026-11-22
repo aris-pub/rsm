@@ -49,7 +49,9 @@ _NON_ENTRY = {"comment", "string", "preamble"}
 
 # LaTeX noise a .bbl or thebibliography carries inside a reference line. The
 # first group is bare style switches, the second their \text... forms.
-_STYLE_SWITCH = re.compile(r"\\(?:newblock|em|it|bf|sc|sl|tt|rm|sf|normalfont|upshape)\b")
+_STYLE_SWITCH = re.compile(
+    r"\\(?:newblock|em|it|bf|sc|sl|tt|rm|sf|normalfont|upshape)\b"
+)
 _STYLE_WRAP = re.compile(r"\\(?:emph|textit|textbf|textrm|textsc|texttt)\b")
 
 
@@ -226,7 +228,7 @@ def _clean_refs(refs: list[Reference]) -> list[Reference]:
     """
     texts = [r.raw for r in refs]
     cleaned = bibtools.decode_latex(texts) or [_clean_latex(t) for t in texts]
-    return [Reference(r.key, r.source, c) for r, c in zip(refs, cleaned)]
+    return [Reference(r.key, r.source, c) for r, c in zip(refs, cleaned, strict=True)]
 
 
 def _clean_latex(text: str) -> str:

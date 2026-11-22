@@ -63,7 +63,11 @@ def test_video_fits_its_box(page: Page, video_page: str, width: int):
     )
 
     assert (m["natW"], m["natH"]) == (640, 360)
-    assert m["w"] <= m["boxW"] + 0.5, f"video {m['w']}px wider than its {m['boxW']}px box"
+    assert m["w"] <= m["boxW"] + 0.5, (
+        f"video {m['w']}px wider than its {m['boxW']}px box"
+    )
     assert m["figOverflow"] <= 0, f"figure scrolls sideways by {m['figOverflow']}px"
     assert m["pageOverflow"] <= 1, f"page scrolls sideways by {m['pageOverflow']}px"
-    assert abs(m["w"] / m["h"] - 640 / 360) < 0.02, f"aspect ratio lost: {m['w']}x{m['h']}"
+    assert abs(m["w"] / m["h"] - 640 / 360) < 0.02, (
+        f"aspect ratio lost: {m['w']}x{m['h']}"
+    )

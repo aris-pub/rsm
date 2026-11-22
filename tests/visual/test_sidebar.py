@@ -90,13 +90,17 @@ class TestSidebarDesktop:
 class TestPinControl:
     @pytest.mark.parametrize("state", ["rest", "pinned"])
     @pytest.mark.parametrize("dark", [False, True], ids=["light", "dark"])
-    def test_pin_control(self, serve_rsm_html, page: Page, assert_snapshot, state, dark):
+    def test_pin_control(
+        self, serve_rsm_html, page: Page, assert_snapshot, state, dark
+    ):
         _serve(serve_rsm_html, page, DESKTOP, dark)
         ref = page.locator('.manuscript a.reference[href="#thm-x"]').last
         ref.scroll_into_view_if_needed()
         if state == "pinned":
             ref.hover()
-            page.locator('.tooltipster-base .ref-pin[data-pin-target="#thm-x"]').last.click()
+            page.locator(
+                '.tooltipster-base .ref-pin[data-pin-target="#thm-x"]'
+            ).last.click()
             page.keyboard.press("Escape")
             page.mouse.move(5, 5)
             page.wait_for_timeout(600)

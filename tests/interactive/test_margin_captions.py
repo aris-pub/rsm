@@ -416,7 +416,9 @@ def test_menu_pin_acts_on_the_figure(page: Page, interactive_server: str):
     page.click("#fig-a > figcaption > .hr-border-zone .hr-border-dots")
     page.click('.hr-menu-portaled [data-role="pin"]')
     page.wait_for_selector(".proof-rail.open", timeout=5_000)
-    expect(page.locator(".rail-pinned-body > [data-pin-target=\"#fig-a\"]")).to_contain_text("Figure 1.1")
+    expect(
+        page.locator('.rail-pinned-body > [data-pin-target="#fig-a"]')
+    ).to_contain_text("Figure 1.1")
 
 
 # ---- the figure itself is untouched ---------------------------------------------

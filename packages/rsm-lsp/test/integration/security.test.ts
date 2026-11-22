@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseWithPython } from '../../src/layer2/python';
+import { parseWithPython } from '../../src/layer2/python.js';
 
 describe('Security - Command Injection Prevention', () => {
   it('should prevent shell injection via temp file content', async () => {

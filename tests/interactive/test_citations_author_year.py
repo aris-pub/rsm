@@ -36,7 +36,9 @@ def test_multi_author_cite_uses_spelled_out_names(page: Page, interactive_server
     expect(arora).to_contain_text("2008")
 
 
-def test_bibliography_entry_is_a_card_with_links_on_hover(page: Page, interactive_server: str):
+def test_bibliography_entry_is_a_card_with_links_on_hover(
+    page: Page, interactive_server: str
+):
     """Each entry shows authors and year, title and venue. Its DOI (top right,
     on the authors line) and the way back to the citation (flush right on the
     venue line) show on hover, so the card has no extra row."""
@@ -63,7 +65,9 @@ def test_bibliography_entry_is_a_card_with_links_on_hover(page: Page, interactiv
     assert bg != "rgba(0, 0, 0, 0)"
 
 
-def test_bibliography_links_share_a_row_on_a_phone(playwright, browser, interactive_server: str):
+def test_bibliography_links_share_a_row_on_a_phone(
+    playwright, browser, interactive_server: str
+):
     """On a phone the DOI and the back links sit together on one row after the
     venue, instead of at the right of the authors and venue lines."""
     ctx = browser.new_context(**playwright.devices["iPhone 13"])

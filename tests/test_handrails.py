@@ -340,6 +340,7 @@ def test_manuscript_eyebrow():
         """,
     )
 
+
 def test_section():
     compare_have_want_handrails(
         have="""
@@ -1483,6 +1484,7 @@ def test_mathblock_nonum():
 def test_reference_followed_by_punctuation():
     """References followed by punctuation should be wrapped to prevent line breaks."""
     from conftest import compare_have_want
+
     compare_have_want(
         have="""
         # Test

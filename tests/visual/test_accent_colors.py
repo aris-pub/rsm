@@ -47,7 +47,7 @@ class TestAccentColors:
 {fixture.read_text()}
 """
 
-        content = serve_rsm_html(rsm_source, dark_theme=False)
+        serve_rsm_html(rsm_source, dark_theme=False)
 
         # Activate a handrail by clicking on it to show the accent color
         handrail = page.locator(".hr").first
@@ -59,7 +59,9 @@ class TestAccentColors:
         # potf-4em: raise the per-pixel threshold so borderline text-edge pixels
         # that flake under CI load drop out; a real accent change is a large color
         # step that survives. Small residual budget, below the smallest real change.
-        assert_snapshot(page.screenshot(full_page=True), threshold=0.4, max_diff_pixels=50)
+        assert_snapshot(
+            page.screenshot(full_page=True), threshold=0.4, max_diff_pixels=50
+        )
 
     @pytest.mark.parametrize("viewport_name,width,height", VIEWPORTS)
     @pytest.mark.parametrize(
@@ -95,7 +97,7 @@ class TestAccentColors:
 {fixture.read_text()}
 """
 
-        content = serve_rsm_html(rsm_source, dark_theme=True)
+        serve_rsm_html(rsm_source, dark_theme=True)
 
         # Activate a handrail to show the accent color
         handrail = page.locator(".hr").first
@@ -105,4 +107,6 @@ class TestAccentColors:
         # potf-4em: raise the per-pixel threshold so borderline text-edge pixels
         # that flake under CI load drop out; a real accent change is a large color
         # step that survives. Small residual budget, below the smallest real change.
-        assert_snapshot(page.screenshot(full_page=True), threshold=0.4, max_diff_pixels=50)
+        assert_snapshot(
+            page.screenshot(full_page=True), threshold=0.4, max_diff_pixels=50
+        )

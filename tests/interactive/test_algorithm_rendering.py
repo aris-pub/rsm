@@ -37,13 +37,17 @@ class TestAlgorithmRendering:
         rendered = page.locator(".ps-root")
         expect(rendered).to_be_visible(timeout=10_000)
 
-    def test_pseudocode_contains_procedure_name(self, page: Page, interactive_server: str):
+    def test_pseudocode_contains_procedure_name(
+        self, page: Page, interactive_server: str
+    ):
         page.goto(f"{interactive_server}/algorithm.html")
         wait_for_rsm(page)
         rendered = page.locator(".ps-root")
         expect(rendered).to_be_visible(timeout=10_000)
         text = rendered.text_content()
-        assert "Euclid" in text, f"Rendered algorithm should contain 'Euclid': {text[:200]}"
+        assert "Euclid" in text, (
+            f"Rendered algorithm should contain 'Euclid': {text[:200]}"
+        )
 
     def test_no_katex_alias(self, page: Page, interactive_server: str):
         page.goto(f"{interactive_server}/algorithm.html")
@@ -56,12 +60,16 @@ class TestAlgorithmRendering:
     ):
         page.goto(f"{interactive_server}/algorithm.html")
         wait_for_rsm(page)
-        expect(page.locator(".ps-root mjx-container").first).to_be_attached(timeout=10_000)
+        expect(page.locator(".ps-root mjx-container").first).to_be_attached(
+            timeout=10_000
+        )
         page.wait_for_function(ALGORITHM_MATH_STYLED, timeout=10_000)
 
     def test_algorithm_without_other_math(self, page: Page, interactive_server: str):
         """MathJax loads for an algorithm even when the page has no other math."""
         page.goto(f"{interactive_server}/algorithm-only.html")
         wait_for_rsm(page)
-        expect(page.locator(".ps-root mjx-container").first).to_be_attached(timeout=10_000)
+        expect(page.locator(".ps-root mjx-container").first).to_be_attached(
+            timeout=10_000
+        )
         page.wait_for_function(ALGORITHM_MATH_STYLED, timeout=10_000)

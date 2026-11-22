@@ -27,7 +27,6 @@ def _load(serve_rsm_html, page: Page, width: int, height: int, theme: str) -> No
 
 @pytest.mark.visual
 class TestCalc:
-
     @pytest.mark.parametrize("place,section", PLACES)
     @pytest.mark.parametrize("theme", ["light", "dark"])
     @pytest.mark.parametrize("viewport_name,width,height", WIDTHS)

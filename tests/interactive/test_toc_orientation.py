@@ -39,7 +39,9 @@ SHOWN = r"""() => {
 
 
 def _open(browser: Browser, server: str, width: int, theme: str):
-    ctx = browser.new_context(viewport={"width": width, "height": 900}, color_scheme=theme)
+    ctx = browser.new_context(
+        viewport={"width": width, "height": 900}, color_scheme=theme
+    )
     page = ctx.new_page()
     page.goto(f"{server}/toc_horizontal.html")
     page.wait_for_function(RSM_READY, timeout=10_000)
@@ -49,7 +51,9 @@ def _open(browser: Browser, server: str, width: int, theme: str):
 
 @pytest.mark.parametrize("theme", ["light", "dark"])
 @pytest.mark.parametrize("width", [375, 767, 768, 1280])
-def test_direction_by_width(browser: Browser, interactive_server: str, width: int, theme: str):
+def test_direction_by_width(
+    browser: Browser, interactive_server: str, width: int, theme: str
+):
     ctx, page = _open(browser, interactive_server, width, theme)
     try:
         geo = page.evaluate(SHOWN)
@@ -114,7 +118,9 @@ def _focus_outline(page: Page, sel: str, idx: str) -> str:
     # Step off and back by keyboard so :focus-visible matches.
     page.keyboard.press("Shift+Tab")
     page.keyboard.press("Tab")
-    assert page.evaluate("(s) => document.activeElement === document.querySelector(s)", node)
+    assert page.evaluate(
+        "(s) => document.activeElement === document.querySelector(s)", node
+    )
     return page.evaluate(
         "(s) => getComputedStyle(document.querySelector(s)).outlineStyle", node
     )

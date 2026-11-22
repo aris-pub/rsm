@@ -41,7 +41,7 @@ def _button(switch: str, view: str) -> str:
 )
 def test_switch_buttons_follow_the_author_default(handrails, src, pressed):
     html = rsm.render(src, handrails=handrails, source_offsets=False)
-    nav = html[html.index('<nav class="toc'):]
+    nav = html[html.index('<nav class="toc') :]
     nav = nav[: nav.index("</nav>")]
     switch = _switch(nav)
     labels = {"list": "Show as list", "tree": "Show as graph"}
@@ -57,7 +57,9 @@ def test_switch_buttons_follow_the_author_default(handrails, src, pressed):
 @pytest.mark.parametrize("handrails", [True, False])
 def test_switch_sits_on_the_heading_line(handrails):
     html = rsm.render(LIST_SRC, handrails=handrails, source_offsets=False)
-    head = re.search(r'<div class="toc-head">(.*?)<div class="toc-switch"', html, re.DOTALL)
+    head = re.search(
+        r'<div class="toc-head">(.*?)<div class="toc-switch"', html, re.DOTALL
+    )
     assert head, "the switch is not in the heading row"
     assert "<h2>Table of Contents</h2>" in head.group(1)
 
@@ -148,7 +150,7 @@ def test_sidebar_switch_follows_the_author_default(src, pressed):
 
 
 def _rail_list(html):
-    panel = html[html.index('<div class="rail-panel rail-doc-map'):]
+    panel = html[html.index('<div class="rail-panel rail-doc-map') :]
     m = re.search(r'<ul class="contents">.*?</ul></div>', panel, re.DOTALL)
     assert m, "no list in the sidebar's Contents panel"
     return m.group(0)
@@ -162,7 +164,9 @@ def test_sidebar_list_matches_the_page_list():
     assert links[2][1] == "Two" and links[2][0].startswith("#sec-")
     assert len(links) == 3
     # The subsection sits in a nested list, as in the page.
-    assert re.search(r'<ul class="itemize">\s*<li class="item">\s*<a[^>]*href="#sec-1.1"', ul)
+    assert re.search(
+        r'<ul class="itemize">\s*<li class="item">\s*<a[^>]*href="#sec-1.1"', ul
+    )
 
 
 def test_sidebar_list_built_without_a_toc():

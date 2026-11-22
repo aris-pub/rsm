@@ -3,7 +3,7 @@
  * Exports all Layer 2 functionality
  */
 
-export * from './ast';
-export * from './python';
-export * from './cache';
-export * from './debounce';
+export * from './ast.js';
+export * from './python.js';
+export * from './cache.js';
+export * from './debounce.js';

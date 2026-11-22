@@ -1,12 +1,10 @@
 import { Tree } from 'tree-sitter';
 import { Query, QueryCapture } from 'tree-sitter';
 import { SemanticTokensBuilder } from 'vscode-languageserver';
-import { readFileSync } from 'fs';
-import { join, dirname } from 'path';
-import { logger } from '../utils/logger';
-
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const TreeSitterRSM = require('tree-sitter-rsm');
+// The package's "main" names a directory, which Node deprecates for ES
+// modules (DEP0151), so import the entry file itself.
+import TreeSitterRSM from 'tree-sitter-rsm/bindings/node/index.js';
+import { logger } from '../utils/logger.js';
 
 /**
  * LSP Semantic Token Types
@@ -125,58 +123,15 @@ export class SemanticTokensProvider {
   }
 
   /**
-   * Load highlights.scm query from tree-sitter-rsm package
+   * Load the highlights query that ships with the tree-sitter-rsm package
    */
   private loadHighlightQuery() {
-    try {
-      // Try multiple paths to support both development and production.
-      const possiblePaths: string[] = [];
-
-      // Primary: resolve relative to the tree-sitter-rsm package root. This is
-      // layout-independent (works whether the package sits at the monorepo root
-      // in dev or inside node_modules in the prod/Docker image). Resolving the
-      // package.json rather than the main entry avoids the "main": "bindings/node"
-      // offset that made the older require.resolve(...)/../queries path miss.
-      try {
-        const pkgRoot = dirname(require.resolve('tree-sitter-rsm/package.json'));
-        possiblePaths.push(join(pkgRoot, 'queries/highlights.scm'));
-      } catch {
-        // package.json not resolvable in this context; fall through to relative guesses.
-      }
-
-      // Fallbacks for a tree-sitter-rsm checkout adjacent to the repo root.
-      possiblePaths.push(
-        // Development: running from src/
-        join(__dirname, '../../../../tree-sitter-rsm/queries/highlights.scm'),
-        // Production: compiled to dist/
-        join(__dirname, '../../../tree-sitter-rsm/queries/highlights.scm'),
-      );
-
-      let querySource: string | null = null;
-      let loadedPath: string | null = null;
-
-      for (const path of possiblePaths) {
-        try {
-          querySource = readFileSync(path, 'utf8');
-          loadedPath = path;
-          break;
-        } catch {
-          // Try next path
-          continue;
-        }
-      }
-
-      if (!querySource || !loadedPath) {
-        throw new Error('Could not find highlights.scm in any expected location');
-      }
-
-      this.query = new Query(TreeSitterRSM, querySource);
-
-      logger.info(`Loaded highlight query from ${loadedPath} (${querySource.length} bytes)`);
-    } catch (error) {
-      logger.error('Failed to load highlight query:', error);
-      throw error;
+    const querySource = TreeSitterRSM.HIGHLIGHTS_QUERY;
+    if (!querySource) {
+      throw new Error('tree-sitter-rsm has no highlights query');
     }
+    this.query = new Query(TreeSitterRSM, querySource);
+    logger.info(`Loaded highlight query (${querySource.length} bytes)`);
   }
 
   /**

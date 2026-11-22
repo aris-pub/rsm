@@ -85,7 +85,7 @@ $$
 
 
 def _page_text(html):
-    body = html[html.find("<body"):]
+    body = html[html.find("<body") :]
     body = re.sub(r"<script.*?</script>", "", body, flags=re.S)
     return re.sub(r"<[^>]+>", "", body)
 

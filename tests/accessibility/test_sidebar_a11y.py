@@ -60,7 +60,9 @@ def test_sidebar_default_wcag(serve_rsm_a11y, page):
 
 
 @pytest.mark.parametrize("theme", ["light", "dark"])
-@pytest.mark.parametrize("view", ["contents", "notation", "steps", "state", "pinned", "reading"])
+@pytest.mark.parametrize(
+    "view", ["contents", "notation", "steps", "state", "pinned", "reading"]
+)
 def test_sidebar_view_wcag(serve_rsm_a11y, page, view, theme):
     page.set_viewport_size({"width": 1400, "height": 900})
     page = serve_rsm_a11y(SIDEBAR_SRC, sidebar=True)
@@ -139,7 +141,9 @@ def _contrast(a, b):
 def _composite(fill, panel, opacity):
     # The faded label is painted at its effective opacity over the panel, so its
     # on-screen colour is that blend, not the raw fill.
-    return tuple(opacity * f + (1 - opacity) * p for f, p in zip(fill, panel))
+    return tuple(
+        opacity * f + (1 - opacity) * p for f, p in zip(fill, panel, strict=True)
+    )
 
 
 # For each faded step node, read the label colour, the label's effective opacity

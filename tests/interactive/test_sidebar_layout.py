@@ -32,7 +32,9 @@ _GEOM = """() => {
 }"""
 
 
-def _load(page: Page, server: str, page_name: str = "sidebar", viewport=DESKTOP) -> None:
+def _load(
+    page: Page, server: str, page_name: str = "sidebar", viewport=DESKTOP
+) -> None:
     page.set_viewport_size(viewport)
     page.goto(f"{server}/{page_name}.html")
     page.wait_for_function(RSM_READY, timeout=10_000)
@@ -80,8 +82,12 @@ def test_crossing_the_phone_breakpoint(page: Page, interactive_server: str):
     _open(page, "contents")
     page.set_viewport_size(PHONE)
     page.wait_for_timeout(300)
-    assert page.evaluate("() => document.documentElement.classList.contains('rail-phone')")
-    assert not page.evaluate("() => document.documentElement.classList.contains('rail-open')")
+    assert page.evaluate(
+        "() => document.documentElement.classList.contains('rail-phone')"
+    )
+    assert not page.evaluate(
+        "() => document.documentElement.classList.contains('rail-open')"
+    )
     expect(page.locator('.rail-strip-btn[data-view="document"]')).to_be_visible()
     expect(page.locator('.rail-strip-btn[data-view="contents"]')).to_be_hidden()
     page.set_viewport_size(DESKTOP)
@@ -109,12 +115,18 @@ _GRAPH_FITS = """() => {
 }"""
 
 
-@pytest.mark.parametrize("viewport", [{"width": 1280, "height": 800}, PHONE], ids=["desktop", "phone"])
+@pytest.mark.parametrize(
+    "viewport", [{"width": 1280, "height": 800}, PHONE], ids=["desktop", "phone"]
+)
 def test_contents_graph_fits_its_panel(page: Page, interactive_server: str, viewport):
     """A tall section graph scales down to fit the panel or sheet; it is never
     cut off at the top or bottom."""
     _load(page, interactive_server, page_name="sidebar_long", viewport=viewport)
     _open(page, "document" if viewport is PHONE else "contents")
     g = page.evaluate(_GRAPH_FITS)
-    assert g["svgTop"] >= g["panelTop"] - 1 and g["svgBottom"] <= g["panelBottom"] + 1, g
-    assert g["svgLeft"] >= g["panelLeft"] - 1 and g["svgRight"] <= g["panelRight"] + 1, g
+    assert (
+        g["svgTop"] >= g["panelTop"] - 1 and g["svgBottom"] <= g["panelBottom"] + 1
+    ), g
+    assert (
+        g["svgLeft"] >= g["panelLeft"] - 1 and g["svgRight"] <= g["panelRight"] + 1
+    ), g

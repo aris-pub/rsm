@@ -60,7 +60,9 @@ def _open_menu(page: Page, block) -> None:
 
 
 def _menu_pin_text(page: Page) -> str:
-    return page.locator('#hr-menu-singleton [data-role="pin"] .hr-menu-item-text').inner_text()
+    return page.locator(
+        '#hr-menu-singleton [data-role="pin"] .hr-menu-item-text'
+    ).inner_text()
 
 
 def _targets(page: Page) -> list[str]:
@@ -68,11 +70,17 @@ def _targets(page: Page) -> list[str]:
 
 
 def _first_paragraph(page: Page):
-    return page.locator(".manuscript .paragraph.hr").filter(has_text="This paragraph is filler").first
+    return (
+        page.locator(".manuscript .paragraph.hr")
+        .filter(has_text="This paragraph is filler")
+        .first
+    )
 
 
 class TestPinToSidebar:
-    def test_reference_preview_has_pin_control(self, page: Page, interactive_server: str):
+    def test_reference_preview_has_pin_control(
+        self, page: Page, interactive_server: str
+    ):
         _load(page, interactive_server)
         pin = _pin_button(page, "#thm-x")
         assert pin.get_attribute("aria-label") == "Pin to the sidebar"
@@ -90,7 +98,9 @@ class TestPinToSidebar:
         )
         expect(page.locator(".rail-pinned")).to_contain_text("A claim about")
 
-    def test_pinned_preview_shows_pinned_state(self, page: Page, interactive_server: str):
+    def test_pinned_preview_shows_pinned_state(
+        self, page: Page, interactive_server: str
+    ):
         _load(page, interactive_server)
         _pin(page, "#thm-x")
         page.keyboard.press("Escape")
@@ -100,7 +110,9 @@ class TestPinToSidebar:
         assert pin.get_attribute("data-pinned") is not None
         # Clicking it again shows the pins rather than pinning it anew.
         pin.click()
-        expect(page.locator(".proof-rail")).to_have_class(re.compile(r"\bscope-pinned\b"))
+        expect(page.locator(".proof-rail")).to_have_class(
+            re.compile(r"\bscope-pinned\b")
+        )
         expect(page.locator(".proof-rail")).to_have_class(re.compile(r"\bopen\b"))
         expect(page.locator(PINS)).to_have_count(1)
 
@@ -132,7 +144,9 @@ class TestSeveralPins:
         expect(page.locator(".rail-pinned")).to_contain_text("A claim about")
         expect(page.locator(".rail-pinned")).to_contain_text("First")
 
-    def test_pinning_a_pinned_block_adds_no_copy(self, page: Page, interactive_server: str):
+    def test_pinning_a_pinned_block_adds_no_copy(
+        self, page: Page, interactive_server: str
+    ):
         _load(page, interactive_server)
         _pin(page, "#thm-x")
         _pin(page, "#st-1")
@@ -145,12 +159,16 @@ class TestSeveralPins:
         expect(page.locator(".rail-pinned-head")).to_have_count(0)
         expect(page.locator(".rail-pin-close")).to_have_count(0)
 
-    def test_copies_keep_their_handrail_and_label(self, page: Page, interactive_server: str):
+    def test_copies_keep_their_handrail_and_label(
+        self, page: Page, interactive_server: str
+    ):
         _load(page, interactive_server)
         _pin(page, "#thm-x")
         copy = page.locator(f'{PINS}[data-pin-target="#thm-x"]')
         expect(copy).to_have_class(re.compile(r"\bhr\b"))
-        expect(copy.locator(":scope > .hr-border-zone .hr-border-dots")).to_have_count(1)
+        expect(copy.locator(":scope > .hr-border-zone .hr-border-dots")).to_have_count(
+            1
+        )
         expect(copy.locator(":scope > .hr-collapse-zone .hr-collapse")).to_have_count(1)
         expect(copy.locator(":scope > .hr-info-zone")).to_have_count(1)
         # The label is part of the copy, once.
@@ -176,7 +194,9 @@ class TestSeveralPins:
         )
         assert result == {"dups": [], "nodeids": 0}
 
-    def test_copy_folds_with_its_own_handrail(self, page: Page, interactive_server: str):
+    def test_copy_folds_with_its_own_handrail(
+        self, page: Page, interactive_server: str
+    ):
         _load(page, interactive_server)
         _pin(page, "#thm-x")
         folds = "() => localStorage.getItem('rsm-collapse:' + location.pathname)"
@@ -210,9 +230,13 @@ class TestSeveralPins:
 
 class TestUnpin:
     def _icon(self, page: Page, href: str):
-        return page.locator(f'{PINS}[data-pin-target="{href}"] > .hr-info-zone .pin-unpin')
+        return page.locator(
+            f'{PINS}[data-pin-target="{href}"] > .hr-info-zone .pin-unpin'
+        )
 
-    def test_unpin_icon_sits_in_the_info_zone(self, page: Page, interactive_server: str):
+    def test_unpin_icon_sits_in_the_info_zone(
+        self, page: Page, interactive_server: str
+    ):
         _load(page, interactive_server)
         _pin(page, "#thm-x")
         icon = self._icon(page, "#thm-x")
@@ -266,9 +290,14 @@ class TestUnpin:
         }"""
         )
         assert abs(geom["bottom"] - geom["baseline"]) <= 1.5, geom
-        assert geom["infoLeft"] - 0.5 <= geom["left"] and geom["right"] <= geom["infoRight"] + 0.5, geom
+        assert (
+            geom["infoLeft"] - 0.5 <= geom["left"]
+            and geom["right"] <= geom["infoRight"] + 0.5
+        ), geom
 
-    def test_unpin_icon_removes_that_pin_only(self, page: Page, interactive_server: str):
+    def test_unpin_icon_removes_that_pin_only(
+        self, page: Page, interactive_server: str
+    ):
         _load(page, interactive_server)
         _pin(page, "#thm-x")
         _pin(page, "#st-1")
@@ -280,7 +309,9 @@ class TestUnpin:
         # The preview of the unpinned block offers Pin again.
         expect(_pin_button(page, "#thm-x")).to_have_attribute("aria-pressed", "false")
 
-    def test_menu_in_text_says_unpin_and_unpins(self, page: Page, interactive_server: str):
+    def test_menu_in_text_says_unpin_and_unpins(
+        self, page: Page, interactive_server: str
+    ):
         _load(page, interactive_server)
         theorem = page.locator(".manuscript #thm-x")
         _open_menu(page, theorem)
@@ -299,7 +330,9 @@ class TestUnpin:
             page.locator('#hr-menu-singleton [data-role="pin"] use')
         ).to_have_attribute("href", "#hr-icon-pin")
 
-    def test_menu_on_copy_says_unpin_and_unpins(self, page: Page, interactive_server: str):
+    def test_menu_on_copy_says_unpin_and_unpins(
+        self, page: Page, interactive_server: str
+    ):
         _load(page, interactive_server)
         _pin(page, "#thm-x")
         _pin(page, "#st-1")
@@ -310,21 +343,28 @@ class TestUnpin:
 
 
 def _rail_open(page: Page) -> bool:
-    return page.evaluate("() => document.documentElement.classList.contains('rail-open')")
+    return page.evaluate(
+        "() => document.documentElement.classList.contains('rail-open')"
+    )
 
 
 class TestUnpinClosesThePanel:
     """The panel closes when the last pin is removed, and stays open while
     pins remain."""
 
-    def test_unpin_last_closes_the_panel_on_desktop(self, page: Page, interactive_server: str):
+    def test_unpin_last_closes_the_panel_on_desktop(
+        self, page: Page, interactive_server: str
+    ):
         _load(page, interactive_server)
         _pin(page, "#thm-x")
-        page.wait_for_function("() => document.documentElement.classList.contains('rail-open')")
+        page.wait_for_function(
+            "() => document.documentElement.classList.contains('rail-open')"
+        )
         page.locator(f"{PINS}").hover()
         page.locator(f"{PINS} .pin-unpin").click()
         page.wait_for_function(
-            "() => !document.documentElement.classList.contains('rail-open')", timeout=3000
+            "() => !document.documentElement.classList.contains('rail-open')",
+            timeout=3000,
         )
 
     def test_unpin_with_pins_left_keeps_the_panel_open(
@@ -333,14 +373,18 @@ class TestUnpinClosesThePanel:
         _load(page, interactive_server)
         _pin(page, "#thm-x")
         _pin(page, "#st-1")
-        page.wait_for_function("() => document.documentElement.classList.contains('rail-open')")
+        page.wait_for_function(
+            "() => document.documentElement.classList.contains('rail-open')"
+        )
         copy = page.locator(f'{PINS}[data-pin-target="#thm-x"]')
         copy.hover()
         copy.locator(".pin-unpin").click()
         expect(page.locator(PINS)).to_have_count(1)
         page.wait_for_timeout(500)
         assert _rail_open(page)
-        expect(page.locator(".proof-rail")).to_have_class(re.compile(r"\bscope-pinned\b"))
+        expect(page.locator(".proof-rail")).to_have_class(
+            re.compile(r"\bscope-pinned\b")
+        )
         # Unpin from the menu in the text keeps it open too while a pin remains.
         _open_menu(page, page.locator(".manuscript #thm-x"))
         page.locator('#hr-menu-singleton [data-role="pin"]').click()
@@ -366,7 +410,8 @@ class TestUnpinClosesThePanel:
             )
             page.locator(f"{PINS} .pin-unpin").click()
             page.wait_for_function(
-                "() => !document.documentElement.classList.contains('rail-open')", timeout=3000
+                "() => !document.documentElement.classList.contains('rail-open')",
+                timeout=3000,
             )
         finally:
             ctx.close()
@@ -400,14 +445,18 @@ def _assert_numbers_below_icon(copy, number_selector: str) -> None:
 
 
 class TestUnpinIconAndNumbers:
-    def test_step_number_moves_below_the_icon(self, page: Page, interactive_server: str):
+    def test_step_number_moves_below_the_icon(
+        self, page: Page, interactive_server: str
+    ):
         _load(page, interactive_server)
         _pin(page, "#st-1")
         copy = page.locator(f'{PINS}[data-pin-target="#st-1"]')
         copy.hover()
         _assert_numbers_below_icon(copy, ".step-number")
 
-    def test_equation_number_moves_below_the_icon(self, page: Page, interactive_server: str):
+    def test_equation_number_moves_below_the_icon(
+        self, page: Page, interactive_server: str
+    ):
         page.set_viewport_size({"width": 1400, "height": 900})
         page.goto(f"{interactive_server}/pin_targets.html")
         page.wait_for_function(RSM_READY, timeout=10_000)
@@ -429,7 +478,9 @@ class TestUnpinIconAndNumbers:
 
 
 class TestTouch:
-    def test_unpin_icon_always_shown_on_touch(self, playwright, browser, interactive_server: str):
+    def test_unpin_icon_always_shown_on_touch(
+        self, playwright, browser, interactive_server: str
+    ):
         ctx = browser.new_context(**playwright.devices["iPhone 13"])
         page = ctx.new_page()
         try:
@@ -454,12 +505,16 @@ class TestPinFigures:
         page.goto(f"{server}/sidebar_figure.html")
         page.wait_for_function(RSM_READY, timeout=10_000)
 
-    def test_figure_reference_preview_pins_figure(self, page: Page, interactive_server: str):
+    def test_figure_reference_preview_pins_figure(
+        self, page: Page, interactive_server: str
+    ):
         self._load(page, interactive_server)
         _pin(page, "#fig-a")
         expect(page.locator(".rail-pinned-body img")).to_have_count(1)
 
-    def test_pinned_figure_keeps_its_caption_handrail(self, page: Page, interactive_server: str):
+    def test_pinned_figure_keeps_its_caption_handrail(
+        self, page: Page, interactive_server: str
+    ):
         self._load(page, interactive_server)
         _pin(page, "#fig-a")
         copy = page.locator(f'{PINS}[data-pin-target="#fig-a"]')
@@ -476,7 +531,9 @@ class TestPinFigures:
         item = page.locator('#hr-menu-singleton [data-role="pin"]')
         expect(item).to_be_visible()
         item.click()
-        expect(page.locator(".proof-rail")).to_have_class(re.compile(r"\bscope-pinned\b"))
+        expect(page.locator(".proof-rail")).to_have_class(
+            re.compile(r"\bscope-pinned\b")
+        )
         expect(page.locator(".rail-pinned-body img")).to_have_count(1)
         expect(page.locator(".rail-pinned")).to_contain_text("Figure 1.1")
 
@@ -486,7 +543,9 @@ class TestPinProofs:
         _load(page, interactive_server)
         _open_menu(page, page.locator(".manuscript .proof.hr").first)
         page.locator('#hr-menu-singleton [data-role="pin"]').click()
-        expect(page.locator(".proof-rail")).to_have_class(re.compile(r"\bscope-pinned\b"))
+        expect(page.locator(".proof-rail")).to_have_class(
+            re.compile(r"\bscope-pinned\b")
+        )
         expect(page.locator(".rail-pinned-body")).to_contain_text("First")
 
 
@@ -544,8 +603,12 @@ class TestPinTargets:
         page.locator('#hr-menu-singleton [data-role="pin"]').click()
         expect(page.locator(PINS)).to_have_count(0)
 
-    def test_section_preview_has_no_pin_control(self, page: Page, interactive_server: str):
+    def test_section_preview_has_no_pin_control(
+        self, page: Page, interactive_server: str
+    ):
         self._load(page, interactive_server)
         _hover_ref(page, "#sec-targets")
         expect(page.locator(".tooltipster-base").last).to_be_visible(timeout=3000)
-        expect(page.locator('.ref-pin[data-pin-target="#sec-targets"]')).to_have_count(0)
+        expect(page.locator('.ref-pin[data-pin-target="#sec-targets"]')).to_have_count(
+            0
+        )

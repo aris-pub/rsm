@@ -247,7 +247,9 @@ def _declares_documentclass(tex: Path) -> bool:
         return False
 
 
-def flatten(main_tex: str | Path, root: str | Path, seen: set[Path] | None = None) -> str:
+def flatten(
+    main_tex: str | Path, root: str | Path, seen: set[Path] | None = None
+) -> str:
     """Inline \\input and \\include targets recursively, within root, guarding cycles."""
     seen = set() if seen is None else seen
     path = Path(main_tex).resolve()
@@ -272,7 +274,9 @@ def flatten(main_tex: str | Path, root: str | Path, seen: set[Path] | None = Non
     return _INPUT.sub(repl, text)
 
 
-_MACRO_DEF = re.compile(r"\\(newcommand|renewcommand|providecommand|DeclareMathOperator|def)\b")
+_MACRO_DEF = re.compile(
+    r"\\(newcommand|renewcommand|providecommand|DeclareMathOperator|def)\b"
+)
 
 
 def preamble_macros(tex: str) -> list[str]:

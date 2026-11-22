@@ -9,8 +9,9 @@ RSM_READY = "() => window.__rsmShown === true"
 
 
 class TestMenuStaysOpenOnHover:
-
-    def test_menu_stays_open_when_moving_between_items(self, page: Page, interactive_server: str):
+    def test_menu_stays_open_when_moving_between_items(
+        self, page: Page, interactive_server: str
+    ):
         page.goto(f"{interactive_server}/basic.html")
         page.wait_for_function(RSM_READY, timeout=10_000)
 

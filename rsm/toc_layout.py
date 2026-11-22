@@ -51,7 +51,9 @@ def _layer_gap(n_layers: int) -> float:
 
 
 def layout_tree(
-    nodes: list[dict], edges: list[dict], orient: str = "vertical",
+    nodes: list[dict],
+    edges: list[dict],
+    orient: str = "vertical",
     root_label: str | None = None,
 ) -> dict | None:
     """Return positioned nodes and edges, or None if layout is unavailable.
@@ -124,10 +126,18 @@ def layout_tree(
     # A horizontal TOC stacks the sections of one depth column, so many in a
     # column make it tall. Lay it out again with a smaller sibling gap until it
     # fits MAX_TREE_H. Proof rails (root_label set) fit their gutter instead.
-    gaps = (SIBLING_GAP, 18, 12, MIN_STACK_GAP) if horizontal and root_label is None else (SIBLING_GAP,)
+    gaps = (
+        (SIBLING_GAP, 18, 12, MIN_STACK_GAP)
+        if horizontal and root_label is None
+        else (SIBLING_GAP,)
+    )
     for xspace in gaps:
         placed = place(xspace)
-        stack = max(x for x, _ in placed.values()) - min(x for x, _ in placed.values()) + NODE_H
+        stack = (
+            max(x for x, _ in placed.values())
+            - min(x for x, _ in placed.values())
+            + NODE_H
+        )
         if stack <= MAX_TREE_H:
             break
 
@@ -149,7 +159,7 @@ def layout_tree(
             layers[round(x, 1)].append(i)
         for idxs in layers.values():
             slots = sorted(placed[i][1] for i in idxs)
-            for slot, i in zip(slots, sorted(idxs)):
+            for slot, i in zip(slots, sorted(idxs), strict=True):
                 placed[i] = (placed[i][0], slot)
         # A proof step DAG is naturally tall and thin, so when fit into the
         # gutter it scales to the height and leaves the width empty (and the
@@ -171,8 +181,14 @@ def layout_tree(
     for i, n in enumerate(nodes):
         cx, cy = placed[i]
         out_nodes.append(
-            {**n, "idx": i, "x": round(cx, 1), "y": round(cy, 1),
-             "w": nw[i], "h": NODE_H}
+            {
+                **n,
+                "idx": i,
+                "x": round(cx, 1),
+                "y": round(cy, 1),
+                "w": nw[i],
+                "h": NODE_H,
+            }
         )
 
     out_edges = []
@@ -180,12 +196,24 @@ def layout_tree(
         a, b = out_nodes[e["src"]], out_nodes[e["dst"]]
         ax, ay, bx, by = _anchor(a, b, horizontal)
         out_edges.append(
-            {"src": e["src"], "dst": e["dst"], "kind": e["kind"],
-             "count": e["count"], "x1": ax, "y1": ay, "x2": bx, "y2": by}
+            {
+                "src": e["src"],
+                "dst": e["dst"],
+                "kind": e["kind"],
+                "count": e["count"],
+                "x1": ax,
+                "y1": ay,
+                "x2": bx,
+                "y2": by,
+            }
         )
 
-    return {"width": round(width, 1), "height": round(height, 1),
-            "nodes": out_nodes, "edges": out_edges}
+    return {
+        "width": round(width, 1),
+        "height": round(height, 1),
+        "nodes": out_nodes,
+        "edges": out_edges,
+    }
 
 
 def _anchor(

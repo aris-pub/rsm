@@ -96,7 +96,9 @@ def _assert_in_margin(g: dict):
     assert g["margin"], g
     assert g["shown"], g
     assert g["aside"]["l"] >= g["text"]["r"], f"aside is not right of the text: {g}"
-    assert g["aside"]["t"] >= g["marker"]["t"] - 1, f"aside starts above its phrase: {g}"
+    assert g["aside"]["t"] >= g["marker"]["t"] - 1, (
+        f"aside starts above its phrase: {g}"
+    )
     assert g["expanded"] is None, g
 
 
@@ -198,7 +200,9 @@ def test_reading_width_wide_moves_asides_below_and_back(
     page.reload()
     page.wait_for_function(RSM_READY, timeout=10_000)
     _settle(page)
-    assert page.evaluate("() => document.documentElement.dataset.readingMeasure") == "wide"
+    assert (
+        page.evaluate("() => document.documentElement.dataset.readingMeasure") == "wide"
+    )
     _assert_closed(_geom(page, "a-one"))
     page.evaluate("() => localStorage.clear()")
     page.reload()
@@ -308,8 +312,10 @@ def test_hovering_the_aside_lights_the_phrase_and_the_rail(
 ):
     _load(page, interactive_server, 1280)
     _rest(page)
-    rail = "() => +getComputedStyle(document.getElementById('a-one').closest('.hr')" \
+    rail = (
+        "() => +getComputedStyle(document.getElementById('a-one').closest('.hr')"
         ".querySelector(':scope > .hr-border-zone')).opacity"
+    )
     assert page.evaluate(rail) == 0
     page.hover("#a-one")
     page.wait_for_timeout(250)
@@ -508,7 +514,9 @@ def test_without_js_every_aside_is_open_below_its_block(
     page = ctx.new_page()
     page.goto(f"{interactive_server}/{NAME}.html")
     page.wait_for_timeout(300)
-    assert not page.evaluate("() => document.documentElement.className.includes('has-asides')")
+    assert not page.evaluate(
+        "() => document.documentElement.className.includes('has-asides')"
+    )
     gs = [_geom(page, i) for i in ALL]
     p = page.evaluate(_PAGE)
     ctx.close()
@@ -533,7 +541,9 @@ def test_first_paint_already_has_the_scripted_state(
     page.set_viewport_size({"width": width, "height": 900})
     page.goto(f"{interactive_server}/{NAME}.html")
     page.wait_for_timeout(300)
-    assert page.evaluate("() => document.documentElement.classList.contains('has-asides')")
+    assert page.evaluate(
+        "() => document.documentElement.classList.contains('has-asides')"
+    )
     for i in ALL:
         assert not _geom(page, i)["shown"]
 
@@ -633,7 +643,9 @@ def test_phrase_look(page: Page, interactive_server: str, width, theme):
     assert st["line"] == "none", st
     assert "linear-gradient" in st["image"] and st["want"] in st["image"], st
     assert st["size"] == "4px 1.5px" and st["repeat"] == "repeat-x", st
-    assert not page.evaluate("() => document.querySelector('a.note-marker[data-note-kind=aside]')")
+    assert not page.evaluate(
+        "() => document.querySelector('a.note-marker[data-note-kind=aside]')"
+    )
 
 
 def test_tap_target_is_44px_tall_on_touch(browser, interactive_server: str):
@@ -644,14 +656,18 @@ def test_tap_target_is_44px_tall_on_touch(browser, interactive_server: str):
     page.goto(f"{interactive_server}/{NAME}.html")
     page.wait_for_function(RSM_READY, timeout=10_000)
     _settle(page)
-    coarse = page.evaluate("() => matchMedia('(hover: none) and (pointer: coarse)').matches")
+    coarse = page.evaluate(
+        "() => matchMedia('(hover: none) and (pointer: coarse)').matches"
+    )
     heights = page.evaluate(
         "() => [...document.querySelectorAll('a.aside-phrase')]"
         ".map(a => [...a.getClientRects()].map(r => r.height))"
     )
     page.tap("#call-a-two")
     page.wait_for_timeout(200)
-    opened = page.evaluate("() => document.getElementById('a-two').classList.contains('rsm-aside-open')")
+    opened = page.evaluate(
+        "() => document.getElementById('a-two').classList.contains('rsm-aside-open')"
+    )
     ctx.close()
     assert coarse
     for rects in heights:

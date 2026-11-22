@@ -6,7 +6,9 @@ import pytest
 from axe_playwright_python.sync_playwright import Axe
 from playwright.sync_api import Page
 
-FIXTURE = Path(__file__).parent.parent / "interactive" / "fixtures" / "wide-narrow-math.rsm"
+FIXTURE = (
+    Path(__file__).parent.parent / "interactive" / "fixtures" / "wide-narrow-math.rsm"
+)
 
 
 @pytest.mark.accessibility
@@ -29,7 +31,10 @@ def test_wide_math_scrollable_region_focusable(
         assert overflowing > 0, "fixture: some equation must overflow at 320px"
 
     results = Axe().run(
-        page, options={"runOnly": {"type": "rule", "values": ["scrollable-region-focusable"]}}
+        page,
+        options={
+            "runOnly": {"type": "rule", "values": ["scrollable-region-focusable"]}
+        },
     )
     violations = results.response["violations"]
     assert not violations, [n["target"] for v in violations for n in v["nodes"]]

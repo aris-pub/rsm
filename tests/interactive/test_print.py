@@ -19,7 +19,6 @@ RSM_READY = "() => window.__rsmShown === true"
 
 
 class TestPrintStaticFallback:
-
     def test_widget_swapped_for_static_under_print(
         self, page: Page, interactive_server: str
     ):
@@ -63,7 +62,6 @@ class TestPrintStaticFallback:
 
 
 class TestPrintChromeHidden:
-
     def test_proof_rail_hidden_under_print(self, page: Page, interactive_server: str):
         """The sidebar (strip and open panel) is screen-only and must not appear
         in the PDF."""
@@ -83,7 +81,6 @@ class TestPrintChromeHidden:
 
 
 class TestPrintUnfoldsCollapsed:
-
     def test_collapsed_proof_steps_visible_under_print(
         self, page: Page, interactive_server: str
     ):

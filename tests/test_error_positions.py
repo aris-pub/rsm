@@ -91,7 +91,10 @@ def stderr_logs(capsys):
 
 def test_lint_format_positions_are_1_based(stderr_logs):
     lines = stderr_logs("lint")
-    assert "src:2:3: ERROR: Invalid value for :accent: on line 2: 'bogus'." in "\n".join(lines)
+    assert (
+        "src:2:3: ERROR: Invalid value for :accent: on line 2: 'bogus'."
+        in "\n".join(lines)
+    )
     assert "src:7:13: ERROR: Parse error in meta" in "\n".join(lines)
     assert "src:9:1: WRN: The CST contains errors." in lines
 
@@ -120,8 +123,12 @@ def test_rsm_check_lint_format_is_1_based(tmp_path):
         text=True,
     )
     lines = proc.stderr.strip().split("\n")
-    assert any(line.startswith("src:2:3: ERROR: Invalid value for :accent:") for line in lines), proc.stderr
-    assert any(line.startswith("src:7:13: ERROR: Parse error in meta") for line in lines), proc.stderr
+    assert any(
+        line.startswith("src:2:3: ERROR: Invalid value for :accent:") for line in lines
+    ), proc.stderr
+    assert any(
+        line.startswith("src:7:13: ERROR: Parse error in meta") for line in lines
+    ), proc.stderr
     assert "src:9:1: WRN: The CST contains errors." in lines, proc.stderr
 
 
@@ -187,7 +194,9 @@ def test_json_format_has_positions_of_parse_errors(stderr_logs):
 
 
 def test_json_format_leaves_out_positions_that_a_record_lacks():
-    rec = logging.LogRecord("RSM", logging.WARNING, "x.py", 1, "No position.", None, None)
+    rec = logging.LogRecord(
+        "RSM", logging.WARNING, "x.py", 1, "No position.", None, None
+    )
     out = json.loads(JSONFormatter(log_time=False, log_lineno=False).format(rec))
     assert not set(POSITION_FIELDS) & set(out)
 

@@ -52,12 +52,27 @@ def test_heading_markup_does_not_leak_into_body():
 @pytest.mark.parametrize(
     "src, inner",
     [
-        ("## A *bold* word\n\nBar.\n", "A <span class=\"span\"><em>bold</em></span> word"),
-        ("## A **strong** word\n\nBar.\n", "A <span class=\"span\"><strong>strong</strong></span> word"),
-        ("## Uses `x` here\n\nBar.\n", 'Uses <span class="code"><code>x</code></span> here'),
-        ("## Uses :code:x:: here\n\nBar.\n", 'Uses <span class="code"><code>x</code></span> here'),
+        (
+            "## A *bold* word\n\nBar.\n",
+            'A <span class="span"><em>bold</em></span> word',
+        ),
+        (
+            "## A **strong** word\n\nBar.\n",
+            'A <span class="span"><strong>strong</strong></span> word',
+        ),
+        (
+            "## Uses `x` here\n\nBar.\n",
+            'Uses <span class="code"><code>x</code></span> here',
+        ),
+        (
+            "## Uses :code:x:: here\n\nBar.\n",
+            'Uses <span class="code"><code>x</code></span> here',
+        ),
         ("## $x$ first\n\nBar.\n", r'<span class="math">\(x\)</span> first'),
-        ("## $x$ and $y$\n\nBar.\n", r'<span class="math">\(x\)</span> and <span class="math">\(y\)</span>'),
+        (
+            "## $x$ and $y$\n\nBar.\n",
+            r'<span class="math">\(x\)</span> and <span class="math">\(y\)</span>',
+        ),
     ],
     ids=["emph", "strong", "backtick", "code-tag", "math-first", "two-math"],
 )

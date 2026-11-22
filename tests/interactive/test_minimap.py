@@ -36,17 +36,30 @@ LABELS = [
     "3.1. Outlook",
 ]
 TYPES = [
-    "section", "section", "figure", "figure", "section", "figure", "figure", "section",
-    "figure", "figure", "section",
+    "section",
+    "section",
+    "figure",
+    "figure",
+    "section",
+    "figure",
+    "figure",
+    "section",
+    "figure",
+    "figure",
+    "section",
 ]
 
 
 def _load(page: Page, server: str, size=DESKTOP, theme="light", reduced=False) -> None:
     page.set_viewport_size(size)
-    page.emulate_media(color_scheme=theme, reduced_motion="reduce" if reduced else "no-preference")
+    page.emulate_media(
+        color_scheme=theme, reduced_motion="reduce" if reduced else "no-preference"
+    )
     page.goto(f"{server}/minimap.html")
     page.wait_for_function(RSM_READY, timeout=10_000)
-    page.wait_for_selector(".rsm-minimap .rsm-minimap-mark", state="attached", timeout=10_000)
+    page.wait_for_selector(
+        ".rsm-minimap .rsm-minimap-mark", state="attached", timeout=10_000
+    )
     # Let the debounced recompute after fonts and math settle.
     page.wait_for_timeout(400)
 
@@ -124,13 +137,17 @@ def _strip_x(page: Page) -> float:
 
 
 @pytest.mark.parametrize("theme", ["light", "dark"])
-def test_strip_replaces_the_native_scrollbar(page: Page, interactive_server: str, theme):
+def test_strip_replaces_the_native_scrollbar(
+    page: Page, interactive_server: str, theme
+):
     _load(page, interactive_server, theme=theme)
     nav = page.locator(".rsm-minimap")
     assert nav.is_visible()
     box = nav.bounding_box()
     assert box["width"] == 24
-    assert box["x"] + box["width"] == DESKTOP["width"], "the strip sits at the viewport edge"
+    assert box["x"] + box["width"] == DESKTOP["width"], (
+        "the strip sits at the viewport edge"
+    )
     assert box["y"] == 0 and box["height"] == DESKTOP["height"]
     info = page.evaluate(
         """() => ({
@@ -147,7 +164,9 @@ def test_strip_replaces_the_native_scrollbar(page: Page, interactive_server: str
     assert info["sw"] == info["iw"], "no horizontal overflow"
 
 
-def test_strip_is_above_content_and_below_the_sidebar(page: Page, interactive_server: str):
+def test_strip_is_above_content_and_below_the_sidebar(
+    page: Page, interactive_server: str
+):
     _load(page, interactive_server)
     z = page.evaluate(
         """() => ({
@@ -168,7 +187,9 @@ def test_no_strip_without_javascript(browser: Browser, interactive_server: str):
     ctx.close()
 
 
-def test_native_scrollbar_present_without_javascript(browser: Browser, interactive_server: str):
+def test_native_scrollbar_present_without_javascript(
+    browser: Browser, interactive_server: str
+):
     # Headless Chromium draws no scrollbars at all (Playwright passes
     # --hide-scrollbars), so check the style that would hide one instead of
     # measuring widths. Playwright's evaluate still runs with page scripts off.
@@ -176,7 +197,9 @@ def test_native_scrollbar_present_without_javascript(browser: Browser, interacti
     page = ctx.new_page()
     page.goto(f"{interactive_server}/minimap.html")
     page.wait_for_load_state("load")
-    bar = page.evaluate("() => getComputedStyle(document.documentElement).scrollbarWidth")
+    bar = page.evaluate(
+        "() => getComputedStyle(document.documentElement).scrollbarWidth"
+    )
     ctx.close()
     assert bar == "auto"
 
@@ -197,7 +220,9 @@ def test_marks_list(page: Page, interactive_server: str):
     }
 
 
-def test_unnumbered_widget_gets_a_mark_named_by_its_kind(page: Page, interactive_server: str):
+def test_unnumbered_widget_gets_a_mark_named_by_its_kind(
+    page: Page, interactive_server: str
+):
     _load(page, interactive_server)
     # The fixture has a :nonum: widget with no caption (an ornament).
     assert page.locator("#wid-ornament > figcaption").count() == 0
@@ -215,7 +240,9 @@ def test_figures_inside_a_widget_get_no_mark(page: Page, interactive_server: str
 
 def test_video_gets_a_mark_named_by_its_number(page: Page, interactive_server: str):
     _load(page, interactive_server)
-    assert page.locator("figure.video video[src='assets/minimap-video.webm']").count() == 1
+    assert (
+        page.locator("figure.video video[src='assets/minimap-video.webm']").count() == 1
+    )
     m = next(m for m in _marks(page) if m["label"] == "Video 3.1")
     assert m["type"] == "figure"
     page.mouse.move(_strip_x(page), _track(page)["y"] + m["y"])
@@ -235,7 +262,9 @@ def test_numbered_widget_without_a_caption_gets_a_mark_named_by_its_number(
 
 
 @pytest.mark.parametrize("size", [DESKTOP, PHONE], ids=["1280", "375"])
-def test_marks_sit_at_their_fraction_of_the_strip(page: Page, interactive_server: str, size):
+def test_marks_sit_at_their_fraction_of_the_strip(
+    page: Page, interactive_server: str, size
+):
     _load(page, interactive_server, size=size)
     for m in _marks(page):
         assert abs(m["y"] - m["expected"]) <= 2, m
@@ -253,7 +282,9 @@ def test_mark_shapes(page: Page, interactive_server: str):
     })"""
     )
     top = next(s for s in shapes if "mm-top" in s["cls"])
-    deep = next(s for s in shapes if "mm-section" in s["cls"] and "mm-top" not in s["cls"])
+    deep = next(
+        s for s in shapes if "mm-section" in s["cls"] and "mm-top" not in s["cls"]
+    )
     fig = next(s for s in shapes if "mm-figure" in s["cls"])
     assert (top["h"], top["w"]) == (4, 20)  # 2px inset each side
     assert (deep["h"], deep["w"]) == (3, 16)  # 4px inset each side
@@ -299,7 +330,9 @@ def test_marks_rest_faint_and_grow_on_hover(page: Page, interactive_server: str)
 
 
 @pytest.mark.parametrize("theme", ["light", "dark"])
-def test_hover_near_a_section_mark_shows_its_heading(page: Page, interactive_server: str, theme):
+def test_hover_near_a_section_mark_shows_its_heading(
+    page: Page, interactive_server: str, theme
+):
     _load(page, interactive_server, theme=theme)
     m = _mark(page, "2. Results")
     track = _track(page)
@@ -332,7 +365,9 @@ def test_hover_shows_figure_labels(page: Page, interactive_server: str):
         assert page.locator(".rsm-minimap-tip").inner_text() == label
 
 
-def test_marks_close_to_the_hovered_one_dim_further(page: Page, interactive_server: str):
+def test_marks_close_to_the_hovered_one_dim_further(
+    page: Page, interactive_server: str
+):
     _load(page, interactive_server)
     # Squeeze two marks together: move the Background section's mark to within
     # 8px of the Introduction one by scaling the strip down.
@@ -365,7 +400,9 @@ def test_hover_away_from_marks_shows_no_label(page: Page, interactive_server: st
 
 
 @pytest.mark.parametrize("reduced", [True, False], ids=["reduced-motion", "smooth"])
-def test_click_a_mark_scrolls_it_to_the_centre(page: Page, interactive_server: str, reduced):
+def test_click_a_mark_scrolls_it_to_the_centre(
+    page: Page, interactive_server: str, reduced
+):
     _load(page, interactive_server, reduced=reduced)
     m = _mark(page, "2. Results")
     track = _track(page)
@@ -377,7 +414,9 @@ def test_click_a_mark_scrolls_it_to_the_centre(page: Page, interactive_server: s
     assert abs(_top_in_viewport(page, "sec-results") - DESKTOP["height"] / 2) <= 2
 
 
-def test_click_a_figure_mark_scrolls_it_to_the_centre(page: Page, interactive_server: str):
+def test_click_a_figure_mark_scrolls_it_to_the_centre(
+    page: Page, interactive_server: str
+):
     _load(page, interactive_server, reduced=True)
     m = _mark(page, "Figure 2.1")
     page.mouse.click(_strip_x(page), _track(page)["y"] + m["y"])
@@ -433,7 +472,9 @@ def test_viewport_box_tracks_scroll(page: Page, interactive_server: str, theme):
     track = _track(page)
     for y in (0, 1000, 2500, sh - ih):
         page.evaluate("(y) => window.scrollTo({ top: y, behavior: 'instant' })", y)
-        page.evaluate("() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)))")
+        page.evaluate(
+            "() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)))"
+        )
         sy = page.evaluate("() => window.scrollY")
         box = page.locator(".rsm-minimap-box").bounding_box()
         assert abs(box["y"] - track["y"] - sy / sh * track["height"]) <= 1
@@ -449,7 +490,9 @@ def test_viewport_box_tracks_scroll(page: Page, interactive_server: str, theme):
 # Recomputing
 
 
-def test_folding_a_proof_moves_the_marks_below_it_up(page: Page, interactive_server: str):
+def test_folding_a_proof_moves_the_marks_below_it_up(
+    page: Page, interactive_server: str
+):
     _load(page, interactive_server)
     before = {m["label"]: m["y"] for m in _marks(page)}
     page.evaluate(
@@ -464,7 +507,9 @@ def test_folding_a_proof_moves_the_marks_below_it_up(page: Page, interactive_ser
         assert abs(m["y"] - m["expected"]) <= 2, m
 
 
-def test_folding_a_section_drops_the_marks_inside_it(page: Page, interactive_server: str):
+def test_folding_a_section_drops_the_marks_inside_it(
+    page: Page, interactive_server: str
+):
     _load(page, interactive_server)
     page.evaluate(
         "() => document.querySelector('#sec-intro > .heading > .hr-collapse-zone > .hr-collapse').click()"
@@ -503,7 +548,9 @@ def _active_label(page: Page) -> str:
 
 
 @pytest.mark.parametrize("theme", ["light", "dark"])
-def test_tab_reaches_the_strip_and_arrows_walk_every_mark(page: Page, interactive_server: str, theme):
+def test_tab_reaches_the_strip_and_arrows_walk_every_mark(
+    page: Page, interactive_server: str, theme
+):
     _load(page, interactive_server, theme=theme)
     _tab_to_strip(page)
     seen = [_active_label(page)]
@@ -612,7 +659,9 @@ def _phone_state(page: Page) -> dict:
     )
 
 
-def test_phone_strip_hidden_at_rest_and_lets_taps_through(page: Page, interactive_server: str):
+def test_phone_strip_hidden_at_rest_and_lets_taps_through(
+    page: Page, interactive_server: str
+):
     _load(page, interactive_server, size=PHONE)
     s = _phone_state(page)
     assert s["opacity"] == 0 and s["events"] == "none"
@@ -622,7 +671,9 @@ def test_phone_strip_hidden_at_rest_and_lets_taps_through(page: Page, interactiv
     assert not hit, "a tap at the edge reaches the text"
 
 
-def test_phone_strip_shows_on_scroll_and_fades_after(page: Page, interactive_server: str):
+def test_phone_strip_shows_on_scroll_and_fades_after(
+    page: Page, interactive_server: str
+):
     _load(page, interactive_server, size=PHONE)
     elapsed = page.evaluate(
         """() => new Promise((resolve) => {
@@ -640,14 +691,18 @@ def test_phone_strip_shows_on_scroll_and_fades_after(page: Page, interactive_ser
     )
     assert elapsed < 100
     page.wait_for_timeout(700)
-    assert "is-awake" in _phone_state(page)["cls"], "still showing soon after the scroll"
+    assert "is-awake" in _phone_state(page)["cls"], (
+        "still showing soon after the scroll"
+    )
     page.wait_for_timeout(900)  # past 1.2s since the scroll, plus the fade
     s = _phone_state(page)
     assert "is-awake" not in s["cls"]
     assert s["opacity"] == 0 and s["events"] == "none"
 
 
-def test_phone_strip_is_drawn_16px_with_a_24px_hit_area(page: Page, interactive_server: str):
+def test_phone_strip_is_drawn_16px_with_a_24px_hit_area(
+    page: Page, interactive_server: str
+):
     _load(page, interactive_server, size=PHONE)
     page.evaluate("() => window.scrollBy(0, 50)")
     page.wait_for_timeout(150)
@@ -703,7 +758,10 @@ def test_phone_touch_drag_scrolls_the_page(touch_page: Page, interactive_server:
         seen.append(page.evaluate("() => window.scrollY"))
     # Still showing while the finger is down, past the fade delay.
     page.wait_for_timeout(1400)
-    assert "is-awake" in _phone_state(page)["cls"] or "is-touching" in _phone_state(page)["cls"]
+    assert (
+        "is-awake" in _phone_state(page)["cls"]
+        or "is-touching" in _phone_state(page)["cls"]
+    )
     assert _phone_state(page)["opacity"] == 1
     _touch(cdp, "touchEnd", x, 0)
     max_y = page.evaluate("() => document.documentElement.scrollHeight - innerHeight")
@@ -711,7 +769,9 @@ def test_phone_touch_drag_scrolls_the_page(touch_page: Page, interactive_server:
     assert seen[-1] > max_y * 0.9
 
 
-def test_phone_first_tap_shows_the_label_second_tap_goes_there(touch_page: Page, interactive_server: str):
+def test_phone_first_tap_shows_the_label_second_tap_goes_there(
+    touch_page: Page, interactive_server: str
+):
     """As with notes: a finger cannot hover, so the first tap on a mark shows
     its label without moving the page, and a second tap on it goes there."""
     page = touch_page
@@ -728,7 +788,9 @@ def test_phone_first_tap_shows_the_label_second_tap_goes_there(touch_page: Page,
     page.wait_for_timeout(400)
     assert page.locator(".rsm-minimap-tip").inner_text() == "2. Results"
     assert page.locator(".rsm-minimap-tip").is_visible()
-    assert page.evaluate("() => window.scrollY") == before, "the first tap moved the page"
+    assert page.evaluate("() => window.scrollY") == before, (
+        "the first tap moved the page"
+    )
     _touch(cdp, "touchStart", PHONE["width"] - 6, y)
     _touch(cdp, "touchEnd", 0, 0)
     _settle_scroll(page)
@@ -749,7 +811,9 @@ def test_phone_reduced_motion_has_no_fade(page: Page, interactive_server: str):
 
 
 def _reading_opt(page: Page, value: str):
-    return page.locator(f'.reading-row[data-control="minimap"] .reading-opt[data-value="{value}"]')
+    return page.locator(
+        f'.reading-row[data-control="minimap"] .reading-opt[data-value="{value}"]'
+    )
 
 
 def _scrollbar_hidden(page: Page) -> bool:
@@ -768,7 +832,9 @@ def _native_scrollbar(page: Page) -> bool:
     )
 
 
-def test_reading_toggle_turns_the_strip_off_live_and_persists(page: Page, interactive_server: str):
+def test_reading_toggle_turns_the_strip_off_live_and_persists(
+    page: Page, interactive_server: str
+):
     _load(page, interactive_server)
     page.click('.rail-strip-btn[data-view="reading"]')
     page.wait_for_selector(".proof-rail.open")
@@ -793,7 +859,9 @@ def test_reading_toggle_turns_the_strip_off_live_and_persists(page: Page, intera
     page.wait_for_selector(".rsm-minimap .rsm-minimap-mark", state="attached")
 
 
-def test_reading_toggle_keeps_the_sidebar_column_in_place(page: Page, interactive_server: str):
+def test_reading_toggle_keeps_the_sidebar_column_in_place(
+    page: Page, interactive_server: str
+):
     # Showing or hiding the scrollbar changes the viewport width; the column the
     # sidebar places must follow so the page never scrolls sideways.
     _load(page, interactive_server)
@@ -806,15 +874,20 @@ def test_reading_toggle_keeps_the_sidebar_column_in_place(page: Page, interactiv
     )
     _reading_opt(page, "on").click()
     page.wait_for_timeout(400)
-    assert page.evaluate("() => document.documentElement.scrollWidth === window.innerWidth")
+    assert page.evaluate(
+        "() => document.documentElement.scrollWidth === window.innerWidth"
+    )
 
 
 def test_print_hides_the_strip(page: Page, interactive_server: str):
     _load(page, interactive_server)
     page.emulate_media(media="print")
-    assert page.evaluate(
-        "() => getComputedStyle(document.querySelector('.rsm-minimap')).display"
-    ) == "none"
+    assert (
+        page.evaluate(
+            "() => getComputedStyle(document.querySelector('.rsm-minimap')).display"
+        )
+        == "none"
+    )
 
 
 def test_body_flag_keeps_the_strip_off(page: Page, interactive_server: str):
@@ -823,7 +896,9 @@ def test_body_flag_keeps_the_strip_off(page: Page, interactive_server: str):
     page.route(
         "**/minimap.html",
         lambda route: route.fulfill(
-            body=route.fetch().text().replace("<body ", '<body data-minimap="false" ', 1),
+            body=route.fetch()
+            .text()
+            .replace("<body ", '<body data-minimap="false" ', 1),
             content_type="text/html",
         ),
     )

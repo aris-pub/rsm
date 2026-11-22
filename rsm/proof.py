@@ -48,7 +48,9 @@ GOAL_KINDS = ("claim", "claimblock")
 # Every construct introduces a symbol or assumption except these (assertions,
 # goal restructurings, and the QED marker). Used to collect the document-wide
 # context that prose and definitions contribute.
-_NON_INTRO_KINDS = frozenset({"then", "suffices", "claim", "claimblock", "qed", "prove"})
+_NON_INTRO_KINDS = frozenset(
+    {"then", "suffices", "claim", "claimblock", "qed", "prove"}
+)
 
 
 def analyze_proofs(tree, labels_to_nodes) -> None:
@@ -75,8 +77,11 @@ def resolve_of(tree, labels_to_nodes) -> None:
     goal/hypotheses, and is rendered as a link in the proof's lead.
     """
     provable = (
-        nodes.Theorem, nodes.Lemma, nodes.Corollary,
-        nodes.Proposition, nodes.Statement,
+        nodes.Theorem,
+        nodes.Lemma,
+        nodes.Corollary,
+        nodes.Proposition,
+        nodes.Statement,
     )
     for proof in tree.traverse(nodeclass=nodes.Proof):
         label = getattr(proof, "of", None)
@@ -493,8 +498,11 @@ def _compute_state(proof, ambient_intros=()) -> None:
         return out
 
     thm_types = (
-        nodes.Theorem, nodes.Lemma, nodes.Corollary,
-        nodes.Proposition, nodes.Statement,
+        nodes.Theorem,
+        nodes.Lemma,
+        nodes.Corollary,
+        nodes.Proposition,
+        nodes.Statement,
     )
     # A :of:-declared result takes precedence over the preceding sibling.
     theorem = getattr(proof, "proves", None) or proof.prev_sibling()
@@ -503,7 +511,8 @@ def _compute_state(proof, ambient_intros=()) -> None:
     # Theorem hypotheses have no step number (they precede the proof).
     base_hyps = (
         [{"node": c, "num": None} for c in own_constructs(theorem, HYP_KINDS)]
-        if theorem is not None else []
+        if theorem is not None
+        else []
     )
 
     state = []
@@ -522,14 +531,10 @@ def _compute_state(proof, ambient_intros=()) -> None:
                 # goal), not as a sibling-level introduction.
                 snum = str(sib.full_number)
                 hyps += [
-                    {"node": c, "num": snum}
-                    for c in own_constructs(sib, HYP_KINDS)
+                    {"node": c, "num": snum} for c in own_constructs(sib, HYP_KINDS)
                 ]
             num = str(anc.full_number)
-            hyps += [
-                {"node": c, "num": num}
-                for c in own_constructs(anc, HYP_KINDS)
-            ]
+            hyps += [{"node": c, "num": num} for c in own_constructs(anc, HYP_KINDS)]
         goal = None
         for anc in reversed(chain):  # innermost first
             claims = own_constructs(anc, GOAL_KINDS)

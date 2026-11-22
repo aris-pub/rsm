@@ -433,7 +433,7 @@ def test_marker_markup():
     assert attrs["data-note-number"] == "1"
     assert attrs["data-note-kind"] == "note"
     assert attrs["role"] == "doc-noteref"
-    assert '>1</a>' in html
+    assert ">1</a>" in html
 
 
 def test_marker_sits_against_the_preceding_word():
@@ -796,7 +796,7 @@ def test_backlink_after_display_math_stays_inside_the_entry():
         ::
         """
     )
-    body = html[html.index('id="m"'):]
+    body = html[html.index('id="m"') :]
     assert body.index("after.") < body.index('href="#call-m"') < body.index("</li>")
 
 
@@ -813,7 +813,7 @@ def test_backlink_after_trailing_display_math_stays_inside_the_entry():
         ::
         """
     )
-    body = html[html.index('id="m"'):]
+    body = html[html.index('id="m"') :]
     assert body.index("mathblock") < body.index('href="#call-m"') < body.index("</li>")
 
 

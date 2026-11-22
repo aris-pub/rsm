@@ -210,7 +210,7 @@ class TestReorderAccessibility:
             "els => els.map((e) => e.getAttribute('aria-label'))"
         )
         assert len(set(labels)) == len(labels) and len(labels) == 4, labels
-        assert all(l.startswith("Reorder Step") for l in labels), labels
+        assert all(label.startswith("Reorder Step") for label in labels), labels
 
     def test_live_region_announces_mode_and_reorder(
         self, page: Page, interactive_server: str
@@ -283,9 +283,7 @@ class TestRejectionReason:
         page.mouse.move(box["x"] + box["width"] / 2, box["y"] + box["height"] / 2)
         page.mouse.down()
 
-    def test_illegal_drag_names_blocking_dep(
-        self, page: Page, interactive_server: str
-    ):
+    def test_illegal_drag_names_blocking_dep(self, page: Page, interactive_server: str):
         _load(page, interactive_server)
         self._enter_reorder(page)
         # Drag stp-c (Step 4) up between stp-setup and stp-a: illegal, since
@@ -298,9 +296,7 @@ class TestRejectionReason:
         expect(reason).to_contain_text("Step 4 uses Step 2")
         page.mouse.up()
 
-    def test_legal_drag_shows_no_reason(
-        self, page: Page, interactive_server: str
-    ):
+    def test_legal_drag_shows_no_reason(self, page: Page, interactive_server: str):
         _load(page, interactive_server)
         self._enter_reorder(page)
         # stp-b (Step 3) and stp-a (Step 2) are interchangeable: a legal slot
@@ -311,9 +307,7 @@ class TestRejectionReason:
         expect(page.locator(".reorder-reason")).to_be_hidden()
         page.mouse.up()
 
-    def test_illegal_drop_announces_reason(
-        self, page: Page, interactive_server: str
-    ):
+    def test_illegal_drop_announces_reason(self, page: Page, interactive_server: str):
         _load(page, interactive_server)
         self._enter_reorder(page)
         self._press_handle(page, "#stp-c .reorder-handle")

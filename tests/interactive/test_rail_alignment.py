@@ -14,10 +14,25 @@ pytestmark = pytest.mark.interactive
 
 RSM_READY = "() => window.__rsmShown === true"
 
-FIXTURES = ["basic", "asides", "shareview_long", "citations-author-year", "pill", "notes", "calc"]
+FIXTURES = [
+    "basic",
+    "asides",
+    "shareview_long",
+    "citations-author-year",
+    "pill",
+    "notes",
+    "calc",
+]
 
 MODES = [
-    ("phone-touch", {"viewport": {"width": 375, "height": 800}, "is_mobile": True, "has_touch": True}),
+    (
+        "phone-touch",
+        {
+            "viewport": {"width": 375, "height": 800},
+            "is_mobile": True,
+            "has_touch": True,
+        },
+    ),
     ("phone-mouse", {"viewport": {"width": 375, "height": 800}}),
     ("desktop", {"viewport": {"width": 1280, "height": 900}}),
 ]
@@ -61,7 +76,9 @@ OVERFLOW = """() => {
 
 @pytest.mark.parametrize("mode,ctx_args", MODES, ids=[m for m, _ in MODES])
 @pytest.mark.parametrize("fixture", FIXTURES)
-def test_rails_in_a_section_line_up(browser: Browser, interactive_server: str, fixture, mode, ctx_args):
+def test_rails_in_a_section_line_up(
+    browser: Browser, interactive_server: str, fixture, mode, ctx_args
+):
     ctx = browser.new_context(**ctx_args)
     page = ctx.new_page()
     try:
@@ -75,7 +92,9 @@ def test_rails_in_a_section_line_up(browser: Browser, interactive_server: str, f
             xs = [p["x"] for p in s["xs"]]
             # A heading's rail is 1px thicker, so allow 1.5px.
             if max(xs) - min(xs) > 1.5:
-                off.append((s["section"], [(p["what"], round(p["x"], 1)) for p in s["xs"]]))
+                off.append(
+                    (s["section"], [(p["what"], round(p["x"], 1)) for p in s["xs"]])
+                )
         assert not off, f"rails out of line ({mode}): {off}"
         assert page.evaluate(OVERFLOW) == []
     finally:

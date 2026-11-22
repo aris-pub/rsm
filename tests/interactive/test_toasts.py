@@ -42,13 +42,17 @@ def trigger_copy_link(page_or_frame, *, selector=".hr:not(.hr-hidden)"):
 class TestToastsDirect:
     """Toast behavior when RSM document is loaded directly (not in an iframe)."""
 
-    def test_success_toast_appears_on_copy_link(self, page: Page, interactive_server: str):
+    def test_success_toast_appears_on_copy_link(
+        self, page: Page, interactive_server: str
+    ):
         page.goto(f"{interactive_server}/basic.html")
         wait_for_rsm(page)
         trigger_copy_link(page)
         expect(page.locator(".toast.success")).to_be_visible()
 
-    def test_success_toast_disappears_after_timeout(self, page: Page, interactive_server: str):
+    def test_success_toast_disappears_after_timeout(
+        self, page: Page, interactive_server: str
+    ):
         page.goto(f"{interactive_server}/basic.html")
         wait_for_rsm(page)
         trigger_copy_link(page)
@@ -69,19 +73,33 @@ class TestToastsDirect:
 class TestToastsUnsandboxedIframe:
     """Toast behavior when RSM document runs inside an unsandboxed iframe (mirrors Press)."""
 
-    def test_success_toast_appears_in_unsandboxed_iframe(self, page: Page, interactive_server: str):
-        page.goto(f"{interactive_server}/iframe-unsandboxed.html", wait_until="domcontentloaded")
+    def test_success_toast_appears_in_unsandboxed_iframe(
+        self, page: Page, interactive_server: str
+    ):
+        page.goto(
+            f"{interactive_server}/iframe-unsandboxed.html",
+            wait_until="domcontentloaded",
+        )
         frame = wait_for_rsm_in_frame(page)
         frame.locator(".hr:not(.hr-hidden) .hr-border-dots").first.click()
-        frame.locator("#hr-menu-singleton .hr-menu-item.link:not(.disabled)").first.click()
+        frame.locator(
+            "#hr-menu-singleton .hr-menu-item.link:not(.disabled)"
+        ).first.click()
         expect(frame.locator(".toast.success")).to_be_visible()
 
-    def test_toast_renders_inside_iframe_not_in_parent(self, page: Page, interactive_server: str):
+    def test_toast_renders_inside_iframe_not_in_parent(
+        self, page: Page, interactive_server: str
+    ):
         """Toast must appear inside the iframe document, not escape to the parent."""
-        page.goto(f"{interactive_server}/iframe-unsandboxed.html", wait_until="domcontentloaded")
+        page.goto(
+            f"{interactive_server}/iframe-unsandboxed.html",
+            wait_until="domcontentloaded",
+        )
         frame = wait_for_rsm_in_frame(page)
         frame.locator(".hr:not(.hr-hidden) .hr-border-dots").first.click()
-        frame.locator("#hr-menu-singleton .hr-menu-item.link:not(.disabled)").first.click()
+        frame.locator(
+            "#hr-menu-singleton .hr-menu-item.link:not(.disabled)"
+        ).first.click()
         expect(frame.locator(".toast")).to_be_visible()
         expect(page.locator(".toast")).to_have_count(0)
 
@@ -93,7 +111,9 @@ class TestToastsSandboxedIframe:
     triggers the error toast instead of the success toast.
     """
 
-    def test_error_toast_appears_when_clipboard_blocked(self, page: Page, interactive_server: str):
+    def test_error_toast_appears_when_clipboard_blocked(
+        self, page: Page, interactive_server: str
+    ):
         """When clipboard is blocked in a sandboxed iframe, the error toast must appear.
 
         NOTE: Chromium grants clipboard access to sandboxed iframes when the browser
@@ -103,18 +123,29 @@ class TestToastsSandboxedIframe:
         context = page.context.browser.new_context()
         isolated_page = context.new_page()
         try:
-            isolated_page.goto(f"{interactive_server}/iframe-sandboxed.html", wait_until="domcontentloaded")
+            isolated_page.goto(
+                f"{interactive_server}/iframe-sandboxed.html",
+                wait_until="domcontentloaded",
+            )
             frame = wait_for_rsm_in_frame(isolated_page)
             frame.locator(".hr:not(.hr-hidden) .hr-border-dots").first.click()
-            frame.locator("#hr-menu-singleton .hr-menu-item.link:not(.disabled)").first.click()
+            frame.locator(
+                "#hr-menu-singleton .hr-menu-item.link:not(.disabled)"
+            ).first.click()
             expect(frame.locator(".toast.error")).to_be_visible()
         finally:
             context.close()
 
-    def test_no_silent_crash_in_sandboxed_iframe(self, page: Page, interactive_server: str):
+    def test_no_silent_crash_in_sandboxed_iframe(
+        self, page: Page, interactive_server: str
+    ):
         """Some toast (success or error) must always appear — never a silent crash."""
-        page.goto(f"{interactive_server}/iframe-sandboxed.html", wait_until="domcontentloaded")
+        page.goto(
+            f"{interactive_server}/iframe-sandboxed.html", wait_until="domcontentloaded"
+        )
         frame = wait_for_rsm_in_frame(page)
         frame.locator(".hr:not(.hr-hidden) .hr-border-dots").first.click()
-        frame.locator("#hr-menu-singleton .hr-menu-item.link:not(.disabled)").first.click()
+        frame.locator(
+            "#hr-menu-singleton .hr-menu-item.link:not(.disabled)"
+        ).first.click()
         expect(frame.locator(".toast")).to_be_visible()

@@ -180,7 +180,9 @@ def test_proof_of_lead_and_tree_root():
     assert ">Hint 1.1</a>" in html
 
 
-@pytest.mark.parametrize("kind", ["theorem", "lemma", "definition", "example", "remark"])
+@pytest.mark.parametrize(
+    "kind", ["theorem", "lemma", "definition", "example", "remark"]
+)
 def test_any_theorem_like_block(kind):
     html = rsm.render(_src(kind=kind))
     assert '<span class="span label">Hint 1.1.</span>' in html

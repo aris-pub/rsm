@@ -28,7 +28,12 @@ def _serve(serve_rsm_html, page: Page, viewport: dict, dark: bool) -> None:
 
 def _strip(page: Page):
     # Just the right edge, with room on the left for the label.
-    return {"x": DESKTOP["width"] - 220, "y": 0, "width": 220, "height": DESKTOP["height"]}
+    return {
+        "x": DESKTOP["width"] - 220,
+        "y": 0,
+        "width": 220,
+        "height": DESKTOP["height"],
+    }
 
 
 def _hover_mark(page: Page, label: str) -> None:
@@ -60,7 +65,9 @@ class TestMinimapDesktop:
         assert_snapshot(page.screenshot(clip=_strip(page)))
 
     @pytest.mark.parametrize("dark", [False, True], ids=["light", "dark"])
-    def test_scrolled_to_the_middle(self, serve_rsm_html, page: Page, assert_snapshot, dark):
+    def test_scrolled_to_the_middle(
+        self, serve_rsm_html, page: Page, assert_snapshot, dark
+    ):
         _serve(serve_rsm_html, page, DESKTOP, dark)
         page.evaluate(
             "() => window.scrollTo(0, (document.documentElement.scrollHeight - innerHeight) / 2)"
@@ -81,7 +88,9 @@ class TestMinimapDesktop:
 @pytest.mark.visual
 class TestMinimapPhone:
     @pytest.mark.parametrize("dark", [False, True], ids=["light", "dark"])
-    def test_showing_while_scrolling(self, serve_rsm_html, page: Page, assert_snapshot, dark):
+    def test_showing_while_scrolling(
+        self, serve_rsm_html, page: Page, assert_snapshot, dark
+    ):
         _serve(serve_rsm_html, page, PHONE, dark)
         page.evaluate("() => window.scrollTo(0, 1500)")
         page.wait_for_timeout(200)

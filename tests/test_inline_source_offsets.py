@@ -1,7 +1,6 @@
 """Tests for source offset attributes on inline elements."""
 
 import re
-from textwrap import dedent
 
 import rsm
 
@@ -12,7 +11,9 @@ def _render(src):
 
 def _find_source_attrs(html, tag_pattern):
     """Find data-source-start/end on elements matching a regex pattern."""
-    pattern = rf'<{tag_pattern}[^>]*?data-source-start="(\d+)"[^>]*?data-source-end="(\d+)"'
+    pattern = (
+        rf'<{tag_pattern}[^>]*?data-source-start="(\d+)"[^>]*?data-source-end="(\d+)"'
+    )
     matches = re.findall(pattern, html)
     if not matches:
         pattern = rf'<{tag_pattern}[^>]*?data-source-end="(\d+)"[^>]*?data-source-start="(\d+)"'
@@ -35,7 +36,9 @@ class TestEmphasisSourceOffsets:
         for start, end in offsets:
             sliced = src[start:end]
             if "spectral" in sliced:
-                assert "*spectral signatures*" in sliced or "spectral signatures" in sliced
+                assert (
+                    "*spectral signatures*" in sliced or "spectral signatures" in sliced
+                )
                 found = True
         assert found, f"No span slices to emphasis content. Offsets: {offsets}"
 

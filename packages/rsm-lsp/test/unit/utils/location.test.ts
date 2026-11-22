@@ -6,7 +6,7 @@ import {
   rangesOverlap,
   tupleToPoint,
   tuplesToRange,
-} from '../../../src/utils/location';
+} from '../../../src/utils/location.js';
 import { Position, Range } from 'vscode-languageserver';
 import { Point } from 'tree-sitter';
 

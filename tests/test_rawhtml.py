@@ -180,9 +180,7 @@ def test_body_is_not_escaped_and_whitespace_inside_is_kept(handrails):
 
 @pytest.mark.parametrize("handrails", [False, True])
 def test_alt_is_escaped_as_text(handrails):
-    html = _render(
-        ':html:{:alt: a < b & "c"} <b>x</b> ::\n', handrails=handrails
-    )
+    html = _render(':html:{:alt: a < b & "c"} <b>x</b> ::\n', handrails=handrails)
     assert '<span class="rawhtml-alt" hidden>a &lt; b &amp; "c"</span><b>x</b>' in html
 
 
@@ -356,7 +354,7 @@ def test_embedded_source_is_escaped():
     """The page keeps the RSM source in a hidden div for the Source menu item.
     Written unescaped, the raw HTML in it became a second live copy of every
     :html: body (and of every inline :figure: block)."""
-    src = "# T\n\nA :html:{:alt: x} <x-dial a=\"1\"></x-dial> :: &amp; b.\n"
+    src = '# T\n\nA :html:{:alt: x} <x-dial a="1"></x-dial> :: &amp; b.\n'
     html = rsm.render(src, handrails=True, copy_source=True)
     div = html.split('<div class="rsm-source hide">')[1].split("</div>")[0]
     assert "<x-dial" not in div

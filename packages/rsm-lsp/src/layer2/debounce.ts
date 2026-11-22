@@ -3,7 +3,7 @@
  * Waits for a pause in edits before triggering expensive operations
  */
 
-import { logger } from '../utils/logger';
+import { logger } from '../utils/logger.js';
 
 export type DebouncedCallback = () => void | Promise<void>;
 

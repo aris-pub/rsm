@@ -127,6 +127,7 @@ from .util import highlight_code
 
 logger = logging.getLogger("RSM").getChild("tlate")
 
+
 def _tabler(paths: str, filled: bool = False) -> str:
     """A Tabler icon (24px grid) as inline SVG; *paths* is its inner markup."""
     if filled:
@@ -179,7 +180,7 @@ def _toc_switch(tree: bool, extra_class: str = "") -> str:
 
 _RAIL_NOTATION_ICON = _tabler(
     '<path d="M3 19c3.333 -2 5 -4 5 -6c0 -3 -1 -3 -2 -3s-2.032 1.085 -2 3c.034 '
-    '2.048 1.658 2.877 2.5 4c1.5 2 2.5 2.5 3.5 1c.667 -1 1.167 -1.833 1.5 -2.5c1 '
+    "2.048 1.658 2.877 2.5 4c1.5 2 2.5 2.5 3.5 1c.667 -1 1.167 -1.833 1.5 -2.5c1 "
     '2.333 2.333 3.5 4 3.5h2.5"/>'
     '<path d="M20 17v-12c0 -1.121 -.879 -2 -2 -2s-2 .879 -2 2v12l2 2l2 -2z"/>'
     '<path d="M16 7h4"/>'
@@ -217,20 +218,44 @@ _RAIL_SHARE_ICON = _tabler(
 # for System (follow the operating system). Every option is a small preview
 # tile; its name is the button's accessible name and interface tooltip.
 _READING_CONTROLS = [
-    ("typeface", "Typeface",
-     [("sans", "Sans"), ("serif", "Serif"), ("legible", "Legible")], "sans"),
-    ("size", "Size",
-     [("1", "Small"), ("2", "Default"), ("3", "Large"), ("4", "Larger")], "2"),
-    ("leading", "Line height",
-     [("tight", "Tight"), ("normal", "Normal"), ("loose", "Loose")], "normal"),
-    ("measure", "Width",
-     [("narrow", "Narrow"), ("normal", "Normal"), ("wide", "Wide")], "normal"),
-    ("theme", "Theme",
-     [("system", "System"), ("light", "Light"), ("dark", "Dark")], "system"),
+    (
+        "typeface",
+        "Typeface",
+        [("sans", "Sans"), ("serif", "Serif"), ("legible", "Legible")],
+        "sans",
+    ),
+    (
+        "size",
+        "Size",
+        [("1", "Small"), ("2", "Default"), ("3", "Large"), ("4", "Larger")],
+        "2",
+    ),
+    (
+        "leading",
+        "Line height",
+        [("tight", "Tight"), ("normal", "Normal"), ("loose", "Loose")],
+        "normal",
+    ),
+    (
+        "measure",
+        "Width",
+        [("narrow", "Narrow"), ("normal", "Normal"), ("wide", "Wide")],
+        "normal",
+    ),
+    (
+        "theme",
+        "Theme",
+        [("system", "System"), ("light", "Light"), ("dark", "Dark")],
+        "system",
+    ),
     # The document map at the right edge (minimap.js watches the attribute).
     # Left out when the author turned the map off with :no-minimap:.
-    ("minimap", "Map",
-     [("on", "Show the document map"), ("off", "Hide the document map")], "on"),
+    (
+        "minimap",
+        "Map",
+        [("on", "Show the document map"), ("off", "Hide the document map")],
+        "on",
+    ),
 ]
 
 
@@ -248,7 +273,9 @@ _READING_TILES = {
     ("leading", "loose"): _lines_glyph((4, 9.33, 14.67, 20)),
     ("measure", "narrow"): _tabler('<path d="M3 4v16M21 4v16M9 8h6M9 12h6M9 16h4"/>'),
     ("measure", "normal"): _tabler('<path d="M3 4v16M21 4v16M7 8h10M7 12h10M7 16h6"/>'),
-    ("measure", "wide"): _tabler('<path d="M3 4v16M21 4v16M5.5 8h13M5.5 12h13M5.5 16h8"/>'),
+    ("measure", "wide"): _tabler(
+        '<path d="M3 4v16M21 4v16M5.5 8h13M5.5 12h13M5.5 16h8"/>'
+    ),
     ("theme", "system"): _tabler(
         '<path d="M3 5a1 1 0 0 1 1 -1h16a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-16a1 1 0 0 1 -1 -1v-10z"/>'
         '<path d="M7 20h10"/><path d="M9 16v4"/><path d="M15 16v4"/>'
@@ -276,9 +303,13 @@ _READING_TILES = {
 
 def _reading_tile(control: str, value: str) -> str:
     if control == "typeface":
-        return f'<span class="reading-ag" data-face="{value}" aria-hidden="true">Ag</span>'
+        return (
+            f'<span class="reading-ag" data-face="{value}" aria-hidden="true">Ag</span>'
+        )
     if control == "size":
-        return f'<span class="reading-a" data-size="{value}" aria-hidden="true">A</span>'
+        return (
+            f'<span class="reading-a" data-size="{value}" aria-hidden="true">A</span>'
+        )
     return _READING_TILES[(control, value)]
 
 
@@ -289,6 +320,7 @@ def minimap_enabled(tree: Any) -> bool:
 
 def _make_reading_panel(typeface_default: str = "sans", minimap: bool = True) -> str:
     from html import escape
+
     rows = []
     for control, label, options, default in _READING_CONTROLS:
         if control == "minimap" and not minimap:
@@ -311,7 +343,8 @@ def _make_reading_panel(typeface_default: str = "sans", minimap: bool = True) ->
             f'<div class="reading-row" data-control="{control}">'
             f'<span class="reading-label">{escape(label)}</span>'
             f'<div class="reading-opts" role="group" aria-label="{escape(label)}">'
-            + "".join(opts) + "</div></div>"
+            + "".join(opts)
+            + "</div></div>"
         )
     return (
         '<div class="rail-section rail-reading">'
@@ -471,7 +504,7 @@ def _normalize_doi(doi: str) -> str:
     lowered = doi.lower()
     for prefix in _DOI_RESOLVER_PREFIXES:
         if lowered.startswith(prefix):
-            return doi[len(prefix):]
+            return doi[len(prefix) :]
     return doi
 
 
@@ -540,7 +573,9 @@ def expand_notation(latex: str, macros: dict[str, str], _depth: int = 0) -> str:
             args.append(arg[0])
             j = arg[1]
         else:
-            body = re.sub(r"#([1-9])", lambda m: args[int(m.group(1)) - 1], body)
+            body = re.sub(
+                r"#([1-9])", lambda m, args=args: args[int(m.group(1)) - 1], body
+            )
             out.append(expand_notation(body, macros, _depth + 1))
             i = j
             continue
@@ -942,7 +977,11 @@ class AppendNodeTag(AppendOpenTag):
         if extra_attrs:
             kwargs.update(extra_attrs)
         if isinstance(node, nodes.Asset) and node.static:
-            static_src = self._resolve_image_src(node.static) if hasattr(self, '_resolve_image_src') else str(node.static)
+            static_src = (
+                self._resolve_image_src(node.static)
+                if hasattr(self, "_resolve_image_src")
+                else str(node.static)
+            )
             kwargs["data-static"] = static_src
         elif isinstance(node, nodes.Figure) and node.holds_html and node.alt:
             # Without a still image the alt text appears nowhere else in the
@@ -963,8 +1002,12 @@ class AppendNodeTag(AppendOpenTag):
 
             if start_row < len(source_lines) and end_row < len(source_lines):
                 # Compute character offsets into the full source string
-                start_offset = sum(len(source_lines[r]) + 1 for r in range(start_row)) + start_col
-                end_offset = sum(len(source_lines[r]) + 1 for r in range(end_row)) + end_col
+                start_offset = (
+                    sum(len(source_lines[r]) + 1 for r in range(start_row)) + start_col
+                )
+                end_offset = (
+                    sum(len(source_lines[r]) + 1 for r in range(end_row)) + end_col
+                )
                 kwargs["data-source-start"] = str(start_offset)
                 kwargs["data-source-end"] = str(end_offset)
 
@@ -1176,7 +1219,14 @@ class Translator:
             classname = self.node.__class__.__name__
             return f'Action(node={classname}(), action="{self.action}")'
 
-    def __init__(self, quiet: bool = False, asset_resolver=None, standalone: bool = False, source_offsets: bool = False, copy_source: bool = False):
+    def __init__(
+        self,
+        quiet: bool = False,
+        asset_resolver=None,
+        standalone: bool = False,
+        source_offsets: bool = False,
+        copy_source: bool = False,
+    ):
         self.tree: nodes.Manuscript = None
         self.body: str = ""
         self.standalone = standalone
@@ -1242,7 +1292,9 @@ class Translator:
         """Push the visits of *children*, and after them the step that wraps
         their hyphenated words."""
         if any(type(c) is nodes.Text for c in children):
-            stack.append(self.Action(children, "words", Translator._wrap_hyphenated_words_of))
+            stack.append(
+                self.Action(children, "words", Translator._wrap_hyphenated_words_of)
+            )
         for child in reversed(children):
             self.push_visit(stack, child)
 
@@ -1305,7 +1357,11 @@ class Translator:
                     if m.group()[0].isspace():
                         end_word()
                     else:
-                        add(start + m.start(), start + m.end(), bool(_HYPHEN.search(m.group())))
+                        add(
+                            start + m.start(),
+                            start + m.end(),
+                            bool(_HYPHEN.search(m.group())),
+                        )
             elif isinstance(child, _WORD_PIECES):
                 shown, prose = _shown_prose(child, html)
                 if re.search(r"\s", shown):
@@ -1359,7 +1415,9 @@ class Translator:
                 self.push_children(stack, node.children)
             command.execute(self)
             if node is spinner_after and action == spinner_action:
-                self.body += '\n<div class="rsm-loading-spinner" aria-hidden="true"></div>\n'
+                self.body += (
+                    '\n<div class="rsm-loading-spinner" aria-hidden="true"></div>\n'
+                )
 
         if self.deferred:
             raise RSMTranslatorError("Something went wrong")
@@ -1390,9 +1448,9 @@ class Translator:
         Paragraphs and note and aside definitions open a <p>. Captions and list
         items are paragraphs in the tree but open no <p> of their own.
         """
-        return isinstance(node.parent, (nodes.Paragraph, nodes.Note)) and not isinstance(
-            node.parent, nodes.Caption
-        )
+        return isinstance(
+            node.parent, (nodes.Paragraph, nodes.Note)
+        ) and not isinstance(node.parent, nodes.Caption)
 
     def _close_p_before(self, node: nodes.TerminalBlock) -> list[EditCommand]:
         """Commands that close the parent's <p> before a terminal block.
@@ -1402,7 +1460,9 @@ class Translator:
         """
         return [AppendText("</p>")] if self._terminal_block_in_p(node) else []
 
-    def _reopen_p_after(self, node: nodes.TerminalBlock, closing: EditCommand) -> EditCommand:
+    def _reopen_p_after(
+        self, node: nodes.TerminalBlock, closing: EditCommand
+    ) -> EditCommand:
         """Open a new <p> after a terminal block when more of the paragraph follows.
 
         ``closing`` holds the block's own closing commands. Asides moved to the end
@@ -1419,10 +1479,14 @@ class Translator:
         return AppendBatch([*items, AppendText("<p>")])
 
     def visit_manuscript(self, node: nodes.Manuscript) -> EditCommand:
-        accent = getattr(node, 'accent', 'blue')
-        lang = getattr(node, 'lang', 'en')
-        typography = getattr(node, 'typography', 'sans-serif')
-        body_attrs = {"data-accent": accent, "data-lang": lang, "data-typography": typography}
+        accent = getattr(node, "accent", "blue")
+        lang = getattr(node, "lang", "en")
+        typography = getattr(node, "typography", "sans-serif")
+        body_attrs = {
+            "data-accent": accent,
+            "data-lang": lang,
+            "data-typography": typography,
+        }
         if not minimap_enabled(node):
             body_attrs["data-minimap"] = "false"
         batch = AppendBatchAndDefer(
@@ -1445,6 +1509,7 @@ class Translator:
 
         if node.date:
             from datetime import datetime
+
             if isinstance(node.date, str):
                 for fmt in ["%Y-%m-%d", "%d.%m.%Y", "%m/%d/%Y"]:
                     try:
@@ -1458,7 +1523,9 @@ class Translator:
             else:
                 date_str = node.date.strftime("%B %d, %Y")
             batch.items.append(
-                AppendParagraph(_wrap_hyphenated_words(date_str), classes=["manuscript-date"])
+                AppendParagraph(
+                    _wrap_hyphenated_words(date_str), classes=["manuscript-date"]
+                )
             )
 
         return batch
@@ -1474,8 +1541,8 @@ class Translator:
 
     def visit_authorblock(self, node: nodes.AuthorBlock) -> EditCommand:
         authors = [c for c in node.children if isinstance(c, nodes.Author)]
-        total_affiliations = getattr(self.tree, 'total_unique_affiliations', 0)
-        total_notes = getattr(self.tree, 'total_unique_notes', 0)
+        total_affiliations = getattr(self.tree, "total_unique_affiliations", 0)
+        total_notes = getattr(self.tree, "total_unique_notes", 0)
 
         # Build reverse maps for tooltips
         notes_node = next(
@@ -1500,41 +1567,45 @@ class Translator:
                 sup_parts.append(
                     f'<sup data-tooltip="{author.author_note}">{author.note_symbol}</sup>'
                 )
-            name_html += ''.join(sup_parts)
+            name_html += "".join(sup_parts)
             name_parts.append(name_html)
 
-        names_line = ', '.join(name_parts) if name_parts else ''
+        names_line = ", ".join(name_parts) if name_parts else ""
 
         # Build the full block content: names + details
-        html = f'\n<p class="author-names">{names_line}</p>\n' if names_line else ''
+        html = f'\n<p class="author-names">{names_line}</p>\n' if names_line else ""
         html += self._make_authornotes_html(notes_node)
 
-        return AppendBatchAndDefer([
-            AppendOpenTag("div", classes=["author-block"], newline_inner=False),
-            AppendText(html),
-        ])
+        return AppendBatchAndDefer(
+            [
+                AppendOpenTag("div", classes=["author-block"], newline_inner=False),
+                AppendText(html),
+            ]
+        )
 
     def leave_authorblock(self, node: nodes.AuthorBlock) -> EditCommand:
         return self.leave_node(node)
 
     def visit_authornotes(self, node: nodes.AuthorNotes) -> EditCommand:
-        return AppendText('')
+        return AppendText("")
 
     def leave_authornotes(self, node: nodes.AuthorNotes) -> EditCommand:
-        return AppendText('')
+        return AppendText("")
 
     def _make_authornotes_html(self, node: nodes.AuthorNotes | None) -> str:
         if not node:
-            return ''
-        has_content = node.affiliation_map or node.note_map or node.emails or node.orcids
+            return ""
+        has_content = (
+            node.affiliation_map or node.note_map or node.emails or node.orcids
+        )
         if not has_content:
-            return ''
+            return ""
 
         total_affiliations = len(node.affiliation_map)
         total_notes = len(node.note_map)
 
         html = '<details class="author-details">\n'
-        html += f'<summary>{self._icon_ref("chevron-down")}Affiliations</summary>\n'
+        html += f"<summary>{self._icon_ref('chevron-down')}Affiliations</summary>\n"
 
         if node.affiliation_map:
             html += '<ol class="author-affiliations">\n'
@@ -1543,8 +1614,8 @@ class Translator:
                     html += f'<li value="{aff_num}"><sup>{aff_num}</sup>{_wrap_hyphenated_words(aff_text)}</li>\n'
             else:
                 for aff_text in node.affiliation_map:
-                    html += f'<li>{_wrap_hyphenated_words(aff_text)}</li>\n'
-            html += '</ol>\n'
+                    html += f"<li>{_wrap_hyphenated_words(aff_text)}</li>\n"
+            html += "</ol>\n"
 
         if node.note_map:
             if total_notes > 1:
@@ -1555,16 +1626,18 @@ class Translator:
                     html += f'<p class="author-note">{_wrap_hyphenated_words(note_text)}</p>\n'
 
         if node.emails:
-            email_links = ', '.join(
+            email_links = ", ".join(
                 f'<a href="mailto:{email}">{email}</a>' for _, email in node.emails
             )
-            html += f'<p class="author-correspondence">Correspondence: {email_links}</p>\n'
+            html += (
+                f'<p class="author-correspondence">Correspondence: {email_links}</p>\n'
+            )
 
         if node.orcids:
             for name, orcid in node.orcids:
                 html += f'<p class="author-orcid">{_wrap_hyphenated_words(f"{name}: {orcid}")}</p>\n'
 
-        html += '</details>\n'
+        html += "</details>\n"
         return html
 
     def visit_abstract(self, node: nodes.Abstract) -> EditCommand:
@@ -1585,7 +1658,9 @@ class Translator:
         if node.keywords:
             text = ", ".join(node.keywords)
             batch.items.append(
-                AppendParagraph(_wrap_hyphenated_words(f"Keywords: {text}"), classes=["keywords"])
+                AppendParagraph(
+                    _wrap_hyphenated_words(f"Keywords: {text}"), classes=["keywords"]
+                )
             )
         if node.msc:
             text = ", ".join(node.msc)
@@ -1635,7 +1710,9 @@ class Translator:
         fold_label = getattr(node, "fold_label", "")
         items: list[EditCommand] = [
             AppendNodeTag(
-                node, "div", extra_attrs={"data-fold-label": fold_label} if fold_label else None
+                node,
+                "div",
+                extra_attrs={"data-fold-label": fold_label} if fold_label else None,
             )
         ]
         # An aside at the end of the paragraph closes the <p> itself, see
@@ -1674,13 +1751,17 @@ class Translator:
         )
 
     def visit_enumerate(self, node: nodes.Enumerate) -> EditCommand:
-        return AppendBatchAndDefer([*self._close_p_before(node), AppendNodeTag(node, "ol")])
+        return AppendBatchAndDefer(
+            [*self._close_p_before(node), AppendNodeTag(node, "ol")]
+        )
 
     def leave_enumerate(self, node: nodes.Enumerate) -> EditCommand:
         return self._reopen_p_after(node, self.leave_node(node))
 
     def visit_itemize(self, node: nodes.Itemize) -> EditCommand:
-        return AppendBatchAndDefer([*self._close_p_before(node), AppendNodeTag(node, "ul")])
+        return AppendBatchAndDefer(
+            [*self._close_p_before(node), AppendNodeTag(node, "ul")]
+        )
 
     def leave_itemize(self, node: nodes.Itemize) -> EditCommand:
         return self._reopen_p_after(node, self.leave_node(node))
@@ -1697,7 +1778,9 @@ class Translator:
                 # readers can jump to it. aria-label names the landmark since the
                 # rail is a separate (complementary) landmark.
                 AppendOpenTag(
-                    tag="nav", classes=toc_classes, **{"aria-label": "Table of contents"}
+                    tag="nav",
+                    classes=toc_classes,
+                    **{"aria-label": "Table of contents"},
                 ),
                 # Level 2 for the same heading-order reason as the abstract: the
                 # table of contents is front matter between the h1 and the first
@@ -1723,31 +1806,49 @@ class Translator:
         # both layouts and braiid.css shows the horizontal one from 768px.
         # Each copy has its own arrowhead ids: a marker found inside the hidden
         # copy would not be drawn.
-        vertical = self._toc_tree_svg(node, svg_class="toc-tree toc-tree-v", marker_id="toc-v-arr")
+        vertical = self._toc_tree_svg(
+            node, svg_class="toc-tree toc-tree-v", marker_id="toc-v-arr"
+        )
         horizontal = self._toc_tree_svg(
-            node, orient="horizontal", svg_class="toc-tree toc-tree-h", marker_id="toc-h-arr"
+            node,
+            orient="horizontal",
+            svg_class="toc-tree toc-tree-h",
+            marker_id="toc-h-arr",
         )
         return vertical + horizontal
 
     def _toc_tree_svg(
-        self, node: nodes.Contents, orient: str = "vertical",
-        svg_class: str = "toc-tree", marker_id: str = "toc-arr",
+        self,
+        node: nodes.Contents,
+        orient: str = "vertical",
+        svg_class: str = "toc-tree",
+        marker_id: str = "toc-arr",
     ) -> str:
         # The TOC graph root stands in for the title/abstract and is drawn as a
         # small muted dot with no label, so the manuscript title no longer sizes
         # or overflows the drawing. The full title stays the dot's accessible name
         # and hover tooltip.
         return self._build_tree_svg(
-            node.tree_nodes, node.toc_edges, node.tree_root_title,
-            "Section dependency graph", orient=orient,
-            svg_class=svg_class, marker_id=marker_id,
+            node.tree_nodes,
+            node.toc_edges,
+            node.tree_root_title,
+            "Section dependency graph",
+            orient=orient,
+            svg_class=svg_class,
+            marker_id=marker_id,
         )
 
     def _build_tree_svg(
-        self, tree_nodes: list[dict], ref_edges: list[dict],
-        root_title: str, aria_label: str, orient: str = "vertical",
-        bracket_nums: bool = False, root_label: str | None = None,
-        svg_class: str = "toc-tree", marker_id: str = "toc-arr",
+        self,
+        tree_nodes: list[dict],
+        ref_edges: list[dict],
+        root_title: str,
+        aria_label: str,
+        orient: str = "vertical",
+        bracket_nums: bool = False,
+        root_label: str | None = None,
+        svg_class: str = "toc-tree",
+        marker_id: str = "toc-arr",
     ) -> str:
         """Pre-rendered dependency-graph SVG, shared by the TOC and proof trees.
 
@@ -1783,7 +1884,9 @@ class Translator:
                         break
             struct.append({"src": i, "dst": parent, "count": 1, "kind": "struct"})
 
-        layout = layout_tree(secs + [root], ref_edges + struct, orient, root_label=root_label)
+        layout = layout_tree(
+            secs + [root], ref_edges + struct, orient, root_label=root_label
+        )
         if layout is None:
             return '<svg class="toc-tree" aria-hidden="true"></svg>'
         horizontal = orient == "horizontal"
@@ -1796,7 +1899,7 @@ class Translator:
             f'<svg class="{svg_class}" width="{w:.0f}" height="{h:.0f}" '
             f'viewBox="{-pad_x} {-pad} {w:.0f} {h:.0f}" role="group" '
             f'aria-label="{escape(aria_label)}">',
-            '<defs>'
+            "<defs>"
             f'<marker id="{marker_id}-dep" viewBox="0 0 10 8" refX="8.5" refY="4" '
             'markerWidth="8" markerHeight="6.5" markerUnits="userSpaceOnUse" '
             'orient="auto-start-reverse">'
@@ -1805,17 +1908,17 @@ class Translator:
             'markerWidth="8" markerHeight="6.5" markerUnits="userSpaceOnUse" '
             'orient="auto-start-reverse">'
             '<path d="M0,0 L10,4 L0,8 z" class="toc-arrowhead fwd"/></marker>'
-            '</defs>',
+            "</defs>",
             '<g class="toc-edges-layer">',
         ]
         for e in layout["edges"]:
             x1, y1, x2, y2 = e["x1"], e["y1"], e["x2"], e["y2"]
             if horizontal:  # curve bends along x so left-to-right edges read cleanly
                 mx = (x1 + x2) / 2
-                d = f'M {x1:.1f} {y1:.1f} C {mx:.1f} {y1:.1f}, {mx:.1f} {y2:.1f}, {x2:.1f} {y2:.1f}'
+                d = f"M {x1:.1f} {y1:.1f} C {mx:.1f} {y1:.1f}, {mx:.1f} {y2:.1f}, {x2:.1f} {y2:.1f}"
             else:
                 my = (y1 + y2) / 2
-                d = f'M {x1:.1f} {y1:.1f} C {x1:.1f} {my:.1f}, {x2:.1f} {my:.1f}, {x2:.1f} {y2:.1f}'
+                d = f"M {x1:.1f} {y1:.1f} C {x1:.1f} {my:.1f}, {x2:.1f} {my:.1f}, {x2:.1f} {y2:.1f}"
             if e["kind"] == "struct":
                 sw, marker = 1.0, ""
             else:
@@ -1828,10 +1931,10 @@ class Translator:
             )
         parts.append('</g><g class="toc-nodes-layer">')
         for n in layout["nodes"]:
-            href = f'#{n["label"]}' if n["label"] else "#"
+            href = f"#{n['label']}" if n["label"] else "#"
             cx = n["x"] + n["w"] / 2
             cy = n["y"] + n["h"] / 2
-            full = (f'{n["num"]}. {n["title"]}' if n["num"] else n["title"])
+            full = f"{n['num']}. {n['title']}" if n["num"] else n["title"]
             ncls = "toc-node level-{}".format(n["depth"])
             if n.get("type") == "result":
                 ncls += " toc-node-result"
@@ -1870,14 +1973,14 @@ class Translator:
             else:
                 inner = escape(n["title"])
             parts.append(
-                f'{open_a}'
+                f"{open_a}"
                 f'<rect x="{n["x"]:.1f}" y="{n["y"]:.1f}" width="{n["w"]}" '
                 f'height="{n["h"]}" rx="6"></rect>'
                 f'<text class="toc-secnum" x="{cx:.1f}" y="{cy:.1f}" '
                 f'text-anchor="middle" dominant-baseline="central">{inner}</text></a>'
             )
-        parts.append('</g>')
-        parts.append('</svg>')
+        parts.append("</g>")
+        parts.append("</svg>")
         return "".join(parts)
 
     def visit_notecall(self, node: nodes.NoteCall) -> EditCommand:
@@ -1972,7 +2075,9 @@ class Translator:
             batch.items.insert(0, AppendText(f" {backlink}↖</a>"))
         return batch
 
-    def _notation_source(self, node: nodes.Math | nodes.MathBlock, prefix: str = "") -> dict:
+    def _notation_source(
+        self, node: nodes.Math | nodes.MathBlock, prefix: str = ""
+    ) -> dict:
         """With JS off the math source is all a reader sees, and notation macro
         names mean nothing to a reader, so the source text gets the macros'
         defaults. notation.js needs the macro calls to rebind them, so the
@@ -2013,7 +2118,9 @@ class Translator:
         commands = self._close_p_before(node)
         if node.preamble:
             node.classes.append("math-preamble")
-        commands.append(AppendNodeTag(node, "div", extra_attrs=self._notation_source(node)))
+        commands.append(
+            AppendNodeTag(node, "div", extra_attrs=self._notation_source(node))
+        )
         commands.append(AppendTextAndDefer("$$\n", "\n$$"))
         return AppendBatchAndDefer(commands)
 
@@ -2035,7 +2142,9 @@ class Translator:
             # highlight_code emits HTML-safe markup; plain code must be escaped
             # here so a < in the source does not open a tag.
             code = (
-                node.text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+                node.text.replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
             )
         return AppendBatchAndDefer(
             [
@@ -2050,7 +2159,9 @@ class Translator:
         )
 
     def visit_code(self, node: nodes.Code) -> EditCommand:
-        return self._node_tag(node, tag="span", newline_inner=False, newline_outer=False)
+        return self._node_tag(
+            node, tag="span", newline_inner=False, newline_outer=False
+        )
 
     def visit_rawhtml(self, node: nodes.RawHtml) -> EditCommand:
         # The fallback (the children) goes first and hidden, and the HTML last,
@@ -2084,7 +2195,9 @@ class Translator:
         ]
         if node.children:
             items.append(
-                AppendTextAndDefer('<div class="rawhtml-alt" hidden>', "</div>" + node.html)
+                AppendTextAndDefer(
+                    '<div class="rawhtml-alt" hidden>', "</div>" + node.html
+                )
             )
         else:
             items.append(AppendTextAndDefer("", node.html))
@@ -2117,6 +2230,7 @@ class Translator:
         # Emit the rebindable-notation entries as data for the frontend, which
         # defines the macros from the defaults and lets the reader reskin them.
         import json
+
         data = json.dumps(node.entries).replace("</", "<\\/")
         return AppendText(
             f'<script type="application/json" class="rsm-notation">{data}</script>'
@@ -2147,13 +2261,17 @@ class Translator:
         ]
         return AppendBatchAndDefer(
             [
-                self._node_tag(node, tag="span", newline_inner=False, newline_outer=False),
+                self._node_tag(
+                    node, tag="span", newline_inner=False, newline_outer=False
+                ),
                 *commands,
             ]
         )
 
     def visit_construct(self, node: nodes.Construct) -> EditCommand:
-        return self._node_tag(node, tag="span", newline_inner=False, newline_outer=False)
+        return self._node_tag(
+            node, tag="span", newline_inner=False, newline_outer=False
+        )
 
     def _title_html(self, node: nodes.Heading) -> str:
         if node.title_nodes:
@@ -2204,7 +2322,9 @@ class Translator:
             # plain-reftext path.
             reftext = self._render_inline_nodes(reftext_nodes).strip()
         elif hasattr(node, "overwrite_reftext") and node.overwrite_reftext:
-            reftext = _wrap_hyphenated_words(html_escape(node.overwrite_reftext, quote=False))
+            reftext = _wrap_hyphenated_words(
+                html_escape(node.overwrite_reftext, quote=False)
+            )
         else:
             reftext = html_escape(str(getattr(tgt, "reftext", tgt)), quote=False)
             # The text of a bare URL is the URL, which is not prose.
@@ -2263,10 +2383,16 @@ class Translator:
         # Wrap ref + trailing punctuation to prevent line break between them.
         # Also pull in a preceding opening bracket if present.
         sib = node.next_sibling()
-        if isinstance(sib, nodes.Text) and sib.text and sib.text[0] in self._TRAILING_PUNCT:
+        if (
+            isinstance(sib, nodes.Text)
+            and sib.text
+            and sib.text[0] in self._TRAILING_PUNCT
+        ):
             punct = sib.text[0]
             sib.text = sib.text[1:]
-            escaped = punct.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+            escaped = (
+                punct.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+            )
 
             # Check if previous sibling ends with an opening bracket.
             # The previous text is already in self.body — remove it from there.
@@ -2473,9 +2599,9 @@ class Translator:
                 middle = ", ".join(tags[1:-1])
                 last = f'<span class="nowrap">{tags[-1]}]</span>'
                 if middle:
-                    text = f'{first} {middle}, {last}'
+                    text = f"{first} {middle}, {last}"
                 else:
-                    text = f'{first} {last}'
+                    text = f"{first} {last}"
                 text = f'<span id="{node.label}">{text}</span>'
                 return AppendText(text)
             text = f'<span id="{node.label}">{text}</span>'
@@ -2522,7 +2648,11 @@ class Translator:
             id_ = f"{node.label}-{idx}" if multiple else node.label
             parts.append(
                 self._make_ahref_tag_text(
-                    node, target, f"#{target.label}", id_=id_, additional_classes=classes
+                    node,
+                    target,
+                    f"#{target.label}",
+                    id_=id_,
+                    additional_classes=classes,
                 )
             )
         if style == "parens-author-year":
@@ -2537,7 +2667,9 @@ class Translator:
         # Author-year bibliographies are unnumbered (the citation carries the
         # author and year), so they use an unordered list; numeric stays an <ol>.
         style = getattr(self.tree, "citation_style", "numeric")
-        list_tag = "ul" if style in ("parens-author-year", "author-parens-year") else "ol"
+        list_tag = (
+            "ul" if style in ("parens-author-year", "author-parens-year") else "ol"
+        )
         return AppendBatchAndDefer(
             [
                 AppendOpenTag("section", classes=["level-2"]),
@@ -2553,7 +2685,9 @@ class Translator:
         # transform; numeric ones show the number in a pill beside the card.
         style = getattr(self.tree, "citation_style", "numeric")
         ay = style in ("parens-author-year", "author-parens-year")
-        year_text = f"{node.year}{node.year_suffix}" if (ay and node.year) else node.year
+        year_text = (
+            f"{node.year}{node.year_suffix}" if (ay and node.year) else node.year
+        )
 
         link = ""
         if node.doi:
@@ -2594,7 +2728,11 @@ class Translator:
                     id_="",
                     classes=["reference", "backlink"],
                     href=f"#{link_lbl}",
-                    **{"aria-label": f"Back to citation {idx}" if many else "Back to the citation"},
+                    **{
+                        "aria-label": f"Back to citation {idx}"
+                        if many
+                        else "Back to the citation"
+                    },
                 )
                 + "↖"
                 + (f"<sup>{idx}</sup>" if many else "")
@@ -2614,14 +2752,18 @@ class Translator:
             # warn once here instead of emitting the per-field warnings below.
             logger.warning(f"Bibitem {node.label} is a verbatim (unparsed) reference")
             verbatim = _wrap_hyphenated_words(node.verbatim)
-            lines.append(line(f'<div class="bib-verbatim">{verbatim}</div>', link + cited))
+            lines.append(
+                line(f'<div class="bib-verbatim">{verbatim}</div>', link + cited)
+            )
         else:
             who = str(node.author or "").strip()
             if node.year:
                 who = f"{who} ({year_text})" if who else f"({year_text})"
             else:
                 logger.warning(f"Bibitem {node.label} has no year")
-            lines.append(line(f'<div class="bib-who">{_wrap_hyphenated_words(who)}</div>', link))
+            lines.append(
+                line(f'<div class="bib-who">{_wrap_hyphenated_words(who)}</div>', link)
+            )
             title = _wrap_hyphenated_words(str(node.title or "").strip().rstrip("."))
             venue = _wrap_hyphenated_words(self._bib_venue(node))
             lines.append(f'<div class="bib-title">{title}</div>')
@@ -2664,7 +2806,9 @@ class Translator:
             if node.publisher:
                 parts.append(node.publisher)
         elif node.kind in ("phdthesis", "mastersthesis"):
-            parts.append("PhD thesis" if node.kind == "phdthesis" else "Master's thesis")
+            parts.append(
+                "PhD thesis" if node.kind == "phdthesis" else "Master's thesis"
+            )
             if node.school:
                 parts.append(node.school)
         elif node.kind == "techreport":
@@ -2708,7 +2852,9 @@ class Translator:
 
         # If the resolver returned a string that looks like a URL/path
         # (not raw content), use it directly.
-        if isinstance(resolved, str) and (resolved.startswith("/") or resolved.startswith("http")):
+        if isinstance(resolved, str) and (
+            resolved.startswith("/") or resolved.startswith("http")
+        ):
             return resolved
 
         if not self.standalone:
@@ -2747,7 +2893,9 @@ class Translator:
         )
         if node.dark:
             dark_src = self._resolve_image_src(node.dark)
-            source = f'<source media="(prefers-color-scheme: dark)" srcset="{dark_src}">'
+            source = (
+                f'<source media="(prefers-color-scheme: dark)" srcset="{dark_src}">'
+            )
             return f"<picture>\n{source}\n{img}\n</picture>"
         return img
 
@@ -2815,9 +2963,7 @@ class Translator:
             f"figure {node.full_number}" if node.full_number else "an asset"
         )
         logger.warning(f"Static fallback for {ident} has :static: but no :alt:")
-        caption = next(
-            (c for c in node.children if isinstance(c, nodes.Caption)), None
-        )
+        caption = next((c for c in node.children if isinstance(c, nodes.Caption)), None)
         if caption is not None:
             text = "".join(
                 t.text for t in caption.traverse(nodeclass=nodes.Text)
@@ -2852,7 +2998,9 @@ class Translator:
         # The inline display:none must stay off the noscript copy: CSS cannot
         # override it, which is exactly why the JS path needs it and the no-JS
         # path must not have it.
-        toggleable = f'<span class="static-fallback" style="display:none">{inner}</span>'
+        toggleable = (
+            f'<span class="static-fallback" style="display:none">{inner}</span>'
+        )
         noscript = f"<noscript>{inner}</noscript>"
         return toggleable + noscript
 
@@ -2901,7 +3049,7 @@ class Translator:
             tag="table",
             id=table_tag.id,
             classes=table_tag.classes,
-            **{k: v for k, v in table_tag.custom_attrs.items()},
+            **table_tag.custom_attrs,
         )
         return AppendBatchAndDefer(
             [
@@ -3062,7 +3210,11 @@ class HandrailsTranslator(Translator):
         sidebar: bool = False,
     ):
         super().__init__(
-            quiet, asset_resolver, standalone, source_offsets=source_offsets, copy_source=copy_source
+            quiet,
+            asset_resolver,
+            standalone,
+            source_offsets=source_offsets,
+            copy_source=copy_source,
         )
         # The reader sidebar is a build option (`rsm build --sidebar`),
         # independent of whether the author wrote :toc:.
@@ -3109,8 +3261,12 @@ class HandrailsTranslator(Translator):
             end_row, end_col = node.end_point[0], node.end_point[1]
 
             if start_row < len(source_lines) and end_row < len(source_lines):
-                start_offset = sum(len(source_lines[r]) + 1 for r in range(start_row)) + start_col
-                end_offset = sum(len(source_lines[r]) + 1 for r in range(end_row)) + end_col
+                start_offset = (
+                    sum(len(source_lines[r]) + 1 for r in range(start_row)) + start_col
+                )
+                end_offset = (
+                    sum(len(source_lines[r]) + 1 for r in range(end_row)) + end_col
+                )
                 kwargs["data-source-start"] = str(start_offset)
                 kwargs["data-source-end"] = str(end_offset)
 
@@ -3194,17 +3350,25 @@ class HandrailsTranslator(Translator):
         if label:
             attrs["data-menu-label"] = label
         if collapse:
-            attrs["data-menu-collapse"] = "disabled" if collapse == "disabled" else "true"
+            attrs["data-menu-collapse"] = (
+                "disabled" if collapse == "disabled" else "true"
+            )
         if collapse_all:
-            attrs["data-menu-collapse-all"] = "disabled" if collapse_all == "disabled" else "true"
+            attrs["data-menu-collapse-all"] = (
+                "disabled" if collapse_all == "disabled" else "true"
+            )
         if link:
             attrs["data-menu-link"] = "disabled" if link == "disabled" else "true"
         if code:
             attrs["data-menu-code"] = "disabled" if code == "disabled" else "true"
         if static_toggle:
-            attrs["data-menu-static-toggle"] = "disabled" if static_toggle == "disabled" else "true"
+            attrs["data-menu-static-toggle"] = (
+                "disabled" if static_toggle == "disabled" else "true"
+            )
         if toc_view:
-            attrs["data-menu-toc-view"] = "disabled" if toc_view == "disabled" else "true"
+            attrs["data-menu-toc-view"] = (
+                "disabled" if toc_view == "disabled" else "true"
+            )
         return attrs
 
     def _hr_menu_zone(
@@ -3352,7 +3516,11 @@ class HandrailsTranslator(Translator):
         if not isinstance(statement, nodes.Statement) or not statement.children:
             return None
         first = statement.children[0]
-        if isinstance(first, nodes.MathBlock) and not first.preamble and not first.nonum:
+        if (
+            isinstance(first, nodes.MathBlock)
+            and not first.preamble
+            and not first.nonum
+        ):
             return first
         return None
 
@@ -3403,7 +3571,9 @@ class HandrailsTranslator(Translator):
             link=(True if node.label else "disabled"),
         )
         merged_attrs = {**menu_attrs, **(extra_attrs or {})}
-        handrail = self._hr_from_node(node, additional_classes, extra_attrs=merged_attrs)
+        handrail = self._hr_from_node(
+            node, additional_classes, extra_attrs=merged_attrs
+        )
         hr_content_zone = self._hr_content_zone(True)
         newitems = [
             handrail,
@@ -3431,15 +3601,24 @@ class HandrailsTranslator(Translator):
         link: bool | Literal["disabled"] = True if node.label else "disabled"
         if sub is None:
             menu_zone, menu_attrs = self._hr_menu_zone(
-                label=node.reftext, collapse="disabled", collapse_all="disabled", link=link,
+                label=node.reftext,
+                collapse="disabled",
+                collapse_all="disabled",
+                link=link,
             )
         elif sub and sub.first_of_type(nodes.Step) is None:
             menu_zone, menu_attrs = self._hr_menu_zone(
-                label=node.reftext, collapse=True, collapse_all="disabled", link=link,
+                label=node.reftext,
+                collapse=True,
+                collapse_all="disabled",
+                link=link,
             )
         else:
             menu_zone, menu_attrs = self._hr_menu_zone(
-                label=node.reftext, collapse=True, collapse_all=True, link=link,
+                label=node.reftext,
+                collapse=True,
+                collapse_all=True,
+                link=link,
             )
         newitems = [
             self._hr_from_node(node, extra_attrs=menu_attrs),
@@ -3470,7 +3649,9 @@ class HandrailsTranslator(Translator):
         menu_zone, menu_attrs = self._hr_menu_zone(
             label=menu_label, link=link, toc_view=toc_view
         )
-        handrail = self._hr(include_content, depth, classes, node=node, extra_attrs=menu_attrs)
+        handrail = self._hr(
+            include_content, depth, classes, node=node, extra_attrs=menu_attrs
+        )
         hr_content_zone = self._hr_content_zone(include_content)
 
         newitems = [
@@ -3554,61 +3735,61 @@ class HandrailsTranslator(Translator):
         """Emit the single shared menu template with all possible items."""
         html = '<div id="hr-menu-singleton" style="display:none">\n'
         html += '<div class="hr-menu">\n'
-        html += f'  <div class="hr-menu-label"><span class="hr-menu-item-text" data-role="label"></span></div>\n'
+        html += '  <div class="hr-menu-label"><span class="hr-menu-item-text" data-role="label"></span></div>\n'
         html += '  <div class="hr-menu-separator" data-role="label-sep"></div>\n'
-        html += f'  <div class="hr-menu-item collapse-subproof" data-role="collapse">\n'
-        html += f'    {self._icon_ref("collapse")}\n'
+        html += '  <div class="hr-menu-item collapse-subproof" data-role="collapse">\n'
+        html += f"    {self._icon_ref('collapse')}\n"
         html += '    <span class="hr-menu-item-text">Collapse</span>\n'
-        html += '  </div>\n'
-        html += f'  <div class="hr-menu-item collapse-steps" data-role="collapse-all">\n'
-        html += f'    {self._icon_ref("collapse-all")}\n'
+        html += "  </div>\n"
+        html += '  <div class="hr-menu-item collapse-steps" data-role="collapse-all">\n'
+        html += f"    {self._icon_ref('collapse-all')}\n"
         html += '    <span class="hr-menu-item-text">Collapse all</span>\n'
-        html += '  </div>\n'
+        html += "  </div>\n"
         html += '  <div class="hr-menu-separator" data-role="collapse-sep"></div>\n'
         # Keep a block open in the sidebar's Pinned view (only with --sidebar;
         # handrails.js shows it on pinnable blocks).
-        html += f'  <div class="hr-menu-item pin" data-role="pin">\n'
-        html += f'    {self._icon_ref("pin")}\n'
+        html += '  <div class="hr-menu-item pin" data-role="pin">\n'
+        html += f"    {self._icon_ref('pin')}\n"
         html += '    <span class="hr-menu-item-text">Pin</span>\n'
-        html += '  </div>\n'
-        html += f'  <div class="hr-menu-item link" data-role="link">\n'
-        html += f'    {self._icon_ref("link")}\n'
+        html += "  </div>\n"
+        html += '  <div class="hr-menu-item link" data-role="link">\n'
+        html += f"    {self._icon_ref('link')}\n"
         html += '    <span class="hr-menu-item-text">Copy link</span>\n'
-        html += '  </div>\n'
-        html += f'  <div class="hr-menu-item" data-role="code">\n'
-        html += f'    {self._icon_ref("code")}\n'
+        html += "  </div>\n"
+        html += '  <div class="hr-menu-item" data-role="code">\n'
+        html += f"    {self._icon_ref('code')}\n"
         html += '    <span class="hr-menu-item-text">Source</span>\n'
-        html += '  </div>\n'
+        html += "  </div>\n"
         html += '  <div class="hr-menu-separator" data-role="static-sep"></div>\n'
-        html += f'  <div class="hr-menu-item" data-role="static-toggle">\n'
-        html += f'    {self._icon_ref("image")}\n'
+        html += '  <div class="hr-menu-item" data-role="static-toggle">\n'
+        html += f"    {self._icon_ref('image')}\n"
         html += '    <span class="hr-menu-item-text">Static</span>\n'
-        html += '  </div>\n'
+        html += "  </div>\n"
         html += '  <div class="hr-menu-separator" data-role="toc-view-sep"></div>\n'
-        html += f'  <div class="hr-menu-item toc-view" data-role="toc-view">\n'
-        html += f'    {self._icon_ref("tree")}\n'
+        html += '  <div class="hr-menu-item toc-view" data-role="toc-view">\n'
+        html += f"    {self._icon_ref('tree')}\n"
         html += '    <span class="hr-menu-item-text">View as tree</span>\n'
-        html += '  </div>\n'
+        html += "  </div>\n"
         html += '  <div class="hr-menu-separator" data-role="reorder-sep"></div>\n'
-        html += f'  <div class="hr-menu-item reorder" data-role="reorder" role="button" aria-pressed="false">\n'
-        html += f'    {self._icon_ref("reorder")}\n'
+        html += '  <div class="hr-menu-item reorder" data-role="reorder" role="button" aria-pressed="false">\n'
+        html += f"    {self._icon_ref('reorder')}\n"
         html += '    <span class="hr-menu-item-text">Reorder</span>\n'
-        html += '  </div>\n'
+        html += "  </div>\n"
         html += '  <div class="hr-menu-separator" data-role="focus-sep"></div>\n'
-        html += f'  <div class="hr-menu-item focus" data-role="focus" role="button">\n'
-        html += f'    {self._icon_ref("focus-2")}\n'
+        html += '  <div class="hr-menu-item focus" data-role="focus" role="button">\n'
+        html += f"    {self._icon_ref('focus-2')}\n"
         html += '    <span class="hr-menu-item-text">Focus this step</span>\n'
-        html += '  </div>\n'
+        html += "  </div>\n"
         html += '  <div class="hr-menu-separator" data-role="deplens-sep"></div>\n'
-        html += f'  <div class="hr-menu-item deplens-up" data-role="deplens-up" role="button">\n'
-        html += f'    {self._icon_ref("deplens-up")}\n'
+        html += '  <div class="hr-menu-item deplens-up" data-role="deplens-up" role="button">\n'
+        html += f"    {self._icon_ref('deplens-up')}\n"
         html += '    <span class="hr-menu-item-text">Depends on</span>\n'
-        html += '  </div>\n'
-        html += f'  <div class="hr-menu-item deplens-down" data-role="deplens-down" role="button">\n'
-        html += f'    {self._icon_ref("deplens-down")}\n'
+        html += "  </div>\n"
+        html += '  <div class="hr-menu-item deplens-down" data-role="deplens-down" role="button">\n'
+        html += f"    {self._icon_ref('deplens-down')}\n"
         html += '    <span class="hr-menu-item-text">Used by</span>\n'
-        html += '  </div>\n'
-        html += '</div>\n</div>'
+        html += "  </div>\n"
+        html += "</div>\n</div>"
         return AppendText(text=html)
 
     def _make_source_div(self):
@@ -3624,16 +3805,31 @@ class HandrailsTranslator(Translator):
     # Each hint fits one line in the 17rem desktop panel.
     _RAIL_VIEWS = {
         "contents": ("Contents", "document", "doc-map", ""),
-        "notation": ("Notation", "document", "notation",
-                     "Rename a symbol to change it everywhere."),
-        "steps": ("Proof steps", "proof", "proof-map",
-                  "Each step and the earlier steps it uses."),
-        "state": ("Proof state", "proof", "state",
-                  "Assumed and left to prove at this step."),
-        "pinned": ("Pinned", "pinned", "",
-                   "A pinned block, kept beside the text."),
-        "reading": ("Reading", "reading", "",
-                    "Typeface, size, spacing, theme and the map."),
+        "notation": (
+            "Notation",
+            "document",
+            "notation",
+            "Rename a symbol to change it everywhere.",
+        ),
+        "steps": (
+            "Proof steps",
+            "proof",
+            "proof-map",
+            "Each step and the earlier steps it uses.",
+        ),
+        "state": (
+            "Proof state",
+            "proof",
+            "state",
+            "Assumed and left to prove at this step.",
+        ),
+        "pinned": ("Pinned", "pinned", "", "A pinned block, kept beside the text."),
+        "reading": (
+            "Reading",
+            "reading",
+            "",
+            "Typeface, size, spacing, theme and the map.",
+        ),
     }
 
     def _rail_toc_list(self) -> str:
@@ -3653,7 +3849,8 @@ class HandrailsTranslator(Translator):
                 text = sec.title if sec.nonum else f"{sec.full_number}. {sec.title}"
                 nested = (
                     f'<ul class="itemize">{items(id(sec))}</ul>'
-                    if id(sec) in children else ""
+                    if id(sec) in children
+                    else ""
                 )
                 out.append(
                     '<li class="item"><a class="reference" '
@@ -3694,7 +3891,7 @@ class HandrailsTranslator(Translator):
         if has_contents:
             doc_panels.append(
                 f'<div class="rail-panel rail-doc-map{" tree" if rail_tree else ""}">'
-                f'{self._toc_tree_svg(graph)}{self._rail_toc_list()}</div>'
+                f"{self._toc_tree_svg(graph)}{self._rail_toc_list()}</div>"
             )
         if has_notation:
             doc_panels.append('<div class="rail-panel rail-notation"></div>')
@@ -3708,14 +3905,21 @@ class HandrailsTranslator(Translator):
                 continue
             proof_links.append(self._rail_proof_link(proof))
             svg = self._build_tree_svg(
-                proof.tree_nodes, proof.tree_edges, proof.tree_root_title,
-                "Proof step dependency graph", orient="horizontal",
-                bracket_nums=True, root_label="Goal",
+                proof.tree_nodes,
+                proof.tree_edges,
+                proof.tree_root_title,
+                "Proof step dependency graph",
+                orient="horizontal",
+                bracket_nums=True,
+                root_label="Goal",
             )
             proof_items.append(
                 self._rail_item(
-                    str(proof.nodeid), svg, proofmodel.serialize_state(proof),
-                    proof.tree_root_title, len(proof.tree_nodes),
+                    str(proof.nodeid),
+                    svg,
+                    proofmodel.serialize_state(proof),
+                    proof.tree_root_title,
+                    len(proof.tree_nodes),
                 )
             )
         has_proofs = bool(proof_items)
@@ -3733,7 +3937,9 @@ class HandrailsTranslator(Translator):
                 "</button>"
             )
 
-        sep = '<span class="rail-strip-sep" data-mode="split" aria-hidden="true"></span>'
+        sep = (
+            '<span class="rail-strip-sep" data-mode="split" aria-hidden="true"></span>'
+        )
         groups = []
         doc_btns = []
         if has_contents:
@@ -3742,8 +3948,12 @@ class HandrailsTranslator(Translator):
             doc_btns.append(strip_btn("notation", _RAIL_NOTATION_ICON, "split"))
         if doc_btns:
             doc_btns.append(
-                strip_btn("document", _RAIL_CONTENTS_ICON if has_contents
-                          else _RAIL_NOTATION_ICON, "grouped", "Document")
+                strip_btn(
+                    "document",
+                    _RAIL_CONTENTS_ICON if has_contents else _RAIL_NOTATION_ICON,
+                    "grouped",
+                    "Document",
+                )
             )
             groups.append("".join(doc_btns))
         if has_proofs:
@@ -3781,7 +3991,8 @@ class HandrailsTranslator(Translator):
         share = (
             '<button type="button" class="rail-strip-btn rail-strip-action rail-share-view" '
             'data-mode="both" aria-label="Copy a link to this view" '
-            'data-tip="Copy a link to this view">' + _RAIL_SHARE_ICON
+            'data-tip="Copy a link to this view">'
+            + _RAIL_SHARE_ICON
             + '<span class="rail-strip-label" aria-hidden="true">Copy link</span></button>'
         )
         groups.append(share)
@@ -3793,7 +4004,9 @@ class HandrailsTranslator(Translator):
         skip = '<a class="rsm-skip-link" href="#rsm-content">Skip to the text</a>'
         strip = (
             skip
-            + '<nav class="rail-strip" aria-label="Sidebar">' + sep.join(groups) + "</nav>"
+            + '<nav class="rail-strip" aria-label="Sidebar">'
+            + sep.join(groups)
+            + "</nav>"
         )
 
         # ---- the panel ----
@@ -3801,7 +4014,7 @@ class HandrailsTranslator(Translator):
             if len(views) < 2:
                 return ""
             tabs = []
-            for i, (view, label) in enumerate(zip(views, labels)):
+            for i, (view, label) in enumerate(zip(views, labels, strict=True)):
                 tab = self._RAIL_VIEWS[view][2]
                 hint = self._RAIL_VIEWS[view][3]
                 on = "true" if i == 0 else "false"
@@ -3820,10 +4033,14 @@ class HandrailsTranslator(Translator):
         )
         head = (
             '<div class="rail-head">'
-            + subtabs("document", doc_views,
-                      [self._RAIL_VIEWS[v][0] for v in doc_views])
-            + (subtabs("proof", ["steps", "state"], ["Steps", "State"])
-               if has_proofs else "")
+            + subtabs(
+                "document", doc_views, [self._RAIL_VIEWS[v][0] for v in doc_views]
+            )
+            + (
+                subtabs("proof", ["steps", "state"], ["Steps", "State"])
+                if has_proofs
+                else ""
+            )
             + '<p class="rail-title" role="heading" aria-level="2"></p>'
             + (_toc_switch(rail_tree, "rail-toc-switch") if has_contents else "")
             + '<p class="rail-hint"></p></div>'
@@ -3836,8 +4053,11 @@ class HandrailsTranslator(Translator):
             '<div class="rail-proof-empty">'
             '<p class="rail-proof-empty-hint">No proof selected.</p>'
             '<p class="rail-proof-list-head">Proofs in this document</p>'
-            '<ul class="rail-proof-list">' + "".join(proof_links) + "</ul></div>"
-            + "".join(proof_items) + "</div>"
+            '<ul class="rail-proof-list">'
+            + "".join(proof_links)
+            + "</ul></div>"
+            + "".join(proof_items)
+            + "</div>"
         )
         # Holds the pinned blocks, newest first (filled by prooftree.js from a
         # reference preview's pin, or a block's handrail menu). Empty when built.
@@ -3854,13 +4074,17 @@ class HandrailsTranslator(Translator):
             f'<div id="rsm-sidebar" class="proof-rail scope-{scope} doc-view-{doc_view} '
             f'proof-view-map{"" if has_proofs else " no-proofs"}" role="complementary" '
             'aria-label="Sidebar">'
-            + head + document_section + proof_section + pinned_section
+            + head
+            + document_section
+            + proof_section
+            + pinned_section
             + _make_reading_panel(
                 "serif"
                 if getattr(self.tree, "typography", "sans-serif") == "serif"
                 else "sans",
                 minimap=minimap_enabled(self.tree),
-            ) + "</div>"
+            )
+            + "</div>"
         )
         return AppendText(text=strip + panel)
 
@@ -3873,7 +4097,9 @@ class HandrailsTranslator(Translator):
         anc = proof.parent
         while anc is not None and not isinstance(anc, nodes.Section):
             anc = anc.parent
-        where = f"\u00a7{anc.full_number}" if anc is not None and anc.full_number else ""
+        where = (
+            f"\u00a7{anc.full_number}" if anc is not None and anc.full_number else ""
+        )
         n = proof.num_steps
         steps = f"{n} step{'' if n == 1 else 's'}" if n else ""
         meta = " \u00b7 ".join(x for x in (where, steps) if x)
@@ -3893,9 +4119,11 @@ class HandrailsTranslator(Translator):
         data = ""
         if step_state is not None:
             import json
+
             data = (
                 '<script type="application/json" class="rail-state-data">'
-                + json.dumps(step_state) + "</script>"
+                + json.dumps(step_state)
+                + "</script>"
             )
         # Shown by prooftree.js when the followed proof is collapsed: a single
         # node standing for the proof, so the rail never asserts a step graph the
@@ -3923,24 +4151,35 @@ class HandrailsTranslator(Translator):
         for name, svg_str in self.svg.items():
             # Extract the inner content (paths) and viewBox from the SVG string
             import re
+
             # Extract presentation attributes from the <svg> tag
-            svg_tag = re.match(r'<svg([^>]*)>', svg_str)
+            svg_tag = re.match(r"<svg([^>]*)>", svg_str)
             attrs_str = svg_tag.group(1) if svg_tag else ""
             vb_match = re.search(r'viewBox="([^"]*)"', attrs_str)
             viewBox = vb_match.group(1) if vb_match else "0 0 18 18"
             # Preserve fill, stroke, stroke-width, stroke-linecap, stroke-linejoin
             pres_attrs = ""
-            for attr in ("fill", "stroke", "stroke-width", "stroke-linecap", "stroke-linejoin"):
+            for attr in (
+                "fill",
+                "stroke",
+                "stroke-width",
+                "stroke-linecap",
+                "stroke-linejoin",
+            ):
                 m = re.search(rf'{attr}="([^"]*)"', attrs_str)
                 if m:
                     pres_attrs += f' {attr}="{m.group(1)}"'
             # Extract child elements (paths etc.)
-            inner = re.sub(r'<svg[^>]*>', '', svg_str)
-            inner = re.sub(r'</svg>', '', inner).strip()
+            inner = re.sub(r"<svg[^>]*>", "", svg_str)
+            inner = re.sub(r"</svg>", "", inner).strip()
             symbols.append(
                 f'<symbol id="hr-icon-{name}" viewBox="{viewBox}"{pres_attrs}>{inner}</symbol>'
             )
-        defs_html = '<svg id="hr-icon-defs" style="display:none"><defs id="hr-icon-defs">' + "\n".join(symbols) + "</defs></svg>"
+        defs_html = (
+            '<svg id="hr-icon-defs" style="display:none"><defs id="hr-icon-defs">'
+            + "\n".join(symbols)
+            + "</defs></svg>"
+        )
         return AppendText(text=defs_html)
 
     def visit_manuscript(self, node: nodes.Manuscript) -> EditCommand:
@@ -3949,7 +4188,12 @@ class HandrailsTranslator(Translator):
             # The title follows the eyebrow, when there is one.
             title_index = 5 if node.eyebrow else 4
             batch = self._wrap_batch_item_with_handrails(
-                title_index, batch, classes=["heading"], menu_label="Title", link=True, node=node
+                title_index,
+                batch,
+                classes=["heading"],
+                menu_label="Title",
+                link=True,
+                node=node,
             )
         if getattr(self, "sidebar", False):
             # The skip link (emitted by _make_proof_rail, before the strip) lands
@@ -4096,12 +4340,17 @@ class HandrailsTranslator(Translator):
         batch.items.insert(-1, self._hr_info_zone_icon(getattr(node, "icon", None)))
         return self._reopen_p_after(node, batch)
 
-    def _list_handrails(self, node: nodes.Itemize | nodes.Enumerate, tag: str) -> EditCommand:
+    def _list_handrails(
+        self, node: nodes.Itemize | nodes.Enumerate, tag: str
+    ) -> EditCommand:
         batch = self._replace_node_with_handrails(node, collapse_in_hr=False)
         if "hr-hidden" not in batch.items[0].classes:
             batch.items[0].classes.append("hr-hidden")
         # Inside a paragraph, a list gets the same offset as display math.
-        if self._terminal_block_in_p(node) and "hr-offset" not in batch.items[0].classes:
+        if (
+            self._terminal_block_in_p(node)
+            and "hr-offset" not in batch.items[0].classes
+        ):
             batch.items[0].classes.append("hr-offset")
         return AppendBatchAndDefer(
             [*self._close_p_before(node), *batch.items, AppendNodeTag(node, tag)]
@@ -4274,7 +4523,11 @@ class HandrailsTranslator(Translator):
         close_p = self._close_p_before(node)
         batch.items[:0] = close_p
         handrail_idx = len(close_p)
-        offset_class = ["hr-offset"] if isinstance(node.parent, (nodes.Paragraph, nodes.Note)) else []
+        offset_class = (
+            ["hr-offset"]
+            if isinstance(node.parent, (nodes.Paragraph, nodes.Note))
+            else []
+        )
         batch.items[handrail_idx].classes += ["hr-hidden"] + offset_class
         batch.items.append(AppendOpenTag("pre"))
         return AppendBatchAndDefer(batch.items)
@@ -4291,7 +4544,10 @@ class HandrailsTranslator(Translator):
         if "hr-hidden" not in batch.items[0].classes:
             batch.items[0].classes.append("hr-hidden")
         # Inside a paragraph, an algorithm gets the same offset as display math.
-        if self._terminal_block_in_p(node) and "hr-offset" not in batch.items[0].classes:
+        if (
+            self._terminal_block_in_p(node)
+            and "hr-offset" not in batch.items[0].classes
+        ):
             batch.items[0].classes.append("hr-offset")
         return AppendBatchAndDefer(
             [
@@ -4365,8 +4621,11 @@ class HandrailsTranslator(Translator):
         if declared is not None:
             return declared.label or ""
         theorem_types = (
-            nodes.Theorem, nodes.Lemma, nodes.Corollary,
-            nodes.Proposition, nodes.Statement,
+            nodes.Theorem,
+            nodes.Lemma,
+            nodes.Corollary,
+            nodes.Proposition,
+            nodes.Statement,
         )
         sib = proof.prev_sibling()
         while sib is not None:
@@ -4471,7 +4730,9 @@ class HandrailsTranslator(Translator):
         if not punct:
             return batch
         escaped = punct.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
-        batch.items.extend([AppendText(f"<span>{escaped}</span>"), AppendText("</span>")])
+        batch.items.extend(
+            [AppendText(f"<span>{escaped}</span>"), AppendText("</span>")]
+        )
         return batch
 
     def visit_rawhtml(self, node: nodes.RawHtml) -> EditCommand:
@@ -4479,13 +4740,19 @@ class HandrailsTranslator(Translator):
         # trailing punctuation on the same line, as inline math does.
         batch = super().visit_rawhtml(node)
         sib = node.next_sibling()
-        if not isinstance(sib, nodes.Text) or not sib.text or sib.text[0] not in self._TRAILING_PUNCT:
+        if (
+            not isinstance(sib, nodes.Text)
+            or not sib.text
+            or sib.text[0] not in self._TRAILING_PUNCT
+        ):
             return batch
         node._trailing_punct = sib.text[0]
         sib.text = sib.text[1:]
         return AppendBatchAndDefer(
             [
-                AppendOpenTagManualClose(tag="span", classes=["inline-wrapper"], newline_outer=False),
+                AppendOpenTagManualClose(
+                    tag="span", classes=["inline-wrapper"], newline_outer=False
+                ),
                 *batch.items,
             ]
         )
@@ -4496,7 +4763,9 @@ class HandrailsTranslator(Translator):
         if not punct:
             return batch
         escaped = punct.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
-        batch.items.extend([AppendText(f"<span>{escaped}</span>"), AppendText("</span>")])
+        batch.items.extend(
+            [AppendText(f"<span>{escaped}</span>"), AppendText("</span>")]
+        )
         return batch
 
     def visit_mathblock(self, node: nodes.MathBlock) -> EditCommand:
@@ -4514,7 +4783,11 @@ class HandrailsTranslator(Translator):
         batch.items[:0] = close_p
         handrail_idx = len(close_p)
         batch.items.append(AppendTextAndDefer("$$\n", "\n$$"))
-        offset_class = ["hr-offset"] if isinstance(node.parent, (nodes.Paragraph, nodes.Note)) else []
+        offset_class = (
+            ["hr-offset"]
+            if isinstance(node.parent, (nodes.Paragraph, nodes.Note))
+            else []
+        )
         batch.items[handrail_idx].classes += ["hr-hidden"] + offset_class
         return batch
 

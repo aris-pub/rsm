@@ -27,7 +27,6 @@ def _notes_section(page: Page):
 
 @pytest.mark.visual
 class TestNoteMarkers:
-
     @pytest.mark.parametrize("theme", ["light", "dark"])
     @pytest.mark.parametrize("viewport_name,width,height", WIDTHS)
     def test_markers_at_rest(
@@ -64,7 +63,6 @@ class TestNoteMarkers:
 
 @pytest.mark.visual
 class TestNotesList:
-
     @pytest.mark.parametrize("theme", ["light", "dark"])
     @pytest.mark.parametrize("viewport_name,width,height", WIDTHS)
     def test_notes_list(
@@ -86,7 +84,6 @@ class TestNotesList:
 
 @pytest.mark.visual
 class TestNotePreview:
-
     @pytest.mark.parametrize("theme", ["light", "dark"])
     @pytest.mark.parametrize("viewport_name,width,height", WIDTHS)
     def test_preview_on_hover(

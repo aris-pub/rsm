@@ -74,7 +74,9 @@ def test_tooltip_box_uses_braiid_card(page: Page, interactive_server: str, dark:
     assert got == want, f"dark={dark}: tooltip box {got} != BRAIID card {want}"
 
     arrow = page.evaluate(ARROW_JS)
-    assert arrow["display"] == "none", f"dark={dark}: tooltip should have no pointer, got {arrow}"
+    assert arrow["display"] == "none", (
+        f"dark={dark}: tooltip should have no pointer, got {arrow}"
+    )
 
 
 @pytest.mark.parametrize("dark", [False, True])
@@ -94,7 +96,11 @@ def test_tooltip_box_uses_braiid_card_standalone(page: Page, tmp_path, dark: boo
     _open_tooltip(page)
     want = page.evaluate(PROBE_JS)
     got = page.evaluate(BOX_JS)
-    assert got == want, f"dark={dark}: standalone tooltip box {got} != BRAIID card {want}"
+    assert got == want, (
+        f"dark={dark}: standalone tooltip box {got} != BRAIID card {want}"
+    )
 
     arrow = page.evaluate(ARROW_JS)
-    assert arrow["display"] == "none", f"dark={dark}: standalone tooltip should have no pointer, got {arrow}"
+    assert arrow["display"] == "none", (
+        f"dark={dark}: standalone tooltip should have no pointer, got {arrow}"
+    )

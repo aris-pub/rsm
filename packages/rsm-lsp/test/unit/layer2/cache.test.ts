@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { ASTCache } from '../../../src/layer2/cache';
-import { ASTNode } from '../../../src/layer2/ast';
+import { ASTCache } from '../../../src/layer2/cache.js';
+import { ASTNode } from '../../../src/layer2/ast.js';
 
 const makeAST = (title: string): ASTNode => ({
   nodeclass: 'Manuscript',

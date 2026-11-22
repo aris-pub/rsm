@@ -50,13 +50,13 @@ _HTML_COMMENT = re.compile(r"<!--(?:(?!-->).)*-->", re.DOTALL)
 # These are the common human-written forms; anything else is left for the LLM
 # host pass rather than guessed at.
 _DATE_FORMATS = (
-    ("%B %d, %Y", "%Y-%m-%d"),   # April 13, 2024
-    ("%d %B %Y", "%Y-%m-%d"),    # 13 April 2024
-    ("%b %d, %Y", "%Y-%m-%d"),   # Apr 13, 2024
-    ("%d %b %Y", "%Y-%m-%d"),    # 13 Apr 2024
+    ("%B %d, %Y", "%Y-%m-%d"),  # April 13, 2024
+    ("%d %B %Y", "%Y-%m-%d"),  # 13 April 2024
+    ("%b %d, %Y", "%Y-%m-%d"),  # Apr 13, 2024
+    ("%d %b %Y", "%Y-%m-%d"),  # 13 Apr 2024
     ("%Y/%m/%d", "%Y-%m-%d"),
     ("%m/%d/%Y", "%Y-%m-%d"),
-    ("%B %Y", "%Y-%m"),          # April 2024
+    ("%B %Y", "%Y-%m"),  # April 2024
 )
 
 
@@ -93,7 +93,11 @@ class PandocTranslator:
     def translate(self, tree: nodes.Manuscript) -> dict:
         meta = self._build_meta(tree)
         blocks = self._walk_children_as_blocks(tree)
-        return {"pandoc-api-version": PANDOC_API_VERSION, "meta": meta, "blocks": blocks}
+        return {
+            "pandoc-api-version": PANDOC_API_VERSION,
+            "meta": meta,
+            "blocks": blocks,
+        }
 
     # ── Meta ──────────────────────────────────────────────────────────────────
 
@@ -113,7 +117,14 @@ class PandocTranslator:
                 if getattr(a, "email", None):
                     inlines += [
                         {"t": "Str", "c": " — "},
-                        {"t": "Link", "c": [["", [], []], [{"t": "Str", "c": a.email}], [f"mailto:{a.email}", ""]]},
+                        {
+                            "t": "Link",
+                            "c": [
+                                ["", [], []],
+                                [{"t": "Str", "c": a.email}],
+                                [f"mailto:{a.email}", ""],
+                            ],
+                        },
                     ]
                 author_entries.append({"t": "MetaInlines", "c": inlines})
             if author_entries:
@@ -138,33 +149,33 @@ class PandocTranslator:
     # Maps node type → method name.  Uses MRO: if a type is not listed,
     # the first ancestor that IS listed wins.  None means "skip silently".
     _BLOCK_DISPATCH: dict = {
-        nodes.Section: "_block_section",       # Subsection, Subsubsection via MRO
-        nodes.Paragraph: "_block_paragraph",   # Step via MRO
-        nodes.Note: None,       # Aside via MRO, exported at its call
+        nodes.Section: "_block_section",  # Subsection, Subsubsection via MRO
+        nodes.Paragraph: "_block_paragraph",  # Step via MRO
+        nodes.Note: None,  # Aside via MRO, exported at its call
         nodes.NotesList: None,  # its notes are exported at their calls
         nodes.MathBlock: "_block_mathblock",
         nodes.CodeBlock: "_block_codeblock",
         nodes.Enumerate: "_block_enumerate",
         nodes.Itemize: "_block_itemize",
         nodes.Item: "_block_item",
-        nodes.Theorem: "_block_theorem",       # all Theorem subclasses via MRO
+        nodes.Theorem: "_block_theorem",  # all Theorem subclasses via MRO
         nodes.Proof: "_block_proof",
-        nodes.Sketch: "_block_proof",          # Sketch is NOT a subclass of Proof
+        nodes.Sketch: "_block_proof",  # Sketch is NOT a subclass of Proof
         nodes.Figure: "_block_figure",
         nodes.Table: "_block_table",
         nodes.Bibliography: "_block_bibliography",
         nodes.Abstract: "_block_abstract",
-        nodes.Author: None,     # consumed by _build_meta
-        nodes.AuthorBlock: None, # consumed by _build_meta
-        nodes.AuthorNotes: None, # consumed by _build_meta
-        nodes.Appendix: None,   # marker only, no output
-        nodes.Caption: None,    # consumed inside _block_figure / _block_table
+        nodes.Author: None,  # consumed by _build_meta
+        nodes.AuthorBlock: None,  # consumed by _build_meta
+        nodes.AuthorNotes: None,  # consumed by _build_meta
+        nodes.Appendix: None,  # marker only, no output
+        nodes.Caption: None,  # consumed inside _block_figure / _block_table
         nodes.Draft: None,
         nodes.Algorithm: None,
         nodes.Contents: "_block_toc",
         nodes.HtmlBlock: "_block_html",
         nodes.Video: "_block_asset_placeholder",
-        nodes.Subproof: "_block_proof",       # same as Proof — recurse into children
+        nodes.Subproof: "_block_proof",  # same as Proof — recurse into children
         nodes.ClaimBlock: "_block_construct",
         nodes.Construct: "_block_construct",
         nodes.Statement: "_block_construct",
@@ -190,7 +201,7 @@ class PandocTranslator:
     _INLINE_DISPATCH: dict = {
         nodes.Text: "_inline_text",
         nodes.SourceCode: "_inline_sourcecode",  # raw text inside Math nodes
-        nodes.Span: "_inline_span",              # Keyword via MRO
+        nodes.Span: "_inline_span",  # Keyword via MRO
         nodes.Math: "_inline_math",
         nodes.Code: "_inline_code",
         nodes.RawHtml: "_walk_children_as_inlines",
@@ -237,7 +248,7 @@ class PandocTranslator:
         label = getattr(node, "label", None)
         result: list[dict] = []
         if label and " " not in label:
-            result.append({"t": "RawBlock", "c": ["typst", f'<{label}>']})
+            result.append({"t": "RawBlock", "c": ["typst", f"<{label}>"]})
         return result + self._paragraph_content_blocks(node)
 
     def _paragraph_content_blocks(self, node: nodes.BaseParagraph) -> list[dict]:
@@ -258,27 +269,53 @@ class PandocTranslator:
             result.append({"t": "Para", "c": current_inlines})
         return result
 
-    _LATEX_ENVS = {"align", "align*", "gather", "gather*", "multline", "multline*",
-                   "flalign", "flalign*", "alignat", "alignat*", "split"}
+    _LATEX_ENVS = {
+        "align",
+        "align*",
+        "gather",
+        "gather*",
+        "multline",
+        "multline*",
+        "flalign",
+        "flalign*",
+        "alignat",
+        "alignat*",
+        "split",
+    }
 
     def _block_mathblock(self, node: nodes.MathBlock) -> list[dict]:
         src = self._extract_math_source(node)
         num = node.full_number
         label = node.label or ""
-        label_raw = [{"t": "RawBlock", "c": ["typst", f'<{label}>']}] if label and " " not in label else []
+        label_raw = (
+            [{"t": "RawBlock", "c": ["typst", f"<{label}>"]}]
+            if label and " " not in label
+            else []
+        )
 
         stripped = src.strip()
-        has_env = any(stripped.startswith(rf"\begin{{{env}}}") for env in self._LATEX_ENVS)
+        has_env = any(
+            stripped.startswith(rf"\begin{{{env}}}") for env in self._LATEX_ENVS
+        )
         if has_env:
             return label_raw + [{"t": "RawBlock", "c": ["latex", stripped]}]
 
         if num and not node.nonum:
-            math_block = {"t": "Para", "c": [{"t": "Math", "c": [{"t": "DisplayMath"}, src]}]}
-            num_block = {"t": "RawBlock", "c": ["typst",
-                f'#v(-2.2em)\n#align(right, text(fill: rgb("#0361A1"))[({num})])\n#v(0.5em)'
-            ]}
+            math_block = {
+                "t": "Para",
+                "c": [{"t": "Math", "c": [{"t": "DisplayMath"}, src]}],
+            }
+            num_block = {
+                "t": "RawBlock",
+                "c": [
+                    "typst",
+                    f'#v(-2.2em)\n#align(right, text(fill: rgb("#0361A1"))[({num})])\n#v(0.5em)',
+                ],
+            }
             return label_raw + [math_block, num_block]
-        return label_raw + [{"t": "Para", "c": [{"t": "Math", "c": [{"t": "DisplayMath"}, src]}]}]
+        return label_raw + [
+            {"t": "Para", "c": [{"t": "Math", "c": [{"t": "DisplayMath"}, src]}]}
+        ]
 
     def _block_codeblock(self, node: nodes.CodeBlock) -> list[dict]:
         src = self._extract_code_source(node)
@@ -335,7 +372,10 @@ class PandocTranslator:
         # Use :static: path for non-web export when available
         path = str(node.static) if node.static else str(node.path)
         alt_text = node.alt or f"Figure {node.full_number or ''}".strip()
-        image = {"t": "Image", "c": [["", [], []], [{"t": "Str", "c": alt_text}], [path, ""]]}
+        image = {
+            "t": "Image",
+            "c": [["", [], []], [{"t": "Str", "c": alt_text}], [path, ""]],
+        }
 
         caption_node = node.first_of_type(nodes.Caption)
         if caption_node:
@@ -345,27 +385,42 @@ class PandocTranslator:
             caption = [None, []]
 
         anchor = node.label or ""
-        return [{
-            "t": "Figure",
-            "c": [[anchor, ["figure"], []], caption, [{"t": "Plain", "c": [image]}]],
-        }]
+        return [
+            {
+                "t": "Figure",
+                "c": [
+                    [anchor, ["figure"], []],
+                    caption,
+                    [{"t": "Plain", "c": [image]}],
+                ],
+            }
+        ]
 
     def _block_toc(self, node) -> list[dict]:
         return [
-            {"t": "RawBlock", "c": ["latex",
-                "{\\hypersetup{linkcolor=braiid-gray-900}\\tableofcontents}\\newpage"]},
-            {"t": "RawBlock", "c": ["typst",
-                '#{\n'
-                '  show outline: it => {\n'
-                '    v(0.2em)\n'
-                '    text(font: ("Montserrat", "Source Sans 3", "Source Sans Pro", "Noto Sans"), size: 16.5pt, weight: "medium", fill: rgb("#0C456E"))[Contents]\n'
-                '    v(0.2em)\n'
-                '    it\n'
-                '  }\n'
-                '  outline(indent: auto, depth: 3, title: none)\n'
-                '}\n'
-                '#v(0.5em)'
-            ]},
+            {
+                "t": "RawBlock",
+                "c": [
+                    "latex",
+                    "{\\hypersetup{linkcolor=braiid-gray-900}\\tableofcontents}\\newpage",
+                ],
+            },
+            {
+                "t": "RawBlock",
+                "c": [
+                    "typst",
+                    "#{\n"
+                    "  show outline: it => {\n"
+                    "    v(0.2em)\n"
+                    '    text(font: ("Montserrat", "Source Sans 3", "Source Sans Pro", "Noto Sans"), size: 16.5pt, weight: "medium", fill: rgb("#0C456E"))[Contents]\n'
+                    "    v(0.2em)\n"
+                    "    it\n"
+                    "  }\n"
+                    "  outline(indent: auto, depth: 3, title: none)\n"
+                    "}\n"
+                    "#v(0.5em)",
+                ],
+            },
         ]
 
     def _block_asset_placeholder(self, node: nodes.Node) -> list[dict]:
@@ -375,7 +430,11 @@ class PandocTranslator:
             return self._block_figure(node)
         kind = type(node).__name__
         path = getattr(node, "path", "")
-        text = f"[{kind} asset: {path} — see online version]" if path else f"[{kind} — see online version]"
+        text = (
+            f"[{kind} asset: {path} — see online version]"
+            if path
+            else f"[{kind} — see online version]"
+        )
         return [{"t": "Para", "c": [{"t": "Emph", "c": [{"t": "Str", "c": text}]}]}]
 
     def _block_construct(self, node: nodes.Node) -> list[dict]:
@@ -415,12 +474,21 @@ class PandocTranslator:
         # Add DOI or URL as a clickable link
         link_url = None
         if getattr(node, "doi", None):
-            link_url = f"https://doi.org/{node.doi}" if not node.doi.startswith("http") else node.doi
+            link_url = (
+                f"https://doi.org/{node.doi}"
+                if not node.doi.startswith("http")
+                else node.doi
+            )
         elif getattr(node, "url", None):
             link_url = str(node.url)
         if link_url:
             inlines.append({"t": "Space"})
-            inlines.append({"t": "Link", "c": [["", [], []], [{"t": "Str", "c": link_url}], [link_url, ""]]})
+            inlines.append(
+                {
+                    "t": "Link",
+                    "c": [["", [], []], [{"t": "Str", "c": link_url}], [link_url, ""]],
+                }
+            )
         if anchor:
             inlines.insert(0, {"t": "Span", "c": [[anchor, [], []], []]})
             inlines.append({"t": "RawInline", "c": ["typst", f" <{anchor}>"]})
@@ -434,11 +502,17 @@ class PandocTranslator:
 
         all_rows = head_rows + body_rows
         # Rows are pandoc tuples encoded as bare arrays: Row = [attr, [Cell]].
-        col_count = max(
-            (len(r[1]) for r in all_rows),
-            default=1,
-        ) if all_rows else 1
-        col_specs = [[{"t": "AlignDefault"}, {"t": "ColWidthDefault"}] for _ in range(col_count)]
+        col_count = (
+            max(
+                (len(r[1]) for r in all_rows),
+                default=1,
+            )
+            if all_rows
+            else 1
+        )
+        col_specs = [
+            [{"t": "AlignDefault"}, {"t": "ColWidthDefault"}] for _ in range(col_count)
+        ]
 
         caption_node = node.first_of_type(nodes.Caption)
         if caption_node:
@@ -450,14 +524,19 @@ class PandocTranslator:
         # TableHead/TableBody/TableFoot are pandoc tuples (bare arrays), not tagged
         # union nodes; only Block/Inline/Alignment use the {"t":..,"c":..} form.
         # The table's label becomes the block id so cross-references resolve.
-        return [{"t": "Table", "c": [
-            [node.label or "", [], []],
-            caption,
-            col_specs,
-            [["", [], []], head_rows],
-            [[["", [], []], 0, [], body_rows]],
-            [["", [], []], []],
-        ]}]
+        return [
+            {
+                "t": "Table",
+                "c": [
+                    [node.label or "", [], []],
+                    caption,
+                    col_specs,
+                    [["", [], []], head_rows],
+                    [[["", [], []], 0, [], body_rows]],
+                    [["", [], []], []],
+                ],
+            }
+        ]
 
     def _table_rows(self, node: nodes.NodeWithChildren) -> list[dict]:
         rows = []
@@ -469,12 +548,15 @@ class PandocTranslator:
                 if isinstance(cell, nodes.TableDatum):
                     inlines = self._walk_children_as_inlines(cell)
                     # Cell = [attr, Alignment, RowSpan, ColSpan, [Block]] (bare array).
-                    cells.append([
-                        ["", [], []],
-                        {"t": "AlignDefault"},
-                        1, 1,
-                        [{"t": "Plain", "c": inlines}],
-                    ])
+                    cells.append(
+                        [
+                            ["", [], []],
+                            {"t": "AlignDefault"},
+                            1,
+                            1,
+                            [{"t": "Plain", "c": inlines}],
+                        ]
+                    )
             # Row = [attr, [Cell]] (bare array).
             rows.append([["", [], []], cells])
         return rows
@@ -482,7 +564,9 @@ class PandocTranslator:
     # ── Inline handlers ───────────────────────────────────────────────────────
 
     def _inline_fallback(self, node: nodes.Node) -> list[dict]:
-        logger.warning("PandocTranslator: no inline handler for %s", type(node).__name__)
+        logger.warning(
+            "PandocTranslator: no inline handler for %s", type(node).__name__
+        )
         return []
 
     def _inline_text(self, node: nodes.Text) -> list[dict]:
@@ -538,12 +622,19 @@ class PandocTranslator:
         # A normal pandoc Link to the target's anchor works across all output
         # formats (LaTeX \hyperref, HTML <a>, Typst #link); a format-specific
         # RawInline would be silently dropped whenever the export target differs.
-        return [{"t": "Link", "c": [["", [], []], [{"t": "Str", "c": text}], [anchor, ""]]}]
+        return [
+            {"t": "Link", "c": [["", [], []], [{"t": "Str", "c": text}], [anchor, ""]]}
+        ]
 
     def _inline_url(self, node: nodes.URL) -> list[dict]:
         target = str(node.target)
         display = node.overwrite_reftext or target
-        return [{"t": "Link", "c": [["", [], []], [{"t": "Str", "c": display}], [target, ""]]}]
+        return [
+            {
+                "t": "Link",
+                "c": [["", [], []], [{"t": "Str", "c": display}], [target, ""]],
+            }
+        ]
 
     def _inline_cite(self, node: nodes.Cite) -> list[dict]:
         if not node.targets:
@@ -563,7 +654,12 @@ class PandocTranslator:
                 display = "?"
             if label:
                 anchor = f"#ref-{label}"
-                result.append({"t": "Link", "c": [["", [], []], [{"t": "Str", "c": display}], [anchor, ""]]})
+                result.append(
+                    {
+                        "t": "Link",
+                        "c": [["", [], []], [{"t": "Str", "c": display}], [anchor, ""]],
+                    }
+                )
             else:
                 result.append({"t": "Str", "c": display})
         result.append({"t": "Str", "c": "]"})
@@ -725,8 +821,13 @@ class PandocImporter:
     # ── Cross-reference labels (bead rsm-ddx.4) ─────────────────────────────────
 
     _THEOREM_CLASSES = (
-        "theorem", "lemma", "corollary", "example", "exercise",
-        "proposition", "problem",
+        "theorem",
+        "lemma",
+        "corollary",
+        "example",
+        "exercise",
+        "proposition",
+        "problem",
     )
 
     def _next_label(self, kind: str) -> str:
@@ -906,8 +1007,10 @@ class PandocImporter:
         # A meta value cannot hold a bare colon, so escape internal colons; the
         # grammar accepts \: and it renders as a plain colon.
         title = title.replace(":", "\\:")
-        meta = f"{{:title: {title}}}" if not label else (
-            f"{{:title: {title}, :label: {label}}}"
+        meta = (
+            f"{{:title: {title}}}"
+            if not label
+            else (f"{{:title: {title}, :label: {label}}}")
         )
         indented = "\n".join(
             f"  {line}" if line else line for line in body.rstrip().splitlines()

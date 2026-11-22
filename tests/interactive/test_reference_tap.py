@@ -44,10 +44,7 @@ def _tap_elsewhere(page: Page) -> None:
 
 
 class TestTapReference:
-
-    def test_first_tap_opens_preview_without_following_the_link(
-        self, touch_page: Page
-    ):
+    def test_first_tap_opens_preview_without_following_the_link(self, touch_page: Page):
         touch_page.locator(REF).tap()
         preview = touch_page.locator(PREVIEW)
         expect(preview).to_be_visible(timeout=3000)
@@ -70,7 +67,6 @@ class TestTapReference:
 
 
 class TestTapBacklink:
-
     @pytest.mark.parametrize(
         "link,target",
         [(NOTE_BACKLINK, "#call-first"), (BIB_BACKLINK, "#cite-0")],
@@ -91,7 +87,6 @@ class TestTapBacklink:
 
 
 class TestPointerAndKeyboardUnchanged:
-
     def test_click_follows_the_link(self, page: Page, interactive_server: str):
         _open(page, interactive_server)
         page.locator(REF).click()
