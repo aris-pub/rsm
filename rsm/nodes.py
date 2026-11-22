@@ -160,6 +160,11 @@ class Node:
     has_handrail: ClassVar[bool] = False
     """Whether nodes of this class are rendered with a handrail."""
 
+    # Set by the translator on some nodes only, so they are declared without a
+    # value.
+    _body_start: int
+    fold_label: str
+
     def __init__(
         self,
         label: str = "",
@@ -1014,6 +1019,9 @@ class Node:
 class NodeWithChildren(Node):
     """A :class:`Node` that may have children Nodes."""
 
+    # Set by the translator on some nodes only.
+    _must_close_p_tag: bool
+
     possible_children: ClassVar[set[type[Node]]] = set()
     """Allowed types of children Nodes, or empty to allow any.
 
@@ -1156,6 +1164,9 @@ class NodeWithChildren(Node):
 
 class Text(Node):
     """Plain text node.  Cannot contain children."""
+
+    # Set by the translator on some nodes only.
+    _nojs_text: str
 
     def __init__(self, text: str = "", asis: bool = False, **kwargs: Any) -> None:
         super().__init__(**kwargs)
@@ -1534,6 +1545,8 @@ class ClaimBlock(Construct):
 
 class Math(NodeWithChildren):
     newmetakeys: ClassVar[set] = {"preamble"}
+    # Set by the translator on some nodes only.
+    _trailing_punct: str
 
     def __init__(self, preamble: bool = False, **kwargs: Any) -> None:
         super().__init__(**kwargs)
@@ -1545,6 +1558,8 @@ class MathBlock(TerminalBlock):
     _number_within = Section
     classreftext: ClassVar[str] = "({number})"
     newmetakeys: ClassVar[set] = {"isclaim", "preamble"}
+    # Set by the translator on some nodes only.
+    _number_in_step: bool
 
     def __init__(
         self, isclaim: bool = False, preamble: bool = False, **kwargs: Any
@@ -1588,6 +1603,8 @@ class RawHtml(NodeWithChildren):
     """
 
     newmetakeys: ClassVar[set] = {"alt"}
+    # Set by the translator on some nodes only.
+    _trailing_punct: str
 
     def __init__(self, html: str = "", alt: str = "", **kwargs: Any) -> None:
         super().__init__(**kwargs)
@@ -1834,6 +1851,9 @@ class PendingCite(Node):
 
 
 class Cite(Node):
+    # Set by the parser and the translator on some nodes only.
+    overwrite_reftext: str
+
     def __init__(
         self,
         targets: list[Node] | None = None,
