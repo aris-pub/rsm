@@ -208,7 +208,9 @@ class TSParser:
             self.ast = _abstractify(self.cst)
             if self.ast is not None:
                 _group_nested_lists(self.ast)
-        except AttributeError as ex:
+        # The asserts in _abstractify fail on a broken CST, as attribute
+        # lookups on None do.
+        except (AttributeError, AssertionError) as ex:
             raise RSMParserError(msg="Error abstractifying.") from ex
 
         if self.ast is None:
@@ -932,7 +934,7 @@ def _report_missing(cst: TSTree, root: nodes.Manuscript) -> None:
             holder.replace_self([holder, error])
 
 
-def _abstractify(cst: TSTree) -> nodes.Manuscript:
+def _abstractify(cst: TSTree) -> nodes.Manuscript | None:
     ast_root_node: nodes.Manuscript | None = None
     bibliography_node = None
     seen_config = False  # Track if we've seen a config block
@@ -1346,8 +1348,9 @@ def _abstractify(cst: TSTree) -> nodes.Manuscript:
     for raw in raw_html_nodes:
         _check_raw_html(raw)
 
-    # The root of every CST is a source_file node, which makes the Manuscript.
-    assert ast_root_node is not None
+    # A CST that is too broken has an ERROR node as its root, not a source_file.
+    if ast_root_node is None:
+        return None
 
     _report_missing(cst, ast_root_node)
 
