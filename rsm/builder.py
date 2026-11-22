@@ -9,6 +9,7 @@ from html import escape
 from pathlib import Path
 from textwrap import dedent
 
+from .asset_resolver import AssetResolver
 from .manuscript import WebManuscript
 
 logger = logging.getLogger("RSM").getChild("build")
@@ -35,7 +36,7 @@ class BaseBuilder(ABC):
 
     def __init__(
         self,
-        asset_resolver=None,
+        asset_resolver: AssetResolver | None = None,
         outname: str = "index.html",
         custom_css: str | None = None,
         theme_toggle: bool = True,
@@ -59,9 +60,9 @@ class BaseBuilder(ABC):
 
     def deduplicate_scripts(self, body: str) -> str:
         """Remove duplicate <script src="..."> tags, keeping the first occurrence of each URL."""
-        seen = set()
+        seen: set[str] = set()
 
-        def _replace(match):
+        def _replace(match: re.Match[str]) -> str:
             url = match.group(1)
             if url in seen:
                 return ""
@@ -70,7 +71,7 @@ class BaseBuilder(ABC):
 
         return self._SCRIPT_SRC_RE.sub(_replace, body)
 
-    def build(self, body: str, src: Path = None) -> WebManuscript:
+    def build(self, body: str, src: Path | None = None) -> WebManuscript:
         logger.info("Building...")
         self.body = self.deduplicate_scripts(body)
         self.web = WebManuscript(src)
@@ -515,7 +516,7 @@ class FolderBuilder(HTMLBuilder):
     becomes assets/figs/x.png). Every link is relative to the page.
     """
 
-    def build(self, body: str, src: Path = None) -> WebManuscript:
+    def build(self, body: str, src: Path | None = None) -> WebManuscript:
         super().build(body, src)
         logger.debug("Moving default RSM assets...")
         self.mount_static()
@@ -571,7 +572,7 @@ class FolderBuilder(HTMLBuilder):
     def relocate_asset_refs(self) -> None:
         dests = {ref: self._asset_dest(ref) for ref in self.required_assets}
 
-        def _replace(match: re.Match) -> str:
+        def _replace(match: re.Match[str]) -> str:
             ref = match.group(2)
             if ref not in dests:
                 return match.group(0)

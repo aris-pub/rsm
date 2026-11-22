@@ -28,12 +28,18 @@ import copy
 import logging
 import re
 from collections import defaultdict
-from collections.abc import Generator
+from collections.abc import Callable, Iterator
 from itertools import count
 from pathlib import Path
 from string import ascii_lowercase, ascii_uppercase
+from typing import TYPE_CHECKING, cast
 
 from . import nodes, proof
+
+if TYPE_CHECKING:
+    import tree_sitter
+
+    from .tsparser import TSParser
 
 logger = logging.getLogger("RSM").getChild("tform")
 
@@ -138,8 +144,10 @@ class Transformer:
         root_dir: Path | None = None,
         src_file: Path | None = None,
         strict: bool = False,
-        parser=None,
+        parser: "TSParser | None" = None,
     ) -> None:
+        # Set by transform() (or by hand, as in the doctests); each transform
+        # below asserts that it is set.
         self.tree: nodes.Manuscript | None = None
         self.labels_to_nodes: dict[str, nodes.Node] = {}
         self.root_dir = root_dir
@@ -237,7 +245,9 @@ class Transformer:
         app.run()
 
         # Extract manuscript and labels
-        manuscript = app.transformer.tree
+        manuscript = app.transformer.tree if app.transformer else None
+        if manuscript is None:
+            raise ValueError(f"External manuscript could not be parsed: {full_path}")
         labels_map = app.transformer.labels_to_nodes.copy()
 
         # Cache the result
@@ -263,9 +273,9 @@ class Transformer:
         if not self.parser or not self.parser.cst:
             return
 
-        error_nodes = []
+        error_nodes: list[tree_sitter.Node] = []
 
-        def _find_errors(node):
+        def _find_errors(node: "tree_sitter.Node") -> None:
             if node.type == "ERROR":
                 error_nodes.append(node)
             for child in node.children:
@@ -304,6 +314,7 @@ class Transformer:
         It runs first so that a dropped caption leaves no labels, notes or references
         behind for the later steps to collect.
         """
+        assert self.tree is not None
         for node in self.tree.traverse(nodeclass=nodes.Asset):
             if not node.as_paragraph:
                 continue
@@ -327,6 +338,7 @@ class Transformer:
         RSMTransformerError
             If a step inside a calc has a label.
         """
+        assert self.tree is not None
         for calc in self.tree.traverse(nodeclass=nodes.Calc):
             for row in calc.children:
                 if row.label:
@@ -345,11 +357,13 @@ class Transformer:
         RSMTransformerError
             If a tab has no title, or a group of tabs sits inside another one.
         """
+        assert self.tree is not None
         for group in self.tree.traverse(nodeclass=nodes.Tabs):
             if group.first_ancestor_of_type(nodes.Tabs) is not None:
                 raise RSMTransformerError("A :tabs: cannot sit inside another :tabs:.")
             for tab in group.children:
-                if not tab.title:
+                # Tabs.possible_children allows only Tab.
+                if not cast(nodes.Tab, tab).title:
                     raise RSMTransformerError("Every :tab: needs a :title:.")
 
     def collect_labels(self) -> None:
@@ -370,7 +384,8 @@ class Transformer:
         executed before all other ones.
 
         """
-        for node in self.tree.traverse(condition=lambda n: n.label):
+        assert self.tree is not None
+        for node in self.tree.traverse(condition=lambda n: bool(n.label)):
             if node.label in self.labels_to_nodes:
                 logger.warning(f"Duplicate label {node.label}, using first encountered")
                 node.label = ""
@@ -378,10 +393,14 @@ class Transformer:
             self.labels_to_nodes[node.label] = node
 
     def analyze_proofs(self) -> None:
+        assert self.tree is not None
         proof.analyze_proofs(self.tree, self.labels_to_nodes)
 
     def _label_to_node(
-        self, label: str, external_file: str | None = None, default=nodes.Error
+        self,
+        label: str,
+        external_file: str | None = None,
+        default: Callable[[str], nodes.Node] = nodes.Error,
     ) -> nodes.Node:
         # Handle external file references
         if external_file:
@@ -408,6 +427,7 @@ class Transformer:
             return default(f'[unknown label "{label}"]')
 
     def resolve_pending_references(self) -> None:
+        assert self.tree is not None
         classes = [
             nodes.PendingReference,
             nodes.PendingCite,
@@ -440,10 +460,18 @@ class Transformer:
                     _carry_reftext_nodes(pending, ref)
                     pending.replace_self(ref)
             elif isinstance(pending, nodes.PendingCite):
-                targets = [
-                    self._label_to_node(label, default=nodes.UnknownBibitem)
-                    for label in pending.targetlabels
-                ]
+                targets: list[nodes.Bibitem] = []
+                for label in pending.targetlabels:
+                    tgt = self._label_to_node(label, default=nodes.UnknownBibitem)
+                    if not isinstance(tgt, nodes.Bibitem):
+                        logger.warning(
+                            f'Citation of "{label}", which is not a bibliography'
+                            " entry. Use :ref: to link to it."
+                        )
+                        tgt = nodes.UnknownBibitem(
+                            f'[label "{label}" is not a bibliography entry]'
+                        )
+                    targets.append(tgt)
                 cite = nodes.Cite(
                     targets=targets, targetlabels=list(pending.targetlabels)
                 )
@@ -461,11 +489,12 @@ class Transformer:
 
                 target = step
                 for _ in range(int(str(pending.target))):
-                    target = target.prev_sibling(nodes.Step)
-                    if target is None:
+                    prev = target.prev_sibling(nodes.Step)
+                    if prev is None:
                         raise RSMTransformerError(
                             f"Did not find previous {pending.target} step(s)"
                         )
+                    target = prev
 
                 if target.label is None or not target.label.strip():
                     logger.warning(
@@ -492,6 +521,7 @@ class Transformer:
         an error node. A definition that is never called is removed with a
         warning.
         """
+        assert self.tree is not None
         number = count(start=1)
         order = count(start=1)
         for call in list(self.tree.traverse(nodeclass=nodes.NoteCall)):
@@ -545,6 +575,8 @@ class Transformer:
                 )
                 continue
 
+            # Every branch above that does not hold a Note sets message.
+            assert isinstance(definition, nodes.Note)
             call.definition = definition
             definition.call = call
             call.order = next(order)
@@ -575,6 +607,7 @@ class Transformer:
         screens. An aside called from inside a note or aside definition, or from
         anywhere that is not such a block, stays where it is written.
         """
+        assert self.tree is not None
         calls = [
             d.call
             for d in self.tree.traverse(nodeclass=nodes.Aside)
@@ -589,8 +622,11 @@ class Transformer:
             ):
                 continue
             definition = call.definition
+            # resolve_notes sets call.definition before definition.call.
+            assert definition is not None
             definition.remove_self()
-            host.append(definition)
+            # host is one of the three classes passed above.
+            cast(nodes.NodeWithChildren, host).append(definition)
 
     def collect_notes_list(self) -> None:
         """Move every footnote definition into one list at the end of the document.
@@ -600,6 +636,7 @@ class Transformer:
         Asides are not moved here, see place_asides(). No list is made when there are no
         footnotes.
         """
+        assert self.tree is not None
         footnotes = [
             n
             for n in self.tree.traverse(nodeclass=nodes.Note)
@@ -608,7 +645,8 @@ class Transformer:
         if not footnotes:
             return
         notes_list = nodes.NotesList()
-        for note in sorted(footnotes, key=lambda n: n.number):
+        # resolve_notes numbers every footnote that it does not remove.
+        for note in sorted(footnotes, key=lambda n: cast(int, n.number)):
             note.remove_self()
             notes_list.append(note)
         bibliography = self.tree.first_of_type(nodes.Bibliography)
@@ -648,12 +686,11 @@ class Transformer:
         1
 
         """
+        assert self.tree is not None
         affiliation_map: dict[str, int] = {}
         next_num = 1
 
-        for author in self.tree.traverse(
-            condition=lambda n: isinstance(n, nodes.Author)
-        ):
+        for author in self.tree.traverse(nodeclass=nodes.Author):
             if author.affiliation:
                 if author.affiliation not in affiliation_map:
                     affiliation_map[author.affiliation] = next_num
@@ -695,15 +732,14 @@ class Transformer:
         '*'
 
         """
+        assert self.tree is not None
         SYMBOLS = ["*", "†", "‡", "§", "¶", "‖"]
 
         # Collect unique notes in order of appearance
         note_map: dict[str, str] = {}
         symbol_idx = 0
 
-        for author in self.tree.traverse(
-            condition=lambda n: isinstance(n, nodes.Author)
-        ):
+        for author in self.tree.traverse(nodeclass=nodes.Author):
             if author.author_note and author.author_note not in note_map:
                 # Assign next symbol
                 if symbol_idx < len(SYMBOLS):
@@ -718,9 +754,7 @@ class Transformer:
                 symbol_idx += 1
 
         # Assign symbols to all authors
-        for author in self.tree.traverse(
-            condition=lambda n: isinstance(n, nodes.Author)
-        ):
+        for author in self.tree.traverse(nodeclass=nodes.Author):
             if author.author_note:
                 author.note_symbol = note_map[author.author_note]
 
@@ -728,9 +762,8 @@ class Transformer:
 
     def build_author_block(self) -> None:
         """Create an AuthorBlock node containing all Authors and an AuthorNotes child."""
-        all_authors = list(
-            self.tree.traverse(condition=lambda n: isinstance(n, nodes.Author))
-        )
+        assert self.tree is not None
+        all_authors = list(self.tree.traverse(nodeclass=nodes.Author))
         authors = [
             a
             for a in all_authors
@@ -755,6 +788,8 @@ class Transformer:
         block = nodes.AuthorBlock()
 
         for author in authors:
+            # Each author was found by walking the tree, so it has a parent.
+            assert author.parent is not None
             author.parent.remove(author)
             block.append(author)
 
@@ -769,9 +804,11 @@ class Transformer:
         self.tree.prepend(block)
 
     def autonumber_nodes(self) -> None:
-        counts: dict[type[nodes.Node], dict[type[nodes.Node], Generator]] = defaultdict(
-            lambda: defaultdict(lambda: count(start=1))
-        )
+        assert self.tree is not None
+        counts: dict[
+            type[nodes.Node] | tuple[type[nodes.Node], ...],
+            dict[type[nodes.Node], Iterator[int | str]],
+        ] = defaultdict(lambda: defaultdict(lambda: count(start=1)))
         within_appendix = False
 
         # Check manuscript numbering config
@@ -795,6 +832,7 @@ class Transformer:
                 node.nonum = True
 
             if node.autonumber and not node.nonum:
+                number_within: type[nodes.Node] | tuple[type[nodes.Node], ...]
                 # Apply numbering mode from config
                 if numbering_mode == "none":
                     # Don't assign numbers when numbering is none
@@ -824,6 +862,7 @@ class Transformer:
         year (not citation order) and assign a/b/c year suffixes to works that
         would otherwise cite identically (same displayed author and year). The
         suffix follows the sorted order and is reused in the citation text."""
+        assert self.tree is not None
         style = getattr(self.tree, "citation_style", "numeric")
         if style not in ("parens-author-year", "author-parens-year"):
             return
@@ -867,7 +906,8 @@ class Transformer:
                 item.year_suffix = suffix
 
     def make_toc(self) -> None:
-        toc = None
+        assert self.tree is not None
+        toc: nodes.Contents | None = None
         for node in self.tree.traverse(nodeclass=nodes.Contents):
             if toc is None:
                 toc = node
@@ -895,7 +935,7 @@ class Transformer:
         # Reference nodes, so they are not counted as edges themselves.
         self._compute_toc_edges(toc)
 
-        current_parent = toc
+        current_parent: nodes.NodeWithChildren = toc
         for sec in self.tree.traverse(nodeclass=nodes.Section):
             item = nodes.Item()
             reftext = f"{sec.title}" if sec.nonum else f"{sec.full_number}. {sec.title}"
@@ -914,7 +954,12 @@ class Transformer:
             # (Subsubsection) to largest (Section).
             if isinstance(sec, nodes.Subsubsection):
                 current_parent.append(item)
+                # A section found by walking the tree has a parent, and here
+                # current_parent is an Itemize inside an Item inside a list.
+                assert sec.parent is not None
                 if sec.parent.last_of_type(nodes.Subsubsection) is sec:
+                    assert current_parent.parent is not None
+                    assert current_parent.parent.parent is not None
                     current_parent = current_parent.parent.parent
             elif isinstance(sec, nodes.Subsection):
                 current_parent.append(item)
@@ -922,8 +967,13 @@ class Transformer:
                     itemize = nodes.Itemize()
                     item.append(itemize)
                     current_parent = itemize
-                elif sec.parent.last_of_type(nodes.Subsection) is sec:
-                    current_parent = current_parent.parent.parent
+                else:
+                    # Same reasons as for the Subsubsection above.
+                    assert sec.parent is not None
+                    if sec.parent.last_of_type(nodes.Subsection) is sec:
+                        assert current_parent.parent is not None
+                        assert current_parent.parent.parent is not None
+                        current_parent = current_parent.parent.parent
             elif isinstance(sec, nodes.Section):
                 toc.append(item)
                 if sec.first_of_type(nodes.Subsection):
@@ -943,6 +993,7 @@ class Transformer:
         earlier section are dependencies ("dep") while references to a later
         section are forward pointers ("fwd").
         """
+        assert self.tree is not None
         # Unnumbered sections (a colophon, say) are back-matter and stay out
         # of the table of contents.
         sections = [
@@ -980,6 +1031,7 @@ class Transformer:
         for ref in self.tree.traverse(nodeclass=nodes.Reference):
             src = nearest_section(ref)
             target = ref.target
+            dst: nodes.Section | None
             if isinstance(target, nodes.Section):
                 dst = target
             elif isinstance(target, nodes.Node):
@@ -1009,6 +1061,7 @@ class Transformer:
     def parse_notation(self) -> None:
         """Parse each :notation: block's raw lines into entries:
         `\\macro $default$ label` -> {macro, default, label}."""
+        assert self.tree is not None
         for notn in self.tree.traverse(nodeclass=nodes.Notation):
             text_node = next(iter(notn.traverse(nodeclass=nodes.Text)), None)
             if text_node is None:
@@ -1034,6 +1087,7 @@ class Transformer:
             notn.clear()
 
     def add_keywords_to_constructs(self) -> None:
+        assert self.tree is not None
         for construct in self.tree.traverse(nodeclass=nodes.Construct):
             kind = construct.kind
             assert kind
@@ -1046,7 +1100,8 @@ class Transformer:
             if nc.has_handrail:
                 self._add_handrail_depth_for_class(nc)
 
-    def _add_handrail_depth_for_class(self, nodeclass) -> None:
+    def _add_handrail_depth_for_class(self, nodeclass: type[nodes.Node]) -> None:
+        assert self.tree is not None
         for node in self.tree.traverse(nodeclass=nodeclass):
             for desc in node.traverse():
                 if desc == node:
@@ -1054,6 +1109,7 @@ class Transformer:
                 desc.handrail_depth += 1
 
     def assign_node_ids(self) -> None:
+        assert self.tree is not None
         nodeid = 0
         for node in self.tree.traverse():
             if isinstance(node, (nodes.AuthorBlock, nodes.AuthorNotes)):

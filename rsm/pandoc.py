@@ -20,6 +20,7 @@ Analogy with the rest of the codebase:
 import logging
 import re
 from datetime import datetime
+from typing import Any
 
 from rsm import nodes
 from rsm.bibextract import sanitize_key
@@ -187,7 +188,8 @@ class PandocTranslator:
                 method_name = self._BLOCK_DISPATCH[cls]
                 if method_name is None:
                     return []
-                return getattr(self, method_name)(node)
+                blocks: list[dict] = getattr(self, method_name)(node)
+                return blocks
         return self._block_fallback(node)
 
     def _walk_children_as_blocks(self, node: nodes.Node) -> list[dict]:
@@ -218,7 +220,8 @@ class PandocTranslator:
                 method_name = self._INLINE_DISPATCH[cls]
                 if method_name is None:
                     return []
-                return getattr(self, method_name)(node)
+                inlines: list[dict] = getattr(self, method_name)(node)
+                return inlines
         return self._inline_fallback(node)
 
     def _walk_children_as_inlines(self, node: nodes.Node) -> list[dict]:
@@ -366,8 +369,8 @@ class PandocTranslator:
         inlines = self._walk_children_as_inlines(node)
         return [{"t": "Para", "c": inlines}] if inlines else []
 
-    def _block_figure(self, node: nodes.Figure) -> list[dict]:
-        if node.holds_html and not node.static:
+    def _block_figure(self, node: nodes.Asset) -> list[dict]:
+        if isinstance(node, nodes.Figure) and node.holds_html and not node.static:
             return self._block_asset_placeholder(node)
         # Use :static: path for non-web export when available
         path = str(node.static) if node.static else str(node.path)
@@ -396,7 +399,7 @@ class PandocTranslator:
             }
         ]
 
-    def _block_toc(self, node) -> list[dict]:
+    def _block_toc(self, node: nodes.Node) -> list[dict]:
         return [
             {
                 "t": "RawBlock",
@@ -425,8 +428,7 @@ class PandocTranslator:
 
     def _block_asset_placeholder(self, node: nodes.Node) -> list[dict]:
         # If a :static: fallback image exists, render it as a figure
-        static = getattr(node, "static", None)
-        if static:
+        if isinstance(node, nodes.Asset) and node.static:
             return self._block_figure(node)
         kind = type(node).__name__
         path = getattr(node, "path", "")
@@ -538,8 +540,8 @@ class PandocTranslator:
             }
         ]
 
-    def _table_rows(self, node: nodes.NodeWithChildren) -> list[dict]:
-        rows = []
+    def _table_rows(self, node: nodes.Node) -> list[list[Any]]:
+        rows: list[list[Any]] = []
         for row in node.children:
             if not isinstance(row, nodes.TableRow):
                 continue
@@ -691,7 +693,8 @@ class PandocTranslator:
         if src_child is not None:
             return src_child.text
         if hasattr(node, "source") and node.source:
-            return node.source.text
+            text: str = node.source.text
+            return text
         return ""
 
 
@@ -804,6 +807,8 @@ class PandocImporter:
 
     def _flush_pending_para(self) -> str:
         """Emit a stashed \\paragraph title that no body paragraph followed."""
+        # Both callers check that _pending_para is set.
+        assert self._pending_para is not None
         title, label = self._pending_para
         self._pending_para = None
         if label:
@@ -845,7 +850,8 @@ class PandocImporter:
         for b in blocks:
             if not isinstance(b, dict):
                 continue
-            t, c = b.get("t"), b.get("c")
+            t = b.get("t")
+            c: Any = b.get("c")
             if t == "Header":
                 gen = self._next_label("sec")
                 self._label_of[id(c)] = gen
@@ -953,7 +959,8 @@ class PandocImporter:
         c = block.get("c", [])
         method = getattr(self, f"_block_{t.lower()}", None)
         if method is not None:
-            return method(c)
+            rendered: str = method(c)
+            return rendered
         logger.warning("PandocImporter: no handler for block type '%s'", t)
         return ""
 
@@ -1196,20 +1203,21 @@ class PandocImporter:
         c = inline.get("c", [])
         method = getattr(self, f"_inline_{t.lower()}", None)
         if method is not None:
-            return method(c)
+            rendered: str = method(c)
+            return rendered
         logger.warning("PandocImporter: no handler for inline type '%s'", t)
         return ""
 
-    def _inline_str(self, c) -> str:
+    def _inline_str(self, c: str) -> str:
         return c
 
-    def _inline_space(self, c) -> str:
+    def _inline_space(self, c: list) -> str:
         return " "
 
-    def _inline_softbreak(self, c) -> str:
+    def _inline_softbreak(self, c: list) -> str:
         return " "
 
-    def _inline_linebreak(self, c) -> str:
+    def _inline_linebreak(self, c: list) -> str:
         return "\n\n"
 
     def _inline_emph(self, c: list) -> str:
@@ -1247,7 +1255,7 @@ class PandocImporter:
         # pandoc marks \ref/\eqref/\autoref links with a reference-type; emit an
         # RSM :ref: to the generated label instead of a URL link.
         if "reference-type" in kv:
-            tgt = kv.get("reference") or target[0].lstrip("#")
+            tgt: str = kv.get("reference") or target[0].lstrip("#")
             return f":ref:{sanitize_key(self._ref_map.get(tgt, tgt))}::"
         return f":url: {target[0]} ::"
 

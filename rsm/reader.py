@@ -20,7 +20,7 @@ class Reader:
         self.src: str = ""
         """The contents of the RSM source file."""
 
-    def read(self, path: Path | None) -> str:
+    def read(self, path: Path | str | None) -> str:
         """Read the contents of the path.
 
         Parameters

@@ -121,6 +121,8 @@ def _cmd_export(args: Namespace) -> int:
     else:
         kwargs["path"] = args.src
     result = app.pandoc_export(**kwargs)
+    if result is None:
+        return 1
     if result and not args.output:
         print(result)
     return 0
@@ -189,6 +191,8 @@ def _cmd_parse(args: Namespace) -> int:
     # Parse the document
     parser = app.ParserApp(**kwargs)
     manuscript = parser.run()
+    if manuscript is None:
+        return 1
 
     # Serialize to JSON
     ast_dict = manuscript.to_dict()
@@ -198,7 +202,7 @@ def _cmd_parse(args: Namespace) -> int:
     return 0
 
 
-def _parse_output_flag(value: str) -> tuple[str, str]:
+def _parse_output_flag(value: str) -> tuple[str, str | None]:
     """Parse -o flag into (output_dir, output_filename).
 
     Cases:
@@ -709,7 +713,9 @@ def _cmd_serve(args: Namespace) -> int:
                     build_cmd += " --standalone"
 
                 # Add a callback to regenerate index after build
-                def rebuild_callback(rsm_path=rsm_file, cmd=build_cmd):
+                def rebuild_callback(
+                    rsm_path: Path = rsm_file, cmd: str = build_cmd
+                ) -> None:
                     # Rebuild the specific file
                     livereload.shell(cmd)()
                     # Regenerate the index page to include any new HTML files
@@ -738,7 +744,7 @@ def _cmd_serve(args: Namespace) -> int:
             # When CSS changes, rebuild all RSM files
             if rsm_files:
 
-                def css_rebuild_callback():
+                def css_rebuild_callback() -> None:
                     # Rebuild all RSM files
                     for rsm_file in rsm_files:
                         output_name = rsm_file.stem
@@ -778,6 +784,8 @@ def _cmd_serve(args: Namespace) -> int:
         # No HTML files found
         if args.src:
             # We just built something, serve it
+            # Mode 1 above sets output_filename whenever args.src is given.
+            assert output_filename is not None
             default_file = output_filename
         else:
             # Nothing to serve, generate empty index page
@@ -815,7 +823,7 @@ def _cmd_serve(args: Namespace) -> int:
     # Open default browser in a background thread after a short delay
     if not args.no_browser:
 
-        def open_browser():
+        def open_browser() -> None:
             time.sleep(1.5)  # Wait for server to start
             webbrowser.open(url)
 
@@ -1141,4 +1149,5 @@ def main() -> int:
     serve_parser.set_defaults(handrails=True, func=_cmd_serve)
 
     args = parser.parse_args()
-    return args.func(args)
+    status: int = args.func(args)
+    return status

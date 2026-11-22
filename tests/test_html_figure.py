@@ -159,3 +159,14 @@ def test_html_block_in_a_figure_sits_with_the_static_image():
     zone = zone[: zone.index("static-fallback")]
     assert '<canvas id="c"></canvas>' in zone
     assert html.count('<canvas id="c">') == 1
+
+
+def test_figure_with_an_html_file_that_is_not_utf8_shows_an_error(
+    tmp_path, monkeypatch, caplog
+):
+    (tmp_path / "bad.html").write_bytes(b"\xff\xfe<div>x</div>")
+    monkeypatch.chdir(tmp_path)
+    with caplog.at_level(logging.ERROR, logger="RSM"):
+        html = _render("## S\n\n:figure: {:path: bad.html}\n::\n")
+    assert "Unable to load HTML asset: bad.html" in html
+    assert "bad.html is not UTF-8 text" in caplog.text

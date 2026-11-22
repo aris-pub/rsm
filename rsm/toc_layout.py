@@ -80,11 +80,11 @@ def layout_tree(
     # memory address, so the set order, and with it the layout, changed from one
     # build to the next. Hashing by node index makes every build the same.
     class _Vertex(Vertex):
-        def __hash__(self):
+        def __hash__(self) -> int:
             return hash(self.data)
 
     class _Edge(Edge):
-        def __hash__(self):
+        def __hash__(self) -> int:
             return hash((self.v[0].data, self.v[1].data))
 
     horizontal = orient == "horizontal"

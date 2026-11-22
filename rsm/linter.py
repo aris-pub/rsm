@@ -44,19 +44,23 @@ class Linter:
     def lint_manuscript_title(self) -> None:
         """Manuscript should have a title."""
         if not self.tree.title:
-            logger.lint("Manuscript with no title", extra=self._extra(self.tree))
+            logger.lint(  # type: ignore[attr-defined]  # added in __init__
+                "Manuscript with no title", extra=self._extra(self.tree)
+            )
 
     def lint_section_label(self) -> None:
         """Sections should be labeled."""
         for section in self.tree.traverse(nodeclass=nodes.Section):
             if not section.label:
-                logger.lint("Section with no label", extra=self._extra(section))
+                logger.lint(  # type: ignore[attr-defined]  # added in __init__
+                    "Section with no label", extra=self._extra(section)
+                )
 
     def lint_mathblock_inside_paragraph(self) -> None:
         for block in self.tree.traverse(nodeclass=nodes.MathBlock):
             if not isinstance(block.parent, nodes.Paragraph):
                 cls = type(block.parent)
-                logger.lint(
+                logger.lint(  # type: ignore[attr-defined]  # added in __init__
                     f"MathBlock must be direct child of Paragraph, not {cls}",
                     extra=self._extra(block),
                 )

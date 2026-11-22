@@ -10,6 +10,7 @@ different conftest.py file in that directory.
 """
 
 import sys
+from typing import Any
 
 import pytest
 
@@ -19,7 +20,7 @@ sys.path.append("docs/source/")
 
 
 @pytest.fixture(autouse=True)
-def add_rsm_to_doctest_namespace(doctest_namespace):
+def add_rsm_to_doctest_namespace(doctest_namespace: dict[str, Any]) -> None:
     """Ensure doctests have access to rsm."""
     # without this, each doctest would have to import rsm
     doctest_namespace["rsm"] = rsm

@@ -89,7 +89,7 @@ warn_return_any = true
 warn_redundant_casts = true
 
 [[tool.mypy.overrides]]
-module = ["icecream.*", "livereload.*"]
+module = ["icecream.*", "livereload.*", "grandalf.*"]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]

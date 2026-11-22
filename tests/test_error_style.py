@@ -6,6 +6,7 @@ from pathlib import Path
 import pytest
 
 import rsm
+from rsm.tsparser import RSMParserError, TSParser
 
 ERROR_SPAN = re.compile(r'<span class="error"[^>]*>\[CST error at [^\]]*\]</span>')
 
@@ -87,3 +88,8 @@ def test_error_rule_sets_red_text():
     assert re.search(r"(?<![-\w])color:\s*var\(--error-900\)", rule.group(1)), (
         rule.group(1)
     )
+
+
+def test_a_source_that_cannot_be_parsed_raises_the_parser_error():
+    with pytest.raises(RSMParserError):
+        TSParser().parse("# Ext\n\n:theorem: {:label: t\n")

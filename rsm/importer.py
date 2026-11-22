@@ -14,13 +14,13 @@ scratch directory or exhaust the disk.
 from __future__ import annotations
 
 import gzip
-import io
 import logging
 import re
 import tarfile
 import tempfile
 import zipfile
 from pathlib import Path
+from typing import IO
 
 logger = logging.getLogger("RSM").getChild("import")
 
@@ -174,7 +174,7 @@ def _extract_zip(archive: Path, dest: Path) -> None:
                 _copy_capped(src, out, _MAX_EXTRACTED)
 
 
-def _copy_capped(src: io.BufferedReader, out: io.BufferedWriter, cap: int) -> None:
+def _copy_capped(src: IO[bytes], out: IO[bytes], cap: int) -> None:
     """Copy src to out, raising if more than cap bytes are read (zip-bomb guard)."""
     remaining = cap
     while True:

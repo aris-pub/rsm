@@ -119,10 +119,12 @@ from collections import namedtuple
 from collections.abc import Callable, Iterable
 from html import escape as html_escape
 from html import unescape as html_unescape
-from typing import Any, Literal
+from pathlib import Path
+from typing import Any, Literal, TypeVar, cast, overload
 
 from . import nodes
 from . import proof as proofmodel
+from .asset_resolver import AssetResolver
 from .util import highlight_code
 
 logger = logging.getLogger("RSM").getChild("tlate")
@@ -352,7 +354,7 @@ def _make_reading_panel(typeface_default: str = "sans", minimap: bool = True) ->
     )
 
 
-def _reject_html_wrapper(path: str) -> None:
+def _reject_html_wrapper(path: str | Path) -> None:
     """Raise if an embedded HTML asset contains document-level wrapper tags."""
     raise RSMTranslatorError(
         f"HTML asset '{path}' contains <!DOCTYPE>, <html>, or <body> tags. "
@@ -392,7 +394,7 @@ def _process_html_with_scripts(html_content: str) -> str:
 
     # Build a queue of scripts to execute in order
     processed_scripts = []
-    external_scripts = []
+    external_scripts: list[dict[str, Any]] = []
 
     for _i, match in enumerate(scripts):
         attributes = match.group(1)
@@ -573,9 +575,11 @@ def expand_notation(latex: str, macros: dict[str, str], _depth: int = 0) -> str:
             args.append(arg[0])
             j = arg[1]
         else:
-            body = re.sub(
-                r"#([1-9])", lambda m, args=args: args[int(m.group(1)) - 1], body
-            )
+
+            def _arg(m: re.Match[str], args: list[str] = args) -> str:
+                return args[int(m.group(1)) - 1]
+
+            body = re.sub(r"#([1-9])", _arg, body)
             out.append(expand_notation(body, macros, _depth + 1))
             i = j
             continue
@@ -586,7 +590,7 @@ def expand_notation(latex: str, macros: dict[str, str], _depth: int = 0) -> str:
 
 def _make_tag(
     tag: str,
-    id_: str,
+    id_: str | None,
     classes: Iterable,
     is_selectable: bool = False,
     nodeid: int | None = None,
@@ -798,11 +802,11 @@ class AppendOpenCloseTag(AppendText):
         content: str = "",
         *,
         id: str = "",
-        classes: list = None,
+        classes: list | None = None,
         newline_inner: bool = True,
         newline_outer: bool = True,
         is_selectable: bool = False,
-        **kwargs,
+        **kwargs: Any,
     ):
         self.tag = tag
         self.content = content
@@ -833,11 +837,11 @@ class AppendOpenTagManualClose(AppendText):
         content: str = "",
         *,
         id: str = "",
-        classes: list = None,
+        classes: list | None = None,
         newline_inner: bool = True,
         newline_outer: bool = True,
         is_selectable: bool = False,
-        **kwargs,
+        **kwargs: Any,
     ):
         self.tag = tag
         self.content = content
@@ -860,7 +864,7 @@ class AppendOpenTagManualClose(AppendText):
     def __repr__(self) -> str:
         return self._edit_command_repr(["tag", "content", "id", "classes"])
 
-    def close_command(self):
+    def close_command(self) -> AppendText:
         return AppendText(
             ("\n" if self.newline_inner else "")
             + f"</{self.tag}>"
@@ -878,7 +882,7 @@ class AppendOpenTag(AppendTextAndDefer):
         newline_inner: bool = True,
         newline_outer: bool = True,
         is_selectable: bool = False,
-        **kwargs,
+        **kwargs: Any,
     ):
         self.tag = tag
         self.id = id
@@ -973,7 +977,7 @@ class AppendNodeTag(AppendOpenTag):
         classes = list(dict.fromkeys(classes + (additional_classes or [])))
 
         # Extract node source if requested
-        kwargs = {"nodeid": node.nodeid}
+        kwargs: dict[str, int | str | None] = {"nodeid": node.nodeid}
         if extra_attrs:
             kwargs.update(extra_attrs)
         if isinstance(node, nodes.Asset) and node.static:
@@ -1043,7 +1047,7 @@ class AppendParagraph(AppendOpenCloseTag):
         content: str = "",
         *,
         id: str = "",
-        classes: list = None,
+        classes: list | None = None,
         newline_inner: bool = False,
         newline_outer: bool = True,
     ):
@@ -1067,7 +1071,7 @@ class AppendHeading(AppendOpenCloseTag):
         content: str = "",
         *,
         id: str = "",
-        classes: list = None,
+        classes: list | None = None,
         newline_inner: bool = False,
         newline_outer: bool = True,
     ):
@@ -1091,7 +1095,7 @@ class AppendKeyword(AppendOpenCloseTag):
         keyword: str,
         *,
         id: str = "",
-        classes: list = None,
+        classes: list | None = None,
         newline_inner: bool = False,
         newline_outer: bool = False,
     ):
@@ -1114,7 +1118,7 @@ class AppendHalmos(AppendOpenCloseTag):
         self,
         *,
         id: str = "",
-        classes: list = None,
+        classes: list | None = None,
     ):
         super().__init__(
             tag="div",
@@ -1130,13 +1134,20 @@ class AppendHalmos(AppendOpenCloseTag):
 
 
 class AppendExternalTree(AppendText):
-    def __init__(self, root: nodes.Node, handrails: bool = False):
+    """Translate a node that is not in the tree, such as a block's title."""
+
+    def __init__(self, root: nodes.Node, translator: "Translator"):
         super().__init__()
         self.root = root
-        self.cls = HandrailsTranslator if handrails else Translator
+        self.translator = translator
 
     def make_text(self) -> str:
-        return self.cls(quiet=True).translate(self.root)
+        # The new translator reads the document's notation and settings (such
+        # as the citation style) from the tree that the main one translates.
+        other = Translator(quiet=True)
+        other.tree = self.translator.tree
+        other._notation = self.translator._notation
+        return other._walk(self.root)
 
 
 class EditCommandBatch(EditCommand):
@@ -1152,6 +1163,9 @@ class EditCommandBatch(EditCommand):
 
     def make_text(self) -> str:
         raise RSMTranslatorError("Why are we here?")
+
+
+_BatchT = TypeVar("_BatchT", bound=EditCommandBatch)
 
 
 class AppendBatchAndDefer(EditCommandBatch):
@@ -1174,7 +1188,13 @@ class AppendBatch(EditCommandBatch):
             item.execute(translator)
 
 
-def auto_leave_deferred(leave_method):
+_TranslatorT = TypeVar("_TranslatorT", bound="Translator")
+_NodeT = TypeVar("_NodeT", bound=nodes.Node)
+
+
+def auto_leave_deferred(
+    leave_method: Callable[[_TranslatorT, _NodeT, "EditCommandBatch"], EditCommand],
+) -> Callable[[_TranslatorT, _NodeT], EditCommand]:
     """
     Decorator for leave_* methods whose corresponding visit_* method returns
     a command with defers=True (like AppendBatchAndDefer).
@@ -1189,9 +1209,11 @@ def auto_leave_deferred(leave_method):
     modify and return the base_batch.
     """
 
-    def wrapper(self, node):
-        # Get the base leave_node batch (handles deferred cleanup)
-        base_batch = self.leave_node(node)
+    def wrapper(self: _TranslatorT, node: _NodeT) -> EditCommand:
+        # Get the base leave_node batch (handles deferred cleanup). The visit
+        # method returned a batch that defers, so the deferred command is the
+        # AppendBatch made by AppendBatchAndDefer.execute.
+        base_batch = cast(EditCommandBatch, self.leave_node(node))
 
         # Call the decorated method with the base batch for modification
         return leave_method(self, node, base_batch)
@@ -1222,12 +1244,12 @@ class Translator:
     def __init__(
         self,
         quiet: bool = False,
-        asset_resolver=None,
+        asset_resolver: AssetResolver | None = None,
         standalone: bool = False,
         source_offsets: bool = False,
         copy_source: bool = False,
-    ):
-        self.tree: nodes.Manuscript = None
+    ) -> None:
+        self.tree: nodes.Manuscript | None = None
         self.body: str = ""
         self.standalone = standalone
         self.source_offsets = source_offsets
@@ -1241,7 +1263,9 @@ class Translator:
         self.deferred: list[EditCommand] = []
         self.quiet = quiet
 
-    def _node_tag(self, node, tag="div", **kwargs):
+    def _node_tag(
+        self, node: nodes.Node, tag: str = "div", **kwargs: Any
+    ) -> AppendNodeTag:
         """Create an AppendNodeTag with source offsets if source_offsets is enabled."""
         return AppendNodeTag(
             node,
@@ -1265,7 +1289,8 @@ class Translator:
             method = f"{action}_{nodeclass.__name__.lower()}"
         # if action == "visit" and ogclass is not nodeclass:
         #     logger.debug(f"Using {method} for node of class {ogclass}")
-        return getattr(cls, method)
+        action_method: Callable = getattr(cls, method)
+        return action_method
 
     # Set by FullBuildApp: a built page loads behind a spinner (rsm-hc8).
     loading_spinner = False
@@ -1282,13 +1307,15 @@ class Translator:
                 after = child
         return after
 
-    def push_visit(self, stack, node: nodes.Node) -> None:
+    def push_visit(self, stack: list["Translator.Action"], node: nodes.Node) -> None:
         stack.append(self.Action(node, "visit", self.get_action_method(node, "visit")))
 
-    def push_leave(self, stack, node: nodes.Node) -> None:
+    def push_leave(self, stack: list["Translator.Action"], node: nodes.Node) -> None:
         stack.append(self.Action(node, "leave", self.get_action_method(node, "leave")))
 
-    def push_children(self, stack, children: list[nodes.Node]) -> None:
+    def push_children(
+        self, stack: list["Translator.Action"], children: list[nodes.Node]
+    ) -> None:
         """Push the visits of *children*, and after them the step that wraps
         their hyphenated words."""
         if any(type(c) is nodes.Text for c in children):
@@ -1397,14 +1424,16 @@ class Translator:
             for n in tree.traverse(nodeclass=nodes.Notation)
             for e in n.entries
         }
+        spinner_after = self._spinner_after(tree) if self.loading_spinner else None
+        return self._walk(tree, spinner_after)
 
+    def _walk(self, root: nodes.Node, spinner_after: nodes.Node | None = None) -> str:
         if self.deferred:
             raise RSMTranslatorError("Something went wrong")
 
-        spinner_after = self._spinner_after(tree) if self.loading_spinner else None
-        spinner_action = "visit" if spinner_after is tree else "leave"
-        stack = []
-        self.push_visit(stack, tree)
+        spinner_action = "visit" if spinner_after is root else "leave"
+        stack: list[Translator.Action] = []
+        self.push_visit(stack, root)
         while stack:
             node, action, method = stack.pop()
             command = method(self, node)
@@ -1460,6 +1489,16 @@ class Translator:
         """
         return [AppendText("</p>")] if self._terminal_block_in_p(node) else []
 
+    @overload
+    def _reopen_p_after(
+        self, node: nodes.TerminalBlock, closing: EditCommandBatch
+    ) -> EditCommandBatch: ...
+
+    @overload
+    def _reopen_p_after(
+        self, node: nodes.TerminalBlock, closing: EditCommand
+    ) -> EditCommand: ...
+
     def _reopen_p_after(
         self, node: nodes.TerminalBlock, closing: EditCommand
     ) -> EditCommand:
@@ -1474,15 +1513,17 @@ class Translator:
         nxt = node.next_sibling()
         if not nxt or isinstance(nxt, nodes.Aside):
             return closing
+        # _terminal_block_in_p checked that the parent is a Paragraph or Note.
+        assert node.parent is not None
         node.parent._must_close_p_tag = True
         items = closing.items if isinstance(closing, EditCommandBatch) else [closing]
         return AppendBatch([*items, AppendText("<p>")])
 
-    def visit_manuscript(self, node: nodes.Manuscript) -> EditCommand:
+    def visit_manuscript(self, node: nodes.Manuscript) -> AppendBatchAndDefer:
         accent = getattr(node, "accent", "blue")
         lang = getattr(node, "lang", "en")
         typography = getattr(node, "typography", "sans-serif")
-        body_attrs = {
+        body_attrs: dict[str, Any] = {
             "data-accent": accent,
             "data-lang": lang,
             "data-typography": typography,
@@ -1539,7 +1580,7 @@ class Translator:
     def leave_author(self, node: nodes.Author) -> EditCommand:
         return AppendText("")
 
-    def visit_authorblock(self, node: nodes.AuthorBlock) -> EditCommand:
+    def visit_authorblock(self, node: nodes.AuthorBlock) -> AppendBatchAndDefer:
         authors = [c for c in node.children if isinstance(c, nodes.Author)]
         total_affiliations = getattr(self.tree, "total_unique_affiliations", 0)
         total_notes = getattr(self.tree, "total_unique_notes", 0)
@@ -1640,7 +1681,7 @@ class Translator:
         html += "</details>\n"
         return html
 
-    def visit_abstract(self, node: nodes.Abstract) -> EditCommand:
+    def visit_abstract(self, node: nodes.Abstract) -> AppendBatchAndDefer:
         return AppendBatchAndDefer(
             [
                 AppendNodeTag(node),
@@ -1674,7 +1715,7 @@ class Translator:
         batch.items.append(self.leave_node(node))
         return batch
 
-    def visit_paragraph(self, node: nodes.Paragraph) -> EditCommand:
+    def visit_paragraph(self, node: nodes.Paragraph) -> AppendBatchAndDefer:
         # There are three kinds of paragraphs, depending on whether the paragraph
         # contains a mathblock, and if so, where it is located.  In the simplest case,
         # the paragraph does not contain a mathblock.  In this case, we simply want to
@@ -1738,7 +1779,7 @@ class Translator:
     def visit_step(self, node: nodes.Step) -> EditCommand:
         return AppendNodeTag(node)
 
-    def visit_section(self, node: nodes.Section) -> EditCommand:
+    def visit_section(self, node: nodes.Section) -> AppendBatchAndDefer:
         node.classes.insert(0, f"level-{node.level}")
         heading = self._title_html(node)
         if not node.nonum:
@@ -1769,7 +1810,7 @@ class Translator:
     def visit_item(self, node: nodes.Item) -> EditCommand:
         return AppendNodeTag(node, "li")
 
-    def visit_contents(self, node: nodes.Contents) -> EditCommand:
+    def visit_contents(self, node: nodes.Contents) -> AppendBatchAndDefer:
         toc_classes = ["toc"] + (["tree"] if node.view == "tree" else [])
         return AppendBatchAndDefer(
             [
@@ -1780,7 +1821,7 @@ class Translator:
                 AppendOpenTag(
                     tag="nav",
                     classes=toc_classes,
-                    **{"aria-label": "Table of contents"},
+                    **{"aria-label": "Table of contents"},  # type: ignore[arg-type]  # these keys go to **kwargs, but mypy checks the values against the named parameters too
                 ),
                 # Level 2 for the same heading-order reason as the abstract: the
                 # table of contents is front matter between the h1 and the first
@@ -1992,7 +2033,7 @@ class Translator:
                 id_=f"call-{node.target}",
                 classes=["aside-phrase"],
                 href=f"#{node.target}",
-                **{"data-note-kind": "aside"},
+                **{"data-note-kind": "aside"},  # type: ignore[arg-type]  # these keys go to **kwargs, but mypy checks the values against the named parameters too
             )
             return AppendTextAndDefer(
                 tag, '<span class="visually-hidden"> (aside)</span></a>'
@@ -2003,11 +2044,11 @@ class Translator:
             classes=["note-marker"],
             href=f"#{node.target}",
             role="doc-noteref",
-            **{"data-note-number": node.number, "data-note-kind": node.kind},
+            **{"data-note-number": node.number, "data-note-kind": node.kind},  # type: ignore[arg-type]  # these keys go to **kwargs, but mypy checks the values against the named parameters too
         )
         return AppendText(f"{tag}{node.number}</a>")
 
-    def visit_noteslist(self, node: nodes.NotesList) -> EditCommand:
+    def visit_noteslist(self, node: nodes.NotesList) -> AppendBatchAndDefer:
         return AppendBatchAndDefer(
             [
                 AppendOpenTag("section", classes=["level-2"]),
@@ -2016,7 +2057,7 @@ class Translator:
             ]
         )
 
-    def visit_note(self, node: nodes.Note) -> EditCommand:
+    def visit_note(self, node: nodes.Note) -> AppendBatchAndDefer:
         # A footnote is an entry of the notes list and starts with its number. An
         # aside sits below the block that calls it and has no number. Both are a
         # paragraph. The terminal block visitors close and reopen the <p> as they
@@ -2058,7 +2099,8 @@ class Translator:
         return AppendBatchAndDefer([AppendText("</p>"), *cmd.items])
 
     def leave_note(self, node: nodes.Note) -> EditCommand:
-        batch = self.leave_node(node)
+        # The visit method deferred a batch, so leave_node returns one.
+        batch = cast(EditCommandBatch, self.leave_node(node))
         if getattr(node, "_must_close_p_tag", False):
             batch.items.insert(0, AppendText("</p>"))
         if isinstance(node.parent, nodes.NotesList) and node.call is not None:
@@ -2070,7 +2112,7 @@ class Translator:
                 classes=["reference", "backlink", "note-backlink"],
                 href=f"#call-{node.label}",
                 role="doc-backlink",
-                **{"aria-label": f"Back to the text of note {node.number}"},
+                **{"aria-label": f"Back to the text of note {node.number}"},  # type: ignore[arg-type]  # these keys go to **kwargs, but mypy checks the values against the named parameters too
             )
             batch.items.insert(0, AppendText(f" {backlink}↖</a>"))
         return batch
@@ -2093,7 +2135,7 @@ class Translator:
         latex = prefix + src if isinstance(node, nodes.Math) else src.strip()
         return {"data-latex": html_escape(latex, quote=True)}
 
-    def visit_math(self, node: nodes.Math) -> EditCommand:
+    def visit_math(self, node: nodes.Math) -> AppendBatchAndDefer:
         # \( ... \) are the standard TeX inline-math delimiters read by the client renderer
         if node.preamble:
             node.classes.append("math-preamble")
@@ -2114,7 +2156,7 @@ class Translator:
             ]
         )
 
-    def visit_mathblock(self, node: nodes.MathBlock) -> EditCommand:
+    def visit_mathblock(self, node: nodes.MathBlock) -> AppendBatchAndDefer:
         commands = self._close_p_before(node)
         if node.preamble:
             node.classes.append("math-preamble")
@@ -2124,11 +2166,13 @@ class Translator:
         commands.append(AppendTextAndDefer("$$\n", "\n$$"))
         return AppendBatchAndDefer(commands)
 
-    def leave_mathblock(self, node: nodes.MathBlock) -> EditCommand:
-        return self._reopen_p_after(node, self.leave_node(node))
+    def leave_mathblock(self, node: nodes.MathBlock) -> EditCommandBatch:
+        # visit_mathblock deferred a batch, so leave_node returns one.
+        return self._reopen_p_after(node, cast(EditCommandBatch, self.leave_node(node)))
 
-    def leave_paragraph(self, node: nodes.Paragraph) -> EditCommand:
-        batch = self.leave_node(node)
+    def leave_paragraph(self, node: nodes.Paragraph) -> EditCommandBatch:
+        # The visit method deferred a batch, so leave_node returns one.
+        batch = cast(EditCommandBatch, self.leave_node(node))
         if getattr(node, "_must_close_p_tag", False):
             batch.items.insert(0, AppendText("</p>"))
         return batch
@@ -2163,7 +2207,7 @@ class Translator:
             node, tag="span", newline_inner=False, newline_outer=False
         )
 
-    def visit_rawhtml(self, node: nodes.RawHtml) -> EditCommand:
+    def visit_rawhtml(self, node: nodes.RawHtml) -> AppendBatchAndDefer:
         # The fallback (the children) goes first and hidden, and the HTML last,
         # so that HTML that does not close its own tags cannot swallow the
         # fallback. Copies of the page swap the fallback in (rawhtml.js).
@@ -2203,7 +2247,7 @@ class Translator:
             items.append(AppendTextAndDefer("", node.html))
         return AppendBatchAndDefer(items)
 
-    def visit_codeblock(self, node: nodes.CodeBlock) -> EditCommand:
+    def visit_codeblock(self, node: nodes.CodeBlock) -> AppendBatchAndDefer:
         items = self._close_p_before(node)
         items += [
             AppendNodeTag(node, "div", newline_inner=True, newline_outer=True),
@@ -2214,7 +2258,7 @@ class Translator:
     def leave_codeblock(self, node: nodes.CodeBlock) -> EditCommand:
         return self._reopen_p_after(node, self.leave_node(node))
 
-    def visit_algorithm(self, node: nodes.Algorithm) -> EditCommand:
+    def visit_algorithm(self, node: nodes.Algorithm) -> AppendBatchAndDefer:
         return AppendBatchAndDefer(
             [
                 *self._close_p_before(node),
@@ -2304,7 +2348,7 @@ class Translator:
     def _make_ahref_tag_text(
         self,
         node: nodes.BaseReference | nodes.Cite,
-        target: nodes.Node,
+        target: str | nodes.Node | None,
         href_text: str,
         label: str = "",
         id_: str = "",
@@ -2418,9 +2462,9 @@ class Translator:
         self,
         label: str,
         desc: str = "",
-        classes: list = None,
+        classes: list | None = None,
         desc_nodes: list[nodes.Node] | None = None,
-    ) -> nodes.Node:
+    ) -> nodes.Paragraph:
         if classes is None:
             classes = ["hr-label"]
         para = nodes.Paragraph(classes=classes)
@@ -2440,7 +2484,7 @@ class Translator:
             para.append(span)
         return para
 
-    def visit_theorem(self, node: nodes.Theorem) -> EditCommand:
+    def visit_theorem(self, node: nodes.Theorem) -> AppendBatchAndDefer:
         title = self._make_title_node(
             label=node.kindname
             + (f" {node.full_number}" if not node.nonum and node.number else "")
@@ -2453,7 +2497,7 @@ class Translator:
         return AppendBatchAndDefer(
             [
                 AppendNodeTag(node, additional_classes=["theorem"]),
-                AppendExternalTree(title),
+                AppendExternalTree(title, self),
             ]
         )
 
@@ -2473,6 +2517,8 @@ class Translator:
         # labels in one row above the panels. All radios of a group share one
         # name, so the browser keeps exactly one checked.
         radio_id = f"tab-{node.nodeid}"
+        # A tab is always inside its tabs block.
+        assert node.parent is not None
         first = node.parent.children[0] is node
         radio = (
             f'\n<input type="radio" class="tab-input" name="tabs-{node.parent.nodeid}"'
@@ -2483,21 +2529,21 @@ class Translator:
             self._title_html(node),
             classes=["tab-label"],
             newline_inner=False,
-            **{"for": radio_id},
+            **{"for": radio_id},  # type: ignore[arg-type]  # these keys go to **kwargs, but mypy checks the values against the named parameters too
         )
         panel = AppendNodeTag(node, extra_attrs={"data-tab": radio_id})
         return AppendBatchAndDefer([AppendText(radio), label, panel])
 
-    def visit_sketch(self, node: nodes.Sketch) -> EditCommand:
+    def visit_sketch(self, node: nodes.Sketch) -> AppendBatchAndDefer:
         title = self._make_title_node(label="Proof sketch.")
         return AppendBatchAndDefer(
             [
                 AppendNodeTag(node),
-                AppendExternalTree(title),
+                AppendExternalTree(title, self),
             ]
         )
 
-    def visit_proof(self, node: nodes.Proof) -> EditCommandBatch:
+    def visit_proof(self, node: nodes.Proof) -> AppendBatchAndDefer:
         last = node.last_of_type(nodes.Step)
         if last:
             last.classes.append("last")
@@ -2522,12 +2568,14 @@ class Translator:
         return AppendBatchAndDefer(
             [
                 AppendNodeTag(node, extra_attrs=extra_attrs),
-                AppendExternalTree(title),
+                AppendExternalTree(title, self),
             ]
         )
 
     @auto_leave_deferred
-    def leave_proof(self, node: nodes.Proof, base_batch) -> EditCommand:
+    def leave_proof(
+        self, node: nodes.Proof, base_batch: EditCommandBatch
+    ) -> EditCommand:
         base_batch.items.insert(-1, AppendHalmos())
         return AppendBatch(base_batch.items)
 
@@ -2541,12 +2589,12 @@ class Translator:
         for step in node.children:
             step.collapsed = True
 
-    def visit_calc(self, node: nodes.Calc) -> EditCommand:
+    def visit_calc(self, node: nodes.Calc) -> AppendBatchAndDefer:
         self._fold_calc_rows(node)
         return AppendBatchAndDefer([AppendNodeTag(node)])
 
     @auto_leave_deferred
-    def leave_calc(self, node: nodes.Calc, base_batch) -> EditCommand:
+    def leave_calc(self, node: nodes.Calc, base_batch: EditCommandBatch) -> EditCommand:
         # Inside a proof the chain reads as one step and closes with its own
         # tombstone. Outside a proof it is a display equation and has none.
         if node.first_ancestor_of_type(nodes.Proof) is not None:
@@ -2663,7 +2711,7 @@ class Translator:
             text = f'<span id="{node.label}">{text}</span>'
         return AppendText(text)
 
-    def visit_bibliography(self, node: nodes.Bibliography) -> EditCommand:
+    def visit_bibliography(self, node: nodes.Bibliography) -> AppendBatchAndDefer:
         # Author-year bibliographies are unnumbered (the citation carries the
         # author and year), so they use an unordered list; numeric stays an <ol>.
         style = getattr(self.tree, "citation_style", "numeric")
@@ -2678,7 +2726,7 @@ class Translator:
             ]
         )
 
-    def visit_bibitem(self, node: nodes.Bibitem) -> EditCommand:
+    def visit_bibitem(self, node: nodes.Bibitem) -> AppendBatchAndDefer:
         # An entry is a card: authors and year with the DOI, title, venue with
         # the links back to each citation. Author-year bibliographies are
         # unnumbered and the year carries the a/b/c suffix assigned during
@@ -2728,7 +2776,7 @@ class Translator:
                     id_="",
                     classes=["reference", "backlink"],
                     href=f"#{link_lbl}",
-                    **{
+                    **{  # type: ignore[arg-type]  # these keys go to **kwargs, but mypy checks the values against the named parameters too
                         "aria-label": f"Back to citation {idx}"
                         if many
                         else "Back to the citation"
@@ -2825,9 +2873,12 @@ class Translator:
             [AppendNodeTag(node, "span"), AppendTextAndDefer("[ ", " ]")]
         )
 
-    def _resolve_html_content(self, path) -> str:
+    def _resolve_html_content(self, path: str | Path) -> str:
         """Resolve an HTML asset file and return processed content."""
         content = self.asset_resolver.resolve_asset(str(path))
+        if isinstance(content, bytes):
+            logger.error(f"HTML asset {path} is not UTF-8 text")
+            content = None
         if content is None:
             return f'<div class="html-error">Unable to load HTML asset: {path}</div>'
 
@@ -2839,7 +2890,7 @@ class Translator:
             _reject_html_wrapper(path)
         return content
 
-    def _resolve_image_src(self, path) -> str:
+    def _resolve_image_src(self, path: str | Path) -> str:
         """Resolve an image asset to a src attribute value.
 
         Delegates to the asset resolver, which returns either a URL path
@@ -3023,11 +3074,13 @@ class Translator:
 
     def visit_caption(self, node: nodes.Caption) -> EditCommand:
         parent = node.parent
+        # A caption is always inside the block that it captions.
+        assert parent is not None
         caption = _caption_label(parent)
         # Tables use figcaption outside <table> (inside table-wrapper) so the caption
         # doesn't participate in the table's intrinsic width calculation.
         use_figcaption = isinstance(parent, (nodes.Asset, nodes.Table))
-        items = []
+        items: list[EditCommand] = []
         if isinstance(parent, nodes.Table):
             items.append(AppendText("\n</table>\n"))
         items.extend(
@@ -3043,7 +3096,7 @@ class Translator:
         # output in any way.
         return AppendText("")
 
-    def visit_table(self, node: nodes.Table) -> EditCommand:
+    def visit_table(self, node: nodes.Table) -> AppendBatchAndDefer:
         table_tag = AppendNodeTag(node, "table")
         manual_table = AppendOpenTagManualClose(
             tag="table",
@@ -3060,7 +3113,8 @@ class Translator:
 
     def leave_table(self, node: nodes.Table) -> EditCommand:
         has_caption = any(isinstance(c, nodes.Caption) for c in node.children)
-        batch = self.leave_node(node)
+        # The visit method deferred a batch, so leave_node returns one.
+        batch = cast(EditCommandBatch, self.leave_node(node))
         if not has_caption:
             batch.items.insert(0, AppendText("\n</table>\n"))
         return batch
@@ -3205,10 +3259,10 @@ class HandrailsTranslator(Translator):
         quiet: bool = False,
         source_offsets: bool = True,
         copy_source: bool = True,
-        asset_resolver=None,
+        asset_resolver: AssetResolver | None = None,
         standalone: bool = False,
         sidebar: bool = False,
-    ):
+    ) -> None:
         super().__init__(
             quiet,
             asset_resolver,
@@ -3236,7 +3290,7 @@ class HandrailsTranslator(Translator):
         classes: list[str] | None = None,
         node: nodes.Node | None = None,
         extra_attrs: dict | None = None,
-    ) -> EditCommand:
+    ) -> AppendOpenTag | AppendOpenTagManualClose:
         classes = (classes or []) + ["hr"] + (["hr-offset"] if depth > 0 else [])
         classes = list(dict.fromkeys(classes))  # deletes duplicates AND preserves order
 
@@ -3418,8 +3472,10 @@ class HandrailsTranslator(Translator):
             classes=["hr-spacer-zone"],
         )
 
-    def _hr_content_zone(self, include_content, fold_label: str = "") -> EditCommand:
-        attrs = {"data-fold-label": fold_label} if fold_label else {}
+    def _hr_content_zone(
+        self, include_content: bool, fold_label: str = ""
+    ) -> AppendOpenTag | AppendOpenTagManualClose:
+        attrs: dict[str, Any] = {"data-fold-label": fold_label} if fold_label else {}
         return (
             AppendOpenTag(classes=["hr-content-zone"], **attrs)
             if include_content
@@ -3427,13 +3483,14 @@ class HandrailsTranslator(Translator):
         )
 
     @staticmethod
-    def _fold_label(node) -> str:
+    def _fold_label(node: nodes.Node) -> str:
         """How many steps a folded block hides, as shown at the foot of its handrail.
 
         A step counts the direct steps in its subproof, any other block its own
         direct steps. Empty when there are none: when the whole body folds away,
         the header and the folded rail already show it.
         """
+        body: nodes.Node | None
         if isinstance(node, nodes.Step):
             # Calc rows start folded, so a label under every relation is noise.
             if node.first_ancestor_of_type(nodes.Calc) is not None:
@@ -3448,7 +3505,7 @@ class HandrailsTranslator(Translator):
             return ""
         return "1 step hidden" if count == 1 else f"{count} steps hidden"
 
-    def _label_head_with_fold(self, batch: EditCommandBatch, node) -> None:
+    def _label_head_with_fold(self, batch: EditCommandBatch, node: nodes.Node) -> None:
         # Labelled blocks show the fold label from their title paragraph, not the
         # content zone: a proof's content-zone ::after already draws its tombstone.
         for item in batch.items:
@@ -3456,7 +3513,7 @@ class HandrailsTranslator(Translator):
                 item.root.fold_label = self._fold_label(node)
                 return
 
-    def _hr_info_zone_icon(self, icon) -> AppendOpenCloseTag:
+    def _hr_info_zone_icon(self, icon: str | None) -> AppendOpenCloseTag:
         hr_info_start = """<div class="hr-info">"""
         hr_info_middle = ""
         hr_info_end = "</div>"
@@ -3531,7 +3588,7 @@ class HandrailsTranslator(Translator):
         is_selectable: bool = True,
         extra_attrs: dict | None = None,
         tag: str = "div",
-    ):
+    ) -> AppendNodeTag:
         classes = (
             (node.classes or [])
             + ["hr"]
@@ -3555,7 +3612,7 @@ class HandrailsTranslator(Translator):
 
     def _replace_node_with_handrails(
         self,
-        node,
+        node: nodes.Node,
         *,
         additional_classes: None | list[str] = None,
         menu_label: str = "",
@@ -3563,7 +3620,7 @@ class HandrailsTranslator(Translator):
         collapse_in_menu: bool = False,
         collapse_all_in_menu: bool = False,
         extra_attrs: dict | None = None,
-    ):
+    ) -> AppendBatchAndDefer:
         menu_zone, menu_attrs = self._hr_menu_zone(
             label=menu_label or node.reftext,
             collapse=collapse_in_menu,
@@ -3634,18 +3691,18 @@ class HandrailsTranslator(Translator):
         self,
         index: int,
         items: list,
-        cls,
+        cls: type[_BatchT],
         *,
         classes: list[str] | None = None,
         include_content: bool = False,
-        icon=None,
+        icon: str | None = None,
         collapse_in_hr: bool = True,
         depth: int = 0,
         menu_label: str = "",
         link: bool | Literal["disabled"] = True,
         toc_view: bool | Literal["disabled"] = False,
         node: nodes.Node | None = None,
-    ):
+    ) -> _BatchT:
         menu_zone, menu_attrs = self._hr_menu_zone(
             label=menu_label, link=link, toc_view=toc_view
         )
@@ -3665,10 +3722,12 @@ class HandrailsTranslator(Translator):
         ]
 
         if not include_content:
+            # Without content, _hr and _hr_content_zone return the tags that
+            # are closed by hand.
             newitems += [
-                hr_content_zone.close_command(),
+                cast(AppendOpenTagManualClose, hr_content_zone).close_command(),
                 self._hr_info_zone_icon(icon),
-                handrail.close_command(),
+                cast(AppendOpenTagManualClose, handrail).close_command(),
             ]
         else:
             # Nothing to do since in this case, everything will close by itself and/or
@@ -3681,10 +3740,10 @@ class HandrailsTranslator(Translator):
     def _wrap_batch_item_with_handrails(
         self,
         index: int,
-        batch: EditCommandBatch,
+        batch: _BatchT,
         *,
         include_content: bool = False,
-        icon=None,
+        icon: str | None = None,
         collapse_in_hr: bool = True,
         depth: int = 0,
         classes: list[str] | None = None,
@@ -3692,7 +3751,7 @@ class HandrailsTranslator(Translator):
         link: bool | Literal["disabled"] = True,
         toc_view: bool | Literal["disabled"] = False,
         node: nodes.Node | None = None,
-    ):
+    ) -> _BatchT:
         return self._wrap_item_with_handrails(
             index,
             batch.items,
@@ -3710,15 +3769,15 @@ class HandrailsTranslator(Translator):
 
     def _wrap_cmd_with_handrails(
         self,
-        cmd,
+        cmd: EditCommand,
         *,
-        include_content=False,
-        icon=None,
-        collapse_in_hr=True,
-        depth=0,
-        classes=None,
+        include_content: bool = False,
+        icon: str | None = None,
+        collapse_in_hr: bool = True,
+        depth: int = 0,
+        classes: list[str] | None = None,
         link: bool | Literal["disabled"] = True,
-    ):
+    ) -> AppendBatchAndDefer:
         return self._wrap_item_with_handrails(
             0,
             [cmd],
@@ -3731,7 +3790,7 @@ class HandrailsTranslator(Translator):
             link=link,
         )
 
-    def _make_singleton_menu(self):
+    def _make_singleton_menu(self) -> AppendText:
         """Emit the single shared menu template with all possible items."""
         html = '<div id="hr-menu-singleton" style="display:none">\n'
         html += '<div class="hr-menu">\n'
@@ -3792,10 +3851,12 @@ class HandrailsTranslator(Translator):
         html += "</div>\n</div>"
         return AppendText(text=html)
 
-    def _make_source_div(self):
+    def _make_source_div(self) -> AppendText:
         # Escaped, or any HTML in the source (an :html: or :htmlblock: body)
         # would become live elements in the page a second time. The
         # Source menu item reads the div's textContent, which is the source.
+        # Called while translating, after translate() has set self.tree.
+        assert self.tree is not None
         src = html_escape(self.tree.src, quote=False)
         return AppendText(text=f'<div class="rsm-source hide">{src}</div>')
 
@@ -3837,6 +3898,8 @@ class HandrailsTranslator(Translator):
         the list in the page's :toc:, built from the sections directly since
         the document may have no :toc:."""
         children: dict[int | None, list[nodes.Section]] = {}
+        # Called while translating, after translate() has set self.tree.
+        assert self.tree is not None
         for sec in self.tree.traverse(nodeclass=nodes.Section):
             parent = sec.parent
             while parent is not None and not isinstance(parent, nodes.Section):
@@ -3861,7 +3924,7 @@ class HandrailsTranslator(Translator):
 
         return f'<ul class="contents">{items(None)}</ul>'
 
-    def _make_proof_rail(self):
+    def _make_proof_rail(self) -> AppendText:
         """The reader sidebar: an icon strip in the left margin and the panel it
         opens. The panel holds the section graph and Notation (Document scope),
         one pre-rendered step graph and state per proof (Proof scope, followed by
@@ -3877,6 +3940,8 @@ class HandrailsTranslator(Translator):
             return AppendText(text="")
         from html import escape
 
+        # Called while translating, after translate() has set self.tree.
+        assert self.tree is not None
         graph = getattr(self.tree, "section_graph", None)
         has_contents = bool(graph is not None and graph.tree_nodes)
         has_notation = (
@@ -3889,6 +3954,8 @@ class HandrailsTranslator(Translator):
         rail_tree = toc is None or toc.view == "tree"
         doc_panels = []
         if has_contents:
+            # has_contents is true only when graph is set.
+            assert graph is not None
             doc_panels.append(
                 f'<div class="rail-panel rail-doc-map{" tree" if rail_tree else ""}">'
                 f"{self._toc_tree_svg(graph)}{self._rail_toc_list()}</div>"
@@ -4089,7 +4156,7 @@ class HandrailsTranslator(Translator):
         return AppendText(text=strip + panel)
 
     @staticmethod
-    def _rail_proof_link(proof) -> str:
+    def _rail_proof_link(proof: nodes.Proof) -> str:
         """One row of the Proof panel's list: the proof's name, section and steps."""
         from html import escape
 
@@ -4112,7 +4179,12 @@ class HandrailsTranslator(Translator):
         )
 
     def _rail_item(
-        self, key: str, svg: str, step_state, root_title: str, step_count: int
+        self,
+        key: str,
+        svg: str,
+        step_state: list[dict[str, Any]] | None,
+        root_title: str,
+        step_count: int,
     ) -> str:
         from html import escape
 
@@ -4145,7 +4217,7 @@ class HandrailsTranslator(Translator):
             f"{collapsed_card}{data}</div>"
         )
 
-    def _make_svg_defs(self):
+    def _make_svg_defs(self) -> AppendText:
         """Emit a single <svg> block with <symbol> definitions for all icons."""
         symbols = []
         for name, svg_str in self.svg.items():
@@ -4182,7 +4254,7 @@ class HandrailsTranslator(Translator):
         )
         return AppendText(text=defs_html)
 
-    def visit_manuscript(self, node: nodes.Manuscript) -> EditCommand:
+    def visit_manuscript(self, node: nodes.Manuscript) -> AppendBatchAndDefer:
         batch = super().visit_manuscript(node)
         if node.title:
             # The title follows the eyebrow, when there is one.
@@ -4215,7 +4287,7 @@ class HandrailsTranslator(Translator):
     def leave_author(self, node: nodes.Author) -> EditCommand:
         return super().leave_author(node)
 
-    def visit_authorblock(self, node: nodes.AuthorBlock) -> EditCommand:
+    def visit_authorblock(self, node: nodes.AuthorBlock) -> AppendBatchAndDefer:
         batch = super().visit_authorblock(node)
         batch = self._wrap_batch_item_with_handrails(
             1,
@@ -4229,7 +4301,7 @@ class HandrailsTranslator(Translator):
     def leave_authorblock(self, node: nodes.AuthorBlock) -> EditCommand:
         return super().leave_authorblock(node)
 
-    def visit_section(self, node: nodes.Section) -> EditCommand:
+    def visit_section(self, node: nodes.Section) -> AppendBatchAndDefer:
         batch = super().visit_section(node)
         return self._wrap_batch_item_with_handrails(
             1,
@@ -4241,7 +4313,7 @@ class HandrailsTranslator(Translator):
             node=node,
         )
 
-    def visit_abstract(self, node: nodes.Abstract) -> EditCommand:
+    def visit_abstract(self, node: nodes.Abstract) -> AppendBatchAndDefer:
         batch = super().visit_abstract(node)
         return self._wrap_batch_item_with_handrails(
             1,
@@ -4252,7 +4324,7 @@ class HandrailsTranslator(Translator):
             node=node,
         )
 
-    def visit_contents(self, node: nodes.Contents) -> EditCommand:
+    def visit_contents(self, node: nodes.Contents) -> AppendBatchAndDefer:
         batch = super().visit_contents(node)
         batch = self._wrap_batch_item_with_handrails(
             1,
@@ -4265,7 +4337,7 @@ class HandrailsTranslator(Translator):
         )
         return batch
 
-    def visit_bibliography(self, node: nodes.Bibliography) -> EditCommand:
+    def visit_bibliography(self, node: nodes.Bibliography) -> AppendBatchAndDefer:
         batch = super().visit_bibliography(node)
         batch.items[2] = AppendNodeTag(node, "div")
         return self._wrap_batch_item_with_handrails(
@@ -4277,7 +4349,7 @@ class HandrailsTranslator(Translator):
             node=node,
         )
 
-    def visit_noteslist(self, node: nodes.NotesList) -> EditCommand:
+    def visit_noteslist(self, node: nodes.NotesList) -> AppendBatchAndDefer:
         batch = super().visit_noteslist(node)
         return self._wrap_batch_item_with_handrails(
             1,
@@ -4288,7 +4360,7 @@ class HandrailsTranslator(Translator):
             node=node,
         )
 
-    def visit_paragraph(self, node: nodes.Paragraph) -> EditCommand:
+    def visit_paragraph(self, node: nodes.Paragraph) -> AppendBatchAndDefer:
         cmd = super().visit_paragraph(node)
         if _in_paragraph_asset(node):
             return cmd
@@ -4298,7 +4370,7 @@ class HandrailsTranslator(Translator):
         batch = AppendBatchAndDefer([*batch.items, *cmd.items[1:]])
         return batch
 
-    def leave_paragraph(self, node: nodes.Paragraph) -> EditCommand:
+    def leave_paragraph(self, node: nodes.Paragraph) -> EditCommandBatch:
         # For documentation: if a visit_* method returns a command with defers = True,
         # then the corresponding leave_* method MUST MUST MUST call leave_node(node) and
         # add it to the returned batch!!!
@@ -4315,7 +4387,7 @@ class HandrailsTranslator(Translator):
             return super().visit_aside(node)
         return self.visit_note(node)
 
-    def visit_note(self, node: nodes.Note) -> EditCommand:
+    def visit_note(self, node: nodes.Note) -> AppendBatchAndDefer:
         # A note or aside definition gets no handrail of its own. It sits inside a
         # chromeless alignment handrail (as asset bodies do) so its text lines up
         # with the paragraphs around it.
@@ -4336,7 +4408,8 @@ class HandrailsTranslator(Translator):
         return self._list_handrails(node, "ol")
 
     def leave_enumerate(self, node: nodes.Enumerate) -> EditCommand:
-        batch = super().leave_node(node)
+        # The visit method deferred a batch, so leave_node returns one.
+        batch = cast(EditCommandBatch, super().leave_node(node))
         batch.items.insert(-1, self._hr_info_zone_icon(getattr(node, "icon", None)))
         return self._reopen_p_after(node, batch)
 
@@ -4378,11 +4451,14 @@ class HandrailsTranslator(Translator):
             if isinstance(current, nodes.Contents):
                 return super().leave_node(node)
             current = current.parent
-        batch = super().leave_node(node)
+        # The visit method deferred a batch, so leave_node returns one.
+        batch = cast(EditCommandBatch, super().leave_node(node))
         batch.items.insert(-1, self._hr_info_zone_icon(getattr(node, "icon", None)))
         return self._reopen_p_after(node, batch)
 
-    def _asset_handrails(self, node, with_fallback: bool = True) -> EditCommand:
+    def _asset_handrails(
+        self, node: nodes.Asset, with_fallback: bool = True
+    ) -> AppendBatchAndDefer:
         if node.as_paragraph:
             return self._paragraph_asset_handrails(node, with_fallback)
         # A plain <figure> holds the asset body wrapped in a chromeless alignment
@@ -4416,7 +4492,9 @@ class HandrailsTranslator(Translator):
             ]
         )
 
-    def _paragraph_asset_handrails(self, node, with_fallback: bool) -> EditCommand:
+    def _paragraph_asset_handrails(
+        self, node: nodes.Asset, with_fallback: bool
+    ) -> AppendBatchAndDefer:
         # The <figure> is itself the handrail, with the classes a paragraph at the
         # same depth gets, because it has no caption to carry the menu. Its
         # rendered content and any body (such as an :htmlblock:) share the one
@@ -4448,7 +4526,8 @@ class HandrailsTranslator(Translator):
         )
 
     def _leave_asset(self, node: nodes.Asset) -> EditCommand:
-        batch = self.leave_node(node)
+        # The visit method deferred a batch, so leave_node returns one.
+        batch = cast(EditCommandBatch, self.leave_node(node))
         if node.as_paragraph:
             batch.items.insert(-1, self._hr_info_zone_icon(getattr(node, "icon", None)))
         return batch
@@ -4467,6 +4546,8 @@ class HandrailsTranslator(Translator):
 
     def visit_caption(self, node: nodes.Caption) -> EditCommand:
         parent = node.parent
+        # A caption is always inside the block that it captions.
+        assert parent is not None
         caption_label = _caption_label(parent)
 
         # Create figcaption with handrail classes
@@ -4477,7 +4558,7 @@ class HandrailsTranslator(Translator):
         figcaption_classes.extend(additional_classes)
 
         use_figcaption = isinstance(parent, (nodes.Asset, nodes.Table))
-        items = []
+        items: list[EditCommand] = []
         if isinstance(parent, nodes.Table):
             items.append(AppendText("\n</table>\n"))
         has_static = isinstance(parent, nodes.Asset) and parent.static
@@ -4509,7 +4590,8 @@ class HandrailsTranslator(Translator):
         return AppendBatchAndDefer(items)
 
     def leave_caption(self, node: nodes.Caption) -> EditCommand:
-        batch = self.leave_node(node)
+        # The visit method deferred a batch, so leave_node returns one.
+        batch = cast(EditCommandBatch, self.leave_node(node))
         # Close hr-content-zone, add hr-info-zone, then close figcaption
         batch.items = [
             AppendText("</div>"),  # Close hr-content-zone
@@ -4518,7 +4600,7 @@ class HandrailsTranslator(Translator):
         ]
         return batch
 
-    def visit_codeblock(self, node: nodes.CodeBlock) -> EditCommand:
+    def visit_codeblock(self, node: nodes.CodeBlock) -> AppendBatchAndDefer:
         batch = self._replace_node_with_handrails(node, collapse_in_hr=False)
         close_p = self._close_p_before(node)
         batch.items[:0] = close_p
@@ -4533,13 +4615,15 @@ class HandrailsTranslator(Translator):
         return AppendBatchAndDefer(batch.items)
 
     @auto_leave_deferred
-    def leave_codeblock(self, node: nodes.CodeBlock, base_batch) -> EditCommand:
+    def leave_codeblock(
+        self, node: nodes.CodeBlock, base_batch: EditCommandBatch
+    ) -> EditCommand:
         base_batch.items.insert(
             -1, self._hr_info_zone_icon(getattr(node, "icon", None))
         )
         return self._reopen_p_after(node, base_batch)
 
-    def visit_algorithm(self, node: nodes.Algorithm) -> EditCommand:
+    def visit_algorithm(self, node: nodes.Algorithm) -> AppendBatchAndDefer:
         batch = self._replace_node_with_handrails(node, collapse_in_hr=False)
         if "hr-hidden" not in batch.items[0].classes:
             batch.items[0].classes.append("hr-hidden")
@@ -4558,13 +4642,15 @@ class HandrailsTranslator(Translator):
         )
 
     @auto_leave_deferred
-    def leave_algorithm(self, node: nodes.Algorithm, base_batch) -> EditCommand:
+    def leave_algorithm(
+        self, node: nodes.Algorithm, base_batch: EditCommandBatch
+    ) -> EditCommand:
         base_batch.items.insert(
             -1, self._hr_info_zone_icon(getattr(node, "icon", None))
         )
         return self._reopen_p_after(node, base_batch)
 
-    def visit_theorem(self, node: nodes.Theorem) -> EditCommand:
+    def visit_theorem(self, node: nodes.Theorem) -> AppendBatchAndDefer:
         batch = super().visit_theorem(node)
         self._label_head_with_fold(batch, node)
         hr = self._replace_node_with_handrails(node, additional_classes=["hr-labeled"])
@@ -4572,11 +4658,13 @@ class HandrailsTranslator(Translator):
         return hr
 
     @auto_leave_deferred
-    def leave_theorem(self, node: nodes.Theorem, base_batch) -> EditCommand:
+    def leave_theorem(
+        self, node: nodes.Theorem, base_batch: EditCommandBatch
+    ) -> EditCommand:
         base_batch.items.insert(1, self._hr_info_zone_icon(getattr(node, "icon", None)))
         return AppendBatch(base_batch.items)
 
-    def visit_sketch(self, node: nodes.Sketch) -> EditCommand:
+    def visit_sketch(self, node: nodes.Sketch) -> AppendBatchAndDefer:
         batch = super().visit_sketch(node)
         self._label_head_with_fold(batch, node)
         hr = self._replace_node_with_handrails(node, additional_classes=["hr-labeled"])
@@ -4584,12 +4672,13 @@ class HandrailsTranslator(Translator):
         return hr
 
     def leave_sketch(self, node: nodes.Sketch) -> EditCommand:
-        batch = self.leave_node(node)
+        # The visit method deferred a batch, so leave_node returns one.
+        batch = cast(EditCommandBatch, self.leave_node(node))
         batch.items.insert(1, self._hr_info_zone_icon(getattr(node, "icon", None)))
         batch = AppendBatch(batch.items)
         return batch
 
-    def visit_proof(self, node: nodes.Proof) -> EditCommand:
+    def visit_proof(self, node: nodes.Proof) -> AppendBatchAndDefer:
         batch = super().visit_proof(node)
         self._label_head_with_fold(batch, node)
         # Stamp the proof with the label of the result it proves, so the reader's
@@ -4635,7 +4724,9 @@ class HandrailsTranslator(Translator):
         return ""
 
     @auto_leave_deferred
-    def leave_proof(self, node: nodes.Proof, base_batch) -> EditCommand:
+    def leave_proof(
+        self, node: nodes.Proof, base_batch: EditCommandBatch
+    ) -> EditCommand:
         base_batch.items.insert(1, self._hr_info_zone_icon(getattr(node, "icon", None)))
         return AppendBatch(base_batch.items)
 
@@ -4648,12 +4739,13 @@ class HandrailsTranslator(Translator):
         return hr
 
     def leave_subproof(self, node: nodes.Subproof) -> EditCommand:
-        batch = self.leave_node(node)
+        # The visit method deferred a batch, so leave_node returns one.
+        batch = cast(EditCommandBatch, self.leave_node(node))
         batch.items.insert(1, self._hr_info_zone_icon(getattr(node, "icon", None)))
         batch = AppendBatch(batch.items)
         return batch
 
-    def visit_calc(self, node: nodes.Calc) -> EditCommand:
+    def visit_calc(self, node: nodes.Calc) -> AppendBatchAndDefer:
         # The chain gets a handrail of its own, like a display equation. At the
         # top level that puts it on the text column. Inside a proof its depth
         # makes it an offset handrail, which keeps its place among the steps.
@@ -4667,7 +4759,7 @@ class HandrailsTranslator(Translator):
         return batch
 
     @auto_leave_deferred
-    def leave_calc(self, node: nodes.Calc, base_batch) -> EditCommand:
+    def leave_calc(self, node: nodes.Calc, base_batch: EditCommandBatch) -> EditCommand:
         if node.first_ancestor_of_type(nodes.Proof) is not None:
             base_batch.items.insert(0, AppendHalmos())
             idx = 2
@@ -4685,9 +4777,12 @@ class HandrailsTranslator(Translator):
         return hr
 
     def leave_step(self, node: nodes.Step) -> EditCommand:
-        batch = self.leave_node(node)
+        # The visit method deferred a batch, so leave_node returns one.
+        batch = cast(EditCommandBatch, self.leave_node(node))
         if node.first_ancestor_of_type(nodes.Calc) is not None:
             calc = node.parent
+            # The step has a Calc ancestor, so it has a parent.
+            assert calc is not None
             above = ""
             if node.in_calc and not calc.nonum and calc.children[0] is node:
                 above = self._info_number(calc.full_number, "eqn")
@@ -4702,7 +4797,7 @@ class HandrailsTranslator(Translator):
         batch = AppendBatch(batch.items)
         return batch
 
-    def visit_math(self, node: nodes.Math) -> EditCommand:
+    def visit_math(self, node: nodes.Math) -> AppendBatchAndDefer:
         batch = super().visit_math(node)
         sib = node.next_sibling()
         if not isinstance(sib, nodes.Text):
@@ -4725,7 +4820,8 @@ class HandrailsTranslator(Translator):
         return batch
 
     def leave_math(self, node: nodes.Math) -> EditCommand:
-        batch = self.leave_node(node)
+        # The visit method deferred a batch, so leave_node returns one.
+        batch = cast(EditCommandBatch, self.leave_node(node))
         punct = getattr(node, "_trailing_punct", None)
         if not punct:
             return batch
@@ -4735,7 +4831,7 @@ class HandrailsTranslator(Translator):
         )
         return batch
 
-    def visit_rawhtml(self, node: nodes.RawHtml) -> EditCommand:
+    def visit_rawhtml(self, node: nodes.RawHtml) -> AppendBatchAndDefer:
         # Raw HTML often stands for a symbol in a sentence, so it keeps its
         # trailing punctuation on the same line, as inline math does.
         batch = super().visit_rawhtml(node)
@@ -4758,7 +4854,8 @@ class HandrailsTranslator(Translator):
         )
 
     def leave_rawhtml(self, node: nodes.RawHtml) -> EditCommand:
-        batch = self.leave_node(node)
+        # The visit method deferred a batch, so leave_node returns one.
+        batch = cast(EditCommandBatch, self.leave_node(node))
         punct = getattr(node, "_trailing_punct", None)
         if not punct:
             return batch
@@ -4768,7 +4865,7 @@ class HandrailsTranslator(Translator):
         )
         return batch
 
-    def visit_mathblock(self, node: nodes.MathBlock) -> EditCommand:
+    def visit_mathblock(self, node: nodes.MathBlock) -> AppendBatchAndDefer:
         # Preamble mathblocks are invisible — skip handrails, just emit hidden div
         if node.preamble:
             return super().visit_mathblock(node)
@@ -4791,7 +4888,7 @@ class HandrailsTranslator(Translator):
         batch.items[handrail_idx].classes += ["hr-hidden"] + offset_class
         return batch
 
-    def leave_mathblock(self, node: nodes.MathBlock) -> EditCommand:
+    def leave_mathblock(self, node: nodes.MathBlock) -> EditCommandBatch:
         batch = super().leave_mathblock(node)
         if node.preamble:
             return batch
@@ -4800,7 +4897,7 @@ class HandrailsTranslator(Translator):
         batch.items.insert(2, self._hr_info_zone_number(number, style="eqn"))
         return batch
 
-    def visit_bibitem(self, node: nodes.Bibitem) -> EditCommand:
+    def visit_bibitem(self, node: nodes.Bibitem) -> AppendBatchAndDefer:
         # The DOI and the back links are part of the card, so the handrail adds
         # no link icon of its own.
         batch = super().visit_bibitem(node)
