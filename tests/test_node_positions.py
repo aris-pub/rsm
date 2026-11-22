@@ -38,9 +38,13 @@ def test_heading_title_can_be_copied_and_pickled():
     tree = _parse(SRC)
     section = next(tree.traverse(nodeclass=nodes.Section))
     copied = copy.deepcopy(section.title_nodes)
-    assert [n.start_point for n in copied] == [n.start_point for n in section.title_nodes]
+    assert [n.start_point for n in copied] == [
+        n.start_point for n in section.title_nodes
+    ]
     loaded = pickle.loads(pickle.dumps(section.title_nodes))
-    assert [n.start_point for n in loaded] == [n.start_point for n in section.title_nodes]
+    assert [n.start_point for n in loaded] == [
+        n.start_point for n in section.title_nodes
+    ]
 
 
 def test_heading_with_math_builds_with_a_toc():

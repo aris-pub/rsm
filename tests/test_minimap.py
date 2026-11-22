@@ -53,12 +53,16 @@ def test_plain_translator_carries_the_flag_too():
 
 def test_reading_view_has_a_map_toggle():
     html = _translate()
-    row = re.search(r'<div class="reading-row" data-control="minimap">.*?</div></div>', html)
+    row = re.search(
+        r'<div class="reading-row" data-control="minimap">.*?</div></div>', html
+    )
     assert row, "the Reading view should have a Map row"
     row = row.group(0)
     assert 'data-value="on"' in row and 'data-value="off"' in row
     # On is the resting choice.
-    assert re.search(r'class="reading-opt active" data-value="on" aria-pressed="true"', row)
+    assert re.search(
+        r'class="reading-opt active" data-value="on" aria-pressed="true"', row
+    )
     assert 'aria-label="Show the document map"' in row
     assert 'aria-label="Hide the document map"' in row
 

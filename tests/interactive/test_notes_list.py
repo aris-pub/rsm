@@ -49,7 +49,6 @@ def _scroll_y(page: Page) -> float:
 
 
 class TestNotesListPage:
-
     def test_list_sits_before_references(self, page: Page, interactive_server: str):
         _open(page, interactive_server)
         headings = page.locator(".manuscript h2").all_inner_texts()
@@ -74,7 +73,9 @@ class TestNotesListPage:
         markers = page.locator(".manuscript a.note-marker").all_inner_texts()
         assert markers == ["1", "2", "3"]
         assert entries.evaluate_all("els => els.map(e => e.value)") == [1, 2, 3]
-        expect(page.locator("#call-side")).to_have_class(re.compile(r"\baside-phrase\b"))
+        expect(page.locator("#call-side")).to_have_class(
+            re.compile(r"\baside-phrase\b")
+        )
         expect(page.locator("#side .note__number")).to_have_count(0)
 
     def test_entry_numbers_are_visible(self, page: Page, interactive_server: str):
@@ -84,7 +85,6 @@ class TestNotesListPage:
 
 
 class TestHoverPreview:
-
     def test_hover_opens_preview_with_the_note_text(
         self, page: Page, interactive_server: str
     ):
@@ -120,9 +120,9 @@ class TestHoverPreview:
         page.locator('a.note-marker[href="#second"]').hover()
         preview = page.locator(PREVIEW)
         expect(preview).to_be_visible(timeout=3000)
-        expect(preview.locator("math, .katex, mjx-container, .temml").first).to_be_attached(
-            timeout=5000
-        )
+        expect(
+            preview.locator("math, .katex, mjx-container, .temml").first
+        ).to_be_attached(timeout=5000)
         assert "\\(" not in preview.inner_text()
 
     def test_leaving_the_marker_closes_the_preview(
@@ -154,10 +154,7 @@ class TestHoverPreview:
 
 
 class TestTapPreview:
-
-    def test_first_tap_opens_preview_without_following_the_link(
-        self, touch_page: Page
-    ):
+    def test_first_tap_opens_preview_without_following_the_link(self, touch_page: Page):
         touch_page.locator(MARKER).tap()
         preview = touch_page.locator(PREVIEW)
         expect(preview).to_be_visible(timeout=3000)
@@ -182,7 +179,6 @@ class TestTapPreview:
 
 
 class TestKeyboard:
-
     def test_marker_is_in_the_tab_order(self, page: Page, interactive_server: str):
         _open(page, interactive_server)
         marker = page.locator(MARKER)
@@ -213,7 +209,6 @@ class TestKeyboard:
 
 
 class TestBacklink:
-
     def test_backlink_returns_to_the_call(self, page: Page, interactive_server: str):
         _open(page, interactive_server)
         page.locator(MARKER).click()
@@ -239,7 +234,6 @@ class TestBacklink:
 
 
 class TestNoJavaScript:
-
     @pytest.fixture
     def nojs_page(self, browser: Browser, interactive_server: str):
         ctx = browser.new_context(java_script_enabled=False)
@@ -263,8 +257,9 @@ class TestNoJavaScript:
 
 
 class TestPrint:
-
-    def test_list_prints_and_preview_does_not(self, page: Page, interactive_server: str):
+    def test_list_prints_and_preview_does_not(
+        self, page: Page, interactive_server: str
+    ):
         _open(page, interactive_server)
         page.locator(MARKER).hover()
         expect(page.locator(PREVIEW)).to_be_visible(timeout=3000)

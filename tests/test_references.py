@@ -118,9 +118,7 @@ def test_ref_reftext_inline_markup(caplog):
 
     tree = rsm.tsparser.TSParser().parse(src)
     transformed = Transformer().transform(tree)
-    ref = next(
-        n for n in transformed.traverse() if n.__class__.__name__ == "Reference"
-    )
+    ref = next(n for n in transformed.traverse() if n.__class__.__name__ == "Reference")
     assert ref.overwrite_reftext == "the main result"
     assert [n.__class__.__name__ for n in ref.reftext_nodes] == [
         "Text",

@@ -27,6 +27,7 @@ Qualified name: ``rsm.nodes.Text``
      ~Text.handrail_depth
      ~Text.number
      ~Text.nonum
+     ~Text.collapsed
      ~Text.reftext_template
      ~Text.start_point
      ~Text.end_point

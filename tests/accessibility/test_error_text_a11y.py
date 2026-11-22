@@ -33,7 +33,9 @@ def test_error_text_is_red_with_aa_contrast(serve_rsm_a11y, tmp_path, dark_theme
     for i in range(errors.count()):
         rgb = errors.nth(i).evaluate("el => getComputedStyle(el).color")
         assert rgb != body_color, rgb
-        r, g, b = (int(x) for x in rgb[rgb.find("(") + 1 : rgb.find(")")].split(",")[:3])
+        r, g, b = (
+            int(x) for x in rgb[rgb.find("(") + 1 : rgb.find(")")].split(",")[:3]
+        )
         assert r > g and r > b, rgb
 
     results = Axe().run(

@@ -6,6 +6,7 @@ opened directly in a browser without requiring a web server. This is achieved by
 2. Using absolute URLs to the Studio backend for RSM-specific assets
 """
 
+import re as _re
 from pathlib import Path
 
 import rsm
@@ -102,9 +103,6 @@ class TestStandaloneMode:
 
         # Default behavior links static/ relative to the page
         assert 'href="static/braiid.css"' in result
-
-
-import re as _re
 
 
 def _live_asset_refs(html: str) -> list[str]:
@@ -213,9 +211,7 @@ class TestCustomCSS:
         assert custom_css_content in web.readtext("assets/custom.css")
 
         html = web.readtext("index.html")
-        assert (
-            '<link rel="stylesheet" type="text/css" href="assets/custom.css"' in html
-        )
+        assert '<link rel="stylesheet" type="text/css" href="assets/custom.css"' in html
 
     def test_standalone_builder_with_custom_css(self, tmp_path):
         """Test StandaloneBuilder inlines custom CSS in <style> tag."""

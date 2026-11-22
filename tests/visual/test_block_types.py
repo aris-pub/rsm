@@ -29,7 +29,7 @@ class TestBlockTypes:
         """
         page.set_viewport_size({"width": width, "height": height})
         fixture = Path(__file__).parent / "fixtures" / "block-types.rsm"
-        content = serve_rsm_html(fixture.read_text())
+        serve_rsm_html(fixture.read_text())
         assert_snapshot(page.screenshot(full_page=True))
 
     @pytest.mark.parametrize("viewport_name,width,height", VIEWPORTS)
@@ -49,5 +49,5 @@ class TestBlockTypes:
         """
         page.set_viewport_size({"width": width, "height": height})
         fixture = Path(__file__).parent / "fixtures" / "block-types.rsm"
-        content = serve_rsm_html(fixture.read_text(), dark_theme=True)
+        serve_rsm_html(fixture.read_text(), dark_theme=True)
         assert_snapshot(page.screenshot(full_page=True))

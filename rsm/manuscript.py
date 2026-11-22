@@ -57,7 +57,7 @@ class WebManuscript:
         for p in self._files:
             if not p.startswith(prefix):
                 continue
-            rest = p[len(prefix):]
+            rest = p[len(prefix) :]
             top = rest.split("/", 1)[0]
             if top:
                 seen.add(top)

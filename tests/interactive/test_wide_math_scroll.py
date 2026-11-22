@@ -34,9 +34,7 @@ def test_wide_math_scrolls_in_its_own_box(page: Page, interactive_server: str):
 
     # The content zone is a real horizontal scroll container: it accepts a
     # scroll offset. With overflow:visible (the bug) scrollLeft stays 0.
-    scroll_left = zone.evaluate(
-        "el => { el.scrollLeft = 9999; return el.scrollLeft; }"
-    )
+    scroll_left = zone.evaluate("el => { el.scrollLeft = 9999; return el.scrollLeft; }")
     assert scroll_left > 0, (
         "mathblock content zone does not scroll horizontally; wide math "
         "overflows instead of scrolling in its own box"

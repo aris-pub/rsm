@@ -78,9 +78,7 @@ def test_clicking_ref_to_substep_reveals_it(page: Page, interactive_server: str)
     assert _active_id(page) == "st-outer"
 
 
-def test_direct_hash_load_shows_target_expanded(
-    page: Page, interactive_server: str
-):
+def test_direct_hash_load_shows_target_expanded(page: Page, interactive_server: str):
     page.goto(f"{interactive_server}/ref-into-collapsed.html#st-inner")
     wait_for_rsm(page)
     page.wait_for_function(
@@ -117,9 +115,7 @@ def test_ref_expansion_does_not_persist(page: Page, interactive_server: str):
         timeout=5_000,
     )
 
-    after = page.evaluate(
-        "(k) => localStorage.getItem(k)", key_and_before[0]
-    )
+    after = page.evaluate("(k) => localStorage.getItem(k)", key_and_before[0])
     assert after == before, (
         f"reference-driven expansion wrote collapse state: {before!r} -> {after!r}"
     )

@@ -29,6 +29,7 @@ Qualified name: ``rsm.nodes.Section``
      ~Section.handrail_depth
      ~Section.number
      ~Section.nonum
+     ~Section.collapsed
      ~Section.reftext_template
      ~Section.start_point
      ~Section.end_point

@@ -31,6 +31,7 @@ Qualified name: ``rsm.nodes.MathBlock``
      ~MathBlock.handrail_depth
      ~MathBlock.number
      ~MathBlock.nonum
+     ~MathBlock.collapsed
      ~MathBlock.reftext_template
      ~MathBlock.start_point
      ~MathBlock.end_point

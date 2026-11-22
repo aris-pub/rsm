@@ -109,7 +109,8 @@ def _watch(page: Page):
     page.route("https://cdnjs.cloudflare.com/**", handle)
     page.on(
         "response",
-        lambda r: r.url.startswith("http://127.0.0.1") and r.status >= 400
+        lambda r: r.url.startswith("http://127.0.0.1")
+        and r.status >= 400
         and failed.append(f"{r.status} {r.url}"),
     )
     return cdn, failed
@@ -133,13 +134,19 @@ def test_page_works_under_a_subfolder(page: Page, subpath_site: str):
     assert cdn == [], cdn
 
     # braiid.css applied: the manuscript column has braiid's width cap.
-    assert page.evaluate(
-        "() => getComputedStyle(document.querySelector('.manuscriptwrapper')).maxWidth"
-    ) != "none"
+    assert (
+        page.evaluate(
+            "() => getComputedStyle(document.querySelector('.manuscriptwrapper')).maxWidth"
+        )
+        != "none"
+    )
     # The author CSS from assets/ applied.
-    assert page.evaluate(
-        "() => getComputedStyle(document.body).getPropertyValue('--subpath-marker').trim()"
-    ) == "7"
+    assert (
+        page.evaluate(
+            "() => getComputedStyle(document.body).getPropertyValue('--subpath-marker').trim()"
+        )
+        == "7"
+    )
     # jQuery and tooltipster from static/.
     assert page.evaluate("() => typeof window.jQuery") == "function"
     assert page.evaluate("() => typeof window.jQuery.fn.tooltipster") == "function"
@@ -149,7 +156,10 @@ def test_page_works_under_a_subfolder(page: Page, subpath_site: str):
         """() => [...document.querySelectorAll('img')].map(i => ({
              src: i.getAttribute('src'), ok: i.complete && i.naturalWidth > 0 }))"""
     )
-    assert {i["src"] for i in images} >= {"assets/figs/plot.svg", "assets/figs/inner.svg"}
+    assert {i["src"] for i in images} >= {
+        "assets/figs/plot.svg",
+        "assets/figs/inner.svg",
+    }
     assert all(i["ok"] for i in images), images
 
     # Math by MathJax from static/, algorithm by pseudocode.js from static/.
@@ -157,14 +167,22 @@ def test_page_works_under_a_subfolder(page: Page, subpath_site: str):
     loaded = page.evaluate(
         "() => performance.getEntriesByType('resource').map(e => e.name)"
     )
-    assert any(u.endswith("/a/b/static/mathjax-3.2.2/tex-chtml-full.js") for u in loaded), loaded
+    assert any(
+        u.endswith("/a/b/static/mathjax-3.2.2/tex-chtml-full.js") for u in loaded
+    ), loaded
     # MathJax's fonts, from the same folder.
     assert any(
-        u.endswith("/a/b/static/mathjax-3.2.2/output/chtml/fonts/woff-v2/MathJax_Main-Regular.woff")
+        u.endswith(
+            "/a/b/static/mathjax-3.2.2/output/chtml/fonts/woff-v2/MathJax_Main-Regular.woff"
+        )
         for u in loaded
     ), loaded
-    assert any(u.endswith("/a/b/static/pseudocode-2.4.1.min.js") for u in loaded), loaded
-    assert any(u.endswith("/a/b/static/pseudocode-2.4.1.min.css") for u in loaded), loaded
+    assert any(u.endswith("/a/b/static/pseudocode-2.4.1.min.js") for u in loaded), (
+        loaded
+    )
+    assert any(u.endswith("/a/b/static/pseudocode-2.4.1.min.css") for u in loaded), (
+        loaded
+    )
     assert page.evaluate("() => window.MathJax.version") == "3.2.2"
     assert page.locator(".ps-root .ps-funcname").first.inner_text().lower() == "euclid"
 
@@ -179,7 +197,7 @@ def test_mathjax_falls_back_to_the_pinned_cdn(page: Page, subpath_site: str):
         url = route.request.url
         cdn.append(url)
         if url.startswith(PINNED_MATHJAX_CDN):
-            path = VENDORED_MATHJAX / url[len(PINNED_MATHJAX_CDN):]
+            path = VENDORED_MATHJAX / url[len(PINNED_MATHJAX_CDN) :]
             if path.is_file():
                 route.fulfill(body=path.read_bytes())
                 return
@@ -193,5 +211,8 @@ def test_mathjax_falls_back_to_the_pinned_cdn(page: Page, subpath_site: str):
     page.evaluate("() => document.fonts.ready")
 
     assert PINNED_MATHJAX_CDN + "tex-chtml-full.js" in cdn, cdn
-    assert PINNED_MATHJAX_CDN + "output/chtml/fonts/woff-v2/MathJax_Main-Regular.woff" in cdn, cdn
+    assert (
+        PINNED_MATHJAX_CDN + "output/chtml/fonts/woff-v2/MathJax_Main-Regular.woff"
+        in cdn
+    ), cdn
     assert page.evaluate("() => document.querySelectorAll('mjx-container').length") >= 2

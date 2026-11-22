@@ -28,6 +28,7 @@ Qualified name: ``rsm.nodes.Heading``
      ~Heading.handrail_depth
      ~Heading.number
      ~Heading.nonum
+     ~Heading.collapsed
      ~Heading.reftext_template
      ~Heading.start_point
      ~Heading.end_point

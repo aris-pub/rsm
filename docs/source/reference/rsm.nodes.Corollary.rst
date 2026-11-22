@@ -27,6 +27,7 @@ Qualified name: ``rsm.nodes.Corollary``
      ~Corollary.handrail_depth
      ~Corollary.number
      ~Corollary.nonum
+     ~Corollary.collapsed
      ~Corollary.reftext_template
      ~Corollary.start_point
      ~Corollary.end_point

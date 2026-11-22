@@ -56,7 +56,9 @@ def _wait_one_shown(scope, name: str) -> None:
 
 
 @pytest.mark.parametrize("dark", [False, True])
-def test_preview_shows_still_image_not_widget(page: Page, interactive_server: str, dark: bool):
+def test_preview_shows_still_image_not_widget(
+    page: Page, interactive_server: str, dark: bool
+):
     _load(page, interactive_server, dark)
     tip = _preview(page, "#wid-still")
     expect(tip.locator(".live-widget")).to_have_count(0)
@@ -83,13 +85,17 @@ def test_preview_uses_manuscript_font(page: Page, interactive_server: str):
         assert font == body_font, (sel, font, body_font)
 
 
-def test_preview_without_still_image_shows_alt_text(page: Page, interactive_server: str):
+def test_preview_without_still_image_shows_alt_text(
+    page: Page, interactive_server: str
+):
     _load(page, interactive_server)
     tip = _preview(page, "#wid-bare")
     expect(tip.locator(".live-widget")).to_have_count(0)
     expect(tip.locator("img")).to_have_count(0)
     expect(tip.locator(".widget-preview-label")).to_have_text("Figure 1.2")
-    expect(tip.locator(".widget-preview-alt")).to_have_text("A widget with no still picture.")
+    expect(tip.locator(".widget-preview-alt")).to_have_text(
+        "A widget with no still picture."
+    )
     expect(tip.locator(".widget-preview-note")).to_have_text(NOTE)
 
 
@@ -152,7 +158,9 @@ def test_pinned_block_shows_its_widget_still(page: Page, tmp_path, monkeypatch):
 
     (tmp_path / "still.png").write_bytes(PIXEL)
     monkeypatch.chdir(tmp_path)
-    html = rsm.build(BLOCK_WITH_WIDGET, handrails=True, lint=False, standalone=True, sidebar=True)
+    html = rsm.build(
+        BLOCK_WITH_WIDGET, handrails=True, lint=False, standalone=True, sidebar=True
+    )
     out = tmp_path / "block-with-widget.html"
     out.write_text(html)
     page.set_viewport_size({"width": 1400, "height": 900})

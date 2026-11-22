@@ -30,6 +30,7 @@ Qualified name: ``rsm.nodes.Abstract``
      ~Abstract.handrail_depth
      ~Abstract.number
      ~Abstract.nonum
+     ~Abstract.collapsed
      ~Abstract.reftext_template
      ~Abstract.start_point
      ~Abstract.end_point

@@ -125,8 +125,15 @@ def _sidebar(src):
 def _strip_views(html):
     import re
 
-    strip = html[html.index('<nav class="rail-strip"'):html.index("</nav>", html.index('<nav class="rail-strip"'))]
-    return re.findall(r'class="rail-strip-btn" data-view="([a-z]+)" data-mode="(split|grouped|both)"', strip)
+    strip = html[
+        html.index('<nav class="rail-strip"') : html.index(
+            "</nav>", html.index('<nav class="rail-strip"')
+        )
+    ]
+    return re.findall(
+        r'class="rail-strip-btn" data-view="([a-z]+)" data-mode="(split|grouped|both)"',
+        strip,
+    )
 
 
 def test_sidebar_is_a_build_option():
@@ -150,9 +157,14 @@ def test_sidebar_without_toc_still_has_contents():
 def test_strip_has_one_icon_per_view():
     html = _sidebar(RAIL_SRC_NOTATION)
     assert _strip_views(html) == [
-        ("contents", "split"), ("notation", "split"), ("document", "grouped"),
-        ("steps", "split"), ("state", "split"), ("proof", "grouped"),
-        ("pinned", "both"), ("reading", "both"),
+        ("contents", "split"),
+        ("notation", "split"),
+        ("document", "grouped"),
+        ("steps", "split"),
+        ("state", "split"),
+        ("proof", "grouped"),
+        ("pinned", "both"),
+        ("reading", "both"),
     ]
     # Copy link, and no old header, scope tabs or collapse control.
     assert 'class="rail-strip-btn rail-strip-action rail-share-view"' in html
@@ -241,13 +253,14 @@ def test_interface_says_manuscript_not_paper():
     import re
 
     html = _sidebar(RAIL_SRC_NOTATION)
-    rail = html[html.index('<nav class="rail-strip"'):]
+    rail = html[html.index('<nav class="rail-strip"') :]
     rail = rail[: rail.index('<div class="hr-menu')]
     assert not re.search(r"\bpaper\b", rail, re.I)
 
 
 def test_cli_build_sidebar_flag(tmp_path):
-    import subprocess, sys
+    import subprocess
+    import sys
 
     src = tmp_path / "doc.rsm"
     src.write_text(RAIL_SRC)
@@ -386,7 +399,7 @@ def test_empty_proof_panel_lists_the_proofs():
     # section and step count, linked to the proof.
     html = _sidebar(RAIL_SRC)
     start = html.index('<div class="rail-proof-empty">')
-    empty = html[start:html.index("</ul></div>", start)]
+    empty = html[start : html.index("</ul></div>", start)]
     assert "No proof selected." in empty
     assert "Proofs in this document" in empty
     assert '<span class="rail-proof-name">Proof of Theorem 1.1</span>' in empty

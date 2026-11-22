@@ -50,24 +50,25 @@ the ``run()`` method on an :class:`RSMApp` instance will.
 
 """
 
+import json
 import logging
+import subprocess
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any, NamedTuple
 
-import json
-import subprocess
-
 from rsm import (
     builder,
     linter,
-    pandoc as pandoc_module,
     reader,
     rsmlogger,
     transformer,
     translator,
     tsparser,
     writer,
+)
+from rsm import (
+    pandoc as pandoc_module,
 )
 from rsm.tsparser import RSMParserError
 
@@ -268,7 +269,9 @@ class ParserApp(RSMApp):
             Task("parser", p := tsparser.TSParser(), p.parse),
             Task(
                 "transformer",
-                t := transformer.Transformer(root_dir=root_dir, strict=strict, parser=p),
+                t := transformer.Transformer(
+                    root_dir=root_dir, strict=strict, parser=p
+                ),
                 t.transform,
             ),
         ]
@@ -329,11 +332,15 @@ class ProcessorApp(ParserApp):
         if sidebar:
             handrails = True
         if not handrails:
-            tr = translator.Translator(asset_resolver=asset_resolver, standalone=standalone)
+            tr = translator.Translator(
+                asset_resolver=asset_resolver, standalone=standalone
+            )
         else:
             tr = translator.HandrailsTranslator(
-                source_offsets=source_offsets, copy_source=copy_source,
-                asset_resolver=asset_resolver, standalone=standalone,
+                source_offsets=source_offsets,
+                copy_source=copy_source,
+                asset_resolver=asset_resolver,
+                standalone=standalone,
                 sidebar=sidebar,
             )
         self.add_task(Task("translator", tr, tr.translate))
@@ -672,11 +679,11 @@ def _inject_braiid_typst(typst_source: str, manuscript) -> str:
     authors_typst = ", ".join(f'"{a}"' for a in authors if a)
     emails_typst = ", ".join(f'"{k}": "{v}"' for k, v in emails.items())
     preamble = template + "\n\n"
-    preamble += f'#show: braiid.with(\n'
-    preamble += f'  title: [{title}],\n' if title else ''
-    preamble += f'  authors: ({authors_typst},),\n' if authors_typst else ''
-    preamble += f'  emails: ({emails_typst},),\n' if emails_typst else ''
-    preamble += f')\n\n'
+    preamble += "#show: braiid.with(\n"
+    preamble += f"  title: [{title}],\n" if title else ""
+    preamble += f"  authors: ({authors_typst},),\n" if authors_typst else ""
+    preamble += f"  emails: ({emails_typst},),\n" if emails_typst else ""
+    preamble += ")\n\n"
 
     return preamble + typst_source
 
@@ -696,7 +703,9 @@ class PandocExportApp(ParserApp):
         log_lineno: bool = True,
         strict: bool = False,
     ) -> None:
-        super().__init__(srcpath, plain, loglevel, log_format, log_time, log_lineno, strict)
+        super().__init__(
+            srcpath, plain, loglevel, log_format, log_time, log_lineno, strict
+        )
         self._to_format = to_format
         self._output = output
 
@@ -713,7 +722,8 @@ class PandocExportApp(ParserApp):
         if self._to_format == "latex":
             import re as _re
             import shutil as _shutil
-            result = _re.sub(r'^\s*hidelinks,?\s*\n', '', result, flags=_re.MULTILINE)
+
+            result = _re.sub(r"^\s*hidelinks,?\s*\n", "", result, flags=_re.MULTILINE)
             # Copy braiid.sty next to the output so lualatex/pdflatex can find it
             if self._output:
                 sty_src = Path(__file__).parent.parent / "braiid" / "braiid.sty"
@@ -725,32 +735,35 @@ class PandocExportApp(ParserApp):
         if self._to_format == "typst" and self._output is None:
             # Clean up Pandoc Typst output artifacts
             import re as _re
+
             result = result.replace("\\:", ":")
-            result = _re.sub(r'(\d);([.,)\s])', r'\1\2', result)
-            result = _re.sub(r'(\d);$', r'\1', result, flags=_re.MULTILINE)
+            result = _re.sub(r"(\d);([.,)\s])", r"\1\2", result)
+            result = _re.sub(r"(\d);$", r"\1", result, flags=_re.MULTILINE)
             # Remove duplicate Typst labels (keep first occurrence)
             seen_labels = set()
-            lines = result.split('\n')
+            lines = result.split("\n")
             deduped = []
             for line in lines:
-                m = _re.match(r'^<([a-zA-Z0-9_-]+)>$', line.strip())
+                m = _re.match(r"^<([a-zA-Z0-9_-]+)>$", line.strip())
                 if m:
                     if m.group(1) in seen_labels:
                         continue
                     seen_labels.add(m.group(1))
                 deduped.append(line)
-            result = '\n'.join(deduped)
+            result = "\n".join(deduped)
 
             # Inject RSM figure numbers: replace #figure( with
             # #figure(supplement: "Figure X.Y", so braiid.typ can render
             # section-relative numbering from the AST.
             from .nodes import Figure as FigureNode
+
             fig_numbers = []
             for node in manuscript.traverse():
                 if isinstance(node, FigureNode) and node.full_number:
                     fig_numbers.append(node.full_number)
             if fig_numbers:
                 fig_idx = 0
+
                 def _inject_supplement(m):
                     nonlocal fig_idx
                     if fig_idx < len(fig_numbers):
@@ -758,13 +771,14 @@ class PandocExportApp(ParserApp):
                         fig_idx += 1
                         return f'#figure(supplement: "Figure {num}",'
                     return m.group(0)
-                result = _re.sub(r'#figure\(', _inject_supplement, result)
+
+                result = _re.sub(r"#figure\(", _inject_supplement, result)
 
             # Attach labels to figures so they travel with the float.
             # Pandoc emits: )\n<fig-label>  — move label onto the closing paren.
             result = _re.sub(
-                r'\)\n<(fig-[a-zA-Z0-9_-]+)>',
-                r') <\1>',
+                r"\)\n<(fig-[a-zA-Z0-9_-]+)>",
+                r") <\1>",
                 result,
             )
 
@@ -818,8 +832,13 @@ class PandocImportApp(RSMApp):
     ) -> None:
         if (not source and not path) or (source and path):
             raise RSMApplicationError("Must specify exactly one of source, path")
-        super().__init__(tasks=[], loglevel=loglevel, log_format=log_format,
-                         log_time=log_time, log_lineno=log_lineno)
+        super().__init__(
+            tasks=[],
+            loglevel=loglevel,
+            log_format=log_format,
+            log_time=log_time,
+            log_lineno=log_lineno,
+        )
         self._source = source
         self._path = path
         self._from_format = from_format

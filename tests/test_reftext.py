@@ -141,7 +141,9 @@ def _unnumbered_theorem_html(case, title, **kwargs):
     return rsm.render(UNNUMBERED_THEOREM.format(**case, title=title), **kwargs)
 
 
-@pytest.mark.parametrize("title", ["", "\n  :title: Pappus chain"], ids=["untitled", "titled"])
+@pytest.mark.parametrize(
+    "title", ["", "\n  :title: Pappus chain"], ids=["untitled", "titled"]
+)
 @pytest.mark.parametrize("case", [NONUM, NUMBERING_OFF], ids=["nonum", "numbering-off"])
 def test_an_unnumbered_theorem_is_named_without_a_number(case, title):
     html = _unnumbered_theorem_html(case, title, handrails=True, sidebar=True)
@@ -151,7 +153,9 @@ def test_an_unnumbered_theorem_is_named_without_a_number(case, title):
     assert html.count('<a class="reference" href="#thm-a">Theorem</a>') == 3
     assert '<span class="span label">Proof of <span class="inline-wrapper">' in html
 
-    assert re.search(r'<div id="thm-a" class="theorem[^"]*" data-menu-label="Theorem"', html)
+    assert re.search(
+        r'<div id="thm-a" class="theorem[^"]*" data-menu-label="Theorem"', html
+    )
 
     # The Proof panel: the proof list, the collapsed card of each of its proofs, the root of
     # each of their trees, and the result node in the tree of the proof that cites it. The
@@ -176,12 +180,21 @@ def test_a_ref_to_an_unnumbered_theorem_without_handrails(case):
 
 def test_a_numbered_theorem_keeps_its_number():
     html = _unnumbered_theorem_html(
-        {"config": "", "nonum": ""}, "\n  :title: Pappus chain", handrails=True, sidebar=True
+        {"config": "", "nonum": ""},
+        "\n  :title: Pappus chain",
+        handrails=True,
+        sidebar=True,
     )
     assert html.count('<a class="reference" href="#thm-a">Theorem 1.1</a>') == 3
-    assert re.search(r'<div id="thm-a" class="theorem[^"]*" data-menu-label="Theorem 1.1"', html)
+    assert re.search(
+        r'<div id="thm-a" class="theorem[^"]*" data-menu-label="Theorem 1.1"', html
+    )
     names = re.findall(r'<span class="rail-proof-name">([^<]*)</span>', html)
-    assert names == ["Proof of Theorem 1.1", "Proof of Theorem 1.2", "Proof of Theorem 1.1"]
+    assert names == [
+        "Proof of Theorem 1.1",
+        "Proof of Theorem 1.2",
+        "Proof of Theorem 1.1",
+    ]
 
 
 def test_an_unnumbered_node_reftext_has_no_number():
@@ -220,7 +233,9 @@ _WRAPPED_URL = "# T\n\nSee :url:https://a.com,TEXT::.\n"
     ],
     ids=["ref", "url"],
 )
-def test_link_text_over_several_lines_keeps_every_line(src, opening, text, want, want_flat):
+def test_link_text_over_several_lines_keeps_every_line(
+    src, opening, text, want, want_flat
+):
     source = src.replace("TEXT", text)
     html = rsm.render(source, handrails=False, source_offsets=False)
     assert f"{opening}{want}</a>" in html

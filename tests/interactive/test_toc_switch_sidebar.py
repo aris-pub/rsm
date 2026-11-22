@@ -65,7 +65,9 @@ def test_sidebar_switch_shows_list_and_graph(page: Page, interactive_server: str
     assert errors == [], errors
 
 
-def test_sidebar_switch_shown_only_in_contents_view(page: Page, interactive_server: str):
+def test_sidebar_switch_shown_only_in_contents_view(
+    page: Page, interactive_server: str
+):
     _load(page, interactive_server)
     _show(page, "contents")
     expect(page.locator(".rail-toc-switch")).to_be_visible()
@@ -93,7 +95,9 @@ def test_page_and_sidebar_switches_are_separate(page: Page, interactive_server: 
     expect(_rail_btn(page, "tree")).to_have_attribute("aria-pressed", "true")
 
 
-def test_sidebar_choice_is_saved_and_page_choice_is_not(page: Page, interactive_server: str):
+def test_sidebar_choice_is_saved_and_page_choice_is_not(
+    page: Page, interactive_server: str
+):
     _load(page, interactive_server)
     _show(page, "contents")
     _rail_btn(page, "tree").click()
@@ -120,14 +124,22 @@ def test_long_entries_end_in_an_ellipsis(page: Page, interactive_server: str):
         " return [s.textOverflow, s.whiteSpace, s.overflowX]; }"
     )
     assert style == ["ellipsis", "nowrap", "hidden"], style
-    assert link.evaluate("el => el.scrollWidth > el.clientWidth"), "the long title was not cut"
-    assert panel.evaluate("el => el.scrollWidth <= el.clientWidth"), "the list scrolls sideways"
+    assert link.evaluate("el => el.scrollWidth > el.clientWidth"), (
+        "the long title was not cut"
+    )
+    assert panel.evaluate("el => el.scrollWidth <= el.clientWidth"), (
+        "the list scrolls sideways"
+    )
     box = link.bounding_box()
     assert box["height"] < 30, "the entry wraps onto more than one line"
 
 
-def test_sidebar_switch_hidden_without_scripting(browser: Browser, interactive_server: str):
-    ctx = browser.new_context(java_script_enabled=False, viewport={"width": 1400, "height": 900})
+def test_sidebar_switch_hidden_without_scripting(
+    browser: Browser, interactive_server: str
+):
+    ctx = browser.new_context(
+        java_script_enabled=False, viewport={"width": 1400, "height": 900}
+    )
     try:
         page = ctx.new_page()
         page.goto(interactive_server + URL)

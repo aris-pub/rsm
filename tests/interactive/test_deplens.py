@@ -51,17 +51,19 @@ def _classes(page: Page, step_id: str) -> str:
 
 
 def _has(page: Page, step_id: str, cls: str) -> bool:
-    return page.locator(f"#{step_id}").evaluate(
-        f"el => el.classList.contains('{cls}')"
-    )
+    return page.locator(f"#{step_id}").evaluate(f"el => el.classList.contains('{cls}')")
 
 
 class TestLensMenu:
     def test_step_offers_both_directions(self, page: Page, interactive_server: str):
         _load(page, interactive_server)
         _open_step_menu(page, "stp-a")
-        expect(page.locator('#hr-menu-singleton [data-role="deplens-up"]')).to_be_visible()
-        expect(page.locator('#hr-menu-singleton [data-role="deplens-down"]')).to_be_visible()
+        expect(
+            page.locator('#hr-menu-singleton [data-role="deplens-up"]')
+        ).to_be_visible()
+        expect(
+            page.locator('#hr-menu-singleton [data-role="deplens-down"]')
+        ).to_be_visible()
 
     def test_upstream_disabled_when_nothing_upstream(
         self, page: Page, interactive_server: str
@@ -114,8 +116,12 @@ class TestLensMenu:
         proof.scroll_into_view_if_needed()
         proof.hover()
         proof.locator(".hr-border-dots").first.click()
-        expect(page.locator('#hr-menu-singleton [data-role="deplens-up"]')).to_be_hidden()
-        expect(page.locator('#hr-menu-singleton [data-role="deplens-down"]')).to_be_hidden()
+        expect(
+            page.locator('#hr-menu-singleton [data-role="deplens-up"]')
+        ).to_be_hidden()
+        expect(
+            page.locator('#hr-menu-singleton [data-role="deplens-down"]')
+        ).to_be_hidden()
 
 
 class TestUpstream:
@@ -139,7 +145,9 @@ class TestUpstream:
         expect(page.locator(".proof-rail")).to_have_class(re.compile(r"\bdeplensing\b"))
         expect(page.locator(".deplens-bar")).to_be_visible()
         # The sidebar switches to the proof's steps (without opening).
-        expect(page.locator(".proof-rail")).to_have_class(re.compile(r"\bscope-proof\b"))
+        expect(page.locator(".proof-rail")).to_have_class(
+            re.compile(r"\bscope-proof\b")
+        )
 
 
 class TestDownstream:
@@ -231,6 +239,7 @@ class TestAccessibility:
 #     upstream(lem-base) = {}                   downstream(lem-base) = {thm-mid, thm-top}
 #     lem-other: isolated.
 
+
 def _load_dep(page: Page, server: str) -> None:
     if page.viewport_size["width"] < 1321:
         page.set_viewport_size({"width": 1400, "height": 900})
@@ -244,13 +253,15 @@ def _lens_block(page: Page, block_id: str, direction: str) -> None:
 
 
 class TestResultMenu:
-    def test_theorem_offers_both_directions(
-        self, page: Page, interactive_server: str
-    ):
+    def test_theorem_offers_both_directions(self, page: Page, interactive_server: str):
         _load_dep(page, interactive_server)
         _open_step_menu(page, "thm-mid")
-        expect(page.locator('#hr-menu-singleton [data-role="deplens-up"]')).to_be_visible()
-        expect(page.locator('#hr-menu-singleton [data-role="deplens-down"]')).to_be_visible()
+        expect(
+            page.locator('#hr-menu-singleton [data-role="deplens-up"]')
+        ).to_be_visible()
+        expect(
+            page.locator('#hr-menu-singleton [data-role="deplens-down"]')
+        ).to_be_visible()
 
     def test_base_lemma_upstream_disabled(self, page: Page, interactive_server: str):
         _load_dep(page, interactive_server)
@@ -263,9 +274,7 @@ class TestResultMenu:
             page.locator('#hr-menu-singleton [data-role="deplens-down"]')
         ).not_to_have_class(re.compile(r"\bdisabled\b"))
 
-    def test_top_theorem_downstream_disabled(
-        self, page: Page, interactive_server: str
-    ):
+    def test_top_theorem_downstream_disabled(self, page: Page, interactive_server: str):
         _load_dep(page, interactive_server)
         _open_step_menu(page, "thm-top")
         expect(
@@ -288,9 +297,7 @@ class TestResultMenu:
 
 
 class TestResultUpstream:
-    def test_upstream_lights_transitive_cone(
-        self, page: Page, interactive_server: str
-    ):
+    def test_upstream_lights_transitive_cone(self, page: Page, interactive_server: str):
         _load_dep(page, interactive_server)
         _lens_block(page, "thm-top", "up")
         # thm-top rests on thm-mid, which rests on lem-base: both lit, transitively.
@@ -303,7 +310,9 @@ class TestResultUpstream:
     def test_switches_to_document_scope(self, page: Page, interactive_server: str):
         _load_dep(page, interactive_server)
         _lens_block(page, "thm-top", "up")
-        expect(page.locator(".proof-rail")).to_have_class(re.compile(r"\bscope-document\b"))
+        expect(page.locator(".proof-rail")).to_have_class(
+            re.compile(r"\bscope-document\b")
+        )
         expect(page.locator(".deplens-bar")).to_be_visible()
 
 

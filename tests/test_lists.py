@@ -167,7 +167,7 @@ def test_nested_enumerate_renders_nested():
     src = "## S\n\n:enumerate:\n\n  :-: A\n\n  :--: B\n\n::\n"
     h = rsm.render(src, handrails=False, source_offsets=False)
     assert 'class="error"' not in h, h
-    rest = h[h.index("A"):]
+    rest = h[h.index("A") :]
     assert "<ol" in rest and rest.index("<ol") < rest.index("</li>"), h
 
 
@@ -222,7 +222,7 @@ def _body(src, handrails=False):
     import re
 
     html = rsm.render(src, handrails=handrails, source_offsets=False, strict=True)
-    body = html[html.index('<div class="manuscript"'):]
+    body = html[html.index('<div class="manuscript"') :]
     body = re.sub(r'\s*data-nodeid="\d+"', "", body)
     return "".join(body.split())
 
@@ -261,13 +261,15 @@ def test_list_ending_paragraph():
 def test_list_inside_paragraph_handrails():
     body = _body(LIST_IN_PARAGRAPH, handrails=True)
     assert body.count('class="paragraphhr') == 1, body
-    par = body[body.index('class="paragraphhr'):]
+    par = body[body.index('class="paragraphhr') :]
     assert par.index("<p>Beforethelist</p>") < par.index('<ulclass="itemize">'), par
     assert par.index("</ul>") < par.index("<p>afterthelist.</p>"), par
 
 
 def test_list_with_blank_lines_is_its_own_block():
-    body = _body("Before the list.\n\n:itemize:\n\n  :-: one\n\n::\n\nAfter the list.\n")
+    body = _body(
+        "Before the list.\n\n:itemize:\n\n  :-: one\n\n::\n\nAfter the list.\n"
+    )
     assert body.count('class="paragraph"') == 2, body
     assert '<p>Beforethelist.</p></div><ulclass="itemize">' in body, body
 
@@ -321,12 +323,16 @@ def test_standalone_nested_list_unchanged():
 @pytest.mark.parametrize(
     "src",
     [
-        pytest.param(":itemize:\n\n  :-: one\n\n  Not an item.\n\n::\n", id="paragraph"),
+        pytest.param(
+            ":itemize:\n\n  :-: one\n\n  Not an item.\n\n::\n", id="paragraph"
+        ),
         pytest.param(
             ":itemize:\n\n  :-: one\n\n  :remark:\n\n    Not an item.\n\n  ::\n\n::\n",
             id="block",
         ),
-        pytest.param(":itemize:\n\n  :-: one\n\n  $$\n  x\n  $$\n\n::\n", id="mathblock"),
+        pytest.param(
+            ":itemize:\n\n  :-: one\n\n  $$\n  x\n  $$\n\n::\n", id="mathblock"
+        ),
         pytest.param(
             ":itemize:\n\n  :-: one\n  :itemize:\n\n    :-: two\n\n  ::\n\n::\n",
             id="list-in-item",

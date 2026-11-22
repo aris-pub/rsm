@@ -37,13 +37,23 @@ def _contexts(pw: Playwright, browser):
     iphone = pw.devices["iPhone 13"]
     return {
         "iphone-13": (browser.new_context(**iphone), False),
-        "desktop-480": (browser.new_context(viewport={"width": 480, "height": 800}), False),
-        "desktop-900-panel-open": (browser.new_context(viewport={"width": 900, "height": 800}), True),
+        "desktop-480": (
+            browser.new_context(viewport={"width": 480, "height": 800}),
+            False,
+        ),
+        "desktop-900-panel-open": (
+            browser.new_context(viewport={"width": 900, "height": 800}),
+            True,
+        ),
     }
 
 
-@pytest.mark.parametrize("setup", ["iphone-13", "desktop-480", "desktop-900-panel-open"])
-def test_equation_in_paragraph_stays_in_the_column(playwright: Playwright, browser, interactive_server: str, setup):
+@pytest.mark.parametrize(
+    "setup", ["iphone-13", "desktop-480", "desktop-900-panel-open"]
+)
+def test_equation_in_paragraph_stays_in_the_column(
+    playwright: Playwright, browser, interactive_server: str, setup
+):
     ctxs = _contexts(playwright, browser)
     ctx, open_panel = ctxs[setup]
     for name, (other, _) in ctxs.items():
@@ -53,13 +63,19 @@ def test_equation_in_paragraph_stays_in_the_column(playwright: Playwright, brows
     try:
         page.goto(f"{interactive_server}/wide-math-in-paragraph.html")
         page.wait_for_function(RSM_READY, timeout=10_000)
-        page.locator(".manuscript mjx-container").first.wait_for(state="attached", timeout=15_000)
+        page.locator(".manuscript mjx-container").first.wait_for(
+            state="attached", timeout=15_000
+        )
         if open_panel:
-            page.click('.rail-strip-btn[data-view]')
-            page.wait_for_function("() => document.documentElement.classList.contains('rail-open')")
+            page.click(".rail-strip-btn[data-view]")
+            page.wait_for_function(
+                "() => document.documentElement.classList.contains('rail-open')"
+            )
             page.wait_for_timeout(600)
         m = page.evaluate(MEASURE)
-        assert m["zonesThatCannotShrink"] == 0, f"content zones keep min-width: auto ({setup}): {m}"
+        assert m["zonesThatCannotShrink"] == 0, (
+            f"content zones keep min-width: auto ({setup}): {m}"
+        )
         assert m["pastColumn"] <= 1, f"a block runs past the column ({setup}): {m}"
         assert m["pageOverflow"] <= 0, f"the page scrolls sideways ({setup}): {m}"
     finally:

@@ -28,6 +28,7 @@ Qualified name: ``rsm.nodes.Caption``
      ~Caption.handrail_depth
      ~Caption.number
      ~Caption.nonum
+     ~Caption.collapsed
      ~Caption.reftext_template
      ~Caption.start_point
      ~Caption.end_point

@@ -60,6 +60,9 @@
 
    
    .. autofunction:: auto_leave_deferred
+   .. autofunction:: expand_notation
+   .. autofunction:: minimap_enabled
+   .. autofunction:: unwrap_hyphenated_words
    
    
 

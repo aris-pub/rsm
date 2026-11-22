@@ -66,7 +66,9 @@ def test_toc_toggles_list_and_tree_without_errors(page: Page, interactive_server
     expect(svg.locator(".toc-node.toc-faded").first).to_be_attached()
 
 
-def test_tree_toc_in_the_text_previews_like_the_sidebar(page: Page, interactive_server: str):
+def test_tree_toc_in_the_text_previews_like_the_sidebar(
+    page: Page, interactive_server: str
+):
     """A node of the TOC graph in the text shows the section preview on hover,
     as the same graph in the sidebar does."""
     page.goto(f"{interactive_server}/toc-view.html")

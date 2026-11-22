@@ -28,6 +28,7 @@ Qualified name: ``rsm.nodes.Item``
      ~Item.handrail_depth
      ~Item.number
      ~Item.nonum
+     ~Item.collapsed
      ~Item.reftext_template
      ~Item.start_point
      ~Item.end_point

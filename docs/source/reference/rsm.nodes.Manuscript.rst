@@ -30,6 +30,7 @@ Qualified name: ``rsm.nodes.Manuscript``
      ~Manuscript.classes
      ~Manuscript.handrail_depth
      ~Manuscript.number
+     ~Manuscript.collapsed
      ~Manuscript.reftext_template
      ~Manuscript.start_point
      ~Manuscript.end_point

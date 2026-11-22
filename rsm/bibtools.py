@@ -88,6 +88,8 @@ def _run(*args: str, stdin: str | None = None) -> str | None:
         logger.warning("ruby bibtools could not run (%s)", exc)
         return None
     if proc.returncode != 0:
-        logger.warning("ruby bibtools exited %d: %s", proc.returncode, proc.stderr[:200])
+        logger.warning(
+            "ruby bibtools exited %d: %s", proc.returncode, proc.stderr[:200]
+        )
         return None
     return proc.stdout

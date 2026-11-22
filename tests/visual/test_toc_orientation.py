@@ -18,7 +18,6 @@ WIDTHS = [("mobile", 375, 667), ("desktop", 1280, 720)]
 
 @pytest.mark.visual
 class TestTocOrientation:
-
     @pytest.mark.parametrize("theme", ["light", "dark"])
     @pytest.mark.parametrize("viewport_name,width,height", WIDTHS)
     def test_toc_graph(

@@ -26,21 +26,29 @@ _COLLAPSIBLE = """
     h.querySelector(':scope > .hr-collapse-zone .hr-collapse'));
 """
 
-_COLLAPSE_ALL = "() => {" + _COLLAPSIBLE + """
+_COLLAPSE_ALL = (
+    "() => {"
+    + _COLLAPSIBLE
+    + """
   for (const h of blocks) {
     if (!h.classList.contains('hr-collapsed'))
       h.querySelector(':scope > .hr-collapse-zone .hr-collapse').click();
   }
   return blocks.length;
 }"""
+)
 
-_FLAGS = "() => {" + _COLLAPSIBLE + r"""
+_FLAGS = (
+    "() => {"
+    + _COLLAPSIBLE
+    + r"""
   return blocks.map(h => ({
     collapsed: h.classList.contains('hr-collapsed'),
     heading: h.classList.contains('heading'),
     text: (h.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 40),
   }));
 }"""
+)
 
 
 def _load(page: Page, server: str) -> None:

@@ -27,6 +27,7 @@ Qualified name: ``rsm.nodes.Appendix``
      ~Appendix.handrail_depth
      ~Appendix.number
      ~Appendix.nonum
+     ~Appendix.collapsed
      ~Appendix.reftext_template
      ~Appendix.start_point
      ~Appendix.end_point

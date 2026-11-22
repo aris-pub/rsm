@@ -27,6 +27,7 @@ Qualified name: ``rsm.nodes.TableRow``
      ~TableRow.handrail_depth
      ~TableRow.number
      ~TableRow.nonum
+     ~TableRow.collapsed
      ~TableRow.reftext_template
      ~TableRow.start_point
      ~TableRow.end_point

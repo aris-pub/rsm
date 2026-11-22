@@ -27,6 +27,7 @@ Qualified name: ``rsm.nodes.Bibliography``
      ~Bibliography.handrail_depth
      ~Bibliography.number
      ~Bibliography.nonum
+     ~Bibliography.collapsed
      ~Bibliography.reftext_template
      ~Bibliography.start_point
      ~Bibliography.end_point

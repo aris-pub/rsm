@@ -40,10 +40,7 @@ def test_math_in_link_text_keeps_the_comma_after_it():
 
 
 def test_math_in_an_aside_phrase():
-    src = (
-        "One :aside:x,the $a$ case:: two.\n\n"
-        ":aside: {:label: x} An aside. ::\n"
-    )
+    src = "One :aside:x,the $a$ case:: two.\n\n:aside: {:label: x} An aside. ::\n"
     html = rsm.render(src, handrails=True)
     assert r"\(a\)" in html
     assert "CST error" not in html

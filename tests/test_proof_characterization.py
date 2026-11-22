@@ -74,7 +74,9 @@ def _proof(src=SRC):
 def _state_by_label(proof):
     return {
         s.label: st
-        for s, st in zip(proof.traverse(nodeclass=nodes.Step), proof.step_state)
+        for s, st in zip(
+            proof.traverse(nodeclass=nodes.Step), proof.step_state, strict=True
+        )
     }
 
 

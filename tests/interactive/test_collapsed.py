@@ -56,6 +56,7 @@ def test_expanding_does_not_select_the_block(page: Page, interactive_server: str
 # The Proof tab must mirror the body's collapse state: a collapsed proof shows a
 # single-node card, not the step graph it is hiding.
 
+
 def _select_collapsed_proof(page: Page) -> None:
     """Select the collapsed proof (click it) so its rail item becomes the shown
     one. Selection is click/focus-driven now, not scroll."""
@@ -69,7 +70,9 @@ def test_collapsed_proof_shows_card_not_dag(page: Page, interactive_server: str)
     page.wait_for_selector(".proof-rail.active", state="attached", timeout=10_000)
     page.click('.rail-strip-btn[data-view="steps"]')
     _select_collapsed_proof(page)
-    expect(page.locator(".proof-rail")).to_have_class(re.compile(r"\bproof-collapsed\b"))
+    expect(page.locator(".proof-rail")).to_have_class(
+        re.compile(r"\bproof-collapsed\b")
+    )
     expect(page.locator(".proof-rail-item.shown .rail-collapsed-card")).to_be_visible()
     expect(page.locator(".proof-rail-item.shown .rail-map")).to_be_hidden()
 

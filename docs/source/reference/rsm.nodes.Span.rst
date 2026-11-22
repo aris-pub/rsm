@@ -29,6 +29,7 @@ Qualified name: ``rsm.nodes.Span``
      ~Span.handrail_depth
      ~Span.number
      ~Span.nonum
+     ~Span.collapsed
      ~Span.reftext_template
      ~Span.start_point
      ~Span.end_point

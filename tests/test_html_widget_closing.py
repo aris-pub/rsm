@@ -45,10 +45,24 @@ RSM_WITH_CAPTION = """\
 """
 
 
-VOID_ELEMENTS = frozenset({
-    "area", "base", "br", "col", "embed", "hr", "img", "input",
-    "link", "meta", "param", "source", "track", "wbr",
-})
+VOID_ELEMENTS = frozenset(
+    {
+        "area",
+        "base",
+        "br",
+        "col",
+        "embed",
+        "hr",
+        "img",
+        "input",
+        "link",
+        "meta",
+        "param",
+        "source",
+        "track",
+        "wbr",
+    }
+)
 
 
 class TagBalanceChecker(HTMLParser):
@@ -76,7 +90,9 @@ class TagBalanceChecker(HTMLParser):
 
 
 def _render_handrails(source=RSM_WITH_CAPTION):
-    return rsm.render(source, handrails=True, source_offsets=False, asset_resolver=RESOLVER)
+    return rsm.render(
+        source, handrails=True, source_offsets=False, asset_resolver=RESOLVER
+    )
 
 
 def test_no_tag_mismatches_in_handrails_output():
@@ -153,11 +169,11 @@ def test_no_stray_p_close_for_mathblock_under_section():
     of Section (not Paragraph). The handrails translator must not emit </p> for it.
     """
     body = rsm.render(
-        RSM_MATHBLOCK_UNDER_SECTION, handrails=True, source_offsets=False,
+        RSM_MATHBLOCK_UNDER_SECTION,
+        handrails=True,
+        source_offsets=False,
     )
     checker = TagBalanceChecker()
     checker.feed(body)
     p_mismatches = [m for m in checker.mismatches if "</p>" in m]
-    assert p_mismatches == [], (
-        "Stray </p> tags found:\n" + "\n".join(p_mismatches)
-    )
+    assert p_mismatches == [], "Stray </p> tags found:\n" + "\n".join(p_mismatches)

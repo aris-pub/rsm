@@ -27,6 +27,7 @@ Qualified name: ``rsm.nodes.PendingCite``
      ~PendingCite.handrail_depth
      ~PendingCite.number
      ~PendingCite.nonum
+     ~PendingCite.collapsed
      ~PendingCite.reftext_template
      ~PendingCite.start_point
      ~PendingCite.end_point

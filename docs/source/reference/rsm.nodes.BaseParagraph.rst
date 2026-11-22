@@ -27,6 +27,7 @@ Qualified name: ``rsm.nodes.BaseParagraph``
      ~BaseParagraph.handrail_depth
      ~BaseParagraph.number
      ~BaseParagraph.nonum
+     ~BaseParagraph.collapsed
      ~BaseParagraph.reftext_template
      ~BaseParagraph.start_point
      ~BaseParagraph.end_point

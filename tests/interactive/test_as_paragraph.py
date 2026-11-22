@@ -115,10 +115,17 @@ def test_click_in_as_paragraph_widget_does_not_select_it(page: Page, tmp_path):
     # content (a widget being used) must not select it either.
     _load_click_doc(page, tmp_path)
     page.locator("#widget").click(position={"x": 400, "y": 80})
-    assert page.evaluate("() => document.querySelector('figure.as-paragraph').matches(':focus')") is False
+    assert (
+        page.evaluate(
+            "() => document.querySelector('figure.as-paragraph').matches(':focus')"
+        )
+        is False
+    )
 
 
-def test_focusable_element_in_as_paragraph_widget_still_takes_focus(page: Page, tmp_path):
+def test_focusable_element_in_as_paragraph_widget_still_takes_focus(
+    page: Page, tmp_path
+):
     _load_click_doc(page, tmp_path)
     page.locator("#widget-button").click()
     assert page.evaluate("() => document.activeElement.id") == "widget-button"
@@ -160,8 +167,15 @@ def test_text_in_as_paragraph_widget_can_be_selected(page: Page, tmp_path):
     page.mouse.down()
     page.mouse.move(box["x"] + box["width"] - 2, box["y"] + box["height"] / 2, steps=8)
     page.mouse.up()
-    assert "the reader can select" in page.evaluate("() => String(window.getSelection())")
-    assert page.evaluate("() => document.querySelector('figure.as-paragraph').matches(':focus')") is False
+    assert "the reader can select" in page.evaluate(
+        "() => String(window.getSelection())"
+    )
+    assert (
+        page.evaluate(
+            "() => document.querySelector('figure.as-paragraph').matches(':focus')"
+        )
+        is False
+    )
 
 
 NESTED_SRC = """# Doc
@@ -197,6 +211,6 @@ def test_click_in_nested_as_paragraph_widget_selects_no_block(page: Page, tmp_pa
     page.goto(out.as_uri(), wait_until="load")
     page.wait_for_function("() => window.__rsmShown === true", timeout=10_000)
     page.locator("#nested-widget").click(position={"x": 200, "y": 60})
-    assert page.evaluate("() => document.activeElement.closest('.hr') === null"), page.evaluate(
-        "() => document.activeElement.className"
+    assert page.evaluate("() => document.activeElement.closest('.hr') === null"), (
+        page.evaluate("() => document.activeElement.className")
     )

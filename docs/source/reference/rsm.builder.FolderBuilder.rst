@@ -1,4 +1,4 @@
-FolderBuilder
+﻿FolderBuilder
 =============
 
 Qualified name: ``rsm.builder.FolderBuilder``
@@ -16,8 +16,9 @@ Qualified name: ``rsm.builder.FolderBuilder``
       :nosignatures:
       
       ~FolderBuilder.build
-      ~FolderBuilder.mount_required_assets
       ~FolderBuilder.mount_static
+      ~FolderBuilder.register_asset_copies
+      ~FolderBuilder.relocate_asset_refs
 
    
    .. rubric:: Attributes

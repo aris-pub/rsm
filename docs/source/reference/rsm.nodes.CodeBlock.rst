@@ -29,6 +29,7 @@ Qualified name: ``rsm.nodes.CodeBlock``
      ~CodeBlock.handrail_depth
      ~CodeBlock.number
      ~CodeBlock.nonum
+     ~CodeBlock.collapsed
      ~CodeBlock.reftext_template
      ~CodeBlock.start_point
      ~CodeBlock.end_point

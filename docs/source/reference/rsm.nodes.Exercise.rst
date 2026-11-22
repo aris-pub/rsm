@@ -27,6 +27,7 @@ Qualified name: ``rsm.nodes.Exercise``
      ~Exercise.handrail_depth
      ~Exercise.number
      ~Exercise.nonum
+     ~Exercise.collapsed
      ~Exercise.reftext_template
      ~Exercise.start_point
      ~Exercise.end_point

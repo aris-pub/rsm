@@ -84,4 +84,6 @@ def test_error_rule_sets_red_text():
     block = block[: block.find("}\n}") + 3]
     rule = re.search(r"\.error\s*\{([^}]*)\}", block)
     assert rule, block
-    assert re.search(r"(?<![-\w])color:\s*var\(--error-900\)", rule.group(1)), rule.group(1)
+    assert re.search(r"(?<![-\w])color:\s*var\(--error-900\)", rule.group(1)), (
+        rule.group(1)
+    )

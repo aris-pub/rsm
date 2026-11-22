@@ -27,6 +27,7 @@ Qualified name: ``rsm.nodes.SourceCode``
      ~SourceCode.handrail_depth
      ~SourceCode.number
      ~SourceCode.nonum
+     ~SourceCode.collapsed
      ~SourceCode.reftext_template
      ~SourceCode.start_point
      ~SourceCode.end_point

@@ -27,6 +27,7 @@ Qualified name: ``rsm.nodes.Subproof``
      ~Subproof.handrail_depth
      ~Subproof.number
      ~Subproof.nonum
+     ~Subproof.collapsed
      ~Subproof.reftext_template
      ~Subproof.start_point
      ~Subproof.end_point

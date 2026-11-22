@@ -45,9 +45,7 @@ def _in_remark(kind: str, meta: str = ASP) -> str:
     body = "\n".join(
         ("  " + line) if line else "" for line in _block(kind, meta).splitlines()
     )
-    return (
-        "# Doc\n\n## Sec\n\n:remark:\n\n  Some text.\n\n" + body + "\n\n::\n"
-    )
+    return "# Doc\n\n## Sec\n\n:remark:\n\n  Some text.\n\n" + body + "\n\n::\n"
 
 
 def _tree(src: str) -> nodes.Manuscript:
@@ -96,16 +94,20 @@ def test_no_number(kind):
 def test_counter_unaffected(kind):
     """The next numbered asset of the same counter is numbered as if the
     as-paragraph one were not there."""
-    src = dedent(
-        """\
+    src = (
+        dedent(
+            """\
         # Doc
 
         ## Sec
 
         """
-    ) + _block(kind).replace(":label: x", ":label: p") + "\n" + _block(
-        kind, meta=""
-    ).replace(":label: x", ":label: n") + "\n"
+        )
+        + _block(kind).replace(":label: x", ":label: p")
+        + "\n"
+        + _block(kind, meta="").replace(":label: x", ":label: n")
+        + "\n"
+    )
     tree = _tree(src)
     first, second = list(tree.traverse(nodeclass=CLASS[kind]))
     assert first.number is None
@@ -292,7 +294,9 @@ def test_html_keeps_static_fallback():
     # swaps between.
     figure = html[html.index(tag) : html.index("</figure>", html.index(tag))]
     assert figure.count('class="hr-content-zone"') == 1
-    zone = figure.split('<div class="hr-content-zone">', 1)[1].split('class="hr-info-zone"')[0]
+    zone = figure.split('<div class="hr-content-zone">', 1)[1].split(
+        'class="hr-info-zone"'
+    )[0]
     assert "<div>live</div>" in zone and 'class="static-fallback"' in zone
 
 

@@ -38,16 +38,18 @@ def test_standalone_renders_offline_with_inlined_assets(page: Page, tmp_path):
     # link takes braiid's --link-default (blue-700), not the UA default blue.
     link_color = page.eval_on_selector("a.reference", "a => getComputedStyle(a).color")
     assert link_color == "rgb(3, 97, 161)", link_color
-    assert page.eval_on_selector(
-        ".manuscriptwrapper", "e => getComputedStyle(e).maxWidth"
-    ) != "none"
+    assert (
+        page.eval_on_selector(".manuscriptwrapper", "e => getComputedStyle(e).maxWidth")
+        != "none"
+    )
 
     # jQuery is inlined and live.
     assert page.evaluate("() => typeof window.jQuery") == "function"
 
     # None of the inlined libraries were fetched over the network.
     fetched = [
-        u for u in blocked
+        u
+        for u in blocked
         if any(k in u.lower() for k in ("jquery", "braiid", "tooltipster.bundle.js"))
     ]
     assert not fetched, fetched
@@ -96,7 +98,8 @@ def test_standalone_math_and_pseudocode_use_inlined_libraries(page: Page, tmp_pa
     )
 
     fetched = [
-        u for u in blocked
+        u
+        for u in blocked
         if any(k in u.lower() for k in ("pseudocode", "katex", "mathjax", ".woff"))
     ]
     assert not fetched, fetched

@@ -64,7 +64,9 @@ def test_heading_does_not_break_after_hyphen(page: Page, tmp_path, word):
     page.set_viewport_size({"width": 800, "height": 900})
     page.goto(_build(word, tmp_path), wait_until="load")
     if "$" in word:
-        page.wait_for_selector("h2 span.math mjx-container", state="attached", timeout=15_000)
+        page.wait_for_selector(
+            "h2 span.math mjx-container", state="attached", timeout=15_000
+        )
     page.wait_for_timeout(300)
 
     wrapped = False

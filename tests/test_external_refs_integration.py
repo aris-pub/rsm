@@ -125,7 +125,9 @@ This references :ref:definitions/def/::.
 
     # The ref target is the Manuscript node of def.rsm which has "# Test Definition"
     assert "Test Definition" in html
-    assert "Manuscript" not in html or "Manuscript" in "Main Document"  # only in our own title
+    assert (
+        "Manuscript" not in html or "Manuscript" in "Main Document"
+    )  # only in our own title
 
 
 def test_external_labeled_ref_includes_manuscript_title():

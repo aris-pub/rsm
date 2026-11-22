@@ -15,6 +15,7 @@ raw path.  The fallback keeps the rendered HTML correct (so existing
 `test_figure.py` cases stay green), but the build emits noise on every PNG
 figure.  This test pins down the regression.
 """
+
 from __future__ import annotations
 
 import base64
@@ -24,7 +25,6 @@ from pathlib import Path
 import pytest
 
 import rsm
-
 
 # Smallest valid PNG: 8-byte signature + minimal IHDR/IDAT/IEND chunks.
 # Hex-decoded 1×1 transparent PNG.  Source: stock minimal PNG often used in

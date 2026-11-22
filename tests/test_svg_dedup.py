@@ -1,7 +1,6 @@
 """Tests for SVG icon deduplication via <defs> + <use>."""
 
 import re
-from textwrap import dedent
 
 import rsm
 

@@ -21,13 +21,13 @@ Qualified name: ``rsm.nodes.Video``
 
    .. autosummary::
      
-     ~Video.classreftext
      ~Video.nodeid
      ~Video.label
      ~Video.classes
      ~Video.handrail_depth
      ~Video.number
      ~Video.nonum
+     ~Video.collapsed
      ~Video.reftext_template
      ~Video.start_point
      ~Video.end_point

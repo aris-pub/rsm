@@ -29,7 +29,7 @@ class TestTheming:
         """
         page.set_viewport_size({"width": width, "height": height})
         fixture = Path(__file__).parent / "fixtures" / "block-types.rsm"
-        content = serve_rsm_html(fixture.read_text(), dark_theme=False)
+        serve_rsm_html(fixture.read_text(), dark_theme=False)
         assert_snapshot(page.screenshot(full_page=True))
 
     @pytest.mark.parametrize("viewport_name,width,height", VIEWPORTS)
@@ -50,7 +50,7 @@ class TestTheming:
         """
         page.set_viewport_size({"width": width, "height": height})
         fixture = Path(__file__).parent / "fixtures" / "block-types.rsm"
-        content = serve_rsm_html(fixture.read_text(), dark_theme=True)
+        serve_rsm_html(fixture.read_text(), dark_theme=True)
         assert_snapshot(page.screenshot(full_page=True))
 
     @pytest.mark.parametrize("viewport_name,width,height", VIEWPORTS)
@@ -70,7 +70,7 @@ class TestTheming:
         """
         page.set_viewport_size({"width": width, "height": height})
         fixture = Path(__file__).parent / "fixtures" / "nesting-stacking.rsm"
-        content = serve_rsm_html(fixture.read_text(), dark_theme=True)
+        serve_rsm_html(fixture.read_text(), dark_theme=True)
         assert_snapshot(page.screenshot(full_page=True))
 
     def test_dark_theme_is_actually_applied(
@@ -112,4 +112,6 @@ class TestTheming:
         )
         assert rgb is not None, "no opaque page background found"
         luminance = 0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2]
-        assert luminance < 90, f"page background {rgb} is not dark (luminance {luminance:.0f})"
+        assert luminance < 90, (
+            f"page background {rgb} is not dark (luminance {luminance:.0f})"
+        )

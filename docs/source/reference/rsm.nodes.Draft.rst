@@ -27,6 +27,7 @@ Qualified name: ``rsm.nodes.Draft``
      ~Draft.handrail_depth
      ~Draft.number
      ~Draft.nonum
+     ~Draft.collapsed
      ~Draft.reftext_template
      ~Draft.start_point
      ~Draft.end_point

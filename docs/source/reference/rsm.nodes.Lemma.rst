@@ -27,6 +27,7 @@ Qualified name: ``rsm.nodes.Lemma``
      ~Lemma.handrail_depth
      ~Lemma.number
      ~Lemma.nonum
+     ~Lemma.collapsed
      ~Lemma.reftext_template
      ~Lemma.start_point
      ~Lemma.end_point

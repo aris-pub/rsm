@@ -15,6 +15,7 @@ Qualified name: ``rsm.nodes.Bibitem``
    .. autosummary::
       :nosignatures:
       
+      ~Bibitem.short_author
 
    
    .. rubric:: Attributes
@@ -30,6 +31,7 @@ Qualified name: ``rsm.nodes.Bibitem``
      ~Bibitem.handrail_depth
      ~Bibitem.number
      ~Bibitem.nonum
+     ~Bibitem.collapsed
      ~Bibitem.reftext_template
      ~Bibitem.start_point
      ~Bibitem.end_point

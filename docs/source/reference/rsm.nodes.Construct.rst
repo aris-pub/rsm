@@ -29,6 +29,7 @@ Qualified name: ``rsm.nodes.Construct``
      ~Construct.handrail_depth
      ~Construct.number
      ~Construct.nonum
+     ~Construct.collapsed
      ~Construct.reftext_template
      ~Construct.start_point
      ~Construct.end_point

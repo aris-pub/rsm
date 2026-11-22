@@ -27,6 +27,7 @@ Qualified name: ``rsm.nodes.Definition``
      ~Definition.handrail_depth
      ~Definition.number
      ~Definition.nonum
+     ~Definition.collapsed
      ~Definition.reftext_template
      ~Definition.start_point
      ~Definition.end_point

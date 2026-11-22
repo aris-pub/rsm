@@ -13,7 +13,9 @@ pytestmark = pytest.mark.interactive
 RSM_READY = "() => window.__rsmShown === true"
 
 
-def test_keyboard_jump_to_top_pushes_history_and_back_returns(page: Page, interactive_server: str):
+def test_keyboard_jump_to_top_pushes_history_and_back_returns(
+    page: Page, interactive_server: str
+):
     page.set_viewport_size({"width": 1400, "height": 900})
     page.goto(f"{interactive_server}/sidebar.html")
     page.wait_for_function(RSM_READY, timeout=10_000)
@@ -28,7 +30,9 @@ def test_keyboard_jump_to_top_pushes_history_and_back_returns(page: Page, intera
 
     # Without preventScroll, focusing the first block would scroll the page up
     # to it, and Back would rightly return there instead of to y_before.
-    page.evaluate("() => document.querySelector('.manuscript .hr[id]').focus({preventScroll: true})")
+    page.evaluate(
+        "() => document.querySelector('.manuscript .hr[id]').focus({preventScroll: true})"
+    )
     page.keyboard.press("H")
 
     # The jump pushes a history entry, sets the hash, and (smooth-)scrolls up.
@@ -39,4 +43,6 @@ def test_keyboard_jump_to_top_pushes_history_and_back_returns(page: Page, intera
 
     # Native browser Back returns to where the reader was.
     page.go_back()
-    page.wait_for_function(f"() => Math.abs(window.scrollY - {y_before}) < 100", timeout=3000)
+    page.wait_for_function(
+        f"() => Math.abs(window.scrollY - {y_before}) < 100", timeout=3000
+    )

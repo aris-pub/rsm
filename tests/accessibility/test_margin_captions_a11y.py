@@ -54,7 +54,10 @@ def _force_theme(page, theme):
 def test_margin_captions_wcag(serve_rsm_a11y, page, tmp_path, width, theme):
     (tmp_path / "output" / "assets").mkdir(parents=True, exist_ok=True)
     shutil.copy(FIXTURES / "figure-light.png", tmp_path / "figure-light.png")
-    shutil.copy(FIXTURES / "figure-light.png", tmp_path / "output" / "assets" / "figure-light.png")
+    shutil.copy(
+        FIXTURES / "figure-light.png",
+        tmp_path / "output" / "assets" / "figure-light.png",
+    )
     page.set_viewport_size({"width": width, "height": 900})
     page = serve_rsm_a11y(SRC, sidebar=True)
     margin = page.evaluate(
@@ -70,7 +73,10 @@ def test_margin_captions_wcag(serve_rsm_a11y, page, tmp_path, width, theme):
 def test_focused_margin_caption_wcag(serve_rsm_a11y, page, tmp_path, theme):
     """With a caption focused (its rail and highlight shown) nothing fails."""
     (tmp_path / "output" / "assets").mkdir(parents=True, exist_ok=True)
-    shutil.copy(FIXTURES / "figure-light.png", tmp_path / "output" / "assets" / "figure-light.png")
+    shutil.copy(
+        FIXTURES / "figure-light.png",
+        tmp_path / "output" / "assets" / "figure-light.png",
+    )
     page.set_viewport_size({"width": 1440, "height": 900})
     page = serve_rsm_a11y(SRC, sidebar=True)
     _force_theme(page, theme)

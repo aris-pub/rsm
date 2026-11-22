@@ -28,6 +28,7 @@ Qualified name: ``rsm.nodes.Cite``
      ~Cite.handrail_depth
      ~Cite.number
      ~Cite.nonum
+     ~Cite.collapsed
      ~Cite.reftext_template
      ~Cite.start_point
      ~Cite.end_point

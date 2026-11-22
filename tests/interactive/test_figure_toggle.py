@@ -11,7 +11,6 @@ RSM_READY = "() => window.__rsmShown === true"
 
 
 class TestFigureToggle:
-
     def test_static_toggle_swaps_content(self, page: Page, interactive_server: str):
         page.goto(f"{interactive_server}/figure-static.html")
         page.wait_for_function(RSM_READY, timeout=10_000)

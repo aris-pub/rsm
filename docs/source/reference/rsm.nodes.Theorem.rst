@@ -23,6 +23,7 @@ Qualified name: ``rsm.nodes.Theorem``
      
      ~Theorem.autonumber
      ~Theorem.has_handrail
+     ~Theorem.kindname
      ~Theorem.newmetakeys
      ~Theorem.title
      ~Theorem.nodeid
@@ -31,6 +32,7 @@ Qualified name: ``rsm.nodes.Theorem``
      ~Theorem.handrail_depth
      ~Theorem.number
      ~Theorem.nonum
+     ~Theorem.collapsed
      ~Theorem.reftext_template
      ~Theorem.start_point
      ~Theorem.end_point

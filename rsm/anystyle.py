@@ -70,7 +70,7 @@ def structure(references: list[Reference]) -> list[StructuredReference]:
         return [StructuredReference(r.key, r.raw, None) for r in references]
 
     out: list[StructuredReference] = []
-    for ref, fields in zip(references, parsed):
+    for ref, fields in zip(references, parsed, strict=True):
         if _meets_floor(fields):
             out.append(StructuredReference(ref.key, ref.raw, fields))
         else:
@@ -112,7 +112,9 @@ def _parse(texts: list[str]) -> list[dict] | None:
                 timeout=_TIMEOUT,
             )
         except (OSError, subprocess.SubprocessError) as exc:
-            logger.warning("AnyStyle could not be run (%s), keeping references verbatim", exc)
+            logger.warning(
+                "AnyStyle could not be run (%s), keeping references verbatim", exc
+            )
             return None
     if proc.returncode != 0:
         logger.warning(
@@ -122,7 +124,9 @@ def _parse(texts: list[str]) -> list[dict] | None:
     try:
         parsed = json.loads(proc.stdout)
     except json.JSONDecodeError:
-        logger.warning("AnyStyle returned unreadable output, keeping references verbatim")
+        logger.warning(
+            "AnyStyle returned unreadable output, keeping references verbatim"
+        )
         return None
     if not isinstance(parsed, list) or len(parsed) != len(texts):
         logger.warning(

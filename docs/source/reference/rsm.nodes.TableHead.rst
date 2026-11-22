@@ -27,6 +27,7 @@ Qualified name: ``rsm.nodes.TableHead``
      ~TableHead.handrail_depth
      ~TableHead.number
      ~TableHead.nonum
+     ~TableHead.collapsed
      ~TableHead.reftext_template
      ~TableHead.start_point
      ~TableHead.end_point

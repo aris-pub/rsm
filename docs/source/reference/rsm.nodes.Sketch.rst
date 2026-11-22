@@ -28,6 +28,7 @@ Qualified name: ``rsm.nodes.Sketch``
      ~Sketch.handrail_depth
      ~Sketch.number
      ~Sketch.nonum
+     ~Sketch.collapsed
      ~Sketch.reftext_template
      ~Sketch.start_point
      ~Sketch.end_point

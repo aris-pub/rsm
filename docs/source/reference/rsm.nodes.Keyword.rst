@@ -27,6 +27,7 @@ Qualified name: ``rsm.nodes.Keyword``
      ~Keyword.handrail_depth
      ~Keyword.number
      ~Keyword.nonum
+     ~Keyword.collapsed
      ~Keyword.reftext_template
      ~Keyword.start_point
      ~Keyword.end_point

@@ -21,13 +21,14 @@ Qualified name: ``rsm.nodes.Figure``
 
    .. autosummary::
      
-     ~Figure.classreftext
+     ~Figure.holds_html
      ~Figure.nodeid
      ~Figure.label
      ~Figure.classes
      ~Figure.handrail_depth
      ~Figure.number
      ~Figure.nonum
+     ~Figure.collapsed
      ~Figure.reftext_template
      ~Figure.start_point
      ~Figure.end_point

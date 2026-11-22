@@ -131,7 +131,6 @@ def test_manuscript_meta():
     )
 
 
-
 def test_manuscript_eyebrow():
     compare_have_want(
         have="""\
@@ -170,6 +169,7 @@ def test_manuscript_eyebrow():
         </body>
         """,
     )
+
 
 def test_section_header():
     compare_have_want(

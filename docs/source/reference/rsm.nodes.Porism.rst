@@ -27,6 +27,7 @@ Qualified name: ``rsm.nodes.Porism``
      ~Porism.handrail_depth
      ~Porism.number
      ~Porism.nonum
+     ~Porism.collapsed
      ~Porism.reftext_template
      ~Porism.start_point
      ~Porism.end_point

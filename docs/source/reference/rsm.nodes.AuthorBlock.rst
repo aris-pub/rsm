@@ -27,6 +27,7 @@ Qualified name: ``rsm.nodes.AuthorBlock``
      ~AuthorBlock.handrail_depth
      ~AuthorBlock.number
      ~AuthorBlock.nonum
+     ~AuthorBlock.collapsed
      ~AuthorBlock.reftext_template
      ~AuthorBlock.start_point
      ~AuthorBlock.end_point

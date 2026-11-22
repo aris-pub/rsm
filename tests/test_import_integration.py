@@ -41,8 +41,10 @@ def test_import_project_inline_bibliography(tmp_path):
 
 def test_import_project_bib_passthrough(tmp_path):
     (tmp_path / "main.tex").write_text(
-        r"\documentclass{article}" "\n\\begin{document}\n\\cite{k}\n"
-        r"\bibliography{refs}" "\n\\end{document}\n",
+        r"\documentclass{article}"
+        "\n\\begin{document}\n\\cite{k}\n"
+        r"\bibliography{refs}"
+        "\n\\end{document}\n",
         encoding="utf-8",
     )
     (tmp_path / "refs.bib").write_text(
@@ -246,9 +248,12 @@ def test_import_title_and_sibling_sections(tmp_path):
 
 
 _CITE_COLON = (
-    r"\documentclass{article}" "\n\\begin{document}\n"
-    r"Prior work \cite{DBLP:journals/corr/X}." "\n"
-    r"\bibliography{refs}" "\n\\end{document}\n"
+    r"\documentclass{article}"
+    "\n\\begin{document}\n"
+    r"Prior work \cite{DBLP:journals/corr/X}."
+    "\n"
+    r"\bibliography{refs}"
+    "\n\\end{document}\n"
 )
 
 _FIG_REF = r"""\documentclass{article}
@@ -351,12 +356,12 @@ def test_import_nested_list(tmp_path):
     (tmp_path / "main.tex").write_text(_NESTED_LIST, encoding="utf-8")
     out = app.import_project(str(tmp_path))
     assert ":itemize:" in out
-    assert ":--: " in out           # sub-items use the depth-2 marker
+    assert ":--: " in out  # sub-items use the depth-2 marker
     assert "::itemize:" not in out  # not the old glued nested block
     html = rsm.render(out, handrails=False, source_offsets=False)
     assert 'class="error"' not in html, out
     # Sub A nests: a <ul> opens inside Second point's <li> before it closes.
-    rest = html[html.index("Second point"):]
+    rest = html[html.index("Second point") :]
     assert "<ul" in rest and rest.index("<ul") < rest.index("</li>"), out
 
 
