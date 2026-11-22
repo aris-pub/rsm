@@ -203,7 +203,9 @@ release level:
         rm -f pyproject.toml.bak
     fi
 
-    git add pyproject.toml
+    # uv.lock records the project's own version, so it changes with the bump.
+    uv lock
+    git add pyproject.toml uv.lock
     just changelog "$RSM_VERSION"
     git add CHANGELOG.md
     git commit -m "Release v$RSM_VERSION"
