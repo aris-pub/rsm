@@ -2,6 +2,7 @@
   "name": "rsm-lsp",
   "version": "0.1.0",
   "description": "Language Server Protocol implementation for RSM (Rigorous Scientific Manuscripts)",
+  "type": "module",
   "main": "dist/server.js",
   "bin": {
     "rsm-lsp": "dist/server.js"

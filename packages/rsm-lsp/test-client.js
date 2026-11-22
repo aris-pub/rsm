@@ -4,7 +4,7 @@
  * Sends JSON-RPC messages and displays responses
  */
 
-const { spawn } = require('child_process');
+import { spawn } from 'child_process';
 
 class LSPClient {
   constructor() {

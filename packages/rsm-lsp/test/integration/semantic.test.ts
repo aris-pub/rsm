@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { parseWithPython } from '../../src/layer2/python';
-import { runSemanticDiagnostics } from '../../src/diagnostics/engine';
+import { parseWithPython } from '../../src/layer2/python.js';
+import { runSemanticDiagnostics } from '../../src/diagnostics/engine.js';
 import { DiagnosticSeverity } from 'vscode-languageserver';
 
 describe('Semantic diagnostics integration', () => {

@@ -3,7 +3,7 @@
  * Test Python parsing directly to verify it works correctly
  */
 
-const { parseWithPython } = require('./dist/layer2/python');
+import { parseWithPython } from './dist/layer2/python.js';
 
 const testDoc = `# Test Document
 

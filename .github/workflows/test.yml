@@ -91,9 +91,7 @@ jobs:
 
     - name: Build tree-sitter-rsm
       working-directory: tree-sitter-rsm
-      run: |
-        npm install
-        npm run prebuildify
+      run: npm ci
 
     - name: Install LSP dependencies
       working-directory: packages/rsm-lsp

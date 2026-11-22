@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { SymbolKind } from 'vscode-languageserver';
-import { RsmParser } from '../../../src/layer1/parser';
-import { extractDocumentSymbols } from '../../../src/layer1/documentSymbols';
+import { RsmParser } from '../../../src/layer1/parser.js';
+import { extractDocumentSymbols } from '../../../src/layer1/documentSymbols.js';
 
 describe('extractDocumentSymbols', () => {
   const parser = new RsmParser();

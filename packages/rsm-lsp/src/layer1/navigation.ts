@@ -1,6 +1,6 @@
 import { SyntaxNode, Tree } from 'tree-sitter';
 import { Range } from 'vscode-languageserver';
-import { pointsToRange } from '../utils/location';
+import { pointsToRange } from '../utils/location.js';
 
 /**
  * Represents a label found in the document

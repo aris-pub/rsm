@@ -6,7 +6,7 @@ import {
   findNodeByLabel,
   extractLabels,
   extractReferences,
-} from '../../../src/layer2/ast';
+} from '../../../src/layer2/ast.js';
 
 // Mock AST structure
 const mockAST: ASTNode = {

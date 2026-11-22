@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { extractLabels, extractReferences } from '../../../src/layer1/navigation';
-import { RsmParser } from '../../../src/layer1/parser';
+import { extractLabels, extractReferences } from '../../../src/layer1/navigation.js';
+import { RsmParser } from '../../../src/layer1/parser.js';
 
 describe('extractLabels', () => {
   let parser: RsmParser;

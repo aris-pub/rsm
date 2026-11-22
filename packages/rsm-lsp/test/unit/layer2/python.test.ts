@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseWithPython, testPythonCLI } from '../../../src/layer2/python';
+import { parseWithPython, testPythonCLI } from '../../../src/layer2/python.js';
 
 describe('Python subprocess integration', () => {
   it('should parse simple document', async () => {
