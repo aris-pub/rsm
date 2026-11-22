@@ -11,7 +11,6 @@ Quick Example: Blog Post Style
 A minimal manuscript for informal scientific writing.
 
 .. rsm::
-   :layout: vertical
 
    # Why Web-First Scientific Publishing Matters
 
@@ -62,7 +61,6 @@ Mathematical Paper Example
 A research article with theorems, proofs, and structured mathematics.
 
 .. rsm::
-   :layout: vertical
 
    # A Note on Graph Connectivity
 
@@ -145,7 +143,6 @@ Experimental Results Example
 A paper with code, data, and visualizations (conceptual; RSM doesn't execute code).
 
 .. rsm::
-   :layout: vertical
 
    # Machine Learning Performance on Small Datasets
 
@@ -237,7 +234,6 @@ Interactive Visualization Example
 A physics paper with interactive web-based visualizations.
 
 .. rsm::
-   :layout: vertical
 
    # Damped Harmonic Oscillators
 

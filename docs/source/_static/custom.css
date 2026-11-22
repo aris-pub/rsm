@@ -241,15 +241,36 @@ html[data-theme="dark"] .sd-card.sd-sphinx-override:hover {
   background: var(--pst-color-surface);
 }
 
-/* ─── RSM iframe loading spinner ─── */
-.rsm-iframe-wrap {
-  position: relative;
-  width: 49%;
+/* ─── RSM examples: source above, rendered result below ─── */
+.rsm-example {
+  margin-block: 1.25rem;
+  border: 1px solid var(--pst-color-border);
+  border-radius: 0.5rem;
   overflow: hidden;
 }
 
-.rsm-example.vertical .rsm-iframe-wrap {
+.rsm-example .rsm-example-code {
+  margin: 0;
+}
+
+.rsm-example .rsm-example-code pre {
+  margin: 0;
+  border: none;
+  border-radius: 0;
+  border-bottom: 1px solid var(--pst-color-border);
+  font-family: 'Source Code Pro', monospace;
+}
+
+.rsm-iframe-wrap {
+  position: relative;
+  min-height: 4rem;
+}
+
+.rsm-example-iframe {
+  display: block;
   width: 100%;
+  border: none;
+  background: white;
 }
 
 .rsm-iframe-spinner {
@@ -272,58 +293,6 @@ html[data-theme="dark"] .sd-card.sd-sphinx-override:hover {
 
 @keyframes rsm-spin {
   to { transform: rotate(360deg); }
-}
-
-/* ─── RSM example panels ─── */
-.rsm-example {
-  display: flex;
-  gap: 2%;
-  max-width: 100%;
-  overflow: hidden;
-}
-
-.rsm-example.vertical {
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.rsm-example-code {
-  width: 49% !important;
-  margin-top: 0 !important;
-}
-
-.rsm-example.vertical .rsm-example-code {
-  width: 100% !important;
-}
-
-.rsm-example-code .highlight {
-  height: 100%;
-  border-radius: 0.5rem;
-}
-
-.rsm-example-code .highlight pre {
-  height: 100%;
-  font-family: 'Source Code Pro', monospace;
-}
-
-.rsm-example .manuscriptwrapper.embedded {
-  width: 49%;
-  border-radius: 0.5rem;
-  border: 1px solid var(--pst-color-border);
-  padding-block: 1rem;
-  margin-bottom: 1em;
-}
-
-.rsm-example.vertical .manuscriptwrapper.embedded {
-  width: 100%;
-}
-
-.rsm-example-iframe {
-  width: 100%;
-  border: 1px solid var(--pst-color-border);
-  border-radius: 0.5rem;
-  background: white;
-  overflow: hidden;
 }
 
 /* ─── Code blocks ─── */

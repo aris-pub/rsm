@@ -7,6 +7,8 @@ Highlight and render RSM code blocks.
 """
 
 import hashlib
+import re
+import shutil
 from html import escape
 from pathlib import Path
 
@@ -171,7 +173,6 @@ class rsm_highlighted_code(nodes.Element):
 class RSMDirective(Directive):
     has_content = True
     option_spec = {
-        'layout': lambda x: x.strip().lower() if x else 'horizontal',
         'custom-css': lambda x: x.strip() if x else None,
         'source-only': lambda x: True,
     }
@@ -188,7 +189,6 @@ class RSMDirective(Directive):
         content = "\n".join(self.content)
         env = self.state.document.settings.env
         app = env.app
-        layout = self.options.get('layout', 'horizontal')
         custom_css = self.options.get('custom-css', None)
         source_only = 'source-only' in self.options
 
@@ -201,8 +201,9 @@ class RSMDirective(Directive):
             self._validate(content)
             return [n1]
 
-        # Use standalone mode - it uses CDN for CSS and inlines JavaScript
-        # Use custom asset resolver to resolve paths relative to source directory
+        # A folder build, not a standalone one: every example page loads RSM's
+        # static files from the docs' _static/ (see add_rsm_static_files),
+        # instead of inlining 2.5 MB of script each.
         source_dir = Path(__file__).parent
         asset_resolver = SourceDirAssetResolver(source_dir)
 
@@ -211,7 +212,7 @@ class RSMDirective(Directive):
             'source': content,
             'asset_resolver': asset_resolver,
             'handrails': True,
-            'standalone': True,
+            'standalone': False,
             'theme_toggle': False,
             'menu_position': 'right',
             'strict': True
@@ -227,21 +228,29 @@ class RSMDirective(Directive):
             source_file = self.state.document.current_source
             raise type(e)(f"Error in {source_file}:\n{e}") from e
         html_output = html_output.replace('class="manuscriptwrapper"', 'class="manuscriptwrapper embedded"')
+        html_output = re.sub(r"([\"'(])(?:\./)?static/", r"\1../_static/", html_output)
+        # An example's frame grows to fit it and never scrolls, so the minimap
+        # (which stands in for the scrollbar) is off, as with :no-minimap:.
+        html_output = html_output.replace("<body ", '<body data-minimap="false" ', 1)
+        html_output = html_output.replace(
+            "</head>", '<link rel="stylesheet" href="../_static/docs-frame.css">\n</head>', 1
+        )
 
-        # Fix relative paths to _static to work from _examples/ directory
-        html_output = html_output.replace('src="_static/', 'src="../_static/')
-
-        # Save to file and reference via iframe src
         content_hash = hashlib.md5(content.encode()).hexdigest()[:8]
         example_dir = Path(app.outdir) / "_examples"
         example_dir.mkdir(parents=True, exist_ok=True)
         (example_dir / f"{content_hash}.html").write_text(html_output)
+        # The folder build points figures at assets/<path>, so copy them there.
+        # A custom stylesheet is linked by its file name alone.
+        sources = {Path(custom_css).name: source_dir / custom_css} if custom_css else {}
+        for ref in set(re.findall(r'(?:src|href)="assets/([^"]+)"', html_output)):
+            dest = example_dir / "assets" / ref
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(sources.get(ref, source_dir / ref), dest)
         n2 = rsm_iframe(f"../_examples/{content_hash}.html")
 
         rsm_node = rsm_example()
         rsm_node['classes'] = []
-        if layout == 'vertical':
-            rsm_node['classes'].append('vertical')
         rsm_node.append(n1)
         rsm_node.append(n2)
         return [rsm_node]
@@ -267,7 +276,7 @@ def visit_rsm_iframe_node(self, node):
               sandbox="allow-scripts allow-same-origin"
               scrolling="no"
               onload="var f=this;function r(){{f.style.height=(f.contentWindow.document.documentElement.scrollHeight+8)+'px'}};r();f.parentNode.classList.add('loaded');new ResizeObserver(r).observe(f.contentWindow.document.documentElement);"
-              style="width: 100%; border: 1px solid var(--pst-color-border); border-radius: 4px; background: white; overflow: hidden;">
+              style="overflow: hidden;">
       </iframe>
     </div>
     '''
@@ -279,10 +288,7 @@ def depart_rsm_iframe_node(self, node):
 
 
 def visit_rsm_example_node(self, node):
-    classes = ['rsm-example']
-    if 'vertical' in node.get('classes', []):
-        classes.append('vertical')
-    self.body.append(f'<div class="{" ".join(classes)}">')
+    self.body.append('<div class="rsm-example">')
 
 
 def depart_rsm_example_node(self, node):
@@ -297,8 +303,10 @@ def add_rsm_static_files(app):
     parent = Path(__file__).parent
     doc_static_dir = parent / "_static"
     rsm_static_dir = parent.parent.parent / "rsm" / "static"
+    braiid_css = parent.parent.parent / "braiid" / "braiid.css"
     cfg.html_static_path.append(str(doc_static_dir.absolute()))
     cfg.html_static_path.append(str(rsm_static_dir.absolute()))
+    cfg.html_static_path.append(str(braiid_css.absolute()))
 
 
 def strip_object_from_bases(app, name, obj, options, bases):

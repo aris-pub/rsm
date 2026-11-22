@@ -1,0 +1,5 @@
+/* braiid.css sizes text by the width of the window, and an example's frame is
+   narrow, so it would get the phone size. Use the docs' own text size. */
+:root {
+  font-size: 16px;
+}
