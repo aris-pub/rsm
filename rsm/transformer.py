@@ -460,10 +460,18 @@ class Transformer:
                     _carry_reftext_nodes(pending, ref)
                     pending.replace_self(ref)
             elif isinstance(pending, nodes.PendingCite):
-                targets = [
-                    self._label_to_node(label, default=nodes.UnknownBibitem)
-                    for label in pending.targetlabels
-                ]
+                targets: list[nodes.Bibitem] = []
+                for label in pending.targetlabels:
+                    tgt = self._label_to_node(label, default=nodes.UnknownBibitem)
+                    if not isinstance(tgt, nodes.Bibitem):
+                        logger.warning(
+                            f'Citation of "{label}", which is not a bibliography'
+                            " entry. Use :ref: to link to it."
+                        )
+                        tgt = nodes.UnknownBibitem(
+                            f'[label "{label}" is not a bibliography entry]'
+                        )
+                    targets.append(tgt)
                 cite = nodes.Cite(
                     targets=targets, targetlabels=list(pending.targetlabels)
                 )

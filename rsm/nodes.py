@@ -1864,7 +1864,7 @@ class Cite(Node):
 
     def __init__(
         self,
-        targets: list[Node] | None = None,
+        targets: "list[Bibitem] | None" = None,
         targetlabels: list[str] | None = None,
         **kwargs: Any,
     ) -> None:

@@ -199,3 +199,10 @@ def test_bibliography_numbered_in_numeric():
         r'id="knuth14" class="bibitem".*?<span class="bib-num">(\d+)</span>', html, re.S
     )
     assert m, "numeric entry has no number pill"
+
+
+def test_cite_of_a_label_that_is_not_a_bibliography_entry(caplog):
+    src = "# T\n\n## Sec {:label: sec1}\n\nText :cite:sec1::.\n"
+    html = rsm.render(src)
+    assert 'Citation of "sec1", which is not a bibliography entry' in caplog.text
+    assert 'class="reference cite unknown"' in html
