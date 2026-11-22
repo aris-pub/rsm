@@ -633,14 +633,22 @@ class Node:
 
     @overload
     def first_of_type(
-        self,
-        cls: type["Node"] | tuple[type["Node"], ...],
-        return_idx: Literal[False] = False,
+        self, cls: type[NodeSubType], return_idx: Literal[False] = False
+    ) -> NodeSubType | None: ...
+
+    @overload
+    def first_of_type(
+        self, cls: tuple[type["Node"], ...], return_idx: Literal[False] = False
     ) -> Optional["Node"]: ...
 
     @overload
     def first_of_type(
-        self, cls: type["Node"] | tuple[type["Node"], ...], return_idx: Literal[True]
+        self, cls: type[NodeSubType], return_idx: Literal[True]
+    ) -> tuple[NodeSubType | None, int | None]: ...
+
+    @overload
+    def first_of_type(
+        self, cls: tuple[type["Node"], ...], return_idx: Literal[True]
     ) -> tuple[Optional["Node"], int | None]: ...
 
     def first_of_type(
@@ -691,14 +699,22 @@ class Node:
 
     @overload
     def last_of_type(
-        self,
-        cls: type["Node"] | tuple[type["Node"], ...],
-        return_idx: Literal[False] = False,
+        self, cls: type[NodeSubType], return_idx: Literal[False] = False
+    ) -> NodeSubType | None: ...
+
+    @overload
+    def last_of_type(
+        self, cls: tuple[type["Node"], ...], return_idx: Literal[False] = False
     ) -> Optional["Node"]: ...
 
     @overload
     def last_of_type(
-        self, cls: type["Node"] | tuple[type["Node"], ...], return_idx: Literal[True]
+        self, cls: type[NodeSubType], return_idx: Literal[True]
+    ) -> tuple[NodeSubType | None, int | None]: ...
+
+    @overload
+    def last_of_type(
+        self, cls: tuple[type["Node"], ...], return_idx: Literal[True]
     ) -> tuple[Optional["Node"], int | None]: ...
 
     def last_of_type(
@@ -819,6 +835,14 @@ class Node:
             if isinstance(node, cls):
                 return node
         return None
+
+    @overload
+    def first_ancestor_of_type(self, cls: type[NodeSubType]) -> NodeSubType | None: ...
+
+    @overload
+    def first_ancestor_of_type(
+        self, cls: tuple[type["Node"], ...]
+    ) -> Optional["Node"]: ...
 
     def first_ancestor_of_type(
         self, cls: type["Node"] | tuple[type["Node"], ...]
