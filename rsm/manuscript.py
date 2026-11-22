@@ -16,7 +16,7 @@ class WebManuscript:
     replacing the previous pyfilesystem2 MountFS dependency.
     """
 
-    def __init__(self, src: Path = None) -> None:
+    def __init__(self, src: Path | None = None) -> None:
         self.src = Path(src) if src else None
         self.body: str = ""
         self.html: str = ""

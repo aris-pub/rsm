@@ -20,10 +20,12 @@ from pathlib import Path
 from typing import (
     Any,
     ClassVar,
+    Literal,
     Optional,
     TypeVar,
     Union,
     cast,
+    overload,
 )
 
 logger = logging.getLogger("RSM").getChild("nodes")
@@ -118,7 +120,7 @@ class Node:
 
     """
 
-    _number_within: ClassVar[type["Node"] | None] = None
+    _number_within: ClassVar[type["Node"] | tuple[type["Node"], ...] | None] = None
     # see property number_within for documentation
 
     _number_as: ClassVar[type["Node"] | None] = None
@@ -187,9 +189,9 @@ class Node:
         """Reftext template, or "" to use :attr:`classreftext`."""
         # Plain tuples, not tree-sitter Points: tree-sitter 0.26's Point cannot
         # be copied or unpickled, and RSM deep-copies heading titles.
-        self.start_point: tuple[int, int] = tuple(start_point)
+        self.start_point: tuple[int, int] = (start_point[0], start_point[1])
         """The start point of the corresponding concrete syntax tree node."""
-        self.end_point: tuple[int, int] = tuple(end_point)
+        self.end_point: tuple[int, int] = (end_point[0], end_point[1])
         """The end point of the corresponding concrete syntax tree node."""
         self._parent: NodeWithChildren | None = None
 
@@ -332,7 +334,7 @@ class Node:
         """
         ignore_meta_keys = set() if ignore_meta_keys is None else set(ignore_meta_keys)
         exp = ""
-        stack = [(0, self)]
+        stack: list[tuple[int, Node | None]] = [(0, self)]
         while stack:
             indent, node = stack.pop()
             if node is None:
@@ -354,7 +356,7 @@ class Node:
                     + " }"
                 )
                 exp += f" {meta_str}"
-            stack.append((None, None))
+            stack.append((indent, None))
             if node.children:
                 stack += [(indent + tab_width, c) for c in reversed(node.children)]
         return exp[1:]  # get rid of an extra newline at the start
@@ -385,7 +387,7 @@ class Node:
         'Hello'
 
         """
-        result = {
+        result: dict[str, Any] = {
             "nodeclass": self.__class__.__name__,
             "start_point": self.start_point,
             "end_point": self.end_point,
@@ -469,7 +471,7 @@ class Node:
         return ()  # necessary for methods such as Nodes.traverse
 
     @property
-    def number_within(self) -> type["Node"]:
+    def number_within(self) -> type["Node"] | tuple[type["Node"], ...]:
         # Check instance attribute first (for config overrides), then class attribute
         return (
             getattr(self, "_number_within_override", None)
@@ -514,12 +516,28 @@ class Node:
             nodeclass=self.kindname, number=self.full_number or ""
         ).strip()
 
+    @overload
+    def traverse(
+        self,
+        *,
+        condition: Callable[["Node"], bool] | None = None,
+        nodeclass: type[NodeSubType],
+    ) -> Generator[NodeSubType, None, None]: ...
+
+    @overload
+    def traverse(
+        self,
+        *,
+        condition: Callable[["Node"], bool] | None = None,
+        nodeclass: None = None,
+    ) -> Generator["Node", None, None]: ...
+
     def traverse(
         self,
         *,
         condition: Callable[["Node"], bool] | None = None,
         nodeclass: type["Node"] | None = None,
-    ) -> Generator[NodeSubType, None, None]:
+    ) -> Generator["Node", None, None]:
         """Generate the descendents of this Node in depth-first order.
 
         By default, yield this node and then every descendent in depth-first order.  If
@@ -595,13 +613,13 @@ class Node:
         """
         if condition is None:
 
-            def condition(n):
+            def condition(n: Node) -> bool:
                 return True
 
         if nodeclass is not None:
             if issubclass(nodeclass, Node):
 
-                def condition(n):
+                def condition(n: Node) -> bool:
                     return isinstance(n, nodeclass)
             else:
                 raise RSMNodeError("nodeclass must inherit from Node")
@@ -610,11 +628,23 @@ class Node:
         while stack:
             node = stack.pop()
             if condition(node):
-                yield cast(NodeSubType, node)
+                yield node
             stack += node.children[::-1]
 
+    @overload
     def first_of_type(
-        self, cls: type["Node"] | tuple[type["Node"]], return_idx: bool = False
+        self,
+        cls: type["Node"] | tuple[type["Node"], ...],
+        return_idx: Literal[False] = False,
+    ) -> Optional["Node"]: ...
+
+    @overload
+    def first_of_type(
+        self, cls: type["Node"] | tuple[type["Node"], ...], return_idx: Literal[True]
+    ) -> tuple[Optional["Node"], int | None]: ...
+
+    def first_of_type(
+        self, cls: type["Node"] | tuple[type["Node"], ...], return_idx: bool = False
     ) -> Optional["Node"] | tuple[Optional["Node"], int | None]:
         """First child of the specified type.
 
@@ -659,8 +689,20 @@ class Node:
                 return (child, idx) if return_idx else child
         return (None, None) if return_idx else None
 
+    @overload
     def last_of_type(
-        self, cls: type["Node"] | tuple[type["Node"]], return_idx: bool = False
+        self,
+        cls: type["Node"] | tuple[type["Node"], ...],
+        return_idx: Literal[False] = False,
+    ) -> Optional["Node"]: ...
+
+    @overload
+    def last_of_type(
+        self, cls: type["Node"] | tuple[type["Node"], ...], return_idx: Literal[True]
+    ) -> tuple[Optional["Node"], int | None]: ...
+
+    def last_of_type(
+        self, cls: type["Node"] | tuple[type["Node"], ...], return_idx: bool = False
     ) -> Optional["Node"] | tuple[Optional["Node"], int | None]:
         """Last child of the specified type.
 
@@ -682,6 +724,8 @@ class Node:
         """This node and its siblings, in order. The nodes of a link's text have
         the link as their parent but are kept in its reftext_nodes, not among
         its children."""
+        # The callers return early when self.parent is None.
+        assert self.parent is not None
         children = self.parent.children
         if any(c is self for c in children):
             return list(children)
@@ -777,7 +821,7 @@ class Node:
         return None
 
     def first_ancestor_of_type(
-        self, cls: type["Node"] | tuple[type["Node"]]
+        self, cls: type["Node"] | tuple[type["Node"], ...]
     ) -> Optional["Node"]:
         """First ancestor of the specified type.
 
@@ -1455,7 +1499,7 @@ class Construct(NodeWithChildren):
         self.kind = kind
 
     @property
-    def keyword(self):
+    def keyword(self) -> str:
         return self.kind_to_keyword[self.kind]
 
 
@@ -2073,7 +2117,7 @@ class Bibitem(Node):
         self.editor = editor
         self.url = url
         self.verbatim = verbatim
-        self.backlinks = []
+        self.backlinks: list[str] = []
         # Set during transform for author-year citations: "a", "b", ... when
         # this work shares an author and year with another cited work, else "".
         self.year_suffix = ""
@@ -2099,7 +2143,9 @@ class Bibitem(Node):
 class UnknownBibitem(Bibitem):
     def __init__(self, number: str | int = "?", **kwargs: Any) -> None:
         super().__init__(**kwargs)
-        self.number = number
+        # The "?" placeholder is shown as the number of a citation that has no
+        # matching bib entry; Node.number is otherwise always an int.
+        self.number = number  # type: ignore[assignment]
 
 
 class Asset(NodeWithChildren):
@@ -2228,7 +2274,7 @@ class Item(BaseParagraph):
     }
 
 
-def all_node_subtypes():
+def all_node_subtypes() -> list[type[Node]]:
     return [
         obj
         for name, obj in globals().items()

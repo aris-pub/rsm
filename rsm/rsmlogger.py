@@ -1,6 +1,7 @@
 """Configure the logging module for RSM apps."""
 
 import logging
+from collections.abc import Callable
 from logging.handlers import BufferingHandler
 from typing import Any
 
@@ -176,13 +177,16 @@ def _config_rsm_logger(
 ) -> None:
     handler = logging.StreamHandler()
     handler.setLevel(logging.WARN)
-    formatter = {
+    formatters: dict[str, Callable[[bool, bool], logging.Formatter | LintFormatter]] = {
         "json": JSONFormatter,
         "rsm": RSMFormatter,
         "lint": LintFormatter,
         "plain": lambda *args, **kwargs: logging.Formatter(),
-    }[fmt]
-    handler.setFormatter(formatter(log_time, log_lineno))
+    }
+    formatter = formatters[fmt]
+    # LintFormatter is not a logging.Formatter, but it has format(), which is
+    # the only method that the handler calls.
+    handler.setFormatter(formatter(log_time, log_lineno))  # type: ignore[arg-type]
     logger.addHandler(handler)
 
 

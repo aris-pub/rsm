@@ -72,7 +72,7 @@ _RSM_FIELDS = (
 )
 
 
-def references_block(tex: str, root) -> str:
+def references_block(tex: str, root: str | Path) -> str:
     """Build the full :references: block for a project, or "" if it has none."""
     refs = extract_references(tex, root, cited_keys(tex))
     if not refs:
