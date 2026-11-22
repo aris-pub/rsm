@@ -315,6 +315,26 @@ def test_figure_static_path():
     assert image["c"][2][0] == "img/foo.pdf"
 
 
+def test_video_static_path():
+    """A video with :static: exports its static image as a figure."""
+    blocks = _blocks(
+        """
+        # Doc
+
+        :video: {
+          :path: clip.mp4
+          :static: img/clip.png
+        }
+        ::
+        """
+    )
+    figures = [b for b in blocks if b["t"] == "Figure"]
+    assert figures
+    image = figures[0]["c"][2][0]["c"][0]
+    assert image["t"] == "Image"
+    assert image["c"][2][0] == "img/clip.png"
+
+
 def test_theorem_emits_div():
     blocks = _blocks(
         """

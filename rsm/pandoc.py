@@ -369,8 +369,8 @@ class PandocTranslator:
         inlines = self._walk_children_as_inlines(node)
         return [{"t": "Para", "c": inlines}] if inlines else []
 
-    def _block_figure(self, node: nodes.Figure) -> list[dict]:
-        if node.holds_html and not node.static:
+    def _block_figure(self, node: nodes.Asset) -> list[dict]:
+        if isinstance(node, nodes.Figure) and node.holds_html and not node.static:
             return self._block_asset_placeholder(node)
         # Use :static: path for non-web export when available
         path = str(node.static) if node.static else str(node.path)
@@ -428,8 +428,7 @@ class PandocTranslator:
 
     def _block_asset_placeholder(self, node: nodes.Node) -> list[dict]:
         # If a :static: fallback image exists, render it as a figure
-        static = getattr(node, "static", None)
-        if static:
+        if isinstance(node, nodes.Asset) and node.static:
             return self._block_figure(node)
         kind = type(node).__name__
         path = getattr(node, "path", "")
