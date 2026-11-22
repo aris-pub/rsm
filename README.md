@@ -114,26 +114,23 @@ scoop install just
 
 #### Clone and install rsm-lang
 ```bash
-git clone --recurse-submodules https://github.com/leotrs/rsm.git
+git clone --recurse-submodules https://github.com/aris-pub/rsm.git
 cd rsm
 just install
 ```
 
 This installs:
 - `rsm-lang` in editable mode (you can modify the code)
-- `tree-sitter-rsm` from PyPI as a pre-built wheel (compiled grammar)
+- `tree-sitter-rsm` from the submodule, compiled during the install
 - All development and documentation dependencies
-
-**Note:** The `tree-sitter-rsm` grammar is installed from PyPI with platform-specific
-pre-built binaries. You don't need to build anything unless you're modifying the grammar itself.
 
 ### Common Tasks
 ```bash
 just                  # List all available commands
-just test             # Run fast tests
-just test-all         # Run all tests including slow ones
+just test-fast        # Run fast tests
+just test-slow        # Run slow tests
 just lint             # Format code and run linter
-just check            # Run lint + tests (quality gate)
+just typecheck        # Run mypy
 just docs-serve       # Serve docs with live reload
 ```
 
@@ -143,16 +140,12 @@ just docs-serve       # Serve docs with live reload
 tree-sitter grammar in `tree-sitter-rsm/grammar.js`.
 
 ```bash
-# Install tree-sitter-rsm in editable mode (overrides PyPI version)
+# Also install the grammar's npm packages, which include the tree-sitter CLI
 just install-local
 
 # After modifying grammar.js in tree-sitter-rsm/
-just build-grammar
+just grammar
 ```
 
-The difference between `just install` and `just install-local`:
-
-| Command | `tree-sitter-rsm` source | Editable? | Use when |
-|---------|--------------------------|-----------|----------|
-| `just install` | PyPI wheel | No | Developing rsm-lang code (most common) |
-| `just install-local` | Local submodule | Yes | Modifying the grammar itself |
+`just grammar` regenerates the parser and rebuilds both the Node addon (used by
+the LSP) and the Python package.
