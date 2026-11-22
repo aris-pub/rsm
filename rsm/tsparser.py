@@ -130,10 +130,10 @@ class TSParser:
 
     >>> cst = parser.parse(src, abstractify=False)
     >>> rsm.tsparser.print_cst(cst)
-    (source_file Point(row=0, column=0) - Point(row=0, column=11)
-      (paragraph Point(row=0, column=0) - Point(row=0, column=11)
-        (text Point(row=0, column=0) - Point(row=0, column=11) "Hello, RSM!")
-        (paragraph_end Point(row=0, column=11) - Point(row=0, column=11))))
+    (source_file <Point row=0, column=0> - <Point row=0, column=11>
+      (paragraph <Point row=0, column=0> - <Point row=0, column=11>
+        (text <Point row=0, column=0> - <Point row=0, column=11> "Hello, RSM!")
+        (paragraph_end <Point row=0, column=11> - <Point row=0, column=11>)))
     """
 
     def __init__(self) -> None:
