@@ -120,7 +120,7 @@ html_theme_options = {
     "footer_center": [],
     "footer_end": [],
     # page options
-    "show_prev_next": False,
+    "show_prev_next": True,
     "use_edit_page_button": False,
 }
 

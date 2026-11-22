@@ -17,7 +17,7 @@
      </p>
      <div class="hero-actions">
        <a href="https://rsm.studio" class="btn-primary">Try in Studio</a>
-       <a href="tutorials/getting-started.html" class="btn-secondary">Get Started →</a>
+       <a href="tutorials/first-document.html" class="btn-secondary">Get Started →</a>
      </div>
    </div>
 

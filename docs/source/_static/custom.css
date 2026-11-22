@@ -254,6 +254,7 @@ html[data-theme="dark"] .sd-card.sd-sphinx-override:hover {
 }
 
 .rsm-example .rsm-example-code pre {
+  overflow-x: auto;
   margin: 0;
   border: none;
   border-radius: 0;
