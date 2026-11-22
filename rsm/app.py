@@ -55,11 +55,12 @@ import logging
 import subprocess
 from collections.abc import Callable
 from pathlib import Path
-from typing import Any, NamedTuple
+from typing import Any, NamedTuple, cast
 
 from rsm import (
     builder,
     linter,
+    nodes,
     reader,
     rsmlogger,
     transformer,
@@ -70,6 +71,8 @@ from rsm import (
 from rsm import (
     pandoc as pandoc_module,
 )
+from rsm.asset_resolver import AssetResolver
+from rsm.manuscript import WebManuscript
 from rsm.tsparser import RSMParserError
 
 from .rsmlogger import GatherHandler
@@ -248,7 +251,7 @@ class RSMApp(Pipeline):
 class ParserApp(RSMApp):
     def __init__(
         self,
-        srcpath: Path | None = None,
+        srcpath: Path | str | None = None,
         plain: str = "",
         loglevel: int = RSMApp.default_log_level,
         log_format: str = "rsm",
@@ -286,7 +289,7 @@ class ParserApp(RSMApp):
 class LinterApp(ParserApp):
     def __init__(
         self,
-        srcpath: Path | None = None,
+        srcpath: Path | str | None = None,
         plain: str = "",
         loglevel: int = RSMApp.default_log_level,
         log_format: str = "rsm",
@@ -303,7 +306,7 @@ class LinterApp(ParserApp):
 class ProcessorApp(ParserApp):
     def __init__(
         self,
-        srcpath: Path | None = None,
+        srcpath: Path | str | None = None,
         plain: str = "",
         loglevel: int = RSMApp.default_log_level,
         log_format: str = "rsm",
@@ -313,7 +316,7 @@ class ProcessorApp(ParserApp):
         source_offsets: bool = True,
         copy_source: bool = True,
         run_linter: bool = False,
-        asset_resolver=None,
+        asset_resolver: AssetResolver | None = None,
         standalone: bool = False,
         strict: bool = False,
         root_dir: Path | None = None,
@@ -347,9 +350,13 @@ class ProcessorApp(ParserApp):
 
 
 class FullBuildApp(ProcessorApp):
+    # Set by add_task, which stores each task's object under the task's name.
+    builder: builder.BaseBuilder
+    translator: translator.Translator
+
     def __init__(
         self,
-        srcpath: Path | None = None,
+        srcpath: Path | str | None = None,
         plain: str = "",
         loglevel: int = RSMApp.default_log_level,
         log_format: str = "rsm",
@@ -359,7 +366,7 @@ class FullBuildApp(ProcessorApp):
         source_offsets: bool = True,
         copy_source: bool = True,
         run_linter: bool = False,
-        asset_resolver=None,
+        asset_resolver: AssetResolver | None = None,
         standalone: bool = False,
         write_output: bool = False,
         output_dir: str = ".",
@@ -394,6 +401,7 @@ class FullBuildApp(ProcessorApp):
         for name, obj, _ in self.tasks:
             if name == "translator":
                 obj.loading_spinner = True
+        b: builder.BaseBuilder
         if standalone:
             b = builder.StandaloneBuilder(
                 asset_resolver=asset_resolver,
@@ -415,13 +423,13 @@ class FullBuildApp(ProcessorApp):
             Task("writer", w := writer.Writer(dstpath=Path(output_dir)), w.write)
         )
 
-    def _build(self, body: str):
+    def _build(self, body: str) -> WebManuscript:
         # The builder sees only the HTML, and :plain-title: appears nowhere in
         # it, so the value is handed over from the tree.
         self.builder.plain_title = self.translator.tree.plain_title
         return self.builder.build(body)
 
-    def run(self, initial_args=None) -> str:
+    def run(self, initial_args: Any = None) -> str:
         """Run the build pipeline, optionally writing files to disk.
 
         If write_output=True, runs all tasks including writer and writes files.
@@ -445,7 +453,8 @@ class FullBuildApp(ProcessorApp):
             # The builder result is stored before writer runs
             for name, obj, _ in self.tasks:
                 if name == "builder" and hasattr(obj, "web") and obj.web:
-                    return obj.web.html
+                    html: str = obj.web.html
+                    return html
 
             logger.error("Builder did not produce WebManuscript")
             return ""
@@ -463,7 +472,8 @@ class FullBuildApp(ProcessorApp):
 
             # The result should now be a WebManuscript from the builder
             if hasattr(result, "html"):
-                return result.html
+                result_html: str = result.html
+                return result_html
             else:
                 logger.error(
                     "Builder did not produce WebManuscript with html attribute"
@@ -481,7 +491,7 @@ def render(
     log_format: str = "rsm",
     log_time: bool = True,
     log_lineno: bool = True,
-    asset_resolver=None,
+    asset_resolver: AssetResolver | None = None,
     standalone: bool = False,
     strict: bool = False,
     root_dir: Path | None = None,
@@ -534,7 +544,7 @@ def build(
     log_format: str = "rsm",
     log_time: bool = True,
     log_lineno: bool = True,
-    asset_resolver=None,
+    asset_resolver: AssetResolver | None = None,
     structured: bool = False,
     standalone: bool = False,
     write_output: bool = False,
@@ -656,7 +666,7 @@ class _PandocRunner:
         return proc.stdout
 
 
-def _inject_braiid_typst(typst_source: str, manuscript) -> str:
+def _inject_braiid_typst(typst_source: str, manuscript: nodes.Manuscript) -> str:
     """Prepend braiid Typst template to pandoc-generated Typst source."""
     template_path = Path(__file__).parent.parent / "braiid" / "braiid.typ"
     if not template_path.exists():
@@ -670,10 +680,11 @@ def _inject_braiid_typst(typst_source: str, manuscript) -> str:
     emails = {}
     for child in manuscript.traverse():
         if child.__class__.__name__ == "Author" and getattr(child, "name", None):
-            authors.append(child.name)
+            author = cast(nodes.Author, child)
+            authors.append(author.name)
             email = getattr(child, "email", None)
             if email:
-                emails[child.name] = email
+                emails[author.name] = email
 
     # Build the preamble
     authors_typst = ", ".join(f'"{a}"' for a in authors if a)
@@ -693,7 +704,7 @@ class PandocExportApp(ParserApp):
 
     def __init__(
         self,
-        srcpath: Path | None = None,
+        srcpath: Path | str | None = None,
         plain: str = "",
         to_format: str = "latex",
         output: str | None = None,
@@ -709,7 +720,7 @@ class PandocExportApp(ParserApp):
         self._to_format = to_format
         self._output = output
 
-    def run(self, initial_args=None) -> str:
+    def run(self, initial_args: Any = None) -> str:
         # The pipeline's dict-unpacking (`call(**res)`) breaks on pandoc JSON AST
         # dicts because they contain hyphen keys (e.g. "pandoc-api-version") that
         # aren't valid Python identifiers. Run the parent pipeline up through the
@@ -764,7 +775,7 @@ class PandocExportApp(ParserApp):
             if fig_numbers:
                 fig_idx = 0
 
-                def _inject_supplement(m):
+                def _inject_supplement(m: _re.Match[str]) -> str:
                     nonlocal fig_idx
                     if fig_idx < len(fig_numbers):
                         num = fig_numbers[fig_idx]

@@ -28,6 +28,8 @@ emits, at translate time.
 """
 
 import logging
+from collections.abc import Iterable
+from typing import Any, TypeGuard
 
 from . import nodes
 
@@ -53,7 +55,7 @@ _NON_INTRO_KINDS = frozenset(
 )
 
 
-def analyze_proofs(tree, labels_to_nodes) -> None:
+def analyze_proofs(tree: nodes.Node, labels_to_nodes: dict[str, nodes.Node]) -> None:
     """Run the full proof model over the tree, in dependency order.
 
     This is the single entry point the transformer calls. Each pass mutates
@@ -69,7 +71,7 @@ def analyze_proofs(tree, labels_to_nodes) -> None:
     make_state(tree)
 
 
-def resolve_of(tree, labels_to_nodes) -> None:
+def resolve_of(tree: nodes.Node, labels_to_nodes: dict[str, nodes.Node]) -> None:
     """Resolve each :proof: {:of: <label>} to the result it establishes.
 
     A proof detached from its theorem names the result with :of:; the resolved
@@ -100,7 +102,7 @@ def resolve_of(tree, labels_to_nodes) -> None:
         proof.proves = target
 
 
-def add_necessary_subproofs(tree) -> None:
+def add_necessary_subproofs(tree: nodes.Node) -> None:
     for step in tree.traverse(nodeclass=nodes.Step):
         if not step.children:
             continue
@@ -122,6 +124,7 @@ def add_necessary_subproofs(tree) -> None:
             step.append(statement)
             continue
 
+        subproof: nodes.Node
         if isinstance(children[split_at_idx], nodes.Step):
             subproof = nodes.Subproof()
             subproof.append(children[split_at_idx:])
@@ -133,7 +136,7 @@ def add_necessary_subproofs(tree) -> None:
         step.append([statement, subproof])
 
 
-def number_steps(proof) -> None:
+def number_steps(proof: nodes.Proof | nodes.Subproof) -> None:
     """Assign per-proof step numbers (the ``1.1`` scheme). Accepts a Proof or a
     Subproof, numbering its direct Step children.
 
@@ -148,19 +151,19 @@ def number_steps(proof) -> None:
     proof.num_steps = count
 
 
-def _number_all_steps(tree) -> None:
+def _number_all_steps(tree: nodes.Node) -> None:
     """Number the steps of every proof and subproof in the tree."""
     for node in tree.traverse():
         if isinstance(node, (nodes.Proof, nodes.Subproof)):
             number_steps(node)
 
 
-def make_trees(tree) -> None:
+def make_trees(tree: nodes.Node) -> None:
     for proof in tree.traverse(nodeclass=nodes.Proof):
         _compute_tree(proof)
 
 
-def _is_named_result(node) -> bool:
+def _is_named_result(node: object) -> TypeGuard[nodes.Theorem]:
     """Whether a cited node counts as a proof dependency worth its own DAG node:
     the theorem family (theorem, lemma, proposition, corollary), but not
     definitions, remarks, or examples."""
@@ -169,7 +172,7 @@ def _is_named_result(node) -> bool:
     )
 
 
-def _compute_tree(proof) -> None:
+def _compute_tree(proof: nodes.Proof) -> None:
     """Per-proof step DAG for the floating proof-tree, mirroring the TOC.
 
     Nodes are the proof's steps in document order, plus one appended node per
@@ -307,7 +310,7 @@ def _step_title(step: nodes.Step) -> str:
     return text[:90]
 
 
-def _proof_root_title(proof) -> str:
+def _proof_root_title(proof: nodes.Proof) -> str:
     """The result a proof establishes, used as its tree's root label."""
     declared = getattr(proof, "proves", None)
     if declared is not None:
@@ -331,12 +334,12 @@ def _proof_root_title(proof) -> str:
     anc = proof.parent
     while anc is not None and not isinstance(anc, nodes.Section):
         anc = anc.parent
-    if anc is not None and getattr(anc, "title", ""):
+    if anc is not None and anc.title:
         return anc.title
     return "Statement"
 
 
-def _is_prose_intro(node) -> bool:
+def _is_prose_intro(node: nodes.Node) -> bool:
     """A construct that introduces a symbol or assumption into document-wide
     context: one living in running prose or in a definition, but not inside a
     proof or a theorem-family statement (whose introductions are that result's
@@ -355,7 +358,7 @@ def _is_prose_intro(node) -> bool:
     return True
 
 
-def make_state(tree) -> None:
+def make_state(tree: nodes.Node) -> None:
     """Per-step ``hypotheses |- goal`` for the rail's State view, plus the
     document-wide ambient context each proof inherits.
 
@@ -376,18 +379,18 @@ def make_state(tree) -> None:
         _compute_state(proof, per_proof.get(id(proof), ()))
 
 
-def serialize_state(proof):
+def serialize_state(proof: nodes.Proof) -> list[dict[str, Any]]:
     """Resolve a proof's ref-based ``step_state`` to the id-keyed form the rail
     emits as JSON. Runs at translate time, once node ids exist."""
 
-    def entry(item):
+    def entry(item: dict[str, Any] | None) -> dict[str, Any] | None:
         if item is None:
             return None
         out = {k: v for k, v in item.items() if k != "node"}
         out["id"] = item["node"].nodeid
         return out
 
-    def section_num(node):
+    def section_num(node: nodes.Node) -> str | None:
         # The nearest section-like ancestor, so a symbol introduced in a
         # subsection is marked with its full number (X.Y), matching nested steps.
         sec = node.first_ancestor_of_type(
@@ -395,7 +398,7 @@ def serialize_state(proof):
         )
         return sec.full_number if sec else None
 
-    def hyp_entry(item):
+    def hyp_entry(item: dict[str, Any]) -> dict[str, Any] | None:
         out = entry(item)
         if out is None:
             return None
@@ -409,7 +412,7 @@ def serialize_state(proof):
             out["marker"] = "step"
         return out
 
-    def ctx_entry(item):
+    def ctx_entry(item: dict[str, Any]) -> dict[str, Any] | None:
         out = entry(item)
         if out is None:
             return None
@@ -418,10 +421,12 @@ def serialize_state(proof):
         out["marker"] = "section"
         return out
 
-    def goal_entry(item):
+    def goal_entry(item: dict[str, Any] | None) -> dict[str, Any] | None:
         out = entry(item)
         if out is None:
             return None
+        # entry() returns None only when item is None.
+        assert item is not None
         # A setup goal is the whole theorem (section provenance); a step's own
         # claim is marked by its step.
         if out.get("thm"):
@@ -441,7 +446,9 @@ def serialize_state(proof):
     ]
 
 
-def _compute_state(proof, ambient_intros=()) -> None:
+def _compute_state(
+    proof: nodes.Proof, ambient_intros: Iterable[nodes.Node] = ()
+) -> None:
     # Steps inside a :calc: chain are not proof-DAG steps (the chain reads as a
     # single step), so keep them out of the proof's tree and state.
     steps = [

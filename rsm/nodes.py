@@ -1842,6 +1842,9 @@ class Proof(NodeWithChildren):
     # Label of the result this proof establishes, for proofs detached from their
     # theorem (e.g. several proofs of one theorem under separate sections).
     newmetakeys: ClassVar[set] = {"of"}
+    # Set by the proof model only when :of: is given, so it is declared here
+    # without a value and read with getattr.
+    proves: Node
 
     def __init__(self, **kwargs: Any) -> None:
         super().__init__(**kwargs)
@@ -1861,7 +1864,8 @@ class Proof(NodeWithChildren):
 
 
 class Subproof(NodeWithChildren):  # importantly, NOT a subclass of Proof!
-    pass
+    # Set by the proof model's step numbering.
+    num_steps: int
 
 
 class Sketch(NodeWithChildren):
