@@ -33,7 +33,7 @@ import re
 from collections.abc import Callable
 from datetime import datetime
 from itertools import groupby
-from typing import Any
+from typing import Any, cast
 
 import tree_sitter
 import tree_sitter_rsm
@@ -199,7 +199,7 @@ class TSParser:
         if not abstractify:
             if self.cst is None:
                 raise RSMParserError("Failed to parse CST")
-            return self.cst  # type: ignore[return-value]
+            return self.cst
 
         logger.info("Abstractifying...")
         try:
@@ -244,7 +244,7 @@ def print_cst(tree: TSTree, named_only: bool = False) -> None:
     # this function prints to stdout rather than use logger for nicer output
 
     children_att = "named_children" if named_only else "children"
-    stack = [(0, tree.root_node)]
+    stack: list[tuple[int, TSNode | None]] = [(0, tree.root_node)]
     while stack:
         indent, node = stack.pop()
         if node is None:
@@ -258,7 +258,7 @@ def print_cst(tree: TSTree, named_only: bool = False) -> None:
         )
         if node.type == "text" and node.text is not None:
             print(f' "{node.text.decode("utf-8")}"', end="")
-        stack.append((None, None))
+        stack.append((indent, None))
         stack += reversed([(indent + 2, n) for n in getattr(node, children_att)])
     print()
 
@@ -455,8 +455,8 @@ def _log_meta_error(err: TSNode) -> None:
     text = err.text or b""
     for i, cst_key in enumerate(keys):
         end = keys[i + 1].start_byte if i + 1 < len(keys) else err.end_byte
-        value = text[cst_key.end_byte - err.start_byte : end - err.start_byte]
-        value = value.decode("utf-8").strip().rstrip("}").strip()
+        raw = text[cst_key.end_byte - err.start_byte : end - err.start_byte]
+        value = raw.decode("utf-8").strip().rstrip("}").strip()
         key = cst_key.named_children[0].type
         _log_bad_value(key, value, _allowed_values(key, cst_key.type), cst_key)
 
@@ -559,7 +559,7 @@ def _parse_meta_into_dict(node: TSNode) -> dict[str, Any]:
     return pairs
 
 
-def _normalize_text(root: TSNode) -> str:
+def _normalize_text(root: nodes.Node | None) -> str:
     if root is None:
         return ""
     for node in root.traverse():
@@ -571,7 +571,8 @@ def _normalize_text(root: TSNode) -> str:
         ):
             if not run_is_text:
                 continue
-            run = list(run_generator)
+            # groupby keyed the run on isinstance(c, nodes.Text).
+            run = cast(list[nodes.Text], list(run_generator))
             if len(run) < 2:
                 continue
 
@@ -587,7 +588,7 @@ def _normalize_text(root: TSNode) -> str:
             # error.  Only plain Text nodes are merged.  The spaces that the merge
             # would put around an Error go into the plain Text next to it, so the
             # output text is the same as when everything was merged.
-            kept = []
+            kept: list[tuple[nodes.Text, list[str]]] = []
             for t, piece in zip(run, pieces, strict=True):
                 if (
                     kept
@@ -681,7 +682,8 @@ def _normalize_text(root: TSNode) -> str:
         # title the same way, so an escaped colon in a title renders as a colon.
         title = getattr(node, "title", None)
         if isinstance(title, str) and title:
-            node.title = EscapedString(title, DELIMS).escape()
+            # getattr above found a title on this node.
+            node.title = EscapedString(title, DELIMS).escape()  # type: ignore[attr-defined]
 
     return ""  # This function modifies nodes in place
 
@@ -869,11 +871,13 @@ def _check_raw_html(raw: nodes.RawHtml) -> None:
     fallback = list(raw.children)
     raw.clear()
     parent = raw.parent
+    # A :html: inside the text of a link always has a parent.
+    assert parent is not None
     if any(c is raw for c in parent.children):
         raw.replace_self(fallback)
         return
     # Directly in a reference's reftext_nodes, which are not its children.
-    siblings = parent.reftext_nodes
+    siblings = cast(nodes.BaseReference, parent).reftext_nodes
     index = next(i for i, c in enumerate(siblings) if c is raw)
     for c in fallback:
         c.parent = parent
@@ -911,7 +915,7 @@ def _report_missing(cst: TSTree, root: nodes.Manuscript) -> None:
         point = missing.start_point
         pos = _user_position(point, missing.end_point)
         logger.warning("The CST contains errors.", extra=pos)
-        holder = root
+        holder: nodes.NodeWithChildren = root
         for node in root.traverse(nodeclass=nodes.NodeWithChildren):
             start, end = tuple(node.start_point), tuple(node.end_point)
             if start != (-1, -1) and start <= tuple(point) <= end:
@@ -929,17 +933,20 @@ def _report_missing(cst: TSTree, root: nodes.Manuscript) -> None:
 
 
 def _abstractify(cst: TSTree) -> nodes.Manuscript:
-    ast_root_node = None
+    ast_root_node: nodes.Manuscript | None = None
     bibliography_node = None
     seen_config = False  # Track if we've seen a config block
     # (reference node, holder) pairs whose reftext carries inline markup. The
     # holder collects the inline children as the main loop builds them; after the
     # loop they move onto the reference node's reftext_nodes.
-    reftext_builds: list[tuple[nodes.Node, nodes.Span]] = []
+    reftext_builds: list[tuple[nodes.BaseReference, nodes.Span]] = []
     # The same for headings whose title carries inline markup.
     title_builds: list[tuple[nodes.Heading, nodes.Span]] = []
     raw_html_nodes: list[nodes.RawHtml] = []
-    stack = [(None, cst.root_node)]
+    stack: list[tuple[nodes.Node | None, TSNode]] = [(None, cst.root_node)]
+    # The asserts below that a tree-sitter field or its text is not None hold
+    # because the grammar always makes these fields, and the tree keeps the
+    # source bytes that it was parsed from.
 
     def ingest_meta(ast_node: nodes.Node, meta: TSNode) -> None:
         ast_node.ingest_dict_as_meta(_parse_meta_into_dict(meta))
@@ -958,6 +965,8 @@ def _abstractify(cst: TSTree) -> nodes.Manuscript:
         # Handle references block
         if cst_node.type == "references":
             bibliography_node = nodes.Bibliography()
+            # The source_file node comes first and makes the root.
+            assert ast_root_node is not None
             ast_root_node.append(bibliography_node)
 
             stack += reversed(
@@ -974,12 +983,17 @@ def _abstractify(cst: TSTree) -> nodes.Manuscript:
             continue
         if cst_node.type == "bibitem":
             bib_node = nodes.Bibitem()
-            bib_node.kind = cst_node.child_by_field_name("kind").text.decode("utf-8")
-            bib_node.label = cst_node.child_by_field_name("label").text.decode("utf-8")
+            kind_node = cst_node.child_by_field_name("kind")
+            label_node = cst_node.child_by_field_name("label")
+            assert kind_node is not None and kind_node.text is not None
+            assert label_node is not None and label_node.text is not None
+            bib_node.kind = kind_node.text.decode("utf-8")
+            bib_node.label = label_node.text.decode("utf-8")
             for pair in [c for c in cst_node.named_children if c.type == "bibitempair"]:
-                key, value = pair.named_children
-                key = key.text.decode("utf-8").split("=")[0].strip()
-                value = value.text.decode("utf-8")
+                key_node, value_node = pair.named_children
+                assert key_node.text is not None and value_node.text is not None
+                key = key_node.text.decode("utf-8").split("=")[0].strip()
+                value = value_node.text.decode("utf-8")
                 # BibTeX calls the issue number "number", but on a node `number`
                 # is the citation index assigned by autonumbering, so store the
                 # issue under `issue` to keep it from being overwritten.
@@ -987,6 +1001,8 @@ def _abstractify(cst: TSTree) -> nodes.Manuscript:
                     key = "issue"
                 setattr(bib_node, key, value)
 
+            # Bibitems are pushed with the Bibliography as their parent.
+            assert isinstance(parent, nodes.Bibliography)
             parent.append(bib_node)
             continue
 
@@ -1019,6 +1035,7 @@ def _abstractify(cst: TSTree) -> nodes.Manuscript:
                 title_builds.append((ast_node, holder))
                 stack += reversed([(holder, c) for c in title_children])
             elif title_children:
+                assert title_children[0].text is not None
                 ast_node.title = title_children[0].text.decode("utf-8").strip()
 
             if isinstance(ast_node, nodes.Manuscript):
@@ -1076,6 +1093,7 @@ def _abstractify(cst: TSTree) -> nodes.Manuscript:
 
         elif cst_node.type in ["block", "inline"]:
             tag = cst_node.child_by_field_name("tag")
+            assert tag is not None
             ast_node_type = tag.type
             skip_these_ids.add(tag.id)
 
@@ -1130,6 +1148,7 @@ def _abstractify(cst: TSTree) -> nodes.Manuscript:
             if isinstance(ast_node, nodes.Manuscript):
                 ast_root_node = ast_node
             elif isinstance(ast_node, nodes.Text):
+                assert cst_node.text is not None
                 ast_node.text = cst_node.text.decode("utf-8")
         elif ast_node_type == "ERROR":
             pos = _user_position(cst_node.start_point, cst_node.end_point)
@@ -1147,7 +1166,9 @@ def _abstractify(cst: TSTree) -> nodes.Manuscript:
         # :---: = 3). _group_nested_lists reads it to build the nested tree.
         if ast_node_type == "item":
             marker = cst_node.child_by_field_name("marker")
-            ast_node.depth = marker.text.decode("utf-8").count("-") if marker else 1
+            ast_node.depth = (
+                cast(bytes, marker.text).decode("utf-8").count("-") if marker else 1
+            )
 
         # process meta
         meta = cst_node.child_by_field_name("meta")
@@ -1169,7 +1190,9 @@ def _abstractify(cst: TSTree) -> nodes.Manuscript:
             # handle it here
             asis = cst_node.named_children[-1]
             assert asis.type == "asis_text"
+            assert asis.text is not None
             text = asis.text.decode("utf-8")
+            child: nodes.Node
             if ast_node_type in ["code", "codeblock"]:
                 child = nodes.SourceCode(text, lang=ast_node.lang)
             else:
@@ -1179,6 +1202,7 @@ def _abstractify(cst: TSTree) -> nodes.Manuscript:
         if ast_node_type in ["html", "htmlblock"]:
             asis = cst_node.named_children[-1]
             assert asis.type == "asis_text"
+            assert asis.text is not None
             ast_node.html = asis.text.decode("utf-8").strip()
             for child in _alt_nodes(ast_node.alt):
                 ast_node.append(child)
@@ -1200,6 +1224,7 @@ def _abstractify(cst: TSTree) -> nodes.Manuscript:
 
         if ast_node_type in ["ref", "previous", "url"]:
             target_node = cst_node.child_by_field_name("target")
+            assert target_node is not None and target_node.text is not None
             ast_node.target = target_node.text.decode("utf-8")
             skip_these_ids.add(target_node.id)
 
@@ -1225,7 +1250,8 @@ def _abstractify(cst: TSTree) -> nodes.Manuscript:
                     # Link text that wraps onto more source lines arrives as one
                     # text child per line, joined here with single spaces.
                     ast_node.overwrite_reftext = " ".join(
-                        c.text.decode("utf-8").strip() for c in reftext_children
+                        cast(bytes, c.text).decode("utf-8").strip()
+                        for c in reftext_children
                     )
 
             meta = cst_node.child_by_field_name("meta")
@@ -1234,8 +1260,11 @@ def _abstractify(cst: TSTree) -> nodes.Manuscript:
 
         if ast_node_type == "notecall":
             target_node = cst_node.child_by_field_name("target")
+            tag_node = cst_node.child_by_field_name("tag")
+            assert target_node is not None and target_node.text is not None
+            assert tag_node is not None
             ast_node.target = target_node.text.decode("utf-8")
-            ast_node.tag = cst_node.child_by_field_name("tag").type
+            ast_node.tag = tag_node.type
             skip_these_ids.add(target_node.id)
             # A call holds only a label. Anything else after the tag (such as the
             # removed inline-content form ":note: some text ::") shows up as an
@@ -1253,6 +1282,7 @@ def _abstractify(cst: TSTree) -> nodes.Manuscript:
 
         if ast_node_type == "cite":
             target_node = cst_node.named_children[1]
+            assert target_node.text is not None
             labels = target_node.text.decode("utf-8").split(",")
             ast_node.targetlabels = [label.strip() for label in labels]
             skip_these_ids.add(target_node.id)
@@ -1289,8 +1319,10 @@ def _abstractify(cst: TSTree) -> nodes.Manuscript:
     for ref_node, holder in reftext_builds:
         children = list(holder.children)
         holder._children = []
-        for c in children:
-            c.parent = ref_node
+        for child in children:
+            # The reference is not a NodeWithChildren, but it is the parent of
+            # its reftext nodes for any upward walk.
+            child.parent = ref_node  # type: ignore[assignment]
         ref_node.reftext_nodes = children
         ref_node.overwrite_reftext = _flatten_reftext(children).strip()
 
@@ -1298,10 +1330,10 @@ def _abstractify(cst: TSTree) -> nodes.Manuscript:
     # that a node in the title can find its siblings when it is rendered.
     for heading, holder in title_builds:
         children = _join_title_text(list(holder.children))
-        for c in children:
+        for child in children:
             # A title written over several lines keeps each line's indent.
-            if isinstance(c, nodes.Text):
-                c.text = re.sub(r"\s+", " ", c.text)
+            if isinstance(child, nodes.Text):
+                child.text = re.sub(r"\s+", " ", child.text)
         if isinstance(children[0], nodes.Text):
             children[0].text = children[0].text.lstrip()
         if isinstance(children[-1], nodes.Text):
@@ -1313,6 +1345,9 @@ def _abstractify(cst: TSTree) -> nodes.Manuscript:
 
     for raw in raw_html_nodes:
         _check_raw_html(raw)
+
+    # The root of every CST is a source_file node, which makes the Manuscript.
+    assert ast_root_node is not None
 
     _report_missing(cst, ast_root_node)
 
