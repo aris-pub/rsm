@@ -3,10 +3,12 @@
 import http.server
 import socketserver
 import threading
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
 import pytest
+
 import rsm
 
 
@@ -18,11 +20,11 @@ def assert_snapshot(pytestconfig: Any, request: Any, browser_name: str) -> Calla
     Increases threshold from 0.1 to 0.2 to tolerate minor anti-aliasing and font hinting
     differences that occur under CPU contention during parallel test execution.
     """
-    import sys
     import os
     import shutil
     from io import BytesIO
     from pathlib import Path
+
     from PIL import Image
     from pixelmatch.contrib.PIL import pixelmatch
 

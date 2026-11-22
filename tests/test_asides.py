@@ -8,10 +8,9 @@ it, and where the block's handrail already reaches. On wide screens the scripts
 move it into the right-hand column.
 """
 
+import re
 from html.parser import HTMLParser
 from textwrap import dedent
-
-import re
 
 import pytest
 

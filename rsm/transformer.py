@@ -33,8 +33,7 @@ from itertools import count
 from pathlib import Path
 from string import ascii_lowercase, ascii_uppercase
 
-from . import nodes
-from . import proof
+from . import nodes, proof
 
 logger = logging.getLogger("RSM").getChild("tform")
 

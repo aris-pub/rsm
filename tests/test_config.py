@@ -1,5 +1,6 @@
-from conftest import compare_have_want
 import pytest
+
+from conftest import compare_have_want
 
 
 def test_config_simple():
@@ -370,7 +371,7 @@ def test_config_anywhere_in_document():
 
 def test_config_multiple_blocks_error():
     """Test that multiple config blocks raise an error."""
-    from rsm.tsparser import TSParser, RSMParserError
+    from rsm.tsparser import RSMParserError, TSParser
 
     with pytest.raises(RSMParserError, match="Multiple config blocks"):
         TSParser().parse("""\

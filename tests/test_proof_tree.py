@@ -259,7 +259,8 @@ def test_interface_says_manuscript_not_paper():
 
 
 def test_cli_build_sidebar_flag(tmp_path):
-    import subprocess, sys
+    import subprocess
+    import sys
 
     src = tmp_path / "doc.rsm"
     src.write_text(RAIL_SRC)

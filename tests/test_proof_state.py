@@ -7,7 +7,6 @@ scope. A hypothesis meant to be local to a single sub-result belongs inside that
 step's subproof, not as a sibling-level introduction.
 """
 
-import rsm
 import rsm.nodes as nodes
 from rsm import app
 

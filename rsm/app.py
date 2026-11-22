@@ -50,24 +50,25 @@ the ``run()`` method on an :class:`RSMApp` instance will.
 
 """
 
+import json
 import logging
+import subprocess
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any, NamedTuple
 
-import json
-import subprocess
-
 from rsm import (
     builder,
     linter,
-    pandoc as pandoc_module,
     reader,
     rsmlogger,
     transformer,
     translator,
     tsparser,
     writer,
+)
+from rsm import (
+    pandoc as pandoc_module,
 )
 from rsm.tsparser import RSMParserError
 
@@ -678,11 +679,11 @@ def _inject_braiid_typst(typst_source: str, manuscript) -> str:
     authors_typst = ", ".join(f'"{a}"' for a in authors if a)
     emails_typst = ", ".join(f'"{k}": "{v}"' for k, v in emails.items())
     preamble = template + "\n\n"
-    preamble += f"#show: braiid.with(\n"
+    preamble += "#show: braiid.with(\n"
     preamble += f"  title: [{title}],\n" if title else ""
     preamble += f"  authors: ({authors_typst},),\n" if authors_typst else ""
     preamble += f"  emails: ({emails_typst},),\n" if emails_typst else ""
-    preamble += f")\n\n"
+    preamble += ")\n\n"
 
     return preamble + typst_source
 

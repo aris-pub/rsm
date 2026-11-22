@@ -251,9 +251,9 @@ class TestWCAGCompliance:
         Uses 16 HTML files (one per color/theme combination) served via HTTP.
         """
         import http.server
+        import os
         import socketserver
         import threading
-        import os
 
         colors = ["blue", "purple", "red", "green", "orange", "yellow", "pink", "gray"]
         themes = ["light", "dark"]

@@ -9,7 +9,7 @@ the rail scopes.
 
 import base64
 import json
-from urllib.parse import urlparse, parse_qs
+from urllib.parse import parse_qs, urlparse
 
 import pytest
 from playwright.sync_api import Page, expect

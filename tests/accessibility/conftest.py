@@ -3,10 +3,12 @@
 import http.server
 import socketserver
 import threading
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
 import pytest
+
 import rsm
 
 

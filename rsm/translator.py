@@ -3733,14 +3733,14 @@ class HandrailsTranslator(Translator):
         """Emit the single shared menu template with all possible items."""
         html = '<div id="hr-menu-singleton" style="display:none">\n'
         html += '<div class="hr-menu">\n'
-        html += f'  <div class="hr-menu-label"><span class="hr-menu-item-text" data-role="label"></span></div>\n'
+        html += '  <div class="hr-menu-label"><span class="hr-menu-item-text" data-role="label"></span></div>\n'
         html += '  <div class="hr-menu-separator" data-role="label-sep"></div>\n'
-        html += f'  <div class="hr-menu-item collapse-subproof" data-role="collapse">\n'
+        html += '  <div class="hr-menu-item collapse-subproof" data-role="collapse">\n'
         html += f"    {self._icon_ref('collapse')}\n"
         html += '    <span class="hr-menu-item-text">Collapse</span>\n'
         html += "  </div>\n"
         html += (
-            f'  <div class="hr-menu-item collapse-steps" data-role="collapse-all">\n'
+            '  <div class="hr-menu-item collapse-steps" data-role="collapse-all">\n'
         )
         html += f"    {self._icon_ref('collapse-all')}\n"
         html += '    <span class="hr-menu-item-text">Collapse all</span>\n'
@@ -3748,44 +3748,44 @@ class HandrailsTranslator(Translator):
         html += '  <div class="hr-menu-separator" data-role="collapse-sep"></div>\n'
         # Keep a block open in the sidebar's Pinned view (only with --sidebar;
         # handrails.js shows it on pinnable blocks).
-        html += f'  <div class="hr-menu-item pin" data-role="pin">\n'
+        html += '  <div class="hr-menu-item pin" data-role="pin">\n'
         html += f"    {self._icon_ref('pin')}\n"
         html += '    <span class="hr-menu-item-text">Pin</span>\n'
         html += "  </div>\n"
-        html += f'  <div class="hr-menu-item link" data-role="link">\n'
+        html += '  <div class="hr-menu-item link" data-role="link">\n'
         html += f"    {self._icon_ref('link')}\n"
         html += '    <span class="hr-menu-item-text">Copy link</span>\n'
         html += "  </div>\n"
-        html += f'  <div class="hr-menu-item" data-role="code">\n'
+        html += '  <div class="hr-menu-item" data-role="code">\n'
         html += f"    {self._icon_ref('code')}\n"
         html += '    <span class="hr-menu-item-text">Source</span>\n'
         html += "  </div>\n"
         html += '  <div class="hr-menu-separator" data-role="static-sep"></div>\n'
-        html += f'  <div class="hr-menu-item" data-role="static-toggle">\n'
+        html += '  <div class="hr-menu-item" data-role="static-toggle">\n'
         html += f"    {self._icon_ref('image')}\n"
         html += '    <span class="hr-menu-item-text">Static</span>\n'
         html += "  </div>\n"
         html += '  <div class="hr-menu-separator" data-role="toc-view-sep"></div>\n'
-        html += f'  <div class="hr-menu-item toc-view" data-role="toc-view">\n'
+        html += '  <div class="hr-menu-item toc-view" data-role="toc-view">\n'
         html += f"    {self._icon_ref('tree')}\n"
         html += '    <span class="hr-menu-item-text">View as tree</span>\n'
         html += "  </div>\n"
         html += '  <div class="hr-menu-separator" data-role="reorder-sep"></div>\n'
-        html += f'  <div class="hr-menu-item reorder" data-role="reorder" role="button" aria-pressed="false">\n'
+        html += '  <div class="hr-menu-item reorder" data-role="reorder" role="button" aria-pressed="false">\n'
         html += f"    {self._icon_ref('reorder')}\n"
         html += '    <span class="hr-menu-item-text">Reorder</span>\n'
         html += "  </div>\n"
         html += '  <div class="hr-menu-separator" data-role="focus-sep"></div>\n'
-        html += f'  <div class="hr-menu-item focus" data-role="focus" role="button">\n'
+        html += '  <div class="hr-menu-item focus" data-role="focus" role="button">\n'
         html += f"    {self._icon_ref('focus-2')}\n"
         html += '    <span class="hr-menu-item-text">Focus this step</span>\n'
         html += "  </div>\n"
         html += '  <div class="hr-menu-separator" data-role="deplens-sep"></div>\n'
-        html += f'  <div class="hr-menu-item deplens-up" data-role="deplens-up" role="button">\n'
+        html += '  <div class="hr-menu-item deplens-up" data-role="deplens-up" role="button">\n'
         html += f"    {self._icon_ref('deplens-up')}\n"
         html += '    <span class="hr-menu-item-text">Depends on</span>\n'
         html += "  </div>\n"
-        html += f'  <div class="hr-menu-item deplens-down" data-role="deplens-down" role="button">\n'
+        html += '  <div class="hr-menu-item deplens-down" data-role="deplens-down" role="button">\n'
         html += f"    {self._icon_ref('deplens-down')}\n"
         html += '    <span class="hr-menu-item-text">Used by</span>\n'
         html += "  </div>\n"

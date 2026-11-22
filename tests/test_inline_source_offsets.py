@@ -1,7 +1,6 @@
 """Tests for source offset attributes on inline elements."""
 
 import re
-from textwrap import dedent
 
 import rsm
 

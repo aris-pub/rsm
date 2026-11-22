@@ -502,7 +502,6 @@ def test_import_date_unparseable_skipped():
 
 def test_import_date_parses():
     # The emitted :config: override-date must set the manuscript date.
-    import rsm.nodes as nodes
 
     result = IMP.from_json(
         _ast(
@@ -1235,8 +1234,8 @@ class TestClickableCitations:
 
     def test_cite_emits_link_when_resolved(self):
         """When cite resolves to a Bibitem with label, emit a Link."""
-        from rsm.pandoc import PandocTranslator
         from rsm import nodes
+        from rsm.pandoc import PandocTranslator
 
         # Simulate a resolved cite with a real Bibitem target
         translator = PandocTranslator()
@@ -1254,8 +1253,8 @@ class TestClickableCitations:
 
     def test_cite_no_cite_objects(self):
         """Citations must not use Pandoc Cite objects."""
-        from rsm.pandoc import PandocTranslator
         from rsm import nodes
+        from rsm.pandoc import PandocTranslator
 
         translator = PandocTranslator()
         bibitem = nodes.Bibitem(label="test")
@@ -1270,8 +1269,8 @@ class TestClickableCitations:
 
     def test_bibitem_has_anchor_id(self):
         """Bibliography entries should have ref-{label} anchor IDs."""
-        from rsm.pandoc import PandocTranslator
         from rsm import nodes
+        from rsm.pandoc import PandocTranslator
 
         translator = PandocTranslator()
         bibitem = nodes.Bibitem(label="smith2024")
@@ -1287,8 +1286,8 @@ class TestClickableCitations:
 
     def test_unresolved_cite_falls_back_to_text(self):
         """Unresolved cites should render as plain text, not crash."""
-        from rsm.pandoc import PandocTranslator
         from rsm import nodes
+        from rsm.pandoc import PandocTranslator
 
         translator = PandocTranslator()
         unknown = nodes.UnknownBibitem()

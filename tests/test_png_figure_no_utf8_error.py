@@ -26,7 +26,6 @@ import pytest
 
 import rsm
 
-
 # Smallest valid PNG: 8-byte signature + minimal IHDR/IDAT/IEND chunks.
 # Hex-decoded 1×1 transparent PNG.  Source: stock minimal PNG often used in
 # test fixtures.
