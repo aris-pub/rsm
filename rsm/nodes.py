@@ -164,6 +164,8 @@ class Node:
     # value.
     _body_start: int
     fold_label: str
+    # Set by the transformer when the manuscript uses document-wide numbering.
+    _number_within_override: type["Node"]
 
     def __init__(
         self,
@@ -176,7 +178,7 @@ class Node:
         start_point: tuple[int, int] = (-1, -1),
         end_point: tuple[int, int] = (-1, -1),
     ) -> None:
-        self.nodeid: str | None = None
+        self.nodeid: int | None = None
         """Node id - always exists (unlike label), automatically assigned, unique within the tree."""
         self.label: str = label
         """Unique identifier."""
@@ -184,7 +186,7 @@ class Node:
         """CSS classes for this node."""
         self.handrail_depth = 0
         """The number of ancestors of this node that have a handrail."""
-        self.number: int | None = number
+        self.number: int | str | None = number
         """Node number."""
         self.nonum: bool = nonum
         """Whether this node should be automatically given a number."""
@@ -1228,6 +1230,9 @@ class Heading(NodeWithChildren):
 
 
 class Manuscript(Heading):
+    # Set by the transformer when it builds the author block.
+    total_unique_affiliations: int
+    total_unique_notes: int
     newmetakeys: ClassVar[set] = {
         "accent",
         "citation_style",
@@ -1271,7 +1276,7 @@ class Manuscript(Heading):
         self.citation_style = citation_style
         # The document's section graph (a Contents node, attached to the tree
         # only when the author wrote :toc:). Set by the transformer.
-        self.section_graph = None
+        self.section_graph: Contents | None = None
 
     @property
     def full_number(self) -> str:
@@ -1822,6 +1827,9 @@ class PendingReference(BaseReference):
 
 
 class Reference(BaseReference):
+    # A resolved reference, so the target is a node, never a label.
+    target: Node | None
+
     def __init__(
         self,
         target: Node | None = None,
@@ -2191,9 +2199,7 @@ class Bibitem(Node):
 class UnknownBibitem(Bibitem):
     def __init__(self, number: str | int = "?", **kwargs: Any) -> None:
         super().__init__(**kwargs)
-        # The "?" placeholder is shown as the number of a citation that has no
-        # matching bib entry; Node.number is otherwise always an int.
-        self.number = number  # type: ignore[assignment]
+        self.number = number
 
 
 class Asset(NodeWithChildren):

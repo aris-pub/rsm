@@ -249,6 +249,9 @@ class RSMApp(Pipeline):
 
 
 class ParserApp(RSMApp):
+    # Set by add_task, which stores each task's object under the task's name.
+    transformer: transformer.Transformer
+
     def __init__(
         self,
         srcpath: Path | str | None = None,
@@ -426,6 +429,8 @@ class FullBuildApp(ProcessorApp):
     def _build(self, body: str) -> WebManuscript:
         # The builder sees only the HTML, and :plain-title: appears nowhere in
         # it, so the value is handed over from the tree.
+        # The translator task runs before this one and sets the tree.
+        assert self.translator.tree is not None
         self.builder.plain_title = self.translator.tree.plain_title
         return self.builder.build(body)
 

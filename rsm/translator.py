@@ -977,7 +977,7 @@ class AppendNodeTag(AppendOpenTag):
         classes = list(dict.fromkeys(classes + (additional_classes or [])))
 
         # Extract node source if requested
-        kwargs = {"nodeid": node.nodeid}
+        kwargs: dict[str, int | str | None] = {"nodeid": node.nodeid}
         if extra_attrs:
             kwargs.update(extra_attrs)
         if isinstance(node, nodes.Asset) and node.static:
@@ -2381,8 +2381,6 @@ class Translator:
         return tag
 
     def visit_reference(self, node: nodes.Reference) -> EditCommand:
-        # The transformer makes a Reference only with a node as its target.
-        assert isinstance(node.target, nodes.Node)
         # Handle external references
         if node.external_file:
             # Convert .rsm extension to .html
