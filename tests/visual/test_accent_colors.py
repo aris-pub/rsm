@@ -47,7 +47,7 @@ class TestAccentColors:
 {fixture.read_text()}
 """
 
-        content = serve_rsm_html(rsm_source, dark_theme=False)
+        serve_rsm_html(rsm_source, dark_theme=False)
 
         # Activate a handrail by clicking on it to show the accent color
         handrail = page.locator(".hr").first
@@ -97,7 +97,7 @@ class TestAccentColors:
 {fixture.read_text()}
 """
 
-        content = serve_rsm_html(rsm_source, dark_theme=True)
+        serve_rsm_html(rsm_source, dark_theme=True)
 
         # Activate a handrail to show the accent color
         handrail = page.locator(".hr").first

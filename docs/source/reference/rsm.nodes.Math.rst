@@ -28,6 +28,7 @@ Qualified name: ``rsm.nodes.Math``
      ~Math.handrail_depth
      ~Math.number
      ~Math.nonum
+     ~Math.collapsed
      ~Math.reftext_template
      ~Math.start_point
      ~Math.end_point

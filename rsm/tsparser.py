@@ -588,7 +588,7 @@ def _normalize_text(root: TSNode) -> str:
             # would put around an Error go into the plain Text next to it, so the
             # output text is the same as when everything was merged.
             kept = []
-            for t, piece in zip(run, pieces):
+            for t, piece in zip(run, pieces, strict=True):
                 if (
                     kept
                     and not isinstance(t, nodes.Error)

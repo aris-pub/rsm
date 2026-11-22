@@ -863,7 +863,7 @@ class Transformer:
         for members in groups.values():
             if len(members) < 2:
                 continue
-            for suffix, item in zip(ascii_lowercase, members):
+            for suffix, item in zip(ascii_lowercase, members, strict=False):
                 item.year_suffix = suffix
 
     def make_toc(self) -> None:

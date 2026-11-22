@@ -19,6 +19,7 @@ Qualified name: ``rsm.builder.BaseBuilder``
       ~BaseBuilder.deduplicate_scripts
       ~BaseBuilder.find_required_assets
       ~BaseBuilder.make_main_file
+      ~BaseBuilder.relocate_asset_refs
 
    
    

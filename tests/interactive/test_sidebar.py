@@ -425,7 +425,7 @@ def test_proof_state_math_is_typeset(page: Page, interactive_server: str):
             el.click();
         }"""
     )
-    panel = page.wait_for_selector(".rail-state .rail-state-block", timeout=5_000)
+    page.wait_for_selector(".rail-state .rail-state-block", timeout=5_000)
     state = page.locator(".rail-state")
     # no raw inline-math delimiters survive anywhere in the panel
     assert "\\(" not in state.inner_text()

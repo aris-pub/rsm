@@ -228,7 +228,7 @@ def _clean_refs(refs: list[Reference]) -> list[Reference]:
     """
     texts = [r.raw for r in refs]
     cleaned = bibtools.decode_latex(texts) or [_clean_latex(t) for t in texts]
-    return [Reference(r.key, r.source, c) for r, c in zip(refs, cleaned)]
+    return [Reference(r.key, r.source, c) for r, c in zip(refs, cleaned, strict=True)]
 
 
 def _clean_latex(text: str) -> str:

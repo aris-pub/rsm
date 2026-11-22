@@ -27,6 +27,7 @@ Qualified name: ``rsm.nodes.Proposition``
      ~Proposition.handrail_depth
      ~Proposition.number
      ~Proposition.nonum
+     ~Proposition.collapsed
      ~Proposition.reftext_template
      ~Proposition.start_point
      ~Proposition.end_point

@@ -27,6 +27,7 @@ Qualified name: ``rsm.nodes.Paragraph``
      ~Paragraph.handrail_depth
      ~Paragraph.number
      ~Paragraph.nonum
+     ~Paragraph.collapsed
      ~Paragraph.reftext_template
      ~Paragraph.start_point
      ~Paragraph.end_point

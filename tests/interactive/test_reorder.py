@@ -210,7 +210,7 @@ class TestReorderAccessibility:
             "els => els.map((e) => e.getAttribute('aria-label'))"
         )
         assert len(set(labels)) == len(labels) and len(labels) == 4, labels
-        assert all(l.startswith("Reorder Step") for l in labels), labels
+        assert all(label.startswith("Reorder Step") for label in labels), labels
 
     def test_live_region_announces_mode_and_reorder(
         self, page: Page, interactive_server: str

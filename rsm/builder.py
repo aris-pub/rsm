@@ -104,7 +104,7 @@ class BaseBuilder(ABC):
             seen[ref] = None  # dedupe, preserve document order
         self.required_assets = list(seen)
 
-    def relocate_asset_refs(self) -> None:
+    def relocate_asset_refs(self) -> None:  # noqa: B027 (optional hook, not abstract)
         """Hook for builders that move user assets in the output. No-op here."""
 
 

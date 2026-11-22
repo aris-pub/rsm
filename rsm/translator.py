@@ -573,7 +573,9 @@ def expand_notation(latex: str, macros: dict[str, str], _depth: int = 0) -> str:
             args.append(arg[0])
             j = arg[1]
         else:
-            body = re.sub(r"#([1-9])", lambda m: args[int(m.group(1)) - 1], body)
+            body = re.sub(
+                r"#([1-9])", lambda m, args=args: args[int(m.group(1)) - 1], body
+            )
             out.append(expand_notation(body, macros, _depth + 1))
             i = j
             continue
@@ -3047,7 +3049,7 @@ class Translator:
             tag="table",
             id=table_tag.id,
             classes=table_tag.classes,
-            **{k: v for k, v in table_tag.custom_attrs.items()},
+            **table_tag.custom_attrs,
         )
         return AppendBatchAndDefer(
             [
@@ -3739,9 +3741,7 @@ class HandrailsTranslator(Translator):
         html += f"    {self._icon_ref('collapse')}\n"
         html += '    <span class="hr-menu-item-text">Collapse</span>\n'
         html += "  </div>\n"
-        html += (
-            '  <div class="hr-menu-item collapse-steps" data-role="collapse-all">\n'
-        )
+        html += '  <div class="hr-menu-item collapse-steps" data-role="collapse-all">\n'
         html += f"    {self._icon_ref('collapse-all')}\n"
         html += '    <span class="hr-menu-item-text">Collapse all</span>\n'
         html += "  </div>\n"
@@ -4014,7 +4014,7 @@ class HandrailsTranslator(Translator):
             if len(views) < 2:
                 return ""
             tabs = []
-            for i, (view, label) in enumerate(zip(views, labels)):
+            for i, (view, label) in enumerate(zip(views, labels, strict=True)):
                 tab = self._RAIL_VIEWS[view][2]
                 hint = self._RAIL_VIEWS[view][3]
                 on = "true" if i == 0 else "false"

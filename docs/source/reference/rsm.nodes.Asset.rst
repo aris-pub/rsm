@@ -22,6 +22,7 @@ Qualified name: ``rsm.nodes.Asset``
    .. autosummary::
      
      ~Asset.autonumber
+     ~Asset.kindname
      ~Asset.newmetakeys
      ~Asset.nodeid
      ~Asset.label
@@ -29,6 +30,7 @@ Qualified name: ``rsm.nodes.Asset``
      ~Asset.handrail_depth
      ~Asset.number
      ~Asset.nonum
+     ~Asset.collapsed
      ~Asset.reftext_template
      ~Asset.start_point
      ~Asset.end_point

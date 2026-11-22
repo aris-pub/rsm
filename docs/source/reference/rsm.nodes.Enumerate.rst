@@ -27,6 +27,7 @@ Qualified name: ``rsm.nodes.Enumerate``
      ~Enumerate.handrail_depth
      ~Enumerate.number
      ~Enumerate.nonum
+     ~Enumerate.collapsed
      ~Enumerate.reftext_template
      ~Enumerate.start_point
      ~Enumerate.end_point

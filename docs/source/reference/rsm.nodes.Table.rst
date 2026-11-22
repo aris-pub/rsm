@@ -22,12 +22,15 @@ Qualified name: ``rsm.nodes.Table``
    .. autosummary::
      
      ~Table.autonumber
+     ~Table.kindname
+     ~Table.newmetakeys
      ~Table.nodeid
      ~Table.label
      ~Table.classes
      ~Table.handrail_depth
      ~Table.number
      ~Table.nonum
+     ~Table.collapsed
      ~Table.reftext_template
      ~Table.start_point
      ~Table.end_point

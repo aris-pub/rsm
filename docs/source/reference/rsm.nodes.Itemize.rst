@@ -27,6 +27,7 @@ Qualified name: ``rsm.nodes.Itemize``
      ~Itemize.handrail_depth
      ~Itemize.number
      ~Itemize.nonum
+     ~Itemize.collapsed
      ~Itemize.reftext_template
      ~Itemize.start_point
      ~Itemize.end_point

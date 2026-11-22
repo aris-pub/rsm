@@ -6,6 +6,7 @@ opened directly in a browser without requiring a web server. This is achieved by
 2. Using absolute URLs to the Studio backend for RSM-specific assets
 """
 
+import re as _re
 from pathlib import Path
 
 import rsm
@@ -102,9 +103,6 @@ class TestStandaloneMode:
 
         # Default behavior links static/ relative to the page
         assert 'href="static/braiid.css"' in result
-
-
-import re as _re
 
 
 def _live_asset_refs(html: str) -> list[str]:

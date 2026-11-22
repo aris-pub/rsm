@@ -29,6 +29,7 @@ Qualified name: ``rsm.nodes.Algorithm``
      ~Algorithm.handrail_depth
      ~Algorithm.number
      ~Algorithm.nonum
+     ~Algorithm.collapsed
      ~Algorithm.reftext_template
      ~Algorithm.start_point
      ~Algorithm.end_point

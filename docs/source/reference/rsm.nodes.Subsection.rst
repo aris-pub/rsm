@@ -29,6 +29,7 @@ Qualified name: ``rsm.nodes.Subsection``
      ~Subsection.handrail_depth
      ~Subsection.number
      ~Subsection.nonum
+     ~Subsection.collapsed
      ~Subsection.reftext_template
      ~Subsection.start_point
      ~Subsection.end_point

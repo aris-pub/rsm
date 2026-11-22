@@ -27,6 +27,7 @@ Qualified name: ``rsm.nodes.URL``
      ~URL.handrail_depth
      ~URL.number
      ~URL.nonum
+     ~URL.collapsed
      ~URL.reftext_template
      ~URL.start_point
      ~URL.end_point

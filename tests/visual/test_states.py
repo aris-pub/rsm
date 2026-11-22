@@ -29,7 +29,7 @@ class TestHandrailStates:
         """
         page.set_viewport_size({"width": width, "height": height})
         fixture = Path(__file__).parent / "fixtures" / "interactive-states.rsm"
-        content = serve_rsm_html(fixture.read_text())
+        serve_rsm_html(fixture.read_text())
         assert_snapshot(page.screenshot(full_page=True))
 
     @pytest.mark.parametrize("viewport_name,width,height", VIEWPORTS)
@@ -49,7 +49,7 @@ class TestHandrailStates:
         """
         page.set_viewport_size({"width": width, "height": height})
         fixture = Path(__file__).parent / "fixtures" / "interactive-states.rsm"
-        content = serve_rsm_html(fixture.read_text())
+        serve_rsm_html(fixture.read_text())
 
         # Hover over the first paragraph (should have hr-hidden class)
         paragraph = page.locator(".paragraph.hr.hr-hidden").first
@@ -73,7 +73,7 @@ class TestHandrailStates:
         """
         page.set_viewport_size({"width": width, "height": height})
         fixture = Path(__file__).parent / "fixtures" / "interactive-states.rsm"
-        content = serve_rsm_html(fixture.read_text())
+        serve_rsm_html(fixture.read_text())
 
         # Focus the first theorem using click (more reliable than .focus())
         theorem = page.locator(".theorem.hr").first
@@ -97,7 +97,7 @@ class TestHandrailStates:
         """
         page.set_viewport_size({"width": width, "height": height})
         fixture = Path(__file__).parent / "fixtures" / "interactive-states.rsm"
-        content = serve_rsm_html(fixture.read_text())
+        serve_rsm_html(fixture.read_text())
 
         proof = page.locator(".proof.hr").first
         if viewport_name == "phone":
@@ -132,7 +132,7 @@ class TestHandrailStates:
         """
         page.set_viewport_size({"width": width, "height": height})
         fixture = Path(__file__).parent / "fixtures" / "interactive-states.rsm"
-        content = serve_rsm_html(fixture.read_text())
+        serve_rsm_html(fixture.read_text())
 
         # Hover over theorem to show handrail controls
         theorem = page.locator(".theorem.hr").first

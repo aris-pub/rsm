@@ -28,6 +28,7 @@ Qualified name: ``rsm.nodes.Code``
      ~Code.handrail_depth
      ~Code.number
      ~Code.nonum
+     ~Code.collapsed
      ~Code.reftext_template
      ~Code.start_point
      ~Code.end_point

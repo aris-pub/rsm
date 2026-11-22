@@ -328,7 +328,7 @@ class TestWCAGCompliance:
                         formatted.append(f"  - {node.get('html', 'Unknown element')}")
                         if "failureSummary" in node:
                             formatted.append(f"    {node['failureSummary']}")
-                assert False, "\n".join(formatted)
+                raise AssertionError("\n".join(formatted))
 
             assert len(all_violations) == 0
         finally:

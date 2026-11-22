@@ -21,12 +21,15 @@ Qualified name: ``rsm.nodes.Note``
 
    .. autosummary::
      
+     ~Note.kind
+     ~Note.call
      ~Note.nodeid
      ~Note.label
      ~Note.classes
      ~Note.handrail_depth
      ~Note.number
      ~Note.nonum
+     ~Note.collapsed
      ~Note.reftext_template
      ~Note.start_point
      ~Note.end_point

@@ -27,6 +27,7 @@ Qualified name: ``rsm.nodes.Example``
      ~Example.handrail_depth
      ~Example.number
      ~Example.nonum
+     ~Example.collapsed
      ~Example.reftext_template
      ~Example.start_point
      ~Example.end_point

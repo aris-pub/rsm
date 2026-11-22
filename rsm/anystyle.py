@@ -70,7 +70,7 @@ def structure(references: list[Reference]) -> list[StructuredReference]:
         return [StructuredReference(r.key, r.raw, None) for r in references]
 
     out: list[StructuredReference] = []
-    for ref, fields in zip(references, parsed):
+    for ref, fields in zip(references, parsed, strict=True):
         if _meets_floor(fields):
             out.append(StructuredReference(ref.key, ref.raw, fields))
         else:

@@ -27,6 +27,7 @@ Qualified name: ``rsm.nodes.Error``
      ~Error.handrail_depth
      ~Error.number
      ~Error.nonum
+     ~Error.collapsed
      ~Error.reftext_template
      ~Error.start_point
      ~Error.end_point

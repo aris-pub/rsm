@@ -115,7 +115,7 @@ def serve_rsm_html(page: Any, tmp_path: Path) -> Callable[[str, bool], Any]:
     Usage:
         def test_example(serve_rsm_html):
             fixture = Path("fixtures/example.rsm").read_text()
-            content = serve_rsm_html(fixture)
+            serve_rsm_html(fixture)
             content.screenshot(path="test.png")
 
     Args:

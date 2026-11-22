@@ -27,6 +27,7 @@ Qualified name: ``rsm.nodes.PendingPrev``
      ~PendingPrev.handrail_depth
      ~PendingPrev.number
      ~PendingPrev.nonum
+     ~PendingPrev.collapsed
      ~PendingPrev.reftext_template
      ~PendingPrev.start_point
      ~PendingPrev.end_point

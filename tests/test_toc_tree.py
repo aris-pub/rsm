@@ -331,7 +331,10 @@ def test_layout_does_not_depend_on_set_order(monkeypatch):
     for seed in range(8):
         rng = random.Random(seed)
         table = {}
-        rand_hash = lambda self: table.setdefault(id(self), rng.getrandbits(48))
+
+        def rand_hash(self, table=table, rng=rng):
+            return table.setdefault(id(self), rng.getrandbits(48))
+
         monkeypatch.setattr(graphs.Vertex, "__hash__", rand_hash)
         monkeypatch.setattr(graphs.Edge, "__hash__", rand_hash)
         out = layout_tree(_PAPER_NODES, _PAPER_EDGES, "horizontal")
@@ -351,7 +354,7 @@ def test_tall_horizontal_toc_closes_up_its_stack():
         tl.MAX_TREE_H = wide
     assert out["height"] < loose["height"]
     ys = sorted({n["y"] for n in out["nodes"]})
-    assert all(b - a >= tl.NODE_H / 2 for a, b in zip(ys, ys[1:]))
+    assert all(b - a >= tl.NODE_H / 2 for a, b in zip(ys, ys[1:], strict=False))
 
 
 def test_proof_rail_keeps_its_spacing():

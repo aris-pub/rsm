@@ -23,6 +23,8 @@
       
         Appendix
       
+        Aside
+      
         Asset
       
         Author
@@ -38,9 +40,9 @@
         Bibitem
       
         Bibliography
-
+      
         Calc
-
+      
         Caption
       
         Cite
@@ -73,6 +75,8 @@
       
         Heading
       
+        HtmlBlock
+      
         Item
       
         Itemize
@@ -91,7 +95,13 @@
       
         NodeWithChildren
       
+        Notation
+      
         Note
+      
+        NoteCall
+      
+        NotesList
       
         Paragraph
       
@@ -108,6 +118,8 @@
         Proof
       
         Proposition
+      
+        RawHtml
       
         Reference
       
@@ -144,6 +156,8 @@
         TableRow
       
         Tabs
+      
+        TerminalBlock
       
         Text
       

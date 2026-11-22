@@ -26,12 +26,14 @@ Qualified name: ``rsm.nodes.NodeWithChildren``
    .. autosummary::
      
      ~NodeWithChildren.children
+     ~NodeWithChildren.possible_children
      ~NodeWithChildren.nodeid
      ~NodeWithChildren.label
      ~NodeWithChildren.classes
      ~NodeWithChildren.handrail_depth
      ~NodeWithChildren.number
      ~NodeWithChildren.nonum
+     ~NodeWithChildren.collapsed
      ~NodeWithChildren.reftext_template
      ~NodeWithChildren.start_point
      ~NodeWithChildren.end_point

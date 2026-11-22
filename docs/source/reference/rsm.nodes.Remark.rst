@@ -27,6 +27,7 @@ Qualified name: ``rsm.nodes.Remark``
      ~Remark.handrail_depth
      ~Remark.number
      ~Remark.nonum
+     ~Remark.collapsed
      ~Remark.reftext_template
      ~Remark.start_point
      ~Remark.end_point

@@ -27,6 +27,7 @@ Qualified name: ``rsm.nodes.Statement``
      ~Statement.handrail_depth
      ~Statement.number
      ~Statement.nonum
+     ~Statement.collapsed
      ~Statement.reftext_template
      ~Statement.start_point
      ~Statement.end_point

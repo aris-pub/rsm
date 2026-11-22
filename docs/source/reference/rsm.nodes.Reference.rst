@@ -27,6 +27,7 @@ Qualified name: ``rsm.nodes.Reference``
      ~Reference.handrail_depth
      ~Reference.number
      ~Reference.nonum
+     ~Reference.collapsed
      ~Reference.reftext_template
      ~Reference.start_point
      ~Reference.end_point

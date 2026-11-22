@@ -1781,7 +1781,7 @@ class Cite(Node):
         result["targetlabels"] = list(self.targetlabels)
         unknown = [
             label
-            for label, target in zip(self.targetlabels, self.targets)
+            for label, target in zip(self.targetlabels, self.targets, strict=True)
             if type(target).__name__ == "UnknownBibitem"
         ]
         if unknown:

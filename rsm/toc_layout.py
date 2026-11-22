@@ -159,7 +159,7 @@ def layout_tree(
             layers[round(x, 1)].append(i)
         for idxs in layers.values():
             slots = sorted(placed[i][1] for i in idxs)
-            for slot, i in zip(slots, sorted(idxs)):
+            for slot, i in zip(slots, sorted(idxs), strict=True):
                 placed[i] = (placed[i][0], slot)
         # A proof step DAG is naturally tall and thin, so when fit into the
         # gutter it scales to the height and leaves the width empty (and the

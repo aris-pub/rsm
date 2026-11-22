@@ -27,6 +27,7 @@ Qualified name: ``rsm.nodes.AuthorNotes``
      ~AuthorNotes.handrail_depth
      ~AuthorNotes.number
      ~AuthorNotes.nonum
+     ~AuthorNotes.collapsed
      ~AuthorNotes.reftext_template
      ~AuthorNotes.start_point
      ~AuthorNotes.end_point

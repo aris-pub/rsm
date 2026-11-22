@@ -27,6 +27,7 @@ Qualified name: ``rsm.nodes.UnknownBibitem``
      ~UnknownBibitem.handrail_depth
      ~UnknownBibitem.number
      ~UnknownBibitem.nonum
+     ~UnknownBibitem.collapsed
      ~UnknownBibitem.reftext_template
      ~UnknownBibitem.start_point
      ~UnknownBibitem.end_point

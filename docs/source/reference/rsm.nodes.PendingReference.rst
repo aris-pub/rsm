@@ -29,6 +29,7 @@ Qualified name: ``rsm.nodes.PendingReference``
      ~PendingReference.handrail_depth
      ~PendingReference.number
      ~PendingReference.nonum
+     ~PendingReference.collapsed
      ~PendingReference.reftext_template
      ~PendingReference.start_point
      ~PendingReference.end_point

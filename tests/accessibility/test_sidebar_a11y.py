@@ -141,7 +141,9 @@ def _contrast(a, b):
 def _composite(fill, panel, opacity):
     # The faded label is painted at its effective opacity over the panel, so its
     # on-screen colour is that blend, not the raw fill.
-    return tuple(opacity * f + (1 - opacity) * p for f, p in zip(fill, panel))
+    return tuple(
+        opacity * f + (1 - opacity) * p for f, p in zip(fill, panel, strict=True)
+    )
 
 
 # For each faded step node, read the label colour, the label's effective opacity

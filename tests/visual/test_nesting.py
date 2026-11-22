@@ -30,7 +30,7 @@ class TestNestingStacking:
         """
         page.set_viewport_size({"width": width, "height": height})
         fixture = Path(__file__).parent / "fixtures" / "nesting-stacking.rsm"
-        content = serve_rsm_html(fixture.read_text())
+        serve_rsm_html(fixture.read_text())
         assert_snapshot(page.screenshot(full_page=True))
 
 
@@ -56,5 +56,5 @@ class TestNestingShifting:
         """
         page.set_viewport_size({"width": width, "height": height})
         fixture = Path(__file__).parent / "fixtures" / "nesting-shifting.rsm"
-        content = serve_rsm_html(fixture.read_text())
+        serve_rsm_html(fixture.read_text())
         assert_snapshot(page.screenshot(full_page=True))

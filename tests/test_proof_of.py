@@ -88,6 +88,8 @@ def test_of_renders_linked_lead():
 def test_unknown_of_label_is_an_error():
     import pytest
 
+    from rsm.proof import ProofError
+
     bad = SRC.replace(":of: thm-x", ":of: thm-nope")
-    with pytest.raises(Exception):
+    with pytest.raises(ProofError):
         rsm.render(bad, handrails=True)

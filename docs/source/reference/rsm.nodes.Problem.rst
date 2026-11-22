@@ -27,6 +27,7 @@ Qualified name: ``rsm.nodes.Problem``
      ~Problem.handrail_depth
      ~Problem.number
      ~Problem.nonum
+     ~Problem.collapsed
      ~Problem.reftext_template
      ~Problem.start_point
      ~Problem.end_point

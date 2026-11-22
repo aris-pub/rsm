@@ -5,10 +5,10 @@ from textwrap import dedent
 
 import pytest
 
-pytestmark = pytest.mark.pandoc
-
 from rsm.app import ParserApp, pandoc_export, pandoc_import
 from rsm.pandoc import PANDOC_API_VERSION, PandocImporter, PandocTranslator
+
+pytestmark = pytest.mark.pandoc
 
 # ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -1202,12 +1202,11 @@ class TestMissingBlockHandlers:
         }
         ::
         """)
-        text = str(blocks)
         assert len(blocks) > 0  # Not silently dropped
 
     def test_authorblock_silently_skipped(self):
         """AuthorBlock should not crash or warn."""
-        blocks = _blocks("""\
+        _blocks("""\
         :author: {
           :name: Test Author
         } ::

@@ -27,6 +27,7 @@ Qualified name: ``rsm.nodes.TableDatum``
      ~TableDatum.handrail_depth
      ~TableDatum.number
      ~TableDatum.nonum
+     ~TableDatum.collapsed
      ~TableDatum.reftext_template
      ~TableDatum.start_point
      ~TableDatum.end_point

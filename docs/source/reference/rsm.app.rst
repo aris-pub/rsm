@@ -44,6 +44,7 @@
 
    
    .. autofunction:: build
+   .. autofunction:: import_project
    .. autofunction:: lint
    .. autofunction:: pandoc_export
    .. autofunction:: pandoc_import

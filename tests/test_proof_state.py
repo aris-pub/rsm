@@ -62,7 +62,7 @@ def test_assumption_scopes_to_later_siblings_and_substeps():
     )
     # Every step at or after the assume (siblings st-next and the final qed)
     # must carry the assumption in its hyps.
-    for s, st in zip(steps, p.step_state):
+    for s, st in zip(steps, p.step_state, strict=True):
         assert assume in [h["node"] for h in st["hyps"]], (
             f"step {s.full_number} is missing the assumption introduced by an "
             "earlier sibling"
@@ -114,7 +114,8 @@ def test_assumption_in_a_claim_step_still_propagates_to_siblings():
         c for c in p.traverse(nodeclass=nodes.Construct) if c.kind == "assume"
     )
     hyps = {
-        s.label: [h["node"] for h in st["hyps"]] for s, st in zip(steps, p.step_state)
+        s.label: [h["node"] for h in st["hyps"]]
+        for s, st in zip(steps, p.step_state, strict=True)
     }
     # In scope inside case one's own subproof...
     assert assume in hyps["st-c1sub"]

@@ -39,6 +39,7 @@ Qualified name: ``rsm.nodes.Node``
      ~Node.classreftext
      ~Node.full_number
      ~Node.has_handrail
+     ~Node.kindname
      ~Node.newmetakeys
      ~Node.number_as
      ~Node.number_within
@@ -51,6 +52,7 @@ Qualified name: ``rsm.nodes.Node``
      ~Node.handrail_depth
      ~Node.number
      ~Node.nonum
+     ~Node.collapsed
      ~Node.reftext_template
      ~Node.start_point
      ~Node.end_point

@@ -35,6 +35,7 @@ Qualified name: ``rsm.nodes.Author``
      ~Author.handrail_depth
      ~Author.number
      ~Author.nonum
+     ~Author.collapsed
      ~Author.reftext_template
      ~Author.start_point
      ~Author.end_point
