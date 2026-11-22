@@ -23,9 +23,7 @@ MATHJAX_FONTS = f"{MATHJAX_DIR}/output/chtml/fonts/woff-v2"
 
 _ASSET_REF_RE = re.compile(r'((?:src|srcset|data-static)=")(.*?)(")')
 
-_MATH_SPAN_RE = re.compile(
-    r'<span class="math\b[^"]*"[^>]*>\\\((.*?)\\\)</span>', re.S
-)
+_MATH_SPAN_RE = re.compile(r'<span class="math\b[^"]*"[^>]*>\\\((.*?)\\\)</span>', re.S)
 
 
 class BaseBuilder(ABC):
@@ -129,13 +127,13 @@ class HTMLBuilder(BaseBuilder):
 
         # Extract data-accent and data-lang from body tag and move to html tag
         accent_match = re.search(r'<body[^>]*data-accent="([^"]*)"', body)
-        accent_attr = f' data-accent="{accent_match.group(1)}"' if accent_match else ''
+        accent_attr = f' data-accent="{accent_match.group(1)}"' if accent_match else ""
 
         lang_match = re.search(r'<body[^>]*data-lang="([^"]*)"', body)
-        lang_value = lang_match.group(1) if lang_match else 'en'
+        lang_value = lang_match.group(1) if lang_match else "en"
 
         html = str(
-            f"<!DOCTYPE html>\n<html lang=\"{lang_value}\"{accent_attr}>\n\n"
+            f'<!DOCTYPE html>\n<html lang="{lang_value}"{accent_attr}>\n\n'
             + self.make_html_header()
             + "\n"
             + body
@@ -270,8 +268,10 @@ class HTMLBuilder(BaseBuilder):
         """)
 
         sidebar_preload = (
-            self._sidebar_preload_script() + self._asides_preload_script()
-            + self._toc_switch_preload_script() + self._loading_preload_script()
+            self._sidebar_preload_script()
+            + self._asides_preload_script()
+            + self._toc_switch_preload_script()
+            + self._loading_preload_script()
         )
 
         header = dedent(
@@ -371,7 +371,9 @@ class StandaloneBuilder(HTMLBuilder):
         css_path = Path(__file__).parent.parent / "braiid" / "braiid.css"
         if not css_path.exists():
             logger.warning(f"BRAIID CSS not found at: {css_path}")
-            return f'<link rel="stylesheet" type="text/css" href="{self.CDN_RSM_CSS}" />'
+            return (
+                f'<link rel="stylesheet" type="text/css" href="{self.CDN_RSM_CSS}" />'
+            )
         css = css_path.read_text().replace(
             "@import url('pygments.css') layer(base);", ""
         )
@@ -469,8 +471,10 @@ class StandaloneBuilder(HTMLBuilder):
 """
 
         sidebar_preload = (
-            self._sidebar_preload_script() + self._asides_preload_script()
-            + self._toc_switch_preload_script() + self._loading_preload_script()
+            self._sidebar_preload_script()
+            + self._asides_preload_script()
+            + self._toc_switch_preload_script()
+            + self._loading_preload_script()
         )
 
         header = f"""\

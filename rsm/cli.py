@@ -1012,7 +1012,9 @@ def main() -> int:
     )
     import_log = import_parser.add_argument_group("logging control")
     import_log.add_argument("-v", "--verbose", action="count", default=0)
-    import_log.add_argument("--log-no-timestamps", dest="log_time", action="store_false")
+    import_log.add_argument(
+        "--log-no-timestamps", dest="log_time", action="store_false"
+    )
     import_log.add_argument("--log-no-lineno", dest="log_lineno", action="store_false")
     import_log.add_argument(
         "--log-format",

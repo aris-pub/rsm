@@ -370,6 +370,7 @@ def test_theorem_div_no_baked_label():
     divs = [b for b in blocks if b["t"] == "Div"]
     assert divs
     import json
+
     full = json.dumps(divs[0])
     assert "Theorem 1" not in full
 
@@ -431,8 +432,7 @@ def test_bibliography_header():
     )
     headers = [b for b in blocks if b["t"] == "Header"]
     ref_headers = [
-        h for h in headers
-        if any(i.get("c") == "References" for i in h["c"][2])
+        h for h in headers if any(i.get("c") == "References" for i in h["c"][2])
     ]
     assert ref_headers
 
@@ -441,46 +441,62 @@ def test_bibliography_header():
 
 
 def test_import_title():
-    result = IMP.from_json(_ast(
-        meta={"title": {"t": "MetaInlines", "c": [{"t": "Str", "c": "My Doc"}]}}
-    ))
+    result = IMP.from_json(
+        _ast(meta={"title": {"t": "MetaInlines", "c": [{"t": "Str", "c": "My Doc"}]}})
+    )
     assert "# My Doc" in result
 
 
 def test_import_author():
-    result = IMP.from_json(_ast(
-        meta={
-            "author": {
-                "t": "MetaList",
-                "c": [{"t": "MetaInlines", "c": [{"t": "Str", "c": "Ada Lovelace"}]}],
+    result = IMP.from_json(
+        _ast(
+            meta={
+                "author": {
+                    "t": "MetaList",
+                    "c": [
+                        {"t": "MetaInlines", "c": [{"t": "Str", "c": "Ada Lovelace"}]}
+                    ],
+                }
             }
-        }
-    ))
+        )
+    )
     assert ":author:" in result
     assert "Ada Lovelace" in result
 
 
 def test_import_date_iso():
-    result = IMP.from_json(_ast(
-        meta={"date": {"t": "MetaInlines", "c": [{"t": "Str", "c": "2024-04-13"}]}}
-    ))
+    result = IMP.from_json(
+        _ast(
+            meta={"date": {"t": "MetaInlines", "c": [{"t": "Str", "c": "2024-04-13"}]}}
+        )
+    )
     assert ":override-date: 2024-04-13" in result
 
 
 def test_import_date_month_name_normalized():
-    result = IMP.from_json(_ast(
-        meta={"date": {"t": "MetaInlines", "c": [
-            {"t": "Str", "c": "April"}, {"t": "Space"}, {"t": "Str", "c": "13,"},
-            {"t": "Space"}, {"t": "Str", "c": "2024"},
-        ]}}
-    ))
+    result = IMP.from_json(
+        _ast(
+            meta={
+                "date": {
+                    "t": "MetaInlines",
+                    "c": [
+                        {"t": "Str", "c": "April"},
+                        {"t": "Space"},
+                        {"t": "Str", "c": "13,"},
+                        {"t": "Space"},
+                        {"t": "Str", "c": "2024"},
+                    ],
+                }
+            }
+        )
+    )
     assert ":override-date: 2024-04-13" in result
 
 
 def test_import_date_unparseable_skipped():
-    result = IMP.from_json(_ast(
-        meta={"date": {"t": "MetaInlines", "c": [{"t": "Str", "c": "\\today"}]}}
-    ))
+    result = IMP.from_json(
+        _ast(meta={"date": {"t": "MetaInlines", "c": [{"t": "Str", "c": "\\today"}]}})
+    )
     assert "override-date" not in result
 
 
@@ -488,44 +504,55 @@ def test_import_date_parses():
     # The emitted :config: override-date must set the manuscript date.
     import rsm.nodes as nodes
 
-    result = IMP.from_json(_ast(
-        meta={
-            "title": {"t": "MetaInlines", "c": [{"t": "Str", "c": "T"}]},
-            "date": {"t": "MetaInlines", "c": [{"t": "Str", "c": "2024-04-13"}]},
-        }
-    ))
+    result = IMP.from_json(
+        _ast(
+            meta={
+                "title": {"t": "MetaInlines", "c": [{"t": "Str", "c": "T"}]},
+                "date": {"t": "MetaInlines", "c": [{"t": "Str", "c": "2024-04-13"}]},
+            }
+        )
+    )
     tree = _parse(result)
     assert str(getattr(tree, "date", "")) == "2024-04-13"
 
 
 def test_import_abstract():
-    result = IMP.from_json(_ast(
-        meta={
-            "abstract": {
-                "t": "MetaBlocks",
-                "c": [{"t": "Para", "c": [
-                    {"t": "Str", "c": "We"},
-                    {"t": "Space"},
-                    {"t": "Str", "c": "study."},
-                ]}],
+    result = IMP.from_json(
+        _ast(
+            meta={
+                "abstract": {
+                    "t": "MetaBlocks",
+                    "c": [
+                        {
+                            "t": "Para",
+                            "c": [
+                                {"t": "Str", "c": "We"},
+                                {"t": "Space"},
+                                {"t": "Str", "c": "study."},
+                            ],
+                        }
+                    ],
+                }
             }
-        }
-    ))
+        )
+    )
     assert ":abstract:" in result
     assert "We study." in result
 
 
 def test_import_abstract_parses():
     # The emitted :abstract: must be valid RSM that yields an Abstract node.
-    result = IMP.from_json(_ast(
-        meta={
-            "title": {"t": "MetaInlines", "c": [{"t": "Str", "c": "T"}]},
-            "abstract": {
-                "t": "MetaBlocks",
-                "c": [{"t": "Para", "c": [{"t": "Str", "c": "Hello."}]}],
-            },
-        }
-    ))
+    result = IMP.from_json(
+        _ast(
+            meta={
+                "title": {"t": "MetaInlines", "c": [{"t": "Str", "c": "T"}]},
+                "abstract": {
+                    "t": "MetaBlocks",
+                    "c": [{"t": "Para", "c": [{"t": "Str", "c": "Hello."}]}],
+                },
+            }
+        )
+    )
     import rsm.nodes as nodes
 
     tree = _parse(result)
@@ -533,50 +560,74 @@ def test_import_abstract_parses():
 
 
 def test_import_no_abstract():
-    result = IMP.from_json(_ast(
-        meta={"title": {"t": "MetaInlines", "c": [{"t": "Str", "c": "T"}]}}
-    ))
+    result = IMP.from_json(
+        _ast(meta={"title": {"t": "MetaInlines", "c": [{"t": "Str", "c": "T"}]}})
+    )
     assert ":abstract:" not in result
 
 
 def test_import_paragraph():
-    result = IMP.from_json(_ast(blocks=[
-        {"t": "Para", "c": [
-            {"t": "Str", "c": "Hello"},
-            {"t": "Space"},
-            {"t": "Str", "c": "world."},
-        ]}
-    ]))
+    result = IMP.from_json(
+        _ast(
+            blocks=[
+                {
+                    "t": "Para",
+                    "c": [
+                        {"t": "Str", "c": "Hello"},
+                        {"t": "Space"},
+                        {"t": "Str", "c": "world."},
+                    ],
+                }
+            ]
+        )
+    )
     assert "Hello world." in result
 
 
 def test_import_section():
-    result = IMP.from_json(_ast(blocks=[
-        {"t": "Header", "c": [2, ["intro", [], []], [{"t": "Str", "c": "Introduction"}]]}
-    ]))
+    result = IMP.from_json(
+        _ast(
+            blocks=[
+                {
+                    "t": "Header",
+                    "c": [2, ["intro", [], []], [{"t": "Str", "c": "Introduction"}]],
+                }
+            ]
+        )
+    )
     assert "## Introduction" in result
 
 
 def test_import_strong():
-    result = IMP.from_json(_ast(blocks=[
-        {"t": "Para", "c": [{"t": "Strong", "c": [{"t": "Str", "c": "bold"}]}]}
-    ]))
+    result = IMP.from_json(
+        _ast(
+            blocks=[
+                {"t": "Para", "c": [{"t": "Strong", "c": [{"t": "Str", "c": "bold"}]}]}
+            ]
+        )
+    )
     assert "**bold**" in result
 
 
 def test_import_emph():
-    result = IMP.from_json(_ast(blocks=[
-        {"t": "Para", "c": [{"t": "Emph", "c": [{"t": "Str", "c": "italic"}]}]}
-    ]))
+    result = IMP.from_json(
+        _ast(
+            blocks=[
+                {"t": "Para", "c": [{"t": "Emph", "c": [{"t": "Str", "c": "italic"}]}]}
+            ]
+        )
+    )
     assert "*italic*" in result
 
 
 def test_import_inline_math():
-    result = IMP.from_json(_ast(blocks=[
-        {"t": "Para", "c": [
-            {"t": "Math", "c": [{"t": "InlineMath"}, "x^2"]}
-        ]}
-    ]))
+    result = IMP.from_json(
+        _ast(
+            blocks=[
+                {"t": "Para", "c": [{"t": "Math", "c": [{"t": "InlineMath"}, "x^2"]}]}
+            ]
+        )
+    )
     # Inline math is emitted as $...$ so it can sit against adjacent text.
     assert "$x^2$" in result
 
@@ -584,114 +635,161 @@ def test_import_inline_math():
 def test_import_inline_math_with_dollar_falls_back():
     # When the TeX itself holds a $, the $...$ form would close early, so the
     # verbose :math: ... :: form is used instead.
-    result = IMP.from_json(_ast(blocks=[
-        {"t": "Para", "c": [
-            {"t": "Math", "c": [{"t": "InlineMath"}, r"\$5"]}
-        ]}
-    ]))
+    result = IMP.from_json(
+        _ast(
+            blocks=[
+                {"t": "Para", "c": [{"t": "Math", "c": [{"t": "InlineMath"}, r"\$5"]}]}
+            ]
+        )
+    )
     assert r":math: \$5 ::" in result
 
 
 def test_import_display_math():
-    result = IMP.from_json(_ast(blocks=[
-        {"t": "Para", "c": [
-            {"t": "Math", "c": [{"t": "DisplayMath"}, "2+2=4"]}
-        ]}
-    ]))
+    result = IMP.from_json(
+        _ast(
+            blocks=[
+                {
+                    "t": "Para",
+                    "c": [{"t": "Math", "c": [{"t": "DisplayMath"}, "2+2=4"]}],
+                }
+            ]
+        )
+    )
     assert ":mathblock:" in result
     assert "2+2=4" in result
 
 
 def test_import_codeblock():
-    result = IMP.from_json(_ast(blocks=[
-        {"t": "CodeBlock", "c": [["", ["python"], []], "x = 1"]}
-    ]))
+    result = IMP.from_json(
+        _ast(blocks=[{"t": "CodeBlock", "c": [["", ["python"], []], "x = 1"]}])
+    )
     assert ":codeblock:" in result
     assert "python" in result
     assert "x = 1" in result
 
 
 def test_import_bullet_list():
-    result = IMP.from_json(_ast(blocks=[
-        {"t": "BulletList", "c": [
-            [{"t": "Para", "c": [{"t": "Str", "c": "First"}]}],
-            [{"t": "Para", "c": [{"t": "Str", "c": "Second"}]}],
-        ]}
-    ]))
+    result = IMP.from_json(
+        _ast(
+            blocks=[
+                {
+                    "t": "BulletList",
+                    "c": [
+                        [{"t": "Para", "c": [{"t": "Str", "c": "First"}]}],
+                        [{"t": "Para", "c": [{"t": "Str", "c": "Second"}]}],
+                    ],
+                }
+            ]
+        )
+    )
     assert ":itemize:" in result
     assert ":-: First" in result
     assert ":-: Second" in result
 
 
 def test_import_ordered_list():
-    result = IMP.from_json(_ast(blocks=[
-        {"t": "OrderedList", "c": [
-            [1, {"t": "Decimal"}, {"t": "Period"}],
-            [
-                [{"t": "Para", "c": [{"t": "Str", "c": "One"}]}],
-                [{"t": "Para", "c": [{"t": "Str", "c": "Two"}]}],
-            ],
-        ]}
-    ]))
+    result = IMP.from_json(
+        _ast(
+            blocks=[
+                {
+                    "t": "OrderedList",
+                    "c": [
+                        [1, {"t": "Decimal"}, {"t": "Period"}],
+                        [
+                            [{"t": "Para", "c": [{"t": "Str", "c": "One"}]}],
+                            [{"t": "Para", "c": [{"t": "Str", "c": "Two"}]}],
+                        ],
+                    ],
+                }
+            ]
+        )
+    )
     assert ":enumerate:" in result
     assert ":-: One" in result
 
 
 def test_import_figure():
-    result = IMP.from_json(_ast(blocks=[
-        {"t": "Figure", "c": [
-            ["fig1", ["figure"], []],
-            {"t": "Caption", "c": [
-                None,
-                [{"t": "Para", "c": [{"t": "Str", "c": "A caption"}]}],
-            ]},
-            [{"t": "Plain", "c": [
-                {"t": "Image", "c": [
-                    ["", [], []],
-                    [{"t": "Str", "c": "alt"}],
-                    ["img/foo.png", ""],
-                ]}
-            ]}],
-        ]}
-    ]))
+    result = IMP.from_json(
+        _ast(
+            blocks=[
+                {
+                    "t": "Figure",
+                    "c": [
+                        ["fig1", ["figure"], []],
+                        {
+                            "t": "Caption",
+                            "c": [
+                                None,
+                                [{"t": "Para", "c": [{"t": "Str", "c": "A caption"}]}],
+                            ],
+                        },
+                        [
+                            {
+                                "t": "Plain",
+                                "c": [
+                                    {
+                                        "t": "Image",
+                                        "c": [
+                                            ["", [], []],
+                                            [{"t": "Str", "c": "alt"}],
+                                            ["img/foo.png", ""],
+                                        ],
+                                    }
+                                ],
+                            }
+                        ],
+                    ],
+                }
+            ]
+        )
+    )
     assert ":figure:" in result
     assert "img/foo.png" in result
 
 
 def test_import_rawblock_latex():
-    result = IMP.from_json(_ast(blocks=[
-        {"t": "RawBlock", "c": ["latex", r"\alpha + \beta"]}
-    ]))
+    result = IMP.from_json(
+        _ast(blocks=[{"t": "RawBlock", "c": ["latex", r"\alpha + \beta"]}])
+    )
     assert ":mathblock:" in result
     assert r"\alpha + \beta" in result
 
 
 def test_import_horizontal_rule():
-    result = IMP.from_json(_ast(blocks=[
-        {"t": "HorizontalRule", "c": []}
-    ]))
+    result = IMP.from_json(_ast(blocks=[{"t": "HorizontalRule", "c": []}]))
     assert result.strip() == ""
 
 
 def test_import_url():
-    result = IMP.from_json(_ast(blocks=[
-        {"t": "Para", "c": [
-            {"t": "Link", "c": [
-                ["", [], []],
-                [{"t": "Str", "c": "click here"}],
-                ["https://example.com", ""],
-            ]}
-        ]}
-    ]))
+    result = IMP.from_json(
+        _ast(
+            blocks=[
+                {
+                    "t": "Para",
+                    "c": [
+                        {
+                            "t": "Link",
+                            "c": [
+                                ["", [], []],
+                                [{"t": "Str", "c": "click here"}],
+                                ["https://example.com", ""],
+                            ],
+                        }
+                    ],
+                }
+            ]
+        )
+    )
     assert ":url: https://example.com ::" in result
 
 
 def test_import_rawinline_latex():
-    result = IMP.from_json(_ast(blocks=[
-        {"t": "Para", "c": [
-            {"t": "RawInline", "c": ["latex", r"\alpha"]}
-        ]}
-    ]))
+    result = IMP.from_json(
+        _ast(
+            blocks=[{"t": "Para", "c": [{"t": "RawInline", "c": ["latex", r"\alpha"]}]}]
+        )
+    )
     assert r":math: \alpha ::" in result
 
 
@@ -777,6 +875,7 @@ def test_abstract_in_meta():
     assert "abstract" in ast["meta"]
     # Abstract should NOT appear in body blocks
     import json
+
     body = json.dumps(ast["blocks"])
     assert "This is the abstract" not in body
 
@@ -795,6 +894,7 @@ def test_author_with_email_in_meta():
     )
     assert "author" in ast["meta"]
     import json
+
     author_text = json.dumps(ast["meta"]["author"])
     assert "Jane Doe" in author_text
     assert "jane@example.com" in author_text
@@ -816,6 +916,7 @@ def test_toc_emits_latex_tableofcontents():
         """
     )
     import json
+
     full = json.dumps(blocks)
     assert "tableofcontents" in full
 
@@ -836,6 +937,7 @@ def test_bibliography_anchor_has_span():
         """
     )
     import json
+
     full = json.dumps(blocks)
     assert "ref-smith2024" in full
     assert '"Span"' in full
@@ -926,7 +1028,9 @@ class TestCaptionFormat:
         assert len(figures) == 1
         caption = figures[0]["c"][1]
         # Caption must be a plain array [shortCaption, [blocks]], not {"t": "Caption", ...}
-        assert isinstance(caption, list), f"Caption should be list, got {type(caption).__name__}: {caption}"
+        assert isinstance(caption, list), (
+            f"Caption should be list, got {type(caption).__name__}: {caption}"
+        )
         assert len(caption) == 2
 
     def test_table_caption_is_array(self):
@@ -941,7 +1045,9 @@ class TestCaptionFormat:
         tables = [b for b in blocks if b["t"] == "Table"]
         assert len(tables) == 1
         caption = tables[0]["c"][1]
-        assert isinstance(caption, list), f"Caption should be list, got {type(caption).__name__}: {caption}"
+        assert isinstance(caption, list), (
+            f"Caption should be list, got {type(caption).__name__}: {caption}"
+        )
         assert len(caption) == 2
 
     def test_figure_export_roundtrips_through_pandoc(self):
@@ -988,9 +1094,9 @@ class TestCaptionFormat:
         assert isinstance(tfoot, list)
         # the Row and Cell inside the head are bare arrays too
         head_rows = thead[1]
-        assert head_rows and isinstance(head_rows[0], list)   # Row = [attr, [Cell]]
+        assert head_rows and isinstance(head_rows[0], list)  # Row = [attr, [Cell]]
         cells = head_rows[0][1]
-        assert cells and isinstance(cells[0], list)           # Cell = [attr, align, ...]
+        assert cells and isinstance(cells[0], list)  # Cell = [attr, align, ...]
 
     def test_table_exports_to_latex_through_pandoc(self):
         """The full RSM -> pandoc-JSON -> LaTeX pipeline must not crash on a table."""
@@ -1026,8 +1132,12 @@ class TestCaptionFormat:
 
         def walk(node):
             if isinstance(node, dict):
-                if (node.get("t") == "RawInline" and isinstance(node.get("c"), list)
-                        and node["c"] and node["c"][0] == "typst"):
+                if (
+                    node.get("t") == "RawInline"
+                    and isinstance(node.get("c"), list)
+                    and node["c"]
+                    and node["c"][0] == "typst"
+                ):
                     found["typst_raw"].append(node)
                 if node.get("t") == "Link":
                     found["links"].append(node)
@@ -1038,8 +1148,9 @@ class TestCaptionFormat:
 
         walk(blocks)
         assert not found["typst_raw"], "figure ref must not be a Typst-only RawInline"
-        assert any(link["c"][2][0] == "#fig-x" for link in found["links"]), \
+        assert any(link["c"][2][0] == "#fig-x" for link in found["links"]), (
             "figure ref must be a pandoc Link targeting #fig-x"
+        )
 
 
 class TestCitationsAsPlainText:
@@ -1058,9 +1169,12 @@ class TestCitationsAsPlainText:
         ::
         """)
         import json
+
         full = json.dumps(blocks)
         # Must NOT contain Pandoc Cite objects (Typst can't resolve them)
-        assert '"t": "Cite"' not in full, "Citations should be plain text, not Cite objects"
+        assert '"t": "Cite"' not in full, (
+            "Citations should be plain text, not Cite objects"
+        )
         # Should contain the citation as a Str
         assert '"t": "Str"' in full
 
@@ -1076,7 +1190,11 @@ class TestMissingBlockHandlers:
         ::
         """)
         text = str(blocks)
-        assert "online" in text.lower() or "widget" in text.lower() or "html" in text.lower()
+        assert (
+            "online" in text.lower()
+            or "widget" in text.lower()
+            or "html" in text.lower()
+        )
 
     def test_video_emits_placeholder(self):
         blocks = _blocks("""\
@@ -1100,11 +1218,13 @@ class TestMissingBlockHandlers:
     def test_subproof_does_not_warn(self):
         """Subproof should be handled without fallback warning."""
         from rsm import nodes as n
+
         assert n.Subproof in PandocTranslator._BLOCK_DISPATCH
 
     def test_construct_dispatch_exists(self):
         """ClaimBlock, Construct, Statement should be in dispatch."""
         from rsm import nodes as n
+
         assert n.ClaimBlock in PandocTranslator._BLOCK_DISPATCH
         assert n.Construct in PandocTranslator._BLOCK_DISPATCH
         assert n.Statement in PandocTranslator._BLOCK_DISPATCH
@@ -1117,6 +1237,7 @@ class TestClickableCitations:
         """When cite resolves to a Bibitem with label, emit a Link."""
         from rsm.pandoc import PandocTranslator
         from rsm import nodes
+
         # Simulate a resolved cite with a real Bibitem target
         translator = PandocTranslator()
         bibitem = nodes.Bibitem(label="smith2024")
@@ -1125,6 +1246,7 @@ class TestClickableCitations:
         cite.targets = [bibitem]
         result = translator._inline_cite(cite)
         import json
+
         full = json.dumps(result)
         assert '"t": "Link"' in full
         assert "#ref-smith2024" in full
@@ -1134,6 +1256,7 @@ class TestClickableCitations:
         """Citations must not use Pandoc Cite objects."""
         from rsm.pandoc import PandocTranslator
         from rsm import nodes
+
         translator = PandocTranslator()
         bibitem = nodes.Bibitem(label="test")
         bibitem.number = 1
@@ -1141,6 +1264,7 @@ class TestClickableCitations:
         cite.targets = [bibitem]
         result = translator._inline_cite(cite)
         import json
+
         full = json.dumps(result)
         assert '"t": "Cite"' not in full
 
@@ -1148,6 +1272,7 @@ class TestClickableCitations:
         """Bibliography entries should have ref-{label} anchor IDs."""
         from rsm.pandoc import PandocTranslator
         from rsm import nodes
+
         translator = PandocTranslator()
         bibitem = nodes.Bibitem(label="smith2024")
         bibitem.number = 1
@@ -1156,6 +1281,7 @@ class TestClickableCitations:
         bibitem.year = 2024
         result = translator._format_bibitem(bibitem)
         import json
+
         full = json.dumps(result)
         assert "ref-smith2024" in full
 
@@ -1163,6 +1289,7 @@ class TestClickableCitations:
         """Unresolved cites should render as plain text, not crash."""
         from rsm.pandoc import PandocTranslator
         from rsm import nodes
+
         translator = PandocTranslator()
         unknown = nodes.UnknownBibitem()
         unknown.number = "?"
@@ -1170,6 +1297,7 @@ class TestClickableCitations:
         cite.targets = [unknown]
         result = translator._inline_cite(cite)
         import json
+
         full = json.dumps(result)
         assert "?" in full
 

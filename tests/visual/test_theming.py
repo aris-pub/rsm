@@ -112,4 +112,6 @@ class TestTheming:
         )
         assert rgb is not None, "no opaque page background found"
         luminance = 0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2]
-        assert luminance < 90, f"page background {rgb} is not dark (luminance {luminance:.0f})"
+        assert luminance < 90, (
+            f"page background {rgb} is not dark (luminance {luminance:.0f})"
+        )

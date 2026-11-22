@@ -38,6 +38,8 @@ TOLERANCE = 50
 # Added some time after RSM is ready, so the restore happens first.
 SLOW_MATH_CSS = ".manuscript .mathblock { padding-top: 140px !important; }"
 SLOW_DELAY_S = 1.5
+
+
 def _slow_math_script(delay_s: float) -> str:
     return f"""
 (() => {{
@@ -297,9 +299,12 @@ class TestLateLayout:
         page.mouse.move(700, 400)
         page.mouse.wheel(0, 600)
         page.wait_for_timeout(200)
-        assert page.evaluate(
-            "() => getComputedStyle(document.querySelector('.manuscript .mathblock')).paddingTop"
-        ) != "140px"
+        assert (
+            page.evaluate(
+                "() => getComputedStyle(document.querySelector('.manuscript .mathblock')).paddingTop"
+            )
+            != "140px"
+        )
         read_at = page.evaluate("() => window.scrollY")
         assert abs(_top(page, "par-3-4") - (SENDER_TOP - 600)) <= TOLERANCE
         _wait_slow_css(page)
@@ -333,7 +338,9 @@ class TestOldTokens:
         )
         _settle(page)
         assert abs(_top(page, "stp-f3")) <= TOLERANCE
-        expect(page.locator(".proof-rail")).not_to_have_class(re.compile(r"\bhas-pin\b"))
+        expect(page.locator(".proof-rail")).not_to_have_class(
+            re.compile(r"\bhas-pin\b")
+        )
 
 
 class TestPins:
@@ -399,7 +406,9 @@ class TestPins:
         expect(page.locator(".rsm-shared-pill")).to_have_count(0)
         assert page.evaluate("() => JSON.stringify({...localStorage})") == saved_before
 
-    def test_a_pinned_copy_fold_is_not_carried(self, page: Page, interactive_server: str):
+    def test_a_pinned_copy_fold_is_not_carried(
+        self, page: Page, interactive_server: str
+    ):
         _fresh_sender(page, interactive_server)
         self._pin(page, "lem-main")
         copy = page.locator('.rail-pinned-body > [data-pin-target="#lem-main"]')
@@ -538,7 +547,10 @@ class TestSlowLoad:
 
         token = _encode({"v": 1, "anchor": "par-4-2", "anchorTop": SENDER_TOP})
         self._open_with_slow_fonts(
-            page, f"{interactive_server}/shareview_long.html?view={token}", "par-4-2", click
+            page,
+            f"{interactive_server}/shareview_long.html?view={token}",
+            "par-4-2",
+            click,
         )
         assert abs(self._shown(page)["top"] - SENDER_TOP) <= TOLERANCE
         assert abs(page.evaluate("() => scrollY") - read_at["y"]) <= 2, read_at

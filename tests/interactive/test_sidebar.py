@@ -29,7 +29,9 @@ def _rail_class(page: Page) -> str:
 
 
 def _is_open(page: Page) -> bool:
-    return page.evaluate("() => document.documentElement.classList.contains('rail-open')")
+    return page.evaluate(
+        "() => document.documentElement.classList.contains('rail-open')"
+    )
 
 
 def _show(page: Page, view: str) -> None:
@@ -56,11 +58,21 @@ def test_strip_opens_switches_and_closes(page: Page, interactive_server: str):
     assert _is_open(page)
     assert "scope-document" in _rail_class(page)
     assert "doc-view-map" in _rail_class(page)
-    assert page.locator('.rail-strip-btn[data-view="contents"]').get_attribute("aria-pressed") == "true"
+    assert (
+        page.locator('.rail-strip-btn[data-view="contents"]').get_attribute(
+            "aria-pressed"
+        )
+        == "true"
+    )
     page.click('.rail-strip-btn[data-view="steps"]')
     assert "scope-proof" in _rail_class(page)
     assert "proof-view-map" in _rail_class(page)
-    assert page.locator('.rail-strip-btn[data-view="contents"]').get_attribute("aria-pressed") == "false"
+    assert (
+        page.locator('.rail-strip-btn[data-view="contents"]').get_attribute(
+            "aria-pressed"
+        )
+        == "false"
+    )
     # The open view's own icon closes the panel.
     page.click('.rail-strip-btn[data-view="steps"]')
     assert not _is_open(page)
@@ -126,7 +138,9 @@ def test_proof_state_view(page: Page, interactive_server: str):
     assert "proof-view-map" not in _rail_class(page)
 
 
-def test_panel_starts_closed_but_remembers_the_view(page: Page, interactive_server: str):
+def test_panel_starts_closed_but_remembers_the_view(
+    page: Page, interactive_server: str
+):
     """The panel always starts closed; the reader's last view is remembered for
     the next time they open it."""
     _load(page, interactive_server)
@@ -387,7 +401,9 @@ def test_proof_state_shows_document_context(page: Page, interactive_server: str)
     )
     block = page.wait_for_selector(".rail-state .rail-context", timeout=5_000)
     text = block.inner_text()
-    assert "in scope" in text.lower()  # the document-context group, label uppercased by CSS
+    assert (
+        "in scope" in text.lower()
+    )  # the document-context group, label uppercased by CSS
     assert "spectral radius" in text
     # the cloned introduction keeps its construct keyword (WRITE)
     assert block.query_selector(".keyword") is not None
@@ -431,7 +447,9 @@ def test_proof_state_group_keyboard_operable(page: Page, interactive_server: str
             el.click();
         }"""
     )
-    head = page.wait_for_selector(".rail-state .rail-goal .rail-state-head", timeout=5_000)
+    head = page.wait_for_selector(
+        ".rail-state .rail-goal .rail-state-head", timeout=5_000
+    )
     # The PROVE band renders expanded.
     assert head.get_attribute("aria-expanded") == "true"
     # Keyboard-focusable: focus lands on the native button (not skipped/disabled).
@@ -489,7 +507,9 @@ def test_proof_state_rows_are_uniform_jump_rows(page: Page, interactive_server: 
     hyp_nums = page.locator(".rail-state .rail-hyps .rail-state-num")
     hyp_texts = [hyp_nums.nth(i).inner_text().strip() for i in range(hyp_nums.count())]
     assert any(t.startswith("⟨") and t.endswith("⟩") for t in hyp_texts)
-    ctx_num = page.locator(".rail-state .rail-context .rail-state-num").first.inner_text()
+    ctx_num = page.locator(
+        ".rail-state .rail-context .rail-state-num"
+    ).first.inner_text()
     assert ctx_num.strip().startswith("§")
 
 
@@ -593,13 +613,17 @@ def test_proof_state_goal_section_marker_reads_as_section(
         ".rail-state .rail-goal .rail-goal-summary .rail-state-num", timeout=5_000
     )
     text = goal_num.inner_text().strip()
-    assert text.startswith("§"), f"section marker should lead with the section sign: {text!r}"
+    assert text.startswith("§"), (
+        f"section marker should lead with the section sign: {text!r}"
+    )
     assert "(" not in text and ")" not in text, f"no step-like brackets: {text!r}"
     # Tagged as a section marker so CSS renders it small and muted.
     assert "rail-state-num-section" in (goal_num.get_attribute("class") or "")
     # Step rows (ASSUME) keep the ⟨n⟩ glyph, visibly unlike the goal marker.
     hyp_num = (
-        page.locator(".rail-state .rail-hyps .rail-state-num").first.inner_text().strip()
+        page.locator(".rail-state .rail-hyps .rail-state-num")
+        .first.inner_text()
+        .strip()
     )
     assert hyp_num.startswith("⟨") and hyp_num.endswith("⟩"), hyp_num
     # "Tiny": the section marker renders smaller than the step glyph. Both are
@@ -660,12 +684,19 @@ def test_reading_theme_offers_system(page: Page, interactive_server: str):
     page.wait_for_function(RSM_READY, timeout=10_000)
     _show(page, "reading")
     row = page.locator('.reading-row[data-control="theme"]')
-    values = [row.locator(".reading-opt").nth(i).get_attribute("data-value") for i in range(3)]
+    values = [
+        row.locator(".reading-opt").nth(i).get_attribute("data-value") for i in range(3)
+    ]
     assert values == ["system", "light", "dark"]
     # With no stored choice, System is the active one.
-    assert row.locator('.reading-opt[data-value="system"]').get_attribute("aria-pressed") == "true"
+    assert (
+        row.locator('.reading-opt[data-value="system"]').get_attribute("aria-pressed")
+        == "true"
+    )
     row.locator('.reading-opt[data-value="dark"]').click()
-    assert page.evaluate("() => document.documentElement.classList.contains('dark-theme')")
+    assert page.evaluate(
+        "() => document.documentElement.classList.contains('dark-theme')"
+    )
     row.locator('.reading-opt[data-value="system"]').click()
     assert page.evaluate(
         "() => !document.documentElement.classList.contains('dark-theme')"
@@ -792,7 +823,9 @@ def test_keyboard_opens_and_escape_returns_focus(page: Page, interactive_server:
     )
 
 
-def test_interface_tooltip_on_hover_and_keyboard_focus(page: Page, interactive_server: str):
+def test_interface_tooltip_on_hover_and_keyboard_focus(
+    page: Page, interactive_server: str
+):
     _load(page, interactive_server)
     page.evaluate("() => localStorage.clear()")
     page.reload()
@@ -807,7 +840,9 @@ def test_interface_tooltip_on_hover_and_keyboard_focus(page: Page, interactive_s
     )
     assert expect_tip
     assert (
-        page.locator('.rail-strip-btn[data-view="contents"]').get_attribute("aria-describedby")
+        page.locator('.rail-strip-btn[data-view="contents"]').get_attribute(
+            "aria-describedby"
+        )
         == "rsm-ui-tip"
     )
     # Beside the strip, not over it.
@@ -842,11 +877,21 @@ def test_reading_settings_apply_and_persist(page: Page, interactive_server: str)
     width_before = page.evaluate(
         "() => document.querySelector('main.manuscriptwrapper').getBoundingClientRect().width"
     )
-    for control, value in [("typeface", "serif"), ("size", "4"), ("leading", "loose"), ("measure", "narrow")]:
-        page.click(f'.reading-row[data-control="{control}"] .reading-opt[data-value="{value}"]')
-        assert page.evaluate(
-            f"() => document.documentElement.getAttribute('data-reading-{control}')"
-        ) == value
+    for control, value in [
+        ("typeface", "serif"),
+        ("size", "4"),
+        ("leading", "loose"),
+        ("measure", "narrow"),
+    ]:
+        page.click(
+            f'.reading-row[data-control="{control}"] .reading-opt[data-value="{value}"]'
+        )
+        assert (
+            page.evaluate(
+                f"() => document.documentElement.getAttribute('data-reading-{control}')"
+            )
+            == value
+        )
     page.wait_for_timeout(400)
     width_after = page.evaluate(
         "() => document.querySelector('main.manuscriptwrapper').getBoundingClientRect().width"
@@ -854,10 +899,17 @@ def test_reading_settings_apply_and_persist(page: Page, interactive_server: str)
     assert width_after < width_before, (width_before, width_after)
     page.reload()
     page.wait_for_function(RSM_READY, timeout=10_000)
-    assert page.evaluate("() => document.documentElement.getAttribute('data-reading-size')") == "4"
+    assert (
+        page.evaluate(
+            "() => document.documentElement.getAttribute('data-reading-size')"
+        )
+        == "4"
+    )
     _show(page, "reading")
     assert (
-        page.locator('.reading-row[data-control="size"] .reading-opt[data-value="4"]').get_attribute("aria-pressed")
+        page.locator(
+            '.reading-row[data-control="size"] .reading-opt[data-value="4"]'
+        ).get_attribute("aria-pressed")
         == "true"
     )
 
@@ -869,7 +921,12 @@ def test_phone_sheet_carries_over_to_desktop(page: Page, interactive_server: str
     page.set_viewport_size({"width": 1400, "height": 900})
     page.wait_for_timeout(300)
     assert _is_open(page)
-    assert page.locator('.rail-strip-btn[data-view="notation"]').get_attribute("aria-pressed") == "true"
+    assert (
+        page.locator('.rail-strip-btn[data-view="notation"]').get_attribute(
+            "aria-pressed"
+        )
+        == "true"
+    )
     assert page.locator(".rail-title").inner_text() == "Notation"
 
 
@@ -880,9 +937,16 @@ def test_phone_symbol_opens_notation_tab(page: Page, interactive_server: str):
         "() => document.activeElement && document.activeElement.classList.contains('rail-notation-input')",
         timeout=5_000,
     )
-    assert page.locator('.rail-strip-btn[data-view="document"]').get_attribute("aria-pressed") == "true"
     assert (
-        page.locator('.rail-subtabs-document .rail-tab[data-view="notation"]').get_attribute("aria-selected")
+        page.locator('.rail-strip-btn[data-view="document"]').get_attribute(
+            "aria-pressed"
+        )
+        == "true"
+    )
+    assert (
+        page.locator(
+            '.rail-subtabs-document .rail-tab[data-view="notation"]'
+        ).get_attribute("aria-selected")
         == "true"
     )
 

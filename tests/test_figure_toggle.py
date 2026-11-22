@@ -11,28 +11,28 @@ class TestDataStaticAttribute:
             "## S\n\n:figure: {\n  :path: widget.html\n  :static: fallback.png\n}\n::\n",
             handrails=False,
         )
-        assert 'data-static=' in html
+        assert "data-static=" in html
 
     def test_figure_node_has_data_static(self):
         html = rsm.render(
             "## S\n\n:figure: {\n  :path: photo.png\n  :static: photo-lowres.png\n}\n::\n",
             handrails=False,
         )
-        assert 'data-static=' in html
+        assert "data-static=" in html
 
     def test_no_data_static_when_not_set(self):
         html = rsm.render(
             "## S\n\n:figure: {\n  :path: photo.png\n}\n::\n",
             handrails=False,
         )
-        assert 'data-static' not in html
+        assert "data-static" not in html
 
     def test_data_static_on_html_without_static(self):
         html = rsm.render(
             "## S\n\n:figure: {\n  :path: widget.html\n}\n::\n",
             handrails=False,
         )
-        assert 'data-static' not in html
+        assert "data-static" not in html
 
 
 class TestStaticFallbackImage:
@@ -58,7 +58,7 @@ class TestStaticFallbackImage:
             "## S\n\n:figure: {\n  :path: photo.png\n}\n::\n",
             handrails=False,
         )
-        assert 'static-fallback' not in html
+        assert "static-fallback" not in html
 
 
 class TestStaticToggleMenuItem:

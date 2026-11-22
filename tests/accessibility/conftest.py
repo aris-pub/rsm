@@ -67,7 +67,9 @@ def serve_rsm_a11y(page: Any, tmp_path: Path) -> Callable[[str, bool], Any]:
 
         # Add dark theme class if requested
         if dark_theme:
-            html_content = html_content.replace('<html lang="en"', '<html lang="en" class="dark-theme"')
+            html_content = html_content.replace(
+                '<html lang="en"', '<html lang="en" class="dark-theme"'
+            )
             html_file.write_text(html_content)
 
         # Start HTTP server in background thread
@@ -80,6 +82,7 @@ def serve_rsm_a11y(page: Any, tmp_path: Path) -> Callable[[str, bool], Any]:
 
         # Create server serving the output directory
         import os
+
         original_dir = os.getcwd()
         os.chdir(output_dir)
 

@@ -33,8 +33,10 @@ def _copy_view_url(page: Page) -> str:
 
 
 def _step_order(page: Page):
-    return page.locator(".proof.hr").first.locator(".step").evaluate_all(
-        "els => els.map(e => e.id)"
+    return (
+        page.locator(".proof.hr")
+        .first.locator(".step")
+        .evaluate_all("els => els.map(e => e.id)")
     )
 
 
@@ -55,7 +57,9 @@ class TestCopyAction:
         assert "view=" in url
         assert "view" in parse_qs(urlparse(url).query)
 
-    def test_copy_confirms_in_manuscript_terms(self, page: Page, interactive_server: str):
+    def test_copy_confirms_in_manuscript_terms(
+        self, page: Page, interactive_server: str
+    ):
         _load(page, interactive_server)
         _copy_view_url(page)
         toast = page.locator(".toast").last
@@ -138,7 +142,9 @@ class TestRestore:
         page.locator('#hr-menu-singleton [data-role="reorder"]').click()
         handle = page.locator("#stp-b .reorder-handle").first.bounding_box()
         a = page.locator("#stp-a").bounding_box()
-        page.mouse.move(handle["x"] + handle["width"] / 2, handle["y"] + handle["height"] / 2)
+        page.mouse.move(
+            handle["x"] + handle["width"] / 2, handle["y"] + handle["height"] / 2
+        )
         page.mouse.down()
         page.mouse.move(a["x"] + 40, a["y"] + 5, steps=12)
         page.mouse.up()

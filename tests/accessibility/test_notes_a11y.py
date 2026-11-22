@@ -23,7 +23,6 @@ def _format(violations: list) -> str:
 
 @pytest.mark.accessibility
 class TestNotesAccessibility:
-
     @pytest.mark.parametrize("theme", ["light", "dark"])
     @pytest.mark.parametrize("viewport_name,width,height", WIDTHS)
     def test_notes_list_page(

@@ -12,6 +12,7 @@ def _bibitem_count(block: str) -> int:
     html = rsm.render("# T\n\n" + block, handrails=False, source_offsets=False)
     return html.count('class="bibitem"')
 
+
 HAS_ANYSTYLE = shutil.which("anystyle") is not None
 
 
@@ -61,7 +62,13 @@ def test_emit_structured_type_map():
 
 def test_emit_year_extracted_from_date():
     out = _emit_structured(
-        "k", {"type": "book", "title": ["T"], "author": [{"family": "A"}], "date": ["2020-05-01"]}
+        "k",
+        {
+            "type": "book",
+            "title": ["T"],
+            "author": [{"family": "A"}],
+            "date": ["2020-05-01"],
+        },
     )
     assert "year={2020}" in out
 
@@ -70,7 +77,10 @@ def test_emit_year_extracted_from_date():
 
 
 def test_block_bib_passthrough(tmp_path):
-    _w(tmp_path / "refs.bib", "@book{knuth, title={TAOCP}, author={Knuth, D}, year={1968}}")
+    _w(
+        tmp_path / "refs.bib",
+        "@book{knuth, title={TAOCP}, author={Knuth, D}, year={1968}}",
+    )
     block = references_block(r"\cite{knuth} \bibliography{refs}", tmp_path)
     assert block.startswith(":references:")
     assert block.rstrip().endswith("::")
@@ -84,7 +94,12 @@ def test_block_structured(monkeypatch, tmp_path):
             StructuredReference(
                 r.key,
                 r.raw,
-                {"type": "article-journal", "title": ["T"], "author": [{"family": "A"}], "date": ["2021"]},
+                {
+                    "type": "article-journal",
+                    "title": ["T"],
+                    "author": [{"family": "A"}],
+                    "date": ["2021"],
+                },
             )
             for r in refs
         ]

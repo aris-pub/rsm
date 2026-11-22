@@ -67,12 +67,16 @@ def test_touch_media_matches(touch_page: Page):
 def test_chevron_dropped_on_touch(touch_page: Page):
     c = touch_page.evaluate(_PROBE)
     assert c, "no block with both controls found"
-    assert c["chevronDisplay"] == "none", "the per-block collapse chevron must be hidden on touch"
+    assert c["chevronDisplay"] == "none", (
+        "the per-block collapse chevron must be hidden on touch"
+    )
 
 
 def test_dots_break_the_rule_at_rest(touch_page: Page):
     c = touch_page.evaluate(_PROBE)
-    assert c["dotsOpacity"] >= 0.9, "the dots are the block's control on touch; show them solid"
+    assert c["dotsOpacity"] >= 0.9, (
+        "the dots are the block's control on touch; show them solid"
+    )
     assert c["dotsBgAlpha"] == 1, (
         "at rest the dots match the page background (opaque), breaking the rule"
     )
@@ -93,7 +97,9 @@ def test_dots_pill_appears_on_menu_open(touch_page: Page):
                  radius: getComputedStyle(d).borderRadius };
     }"""
     )
-    assert r["open"] != r["rest"], "the pill background should appear (change) when the menu opens"
+    assert r["open"] != r["rest"], (
+        "the pill background should appear (change) when the menu opens"
+    )
     assert r["radius"] != "0px", "the open-menu pill is rounded"
 
 
@@ -125,7 +131,9 @@ def test_collapse_moves_into_menu_on_touch(touch_page: Page):
     """The chevron is hidden on touch, so its collapse/expand action must appear
     as a menu item for every chevron-collapsible block, even ones the build did
     not mark menu-collapsible."""
-    assert touch_page.evaluate(_OPEN_CHEVRON_BLOCK_MENU), "no chevron-collapsible block found"
+    assert touch_page.evaluate(_OPEN_CHEVRON_BLOCK_MENU), (
+        "no chevron-collapsible block found"
+    )
     expect(
         touch_page.locator('#hr-menu-singleton [data-role="collapse"]')
     ).to_be_visible()
@@ -137,9 +145,7 @@ def test_collapse_stays_off_the_menu_on_desktop(page: Page, interactive_server: 
     page.goto(f"{interactive_server}/sidebar.html")
     page.wait_for_function(RSM_READY, timeout=10_000)
     assert page.evaluate(_OPEN_CHEVRON_BLOCK_MENU), "no chevron-collapsible block found"
-    expect(
-        page.locator('#hr-menu-singleton [data-role="collapse"]')
-    ).to_be_hidden()
+    expect(page.locator('#hr-menu-singleton [data-role="collapse"]')).to_be_hidden()
 
 
 def test_menu_opens_within_viewport_on_touch(touch_page: Page):

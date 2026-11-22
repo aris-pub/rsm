@@ -466,10 +466,16 @@ def test_step_number_stacks_above_its_leading_equation_number():
 def test_step_with_text_before_its_equation_is_not_stacked():
     html = _build(STEP_STARTS_WITH_EQN)
     # Step 1 starts with text, so its number and the equation's stay apart.
-    assert '<div class="hr-info"><div class="step-number"><p>⟨1⟩</p></div></div>' in html
-    assert '<div class="hr-info"><div class="eqn-number"><p>(1.1)</p></div></div>' in html
+    assert (
+        '<div class="hr-info"><div class="step-number"><p>⟨1⟩</p></div></div>' in html
+    )
+    assert (
+        '<div class="hr-info"><div class="eqn-number"><p>(1.1)</p></div></div>' in html
+    )
 
 
 def test_step_with_unnumbered_leading_equation_is_not_stacked():
     html = _build(STEP_STARTS_WITH_EQN)
-    assert '<div class="hr-info"><div class="step-number"><p>⟨3⟩</p></div></div>' in html
+    assert (
+        '<div class="hr-info"><div class="step-number"><p>⟨3⟩</p></div></div>' in html
+    )

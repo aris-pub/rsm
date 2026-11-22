@@ -155,7 +155,7 @@ def test_locate_skips_hidden_uses(page: Page, interactive_server: str):
             window.scrollTo(0, 0);
         }"""
     )
-    page.locator('.proof-rail .rail-notation-locate').first.click()
+    page.locator(".proof-rail .rail-notation-locate").first.click()
     page.wait_for_timeout(700)
     box = page.evaluate(
         """() => {
@@ -166,7 +166,9 @@ def test_locate_skips_hidden_uses(page: Page, interactive_server: str):
         }"""
     )
     assert box is not None, "locate should flash a use"
-    assert box["w"] > 0 and box["h"] > 0, "locate must flash a visible use, not a hidden one"
+    assert box["w"] > 0 and box["h"] > 0, (
+        "locate must flash a visible use, not a hidden one"
+    )
 
 
 def test_nojs_shows_default_symbols(browser: Browser, interactive_server: str):
@@ -250,7 +252,9 @@ def test_reset_fires_change_event(page: Page, interactive_server: str):
     assert "λ" in events[1]["inline"]
 
 
-def test_stored_override_fires_change_event_on_load(page: Page, interactive_server: str):
+def test_stored_override_fires_change_event_on_load(
+    page: Page, interactive_server: str
+):
     _load(page, interactive_server)
     assert _set_macro(page, "\\eig", "\\mu") is True
     page.add_init_script(_RECORD_EVENTS)
@@ -310,4 +314,3 @@ def test_notation_renders_without_errors(page: Page, interactive_server: str):
     _load(page, interactive_server)
     assert page.locator("mjx-container mjx-merror").count() == 0
     assert page.locator("mjx-container mjx-mtext[style*='color: red']").count() == 0
-

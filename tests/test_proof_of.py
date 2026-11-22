@@ -72,9 +72,7 @@ def test_of_seeds_state_with_theorem_hyps_and_goal():
     tree = _run(SRC)
     proof = _proof(tree)
     thm = next(iter(tree.traverse(nodeclass=nodes.Theorem)))
-    let_c = next(
-        c for c in thm.traverse(nodeclass=nodes.Construct) if c.kind == "let"
-    )
+    let_c = next(c for c in thm.traverse(nodeclass=nodes.Construct) if c.kind == "let")
     first = proof.step_state[0]
     assert any(h["node"] is let_c for h in first["hyps"]), "theorem :let: not seeded"
     assert first["goal"]["node"] is thm
@@ -89,6 +87,7 @@ def test_of_renders_linked_lead():
 
 def test_unknown_of_label_is_an_error():
     import pytest
+
     bad = SRC.replace(":of: thm-x", ":of: thm-nope")
     with pytest.raises(Exception):
         rsm.render(bad, handrails=True)

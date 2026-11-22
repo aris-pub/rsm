@@ -86,7 +86,9 @@ def test_code_lang_is_not_checked_as_a_language_code(caplog):
         ("lang", "invalid123", "lang", "en", "a language code"),
     ],
 )
-def test_bad_config_word_is_logged_and_default_used(caplog, key, bad, attr, default, allowed):
+def test_bad_config_word_is_logged_and_default_used(
+    caplog, key, bad, attr, default, allowed
+):
     src = _config(f"  :label: c\n  :{key}: {bad}\n")
     tree = _parse(src)
     assert getattr(tree, attr) == default
@@ -106,7 +108,10 @@ def test_bad_config_word_does_not_stop_the_build(caplog):
 
 @pytest.mark.parametrize(
     "key,bad,allowed",
-    [("view", "graph", "list, tree"), ("orientation", "sideways", "horizontal, vertical")],
+    [
+        ("view", "graph", "list, tree"),
+        ("orientation", "sideways", "horizontal, vertical"),
+    ],
 )
 def test_bad_toc_word_is_logged_and_default_used(caplog, key, bad, allowed):
     tree = _parse(f":toc: {{\n  :{key}: {bad}\n}}\n::\n\n## One\n\nText.\n")

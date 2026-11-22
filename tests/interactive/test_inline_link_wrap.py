@@ -115,7 +115,12 @@ def test_bare_url_never_scrolls_horizontally(page: Page, tmp_path, width, scheme
     page.wait_for_timeout(200)
 
     # overflow-wrap lets the unbreakable URL break mid-string across fragments.
-    assert page.eval_on_selector("a[href*='example.com']", "e => e.getClientRects().length") >= 2
+    assert (
+        page.eval_on_selector(
+            "a[href*='example.com']", "e => e.getClientRects().length"
+        )
+        >= 2
+    )
     assert page.evaluate(
         "() => document.documentElement.scrollWidth <= document.documentElement.clientWidth"
     )

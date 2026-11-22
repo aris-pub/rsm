@@ -37,7 +37,9 @@ def test_back_pill_is_a_labelled_button(page: Page, interactive_server: str):
     assert pill.get_attribute("aria-label"), "pill needs an aria-label"
 
 
-def test_jump_shows_pill_then_click_returns_and_dismisses(page: Page, interactive_server: str):
+def test_jump_shows_pill_then_click_returns_and_dismisses(
+    page: Page, interactive_server: str
+):
     _load(page, interactive_server)
     # Sit at an in-text reference near the bottom, note the position, then follow
     # it (a native hash jump up to the theorem).
@@ -50,11 +52,18 @@ def test_jump_shows_pill_then_click_returns_and_dismisses(page: Page, interactiv
     # The jump moved the viewport; the pill offers a way back.
     page.wait_for_selector(PILL_VISIBLE, timeout=3000)
     # It does not steal focus: the jumped-to block keeps it (a11y).
-    assert page.evaluate("() => document.activeElement.classList.contains('rsm-back-pill')") is False
+    assert (
+        page.evaluate(
+            "() => document.activeElement.classList.contains('rsm-back-pill')"
+        )
+        is False
+    )
 
     page.locator(PILL).click()
     # Clicking returns the reader to where they were (native Back restores scroll)
-    page.wait_for_function(f"() => Math.abs(window.scrollY - {y_before}) < 150", timeout=3000)
+    page.wait_for_function(
+        f"() => Math.abs(window.scrollY - {y_before}) < 150", timeout=3000
+    )
     # ...and the pill dismisses once we are back.
     page.wait_for_function(
         "() => !document.querySelector('.rsm-back-pill').classList.contains('is-visible')",
@@ -119,7 +128,9 @@ def test_pill_hides_after_8_seconds(page: Page, interactive_server: str):
     assert not _pill_visible(page)
 
 
-def test_hover_pauses_timer_and_leaving_restarts_it(page: Page, interactive_server: str):
+def test_hover_pauses_timer_and_leaving_restarts_it(
+    page: Page, interactive_server: str
+):
     _jump_with_clock(page, interactive_server)
     page.locator(PILL).hover()
     page.clock.fast_forward(HIDE_MS + 2000)

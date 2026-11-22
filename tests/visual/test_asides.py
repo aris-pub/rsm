@@ -21,7 +21,13 @@ FIXTURES = Path(__file__).parents[1] / "interactive" / "fixtures"
 SRC = (FIXTURES / "asides.rsm").read_text()
 
 # 1280 and 1440: the column fits. 768 and 375: it does not.
-WIDTHS = [("wide-1440", 1440), ("desktop-1280", 1280), ("tablet-768", 768), ("mobile-375", 375), ("phone-375", 375)]
+WIDTHS = [
+    ("wide-1440", 1440),
+    ("desktop-1280", 1280),
+    ("tablet-768", 768),
+    ("mobile-375", 375),
+    ("phone-375", 375),
+]
 NARROW = WIDTHS[2:]
 WIDE = WIDTHS[:2]
 
@@ -82,8 +88,16 @@ class TestAsides:
     ) -> None:
         """Every aside opened below its block, two of them in one paragraph."""
         _open(page, serve_rsm_html, width, scheme)
-        for i in ["a-one", "a-two", "a-three", "a-fig", "a-item", "a-step",
-                  "a-pair-2", "a-pair-1"]:
+        for i in [
+            "a-one",
+            "a-two",
+            "a-three",
+            "a-fig",
+            "a-item",
+            "a-step",
+            "a-pair-2",
+            "a-pair-1",
+        ]:
             page.click(f"#call-{i}")
         _settle(page)
         assert_snapshot(_shot(page))
@@ -141,7 +155,9 @@ class TestAsides:
         assert_snapshot(_top_shot(page))
 
     @pytest.mark.parametrize("scheme", ["light", "dark"])
-    @pytest.mark.parametrize("name,width", [("desktop-1280", 1280), ("mobile-375", 375)])
+    @pytest.mark.parametrize(
+        "name,width", [("desktop-1280", 1280), ("mobile-375", 375)]
+    )
     def test_hover_preview(
         self, serve_rsm_html, page: Page, assert_snapshot, name, width, scheme
     ) -> None:
@@ -176,7 +192,9 @@ def _serve_static(tmp_path: Path):
         strict=True,
         sidebar=True,
     )
-    handler = functools.partial(http.server.SimpleHTTPRequestHandler, directory=str(out))
+    handler = functools.partial(
+        http.server.SimpleHTTPRequestHandler, directory=str(out)
+    )
     server = socketserver.TCPServer(("127.0.0.1", 0), handler)
     threading.Thread(target=server.serve_forever, daemon=True).start()
     return f"http://127.0.0.1:{server.server_address[1]}/asides.html", server
@@ -186,7 +204,9 @@ def _serve_static(tmp_path: Path):
 class TestAsidesNoJS:
     @pytest.mark.parametrize("scheme", ["light", "dark"])
     @pytest.mark.parametrize("width", [375, 1280])
-    def test_without_js(self, browser, assert_snapshot, tmp_path, width, scheme) -> None:
+    def test_without_js(
+        self, browser, assert_snapshot, tmp_path, width, scheme
+    ) -> None:
         """Without scripts every aside is open below its block."""
         url, server = _serve_static(tmp_path)
         ctx = browser.new_context(

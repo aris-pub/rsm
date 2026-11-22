@@ -46,9 +46,7 @@ def _text(html: str) -> str:
     return "".join(parser.parts)
 
 
-@pytest.mark.parametrize(
-    "word", ["K-theory", "1-2", "x-axis", "Cohen-Macaulay-type"]
-)
+@pytest.mark.parametrize("word", ["K-theory", "1-2", "x-axis", "Cohen-Macaulay-type"])
 def test_hyphenated_word_in_paragraph(word):
     html = _body(f"The {word} here.")
     assert f"The {OPEN}{word}</span> here." in html
@@ -97,7 +95,9 @@ def test_plain_heading():
 
 def test_heading_with_math():
     html = _render("# T\n\n## Floor, ceiling, slopes, and $K$-theory\n\nBar.\n")
-    assert f"<h2>1. Floor, ceiling, slopes, and {OPEN}{MATH_K}-theory</span></h2>" in html
+    assert (
+        f"<h2>1. Floor, ceiling, slopes, and {OPEN}{MATH_K}-theory</span></h2>" in html
+    )
 
 
 def test_manuscript_title():
@@ -156,7 +156,9 @@ def test_text_content_is_unchanged():
     assert html.count(OPEN) == 4
     # Copying the page copies its text, which must be the source text with
     # plain hyphens and no hidden characters.
-    assert "The \\(K\\)-theory of x-axis, 1-2 and Cohen-Macaulay-type rings." in _text(html)
+    assert "The \\(K\\)-theory of x-axis, 1-2 and Cohen-Macaulay-type rings." in _text(
+        html
+    )
 
 
 def test_handrails_math_with_trailing_punctuation():
@@ -207,7 +209,10 @@ def test_italic_after_hyphen_is_one_word():
 
 def test_code_touching_hyphen_is_one_word():
     html = _no_nodeids(_body("The `foo`-style call."))
-    assert f'The {OPEN}<span class="code"><code>foo</code></span>-style</span> call.' in html
+    assert (
+        f'The {OPEN}<span class="code"><code>foo</code></span>-style</span> call.'
+        in html
+    )
 
 
 def test_reference_touching_hyphen_is_one_word():
@@ -255,7 +260,9 @@ def test_link_text_is_prose():
 
 
 def test_reference_text_is_prose():
-    html = _body(":theorem: {:label: thm} Foo. ::\n\nSee :ref:thm, the x-axis result::.")
+    html = _body(
+        ":theorem: {:label: thm} Foo. ::\n\nSee :ref:thm, the x-axis result::."
+    )
     assert f"the {OPEN}x-axis</span> result</a>" in html
 
 
@@ -295,7 +302,9 @@ def test_author_name_and_affiliation():
 
 
 def test_keywords():
-    html = _render("# T\n\n:abstract: {:keywords: non-backtracking, graphs}\n\nFoo.\n::\n")
+    html = _render(
+        "# T\n\n:abstract: {:keywords: non-backtracking, graphs}\n\nFoo.\n::\n"
+    )
     assert f"Keywords: {OPEN}non-backtracking,</span> graphs</p>" in html
 
 
@@ -311,7 +320,9 @@ def test_bibliography_entry():
         "    year={2014},\n    publisher={Addison-Wesley}\n  }\n::"
     )
     html = _body(src)
-    assert f'<div class="bib-title">{OPEN}Semi-numerical</span> algorithms</div>' in html
+    assert (
+        f'<div class="bib-title">{OPEN}Semi-numerical</span> algorithms</div>' in html
+    )
     assert f"{OPEN}Donald-E</span>" in html
     assert f'<div class="bib-venue">{OPEN}Addison-Wesley</span>' in html
 
@@ -355,7 +366,9 @@ def test_hyphen_inside_bold_touching_text_is_one_run():
 
 def test_bold_with_space_not_touching_a_hyphenated_word():
     html = _no_nodeids(_body("A **graded Cohen-Macaulay** ring and **a b**-free x-y."))
-    inner = f'<span class="span"><strong>graded {OPEN}Cohen-Macaulay</span></strong></span>'
+    inner = (
+        f'<span class="span"><strong>graded {OPEN}Cohen-Macaulay</span></strong></span>'
+    )
     assert f"A {inner} ring" in html
     run = f'{OPEN}<span class="span"><strong>a b</strong></span>-free</span>'
     assert f"and {run} {OPEN}x-y.</span>" in html

@@ -90,8 +90,7 @@ def local_refs(html: str) -> list[str]:
     refs += re.findall(r'url\("([^"]*)"\)', html)
     refs += re.findall(r"""\bfrom\s+['"]([^'"]+)['"]""", html)
     return [
-        r for r in refs
-        if r and not r.startswith(("http://", "https://", "#", "data:"))
+        r for r in refs if r and not r.startswith(("http://", "https://", "#", "data:"))
     ]
 
 
@@ -105,17 +104,33 @@ def test_layout_is_index_static_assets(tmp_path, monkeypatch):
 
     static = {p.name for p in (out / "static").iterdir()}
     for name in (
-        "onload.js", "libraries.js", "braiid.css", "pygments.css",
-        "jquery-3.6.0.js", "tooltipster.bundle.js", "tooltipster.bundle.css",
-        "pseudocode-2.4.1.min.js", "pseudocode-2.4.1.min.css",
+        "onload.js",
+        "libraries.js",
+        "braiid.css",
+        "pygments.css",
+        "jquery-3.6.0.js",
+        "tooltipster.bundle.js",
+        "tooltipster.bundle.css",
+        "pseudocode-2.4.1.min.js",
+        "pseudocode-2.4.1.min.css",
     ):
         assert name in static, name
     # MathJax keeps its own layout, so it finds its fonts beside its script.
     mathjax = out / "static" / "mathjax-3.2.2"
     assert (mathjax / "tex-chtml-full.js").exists()
     fonts = mathjax / "output" / "chtml" / "fonts" / "woff-v2"
-    vendored = Path(rsm.__file__).parent / "static" / "mathjax-3.2.2" / "output" / "chtml" / "fonts" / "woff-v2"
-    assert sorted(p.name for p in fonts.iterdir()) == sorted(p.name for p in vendored.iterdir())
+    vendored = (
+        Path(rsm.__file__).parent
+        / "static"
+        / "mathjax-3.2.2"
+        / "output"
+        / "chtml"
+        / "fonts"
+        / "woff-v2"
+    )
+    assert sorted(p.name for p in fonts.iterdir()) == sorted(
+        p.name for p in vendored.iterdir()
+    )
     assert (fonts / "MathJax_Main-Regular.woff").read_bytes() == (
         vendored / "MathJax_Main-Regular.woff"
     ).read_bytes()
@@ -140,10 +155,15 @@ def test_every_local_link_is_relative_and_resolves(tmp_path, monkeypatch):
     assert not absolute, absolute
 
     for ref in (
-        "static/braiid.css", "static/tooltipster.bundle.css",
-        "static/pseudocode-2.4.1.min.css", "assets/paper.css",
-        "static/jquery-3.6.0.js", "static/tooltipster.bundle.js",
-        "./static/onload.js", "assets/figs/plot.svg", "assets/figs/inner.svg",
+        "static/braiid.css",
+        "static/tooltipster.bundle.css",
+        "static/pseudocode-2.4.1.min.css",
+        "assets/paper.css",
+        "static/jquery-3.6.0.js",
+        "static/tooltipster.bundle.js",
+        "./static/onload.js",
+        "assets/figs/plot.svg",
+        "assets/figs/inner.svg",
         "assets/figs/static/widget.png",
     ):
         assert ref in refs, ref
@@ -160,7 +180,9 @@ def test_no_unpinned_cdn_url_in_static_js():
     for path in static.glob("*.js"):
         if path.name in vendored or ".min." in path.name:
             continue
-        for url in re.findall(r"https://cdn\.jsdelivr\.net/npm/[^'\"`\s]+", path.read_text()):
+        for url in re.findall(
+            r"https://cdn\.jsdelivr\.net/npm/[^'\"`\s]+", path.read_text()
+        ):
             package = url.split("/npm/", 1)[1].split("/", 1)[0]
             if "@" not in package or package.endswith(("@latest", "@3")):
                 bad.append((path.name, url))
@@ -177,10 +199,22 @@ def test_standalone_inlines_vendored_math_libraries():
     # config, with every font MathJax names as a data URI.
     assert "window.__rsmMathJax = function () {" in html
     assert "%%URL%%/MathJax_" not in html
-    fonts = sorted((static / "mathjax-3.2.2" / "output" / "chtml" / "fonts" / "woff-v2").glob("*.woff"))
-    named = [f for f in fonts if f"%%URL%%/{f.name}" in (static / "mathjax-3.2.2" / "tex-chtml-full.js").read_text()]
+    fonts = sorted(
+        (static / "mathjax-3.2.2" / "output" / "chtml" / "fonts" / "woff-v2").glob(
+            "*.woff"
+        )
+    )
+    named = [
+        f
+        for f in fonts
+        if f"%%URL%%/{f.name}"
+        in (static / "mathjax-3.2.2" / "tex-chtml-full.js").read_text()
+    ]
     assert named, "expected MathJax to name its fonts"
     assert html.count('url("data:font/woff;base64,') == len(named)
     assert "pseudocode@latest" not in html
     assert "@import url(https://cdnjs" not in html
-    assert '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pseudocode' not in html
+    assert (
+        '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pseudocode'
+        not in html
+    )

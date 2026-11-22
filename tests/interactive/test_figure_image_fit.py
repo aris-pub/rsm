@@ -121,9 +121,13 @@ def test_wide_image_shrinks_to_the_column(page: Page, images_page: str, label: s
     m = _measure(page, label)
 
     assert (m["natW"], m["natH"]) == WIDE
-    assert m["w"] <= m["columnW"] + 0.5, f"image {m['w']}px wider than the {m['columnW']}px column"
+    assert m["w"] <= m["columnW"] + 0.5, (
+        f"image {m['w']}px wider than the {m['columnW']}px column"
+    )
     assert m["overflow"] <= 0, f"image scrolls sideways by {m['overflow']}px"
-    assert abs(m["w"] / m["h"] - WIDE[0] / WIDE[1]) < 0.02, f"aspect ratio lost: {m['w']}x{m['h']}"
+    assert abs(m["w"] / m["h"] - WIDE[0] / WIDE[1]) < 0.02, (
+        f"aspect ratio lost: {m['w']}x{m['h']}"
+    )
 
 
 def test_dark_picture_shrinks_in_dark_mode(page: Page, images_page: str):

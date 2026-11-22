@@ -21,13 +21,17 @@ class TestWCAGCompliance:
 
         Tests: color contrast, ARIA labels, semantic HTML, keyboard access.
         """
-        fixture = Path(__file__).parent.parent / "visual" / "fixtures" / "block-types.rsm"
+        fixture = (
+            Path(__file__).parent.parent / "visual" / "fixtures" / "block-types.rsm"
+        )
         page = serve_rsm_a11y(fixture.read_text(), dark_theme=False)
 
         axe = Axe()
         results = axe.run(page)
 
-        assert len(results.response["violations"]) == 0, self._format_violations(results.response["violations"])
+        assert len(results.response["violations"]) == 0, self._format_violations(
+            results.response["violations"]
+        )
 
     def test_dark_theme_wcag_aa(
         self,
@@ -39,13 +43,17 @@ class TestWCAGCompliance:
 
         Tests: color contrast in dark mode, proper theme switching.
         """
-        fixture = Path(__file__).parent.parent / "visual" / "fixtures" / "block-types.rsm"
+        fixture = (
+            Path(__file__).parent.parent / "visual" / "fixtures" / "block-types.rsm"
+        )
         page = serve_rsm_a11y(fixture.read_text(), dark_theme=True)
 
         axe = Axe()
         results = axe.run(page)
 
-        assert len(results.response["violations"]) == 0, self._format_violations(results.response["violations"])
+        assert len(results.response["violations"]) == 0, self._format_violations(
+            results.response["violations"]
+        )
 
     def test_interactive_elements_accessible(
         self,
@@ -57,19 +65,35 @@ class TestWCAGCompliance:
 
         Tests: ARIA labels, keyboard navigation, focus indicators.
         """
-        fixture = Path(__file__).parent.parent / "visual" / "fixtures" / "interactive-states.rsm"
+        fixture = (
+            Path(__file__).parent.parent
+            / "visual"
+            / "fixtures"
+            / "interactive-states.rsm"
+        )
         page = serve_rsm_a11y(fixture.read_text())
 
         axe = Axe()
         # Focus on interactive element rules
-        results = axe.run(page, options={
-            "runOnly": {
-                "type": "tag",
-                "values": ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "best-practice"]
-            }
-        })
+        results = axe.run(
+            page,
+            options={
+                "runOnly": {
+                    "type": "tag",
+                    "values": [
+                        "wcag2a",
+                        "wcag2aa",
+                        "wcag21a",
+                        "wcag21aa",
+                        "best-practice",
+                    ],
+                }
+            },
+        )
 
-        assert len(results.response["violations"]) == 0, self._format_violations(results.response["violations"])
+        assert len(results.response["violations"]) == 0, self._format_violations(
+            results.response["violations"]
+        )
 
     def test_document_structure_semantic(
         self,
@@ -81,21 +105,28 @@ class TestWCAGCompliance:
 
         Tests: heading hierarchy, landmark regions, list structure.
         """
-        fixture = Path(__file__).parent.parent / "visual" / "fixtures" / "block-types.rsm"
+        fixture = (
+            Path(__file__).parent.parent / "visual" / "fixtures" / "block-types.rsm"
+        )
         page = serve_rsm_a11y(fixture.read_text())
 
         axe = Axe()
         # Focus on document structure rules
-        results = axe.run(page, options={
-            "rules": {
-                "heading-order": {"enabled": True},
-                "landmark-one-main": {"enabled": True},
-                "page-has-heading-one": {"enabled": True},
-                "region": {"enabled": True},
-            }
-        })
+        results = axe.run(
+            page,
+            options={
+                "rules": {
+                    "heading-order": {"enabled": True},
+                    "landmark-one-main": {"enabled": True},
+                    "page-has-heading-one": {"enabled": True},
+                    "region": {"enabled": True},
+                }
+            },
+        )
 
-        assert len(results.response["violations"]) == 0, self._format_violations(results.response["violations"])
+        assert len(results.response["violations"]) == 0, self._format_violations(
+            results.response["violations"]
+        )
 
     @pytest.mark.parametrize("dark_theme", [False, True])
     def test_front_matter_landmarks_and_headings(
@@ -126,13 +157,24 @@ class TestWCAGCompliance:
         page = serve_rsm_a11y(src, dark_theme)
 
         axe = Axe()
-        results = axe.run(page, options={
-            "runOnly": {
-                "type": "tag",
-                "values": ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "best-practice"],
-            }
-        })
-        assert len(results.response["violations"]) == 0, self._format_violations(results.response["violations"])
+        results = axe.run(
+            page,
+            options={
+                "runOnly": {
+                    "type": "tag",
+                    "values": [
+                        "wcag2a",
+                        "wcag2aa",
+                        "wcag21a",
+                        "wcag21aa",
+                        "best-practice",
+                    ],
+                }
+            },
+        )
+        assert len(results.response["violations"]) == 0, self._format_violations(
+            results.response["violations"]
+        )
 
         # TOC is a navigation landmark with an accessible name.
         assert page.locator('nav.toc[aria-label="Table of contents"]').count() == 1
@@ -157,11 +199,18 @@ class TestWCAGCompliance:
 
         Tests: focusable elements, tab order, focus visibility.
         """
-        fixture = Path(__file__).parent.parent / "visual" / "fixtures" / "interactive-states.rsm"
+        fixture = (
+            Path(__file__).parent.parent
+            / "visual"
+            / "fixtures"
+            / "interactive-states.rsm"
+        )
         page = serve_rsm_a11y(fixture.read_text())
 
         # Get all focusable elements
-        focusable_selector = 'a, button, input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        focusable_selector = (
+            'a, button, input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        )
         focusable_count = page.locator(focusable_selector).count()
 
         # Should have focusable elements
@@ -177,14 +226,19 @@ class TestWCAGCompliance:
 
         # Run axe for keyboard-specific issues
         axe = Axe()
-        results = axe.run(page, options={
-            "runOnly": {
-                "type": "tag",
-                "values": ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "keyboard"]
-            }
-        })
+        results = axe.run(
+            page,
+            options={
+                "runOnly": {
+                    "type": "tag",
+                    "values": ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "keyboard"],
+                }
+            },
+        )
 
-        assert len(results.response["violations"]) == 0, self._format_violations(results.response["violations"])
+        assert len(results.response["violations"]) == 0, self._format_violations(
+            results.response["violations"]
+        )
 
     def test_all_accent_color_contrast(
         self,
@@ -226,34 +280,53 @@ class TestWCAGCompliance:
             for color in colors:
                 for theme in themes:
                     filename = f"accent-{color}-{theme}.html"
-                    page.goto(f"http://127.0.0.1:{port}/tests/accessibility/fixtures/{filename}")
+                    page.goto(
+                        f"http://127.0.0.1:{port}/tests/accessibility/fixtures/{filename}"
+                    )
                     page.wait_for_load_state("domcontentloaded")
 
                     # Debug: check actual rendered colors
-                    default_color = page.locator('a:first-of-type').evaluate("el => getComputedStyle(el).color")
-                    hover_color = page.locator('a:nth-of-type(2)').evaluate("el => getComputedStyle(el).color")
-                    bg_color = page.locator('body').evaluate("el => getComputedStyle(el).backgroundColor")
-                    print(f"{color} {theme}: default={default_color}, hover={hover_color}, bg={bg_color}")
+                    default_color = page.locator("a:first-of-type").evaluate(
+                        "el => getComputedStyle(el).color"
+                    )
+                    hover_color = page.locator("a:nth-of-type(2)").evaluate(
+                        "el => getComputedStyle(el).color"
+                    )
+                    bg_color = page.locator("body").evaluate(
+                        "el => getComputedStyle(el).backgroundColor"
+                    )
+                    print(
+                        f"{color} {theme}: default={default_color}, hover={hover_color}, bg={bg_color}"
+                    )
 
                     axe = Axe()
-                    results = axe.run(page, options={
-                        "runOnly": {
-                            "type": "rule",
-                            "values": ["color-contrast"]
-                        }
-                    })
+                    results = axe.run(
+                        page,
+                        options={
+                            "runOnly": {"type": "rule", "values": ["color-contrast"]}
+                        },
+                    )
                     if results.response["violations"]:
-                        all_violations.extend([(f"{color.title()} {theme.title()}", v) for v in results.response["violations"]])
+                        all_violations.extend(
+                            [
+                                (f"{color.title()} {theme.title()}", v)
+                                for v in results.response["violations"]
+                            ]
+                        )
 
             # Format combined violations
             if all_violations:
-                formatted = [f"\nFound {len(all_violations)} accessibility violations:\n"]
+                formatted = [
+                    f"\nFound {len(all_violations)} accessibility violations:\n"
+                ]
                 for label, violation in all_violations:
-                    formatted.append(f"\n[{label}] {violation['id']}: {violation['description']}")
+                    formatted.append(
+                        f"\n[{label}] {violation['id']}: {violation['description']}"
+                    )
                     formatted.append(f"  Impact: {violation['impact']}")
-                    for node in violation.get('nodes', [])[:3]:
+                    for node in violation.get("nodes", [])[:3]:
                         formatted.append(f"  - {node.get('html', 'Unknown element')}")
-                        if 'failureSummary' in node:
+                        if "failureSummary" in node:
                             formatted.append(f"    {node['failureSummary']}")
                 assert False, "\n".join(formatted)
 
@@ -326,10 +399,10 @@ class TestWCAGCompliance:
             lines.append(f"  WCAG: {', '.join(v.get('tags', []))}")
 
             # Show first few affected elements
-            nodes = v.get('nodes', [])[:3]
+            nodes = v.get("nodes", [])[:3]
             for node in nodes:
                 lines.append(f"  - {node.get('html', 'Unknown element')}")
-                if 'failureSummary' in node:
+                if "failureSummary" in node:
                     lines.append(f"    {node['failureSummary']}")
 
         return "\n".join(lines)

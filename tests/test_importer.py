@@ -30,7 +30,9 @@ def test_single_tex_file(tmp_path):
 
 def test_single_tex_inlines_input(tmp_path):
     _write(tmp_path / "sec.tex", "SECTION BODY")
-    main = _write(tmp_path / "paper.tex", r"\documentclass{article}" "\n\\input{sec}\nEND")
+    main = _write(
+        tmp_path / "paper.tex", r"\documentclass{article}" "\n\\input{sec}\nEND"
+    )
     out = resolve_source(main)
     assert "SECTION BODY" in out
     assert "\\input{sec}" not in out

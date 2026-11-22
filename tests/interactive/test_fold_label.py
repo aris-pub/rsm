@@ -21,8 +21,24 @@ PROOF_HEAD = FOLDED + " > .hr-content-zone > .hr-label"
 PROOF_ZONE = FOLDED + " > .hr-content-zone"
 OPEN = "#prf-open"
 
-STYLE_KEYS = ["content", "display", "fontStyle", "fontSize", "color", "left", "top", "position"]
-TOMBSTONE_KEYS = ["content", "position", "width", "height", "backgroundColor", "borderRadius"]
+STYLE_KEYS = [
+    "content",
+    "display",
+    "fontStyle",
+    "fontSize",
+    "color",
+    "left",
+    "top",
+    "position",
+]
+TOMBSTONE_KEYS = [
+    "content",
+    "position",
+    "width",
+    "height",
+    "backgroundColor",
+    "borderRadius",
+]
 
 
 def _load(page: Page, server: str, width: int = 1280, theme: str = "light") -> None:
@@ -90,7 +106,9 @@ def test_folded_proof_label_on_load(page: Page, interactive_server: str, width, 
     assert _label_text(page, PROOF_HEAD) == "3 steps hidden"
     style = _pseudo(page, PROOF_HEAD)
     assert style["fontStyle"] == "italic"
-    root = page.evaluate("() => parseFloat(getComputedStyle(document.documentElement).fontSize)")
+    root = page.evaluate(
+        "() => parseFloat(getComputedStyle(document.documentElement).fontSize)"
+    )
     assert float(style["fontSize"].removesuffix("px")) == pytest.approx(0.875 * root)
     assert style["color"] == _dark(page)
     assert style["position"] == "relative"
@@ -117,7 +135,9 @@ def test_open_proof_shows_no_label(page: Page, interactive_server: str):
 
 
 @pytest.mark.parametrize("how", ["hover", "focus"])
-def test_hover_and_focus_keep_label_and_tombstone(page: Page, interactive_server: str, how):
+def test_hover_and_focus_keep_label_and_tombstone(
+    page: Page, interactive_server: str, how
+):
     _load(page, interactive_server)
     before = _pseudo(page, PROOF_HEAD)
 
@@ -165,7 +185,9 @@ def test_calc_step_has_no_label(page: Page, interactive_server: str):
 
 
 @pytest.mark.parametrize("block", [".sketch.hr", ".lemma.hr"])
-def test_labelled_blocks_without_steps_have_no_label(page: Page, interactive_server: str, block):
+def test_labelled_blocks_without_steps_have_no_label(
+    page: Page, interactive_server: str, block
+):
     _load(page, interactive_server)
     btn = page.locator(f"{block} > .hr-collapse-zone .hr-collapse")
     btn.click()
@@ -179,7 +201,9 @@ def test_labelled_blocks_without_steps_have_no_label(page: Page, interactive_ser
 def test_collapse_button_names_what_is_hidden(page: Page, interactive_server: str):
     _load(page, interactive_server)
     btn = page.locator(FOLDED + " > .hr-collapse-zone .hr-collapse")
-    expect(btn).to_have_attribute("aria-label", re.compile(r"^Show .+, 3 steps hidden$"))
+    expect(btn).to_have_attribute(
+        "aria-label", re.compile(r"^Show .+, 3 steps hidden$")
+    )
     btn.click()
     expect(btn).to_have_attribute("aria-label", re.compile(r"^Hide "))
     assert "hidden" not in btn.get_attribute("aria-label")

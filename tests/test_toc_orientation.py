@@ -67,7 +67,9 @@ def _root_dot(svg):
 
 
 def test_orientation_parsed():
-    assert _toc(_src(":view: tree, :orientation: horizontal")).orientation == "horizontal"
+    assert (
+        _toc(_src(":view: tree, :orientation: horizontal")).orientation == "horizontal"
+    )
     assert _toc(_src(":view: tree, :orientation: vertical")).orientation == "vertical"
 
 
@@ -99,6 +101,7 @@ def test_horizontal_graph_runs_left_to_right():
     html = rsm.render(_src(":view: tree, :orientation: horizontal"), handrails=False)
     h = next(s for s in _svgs(_text_toc(html)) if "toc-tree-h" in s[:40])
     v = next(s for s in _svgs(_text_toc(html)) if "toc-tree-v" in s[:40])
+
     # A section and its subsection sit side by side in the horizontal graph and
     # one above the other in the vertical one.
     def pos(svg, idx):
@@ -145,7 +148,10 @@ def test_horizontal_marker_ids_are_unique():
     ids = re.findall(r'<marker id="([^"]+)"', html)
     toc_ids = [i for i in ids if i.startswith("toc-h-") or i.startswith("toc-v-")]
     assert sorted(toc_ids) == [
-        "toc-h-arr-dep", "toc-h-arr-fwd", "toc-v-arr-dep", "toc-v-arr-fwd",
+        "toc-h-arr-dep",
+        "toc-h-arr-fwd",
+        "toc-v-arr-dep",
+        "toc-v-arr-fwd",
     ]
     h, v = (s for s in _svgs(_text_toc(html)))
     for svg in (h, v):
@@ -163,7 +169,9 @@ def test_sidebar_copy_stays_vertical():
     assert len(rail) == 1
     assert rail[0].startswith('<svg class="toc-tree" ')
     default = rsm.render(_src(":view: tree"), handrails=True, sidebar=True)
-    m2 = re.search(r'<div class="rail-panel rail-doc-map[^"]*">(.*?)</div>', default, re.S)
+    m2 = re.search(
+        r'<div class="rail-panel rail-doc-map[^"]*">(.*?)</div>', default, re.S
+    )
     assert _svgs(m2.group(1)) == rail
 
 

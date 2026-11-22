@@ -38,8 +38,16 @@ def _thm(meta: str) -> nodes.Theorem:
         "{:title: A, :label: t, :nonum:,}",
         "{:nonum:, :title: A, :label: t,}",
     ],
-    ids=["one-line-commas", "one-line-bare", "lines-commas", "lines-bare",
-         "bool-first-comma", "bool-first-bare", "last-bool-comma", "last-value-comma"],
+    ids=[
+        "one-line-commas",
+        "one-line-bare",
+        "lines-commas",
+        "lines-bare",
+        "bool-first-comma",
+        "bool-first-bare",
+        "last-bool-comma",
+        "last-value-comma",
+    ],
 )
 def test_same_pairs_in_every_form(meta):
     thm = _thm(meta)
@@ -59,14 +67,20 @@ def test_ref_finds_a_label_followed_by_a_comma():
 @pytest.mark.parametrize(
     "meta, title",
     [
-        ("{\n  :title: A long title that runs\n          onto a second line\n"
-         "          and a third\n  :label: t\n  }",
-         "A long title that runs onto a second line and a third"),
-        ("{:title: A long title\n  that runs on, :label: t}",
-         "A long title that runs on"),
-        ("{\n  :title: A long title % a note\n          onto a second line\n"
-         "  :label: t\n  }",
-         "A long title onto a second line"),
+        (
+            "{\n  :title: A long title that runs\n          onto a second line\n"
+            "          and a third\n  :label: t\n  }",
+            "A long title that runs onto a second line and a third",
+        ),
+        (
+            "{:title: A long title\n  that runs on, :label: t}",
+            "A long title that runs on",
+        ),
+        (
+            "{\n  :title: A long title % a note\n          onto a second line\n"
+            "  :label: t\n  }",
+            "A long title onto a second line",
+        ),
     ],
     ids=["lines", "one-line-style", "comment"],
 )
@@ -81,14 +95,22 @@ def test_value_over_several_lines(meta, title):
     [
         ("{:title: Lemma on a, b and c :label: t}", "Lemma on a, b and c"),
         ("{:title: Lemma on a, b, :label: t}", "Lemma on a, b"),
-        ("{:title: Ratio 3:1, see http://a.org :label: t}",
-         "Ratio 3:1, see http://a.org"),
+        (
+            "{:title: Ratio 3:1, see http://a.org :label: t}",
+            "Ratio 3:1, see http://a.org",
+        ),
         ("{:title: Task #1\\: Masked LM, :label: t}", "Task #1: Masked LM"),
         ("{:title: Note :x and a:b: c :label: t}", "Note :x and a:b: c"),
         ("{:label: t :title: Ends in a comma,}", "Ends in a comma"),
     ],
-    ids=["mid-comma", "comma-before-key", "colons", "escape", "colon-words",
-         "comma-before-brace"],
+    ids=[
+        "mid-comma",
+        "comma-before-key",
+        "colons",
+        "escape",
+        "colon-words",
+        "comma-before-brace",
+    ],
 )
 def test_what_stays_in_a_value(meta, title):
     thm = _thm(meta)

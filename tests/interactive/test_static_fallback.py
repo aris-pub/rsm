@@ -13,7 +13,6 @@ RSM_READY = "() => window.__rsmShown === true"
 
 
 class TestStaticFallbackSizing:
-
     def test_shown_static_does_not_overflow(self, page: Page, interactive_server: str):
         """The static image is generated at 1600px wide; once revealed it must
         scale down to the container, not render at its natural pixel size."""
@@ -37,7 +36,6 @@ class TestStaticFallbackSizing:
 
 
 class TestStaticFallbackNoJS:
-
     def test_static_visible_without_javascript(
         self, browser: Browser, interactive_server: str
     ):
@@ -70,7 +68,6 @@ class TestStaticFallbackNoJS:
 
 
 class TestStaticFallbackDark:
-
     def test_dark_theme_swaps_static_to_dark_image(
         self, page: Page, interactive_server: str
     ):
@@ -92,8 +89,6 @@ class TestStaticFallbackDark:
         expect(dark).to_be_hidden()
 
         # Switch the document to dark mode the same way the reading controls do.
-        page.evaluate(
-            "() => document.documentElement.classList.add('dark-theme')"
-        )
+        page.evaluate("() => document.documentElement.classList.add('dark-theme')")
         expect(dark).to_be_visible()
         expect(light).to_be_hidden()

@@ -45,7 +45,9 @@ def test_step_numbers_share_one_column(page: Page, interactive_server: str):
     rows = page.evaluate(_COLLECT)
     assert rows, "no visible step numbers found"
     depths = {r["depth"] for r in rows}
-    assert {0, 1, 2, 3} <= depths, f"fixture should reach depth 3; got depths {sorted(depths)}"
+    assert {0, 1, 2, 3} <= depths, (
+        f"fixture should reach depth 3; got depths {sorted(depths)}"
+    )
     lefts = {r["left"] for r in rows}
     assert max(lefts) - min(lefts) <= 1, (
         f"step numbers drift off the column with depth: distinct lefts {sorted(lefts)}"
@@ -71,4 +73,6 @@ def test_focus_highlight_has_no_band(page: Page, interactive_server: str):
       }
       return worst;
     }""")
-    assert worst <= 2, f"focus highlight leaves a {worst}px transparent band before the number"
+    assert worst <= 2, (
+        f"focus highlight leaves a {worst}px transparent band before the number"
+    )

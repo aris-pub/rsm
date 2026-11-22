@@ -36,13 +36,17 @@ def _collapse_all_text(page: Page):
     )
 
 
-def test_collapse_label_reads_collapse_when_expanded(page: Page, interactive_server: str):
+def test_collapse_label_reads_collapse_when_expanded(
+    page: Page, interactive_server: str
+):
     _load(page, interactive_server)
     _dots(page.locator("#stp-outer")).click()
     expect(_collapse_text(page)).to_have_text("Collapse")
 
 
-def test_collapse_label_flips_to_expand_when_collapsed(page: Page, interactive_server: str):
+def test_collapse_label_flips_to_expand_when_collapsed(
+    page: Page, interactive_server: str
+):
     _load(page, interactive_server)
     step = page.locator("#stp-outer")
     _dots(step).click()
@@ -161,4 +165,6 @@ def test_collapse_state_persists_across_reload(page: Page, interactive_server: s
     page.reload()
     page.wait_for_function(RSM_READY, timeout=10_000)
     expect(page.locator("#stp-inner-a")).to_have_class(re.compile(r"\bhr-collapsed\b"))
-    expect(page.locator("#stp-inner-b")).not_to_have_class(re.compile(r"\bhr-collapsed\b"))
+    expect(page.locator("#stp-inner-b")).not_to_have_class(
+        re.compile(r"\bhr-collapsed\b")
+    )

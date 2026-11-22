@@ -31,17 +31,44 @@ _RSM_KIND = {
 
 # RSM bibitem kinds, and the aliases a bibtex entry type might use for a webpage.
 _BIB_KINDS = {
-    "article", "book", "inproceedings", "conference", "incollection",
-    "phdthesis", "mastersthesis", "techreport", "misc", "unpublished", "software",
+    "article",
+    "book",
+    "inproceedings",
+    "conference",
+    "incollection",
+    "phdthesis",
+    "mastersthesis",
+    "techreport",
+    "misc",
+    "unpublished",
+    "software",
 }
 _BIB_KIND_ALIAS = {"online": "webpage", "electronic": "webpage", "www": "webpage"}
 
 # The field keys RSM's bibitem grammar accepts. Any other bibtex field is dropped
 # so it cannot produce a parse error.
 _RSM_FIELDS = (
-    "author", "title", "journal", "booktitle", "publisher", "institution",
-    "school", "series", "edition", "volume", "number", "pages", "year", "month",
-    "doi", "url", "howpublished", "note", "editor", "address", "organization",
+    "author",
+    "title",
+    "journal",
+    "booktitle",
+    "publisher",
+    "institution",
+    "school",
+    "series",
+    "edition",
+    "volume",
+    "number",
+    "pages",
+    "year",
+    "month",
+    "doi",
+    "url",
+    "howpublished",
+    "note",
+    "editor",
+    "address",
+    "organization",
 )
 
 
@@ -139,9 +166,7 @@ def _bibtex_kind(btype: str) -> str:
 
 def _emit_bibtex_fields(btype: str, key: str, fields: dict) -> str:
     kind = _bibtex_kind(btype)
-    pairs = [
-        (name, _clean(str(fields.get(name, "")))) for name in _RSM_FIELDS
-    ]
+    pairs = [(name, _clean(str(fields.get(name, "")))) for name in _RSM_FIELDS]
     pairs = [(name, value) for name, value in pairs if value]
     return _entry(kind, key, pairs)
 

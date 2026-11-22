@@ -19,7 +19,9 @@ def test_nested_step_content_zone_clears_info_zone(page: Page, interactive_serve
     page.goto(f"{interactive_server}/collapse-menu.html")
     page.wait_for_function(RSM_READY, timeout=10_000)
 
-    step = page.locator("#stp-inner-a")  # a step one subproof deep (info-zone pulled left)
+    step = page.locator(
+        "#stp-inner-a"
+    )  # a step one subproof deep (info-zone pulled left)
     content = step.locator(":scope > .hr-content-zone")
     info = step.locator(":scope > .hr-info-zone")
 

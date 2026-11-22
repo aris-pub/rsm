@@ -37,7 +37,9 @@ def _duplicate_ids(page: Page):
     )
 
 
-def test_no_duplicate_ids_after_tooltip_and_state_panel(page: Page, interactive_server: str):
+def test_no_duplicate_ids_after_tooltip_and_state_panel(
+    page: Page, interactive_server: str
+):
     # Desktop width so the proof-rail is the sidebar (its controls are hidden in
     # the bottom-drawer below the 1320px breakpoint).
     page.set_viewport_size({"width": 1400, "height": 900})
@@ -48,7 +50,9 @@ def test_no_duplicate_ids_after_tooltip_and_state_panel(page: Page, interactive_
     assert _duplicate_ids(page) == [], "duplicate ids on initial load"
 
     # Open a reference tooltip: this clones the target block into the popup.
-    ref = page.wait_for_selector('.manuscript a.reference[href="#thm-x"]', timeout=5_000)
+    ref = page.wait_for_selector(
+        '.manuscript a.reference[href="#thm-x"]', timeout=5_000
+    )
     ref.scroll_into_view_if_needed()
     ref.hover()
     page.wait_for_selector(".tooltipster-base", state="visible", timeout=5_000)
@@ -57,4 +61,6 @@ def test_no_duplicate_ids_after_tooltip_and_state_panel(page: Page, interactive_
     # Switch to Proof scope: the State panel clones blocks via cloneClean.
     page.click('.rail-strip-btn[data-view="steps"]')
     page.wait_for_timeout(400)
-    assert _duplicate_ids(page) == [], "duplicate ids after populating the proof State panel"
+    assert _duplicate_ids(page) == [], (
+        "duplicate ids after populating the proof State panel"
+    )

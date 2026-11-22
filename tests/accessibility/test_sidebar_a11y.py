@@ -60,7 +60,9 @@ def test_sidebar_default_wcag(serve_rsm_a11y, page):
 
 
 @pytest.mark.parametrize("theme", ["light", "dark"])
-@pytest.mark.parametrize("view", ["contents", "notation", "steps", "state", "pinned", "reading"])
+@pytest.mark.parametrize(
+    "view", ["contents", "notation", "steps", "state", "pinned", "reading"]
+)
 def test_sidebar_view_wcag(serve_rsm_a11y, page, view, theme):
     page.set_viewport_size({"width": 1400, "height": 900})
     page = serve_rsm_a11y(SIDEBAR_SRC, sidebar=True)

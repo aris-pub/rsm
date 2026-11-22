@@ -21,12 +21,15 @@ def test_toc_switch_passes_axe(serve_rsm_a11y, page: Page, view: str, dark_theme
     # Hover the button of the view not on screen, so its hover colour is checked too.
     other = "list" if view == "tree" else "tree"
     page.locator(f".toc-switch button[data-toc-view='{other}']").hover()
-    results = Axe().run(page, options={
-        "runOnly": {
-            "type": "tag",
-            "values": ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "best-practice"],
-        }
-    })
+    results = Axe().run(
+        page,
+        options={
+            "runOnly": {
+                "type": "tag",
+                "values": ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "best-practice"],
+            }
+        },
+    )
     _assert_clean(results)
 
 
@@ -47,10 +50,13 @@ def test_sidebar_contents_switch_passes_axe(
     page = serve_rsm_a11y(SRC.format(view=view), dark_theme, sidebar=True)
     page.locator('.rail-strip-btn[data-view="contents"]').click()
     expect(page.locator(".rail-toc-switch")).to_be_visible()
-    results = Axe().run(page, options={
-        "runOnly": {
-            "type": "tag",
-            "values": ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "best-practice"],
-        }
-    })
+    results = Axe().run(
+        page,
+        options={
+            "runOnly": {
+                "type": "tag",
+                "values": ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "best-practice"],
+            }
+        },
+    )
     _assert_clean(results)

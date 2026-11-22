@@ -213,9 +213,7 @@ class TestCustomCSS:
         assert custom_css_content in web.readtext("assets/custom.css")
 
         html = web.readtext("index.html")
-        assert (
-            '<link rel="stylesheet" type="text/css" href="assets/custom.css"' in html
-        )
+        assert '<link rel="stylesheet" type="text/css" href="assets/custom.css"' in html
 
     def test_standalone_builder_with_custom_css(self, tmp_path):
         """Test StandaloneBuilder inlines custom CSS in <style> tag."""

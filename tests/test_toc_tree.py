@@ -160,9 +160,9 @@ def test_root_node_is_muted_dot():
     # manuscript title.
     html = rsm.render("# My Paper\n\n" + SRC, handrails=False)
     svg = re.search(r'<svg class="toc-tree".*?</svg>', html, re.S).group(0)
-    root = re.search(
-        r'<a [^>]*class="toc-node level-0"[^>]*>.*?</a>', svg, re.S
-    ).group(0)
+    root = re.search(r'<a [^>]*class="toc-node level-0"[^>]*>.*?</a>', svg, re.S).group(
+        0
+    )
     assert "<circle" in root  # drawn as a dot
     assert "<rect" not in root  # no box
     assert "<text" not in root  # no label text
@@ -271,10 +271,51 @@ def test_layout_empty():
 
 # The section graph of a real paper (lipschitz-embedding): eleven nodes, long
 # arrows that skip depth columns, laid out horizontally.
-_PAPER_NODES = [{"num": "1", "title": "S0", "label": "s0", "depth": 1}, {"num": "2", "title": "S1", "label": "s1", "depth": 1}, {"num": "3", "title": "S2", "label": "s2", "depth": 1}, {"num": "4", "title": "S3", "label": "s3", "depth": 1}, {"num": "5", "title": "S4", "label": "s4", "depth": 1}, {"num": "6", "title": "S5", "label": "s5", "depth": 1}, {"num": "7", "title": "S6", "label": "s6", "depth": 1}, {"num": "8", "title": "S7", "label": "s7", "depth": 1}, {"num": "9", "title": "S8", "label": "s8", "depth": 1}, {"num": "10", "title": "S9", "label": "s9", "depth": 1}, {"num": "", "title": "S10", "label": "s10", "depth": 0}]
+_PAPER_NODES = [
+    {"num": "1", "title": "S0", "label": "s0", "depth": 1},
+    {"num": "2", "title": "S1", "label": "s1", "depth": 1},
+    {"num": "3", "title": "S2", "label": "s2", "depth": 1},
+    {"num": "4", "title": "S3", "label": "s3", "depth": 1},
+    {"num": "5", "title": "S4", "label": "s4", "depth": 1},
+    {"num": "6", "title": "S5", "label": "s5", "depth": 1},
+    {"num": "7", "title": "S6", "label": "s6", "depth": 1},
+    {"num": "8", "title": "S7", "label": "s7", "depth": 1},
+    {"num": "9", "title": "S8", "label": "s8", "depth": 1},
+    {"num": "10", "title": "S9", "label": "s9", "depth": 1},
+    {"num": "", "title": "S10", "label": "s10", "depth": 0},
+]
 _PAPER_EDGES = [
     {"src": s, "dst": d, "count": c, "kind": k}
-    for s, d, c, k in [[1, 0, 2, "dep"], [2, 0, 2, "dep"], [2, 1, 1, "dep"], [2, 5, 1, "fwd"], [2, 6, 1, "fwd"], [2, 9, 1, "fwd"], [3, 2, 2, "dep"], [4, 3, 2, "dep"], [5, 3, 1, "dep"], [5, 4, 4, "dep"], [6, 0, 1, "dep"], [6, 3, 2, "dep"], [6, 5, 2, "dep"], [7, 6, 1, "dep"], [8, 6, 1, "dep"], [8, 7, 1, "dep"], [9, 6, 3, "dep"], [9, 8, 2, "dep"], [0, 10, 1, "struct"], [1, 10, 1, "struct"], [2, 10, 1, "struct"], [3, 10, 1, "struct"], [4, 10, 1, "struct"], [5, 10, 1, "struct"], [6, 10, 1, "struct"], [7, 10, 1, "struct"], [8, 10, 1, "struct"], [9, 10, 1, "struct"]]
+    for s, d, c, k in [
+        [1, 0, 2, "dep"],
+        [2, 0, 2, "dep"],
+        [2, 1, 1, "dep"],
+        [2, 5, 1, "fwd"],
+        [2, 6, 1, "fwd"],
+        [2, 9, 1, "fwd"],
+        [3, 2, 2, "dep"],
+        [4, 3, 2, "dep"],
+        [5, 3, 1, "dep"],
+        [5, 4, 4, "dep"],
+        [6, 0, 1, "dep"],
+        [6, 3, 2, "dep"],
+        [6, 5, 2, "dep"],
+        [7, 6, 1, "dep"],
+        [8, 6, 1, "dep"],
+        [8, 7, 1, "dep"],
+        [9, 6, 3, "dep"],
+        [9, 8, 2, "dep"],
+        [0, 10, 1, "struct"],
+        [1, 10, 1, "struct"],
+        [2, 10, 1, "struct"],
+        [3, 10, 1, "struct"],
+        [4, 10, 1, "struct"],
+        [5, 10, 1, "struct"],
+        [6, 10, 1, "struct"],
+        [7, 10, 1, "struct"],
+        [8, 10, 1, "struct"],
+        [9, 10, 1, "struct"],
+    ]
 ]
 
 

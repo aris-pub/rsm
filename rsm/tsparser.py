@@ -338,7 +338,9 @@ def _metaval_str(cst_val: TSNode) -> str:
     pieces are joined with single spaces. A comma after a pair is optional and
     the grammar leaves it in the value before it, so it is dropped here.
     """
-    pieces = [(c.text or b"").decode("utf-8") for c in cst_val.children if c.type != "comment"]
+    pieces = [
+        (c.text or b"").decode("utf-8") for c in cst_val.children if c.type != "comment"
+    ]
     val = " ".join(" ".join(pieces).split())
     if val.endswith(","):
         val = val[:-1].rstrip()
@@ -442,9 +444,7 @@ def _log_meta_error(err: TSNode) -> None:
     that key and its allowed values.
     """
     keys = [
-        n
-        for n in _descendants(err)
-        if n.type in _SHAPE_ALLOWED and n.named_children
+        n for n in _descendants(err) if n.type in _SHAPE_ALLOWED and n.named_children
     ]
     if not keys:
         logger.error(
@@ -697,8 +697,7 @@ def _group_nested_lists(root: "nodes.Node") -> None:
     # Snapshot the original containers first: the sub-lists created below are
     # themselves itemize/enumerate and must not be regrouped again.
     containers = [
-        n for n in root.traverse()
-        if isinstance(n, (nodes.Itemize, nodes.Enumerate))
+        n for n in root.traverse() if isinstance(n, (nodes.Itemize, nodes.Enumerate))
     ]
     for container in containers:
         _regroup_list(container)
@@ -723,9 +722,7 @@ def _regroup_list(container: "nodes.NodeWithChildren") -> None:
                 stack[-1].append(_depth_jump_error(item))
                 stack[-1].append(item)
                 continue
-            sublist = list_type(
-                start_point=item.start_point, end_point=item.end_point
-            )
+            sublist = list_type(start_point=item.start_point, end_point=item.end_point)
             parents[-1].append(sublist)
             sublist.append(item)
             stack.append(sublist)
@@ -749,8 +746,16 @@ def _depth_jump_error(item: "nodes.Item") -> "nodes.Error":
 # The grammar parses these tags in a heading or a :title: only so that they can
 # be reported here: a title does not hold links, note calls or raw HTML.
 _NOT_IN_HEADING = {
-    "ref", "cite", "url", "note", "aside", "html",
-    "previous", "prev", "prev2", "prev3",
+    "ref",
+    "cite",
+    "url",
+    "note",
+    "aside",
+    "html",
+    "previous",
+    "prev",
+    "prev2",
+    "prev3",
 }
 
 
@@ -777,7 +782,9 @@ def _markup_title_children(meta: TSNode) -> list[TSNode]:
     A plain title is read as text by _parse_meta_into_dict."""
     for pair in meta.named_children:
         if pair.type == "pair" and pair.named_children[0].type == "metakey_title":
-            pieces = [c for c in pair.named_children[1].named_children if c.type != "comment"]
+            pieces = [
+                c for c in pair.named_children[1].named_children if c.type != "comment"
+            ]
             if any(c.type != "text" for c in pieces):
                 return _drop_tags_not_allowed_in_heading(pieces, "a title")
     return []
@@ -941,6 +948,7 @@ def _abstractify(cst: TSTree) -> nodes.Manuscript:
             holder = nodes.Span()
             title_builds.append((ast_node, holder))
             stack.extend(reversed([(holder, c) for c in pieces]))
+
     while stack:
         parent, cst_node = stack.pop()
         skip_these_ids = set()
@@ -1006,9 +1014,7 @@ def _abstractify(cst: TSTree) -> nodes.Manuscript:
             for c in title_children:
                 skip_these_ids.add(c.id)
             title_children = _drop_tags_not_allowed_in_heading(title_children)
-            if len(title_children) > 1 or any(
-                c.type != "text" for c in title_children
-            ):
+            if len(title_children) > 1 or any(c.type != "text" for c in title_children):
                 holder = nodes.Span()
                 title_builds.append((ast_node, holder))
                 stack += reversed([(holder, c) for c in title_children])
@@ -1088,13 +1094,18 @@ def _abstractify(cst: TSTree) -> nodes.Manuscript:
 
                     # :lang: also names the language of code blocks, so it
                     # is checked as a language code only here.
-                    if "lang" in config_dict and not _LANG_CODE.match(config_dict["lang"]):
+                    if "lang" in config_dict and not _LANG_CODE.match(
+                        config_dict["lang"]
+                    ):
                         pair = next(
                             p
                             for p in meta.named_children
-                            if p.type == "pair" and p.named_children[0].named_children[0].type == "lang"
+                            if p.type == "pair"
+                            and p.named_children[0].named_children[0].type == "lang"
                         )
-                        _log_bad_value("lang", config_dict.pop("lang"), _LANG_CODE_ALLOWED, pair)
+                        _log_bad_value(
+                            "lang", config_dict.pop("lang"), _LANG_CODE_ALLOWED, pair
+                        )
 
                     # Handle override_date -> date mapping
                     if "override_date" in config_dict:
@@ -1146,7 +1157,14 @@ def _abstractify(cst: TSTree) -> nodes.Manuscript:
             skip_these_ids |= _log_meta_errors_outside_meta(cst_node)
 
         # process some special tags
-        if ast_node_type in ["math", "code", "mathblock", "codeblock", "algorithm", "notation"]:
+        if ast_node_type in [
+            "math",
+            "code",
+            "mathblock",
+            "codeblock",
+            "algorithm",
+            "notation",
+        ]:
             # "asis_text" is not pushed to the stack for further processing so must
             # handle it here
             asis = cst_node.named_children[-1]

@@ -10,7 +10,9 @@ pytestmark = pytest.mark.interactive
 RSM_READY = "() => window.__rsmShown === true"
 
 
-def test_calc_relation_shown_justification_disclosed(page: Page, interactive_server: str):
+def test_calc_relation_shown_justification_disclosed(
+    page: Page, interactive_server: str
+):
     page.set_viewport_size({"width": 1400, "height": 900})
     page.goto(f"{interactive_server}/calc.html")
     page.wait_for_function(RSM_READY, timeout=10_000)

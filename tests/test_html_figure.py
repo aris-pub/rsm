@@ -98,7 +98,9 @@ def test_html_block_alt_is_a_hidden_fallback():
 
 
 def test_html_block_is_not_numbered():
-    tree = _tree(":htmlblock:\n<div>x</div>\n::\n\n:figure: {:path: a.png :label: f}\n::\n")
+    tree = _tree(
+        ":htmlblock:\n<div>x</div>\n::\n\n:figure: {:path: a.png :label: f}\n::\n"
+    )
     fig = next(tree.traverse(nodeclass=nodes.Figure))
     assert fig.full_number == "1"
 

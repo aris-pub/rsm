@@ -53,7 +53,9 @@ def _strip_phrase(call: "nodes.NoteCall") -> None:
         last.text = last.text.rstrip()
 
 
-def _carry_reftext_nodes(pending: "nodes.BaseReference", ref: "nodes.Reference") -> None:
+def _carry_reftext_nodes(
+    pending: "nodes.BaseReference", ref: "nodes.Reference"
+) -> None:
     """Move a pending reference's inline reftext nodes onto the resolved
     Reference so a marked-up :ref: display text survives resolution. Reparent
     directly since the nodes already have the pending node as parent."""
@@ -346,9 +348,7 @@ class Transformer:
         """
         for group in self.tree.traverse(nodeclass=nodes.Tabs):
             if group.first_ancestor_of_type(nodes.Tabs) is not None:
-                raise RSMTransformerError(
-                    "A :tabs: cannot sit inside another :tabs:."
-                )
+                raise RSMTransformerError("A :tabs: cannot sit inside another :tabs:.")
             for tab in group.children:
                 if not tab.title:
                     raise RSMTransformerError("Every :tab: needs a :title:.")
@@ -445,7 +445,9 @@ class Transformer:
                     self._label_to_node(label, default=nodes.UnknownBibitem)
                     for label in pending.targetlabels
                 ]
-                cite = nodes.Cite(targets=targets, targetlabels=list(pending.targetlabels))
+                cite = nodes.Cite(
+                    targets=targets, targetlabels=list(pending.targetlabels)
+                )
                 cite.label = f"cite-{next(counter)}"
                 pending.replace_self(cite)
                 for tgt in targets:
@@ -580,8 +582,12 @@ class Transformer:
             if d.call is not None
         ]
         for call in sorted(calls, key=lambda c: c.order):
-            host = call.first_ancestor_of_type((nodes.Paragraph, nodes.Item, nodes.Note))
-            if host is None or isinstance(host, (nodes.Note, nodes.Step, nodes.Caption)):
+            host = call.first_ancestor_of_type(
+                (nodes.Paragraph, nodes.Item, nodes.Note)
+            )
+            if host is None or isinstance(
+                host, (nodes.Note, nodes.Step, nodes.Caption)
+            ):
                 continue
             definition = call.definition
             definition.remove_self()
@@ -727,7 +733,8 @@ class Transformer:
             self.tree.traverse(condition=lambda n: isinstance(n, nodes.Author))
         )
         authors = [
-            a for a in all_authors
+            a
+            for a in all_authors
             if a.name or a.affiliation or a.email or a.orcid or a.author_note
         ]
         if not authors:
@@ -769,7 +776,9 @@ class Transformer:
         within_appendix = False
 
         # Check manuscript numbering config
-        numbering_mode = getattr(self.tree, 'numbering', 'section')  # default to 'section'
+        numbering_mode = getattr(
+            self.tree, "numbering", "section"
+        )  # default to 'section'
 
         for node in self.tree.traverse():
             if isinstance(node, nodes.Appendix):
@@ -788,11 +797,11 @@ class Transformer:
 
             if node.autonumber and not node.nonum:
                 # Apply numbering mode from config
-                if numbering_mode == 'none':
+                if numbering_mode == "none":
                     # Don't assign numbers when numbering is none
                     node.nonum = True
                     continue
-                elif numbering_mode == 'document':
+                elif numbering_mode == "document":
                     # Number within manuscript (1, 2, 3...)
                     number_within = nodes.Manuscript
                 else:
@@ -800,7 +809,7 @@ class Transformer:
                     number_within = node.number_within
 
                 # Override node's number_within for full_number property
-                if numbering_mode == 'document':
+                if numbering_mode == "document":
                     node._number_within_override = nodes.Manuscript
 
                 counts[type(node)] = defaultdict(lambda: count(start=1))
@@ -938,9 +947,7 @@ class Transformer:
         # Unnumbered sections (a colophon, say) are back-matter and stay out
         # of the table of contents.
         sections = [
-            sec
-            for sec in self.tree.traverse(nodeclass=nodes.Section)
-            if not sec.nonum
+            sec for sec in self.tree.traverse(nodeclass=nodes.Section) if not sec.nonum
         ]
         row_of = {id(sec): row for row, sec in enumerate(sections)}
 
@@ -1016,8 +1023,11 @@ class Transformer:
                     logger.warning(f"Unparseable :notation: line: {line!r}")
                     continue
                 entries.append(
-                    {"macro": m.group(1), "default": m.group(2).strip(),
-                     "label": m.group(3).strip()}
+                    {
+                        "macro": m.group(1),
+                        "default": m.group(2).strip(),
+                        "label": m.group(3).strip(),
+                    }
                 )
             notn.entries = entries
             # the raw lines are now captured in `entries`; drop them so they

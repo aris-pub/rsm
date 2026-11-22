@@ -548,7 +548,16 @@ def test_config_accent_with_numbering():
 
 def test_config_accent_all_colors():
     """Test all valid accent colors."""
-    valid_colors = ["blue", "red", "green", "orange", "yellow", "purple", "pink", "gray"]
+    valid_colors = [
+        "blue",
+        "red",
+        "green",
+        "orange",
+        "yellow",
+        "purple",
+        "pink",
+        "gray",
+    ]
     for color in valid_colors:
         compare_have_want(
             have=f"""\

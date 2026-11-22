@@ -93,7 +93,9 @@ def test_standalone_folded_block_opens_and_folds_by_keyboard(page: Page, tmp_pat
 
 def test_sidebar_strip_hidden_without_js(browser: Browser, tmp_path):
     out = _standalone(tmp_path)
-    ctx = browser.new_context(java_script_enabled=False, viewport={"width": 1280, "height": 900})
+    ctx = browser.new_context(
+        java_script_enabled=False, viewport={"width": 1280, "height": 900}
+    )
     try:
         page = ctx.new_page()
         page.goto(out.as_uri(), wait_until="load")

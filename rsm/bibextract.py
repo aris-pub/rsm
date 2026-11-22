@@ -49,7 +49,9 @@ _NON_ENTRY = {"comment", "string", "preamble"}
 
 # LaTeX noise a .bbl or thebibliography carries inside a reference line. The
 # first group is bare style switches, the second their \text... forms.
-_STYLE_SWITCH = re.compile(r"\\(?:newblock|em|it|bf|sc|sl|tt|rm|sf|normalfont|upshape)\b")
+_STYLE_SWITCH = re.compile(
+    r"\\(?:newblock|em|it|bf|sc|sl|tt|rm|sf|normalfont|upshape)\b"
+)
 _STYLE_WRAP = re.compile(r"\\(?:emph|textit|textbf|textrm|textsc|texttt)\b")
 
 

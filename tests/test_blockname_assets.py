@@ -36,7 +36,12 @@ BODIES = {
 DEFAULT = {"html": "Figure", "figure": "Figure", "video": "Video", "table": "Table"}
 # Tables are numbered across the whole manuscript, assets within their section.
 NUMBER = {"html": "1.1", "figure": "1.1", "video": "1.1", "table": "1"}
-CLASS = {"html": nodes.Figure, "figure": nodes.Figure, "video": nodes.Video, "table": nodes.Table}
+CLASS = {
+    "html": nodes.Figure,
+    "figure": nodes.Figure,
+    "video": nodes.Video,
+    "table": nodes.Table,
+}
 KINDS = list(BODIES)
 
 

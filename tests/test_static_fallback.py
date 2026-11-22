@@ -11,9 +11,7 @@ from textwrap import dedent
 
 import rsm
 
-BRAIID_CSS = (
-    Path(__file__).resolve().parents[1] / "braiid" / "braiid.css"
-).read_text()
+BRAIID_CSS = (Path(__file__).resolve().parents[1] / "braiid" / "braiid.css").read_text()
 
 
 def _render(src: str) -> str:
@@ -25,9 +23,7 @@ def test_braiid_css_constrains_static_fallback_width():
     braiid.css must cap .static-fallback (and its inner media) at the container
     width."""
     # A rule whose selector mentions .static-fallback and sets max-width: 100%.
-    rule = re.search(
-        r"\.static-fallback[^{}]*\{[^}]*\}", BRAIID_CSS, flags=re.DOTALL
-    )
+    rule = re.search(r"\.static-fallback[^{}]*\{[^}]*\}", BRAIID_CSS, flags=re.DOTALL)
     assert rule is not None, "no .static-fallback rule found in braiid.css"
     block = rule.group(0)
     assert "max-width" in block and "100%" in block

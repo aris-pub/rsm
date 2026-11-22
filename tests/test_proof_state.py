@@ -114,7 +114,9 @@ def test_assumption_in_a_claim_step_still_propagates_to_siblings():
     assume = next(
         c for c in p.traverse(nodeclass=nodes.Construct) if c.kind == "assume"
     )
-    hyps = {s.label: [h["node"] for h in st["hyps"]] for s, st in zip(steps, p.step_state)}
+    hyps = {
+        s.label: [h["node"] for h in st["hyps"]] for s, st in zip(steps, p.step_state)
+    }
     # In scope inside case one's own subproof...
     assert assume in hyps["st-c1sub"]
     # ...and, under Rule 1, also in the later sibling case two (the claim in
