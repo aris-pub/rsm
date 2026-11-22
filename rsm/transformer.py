@@ -245,7 +245,9 @@ class Transformer:
         app.run()
 
         # Extract manuscript and labels
-        manuscript = app.transformer.tree
+        manuscript = app.transformer.tree if app.transformer else None
+        if manuscript is None:
+            raise ValueError(f"External manuscript could not be parsed: {full_path}")
         labels_map = app.transformer.labels_to_nodes.copy()
 
         # Cache the result

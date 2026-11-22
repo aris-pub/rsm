@@ -1828,11 +1828,11 @@ class PendingReference(BaseReference):
 
 class Reference(BaseReference):
     # A resolved reference, so the target is a node, never a label.
-    target: Node | None
+    target: Node
 
     def __init__(
         self,
-        target: Node | None = None,
+        target: Node,
         external_file: str | None = None,
         external_manuscript: "Manuscript | None" = None,
         **kwargs: Any,

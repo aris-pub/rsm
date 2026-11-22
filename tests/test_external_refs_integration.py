@@ -143,3 +143,9 @@ This references :ref:definitions/def/test-def::.
 
     # Should show the manuscript title alongside the local reftext
     assert "Test Definition" in html
+
+
+def test_external_ref_to_a_file_with_a_parse_error_is_an_error_node(tmp_path):
+    (tmp_path / "ext.rsm").write_text("# Ext\n\n:theorem: {:label: t\n")
+    html = rsm.render("# Main\n\nSee :ref:ext.rsm/::.\n", root_dir=tmp_path)
+    assert 'error loading "ext.rsm"' in html
