@@ -131,7 +131,10 @@ dev = [
     "ruff>=0.1.0",
     "types-pygments>=2.19.0",
     "types-ujson>=5.6.0",
-    # Documentation
+    {include-group = "doc"},
+]
+# A separate group so that Read the Docs installs only what the docs build needs
+doc = [
     "Sphinx>=6.2.0",
     "sphinx-autobuild>=2021.3.14",
     "sphinx-copybutton>=0.5.1",

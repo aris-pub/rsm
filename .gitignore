@@ -62,6 +62,8 @@ instance/
 .scrapy
 # Sphinx documentation
 docs/build/
+# Sphinx autosummary writes these on every build (conf.py autosummary_generate)
+docs/source/reference/rsm.*.rst
 # PyBuilder
 .pybuilder/
 target/

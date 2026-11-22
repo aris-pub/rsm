@@ -914,6 +914,14 @@ dev = [
     { name = "types-pygments" },
     { name = "types-ujson" },
 ]
+doc = [
+    { name = "pydata-sphinx-theme" },
+    { name = "sphinx" },
+    { name = "sphinx-autobuild" },
+    { name = "sphinx-autodoc-typehints" },
+    { name = "sphinx-copybutton" },
+    { name = "sphinx-design" },
+]
 
 [package.metadata]
 requires-dist = [
@@ -950,6 +958,14 @@ dev = [
     { name = "sphinx-design", specifier = ">=0.5.0" },
     { name = "types-pygments", specifier = ">=2.19.0" },
     { name = "types-ujson", specifier = ">=5.6.0" },
+]
+doc = [
+    { name = "pydata-sphinx-theme", specifier = ">=0.12.0" },
+    { name = "sphinx", specifier = ">=6.2.0" },
+    { name = "sphinx-autobuild", specifier = ">=2021.3.14" },
+    { name = "sphinx-autodoc-typehints", specifier = ">=1.19.5" },
+    { name = "sphinx-copybutton", specifier = ">=0.5.1" },
+    { name = "sphinx-design", specifier = ">=0.5.0" },
 ]
 
 [[package]]
