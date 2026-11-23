@@ -513,6 +513,13 @@ body {
     padding-inline: 1.5rem;
     box-shadow: unset;
     border-radius: var(--radius-none);
+    /* Smaller headings, relative to the text, for a document shown inside
+       another page. */
+    --h1-size: 1.4em;
+    --h2-size: 1.2em;
+    --h3-size: 1.1em;
+    --h4-size: 1em;
+    --h5-size: 1em;
   }
 
 }
