@@ -86,5 +86,5 @@ start typing.
    pip install rsm-lang
    rsm build manuscript.rsm
 
-**Learn more**: :ref:`getting-started` walks you from zero to rendered output
+**Learn more**: :ref:`first-document` walks you from zero to rendered output
 in 10 minutes.

@@ -3,7 +3,7 @@
 Syntax guide
 ============
 
-This guide covers the complete RSM syntax. For a quick introduction, see :ref:`markup`.
+This guide covers the complete RSM syntax. For a quick introduction, see the :ref:`tutorials`.
 For practical examples, see :ref:`recipes`.
 
 Base language
