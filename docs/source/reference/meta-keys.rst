@@ -107,5 +107,5 @@ Each key, and where it is described.
      - :ref:`Abstract <tag-abstract>`
    * - ``:accent:``, ``:typography:``, ``:numbering:``,
        ``:citation-style:``, ``:override-date:``, ``:eyebrow:``,
-       ``:plain-title:``
+       ``:plain-title:``, ``:no-minimap:``
      - :ref:`Document settings <tag-config>`

@@ -58,6 +58,10 @@ A block that holds only meta keys and shows nothing in the page. It ends with
 ``:eyebrow:``
    A short line of text above the title, such as "Preprint".
 
+``:no-minimap:``
+   Turns off the map of the page that replaces the scroll bar, and keeps the
+   browser's own scroll bar. See :ref:`reading-minimap`.
+
 ``:plain-title:``
    The title as plain text, for the browser tab, when the title holds math or
    other markup. Without it, the tab shows the title with each piece of math

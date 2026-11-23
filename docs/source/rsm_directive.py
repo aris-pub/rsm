@@ -114,9 +114,10 @@ class rsm_example(nodes.Element):
 
 
 class rsm_iframe(nodes.Element):
-    def __init__(self, path):
+    def __init__(self, path, height=None):
         super().__init__()
         self.path = path
+        self.height = height
 
 
 class rsm_highlighted_code(nodes.Element):
@@ -138,6 +139,9 @@ class RSMDirective(Directive):
         'custom-css': lambda x: x.strip() if x else None,
         'source-only': lambda x: True,
         'sidebar': directives.flag,
+        # A fixed height in pixels: the example scrolls inside its frame and
+        # shows the minimap, instead of growing to its full length.
+        'height': directives.positive_int,
     }
 
     def _validate(self, content):
@@ -198,8 +202,11 @@ class RSMDirective(Directive):
         )
         html_output = re.sub(r"([\"'(])(?:\./)?static/", r"\1../_static/", html_output)
         # An example's frame grows to fit it and never scrolls, so the minimap
-        # (which stands in for the scrollbar) is off, as with :no-minimap:.
-        html_output = html_output.replace("<body ", '<body data-minimap="false" ', 1)
+        # (which stands in for the scrollbar) is off, as with :no-minimap:,
+        # except in a frame of fixed height.
+        height = self.options.get('height')
+        if not height:
+            html_output = html_output.replace("<body ", '<body data-minimap="false" ', 1)
 
         content_hash = hashlib.md5(content.encode()).hexdigest()[:8]
         example_dir = Path(app.outdir) / "_examples"
@@ -214,7 +221,7 @@ class RSMDirective(Directive):
             shutil.copyfile(sources.get(ref, source_dir / ref), dest)
         # The frame's path is relative to the page, which can sit at any depth.
         depth = self.state.document.settings.env.docname.count("/")
-        n2 = rsm_iframe(f"{'../' * depth}_examples/{content_hash}.html")
+        n2 = rsm_iframe(f"{'../' * depth}_examples/{content_hash}.html", height)
 
         rsm_node = rsm_example()
         rsm_node['classes'] = ['stacked'] if self.options.get('layout') == 'stacked' else []
@@ -235,6 +242,19 @@ def depart_rsm_highlighted_code_node(self, node):
 
 
 def visit_rsm_iframe_node(self, node):
+    if node.height:
+        self.body.append(f'''
+    <div class="rsm-iframe-wrap">
+      <div class="rsm-iframe-spinner"></div>
+      <iframe class="rsm-example-iframe"
+              src="{node.path}"
+              sandbox="allow-scripts allow-same-origin"
+              onload="this.parentNode.classList.add('loaded')"
+              style="height: {node.height}px;">
+      </iframe>
+    </div>
+    ''')
+        return
     iframe_html = f'''
     <div class="rsm-iframe-wrap">
       <div class="rsm-iframe-spinner"></div>
