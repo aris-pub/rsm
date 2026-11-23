@@ -205,7 +205,7 @@ assumptions and symbols are in force at each step. Each one ends with ``::``.
    Other ways to bring in a symbol, shown as "DEFINE", "NEW" and "WRITE".
 
 ``:pick:``, ``:st:``
-   A symbol picked with a property, as in ":pick: $x$ :: :st: $x > 0$ ::".
+   A symbol picked with a property, as in ``:pick: $x$ :: :st: $x > 0$ ::``.
    Shown as "PICK" and "SUCH THAT".
 
 ``:case:``
