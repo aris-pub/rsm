@@ -260,11 +260,22 @@ html[data-theme="dark"] .rsm-example:not(.landing-band .rsm-example) {
 .rsm-example:not(.landing-band .rsm-example) .rsm-example-code pre {
   white-space: pre-wrap;
   margin: 0;
-  border: none;
-  border-radius: 0;
-  background: transparent;
-  padding: 0.25rem 0;
+  border: 1px solid var(--pst-color-border);
+  border-radius: 0.4rem;
+  background: var(--pst-color-background);
+  padding: 0.75rem;
   font-family: 'Source Code Pro', monospace;
+}
+
+/* On a phone the box reaches the screen edges (the article has 16px side
+   padding there), so the source and result cards get the full width. */
+@media (max-width: 600px) {
+  .rsm-example:not(.landing-band .rsm-example) {
+    margin-inline: -16px;
+    padding: 0.6rem 0.5rem;
+    border-inline: none;
+    border-radius: 0;
+  }
 }
 
 .rsm-example:not(.landing-band .rsm-example) .rsm-example-iframe {
