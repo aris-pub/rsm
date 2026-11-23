@@ -513,7 +513,7 @@ body {
   /* Outermost wrapper when the the manuscript is embedded in another page */
   &.embedded {
     margin: 0;
-    padding-inline: 0.75rem;
+    padding-inline: var(--chunk-quarter);
     box-shadow: unset;
     border-radius: var(--radius-none);
     /* Smaller headings, relative to the text, for a document shown inside
@@ -621,7 +621,7 @@ body {
       margin-inline: 0 !important;
       width: auto;
       max-width: 100%;
-      padding: 1rem;
+      padding: var(--chunk-third);
     }
 
     /* The copied blocks keep the margins that space them on the page, which
@@ -2989,8 +2989,8 @@ body {
   font-weight: var(--weight-semi); }
 /* Author block */
 .manuscriptwrapper .author-block {
-  margin-top: 1.5rem;
-  margin-bottom: 1.5rem; }
+  margin-top: var(--chunk-half);
+  margin-bottom: var(--chunk-half); }
 
 .manuscriptwrapper .author-names {
   font-size: 1.0625rem;
@@ -3010,9 +3010,7 @@ body {
 
 .manuscriptwrapper .author-names .icon {
   display: inline-flex;
-  width: 0.875em;
-  height: 0.875em;
-  margin-left: 0.25em;
+  margin-left: var(--chunk-twelfth);
   vertical-align: -0.1em; }
 
 .manuscriptwrapper .author-names sup {
@@ -3021,7 +3019,7 @@ body {
   cursor: pointer; }
 
 .manuscriptwrapper .author-details {
-  margin-top: 0.3rem; }
+  margin-top: var(--chunk-twelfth); }
 
 .manuscriptwrapper .author-details summary {
   font-size: 0.875rem;
@@ -3032,12 +3030,12 @@ body {
   display: inline-flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.4rem; }
+  gap: var(--chunk-sixth); }
 
 .manuscriptwrapper .author-count {
   font-size: 0.75rem;
-  padding: 0.1rem 0.5rem;
-  border-radius: 99px;
+  padding: var(--chunk-twelfth) var(--chunk-sixth);
+  border-radius: 999px;
   background: var(--surface-hover);
   color: var(--text-subtle); }
 
