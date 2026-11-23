@@ -212,7 +212,9 @@ class RSMDirective(Directive):
             dest = example_dir / "assets" / ref
             dest.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(sources.get(ref, source_dir / ref), dest)
-        n2 = rsm_iframe(f"../_examples/{content_hash}.html")
+        # The frame's path is relative to the page, which can sit at any depth.
+        depth = self.state.document.settings.env.docname.count("/")
+        n2 = rsm_iframe(f"{'../' * depth}_examples/{content_hash}.html")
 
         rsm_node = rsm_example()
         rsm_node['classes'] = ['stacked'] if self.options.get('layout') == 'stacked' else []
