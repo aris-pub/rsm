@@ -1505,15 +1505,16 @@ body {
 }
 
 
+/* The label of a labelled block ("Theorem 1.1:") is semibold with or without
+   handrails, and in reference previews. */
+.manuscriptwrapper .hr-label span.label {font-weight: var(--weight-semi);}
+
 /* Labeled handrails */
 .manuscriptwrapper .hr.hr-labeled .hr-content-zone {
   .hr-label {
     padding-block: var(--chunk-sixth);
     border-bottom: var(--border-extrathin) solid var(--border-primary);
     margin-bottom: var(--chunk-sixth);
-
-    span.label {font-weight: var(--weight-semi);}
-
   }
 }
 
