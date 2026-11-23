@@ -1280,6 +1280,10 @@ class Translator:
         """Emit an SVG <use> reference to a symbol in the defs block."""
         return f'<div class="icon {name}"><svg overflow="visible"><use href="#hr-icon-{name}" width="100%" height="100%"/></svg></div>'
 
+    def _inline_icon(self, name: str) -> str:
+        """An icon inside a line of text, where a div is not allowed."""
+        return f'<span class="icon {name}" aria-hidden="true"><svg overflow="visible"><use href="#hr-icon-{name}" width="100%" height="100%"/></svg></span>'
+
     @classmethod
     def get_action_method(cls, node: nodes.Node, action: str) -> Callable:
         nodeclass = node.__class__
@@ -1609,7 +1613,11 @@ class Translator:
                     f'<sup data-tooltip="{author.author_note}">{author.note_symbol}</sup>'
                 )
             name_html += "".join(sup_parts)
-            name_parts.append(name_html)
+            if author.email:
+                name_html += self._inline_icon("mail")
+            if author.orcid:
+                name_html += self._inline_icon("orcid")
+            name_parts.append(f'<span class="author-name">{name_html}</span>')
 
         names_line = ", ".join(name_parts) if name_parts else ""
 
@@ -1645,8 +1653,20 @@ class Translator:
         total_affiliations = len(node.affiliation_map)
         total_notes = len(node.note_map)
 
+        # The folded summary counts what the details hold.
+        counts = [
+            (len(node.affiliation_map), "affiliation", "affiliations"),
+            (len(node.emails), "email", "emails"),
+            (len(node.orcids), "ORCID", "ORCIDs"),
+            (len(node.note_map), "note", "notes"),
+        ]
+        labels = "".join(
+            f'<span class="author-count">{n} {one if n == 1 else many}</span>'
+            for n, one, many in counts
+            if n
+        )
         html = '<details class="author-details">\n'
-        html += f"<summary>{self._icon_ref('chevron-down')}Affiliations</summary>\n"
+        html += f"<summary>{labels}{self._icon_ref('chevron-down')}</summary>\n"
 
         if node.affiliation_map:
             html += '<ol class="author-affiliations">\n'
@@ -3174,6 +3194,21 @@ class HandrailsTranslator(Translator):
       </svg>""",
         "chevron-down": """<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
 <path d="M6 9l6 6l6 -6" />
+</svg>""",
+        # Tabler's "mail" icon.
+        "mail": """<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+<path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10z" />
+<path d="M3 7l9 6l9 -6" />
+</svg>""",
+        # ORCID's own iD icon (orcid.org/assets/vectors/orcid.logo.icon.svg).
+        # Tabler has none (tabler/tabler-icons#1163).
+        "orcid": """<svg width="14" height="14" viewBox="0 0 72 72" xmlns="http://www.w3.org/2000/svg">
+<path fill="#A6CE39" d="M72,36 C72,55.884375 55.884375,72 36,72 C16.115625,72 0,55.884375 0,36 C0,16.115625 16.115625,0 36,0 C55.884375,0 72,16.115625 72,36 Z" />
+<g transform="translate(18.868966 12.910345)" fill="#FFFFFF">
+<polygon points="5.03734929 39.1250878 0.695429861 39.1250878 0.695429861 9.14431787 5.03734929 9.14431787 5.03734929 22.6930505 5.03734929 39.1250878" />
+<path d="M11.409257,9.14431787 L23.1380784,9.14431787 C34.303014,9.14431787 39.2088191,17.0664074 39.2088191,24.1486995 C39.2088191,31.846843 33.1470485,39.1530811 23.1944669,39.1530811 L11.409257,39.1530811 L11.409257,9.14431787 Z M15.7511765,35.2620194 L22.6587756,35.2620194 C32.49858,35.2620194 34.7541226,27.8438084 34.7541226,24.1486995 C34.7541226,18.1301509 30.8915059,13.0353795 22.4332213,13.0353795 L15.7511765,13.0353795 L15.7511765,35.2620194 Z" />
+<path d="M5.71401206,2.90182329 C5.71401206,4.441452 4.44526937,5.72914146 2.86638958,5.72914146 C1.28750978,5.72914146 0.0187670918,4.441452 0.0187670918,2.90182329 C0.0187670918,1.33420133 1.28750978,0.0745051096 2.86638958,0.0745051096 C4.44526937,0.0745051096 5.71401206,1.36219458 5.71401206,2.90182329 Z" />
+</g>
 </svg>""",
         "expand": """<svg width="14" height="8" viewBox="0 0 14 8" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">
 <path d="M1 1L7 7L13 1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>

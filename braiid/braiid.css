@@ -2982,7 +2982,7 @@ body {
 /* Author block */
 .manuscriptwrapper .author-block {
   margin-top: 1.5rem;
-  margin-bottom: 3rem; }
+  margin-bottom: 1.5rem; }
 
 .manuscriptwrapper .author-names {
   font-size: 1.0625rem;
@@ -2991,13 +2991,24 @@ body {
   line-height: var(--body-line-height);
   margin: 0; }
 
+.manuscriptwrapper .author-name {
+  white-space: nowrap; }
+
+.manuscriptwrapper .author-names .icon {
+  display: inline-flex;
+  width: 0.875em;
+  height: 0.875em;
+  margin-left: 0.25em;
+  vertical-align: -0.1em;
+  color: var(--text-subtle); }
+
 .manuscriptwrapper .author-names sup {
   font-weight: var(--weight-regular);
   color: var(--text-subtle);
   cursor: pointer; }
 
 .manuscriptwrapper .author-details {
-  margin-top: 0.75rem; }
+  margin-top: 0.3rem; }
 
 .manuscriptwrapper .author-details summary {
   font-size: 0.875rem;
@@ -3006,8 +3017,16 @@ body {
   cursor: pointer;
   list-style: none;
   display: inline-flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 0.25em; }
+  gap: 0.4rem; }
+
+.manuscriptwrapper .author-count {
+  font-size: 0.75rem;
+  padding: 0.1rem 0.5rem;
+  border-radius: 99px;
+  background: var(--surface-hover);
+  color: var(--text-subtle); }
 
 .manuscriptwrapper .author-details summary::marker,
 .manuscriptwrapper .author-details summary::-webkit-details-marker {
