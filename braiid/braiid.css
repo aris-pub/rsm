@@ -607,6 +607,8 @@ body {
     background: var(--surface-page);
     color: var(--extra-dark);
     border-radius: var(--radius-xl);
+    /* The padding is on the wrapper below, the same on every side. */
+    padding: 0;
 
     .manuscriptwrapper {
       /* Neutralise the document-layout rules: inside a tooltip the wrapper must
@@ -619,8 +621,13 @@ body {
       margin-inline: 0 !important;
       width: auto;
       max-width: 100%;
-      padding: 0 1rem 0 1rem;
+      padding: 1rem;
     }
+
+    /* The copied blocks keep the margins that space them on the page, which
+       would add to the padding at the top and bottom edges. */
+    .manuscriptwrapper :is(.hr, .paragraph, p):first-child {margin-block-start: 0;}
+    .manuscriptwrapper :is(.hr, .paragraph, p):last-child {margin-block-end: 0;}
 
     /* Short plain-text control labels (rail tabs/buttons): body font, tooltip
        size, wrapped by the instance maxWidth. Not document content, so no
