@@ -55,7 +55,7 @@ def test_simple():
         <p class="manuscript-date">March 29, 2022</p>
 
         <div class="author-block">
-        <p class="author-names"><span class="author-name">Leo Torres<span class="icon mail" aria-hidden="true"><svg overflow="visible"><use href="#hr-icon-mail" width="100%" height="100%"/></svg></span></span></p>
+        <p class="author-names"><span class="author-name">Leo Torres<a class="author-contact" href="mailto:leo@leotrs.com" aria-label="Email Leo Torres"><span class="icon mail" aria-hidden="true"><svg overflow="visible"><use href="#hr-icon-mail" width="100%" height="100%"/></svg></span></a></span></p>
         <details class="author-details">
         <summary><span class="author-count">1 affiliation</span><span class="author-count">1 email</span><div class="icon chevron-down"><svg overflow="visible"><use href="#hr-icon-chevron-down" width="100%" height="100%"/></svg></div></summary>
         <ol class="author-affiliations">

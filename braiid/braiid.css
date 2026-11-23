@@ -2994,13 +2994,18 @@ body {
 .manuscriptwrapper .author-name {
   white-space: nowrap; }
 
+.manuscriptwrapper .author-contact {
+  color: var(--text-subtle); }
+
+.manuscriptwrapper .author-contact:hover {
+  color: var(--link-hover); }
+
 .manuscriptwrapper .author-names .icon {
   display: inline-flex;
   width: 0.875em;
   height: 0.875em;
   margin-left: 0.25em;
-  vertical-align: -0.1em;
-  color: var(--text-subtle); }
+  vertical-align: -0.1em; }
 
 .manuscriptwrapper .author-names sup {
   font-weight: var(--weight-regular);

@@ -472,7 +472,7 @@ def test_complex_author_combination():
         <h1>Test</h1>
 
         <div class="author-block">
-        <p class="author-names"><span class="author-name">Alice<sup data-tooltip="MIT">1</sup><span class="icon orcid" aria-hidden="true"><svg overflow="visible"><use href="#hr-icon-orcid" width="100%" height="100%"/></svg></span></span>, <span class="author-name">Bob<sup data-tooltip="Harvard">2</sup></span>, <span class="author-name">Carol<sup data-tooltip="MIT">1</sup><span class="icon orcid" aria-hidden="true"><svg overflow="visible"><use href="#hr-icon-orcid" width="100%" height="100%"/></svg></span></span></p>
+        <p class="author-names"><span class="author-name">Alice<sup data-tooltip="MIT">1</sup><a class="author-contact" href="https://orcid.org/0000-0001-1111-1111" aria-label="ORCID record of Alice"><span class="icon orcid" aria-hidden="true"><svg overflow="visible"><use href="#hr-icon-orcid" width="100%" height="100%"/></svg></span></a></span>, <span class="author-name">Bob<sup data-tooltip="Harvard">2</sup></span>, <span class="author-name">Carol<sup data-tooltip="MIT">1</sup><a class="author-contact" href="https://orcid.org/0000-0002-2222-2222" aria-label="ORCID record of Carol"><span class="icon orcid" aria-hidden="true"><svg overflow="visible"><use href="#hr-icon-orcid" width="100%" height="100%"/></svg></span></a></span></p>
         <details class="author-details">
         <summary><span class="author-count">2 affiliations</span><span class="author-count">2 ORCIDs</span><span class="author-count">1 note</span><div class="icon chevron-down"><svg overflow="visible"><use href="#hr-icon-chevron-down" width="100%" height="100%"/></svg></div></summary>
         <ol class="author-affiliations">

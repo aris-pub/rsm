@@ -77,3 +77,21 @@ def test_summary_has_no_label_for_what_is_missing():
     src = "# T\n\n:author: {\n  :name: A\n  :affiliation: U\n} ::\n\nText.\n"
     text = " ".join(re.sub(r"<[^>]+>", " ", _summary(rsm.render(src))).split())
     assert text == "1 affiliation"
+
+
+def test_mail_icon_links_to_the_author_email():
+    ada = _author(rsm.render(SRC), "Ada Lovelace")
+    assert re.search(r'<a [^>]*href="mailto:ada@example.org"[^>]*>.*?hr-icon-mail', ada)
+
+
+def test_orcid_mark_links_to_the_orcid_record():
+    ada = _author(rsm.render(SRC), "Ada Lovelace")
+    assert re.search(
+        r'<a [^>]*href="https://orcid.org/0000-0002-1825-0097"[^>]*>.*?hr-icon-orcid', ada
+    )
+
+
+def test_icon_links_have_a_text_label_for_screen_readers():
+    ada = _author(rsm.render(SRC), "Ada Lovelace")
+    labels = re.findall(r'<a [^>]*aria-label="([^"]+)"', ada)
+    assert labels == ["Email Ada Lovelace", "ORCID record of Ada Lovelace"]

@@ -1613,10 +1613,19 @@ class Translator:
                     f'<sup data-tooltip="{author.author_note}">{author.note_symbol}</sup>'
                 )
             name_html += "".join(sup_parts)
+            name_attr = html_escape(author.name, quote=True)
             if author.email:
-                name_html += self._inline_icon("mail")
+                email = html_escape(author.email, quote=True)
+                name_html += (
+                    f'<a class="author-contact" href="mailto:{email}" '
+                    f'aria-label="Email {name_attr}">{self._inline_icon("mail")}</a>'
+                )
             if author.orcid:
-                name_html += self._inline_icon("orcid")
+                orcid = html_escape(author.orcid, quote=True)
+                name_html += (
+                    f'<a class="author-contact" href="https://orcid.org/{orcid}" '
+                    f'aria-label="ORCID record of {name_attr}">{self._inline_icon("orcid")}</a>'
+                )
             name_parts.append(f'<span class="author-name">{name_html}</span>')
 
         names_line = ", ".join(name_parts) if name_parts else ""
