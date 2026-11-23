@@ -3,13 +3,12 @@
 Explanation
 ===========
 
-Background and context for understanding RSM's design decisions.
+Why RSM exists, the principles behind it, and how it turns a source file into
+a page.
 
 .. toctree::
    :maxdepth: 1
 
-   explanation/what-is-rsm
    explanation/why-rsm
    explanation/design-principles
    explanation/how-rsm-works
-   explanation/latex-mental-model

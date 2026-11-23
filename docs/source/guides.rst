@@ -16,5 +16,6 @@ with copy-paste examples.
    guides/multi-author
    guides/styling
    guides/converting
+   guides/latex-mental-model
    guides/recipes
    guides/publish-to-press
