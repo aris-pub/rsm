@@ -104,5 +104,6 @@ RSM
    guides
    reading
    reference
+   api
    explanation
    contributing

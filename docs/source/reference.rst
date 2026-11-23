@@ -4,7 +4,8 @@
 Reference
 =========
 
-Lookup-oriented documentation for RSM syntax, configuration, CLI, and API.
+Every tag, meta key, document setting and command of RSM. For the Python
+API, see :ref:`python-api`.
 
 Language
 ********
@@ -27,32 +28,3 @@ Language
    reference/config
    reference/cli
    reference/import-export
-
-API Reference
-*************
-
-.. currentmodule:: rsm
-
-Core modules implementing each step in the file processing pipeline:
-
-.. autosummary::
-   :toctree: reference
-   :caption: Core Modules
-
-   nodes
-   reader
-   tsparser
-   transformer
-   translator
-   builder
-   writer
-
-User-facing modules:
-
-.. autosummary::
-   :toctree: reference
-   :caption: User-facing modules
-
-   app
-   cli
-   rsmlogger
