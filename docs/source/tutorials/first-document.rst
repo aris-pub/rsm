@@ -58,8 +58,9 @@ Make a new folder, and in it a file called ``paper.rsm`` with this text:
    A triangle with legs 3 and 4 has a hypotenuse
    of length **5**, because $9 + 16 = 25$.
 
-The box above holds the source, and the box below it holds the page that RSM
-makes from it. Every example in these docs has the same two parts.
+The part marked "Source" is the text that you write, and the part marked
+"Result" is the page that RSM makes from it. Every example in these docs has
+the same two parts.
 
 The source uses four kinds of markup:
 

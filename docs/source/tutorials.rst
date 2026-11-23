@@ -4,8 +4,8 @@ Tutorial
 ========
 
 Six short lessons take you from installing RSM to publishing a paper. Each
-one builds on the one before, so read them in order. Every example shows the
-RSM source with the page that RSM makes from it below.
+one builds on the one before, so read them in order. Every example has the RSM
+source next to the page that RSM makes from it.
 
 .. toctree::
    :maxdepth: 1
