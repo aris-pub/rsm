@@ -1,4 +1,5 @@
 .. _reference:
+.. _language-reference:
 
 Reference
 =========

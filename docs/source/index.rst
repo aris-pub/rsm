@@ -102,6 +102,7 @@ RSM
 
    tutorials
    guides
+   reading
    reference
    explanation
    contributing

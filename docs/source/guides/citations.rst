@@ -1,4 +1,5 @@
 .. _citations-guide:
+.. _guide-citations:
 
 Adding Citations and Bibliography
 =================================

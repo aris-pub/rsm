@@ -9,6 +9,8 @@ with copy-paste examples.
 .. toctree::
    :maxdepth: 1
 
+   guides/structured-proofs
+   guides/interactive-figures
    guides/tooltips
    guides/citations
    guides/multi-author
