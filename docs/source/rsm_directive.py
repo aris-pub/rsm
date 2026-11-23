@@ -245,6 +245,10 @@ def visit_rsm_iframe_node(self, node):
     if node.height:
         self.body.append(f'''
     <div class="rsm-iframe-wrap">
+      <div class="rsm-viewswitch" role="group" aria-label="Show the page as on">
+        <button type="button" data-view="desktop" aria-pressed="false">Desktop</button>
+        <button type="button" data-view="phone" aria-pressed="false">Phone</button>
+      </div>
       <div class="rsm-iframe-spinner"></div>
       <iframe class="rsm-example-iframe"
               src="{node.path}"
@@ -257,12 +261,16 @@ def visit_rsm_iframe_node(self, node):
         return
     iframe_html = f'''
     <div class="rsm-iframe-wrap">
+      <div class="rsm-viewswitch" role="group" aria-label="Show the page as on">
+        <button type="button" data-view="desktop" aria-pressed="false">Desktop</button>
+        <button type="button" data-view="phone" aria-pressed="false">Phone</button>
+      </div>
       <div class="rsm-iframe-spinner"></div>
       <iframe class="rsm-example-iframe"
               src="{node.path}"
               sandbox="allow-scripts allow-same-origin"
               scrolling="no"
-              onload="var f=this;f.parentNode.classList.add('loaded');if(!f.contentWindow.document.querySelector('.manuscriptwrapper'))return;function r(){{f.style.height=(f.contentWindow.document.documentElement.scrollHeight+8)+'px'}};r();new ResizeObserver(r).observe(f.contentWindow.document.documentElement);"
+              onload="var f=this;f.parentNode.classList.add('loaded');if(!f.contentWindow.document.querySelector('.manuscriptwrapper'))return;function r(){{f.style.height=(f.contentWindow.document.body.scrollHeight+8)+'px'}};r();new ResizeObserver(r).observe(f.contentWindow.document.body);"
               style="overflow: hidden;">
       </iframe>
     </div>

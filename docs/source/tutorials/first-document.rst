@@ -59,7 +59,7 @@ Make a new folder, and in it a file called ``paper.rsm`` with this text:
    of length **5**, because $9 + 16 = 25$.
 
 The part marked "Source" is the text that you write, and the part marked
-"Result" is the page that RSM makes from it. Every example in these docs has
+"Page" is the page that RSM makes from it. Every example in these docs has
 the same two parts.
 
 The source uses four kinds of markup:
