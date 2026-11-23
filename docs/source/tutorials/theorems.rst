@@ -3,14 +3,14 @@
 Theorems and proofs
 ===================
 
-Mathematical writing is made of definitions, results and proofs. RSM has a tag
-for each of them, and numbers and links them for you.
+Mathematical writing is made of theorems, definitions, proofs and similar
+blocks. RSM has a tag for each of them, and numbers and links them for you.
 
 .. rsm::
 
    # Even numbers
 
-   ## Results
+   ## Sums
 
    :definition: {:label: def-even}
    A whole number $n$ is **even** if $n = 2k$ for some whole number $k$.
@@ -35,11 +35,11 @@ for each of them, and numbers and links them for you.
    ::
 
 
-Results
--------
+Theorem-like blocks
+-------------------
 
-A result starts with its tag and ends with ``::``. RSM has these tags for
-results:
+A theorem-like block starts with its tag and ends with ``::``. RSM has these
+tags for theorem-like blocks:
 
 ``:theorem:``, ``:lemma:``, ``:proposition:``, ``:corollary:``,
 ``:definition:``, ``:remark:``, ``:example:``, ``:exercise:``, ``:problem:``
@@ -50,7 +50,7 @@ corollary above are 1.1, 1.2 and 1.3.
 
 Meta keys go in braces right after the tag, separated by commas:
 
-- ``:label:`` names the result, so that ``:ref:`` can link to it.
+- ``:label:`` names the block, so that ``:ref:`` can link to it.
 - ``:title:`` gives it a name, printed after its number.
 - ``:nonum:`` leaves it unnumbered.
 
@@ -59,14 +59,14 @@ Proofs
 ------
 
 ``:proof:`` holds a proof, and ``::`` ends it. A proof that comes right after
-its result needs nothing else. A proof placed somewhere else names its result
-with ``:of:``:
+its theorem needs nothing else. A proof placed somewhere else names its
+theorem with ``:of:``:
 
 .. rsm::
 
    # Odd numbers
 
-   ## Results
+   ## Odd squares
 
    :theorem: {:label: thm-odd}
    The square of an odd number is odd.

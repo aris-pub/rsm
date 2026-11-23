@@ -46,8 +46,8 @@ labels, references to them, links to web pages, and citations of other works.
 Labels
 ------
 
-A label names a part of the document. Sections, results, equations, figures,
-tables and list items can all have one. A label goes in the ``:label:`` meta
+A label names a part of the document. Sections, theorem-like blocks,
+equations, figures, tables and list items can all have one. A label goes in the ``:label:`` meta
 key:
 
 - after a heading: ``## Algorithm {:label: sec-alg}``
