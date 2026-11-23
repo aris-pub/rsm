@@ -12,6 +12,8 @@ Language
 .. toctree::
    :maxdepth: 1
 
+   reference/figures-tables
+   reference/meta-keys
    reference/syntax
    reference/special
    reference/configuration
