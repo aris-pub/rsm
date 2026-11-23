@@ -103,6 +103,50 @@ The sidebar also has "Copy this view", which copies a link that opens the
 page as the reader has set it up: what is folded, the order of the steps, the
 notation, the pinned blocks and the place on the page.
 
+The example below is built with the sidebar. Open its views from the strip of
+icons on the left of the result.
+
+.. rsm::
+   :sidebar:
+   :layout: stacked
+
+   # Even squares
+
+   :notation:
+     \sq $n^2$ square of n
+   ::
+
+   ## Definitions {:label: sec-def}
+
+   :definition: {:label: def-even}
+   A whole number $n$ is **even** if $n = 2k$ for a whole number $k$.
+   ::
+
+   ## Results
+
+   :theorem: {:label: thm-sq}
+   If $n$ is even, then $4$ divides $\sq$.
+   ::
+
+   :proof:
+
+     :step: {:label: st-let} :let: $n = 2k$ ::.
+
+       :p: By :ref:def-even::. ::
+
+     ::
+
+     :step: :claim: $\sq = 4k^2$ ::.
+
+       :p: Square both sides of :prev:. ::
+
+     ::
+
+     :step: So $4$ divides $\sq$. :qed:
+     ::
+
+   ::
+
 
 The scroll bar
 --------------

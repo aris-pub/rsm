@@ -137,6 +137,7 @@ class RSMDirective(Directive):
         'layout': lambda x: directives.choice(x, ('side-by-side', 'stacked')),
         'custom-css': lambda x: x.strip() if x else None,
         'source-only': lambda x: True,
+        'sidebar': directives.flag,
     }
 
     def _validate(self, content):
@@ -177,7 +178,8 @@ class RSMDirective(Directive):
             'standalone': False,
             'theme_toggle': False,
             'menu_position': 'right',
-            'strict': True
+            'strict': True,
+            'sidebar': 'sidebar' in self.options,
         }
         if custom_css:
             custom_css_path = source_dir / custom_css
