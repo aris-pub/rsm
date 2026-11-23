@@ -214,39 +214,71 @@ html[data-theme="dark"] .sd-card.sd-sphinx-override:hover {
   container-type: inline-size;
 }
 
-.rsm-example {
+/* The landing page's example (.landing-band) has its own design, so these
+   rules leave it out.
+
+   A gray box holds the source and the result. The result sits in it as a
+   white page with a shadow, so that it reads as a separate document. */
+.rsm-example:not(.landing-band .rsm-example) {
   margin-block: 1.25rem;
+  padding: 0.75rem;
+  display: grid;
+  gap: 0.75rem;
+  background: var(--braiid-gray-75);
   border: 1px solid var(--pst-color-border);
-  border-radius: 0.5rem;
-  overflow: hidden;
+  border-radius: 0.6rem;
+}
+
+html[data-theme="dark"] .rsm-example:not(.landing-band .rsm-example) {
+  background: #10161a;
+}
+
+.rsm-example:not(.landing-band .rsm-example) .rsm-example-code::before,
+.rsm-example:not(.landing-band .rsm-example) .rsm-iframe-wrap::before {
+  display: block;
+  margin-bottom: 0.35rem;
+  font: 600 0.7rem/1 'Montserrat', sans-serif;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--pst-color-text-muted);
+}
+
+.rsm-example:not(.landing-band .rsm-example) .rsm-example-code::before {
+  content: "Source";
+}
+
+.rsm-example:not(.landing-band .rsm-example) .rsm-iframe-wrap::before {
+  content: "Result";
+}
+
+.rsm-example:not(.landing-band .rsm-example) .rsm-example-code {
+  margin: 0;
+  min-width: 0;
+  background: transparent;
+}
+
+.rsm-example:not(.landing-band .rsm-example) .rsm-example-code pre {
+  white-space: pre-wrap;
+  margin: 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  padding: 0.25rem 0;
+  font-family: 'Source Code Pro', monospace;
+}
+
+.rsm-example:not(.landing-band .rsm-example) .rsm-example-iframe {
+  border: 1px solid var(--pst-color-border);
+  border-radius: 0.4rem;
+  box-shadow: 0 4px 14px rgba(8, 44, 73, 0.08), 0 1px 3px rgba(8, 44, 73, 0.06);
 }
 
 /* The landing page lays out its example on its own. */
 @container (min-width: 44rem) {
   .rsm-example:not(.stacked, .landing-band .rsm-example) {
-    display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: start;
   }
-
-  .rsm-example:not(.stacked, .landing-band .rsm-example) .rsm-example-code pre {
-    height: 100%;
-    white-space: pre-wrap;
-    border-bottom: none !important;
-    border-right: 1px solid var(--pst-color-border) !important;
-  }
-}
-
-.rsm-example .rsm-example-code {
-  margin: 0;
-}
-
-.rsm-example .rsm-example-code pre {
-  overflow-x: auto;
-  margin: 0;
-  border: none;
-  border-radius: 0;
-  border-bottom: 1px solid var(--pst-color-border);
-  font-family: 'Source Code Pro', monospace;
 }
 
 .rsm-iframe-wrap {
