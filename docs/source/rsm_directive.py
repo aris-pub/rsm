@@ -232,6 +232,10 @@ class RSMDirective(Directive):
             source_file = self.state.document.current_source
             raise type(e)(f"Error in {source_file}:\n{e}") from e
         html_output = html_output.replace('class="manuscriptwrapper"', 'class="manuscriptwrapper embedded"')
+        # The example's base size is the docs' own text size (see braiid.css).
+        html_output = html_output.replace(
+            "</head>", "<style>:root { --embedded-font-size: 16px; }</style>\n</head>", 1
+        )
         html_output = re.sub(r"([\"'(])(?:\./)?static/", r"\1../_static/", html_output)
         # An example's frame grows to fit it and never scrolls, so the minimap
         # (which stands in for the scrollbar) is off, as with :no-minimap:.

@@ -23,7 +23,10 @@ body {
   /* Dark-only palette value (no light counterpart); used by --text-subtle. */
   --gray-550: #788188;
   /* Base font size - mobile-first responsive scaling */
-  font-size: 12px;  /* Mobile default (< 640px) */
+  /* A page that shows this one in a frame can set --embedded-font-size on
+     this page's root, because inside a frame the window width is the
+     frame's and not the reader's screen. */
+  font-size: var(--embedded-font-size, 12px);  /* Mobile default (< 640px) */
 
   /* General */
   --side-padding: 1rem;    /* Mobile-first, scaled up at breakpoints */
@@ -3519,7 +3522,7 @@ a.reference.external:hover::after {
 @media (min-width: 640px) {
   /* sm: Small tablets and up */
   :root {
-    font-size: 14px;  /* 116.7% of mobile */
+    font-size: var(--embedded-font-size, 14px);  /* 116.7% of mobile */
     --side-padding: 3rem;
   }
 }
@@ -3527,7 +3530,7 @@ a.reference.external:hover::after {
 @media (min-width: 1024px) {
   /* lg: Desktop and up */
   :root {
-    font-size: 16px;  /* 133% of mobile, 114% of tablet */
+    font-size: var(--embedded-font-size, 16px);  /* 133% of mobile, 114% of tablet */
     --side-padding: 6.5rem;
   }
 }
