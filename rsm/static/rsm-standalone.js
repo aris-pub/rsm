@@ -1351,7 +1351,7 @@ var RSM = (() => {
       clone = copyOf($t);
       clone.children().slice(2).remove();
       stripHandrail(clone);
-      clone.css("font-size", "0.7rem");
+      clone.find(".hr-labeled").removeClass("hr-labeled");
       content = clone.html();
     } else if (tag === "A") {
       content = `<div>${$t.parent().html()}</div>`;
@@ -1361,7 +1361,6 @@ var RSM = (() => {
       } else if (classes.contains("step")) {
         clone = copyOf($t.find(".statement"));
         stripHandrail(clone);
-        clone.css("font-size", "0.7rem");
         content = clone.html();
       } else if (classes.contains("proof")) {
         clone = copyOf($t);

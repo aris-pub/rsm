@@ -634,6 +634,12 @@ body {
        on a page without handrails. */
     .manuscriptwrapper .hr-label + .hr > .hr-content-zone > p:first-child {padding-top: 0;}
 
+    /* A section's tooltip has its heading and first block. The heading is set
+       a little larger than the text (no braiid token has this size), with
+       1/6 chunk under it, instead of its size and margins on the page. */
+    .manuscriptwrapper .heading {margin-block-end: var(--chunk-sixth);}
+    .manuscriptwrapper .heading :is(h1, h2, h3, h4, h5, h6) {font-size: 1.1em; margin: 0;}
+
     /* Short plain-text control labels (rail tabs/buttons): body font, tooltip
        size, wrapped by the instance maxWidth. Not document content, so no
        .manuscriptwrapper (which would size to the document column width). */
