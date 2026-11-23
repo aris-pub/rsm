@@ -33,7 +33,7 @@ html_static_path = ["_static"]
 html_logo = "_static/logo.svg"
 html_favicon = "_static/favicon.svg"
 html_css_files = ["custom.css"]
-html_js_files = ["theme-sync.js", "example-view.js"]
+html_js_files = ["theme-sync.js"]
 
 # templates
 templates_path = ["_templates"]

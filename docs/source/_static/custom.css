@@ -321,52 +321,7 @@ html[data-theme="dark"] .rsm-example:not(.landing-band .rsm-example) {
 .rsm-iframe-wrap {
   position: relative;
   min-height: 4rem;
-  container-type: inline-size;
 }
-
-/* ─── Desktop and Phone buttons above each result (example-view.js) ─── */
-.rsm-example:not(.landing-band .rsm-example) .rsm-iframe-wrap::before {
-  display: flex;
-  align-items: center;
-  min-height: 1.5rem;
-}
-.rsm-viewswitch {
-  position: absolute;
-  top: 0;
-  right: 0;
-  display: flex;
-}
-.rsm-viewswitch button {
-  font: 600 0.7rem/1 'Montserrat', sans-serif;
-  padding: var(--chunk-twelfth) var(--chunk-sixth);
-  border: 1px solid var(--pst-color-border);
-  background: var(--pst-color-background);
-  color: var(--pst-color-text-muted);
-  cursor: pointer;
-}
-.rsm-viewswitch button:first-child {
-  border-radius: var(--radius-lg) 0 0 var(--radius-lg);
-}
-.rsm-viewswitch button:last-child {
-  border-left: none;
-  border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
-}
-.rsm-viewswitch button[aria-pressed="true"] {
-  background: var(--braiid-blue-600);
-  border-color: var(--braiid-blue-600);
-  color: #fff;
-}
-.rsm-iframe-wrap.phone-view .rsm-example-iframe {
-  width: 390px;
-  max-width: 100%;
-  margin-inline: auto;
-}
-/* A result already as narrow as a phone has nothing to switch, and the
-   landing page's example has its own design. */
-@container (max-width: 30rem) {
-  .rsm-viewswitch { display: none; }
-}
-.landing-band .rsm-viewswitch { display: none; }
 
 .rsm-example-iframe {
   display: block;
