@@ -46,8 +46,8 @@ The reader sidebar
 
 ``--sidebar`` adds a sidebar to the page, with the table of contents, the
 document's notation, the steps of its proofs and the parts that the reader
-has pinned. See :ref:`reading` for what readers can do with it. You can give
-``rsm serve`` the same option.
+has pinned. See :ref:`reading-sidebar` for what readers can do with it. You
+can give ``rsm serve`` the same option.
 
 
 Preview while you write
