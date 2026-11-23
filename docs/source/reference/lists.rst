@@ -107,7 +107,9 @@ at the next blank line.
 .. rsm::
    :source-only:
 
-   :-: {:label: <label>} <text>
+   :itemize:
+     :-: {:label: <label>} <text>
+   ::
 
 .. rubric:: Related
 

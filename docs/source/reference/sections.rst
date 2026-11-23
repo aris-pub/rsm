@@ -65,8 +65,9 @@ subsubsection. Meta keys go in braces after the heading text.
 Section tags ``:section:`` ``:subsection:`` ``:subsubsection:``
 ---------------------------------------------------------------
 
-The same sections as ``##``, ``###`` and ``####``, written as blocks. A block
-section ends with ``::``, and its title goes in ``:title:``.
+The same sections as ``##``, ``###`` and ``####``, written as tags. The title
+goes in ``:title:``. As with ``##``, the section runs until the next section,
+with no closing ``::``.
 
 .. rubric:: Syntax
 
@@ -74,8 +75,8 @@ section ends with ``::``, and its title goes in ``:title:``.
    :source-only:
 
    :section: {:title: <title>, :label: <label>}
+
    <content>
-   ::
 
 .. rubric:: Meta keys
 
@@ -121,15 +122,14 @@ Table of contents ``:toc:``
 
 A table of contents of the sections of the document, placed where the tag
 is. The reader can switch it between a list and a graph that shows which
-sections refer to which. The tag stands alone, with no content and no closing
-``::``.
+sections refer to which. The tag holds no content, and ends with ``::``.
 
 .. rubric:: Syntax
 
 .. rsm::
    :source-only:
 
-   :toc: {:view: <list or tree>}
+   :toc: {:view: tree} ::
 
 .. rubric:: Meta keys
 
