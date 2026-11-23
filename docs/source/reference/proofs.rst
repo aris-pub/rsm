@@ -118,7 +118,7 @@ keywords below, such as ``:let:`` and ``:claim:``. Its justification goes in a
 
    :proof:
 
-     :step: :let: $n = 2k$ ::.
+     :step: {:label: st-n} :let: $n = 2k$ ::.
      ::
 
      :step: :claim: $n^2 = 4k^2$ ::.
@@ -266,7 +266,7 @@ steps before, three steps before, or the number of steps before given in
    :source-only:
 
    :proof:
-     :step: <statement>
+     :step: {:label: <label>} <statement>
      ::
 
      :step: <statement> by :prev: and :previous: 1::.

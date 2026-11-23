@@ -38,7 +38,7 @@ The whole proof
 
      :step: {:label: st-a} :claim: $a$ is even ::.
 
-       :step: :claim: $a^2 = 2b^2$ ::.
+       :step: {:label: st-sq} :claim: $a^2 = 2b^2$ ::.
 
          :p: Square both sides of :ref:st-ab:: and multiply by $b^2$. ::
 
