@@ -236,9 +236,6 @@ class RSMDirective(Directive):
         # An example's frame grows to fit it and never scrolls, so the minimap
         # (which stands in for the scrollbar) is off, as with :no-minimap:.
         html_output = html_output.replace("<body ", '<body data-minimap="false" ', 1)
-        html_output = html_output.replace(
-            "</head>", '<link rel="stylesheet" href="../_static/docs-frame.css">\n</head>', 1
-        )
 
         content_hash = hashlib.md5(content.encode()).hexdigest()[:8]
         example_dir = Path(app.outdir) / "_examples"
