@@ -1491,7 +1491,22 @@ class Translator:
         A paragraph never starts with a terminal block, so text always comes
         before it and the <p> is open. See visit_paragraph().
         """
-        return [AppendText("</p>")] if self._terminal_block_in_p(node) else []
+        if not self._terminal_block_in_p(node) or self._starts_paragraph(node):
+            return []
+        return [AppendText("</p>")]
+
+    @staticmethod
+    def _starts_paragraph(node: nodes.Node) -> bool:
+        """Whether a list is the first thing in its paragraph, which then opens no
+        <p> before it. A list after a blank line is a paragraph of its own."""
+        parent = node.parent
+        return (
+            isinstance(node, (nodes.Itemize, nodes.Enumerate))
+            and isinstance(parent, nodes.Paragraph)
+            and not parent.title
+            and bool(parent.children)
+            and parent.children[0] is node
+        )
 
     @overload
     def _reopen_p_after(
@@ -1787,7 +1802,9 @@ class Translator:
         ]
         # An aside at the end of the paragraph closes the <p> itself, see
         # visit_aside().
-        if node.first_of_type(nodes.TerminalBlock) or node.first_of_type(nodes.Aside):
+        if node.children and self._starts_paragraph(node.children[0]):
+            pass
+        elif node.first_of_type(nodes.TerminalBlock) or node.first_of_type(nodes.Aside):
             items.append(AppendOpenTagManualClose(tag="p", newline_inner=False))
         else:
             items.append(AppendOpenTag(tag="p", newline_inner=False))
@@ -4447,58 +4464,6 @@ class HandrailsTranslator(Translator):
             "</div>" + self._hr_info_zone_icon(None).make_text() + "</div>",
         )
         return AppendBatchAndDefer([cmd.items[0], wrapper, *cmd.items[1:]])
-
-    def visit_enumerate(self, node: nodes.Enumerate) -> EditCommand:
-        return self._list_handrails(node, "ol")
-
-    def leave_enumerate(self, node: nodes.Enumerate) -> EditCommand:
-        # The visit method deferred a batch, so leave_node returns one.
-        batch = cast(EditCommandBatch, super().leave_node(node))
-        batch.items.insert(-1, self._hr_info_zone_icon(getattr(node, "icon", None)))
-        return self._reopen_p_after(node, batch)
-
-    def _list_handrails(
-        self, node: nodes.Itemize | nodes.Enumerate, tag: str
-    ) -> EditCommand:
-        batch = self._replace_node_with_handrails(node, collapse_in_hr=False)
-        if "hr-hidden" not in batch.items[0].classes:
-            batch.items[0].classes.append("hr-hidden")
-        # Inside a paragraph, a list gets the same offset as display math.
-        if (
-            self._terminal_block_in_p(node)
-            and "hr-offset" not in batch.items[0].classes
-        ):
-            batch.items[0].classes.append("hr-offset")
-        return AppendBatchAndDefer(
-            [*self._close_p_before(node), *batch.items, AppendNodeTag(node, tag)]
-        )
-
-    def visit_itemize(self, node: nodes.Itemize) -> EditCommand:
-        # Don't add handrails to itemize lists inside Contents (TOC)
-        if isinstance(node, nodes.Contents):
-            return super().visit_itemize(node)
-        # Check if any parent is a Contents node
-        current = node.parent
-        while current is not None:
-            if isinstance(current, nodes.Contents):
-                return super().visit_itemize(node)
-            current = current.parent
-        return self._list_handrails(node, "ul")
-
-    def leave_itemize(self, node: nodes.Itemize) -> EditCommand:
-        # Don't add handrails to itemize lists inside Contents (TOC)
-        if isinstance(node, nodes.Contents):
-            return super().leave_node(node)
-        # Check if any parent is a Contents node
-        current = node.parent
-        while current is not None:
-            if isinstance(current, nodes.Contents):
-                return super().leave_node(node)
-            current = current.parent
-        # The visit method deferred a batch, so leave_node returns one.
-        batch = cast(EditCommandBatch, super().leave_node(node))
-        batch.items.insert(-1, self._hr_info_zone_icon(getattr(node, "icon", None)))
-        return self._reopen_p_after(node, batch)
 
     def _asset_handrails(
         self, node: nodes.Asset, with_fallback: bool = True

@@ -255,9 +255,10 @@ class PandocTranslator:
         return result + self._paragraph_content_blocks(node)
 
     def _paragraph_content_blocks(self, node: nodes.BaseParagraph) -> list[dict]:
-        # A paragraph may contain block-level MathBlock / CodeBlock children.
-        # Split at each such child: flush accumulated inlines as Para, emit the block.
-        _BLOCK_IN_PARA = (nodes.MathBlock, nodes.CodeBlock)
+        # A paragraph may contain block-level children: display math, code blocks
+        # and lists. Split at each such child: flush accumulated inlines as Para,
+        # emit the block.
+        _BLOCK_IN_PARA = (nodes.MathBlock, nodes.CodeBlock, nodes.Itemize, nodes.Enumerate)
         result: list[dict] = []
         current_inlines: list[dict] = []
         for child in node.children:

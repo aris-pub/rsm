@@ -48,37 +48,45 @@ def test_simple():
 
         <h1>My Title</h1>
 
-        <ol id="enm-foo" class="enumerate" data-nodeid="1">
+        <div class="paragraph" data-nodeid="1">
 
-        <li id="itm-1" class="item" data-nodeid="2">
+        <ol id="enm-foo" class="enumerate" data-nodeid="2">
+
+        <li id="itm-1" class="item" data-nodeid="3">
         Foo bar.
         </li>
 
-        <li id="itm-2" class="item" data-nodeid="4">
+        <li id="itm-2" class="item" data-nodeid="5">
         Lorem ipsum dolor sit amet Lorem ipsum dolor sit amet Lorem ipsum dolor sit amet.
         </li>
 
-        <li id="itm-3" class="item" data-nodeid="6">
+        <li id="itm-3" class="item" data-nodeid="7">
         Lorem ipsum dolor sit amet Lorem ipsum dolor sit amet Lorem ipsum dolor sit amet.
         </li>
 
         </ol>
 
-        <ul id="itm-foo" class="itemize" data-nodeid="8">
+        </div>
 
-        <li id="itm-4" class="item" data-nodeid="9">
+        <div class="paragraph" data-nodeid="9">
+
+        <ul id="itm-foo" class="itemize" data-nodeid="10">
+
+        <li id="itm-4" class="item" data-nodeid="11">
         Foo bar.
         </li>
 
-        <li id="itm-5" class="item" data-nodeid="11">
+        <li id="itm-5" class="item" data-nodeid="13">
         Lorem ipsum dolor sit amet Lorem ipsum dolor sit amet Lorem ipsum dolor sit amet.
         </li>
 
-        <li id="itm-6" class="item" data-nodeid="13">
+        <li id="itm-6" class="item" data-nodeid="15">
         Lorem ipsum dolor sit amet Lorem ipsum dolor sit amet Lorem ipsum dolor sit amet.
         </li>
 
         </ul>
+
+        </div>
 
         </section>
 
@@ -87,7 +95,7 @@ def test_simple():
         </main>
 
         </body>
-        """,
+""",
     )
 
 
@@ -266,12 +274,16 @@ def test_list_inside_paragraph_handrails():
     assert par.index("</ul>") < par.index("<p>afterthelist.</p>"), par
 
 
-def test_list_with_blank_lines_is_its_own_block():
+def test_list_with_blank_lines_is_a_paragraph_of_its_own():
+    # A list after a blank line starts a paragraph that holds only the list.
     body = _body(
         "Before the list.\n\n:itemize:\n\n  :-: one\n\n::\n\nAfter the list.\n"
     )
-    assert body.count('class="paragraph"') == 2, body
-    assert '<p>Beforethelist.</p></div><ulclass="itemize">' in body, body
+    assert body.count('class="paragraph"') == 3, body
+    assert (
+        '<p>Beforethelist.</p></div><divclass="paragraph">'
+        '<ulclass="itemize"><liclass="item">one</li></ul></div>'
+    ) in body, body
 
 
 def test_list_inside_paragraph_in_theorem():
@@ -310,14 +322,55 @@ def test_list_inside_aside_definition():
     ) in body, body
 
 
-def test_standalone_nested_list_unchanged():
-    body = _body(":itemize:\n\n  :-: one\n\n  :--: one point one\n\n  :-: two\n\n::\n")
+NESTED = ":itemize:\n\n  :-: one\n\n  :--: one point one\n\n  :-: two\n\n::\n"
+
+
+def test_standalone_nested_list():
+    body = _body(NESTED)
     assert (
-        '<divclass="manuscript"><sectionclass="level-1">'
+        '<divclass="manuscript"><sectionclass="level-1"><divclass="paragraph">'
         '<ulclass="itemize"><liclass="item">one<ulclass="itemize">'
         '<liclass="item">onepointone</li></ul></li><liclass="item">two</li></ul>'
-        "</section></div>"
+        "</div></section></div>"
     ) in body, body
+
+
+# With handrails, a list never gets a handrail of its own. The paragraph that
+# holds it does, whether the list is part of a longer paragraph or the only
+# thing in its paragraph (Leo, 2026-11-23).
+
+
+def _list_handrails(body):
+    return body.count('data-menu-label="Itemize"') + body.count(
+        'data-menu-label="Enumerate"'
+    )
+
+
+def test_standalone_list_handrail_belongs_to_its_paragraph():
+    body = _body(":itemize:\n\n  :-: one\n\n::\n", handrails=True)
+    assert _list_handrails(body) == 0, body
+    assert body.count('class="paragraphhr') == 1, body
+    content = body[body.index('class="paragraphhr') :]
+    content = content[content.index('<divclass="hr-content-zone">') :]
+    assert content.startswith('<divclass="hr-content-zone"><ulclass="itemize">'), content
+
+
+def test_list_inside_paragraph_has_no_handrail_of_its_own():
+    body = _body(LIST_IN_PARAGRAPH, handrails=True)
+    assert _list_handrails(body) == 0, body
+    assert "<p>Beforethelist</p><ulclass=\"itemize\">" in body, body
+
+
+def test_nested_list_has_no_handrail_of_its_own():
+    body = _body(NESTED, handrails=True)
+    assert _list_handrails(body) == 0, body
+    assert '<liclass="item">one<ulclass="itemize">' in body, body
+
+
+def test_enumerate_has_no_handrail_of_its_own():
+    body = _body(":enumerate:\n\n  :-: one\n\n::\n", handrails=True)
+    assert _list_handrails(body) == 0, body
+    assert body.count('class="paragraphhr') == 1, body
 
 
 @pytest.mark.parametrize(
