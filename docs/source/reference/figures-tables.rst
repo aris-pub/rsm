@@ -13,10 +13,14 @@ Every tag on this page also takes the meta keys that all tags take, such as
 
 .. _tag-figure:
 
-``:figure:``
-------------
+.. rst-class:: tag-card
+
+Figure ``:figure:``
+-------------------
 
 An image, or an interactive figure written in HTML, with an optional caption.
+
+.. rubric:: Syntax
 
 .. rsm::
    :source-only:
@@ -25,7 +29,7 @@ An image, or an interactive figure written in HTML, with an optional caption.
      :caption: <caption>
    ::
 
-Meta keys:
+.. rubric:: Meta keys
 
 ``:path:``
    The file to show, relative to the ``.rsm`` file. A PNG, JPEG, GIF or SVG
@@ -59,6 +63,8 @@ Meta keys:
 Instead of ``:path:``, a figure can hold an ``:htmlblock:`` with its HTML
 written in the document.
 
+.. rubric:: Example
+
 .. rsm::
 
    ## Results
@@ -73,15 +79,21 @@ written in the document.
 
    :ref:fig-plot:: has three lines.
 
-Related: :ref:`tag-caption`, :ref:`tag-video`.
+.. rubric:: Related
+
+:ref:`Caption <tag-caption>`, :ref:`Video <tag-video>`.
 
 
 .. _tag-video:
 
-``:video:``
------------
+.. rst-class:: tag-card
+
+Video ``:video:``
+-----------------
 
 A video file, with the browser's controls and an optional caption.
+
+.. rubric:: Syntax
 
 .. rsm::
    :source-only:
@@ -90,23 +102,32 @@ A video file, with the browser's controls and an optional caption.
      :caption: <caption>
    ::
 
-Meta keys:
+.. rubric:: Meta keys
 
 ``:path:``
    The video file, relative to the ``.rsm`` file: MP4, WebM or MOV.
 
-``:blockname:``, ``:as-paragraph:``
+``:blockname:``
    As for ``:figure:``.
 
-Related: :ref:`tag-figure`, :ref:`tag-caption`.
+``:as-paragraph:``
+   As for ``:figure:``.
+
+.. rubric:: Related
+
+:ref:`Figure <tag-figure>`, :ref:`Caption <tag-caption>`.
 
 
 .. _tag-table:
 
-``:table:``
------------
+.. rst-class:: tag-card
+
+Table ``:table:``
+-----------------
 
 A table, with an optional head, a body and an optional caption, in that order.
+
+.. rubric:: Syntax
 
 .. rsm::
    :source-only:
@@ -121,10 +142,12 @@ A table, with an optional head, a body and an optional caption, in that order.
      :caption: <caption>
    ::
 
-Meta keys:
+.. rubric:: Meta keys
 
 ``:blockname:``
    A name that replaces "Table" in the table's label and in references to it.
+
+.. rubric:: Example
 
 .. rsm::
 
@@ -141,26 +164,34 @@ Meta keys:
 
    :ref:tbl-sizes:: lists the datasets.
 
-Related: :ref:`tag-tr`, :ref:`tag-caption`.
+.. rubric:: Related
+
+:ref:`Row and cell <tag-tr>`, :ref:`Caption <tag-caption>`.
 
 
 .. _tag-thead:
 .. _tag-tbody:
 
-``:thead:`` and ``:tbody:``
----------------------------
+.. rst-class:: tag-card
+
+Head and body ``:thead:`` ``:tbody:``
+-------------------------------------
 
 The head and the body of a ``:table:``. Each holds one or more rows and ends
 with ``::``. The rows of the head have a gray background.
 
-Related: :ref:`tag-table`, :ref:`tag-tr`.
+.. rubric:: Related
+
+:ref:`Table <tag-table>`, :ref:`Row and cell <tag-tr>`.
 
 
 .. _tag-tr:
 .. _tag-td:
 
-``:tr:`` and ``:td:``
----------------------
+.. rst-class:: tag-card
+
+Row and cell ``:tr:`` ``:td:``
+------------------------------
 
 A row of a table, and a cell of a row. A row starts with ``:tr:`` and ends
 with ``::``. Its cells can be written in two ways:
@@ -171,16 +202,22 @@ with ``::``. Its cells can be written in two ways:
 A cell can hold text and inline markup, such as math, emphasis and
 references.
 
-Related: :ref:`tag-table`.
+.. rubric:: Related
+
+:ref:`Table <tag-table>`.
 
 
 .. _tag-caption:
 
-``:caption:``
--------------
+.. rst-class:: tag-card
+
+Caption ``:caption:``
+---------------------
 
 The caption of a ``:figure:``, ``:video:`` or ``:table:``. It goes inside the
 block, after its content, and runs to the block's closing ``::``. RSM puts
 the block's label, such as "Figure 1.1.", before it.
 
-Related: :ref:`tag-figure`, :ref:`tag-video`, :ref:`tag-table`.
+.. rubric:: Related
+
+:ref:`Figure <tag-figure>`, :ref:`Video <tag-video>`, :ref:`Table <tag-table>`.
