@@ -207,12 +207,33 @@ html[data-theme="dark"] .sd-card.sd-sphinx-override:hover {
   background: var(--pst-color-surface);
 }
 
-/* ─── RSM examples: source above, rendered result below ─── */
+/* ─── RSM examples: source and result side by side, stacked when narrow ─── */
+/* The width that matters is the article's, which changes with the sidebars,
+   so the layout follows a container query on it, not a media query. */
+.bd-article-container {
+  container-type: inline-size;
+}
+
 .rsm-example {
   margin-block: 1.25rem;
   border: 1px solid var(--pst-color-border);
   border-radius: 0.5rem;
   overflow: hidden;
+}
+
+/* The landing page lays out its example on its own. */
+@container (min-width: 44rem) {
+  .rsm-example:not(.stacked, .landing-band .rsm-example) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .rsm-example:not(.stacked, .landing-band .rsm-example) .rsm-example-code pre {
+    height: 100%;
+    white-space: pre-wrap;
+    border-bottom: none !important;
+    border-right: 1px solid var(--pst-color-border) !important;
+  }
 }
 
 .rsm-example .rsm-example-code {

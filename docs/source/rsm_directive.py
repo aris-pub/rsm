@@ -13,7 +13,7 @@ from html import escape
 from pathlib import Path
 
 from docutils import nodes
-from docutils.parsers.rst import Directive
+from docutils.parsers.rst import Directive, directives
 
 import rsm
 import tree_sitter
@@ -174,6 +174,9 @@ class rsm_highlighted_code(nodes.Element):
 class RSMDirective(Directive):
     has_content = True
     option_spec = {
+        # Side by side when the page is wide enough, else stacked. "stacked"
+        # stacks the source above the result at every width.
+        'layout': lambda x: directives.choice(x, ('side-by-side', 'stacked')),
         'custom-css': lambda x: x.strip() if x else None,
         'source-only': lambda x: True,
     }
@@ -251,7 +254,7 @@ class RSMDirective(Directive):
         n2 = rsm_iframe(f"../_examples/{content_hash}.html")
 
         rsm_node = rsm_example()
-        rsm_node['classes'] = []
+        rsm_node['classes'] = ['stacked'] if self.options.get('layout') == 'stacked' else []
         rsm_node.append(n1)
         rsm_node.append(n2)
         return [rsm_node]
@@ -289,7 +292,8 @@ def depart_rsm_iframe_node(self, node):
 
 
 def visit_rsm_example_node(self, node):
-    self.body.append('<div class="rsm-example">')
+    classes = " ".join(["rsm-example"] + node.get("classes", []))
+    self.body.append(f'<div class="{classes}">')
 
 
 def depart_rsm_example_node(self, node):
