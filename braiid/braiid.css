@@ -629,6 +629,11 @@ body {
     .manuscriptwrapper :is(.hr, .paragraph, p):first-child {margin-block-start: 0;}
     .manuscriptwrapper :is(.hr, .paragraph, p):last-child {margin-block-end: 0;}
 
+    /* The text after a label keeps the top padding that a handrail block gives
+       its first paragraph, so the label would sit further from its text than
+       on a page without handrails. */
+    .manuscriptwrapper .hr-label + .hr > .hr-content-zone > p:first-child {padding-top: 0;}
+
     /* Short plain-text control labels (rail tabs/buttons): body font, tooltip
        size, wrapped by the instance maxWidth. Not document content, so no
        .manuscriptwrapper (which would size to the document column width). */
@@ -1515,6 +1520,10 @@ body {
 /* The label of a labelled block ("Theorem 1.1:") is semibold with or without
    handrails, and in reference previews. */
 .manuscriptwrapper .hr-label span.label {font-weight: var(--weight-semi);}
+
+/* Without handrails the label has no line under it, so it needs only a small
+   gap. The handrail rule below sets its own padding and margin. */
+.manuscriptwrapper .hr-label {margin-bottom: var(--chunk-twelfth);}
 
 /* Labeled handrails */
 .manuscriptwrapper .hr.hr-labeled .hr-content-zone {
