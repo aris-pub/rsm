@@ -236,4 +236,4 @@ See also
 ********
 
 - :ref:`recipes` for more styling examples
-- :ref:`syntax` for complete ``:class:`` meta tag syntax
+- :ref:`ref-meta-keys` for the ``:class:`` meta key

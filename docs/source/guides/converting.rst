@@ -86,4 +86,4 @@ See also
 --------
 
 - :ref:`import-export-ref` for supported formats and limitations
-- :ref:`cli-commands` for full command flag reference
+- :ref:`ref-cli` for the options of each command

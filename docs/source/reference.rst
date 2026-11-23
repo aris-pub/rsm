@@ -26,11 +26,6 @@ Language
    reference/meta-keys
    reference/config
    reference/cli
-   reference/syntax
-   reference/special
-   reference/configuration
-   reference/tags
-   reference/cli-commands
    reference/import-export
 
 API Reference
