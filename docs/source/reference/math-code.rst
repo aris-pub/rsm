@@ -123,8 +123,8 @@ page.
 
 .. rst-class:: tag-card
 
-Inline code `` ` `` ``:code:``
-------------------------------
+Inline code :literal:`\`` ``:code:``
+------------------------------------
 
 Code inside a line of text, in a fixed-width font. Code between backticks
 and ``:code:...::`` are the same. ``:code:`` takes a language for syntax
