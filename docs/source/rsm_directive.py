@@ -75,7 +75,8 @@ _NODE_TYPE_TO_CLASS = {
     "kind": "tok-type", "key": "tok-property", "value": "tok-string",
     # Delimiters
     "::": "tok-operator", "{": "tok-operator", "}": "tok-operator",
-    ":-:": "tok-operator", "@": "tok-operator",
+    ":-:": "tok-operator", ":--:": "tok-operator", ":---:": "tok-operator",
+    "@": "tok-operator",
     # Comments
     "comment": "tok-comment",
 }
