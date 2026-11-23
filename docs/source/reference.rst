@@ -22,7 +22,7 @@ Language
    reference/references
    reference/inline
    reference/front-matter
-   reference/other-blocks
+   reference/tabs
    reference/meta-keys
    reference/config
    reference/cli
