@@ -22,110 +22,67 @@ import tree_sitter_rsm
 
 # ── Syntax highlighting via tree-sitter ──────────────────────────────────────
 
-# Map CST node types to tok-* CSS classes.
-# Mirrors the capture-to-token mapping in highlights.scm / the LSP.
-_NODE_TYPE_TO_CLASS = {
-    # Block tags (keywords)
-    "theorem": "tok-keyword", "lemma": "tok-keyword", "corollary": "tok-keyword",
-    "proposition": "tok-keyword", "definition": "tok-keyword", "remark": "tok-keyword",
-    "example": "tok-keyword", "exercise": "tok-keyword", "problem": "tok-keyword",
-    "porism": "tok-keyword",
-    # Proof environments
-    "proof": "tok-keyword", "sketch": "tok-keyword", "subproof": "tok-keyword",
-    "calc": "tok-keyword",
-    # Proof constructs
-    "assume": "tok-keyword", "case": "tok-keyword", "claim": "tok-keyword",
-    "define": "tok-keyword", "let": "tok-keyword", "new": "tok-keyword",
-    "pick": "tok-keyword", "prove": "tok-keyword", "st": "tok-keyword",
-    "suffices": "tok-keyword", "suppose": "tok-keyword", "then": "tok-keyword",
-    "wlog": "tok-keyword", "write": "tok-keyword",
-    "step": "tok-modifier", "qed": "tok-enumMember",
-    # Document structure
-    "abstract": "tok-keyword", "author": "tok-keyword", "config": "tok-keyword",
-    "figure": "tok-keyword", "video": "tok-keyword", "html": "tok-keyword",
-    "enumerate": "tok-keyword", "itemize": "tok-keyword",
-    "appendix": "tok-keyword", "toc": "tok-keyword",
-    ":table:": "tok-keyword", ":thead:": "tok-keyword", ":tbody:": "tok-keyword",
-    ":tr:": "tok-keyword", ":td:": "tok-keyword", ":caption:": "tok-keyword",
-    # Inline tags
-    "draft": "tok-modifier", "note": "tok-modifier", "span": "tok-modifier",
-    # Special inlines
-    "math": "tok-operator", "code": "tok-operator",
-    "ref": "tok-function", "cite": "tok-function", "url": "tok-function",
-    "previous": "tok-function", "prev": "tok-function",
-    "prev2": "tok-function", "prev3": "tok-function",
-    "spanemphas": "tok-operator", "spanstrong": "tok-operator",
-    # Math/code content
-    "asis_text": "tok-macro",
-    # Meta
-    "name": "tok-property", "affiliation": "tok-property", "email": "tok-property",
-    "label": "tok-property", "title": "tok-property", "reftext": "tok-property",
-    "orcid": "tok-property", "author_note": "tok-property",
-    "emphas": "tok-property", "strong": "tok-property", "nonum": "tok-property",
-    "isclaim": "tok-property", "keywords": "tok-property", "msc": "tok-property",
-    "class": "tok-property", "icon": "tok-property", "alt": "tok-property",
-    "goal": "tok-property", "lang": "tok-property", "path": "tok-property",
-    "accent": "tok-property", "typography": "tok-property",
-    "numbering": "tok-property", "override_date": "tok-property",
-    "toc_depth": "tok-property", "scale": "tok-property",
-    "static": "tok-property", "theme": "tok-property", "dark": "tok-property",
-    "author_display_first": "tok-property", "author_display_last": "tok-property",
-    "metaval_text": "tok-string", "metaval_list": "tok-string",
-    # Bibliography
-    "kind": "tok-type", "key": "tok-property", "value": "tok-string",
-    # Delimiters
-    "::": "tok-operator", "{": "tok-operator", "}": "tok-operator",
-    ":-:": "tok-operator", ":--:": "tok-operator", ":---:": "tok-operator",
-    "@": "tok-operator",
-    # Comments
-    "comment": "tok-comment",
+# The colours come from the grammar's own highlight query, which editors and
+# the RSM language server also use. The query is read from the submodule,
+# because an editable install of tree-sitter-rsm does not ship the queries.
+_HIGHLIGHTS_SCM = (
+    Path(__file__).resolve().parents[2] / "tree-sitter-rsm" / "queries" / "highlights.scm"
+)
+
+# Capture names in highlights.scm, mapped to the tok-* classes in custom.css.
+# The language server has the same table (packages/rsm-lsp/src/layer1/
+# semanticTokens.ts).
+_CAPTURE_TO_CLASS = {
+    "keyword": "tok-keyword", "keyword.function": "tok-keyword",
+    "keyword.directive": "tok-keyword", "keyword.modifier": "tok-modifier",
+    "function": "tok-function", "function.builtin": "tok-function",
+    "type": "tok-type", "property": "tok-property",
+    "string": "tok-string", "string.special": "tok-string",
+    "number": "tok-number", "comment": "tok-comment", "operator": "tok-operator",
+    "constant": "tok-enumMember", "constant.builtin": "tok-enumMember",
+    "markup.heading": "tok-namespace", "markup.heading.1": "tok-namespace",
+    "markup.heading.2": "tok-namespace", "markup.heading.3": "tok-namespace",
+    "markup.heading.4": "tok-namespace", "markup.math": "tok-macro",
+    "markup.raw": "tok-string", "markup.raw.block": "tok-string",
+    "markup.link.url": "tok-string",
+    "punctuation.bracket": "tok-operator", "punctuation.delimiter": "tok-operator",
+    "punctuation.special": "tok-operator",
 }
 
 _TS_LANG = tree_sitter.Language(tree_sitter_rsm.language())
 _TS_PARSER = tree_sitter.Parser(_TS_LANG)
-
-
-def _collect_leaf_spans(node, spans):
-    """Walk the CST and collect (start_byte, end_byte, css_class) for leaf nodes."""
-    css = _NODE_TYPE_TO_CLASS.get(node.type)
-    if css and node.child_count == 0:
-        spans.append((node.start_byte, node.end_byte, css))
-    elif node.type == "asis_text":
-        # asis_text may have children but we want to highlight the whole thing
-        spans.append((node.start_byte, node.end_byte, "tok-macro"))
-    else:
-        # Check if this is a heading text node (title field of source_file or section)
-        if node.type == "text" and node.parent:
-            parent_type = node.parent.type
-            if parent_type in ("source_file", "section", "subsection", "subsubsection"):
-                spans.append((node.start_byte, node.end_byte, "tok-namespace"))
-                return
-        for child in node.children:
-            _collect_leaf_spans(child, spans)
+_TS_QUERY = tree_sitter.Query(_TS_LANG, _HIGHLIGHTS_SCM.read_text())
 
 
 def highlight_rsm(source: str) -> str:
     """Return HTML with tok-* spans for RSM source code."""
-    tree = _TS_PARSER.parse(source.encode())
-    spans = []
-    _collect_leaf_spans(tree.root_node, spans)
-    spans.sort(key=lambda s: (s[0], -s[1]))
+    src = source.encode()
+    tree = _TS_PARSER.parse(src)
+    # Where captures overlap, as for a block and the tag inside it, the
+    # shortest one colours the text, and among equal ones the earliest pattern
+    # in the query, as in tree-sitter's own highlighter.
+    best = [None] * len(src)
+    for pattern, captures in tree_sitter.QueryCursor(_TS_QUERY).matches(tree.root_node):
+        for name, capnodes in captures.items():
+            css = _CAPTURE_TO_CLASS.get(name)
+            if css is None:
+                continue
+            for node in capnodes:
+                rank = (node.end_byte - node.start_byte, pattern)
+                for i in range(node.start_byte, node.end_byte):
+                    if best[i] is None or rank < best[i][0]:
+                        best[i] = (rank, css)
 
-    src_bytes = source.encode()
     parts = []
-    pos = 0
-    for start, end, css in spans:
-        if start < pos:
-            continue
-        if start > pos:
-            parts.append(escape(src_bytes[pos:start].decode()))
-        parts.append(f'<span class="{css}">')
-        parts.append(escape(src_bytes[start:end].decode()))
-        parts.append("</span>")
-        pos = end
-    if pos < len(src_bytes):
-        parts.append(escape(src_bytes[pos:].decode()))
-
+    i = 0
+    while i < len(src):
+        css = best[i][1] if best[i] else None
+        j = i
+        while j < len(src) and (best[j][1] if best[j] else None) == css:
+            j += 1
+        text = escape(src[i:j].decode())
+        parts.append(f'<span class="{css}">{text}</span>' if css else text)
+        i = j
     return "".join(parts)
 
 
