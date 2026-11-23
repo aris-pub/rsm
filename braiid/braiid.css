@@ -513,7 +513,7 @@ body {
   /* Outermost wrapper when the the manuscript is embedded in another page */
   &.embedded {
     margin: 0;
-    padding-inline: 1.5rem;
+    padding-inline: 0.75rem;
     box-shadow: unset;
     border-radius: var(--radius-none);
     /* Smaller headings, relative to the text, for a document shown inside
