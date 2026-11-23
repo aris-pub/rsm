@@ -234,8 +234,6 @@ class RSMDirective(Directive):
             raise type(e)(f"Error in {source_file}:\n{e}") from e
         html_output = html_output.replace('class="manuscriptwrapper"', 'class="manuscriptwrapper embedded"')
         # The example's base size is the docs' own text size (see braiid.css).
-        # The frame's onload sets it from the docs page, which grows on wide
-        # windows; this is the size until then.
         html_output = html_output.replace(
             "</head>", "<style>:root { --embedded-font-size: 16px; }</style>\n</head>", 1
         )
@@ -283,7 +281,7 @@ def visit_rsm_iframe_node(self, node):
               src="{node.path}"
               sandbox="allow-scripts allow-same-origin"
               scrolling="no"
-              onload="var f=this;function s(){{f.contentWindow.document.documentElement.style.setProperty('--embedded-font-size',getComputedStyle(document.documentElement).fontSize)}};function r(){{f.style.height=(f.contentWindow.document.documentElement.scrollHeight+8)+'px'}};s();r();f.parentNode.classList.add('loaded');new ResizeObserver(r).observe(f.contentWindow.document.documentElement);addEventListener('resize',s);"
+              onload="var f=this;function r(){{f.style.height=(f.contentWindow.document.documentElement.scrollHeight+8)+'px'}};r();f.parentNode.classList.add('loaded');new ResizeObserver(r).observe(f.contentWindow.document.documentElement);"
               style="overflow: hidden;">
       </iframe>
     </div>

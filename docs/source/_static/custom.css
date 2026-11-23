@@ -15,13 +15,6 @@
   --radius-xl: 1rem;
 }
 
-/* ─── On wide windows, everything grows with the window, so the page fills
-   it and lines keep the same length. 16px up to a 1536px window, 20px at
-   1920px and wider. ─── */
-html {
-  font-size: clamp(100%, 100vw / 96, 125%);
-}
-
 /* ─── BRAIID color primitives ─── */
 :root {
   --braiid-blue-400: #38B4F8;
