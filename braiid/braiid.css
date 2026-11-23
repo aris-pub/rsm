@@ -507,21 +507,12 @@ body {
     margin: 2.5em 15em 2.5em auto;
   }
 
-  /* Outermost wrapper when the the manuscript is embedded in another page.
-     Its text is a little smaller than a full page's, and its headings are
-     scaled down more than the text (in em, so relative to the text), so that
-     a short embedded document reads as part of the page around it. */
+  /* Outermost wrapper when the the manuscript is embedded in another page */
   &.embedded {
     margin: 0;
     padding-inline: 1.5rem;
     box-shadow: unset;
     border-radius: var(--radius-none);
-    font-size: 87.5%;
-    --h1-size: 1.6em;
-    --h2-size: 1.35em;
-    --h3-size: 1.2em;
-    --h4-size: 1.1em;
-    --h5-size: 1em;
   }
 
 }
@@ -641,19 +632,6 @@ body {
    of the way: a small floating pill, bottom-centre, that fades in on a jump and
    out again on Back, when the reader scrolls away, or after 8 seconds with no
    use. */
-/* An embedded manuscript sits in a frame or a box inside another page, so the
-   width of the window says nothing about the reading size, and the base size
-   does not follow it. */
-:root:has(.manuscriptwrapper.embedded) {
-  font-size: 16px;
-}
-
-/* The back button returns the reader after a jump within a long page, and an
-   embedded manuscript is not the page that the reader scrolls. */
-:root:has(.manuscriptwrapper.embedded) .rsm-back-pill {
-  display: none;
-}
-
 .rsm-back-pill {
   position: fixed;
   left: 50%;
