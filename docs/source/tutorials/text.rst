@@ -40,11 +40,9 @@ goes through each of them.
 
    Euclid proved that there are infinitely many primes.
    The product of the first $k$ primes plus one is
-
    $$ {:label: eq-euclid}
    N = p_1 p_2 \cdots p_k + 1,
    $$
-
    and no $p_i$ divides $N$. Equation :ref:eq-euclid:: is
    the heart of the proof. In code, `is_prime(7)` returns `True`.
 
@@ -88,7 +86,8 @@ Math
 
 Math is written in LaTeX. ``$...$`` puts math inside a line of text. ``$$`` on
 a line of its own starts a displayed equation, and another ``$$`` ends it.
-RSM numbers displayed equations.
+RSM numbers displayed equations. With no blank line before or after it, as in
+the example, the equation belongs to the paragraph around it.
 
 To refer to an equation later, give it a label in braces after the opening
 ``$$``, as with ``{:label: eq-euclid}`` above. ``:ref:eq-euclid::`` then turns
