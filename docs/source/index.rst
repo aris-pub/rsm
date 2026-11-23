@@ -23,7 +23,7 @@ RSM
 
    <div class="landing-why">
      <div><h3><b>1</b>Write plain text</h3><p>Theorems, proofs, figures and citations are tags. Math is LaTeX. The file is readable without any tool.</p></div>
-     <div><h3><b>2</b>Get a paper that links itself</h3><p>Results are numbered, references are links with previews, and proofs can go step by step.</p></div>
+     <div><h3><b>2</b>Get a paper that links itself</h3><p>Sections and figures are numbered, references are links with tooltips, and proofs can go step by step.</p></div>
      <div><h3><b>3</b>Publish anywhere</h3><p>One command builds a web page that any static host can serve, or a single HTML file to send.</p></div>
    </div>
 
