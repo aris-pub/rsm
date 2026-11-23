@@ -15,6 +15,15 @@
   --radius-xl: 1rem;
 }
 
+/* ─── Page width: wider than the theme's 88rem, and the text fills the space
+   between the sidebars, so wide windows have less empty space. ─── */
+.bd-page-width {
+  max-width: 100rem;
+}
+.bd-main .bd-content .bd-article-container {
+  max-width: none;
+}
+
 /* ─── BRAIID color primitives ─── */
 :root {
   --braiid-blue-400: #38B4F8;
