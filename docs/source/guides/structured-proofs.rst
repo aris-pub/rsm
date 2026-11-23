@@ -3,10 +3,17 @@
 Write a proof as numbered steps
 ===============================
 
-A proof in RSM can be a list of numbered steps instead of paragraphs. Each
-step states one thing, says why it holds, and can be broken into smaller
-steps. The reader can then fold the steps that they trust, open the ones they
-doubt, and see which assumptions are in force at each step.
+In "How to Write a 21st Century Proof" [#lamport]_, Leslie Lamport argues
+that a proof written as paragraphs of prose hides its gaps, and proposes
+another form: a proof is a list of numbered steps, each step states one claim
+and gives its justification, and a step whose justification is not obvious is
+itself proved by a list of smaller steps. Writing a proof this way makes it
+harder to prove something that is false, and lets the reader read only as
+deep as they need.
+
+RSM supports this form of proof directly. The reader of an RSM page can fold
+the steps that they trust, open the ones that they doubt, and see which
+assumptions are in force at each step.
 
 This page builds one proof, that :math:`\sqrt{2}` is irrational, step by step.
 The tags are listed in :ref:`ref-proofs`.
@@ -139,3 +146,10 @@ A chain of equations
 When a proof is a chain of equalities or inequalities, write it as a
 ``:calc:``: one ``:step:`` per line, each with its reason in a ``:p:``. See
 :ref:`tag-calc`.
+
+
+.. rubric:: References
+
+.. [#lamport] Leslie Lamport, "How to Write a 21st Century Proof",
+   *Journal of Fixed Point Theory and Applications* 11 (2012), 43-63.
+   `doi:10.1007/s11784-012-0071-6 <https://doi.org/10.1007/s11784-012-0071-6>`_.
