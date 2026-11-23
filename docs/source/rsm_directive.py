@@ -45,8 +45,8 @@ _NODE_TYPE_TO_CLASS = {
     "figure": "tok-keyword", "video": "tok-keyword", "html": "tok-keyword",
     "enumerate": "tok-keyword", "itemize": "tok-keyword",
     "appendix": "tok-keyword", "toc": "tok-keyword",
-    "table": "tok-keyword", "thead": "tok-keyword", "tbody": "tok-keyword",
-    "tr": "tok-keyword", "td": "tok-keyword", "caption": "tok-keyword",
+    ":table:": "tok-keyword", ":thead:": "tok-keyword", ":tbody:": "tok-keyword",
+    ":tr:": "tok-keyword", ":td:": "tok-keyword", ":caption:": "tok-keyword",
     # Inline tags
     "draft": "tok-modifier", "note": "tok-modifier", "span": "tok-modifier",
     # Special inlines

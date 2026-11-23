@@ -66,7 +66,7 @@ The static version of a figure
 RSM shows the image in ``:static:`` instead of the HTML in these places:
 
 - the tooltip of a reference to the figure, such as the one on
-  :ref:fig-r2:: above,
+  ``:ref:fig-r2::`` above,
 - a page opened with JavaScript turned off,
 - the PDF, LaTeX and other files that RSM makes from a document.
 
@@ -75,8 +75,7 @@ A reader can also switch a figure to its static version, and back, with the
 
 Without ``:static:``, the tooltip of an HTML figure shows its ``:alt:`` text,
 a page with JavaScript turned off shows nothing in its place, and the files
-that RSM makes show a note that points to the web page. To make the static image of a Plotly chart, use the camera button
-above the chart, or ``Plotly.toImage`` in a script.
+that RSM makes show a note that points to the web page.
 
 See :ref:`guide-interactive-figures` for HTML written inside the document and
 for videos.
