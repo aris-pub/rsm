@@ -3,3 +3,18 @@
 :root {
   font-size: 16px;
 }
+
+/* On a phone the frame is about 330px wide, and the page's headings and
+   handrail margins would take most of it. */
+@media (max-width: 400px) {
+  :root {
+    font-size: 13px;
+  }
+}
+
+/* The back button returns the reader after following a link inside a long
+   page. An example has no such links, and the hidden button still adds to the
+   height of the frame. */
+.rsm-back-pill {
+  display: none;
+}

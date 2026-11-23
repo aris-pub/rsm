@@ -92,100 +92,66 @@ html[data-theme="light"] .bd-header .navbar-icon-links a {
   color: var(--braiid-gray-700);
 }
 
-/* ─── Hero section ─── */
-.hero-section {
-  background: linear-gradient(135deg, var(--braiid-blue-950) 0%, var(--braiid-blue-800) 50%, var(--braiid-blue-700) 100%);
-  color: white;
-  padding: 3.5rem 2.5rem;
-  border-radius: 0.75rem;
-  margin-bottom: 3rem;
-  position: relative;
-  overflow: hidden;
-}
+/* ─── Landing page (index.rst) ─── */
+/* The page needs a title for the browser tab and the toctree, and the card
+   below shows the name, so the heading is hidden. */
+#rsm > h1 { display: none; }
 
-html[data-theme="dark"] .hero-section {
-  background: linear-gradient(135deg, var(--braiid-gray-950) 0%, var(--braiid-blue-950) 50%, var(--braiid-blue-900) 100%);
-  border: 1px solid var(--braiid-blue-800);
-}
+/* The landing page ends with its example, not with a link to the next page. */
+.bd-content:has(.landing-hero) .prev-next-area { display: none; }
+.landing-hero { background: linear-gradient(135deg, var(--braiid-blue-950) 0%, var(--braiid-blue-800) 60%, var(--braiid-blue-700) 100%);
+  color: #fff; border-radius: .75rem; padding: 1.6rem 2rem; display: flex; flex-wrap: wrap; gap: 1.25rem 2rem;
+  align-items: center; justify-content: space-between; margin: .5rem 0 2rem; }
+.landing-hero .name { font: 700 2.6rem/1 Montserrat, sans-serif; letter-spacing: -.03em; margin: 0; color: #fff; }
+.landing-hero .name span { color: var(--braiid-blue-400); }
+.landing-hero .kicker { font: 500 .8rem/1 Montserrat, sans-serif; letter-spacing: .12em; text-transform: uppercase; color: #7DCDFC; margin: .5rem 0 .75rem; }
+.landing-hero .tag { font-size: 1.1rem; color: var(--braiid-blue-100); margin: 0; max-width: 30rem; line-height: 1.5; }
+.landing-hero .side { display: flex; flex-direction: column; gap: .7rem; align-items: flex-start; }
+.landing-hero .btns { display: flex; gap: .7rem; flex-wrap: wrap; }
+.landing-hero .btns a { padding: .55rem 1.2rem; border-radius: .5rem; font: 600 .9rem Montserrat, sans-serif; text-decoration: none; }
+.landing-hero .btns .p { background: #fff; color: var(--braiid-blue-800); }
+.landing-hero .btns .s { color: #fff; border: 1.5px solid rgba(255,255,255,.55); }
+.landing-hero code.install { background: rgba(255,255,255,.1); color: #fff; border: 1px solid rgba(255,255,255,.25); padding: .35rem .7rem; border-radius: .4rem; font-size: .85rem; }
 
-.hero-section h1 {
-  font-size: 3.5rem;
-  font-weight: 700;
-  margin-bottom: 0;
-  color: white;
-  letter-spacing: -0.03em;
-  line-height: 1;
+.landing-band { background: var(--braiid-gray-75); border: 1px solid var(--pst-color-border); border-radius: .75rem; padding: 1.5rem 1.5rem 1.75rem; }
+html[data-theme="dark"] .landing-band { background: #10161a; }
+.landing-band h2 { font-size: 1.5rem; margin: 0 0 .3rem; }
+.landing-band .sub { color: var(--pst-color-text-muted); margin: 0 0 1.25rem; }
+.landing-band .rsm-example { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); gap: 1.25rem; border: none; overflow: visible; margin: 0; align-items: start; }
+@media (max-width: 900px) { .landing-band .rsm-example { grid-template-columns: 1fr; } }
+.landing-band .rsm-example-code, .landing-band .rsm-iframe-wrap { border-radius: .6rem; overflow: hidden; background: #fff; border: 1px solid var(--braiid-gray-200); box-shadow: 0 10px 30px rgba(8,44,73,.14), 0 2px 6px rgba(8,44,73,.06); }
+.landing-band .rsm-example-code::before, .landing-band .rsm-iframe-wrap::before { display: flex; align-items: center; gap: .5rem; height: 2.1rem; padding-inline: .9rem; font: 500 .78rem 'Source Code Pro', monospace; color: var(--braiid-gray-700); background: var(--braiid-gray-75); border-bottom: 1px solid var(--braiid-gray-200); }
+.landing-band .rsm-example-code::before { content: "euclid.rsm  ·  source"; }
+.landing-band .rsm-iframe-wrap::before { content: "euclid.html  ·  page"; }
+.landing-band .rsm-example-code pre { background: #fff !important; border: none !important; white-space: pre-wrap; font-size: .85rem; line-height: 1.55; }
+.landing-band .rsm-iframe-wrap { order: 2; }
+@media (max-width: 900px) {
+  .landing-band { padding: 1rem .6rem 1.1rem; border-radius: .5rem; }
+  .landing-band h2, .landing-band .sub, .landing-band .hint { padding-inline: .4rem; }
+  .landing-band .rsm-iframe-wrap { order: 1; }
+  .landing-band .rsm-example-code { order: 2; }
+  .landing-hero { padding: 1.25rem 1.1rem; }
+  .landing-hero .name { font-size: 2.2rem; }
+  .landing-hero .side, .landing-hero .btns { width: 100%; }
+  .landing-hero .btns a { flex: 1; text-align: center; padding-inline: .6rem; }
 }
+.landing-band .hint { margin: .9rem 0 0; font-size: .92rem; color: var(--pst-color-text-muted); }
 
-.hero-section .hero-dot {
-  color: var(--braiid-blue-400);
-}
+.landing-why { display: grid; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); gap: 1.5rem; margin: .5rem 0 1rem; }
+.landing-why h3 { font-size: 1.05rem; margin: 0 0 .4rem; color: var(--pst-color-text-base); }
+.landing-why h3 b { color: var(--braiid-blue-600); margin-right: .35rem; }
+.landing-why p { margin: 0; color: var(--pst-color-text-muted); }
+.landing-next { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .9rem; margin: 2rem 0 2.5rem; }
+@media (max-width: 600px) { .landing-next { grid-template-columns: 1fr; } }
+.landing-next a { display: block; padding: .9rem 1rem; border-radius: .5rem; border: 1px solid var(--pst-color-border); border-left: 4px solid var(--braiid-blue-600); text-decoration: none; transition: background-color .15s ease, border-color .15s ease, box-shadow .15s ease, transform .15s ease; }
+.landing-next a:hover, .landing-next a:focus-visible { background: var(--braiid-blue-50); border-color: var(--braiid-blue-600); box-shadow: 0 4px 14px rgba(8,44,73,.10); transform: translateY(-1px); }
+html[data-theme="dark"] .landing-next a:hover, html[data-theme="dark"] .landing-next a:focus-visible { background: rgba(56,180,248,.08); }
+.landing-next a:hover b, .landing-next a:focus-visible b { color: var(--braiid-blue-700); }
+html[data-theme="dark"] .landing-next a:hover b { color: var(--braiid-blue-400); }
+@media (prefers-reduced-motion: reduce) { .landing-next a { transition: none; } .landing-next a:hover { transform: none; } }
+.landing-next a b { display: block; color: var(--pst-color-text-base); font-family: Montserrat, sans-serif; }
+.landing-next a span { color: var(--pst-color-text-muted); font-size: .9rem; }
 
-.hero-section .hero-subtitle {
-  font-size: 1.15rem;
-  font-weight: 400;
-  color: var(--braiid-blue-300, #7DCDFC);
-  margin-top: 0.25rem;
-  margin-bottom: 1.25rem;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-}
-
-.hero-section .hero-tagline {
-  font-size: 1.15rem;
-  font-weight: 400;
-  color: var(--braiid-blue-100);
-  margin-bottom: 2rem;
-  max-width: 40rem;
-  line-height: 1.6;
-}
-
-.hero-section .hero-actions {
-  display: flex;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-
-.hero-section .hero-actions a {
-  display: inline-block;
-  padding: 0.6rem 1.5rem;
-  border-radius: 0.5rem;
-  font-weight: 600;
-  font-family: 'Montserrat', sans-serif;
-  font-size: 0.9rem;
-  text-decoration: none;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
-
-.hero-section .hero-actions a:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-}
-
-.hero-section .hero-actions .btn-primary {
-  background: white;
-  color: var(--braiid-blue-800);
-}
-
-.hero-section .hero-actions .btn-secondary {
-  background: transparent;
-  color: white;
-  border: 1.5px solid rgba(255, 255, 255, 0.5);
-}
-
-.hero-section .hero-actions .btn-secondary:hover {
-  border-color: white;
-}
-
-.hero-section::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 4px;
-  background: var(--braiid-blue-400);
-}
 
 /* ─── Grid cards ─── */
 html,
@@ -309,6 +275,11 @@ html[data-theme="dark"] .sd-card.sd-sphinx-override:hover {
 }
 
 /* ─── Footer ─── */
+.bd-footer .copyright a {
+  color: inherit;
+  text-decoration: underline;
+}
+
 .bd-footer {
   border-top: 1px solid var(--pst-color-border);
   padding: 1.5rem 0;

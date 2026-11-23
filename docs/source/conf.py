@@ -116,7 +116,7 @@ html_theme_options = {
         },
     ],
     # footer
-    "footer_start": ["copyright"],
+    "footer_start": ["aris-copyright"],
     "footer_center": [],
     "footer_end": [],
     # page options
