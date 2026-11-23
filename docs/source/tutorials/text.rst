@@ -3,8 +3,8 @@
 Text, headings, lists and math
 ==============================
 
-Most of a document is paragraphs, sections, lists, math and code. This lesson
-goes through each of them.
+Most of a document is paragraphs, sections, lists, math and code. This page has
+an example of each.
 
 .. rsm::
 
@@ -100,5 +100,3 @@ Special characters
 
 A backslash makes the next character plain text: ``\$`` gives a dollar sign,
 ``\%`` a percent sign, and ``\::`` two colons.
-
-The next lesson is :ref:`tutorial-theorems`.

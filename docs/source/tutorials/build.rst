@@ -3,7 +3,7 @@
 Build, preview and share a document
 ===================================
 
-In this lesson you turn a ``.rsm`` file into a web page in three ways, and
+On this page you turn a ``.rsm`` file into a web page in three ways, and
 put the page where readers can open it.
 
 

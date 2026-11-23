@@ -3,7 +3,7 @@
 Labels, references and citations
 ================================
 
-RSM links every part of a document that you name. In this lesson you add
+RSM links every part of a document that you name. On this page you add
 labels, references to them, links to web pages, and citations of other works.
 
 .. rsm::
@@ -97,5 +97,3 @@ references links back to the places where it is cited.
 
 Citations are numbered by default. To cite by author and year instead, as in
 "Knuth (1998)", see :ref:`guide-citations`.
-
-The next lesson is :ref:`tutorial-figures`.

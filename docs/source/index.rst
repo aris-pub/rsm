@@ -28,7 +28,7 @@ RSM
    </div>
 
    <div class="landing-next">
-     <a href="tutorials.html"><b>Tutorial</b><span>Six lessons, from install to publishing.</span></a>
+     <a href="tutorials.html"><b>Tutorial</b><span>Six pages, from install to publishing.</span></a>
      <a href="guides.html"><b>Guides</b><span>One task per page.</span></a>
      <a href="reference.html"><b>Reference</b><span>Every tag and option.</span></a>
      <a href="https://rsm.studio"><b>RSM Studio</b><span>Write RSM in your browser.</span></a>

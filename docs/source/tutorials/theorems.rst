@@ -84,5 +84,3 @@ theorem.
 RSM can also split a proof into numbered steps, each with its own claim and
 its own justification, and it draws the dependencies between steps for the
 reader. See :ref:`guide-structured-proofs`.
-
-The next lesson is :ref:`tutorial-references`.

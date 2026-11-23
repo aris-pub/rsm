@@ -3,7 +3,7 @@
 Install RSM and write a first document
 ======================================
 
-In this lesson you install RSM, write a short document and open it in your
+On this page you install RSM, write a short document and open it in your
 browser. You need about ten minutes.
 
 .. tip::
@@ -71,8 +71,8 @@ The source uses four kinds of markup:
   A tag starts a part of the document, and ``::`` ends it.
 
 Inside ``:author:``, the braces hold the tag's **meta keys**, here ``:name:``
-and ``:affiliation:``. Meta keys add information to a tag. The next lessons
-use tags and meta keys a lot.
+and ``:affiliation:``. Meta keys add information to a tag. You will use tags
+and meta keys on every page of the tutorial.
 
 
 Build the page
@@ -123,5 +123,3 @@ gives style hints, each with its line and column:
 
    src:5:6: WRN: The CST contains errors.
    src:3:1: LINT: Section with no label
-
-The next lesson is :ref:`tutorial-text`.

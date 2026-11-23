@@ -3,7 +3,7 @@
 Figures and tables
 ==================
 
-This lesson adds an image and a table to a document, with numbers and
+On this page you add an image and a table to a document, with numbers and
 captions.
 
 .. rsm::
@@ -79,5 +79,3 @@ separates the cells, so ``:tr: Small : $10^3$ ::`` is a row with two cells.
 
 A table can have a ``:label:``, as a figure can, and its ``:caption:`` goes
 after the body.
-
-The next lesson is :ref:`tutorial-build`.
