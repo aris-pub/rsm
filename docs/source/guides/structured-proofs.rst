@@ -167,8 +167,9 @@ sketch". It can stand on its own, after its theorem, in place of a proof:
    even, and then so is $b$, which is a contradiction.
    ::
 
-To offer both the sketch and the full proof, and let the reader choose, put
-them in two tabs. Only one tab shows at a time. See :ref:`ref-tabs`.
+A sketch can also come before the full proof, for readers who want the idea
+first. The proof then names its theorem with ``:of:``, since it no longer
+comes right after it:
 
 .. rsm::
 
@@ -176,30 +177,25 @@ them in two tabs. Only one tab shows at a time. See :ref:`ref-tabs`.
    The square of an odd number is odd.
    ::
 
-   :tabs:
+   :sketch:
+   Expand $(2k + 1)^2$.
+   ::
 
-     :tab: {:title: Sketch}
-       :sketch:
-       Expand $(2k + 1)^2$.
-       ::
+   :proof: {:of: thm-sq}
+
+     :step: {:label: st-n} :let: $n = 2k + 1$ ::.
      ::
 
-     :tab: {:title: Proof}
-       :proof: {:of: thm-sq}
+     :step: :qed:
 
-         :step: {:label: st-n} :let: $n = 2k + 1$ ::.
-         ::
+       :pf: By :prev:, $n^2 = 2(2k^2 + 2k) + 1$, which is odd. ::
 
-         :step: :qed:
-
-           :pf: By :prev:, $n^2 = 2(2k^2 + 2k) + 1$, which is odd. ::
-
-         ::
-
-       ::
      ::
 
    ::
+
+If you prefer, you can also put the sketch and the proof in two tabs, so that
+the reader sees one at a time. See :ref:`ref-tabs`.
 
 
 A chain of equations
