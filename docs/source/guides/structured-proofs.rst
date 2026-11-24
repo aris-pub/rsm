@@ -101,7 +101,8 @@ keywords, such as ``:case:`` and ``:suffices:``, are listed in
 Say why a step holds
 --------------------
 
-Put the reason for a step in a ``:pf:`` inside it, after its statement. Keep
+Put the reason for a step in a ``:pf:`` inside it, after its statement.
+``:pf:`` stands for "sub-proof": the proof of that one step. Keep
 the claim and its reason apart: the claim says what holds, and the ``:pf:``
 says why. A reader who accepts the claim can skip the reason.
 
@@ -149,19 +150,92 @@ above its page to see the strip of icons on the left, click a step of the
 proof, and open "Proof steps" or "Proof state".
 
 
-A sketch next to the proof
---------------------------
+A sketch of the proof
+---------------------
 
-To offer a short version of a proof as well as the full one, put a
-``:sketch:`` and the ``:proof:`` in two tabs. See :ref:`ref-tabs`.
+A ``:sketch:`` gives the idea of a proof in a few sentences, headed "Proof
+sketch". It can stand on its own, after its theorem, in place of a proof:
+
+.. rsm::
+
+   :theorem:
+   $\sqrt{2}$ is irrational.
+   ::
+
+   :sketch:
+   If $\sqrt{2} = a/b$ with no common factor, then $a^2 = 2b^2$, so $a$ is
+   even, and then so is $b$, which is a contradiction.
+   ::
+
+To offer both the sketch and the full proof, and let the reader choose, put
+them in two tabs. Only one tab shows at a time. See :ref:`ref-tabs`.
+
+.. rsm::
+
+   :theorem: {:label: thm-sq}
+   The square of an odd number is odd.
+   ::
+
+   :tabs:
+
+     :tab: {:title: Sketch}
+       :sketch:
+       Expand $(2k + 1)^2$.
+       ::
+     ::
+
+     :tab: {:title: Proof}
+       :proof: {:of: thm-sq}
+
+         :step: {:label: st-n} :let: $n = 2k + 1$ ::.
+         ::
+
+         :step: :qed:
+
+           :pf: By :prev:, $n^2 = 2(2k^2 + 2k) + 1$, which is odd. ::
+
+         ::
+
+       ::
+     ::
+
+   ::
 
 
 A chain of equations
 --------------------
 
 When a proof is a chain of equalities or inequalities, write it as a
-``:calc:``: one ``:step:`` per line, each with its reason in a ``:pf:``. See
-:ref:`tag-calc`.
+``:calc:``: one ``:step:`` per line, each with its reason in a ``:pf:``. The
+page shows the lines one under the other, each with a "∵" ("because") sign on
+its right; clicking the sign shows the reason for that line. This chain is the
+computation inside step ⟨3.2⟩ of the proof above:
+
+.. rsm::
+
+   :calc:
+
+     :step: $2b^2 = a^2$
+
+       :pf: square $\sqrt{2} = a/b$. ::
+
+     ::
+
+     :step: $= (2c)^2$
+
+       :pf: since $a = 2c$. ::
+
+     ::
+
+     :step: $= 4c^2$
+
+       :pf: expand. ::
+
+     ::
+
+   ::
+
+See :ref:`tag-calc`.
 
 
 .. rubric:: References
