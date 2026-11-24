@@ -165,6 +165,18 @@ class HTMLBuilder(BaseBuilder):
             "  </script>\n"
         )
 
+    def _touch_preload_script(self) -> str:
+        """A pre-paint script that marks a touch device (no hover, coarse
+        pointer) with html.touch, which braiid.css and handrails.js key the
+        touch look on. A page that shows RSM in a frame can set the class
+        itself, to show the touch look on any device."""
+        return (
+            "\n  <script>\n"
+            "    if (window.matchMedia('(hover: none) and (pointer: coarse)').matches)\n"
+            "      document.documentElement.classList.add('touch');\n"
+            "  </script>\n"
+        )
+
     def _asides_preload_script(self) -> str:
         """A pre-paint script that marks a page with asides, so braiid.css hands
         them to asides.js (closed on narrow screens, in the margin on wide ones)
@@ -270,6 +282,7 @@ class HTMLBuilder(BaseBuilder):
 
         sidebar_preload = (
             self._sidebar_preload_script()
+            + self._touch_preload_script()
             + self._asides_preload_script()
             + self._toc_switch_preload_script()
             + self._loading_preload_script()
@@ -473,6 +486,7 @@ class StandaloneBuilder(HTMLBuilder):
 
         sidebar_preload = (
             self._sidebar_preload_script()
+            + self._touch_preload_script()
             + self._asides_preload_script()
             + self._toc_switch_preload_script()
             + self._loading_preload_script()

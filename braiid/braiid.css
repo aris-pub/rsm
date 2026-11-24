@@ -917,7 +917,7 @@ body {
   font-weight: var(--weight-semi);
 }
 /* Touch: give the because-mark a >=44px tap target. */
-@media (hover: none) and (pointer: coarse) {
+html.touch {
   .manuscriptwrapper .calc .step > .hr-info-zone .hr-collapse::after {
     content: "";
     position: absolute;
@@ -1249,13 +1249,15 @@ body {
 }
 
 /* Touch has no hover, so the gutter controls would be invisible and unreachable.
-   Under a no-hover, coarse-pointer environment, give every block a single
+   On a touch page (html.touch: the builder's pre-paint script sets it on a
+   device with no hover and a coarse pointer, and a page that shows RSM in a
+   frame can set it to show the touch look), give every block a single
    control: drop the per-block collapse chevron (collapse/expand moves into the
    dots menu) and reveal the menu-dots at rest. The dots carry a page-coloured
    background so they BREAK the vertical rule instead of sitting on top of it,
    and a >=44px invisible ::before is the tap target (the glyph stays small).
    Desktop keeps the chevron and the hover reveal above. */
-@media (hover: none) and (pointer: coarse) {
+html.touch {
   .manuscriptwrapper .hr > .hr-collapse-zone .hr-collapse { display: none; }
   /* Remove the fold column itself, on every block. Hiding only the chevron
      left the column 0 wide in foldable blocks but 12px wide (its spacer) in
@@ -2956,9 +2958,9 @@ body {
 }
 /* On touch there is no fold column (see the touch block above), so a caption's
    rail is one column in, like every other block's. */
-@media screen and (hover: none) and (pointer: coarse) {
-  .manuscriptwrapper .manuscript .hr.rsm-cap-linked { padding-left: calc(2 * var(--hr-zone-width)); }
-  .manuscriptwrapper .manuscript .hr.rsm-cap-linked > .hr-border-zone { left: var(--cap-rail-x, 0px); }
+@media screen {
+  html.touch .manuscriptwrapper .manuscript .hr.rsm-cap-linked { padding-left: calc(2 * var(--hr-zone-width)); }
+  html.touch .manuscriptwrapper .manuscript .hr.rsm-cap-linked > .hr-border-zone { left: var(--cap-rail-x, 0px); }
 }
 
 /* The margin column (margin.js decides where each item goes; sidebar.js sets
@@ -3476,17 +3478,15 @@ same tint. */
   the phrase gets a tap target at least 44px tall. The glyph box is always taller
   than 1em, so 1em plus this padding is enough. Inline padding does not move the
   lines around it. */
-  @media (hover: none) and (pointer: coarse) {
-    html.has-asides:not(.rsm-margin) .manuscriptwrapper a.aside-phrase {
-      padding-block: max(.15em, calc(22px - .5em));
-    }
-    /* That padding reaches into the lines above and below. Any other control
-    there (a footnote marker, a reference) must stay on top of it, or tapping
-    it opens the aside instead. Positioning does not move inline content. */
-    html.has-asides:not(.rsm-margin) .manuscriptwrapper :is(a, button, [role="button"]):not(.aside-phrase) {
-      position: relative;
-      z-index: 1;
-    }
+  html.touch.has-asides:not(.rsm-margin) .manuscriptwrapper a.aside-phrase {
+    padding-block: max(.15em, calc(22px - .5em));
+  }
+  /* That padding reaches into the lines above and below. Any other control
+  there (a footnote marker, a reference) must stay on top of it, or tapping
+  it opens the aside instead. Positioning does not move inline content. */
+  html.touch.has-asides:not(.rsm-margin) .manuscriptwrapper :is(a, button, [role="button"]):not(.aside-phrase) {
+    position: relative;
+    z-index: 1;
   }
   /* The margin item rule clears padding (for captions): the card keeps its own. */
   html.rsm-margin .manuscriptwrapper .manuscript .aside.rsm-margin-item {

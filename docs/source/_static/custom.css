@@ -332,11 +332,15 @@ html[data-theme="dark"] .rsm-example:not(.landing-band .rsm-example) {
   min-height: 4rem;
 }
 
-/* ─── Desktop and Phone buttons in the Page label row (example-view.js) ─── */
+/* ─── Wide / Narrow and Mouse / Touch switches in the Page label row (example-view.js) ─── */
 .rsm-viewswitch {
   position: absolute;
   top: 0;
   right: 0;
+  display: flex;
+  gap: var(--chunk-sixth);
+}
+.rsm-switch {
   display: flex;
 }
 .rsm-viewswitch button {

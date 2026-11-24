@@ -245,9 +245,15 @@ def visit_rsm_iframe_node(self, node):
     if node.height:
         self.body.append(f'''
     <div class="rsm-iframe-wrap">
-      <div class="rsm-viewswitch" role="group" aria-label="Show the page as on">
-        <button type="button" data-view="desktop" aria-pressed="false">Desktop</button>
-        <button type="button" data-view="phone" aria-pressed="false">Phone</button>
+      <div class="rsm-viewswitch">
+        <div class="rsm-switch" role="group" aria-label="Width of the page">
+          <button type="button" data-width="wide" aria-pressed="false">Wide</button>
+          <button type="button" data-width="narrow" aria-pressed="false">Narrow</button>
+        </div>
+        <div class="rsm-switch" role="group" aria-label="Pointer of the page">
+          <button type="button" data-input="mouse" aria-pressed="true">Mouse</button>
+          <button type="button" data-input="touch" aria-pressed="false">Touch</button>
+        </div>
       </div>
       <div class="rsm-iframe-spinner"></div>
       <iframe class="rsm-example-iframe"
@@ -261,9 +267,15 @@ def visit_rsm_iframe_node(self, node):
         return
     iframe_html = f'''
     <div class="rsm-iframe-wrap">
-      <div class="rsm-viewswitch" role="group" aria-label="Show the page as on">
-        <button type="button" data-view="desktop" aria-pressed="false">Desktop</button>
-        <button type="button" data-view="phone" aria-pressed="false">Phone</button>
+      <div class="rsm-viewswitch">
+        <div class="rsm-switch" role="group" aria-label="Width of the page">
+          <button type="button" data-width="wide" aria-pressed="false">Wide</button>
+          <button type="button" data-width="narrow" aria-pressed="false">Narrow</button>
+        </div>
+        <div class="rsm-switch" role="group" aria-label="Pointer of the page">
+          <button type="button" data-input="mouse" aria-pressed="true">Mouse</button>
+          <button type="button" data-input="touch" aria-pressed="false">Touch</button>
+        </div>
       </div>
       <div class="rsm-iframe-spinner"></div>
       <iframe class="rsm-example-iframe"

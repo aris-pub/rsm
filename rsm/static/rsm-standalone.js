@@ -1740,7 +1740,7 @@ var RSM = (() => {
   }
   var singletonMenu = null;
   var activeHr = null;
-  var IS_TOUCH = typeof window !== "undefined" && typeof window.matchMedia === "function" && window.matchMedia("(hover: none) and (pointer: coarse)").matches;
+  var isTouch = () => document.documentElement.classList.contains("touch");
   var delegationAttached = false;
   function setup5() {
     if (delegationAttached) return;
@@ -1829,7 +1829,7 @@ var RSM = (() => {
     const label2 = hr.getAttribute("data-menu-label") || "";
     let collapse = hr.getAttribute("data-menu-collapse");
     const collapseAll2 = hr.getAttribute("data-menu-collapse-all");
-    if (IS_TOUCH && (!collapse || collapse === "disabled") && hr.querySelector(":scope > .hr-collapse-zone .hr-collapse")) {
+    if (isTouch() && (!collapse || collapse === "disabled") && hr.querySelector(":scope > .hr-collapse-zone .hr-collapse")) {
       collapse = "enabled";
       hr.setAttribute("data-menu-collapse", collapse);
     }
@@ -1894,7 +1894,7 @@ var RSM = (() => {
       if (textEl) textEl.textContent = isTree ? "View as list" : "View as tree";
     }
     const isProof = hr.classList.contains("proof");
-    const touch = window.matchMedia("(hover: none) and (pointer: coarse)").matches;
+    const touch = isTouch();
     const reorder = isProof ? touch ? "disabled" : "true" : null;
     const reorderEl = singletonMenu.querySelector('[data-role="reorder"]');
     const reorderSep = singletonMenu.querySelector('[data-role="reorder-sep"]');
