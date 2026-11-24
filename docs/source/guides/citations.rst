@@ -55,6 +55,24 @@ entries into it, one after the other. Close the block with ``::``.
 The key of an entry is the word after the opening brace, such as ``knuth`` in
 ``@book{knuth,``. Citations use this key.
 
+RSM reads a subset of BibTeX, not everything that BibTeX and LaTeX accept:
+
+- The entry kinds are ``@article``, ``@book``, ``@conference``,
+  ``@incollection``, ``@inproceedings``, ``@mastersthesis``, ``@misc``,
+  ``@phdthesis``, ``@software``, ``@techreport``, ``@unpublished`` and
+  ``@webpage``.
+- The fields are ``title``, ``author``, ``editor``, ``year``, ``month``,
+  ``journal``, ``booktitle``, ``series``, ``volume``, ``number``, ``pages``,
+  ``edition``, ``publisher``, ``organization``, ``institution``, ``school``,
+  ``address``, ``howpublished``, ``note``, ``doi`` and ``url``.
+- Each value is written in braces, with no braces inside it. Values in quotes,
+  ``@string`` definitions and LaTeX commands such as ``{\"o}`` are not read.
+  Write accented letters as they are, such as ö.
+
+RSM does not yet warn about everything outside this subset: it drops a field
+that it does not know or a value in quotes, and cuts a value short at a brace
+inside it. Check the list of references in the built page.
+
 RSM warns about an entry without a ``doi``, because the reader cannot follow
 it to the work.
 
