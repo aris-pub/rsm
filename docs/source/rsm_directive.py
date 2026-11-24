@@ -283,7 +283,7 @@ def visit_rsm_iframe_node(self, node):
         self.body.append(f'''
     <div class="rsm-iframe-wrap">
       <div class="rsm-viewswitch">
-        <a class="rsm-open" href="{escape(node.open_href)}">Open {OPEN_ICON}</a>
+        <a class="rsm-open" href="{escape(node.open_href)}" target="_blank" rel="noopener">Open {OPEN_ICON}</a>
         <div class="rsm-switch" role="group" aria-label="Width of the page">
           <button type="button" data-width="wide" aria-pressed="false">Wide</button>
           <button type="button" data-width="narrow" aria-pressed="false">Narrow</button>
@@ -306,7 +306,7 @@ def visit_rsm_iframe_node(self, node):
     iframe_html = f'''
     <div class="rsm-iframe-wrap">
       <div class="rsm-viewswitch">
-        <a class="rsm-open" href="{escape(node.open_href)}">Open {OPEN_ICON}</a>
+        <a class="rsm-open" href="{escape(node.open_href)}" target="_blank" rel="noopener">Open {OPEN_ICON}</a>
         <div class="rsm-switch" role="group" aria-label="Width of the page">
           <button type="button" data-width="wide" aria-pressed="false">Wide</button>
           <button type="button" data-width="narrow" aria-pressed="false">Narrow</button>
