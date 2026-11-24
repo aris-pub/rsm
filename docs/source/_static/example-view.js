@@ -23,6 +23,7 @@ function fitDevice(wrap) {
     frame.style.height = (narrow ? PHONE_HEIGHT : TABLET_HEIGHT) + "px";
     frame.setAttribute("scrolling", "yes");
     frame.style.overflow = "auto";
+    doc.documentElement.classList.remove("rsm-fits");
   } else if (frame._fit) {
     frame._fit();
   }

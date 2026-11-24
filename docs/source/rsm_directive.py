@@ -198,15 +198,16 @@ class RSMDirective(Directive):
         html_output = html_output.replace('class="manuscriptwrapper"', 'class="manuscriptwrapper embedded"')
         # The example's base size is the docs' own text size (see braiid.css).
         html_output = html_output.replace(
-            "</head>", "<style>:root { --embedded-font-size: 16px; }</style>\n</head>", 1
+            "</head>",
+            "<style>:root { --embedded-font-size: 16px; } "
+            "html.rsm-fits .rsm-minimap { display: none; }</style>\n</head>",
+            1
         )
         html_output = re.sub(r"([\"'(])(?:\./)?static/", r"\1../_static/", html_output)
-        # An example's frame grows to fit it and never scrolls, so the minimap
-        # (which stands in for the scrollbar) is off, as with :no-minimap:,
-        # except in a frame of fixed height.
+        # The minimap stands in for the scrollbar. A frame grows to fit its
+        # page up to 640 px and scrolls beyond, so the frame's onload marks a
+        # page that fits with html.rsm-fits, which hides the minimap.
         height = self.options.get('height')
-        if not height:
-            html_output = html_output.replace("<body ", '<body data-minimap="false" ', 1)
 
         content_hash = hashlib.md5(content.encode()).hexdigest()[:8]
         example_dir = Path(app.outdir) / "_examples"
@@ -282,7 +283,7 @@ def visit_rsm_iframe_node(self, node):
               src="{node.path}"
               sandbox="allow-scripts allow-same-origin"
               scrolling="no"
-              onload="var f=this;f.parentNode.classList.add('loaded');if(!f.contentWindow.document.querySelector('.manuscriptwrapper'))return;function r(){{if(f.parentNode.classList.contains('device-view'))return;var h=f.contentWindow.document.body.scrollHeight+8,c=h>640;f.style.height=(c?640:h)+'px';f.setAttribute('scrolling',c?'yes':'no');f.style.overflow=c?'auto':'hidden'}};f._fit=r;r();new ResizeObserver(r).observe(f.contentWindow.document.body);"
+              onload="var f=this;f.parentNode.classList.add('loaded');if(!f.contentWindow.document.querySelector('.manuscriptwrapper'))return;function r(){{if(f.parentNode.classList.contains('device-view'))return;var h=f.contentWindow.document.body.scrollHeight+8,c=h>640;f.contentWindow.document.documentElement.classList.toggle('rsm-fits',!c);f.style.height=(c?640:h)+'px';f.setAttribute('scrolling',c?'yes':'no');f.style.overflow=c?'auto':'hidden'}};f._fit=r;r();new ResizeObserver(r).observe(f.contentWindow.document.body);"
               style="overflow: hidden;">
       </iframe>
     </div>
