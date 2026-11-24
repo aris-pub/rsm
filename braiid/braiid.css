@@ -4264,6 +4264,13 @@ html:not(.has-toc-switch) .manuscriptwrapper .toc .toc-switch { display: none; }
     padding-bottom: calc(48px + 2 * var(--chunk-sixth) + var(--chunk-half) + env(safe-area-inset-bottom, 0px));
   }
   html.has-rail:has(.rail-strip) { scroll-padding-bottom: calc(48px + 2 * var(--chunk-sixth) + var(--chunk-half)); }
+  /* With a sheet open, the end of the manuscript must be able to scroll above
+     the sheet too, so leave room for the sheet at its tallest (62vh, above the
+     bar). */
+  html.has-rail.rail-open body:has(.rail-strip) {
+    padding-bottom: calc(48px + 3 * var(--chunk-sixth) + var(--border-extrathin) + 62vh
+      + var(--chunk-half) + env(safe-area-inset-bottom, 0px));
+  }
   html.has-rail body:has(.rail-strip) :is(.rsm-back-pill, .rsm-shared-pill) {
     bottom: calc(48px + 2 * var(--chunk-sixth) + var(--chunk-third) + env(safe-area-inset-bottom, 0px));
   }

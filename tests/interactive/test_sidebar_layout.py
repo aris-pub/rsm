@@ -130,3 +130,22 @@ def test_contents_graph_fits_its_panel(page: Page, interactive_server: str, view
     assert (
         g["svgLeft"] >= g["panelLeft"] - 1 and g["svgRight"] <= g["panelRight"] + 1
     ), g
+
+
+def test_phone_sheet_does_not_hide_the_end_of_the_page(page: Page, interactive_server: str):
+    # With a sheet open, the reader can still scroll the last block of the page
+    # above the sheet: the page leaves room for the sheet at its end.
+    _load(page, interactive_server, viewport=PHONE)
+    page.click('.rail-strip-btn[data-view="document"]')
+    page.wait_for_selector(".proof-rail.open", timeout=5_000)
+    page.wait_for_timeout(400)
+    page.evaluate("() => window.scrollTo(0, document.documentElement.scrollHeight)")
+    page.wait_for_timeout(300)
+    g = page.evaluate("""() => {
+        const sheet = document.querySelector('.proof-rail.open').getBoundingClientRect();
+        const blocks = [...document.querySelectorAll('.manuscript .hr')]
+            .filter((b) => b.getBoundingClientRect().height > 0);
+        const last = blocks[blocks.length - 1].getBoundingClientRect();
+        return {sheetTop: Math.round(sheet.top), lastBottom: Math.round(last.bottom)};
+    }""")
+    assert g["lastBottom"] <= g["sheetTop"], g
