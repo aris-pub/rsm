@@ -69,6 +69,10 @@ export function setup(root = document) {
 
   function selectScope(scope) {
     for (const s of SCOPES) rail.classList.toggle("scope-" + s, s === scope);
+    // Opening a proof view with no proof selected shows the proof on screen,
+    // or the document's only proof. Deferred: this can run during setup,
+    // before the proof list below exists.
+    if (scope === "proof") requestAnimationFrame(followProofOnScreen);
   }
 
   // A sub-view is a rail-tab data-view: doc-map / notation (Document) or
@@ -317,6 +321,18 @@ export function setup(root = document) {
     updateState();
   }
   show(null);
+
+  // The first proof with any part on screen, or the only proof of the document.
+  function followProofOnScreen() {
+    if (current) return;
+    const shown = proofs.filter((p) => items.has(p.getAttribute("data-nodeid")));
+    const onScreen = shown.find((p) => {
+      const r = p.getBoundingClientRect();
+      return r.bottom > 0 && r.top < window.innerHeight && r.height > 0;
+    });
+    const pick = onScreen || (shown.length === 1 ? shown[0] : null);
+    if (pick) show(pick.getAttribute("data-nodeid"));
+  }
 
   // Follow the reader's selection (the focused / clicked block), not the scroll.
   // The keyboard cursor (j/k, h/l, Tab) moves focus, and clicking anywhere in a

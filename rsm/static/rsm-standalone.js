@@ -3067,6 +3067,7 @@ var RSM = (() => {
     }
     function selectScope(scope) {
       for (const s of SCOPES) rail.classList.toggle("scope-" + s, s === scope);
+      if (scope === "proof") requestAnimationFrame(followProofOnScreen);
     }
     function selectSubview(view) {
       const inDoc = view === "doc-map" || view === "notation";
@@ -3270,6 +3271,16 @@ var RSM = (() => {
       updateState();
     }
     show(null);
+    function followProofOnScreen() {
+      if (current) return;
+      const shown = proofs.filter((p) => items2.has(p.getAttribute("data-nodeid")));
+      const onScreen = shown.find((p) => {
+        const r = p.getBoundingClientRect();
+        return r.bottom > 0 && r.top < window.innerHeight && r.height > 0;
+      });
+      const pick = onScreen || (shown.length === 1 ? shown[0] : null);
+      if (pick) show(pick.getAttribute("data-nodeid"));
+    }
     function stepsOf2(proofEl) {
       return [...proofEl.querySelectorAll(".step")].filter((s) => !s.closest(".calc"));
     }
