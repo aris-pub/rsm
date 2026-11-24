@@ -10,6 +10,7 @@ with copy-paste examples.
    :maxdepth: 1
 
    guides/structured-proofs
+   guides/notation
    guides/interactive-figures
    guides/citations
    guides/multi-author
