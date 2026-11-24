@@ -6,27 +6,22 @@
 // a page that is already under its source to a phone's width.
 //
 // Mouse / Touch: Touch sets the touch class on the page in the frame, which
-// gives it the touch look (braiid.css, handrails.js), and gives the frame the
-// height of a phone's or a tablet's screen, scrolling inside, as on the device.
+// gives it the touch look (braiid.css, handrails.js). A page taller than a
+// phone's or a tablet's screen then gets a frame of that screen's height and
+// scrolls inside it, as on the device. A shorter page keeps its own height.
 const NARROW_BELOW = 768;
 // CSS heights of the screens of a common phone (390 x 844) and tablet (820 x 1180).
 const PHONE_HEIGHT = 844;
 const TABLET_HEIGHT = 1180;
 
+// The frame's onload sizing (rsm_directive.py) caps the frame at _cap.
 function fitDevice(wrap) {
   const frame = frameOf(wrap);
   const doc = frame.contentDocument;
   const touch = doc && doc.documentElement.classList.contains("touch");
-  wrap.classList.toggle("device-view", Boolean(touch));
-  if (touch) {
-    const narrow = frame.getBoundingClientRect().width < NARROW_BELOW;
-    frame.style.height = (narrow ? PHONE_HEIGHT : TABLET_HEIGHT) + "px";
-    frame.setAttribute("scrolling", "yes");
-    frame.style.overflow = "auto";
-    doc.documentElement.classList.remove("rsm-fits");
-  } else if (frame._fit) {
-    frame._fit();
-  }
+  const narrow = frame.getBoundingClientRect().width < NARROW_BELOW;
+  frame._cap = touch ? (narrow ? PHONE_HEIGHT : TABLET_HEIGHT) : undefined;
+  if (frame._fit) frame._fit();
 }
 
 function frameOf(wrap) {
