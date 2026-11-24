@@ -23,10 +23,8 @@ function fitDevice(wrap) {
     frame.style.height = (narrow ? PHONE_HEIGHT : TABLET_HEIGHT) + "px";
     frame.setAttribute("scrolling", "yes");
     frame.style.overflow = "auto";
-  } else {
-    frame.setAttribute("scrolling", "no");
-    frame.style.overflow = "hidden";
-    if (frame._fit) frame._fit();
+  } else if (frame._fit) {
+    frame._fit();
   }
 }
 
