@@ -69,10 +69,6 @@ RSM reads a subset of BibTeX, not everything that BibTeX and LaTeX accept:
   ``@string`` definitions and LaTeX commands such as ``{\"o}`` are not read.
   Write accented letters as they are, such as ö.
 
-RSM does not yet warn about everything outside this subset: it drops a field
-that it does not know or a value in quotes, and cuts a value short at a brace
-inside it. Check the list of references in the built page.
-
 RSM warns about an entry without a ``doi``, because the reader cannot follow
 it to the work.
 
