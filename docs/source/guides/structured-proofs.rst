@@ -70,8 +70,7 @@ The whole proof
 
      :step: :qed:
 
-       :step: So 2 divides both $a$ and $b$, which contradicts :ref:st-ab::.
-       ::
+       :p: So 2 divides both $a$ and $b$, which contradicts :ref:st-ab::. ::
 
      ::
 
@@ -122,7 +121,8 @@ Refer to other steps
 ``:prev2:`` and ``:prev3:`` go two and three steps back.
 
 To refer to any other step, give it a ``:label:`` and use ``:ref:``, as with
-any other block. Step ⟨4.1⟩ refers to step ⟨1⟩ by its label ``st-ab``.
+any other block. The justification of step ⟨4⟩ refers to step ⟨1⟩ by its
+label ``st-ab``.
 
 These links are what the sidebar uses to draw which steps depend on which, so
 it pays to write them even when the step that you mean is obvious.
