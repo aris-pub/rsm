@@ -52,12 +52,19 @@ The whole proof
 
      ::
 
-     :step: :let: $a = 2c$ ::.
-     ::
-
      :step: :claim: $b$ is even ::.
 
-       :p: Then $4c^2 = 2b^2$, so $b^2 = 2c^2$ is even, and so is $b$. ::
+       :step: :let: $a = 2c$ ::.
+
+         :p: $a$ is even by :ref:st-a::. ::
+
+       ::
+
+       :step: :claim: $b^2 = 2c^2$, so $b$ is even ::.
+
+         :p: Put $a = 2c$ into :ref:st-sq::, which gives $4c^2 = 2b^2$. ::
+
+       ::
 
      ::
 
@@ -80,7 +87,7 @@ Start each step with what it states. Mark that statement with a keyword
 tag, so that both the reader and RSM know what the step does:
 
 - ``:assume:`` for an assumption, as in step ⟨1⟩,
-- ``:let:`` for a new symbol, as in step ⟨3⟩,
+- ``:let:`` for a new symbol, as in step ⟨3.1⟩,
 - ``:claim:`` for what the step asserts, as in step ⟨2⟩.
 
 RSM shows the keyword in the page, such as "ASSUME", "LET" or "⊢". Other
