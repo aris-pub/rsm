@@ -331,6 +331,22 @@ html[data-theme="dark"] .rsm-example:not(.landing-band .rsm-example) {
   right: 0;
 }
 .landing-band .rsm-wrapswitch { display: none; }
+.rsm-open {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--chunk-twelfth);
+  border-radius: var(--radius-lg);
+  text-decoration: none;
+}
+.landing-band .rsm-open { display: none; }
+
+/* The line numbers sit in a light gray column. */
+.rsm-example:not(.landing-band .rsm-example) .rsm-example-code.highlight pre {
+  background: linear-gradient(to right, var(--braiid-gray-75) 0 2.9em, var(--pst-color-background) 2.9em);
+}
+html[data-theme="dark"] .rsm-example:not(.landing-band .rsm-example) .rsm-example-code.highlight pre {
+  background: linear-gradient(to right, #10161a 0 2.9em, var(--pst-color-background) 2.9em);
+}
 /* The docs' Copy button goes inside the source card, at its top right, below
    the label row and its Wrap switch. */
 .rsm-example:not(.landing-band .rsm-example) .rsm-example-code .copybtn {
@@ -394,7 +410,8 @@ html[data-theme="dark"] .rsm-example:not(.landing-band .rsm-example) {
   display: flex;
 }
 .rsm-viewswitch button,
-.rsm-wrapswitch button {
+.rsm-wrapswitch button,
+.rsm-open {
   font: 600 0.7rem/1 'Montserrat', sans-serif;
   padding: var(--chunk-twelfth) var(--chunk-sixth);
   border: 1px solid var(--pst-color-border);

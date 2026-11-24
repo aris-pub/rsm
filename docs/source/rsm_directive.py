@@ -8,6 +8,7 @@ Highlight and render RSM code blocks.
 
 import hashlib
 import re
+from urllib.parse import urlencode
 import shutil
 from html import escape
 from pathlib import Path
@@ -122,10 +123,11 @@ class rsm_example(nodes.Element):
 
 
 class rsm_iframe(nodes.Element):
-    def __init__(self, path, height=None):
+    def __init__(self, path, height=None, open_href=""):
         super().__init__()
         self.path = path
         self.height = height
+        self.open_href = open_href
 
 
 class rsm_highlighted_code(nodes.Element):
@@ -229,10 +231,21 @@ class RSMDirective(Directive):
             dest.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(sources.get(ref, source_dir / ref), dest)
         # The frame's path is relative to the page, which can sit at any depth.
-        depth = self.state.document.settings.env.docname.count("/")
-        n2 = rsm_iframe(f"{'../' * depth}_examples/{content_hash}.html", height)
+        docname = self.state.document.settings.env.docname
+        depth = docname.count("/")
+        # Open shows the example alone, in the docs' example page, with a bar
+        # that names the docs page and leads back to the example on it.
+        titles = list(self.state.document.findall(nodes.title))
+        page_title = titles[0].astext() if titles else ""
+        open_href = f"{'../' * depth}_static/example.html?" + urlencode({
+            "page": f"../_examples/{content_hash}.html",
+            "back": f"../{docname}.html#ex-{content_hash}",
+            "title": page_title,
+        })
+        n2 = rsm_iframe(f"{'../' * depth}_examples/{content_hash}.html", height, open_href)
 
         rsm_node = rsm_example()
+        rsm_node['ids'] = [f"ex-{content_hash}"]
         rsm_node['classes'] = ['stacked'] if self.options.get('layout') == 'stacked' else []
         rsm_node.append(n1)
         rsm_node.append(n2)
@@ -258,11 +271,19 @@ def depart_rsm_highlighted_code_node(self, node):
     pass
 
 
+# Tabler's external-link icon.
+OPEN_ICON = ('<svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" '
+             'stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">'
+             '<path d="M12 6h-6a2 2 0 0 0 -2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-6"/>'
+             '<path d="M11 13l9 -9"/><path d="M15 4h5v5"/></svg>')
+
+
 def visit_rsm_iframe_node(self, node):
     if node.height:
         self.body.append(f'''
     <div class="rsm-iframe-wrap">
       <div class="rsm-viewswitch">
+        <a class="rsm-open" href="{escape(node.open_href)}">Open {OPEN_ICON}</a>
         <div class="rsm-switch" role="group" aria-label="Width of the page">
           <button type="button" data-width="wide" aria-pressed="false">Wide</button>
           <button type="button" data-width="narrow" aria-pressed="false">Narrow</button>
@@ -285,6 +306,7 @@ def visit_rsm_iframe_node(self, node):
     iframe_html = f'''
     <div class="rsm-iframe-wrap">
       <div class="rsm-viewswitch">
+        <a class="rsm-open" href="{escape(node.open_href)}">Open {OPEN_ICON}</a>
         <div class="rsm-switch" role="group" aria-label="Width of the page">
           <button type="button" data-width="wide" aria-pressed="false">Wide</button>
           <button type="button" data-width="narrow" aria-pressed="false">Narrow</button>
@@ -313,7 +335,9 @@ def depart_rsm_iframe_node(self, node):
 
 def visit_rsm_example_node(self, node):
     classes = " ".join(["rsm-example"] + node.get("classes", []))
-    self.body.append(f'<div class="{classes}">')
+    ids = node.get("ids", [])
+    id_attr = f' id="{ids[0]}"' if ids else ""
+    self.body.append(f'<div{id_attr} class="{classes}">')
 
 
 def depart_rsm_example_node(self, node):
