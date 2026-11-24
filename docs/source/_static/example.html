@@ -86,7 +86,16 @@
   const params = new URLSearchParams(location.search);
   const frame = document.querySelector(".frame");
   const stage = document.querySelector(".stage");
-  document.querySelector(".back").href = params.get("back") || "../index.html";
+  // The page opens in a new tab, so Back closes it, which returns the reader
+  // to the docs tab that they came from. A tab that the browser does not let
+  // a script close (opened some other way) goes to the docs page instead.
+  const back = document.querySelector(".back");
+  back.href = params.get("back") || "../index.html";
+  back.addEventListener("click", (event) => {
+    event.preventDefault();
+    window.close();
+    setTimeout(() => { location.href = back.href; }, 200);
+  });
   document.querySelector(".title").textContent = params.get("title") || "";
   if (params.get("title")) document.title = params.get("title") + " - RSM example";
 
