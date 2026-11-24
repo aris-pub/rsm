@@ -282,7 +282,7 @@ def visit_rsm_iframe_node(self, node):
               src="{node.path}"
               sandbox="allow-scripts allow-same-origin"
               scrolling="no"
-              onload="var f=this;f.parentNode.classList.add('loaded');if(!f.contentWindow.document.querySelector('.manuscriptwrapper'))return;function r(){{f.style.height=(f.contentWindow.document.body.scrollHeight+8)+'px'}};r();new ResizeObserver(r).observe(f.contentWindow.document.body);"
+              onload="var f=this;f.parentNode.classList.add('loaded');if(!f.contentWindow.document.querySelector('.manuscriptwrapper'))return;function r(){{if(f.parentNode.classList.contains('device-view'))return;f.style.height=(f.contentWindow.document.body.scrollHeight+8)+'px'}};f._fit=r;r();new ResizeObserver(r).observe(f.contentWindow.document.body);"
               style="overflow: hidden;">
       </iframe>
     </div>

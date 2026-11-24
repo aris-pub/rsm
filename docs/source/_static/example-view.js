@@ -6,8 +6,29 @@
 // a page that is already under its source to a phone's width.
 //
 // Mouse / Touch: Touch sets the touch class on the page in the frame, which
-// gives it the touch look (braiid.css, handrails.js), as on a phone or tablet.
+// gives it the touch look (braiid.css, handrails.js), and gives the frame the
+// height of a phone's or a tablet's screen, scrolling inside, as on the device.
 const NARROW_BELOW = 768;
+// CSS heights of the screens of a common phone (390 x 844) and tablet (820 x 1180).
+const PHONE_HEIGHT = 844;
+const TABLET_HEIGHT = 1180;
+
+function fitDevice(wrap) {
+  const frame = frameOf(wrap);
+  const doc = frame.contentDocument;
+  const touch = doc && doc.documentElement.classList.contains("touch");
+  wrap.classList.toggle("device-view", Boolean(touch));
+  if (touch) {
+    const narrow = frame.getBoundingClientRect().width < NARROW_BELOW;
+    frame.style.height = (narrow ? PHONE_HEIGHT : TABLET_HEIGHT) + "px";
+    frame.setAttribute("scrolling", "yes");
+    frame.style.overflow = "auto";
+  } else {
+    frame.setAttribute("scrolling", "no");
+    frame.style.overflow = "hidden";
+    if (frame._fit) frame._fit();
+  }
+}
 
 function frameOf(wrap) {
   return wrap.querySelector(".rsm-example-iframe");
@@ -47,6 +68,7 @@ document.addEventListener("click", (event) => {
     const doc = frameOf(wrap).contentDocument;
     doc.documentElement.classList.toggle("touch", button.dataset.input === "touch");
   }
+  fitDevice(wrap);
   mark(wrap);
 });
 
