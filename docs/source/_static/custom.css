@@ -309,7 +309,9 @@ html[data-theme="dark"] .rsm-example:not(.landing-band .rsm-example) {
 .rsm-example:not(.landing-band .rsm-example) .rsm-example-code pre .ln {
   position: relative;
   min-height: 1lh;
-  padding-left: 3.2em;
+  /* The gray column is 2.9em wide and its numbers end 0.6em before its right
+     edge, so the code starts the same 0.6em after it. */
+  padding-left: 3.5em;
   padding-right: var(--chunk-quarter);
 }
 .rsm-example:not(.landing-band .rsm-example) .rsm-example-code pre .ln::before {
