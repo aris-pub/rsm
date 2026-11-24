@@ -373,7 +373,7 @@ def test_prev_shortcut():
 
         :step: :qed:.
 
-           :p: Due to :prev:.::
+           :pf: Due to :prev:.::
 
         ::
 
@@ -487,7 +487,7 @@ def test_prev2_shortcut():
 
         :step: :qed:.
 
-           :p: Due to :prev2:.::
+           :pf: Due to :prev2:.::
 
         ::
 
@@ -615,7 +615,7 @@ def test_prev_and_prev2_shortcut():
 
         :step: :qed:.
 
-           :p: Due to :prev: and :prev2:.::
+           :pf: Due to :prev: and :prev2:.::
 
         ::
 

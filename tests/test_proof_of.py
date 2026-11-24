@@ -31,7 +31,7 @@ SRC = """\
 
     :qed:
 
-    :p: Obvious. ::
+    :pf: Obvious. ::
 
   ::
 

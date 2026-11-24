@@ -258,7 +258,7 @@ Add a calculation
 *****************
 
 A ``:calc:`` is a chain of relations, each with the reason it holds. Each row is
-a ``:step:`` that holds one relation, followed by a ``:p:`` with its reason. The
+a ``:step:`` that holds one relation, followed by a ``:pf:`` with its reason. The
 reasons start folded: click the mark at the right of a row to read one.
 
 A ``:calc:`` can go anywhere a display equation can go, inside or outside a
@@ -273,13 +273,13 @@ label. A ``:calc:`` holds only ``:step:`` rows.
 
      :step: $(a+b)^2 = a^2 + 2ab + b^2$
 
-       :p: Expand the square. ::
+       :pf: Expand the square. ::
 
      ::
 
      :step: $\ge 4ab$
 
-       :p: Since $a^2 + b^2 - 2ab = (a-b)^2 \ge 0$. ::
+       :pf: Since $a^2 + b^2 - 2ab = (a-b)^2 \ge 0$. ::
 
      ::
 
@@ -301,13 +301,13 @@ Inside a proof, the chain reads as one step:
 
          :step: $(a+b)^2 - 4ab = a^2 - 2ab + b^2$
 
-           :p: Expand and collect terms. ::
+           :pf: Expand and collect terms. ::
 
          ::
 
          :step: $= (a-b)^2 \ge 0$
 
-           :p: A square is never negative. ::
+           :pf: A square is never negative. ::
 
          ::
 

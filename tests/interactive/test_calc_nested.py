@@ -1,7 +1,7 @@
 """Regression: a :calc: nested inside a proof step must keep its because-mark
 control clickable and hoverable.
 
-In the real paper a :calc: lives inside a proof step's :p:, and that PARENT
+In the real paper a :calc: lives inside a proof step's :pf:, and that PARENT
 step's info-zone (.hr-info, z-index:1) painted OVER the calc row's per-row
 disclosure control (the because-mark in its own info-zone), swallowing clicks
 and hover. braiid.css fixes this by lifting the calc row's info-zone above the

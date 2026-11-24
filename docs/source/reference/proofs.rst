@@ -96,7 +96,7 @@ Step ``:step:``
 
 One step of a proof. A step starts with what it states, which can use the
 keywords below, such as ``:let:`` and ``:claim:``. Its justification goes in a
-``:p:``, and its sub-steps follow as more ``:step:`` blocks. The step ends with
+``:pf:``, and its sub-steps follow as more ``:step:`` blocks. The step ends with
 ``::``.
 
 .. rubric:: Syntax
@@ -107,7 +107,7 @@ keywords below, such as ``:let:`` and ``:claim:``. Its justification goes in a
    :proof:
      :step: <statement>
 
-       :p: <justification> ::
+       :pf: <justification> ::
 
      ::
    ::
@@ -123,7 +123,7 @@ keywords below, such as ``:let:`` and ``:claim:``. Its justification goes in a
 
      :step: :claim: $n^2 = 4k^2$ ::.
 
-       :p: By :prev:, $n^2 = (2k)^2$. ::
+       :pf: By :prev:, $n^2 = (2k)^2$. ::
 
      ::
 
@@ -142,8 +142,8 @@ keywords below, such as ``:let:`` and ``:claim:``. Its justification goes in a
 
 .. rst-class:: tag-card
 
-Justification ``:p:``
----------------------
+Justification ``:pf:``
+----------------------
 
 The reason for a step, inside the step and after its statement. It ends with
 ``::``.
@@ -156,7 +156,7 @@ The reason for a step, inside the step and after its statement. It ends with
    :proof:
      :step: <statement>
 
-       :p: <justification> ::
+       :pf: <justification> ::
 
      ::
    ::
@@ -287,7 +287,7 @@ Calculation ``:calc:``
 
 A chain of equalities or inequalities, one per line, each with its reason. It
 goes wherever displayed math can go. Each line is a ``:step:`` whose
-statement is math, with its reason in a ``:p:``. A calculation with a
+statement is math, with its reason in a ``:pf:``. A calculation with a
 ``:label:`` is numbered as an equation.
 
 .. rubric:: Syntax
@@ -298,7 +298,7 @@ statement is math, with its reason in a ``:p:``. A calculation with a
    :calc:
      :step: $<left> = <right>$
 
-       :p: <reason> ::
+       :pf: <reason> ::
 
      ::
    ::
@@ -311,13 +311,13 @@ statement is math, with its reason in a ``:p:``. A calculation with a
 
      :step: $(a+b)^2 = (a+b)(a+b)$
 
-       :p: by definition ::
+       :pf: by definition ::
 
      ::
 
      :step: $= a^2 + 2ab + b^2$
 
-       :p: expand ::
+       :pf: expand ::
 
      ::
 

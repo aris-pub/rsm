@@ -17,12 +17,12 @@ sheet.
    change how each one is shown, and every equation follows.
 
 ``Proof steps``
-   A graph of the steps of the proof in view and the results that they use.
-   It follows the proof that the reader is reading.
+   A graph of the steps of a proof and the results that they use. It shows
+   the proof that the reader last clicked in, or picked from its list.
 
 ``Proof state``
-   For the step in view, the assumptions and symbols in force and the claim
-   that it proves.
+   For the step that the reader last clicked, the assumptions and symbols in
+   force and the claim that it proves.
 
 ``Pinned``
    The blocks that the reader has pinned.
@@ -64,13 +64,13 @@ icons on the left of the result.
 
      :step: {:label: st-let} :let: $n = 2k$ ::.
 
-       :p: By :ref:def-even::. ::
+       :pf: By :ref:def-even::. ::
 
      ::
 
      :step: :claim: $\sq = 4k^2$ ::.
 
-       :p: Square both sides of :prev:. ::
+       :pf: Square both sides of :prev:. ::
 
      ::
 

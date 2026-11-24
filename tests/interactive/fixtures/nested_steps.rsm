@@ -17,7 +17,7 @@
 
     :claim: Depth zero, step B. ::
 
-    :p:
+    :pf:
 
       :step: {:label: ns-1a} Depth one, step A. ::
 
@@ -25,13 +25,13 @@
 
         :claim: Depth one, step B. ::
 
-        :p:
+        :pf:
 
           :step: {:label: ns-2a}
 
             :claim: Depth two, step A claim. ::
 
-            :p: A justification paragraph with enough text that it would run
+            :pf: A justification paragraph with enough text that it would run
             across the content width and reach the number column if it were
             not constrained. ::
 
@@ -41,7 +41,7 @@
 
             :claim: Depth two, step B. ::
 
-            :p:
+            :pf:
 
               :step: {:label: ns-3a} Depth three, step A. ::
 

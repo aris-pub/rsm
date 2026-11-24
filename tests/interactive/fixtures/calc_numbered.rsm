@@ -14,19 +14,19 @@ The bound :ref:eq-before:: gives
 
   :step: $\|F(x)-F(y)\|^2 \ \ge\ c_0\sum_{j=1}^{k}a_j^2$
 
-    :p: Because the first reason holds. ::
+    :pf: Because the first reason holds. ::
 
   ::
 
   :step: $\ge\ \frac{c_0}{k}\Big(\sum_{j=1}^{k}a_j\Big)^2$
 
-    :p: Because $\sum_{j=1}^{k} a_j \le k$. ::
+    :pf: Because $\sum_{j=1}^{k} a_j \le k$. ::
 
   ::
 
   :step: $\ge\ \frac{c_0}{4L}\,d(x,y)^2 .$
 
-    :p: Because the third reason holds. ::
+    :pf: Because the third reason holds. ::
 
   ::
 
@@ -53,19 +53,19 @@ Text after the chain. By :ref:eq-top::, the bound holds.
 
     :claim: The calculation below establishes the bound. ::
 
-    :p:
+    :pf:
 
       :calc: {:label: eq-inproof}
 
         :step: $f(x) = a - b$
 
-          :p: Because the first reason holds. ::
+          :pf: Because the first reason holds. ::
 
         ::
 
         :step: $\le \sum_{j=1}^{k} c_j$
 
-          :p: Because the second reason holds. ::
+          :pf: Because the second reason holds. ::
 
         ::
 

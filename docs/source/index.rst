@@ -62,7 +62,7 @@ RSM
 
      :step: :claim: no $p_i$ divides $N$::.
 
-       :p: Each $p_i$ divides $N - 1$. ::
+       :pf: Each $p_i$ divides $N - 1$. ::
 
      ::
 

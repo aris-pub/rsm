@@ -50,7 +50,7 @@ mathblock = BlockTagInfo(None)
 proof = BlockTagInfo(None)
 """Proof of Theorem."""
 calc = BlockTagInfo(None)
-"""Calculation: a chain of relations, each a ``:step:`` with its reason in a ``:p:``.
+"""Calculation: a chain of relations, each a ``:step:`` with its reason in a ``:pf:``.
 
 Allowed anywhere display math is. Holds only ``:step:`` rows. A labelled calc takes
 an equation number from the display math counter."""
@@ -243,7 +243,7 @@ let = MathTagInfo(None)
 """Introduce a variable and assumption."""
 new = MathTagInfo(None)
 """Introduce a variable and assumption."""
-p = MathTagInfo(None)
+pf = MathTagInfo(None)
 """Sub-proof."""
 pick = MathTagInfo(None)
 """Introduce a variable with a specific property (see 'st')."""

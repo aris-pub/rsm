@@ -2,7 +2,7 @@
 
 A folded block that holds steps says how many it hides: "N steps hidden". A
 block whose whole body folds away (a sketch, a theorem, a step whose only body
-is its :p:) shows no label, only its header and the rail. The words come
+is its :pf:) shows no label, only its header and the rail. The words come
 from data-fold-label and CSS draws them. A proof draws its label from its
 .hr-label, so the tombstone (the proof content zone's ::after) is untouched.
 """

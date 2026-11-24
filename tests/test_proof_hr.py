@@ -274,7 +274,7 @@ def test_sub_step():
 
             :step: Sub-step.
 
-              :p: Sub-Proof.::
+              :pf: Sub-Proof.::
 
             ::
           ::
@@ -1177,7 +1177,7 @@ def test_proof_with_sketch():
 
 # A folded block that holds steps says how many it hides at the foot of its
 # handrail: "N steps hidden". A block whose whole body folds away (a prose
-# proof, a sketch, a theorem, a step whose only body is its :p:) has no label:
+# proof, a sketch, a theorem, a step whose only body is its :pf:) has no label:
 # the header, the chevron and the curved foot of the rail already show it is
 # folded, and its kind is in the header. The words ride a data-fold-label
 # attribute that CSS renders, so the stylesheet holds no hard-coded text. Steps
@@ -1263,7 +1263,7 @@ def test_fold_label_step_with_only_justification():
         :proof:
           :step: A claim.
 
-            :p: The reason. ::
+            :pf: The reason. ::
 
           ::
         ::
@@ -1289,7 +1289,7 @@ def test_no_fold_label_on_calc_step():
 
             :step: $f(x) = a$
 
-              :p: Because the first reason. ::
+              :pf: Because the first reason. ::
 
             ::
 
@@ -1322,7 +1322,7 @@ def test_fold_labels_of_blocks_that_start_collapsed():
         :proof: {:collapsed:}
           :step: {:collapsed:} A claim.
 
-            :p: The reason. ::
+            :pf: The reason. ::
 
           ::
           :step: Another claim.::

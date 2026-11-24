@@ -1966,7 +1966,7 @@ class Calc(NodeWithChildren):
 
     A ``:calc:`` can go anywhere a display equation can go, inside or outside a
     proof. Each row is a ``:step:`` that holds one relation, followed by a
-    ``:p:`` with the reason for it. A ``:calc:`` holds only ``:step:`` children.
+    ``:pf:`` with the reason for it. A ``:calc:`` holds only ``:step:`` children.
 
     .. code-block:: text
 
@@ -1974,13 +1974,13 @@ class Calc(NodeWithChildren):
 
          :step: $\\|F(x)-F(y)\\|^2 \\ge c_0\\sum_j a_j^2$
 
-           :p: Reason for the first relation. ::
+           :pf: Reason for the first relation. ::
 
          ::
 
          :step: $\\ge \\frac{c_0}{4L} d(x,y)^2$
 
-           :p: Reason for the second. ::
+           :pf: Reason for the second. ::
 
          ::
 

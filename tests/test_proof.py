@@ -147,7 +147,7 @@ def test_sub_step():
 
             :step: Sub-step.
 
-              :p: Sub-proof.::
+              :pf: Sub-proof.::
 
             ::
           ::

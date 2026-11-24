@@ -32,7 +32,7 @@ SRC = """\
 
     :claim: $Q$ ::.
 
-    :p: Because. ::
+    :pf: Because. ::
 
   ::
 
@@ -40,7 +40,7 @@ SRC = """\
 
     :qed:
 
-    :p: Done. ::
+    :pf: Done. ::
 
   ::
 
@@ -87,7 +87,7 @@ SRC_LOCAL = """\
 
     :assume: $P$ ::. :claim: case one. ::
 
-    :p:
+    :pf:
 
       :step: {:label: st-c1sub} It uses $P$. ::
 
@@ -99,7 +99,7 @@ SRC_LOCAL = """\
 
     :claim: case two. ::
 
-    :p: Trivial. ::
+    :pf: Trivial. ::
 
   ::
 

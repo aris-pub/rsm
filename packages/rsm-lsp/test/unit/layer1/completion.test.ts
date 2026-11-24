@@ -75,7 +75,7 @@ describe('getTagCompletions', () => {
 
     expect(labels).toContain(':claim:');
     expect(labels).toContain(':step:');
-    expect(labels).toContain(':p:');
+    expect(labels).toContain(':pf:');
     expect(labels).toContain(':qed:');
     expect(labels).toContain(':let:');
     expect(labels).toContain(':assume:');

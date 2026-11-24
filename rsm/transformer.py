@@ -7,7 +7,7 @@ The transform step is also responsible for 'fixing up' some syntactic sugar affo
 RSM markup to yield a sound manuscript.  For exmaple, for mathematical proofs, it is
 possible to have a sequence of ``:step:`` tags inside a parent ``:step:``.  However, in
 the final manuscript, those sub-steps will be wrapped by a :class:`rsm.nodes.SubProof`
-node, without the user having to manually create a ``:p:`` tag.  This wrapper node is
+node, without the user having to manually create a ``:pf:`` tag.  This wrapper node is
 created during the transform step.
 
 After the transform step, static analysis tools such as the linter may run over the

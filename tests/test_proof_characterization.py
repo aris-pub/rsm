@@ -56,7 +56,7 @@ SRC = """\
 
     :qed:
 
-    :p: Done. ::
+    :pf: Done. ::
 
   ::
 

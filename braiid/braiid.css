@@ -839,7 +839,7 @@ body {
    aligns -- but render NONE of their own handrail chrome except the disclosure
    control: the native collapse, rendered in the info-zone (the right-margin
    per-row slot) and reglyphed as the math "because" sign. Collapsed shows the
-   relation, open reveals its :p: justification. No left rule, dots, menu,
+   relation, open reveals its :pf: justification. No left rule, dots, menu,
    spacer, or number. Presentation only; the handrail system is untouched. */
 .manuscriptwrapper .calc .step {
   margin-block: 0;

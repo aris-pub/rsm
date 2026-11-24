@@ -23,6 +23,7 @@ The whole proof
 ---------------
 
 .. rsm::
+   :sidebar:
 
    ## Results
 
@@ -40,13 +41,13 @@ The whole proof
 
        :step: {:label: st-sq} :claim: $a^2 = 2b^2$ ::.
 
-         :p: Square both sides of :ref:st-ab:: and multiply by $b^2$. ::
+         :pf: Square both sides of :ref:st-ab:: and multiply by $b^2$. ::
 
        ::
 
        :step: :claim: $a^2$ is even, and so is $a$ ::.
 
-         :p: By :prev:, and because the square of an odd number is odd. ::
+         :pf: By :prev:, and because the square of an odd number is odd. ::
 
        ::
 
@@ -56,13 +57,13 @@ The whole proof
 
        :step: :let: $a = 2c$ ::.
 
-         :p: $a$ is even by :ref:st-a::. ::
+         :pf: $a$ is even by :ref:st-a::. ::
 
        ::
 
        :step: :claim: $b^2 = 2c^2$, so $b$ is even ::.
 
-         :p: Put $a = 2c$ into :ref:st-sq::, which gives $4c^2 = 2b^2$. ::
+         :pf: Put $a = 2c$ into :ref:st-sq::, which gives $4c^2 = 2b^2$. ::
 
        ::
 
@@ -70,7 +71,7 @@ The whole proof
 
      :step: :qed:
 
-       :p: So 2 divides both $a$ and $b$, which contradicts :ref:st-ab::. ::
+       :pf: So 2 divides both $a$ and $b$, which contradicts :ref:st-ab::. ::
 
      ::
 
@@ -100,8 +101,8 @@ keywords, such as ``:case:`` and ``:suffices:``, are listed in
 Say why a step holds
 --------------------
 
-Put the reason for a step in a ``:p:`` inside it, after its statement. Keep
-the claim and its reason apart: the claim says what holds, and the ``:p:``
+Put the reason for a step in a ``:pf:`` inside it, after its statement. Keep
+the claim and its reason apart: the claim says what holds, and the ``:pf:``
 says why. A reader who accepts the claim can skip the reason.
 
 
@@ -138,9 +139,14 @@ In the built page:
 - Hovering over a reference to a step, or tapping it on a phone, shows that
   step in a tooltip.
 - With ``rsm build --sidebar``, the sidebar has a "Proof steps" view, a graph
-  of the steps of the proof in view and the results that they use, and a
-  "Proof state" view, which lists the assumptions and symbols in force at the
-  current step and the claim that it proves. See :ref:`reading-sidebar`.
+  of the steps of a proof and the results that they use, and a "Proof state"
+  view, which lists the assumptions and symbols in force at a step and the
+  claim that it proves. Both show the proof or step that the reader last
+  clicked. See :ref:`reading-sidebar`.
+
+The example at the top of this page is built with the sidebar. Choose "Wide"
+above its page to see the strip of icons on the left, click a step of the
+proof, and open "Proof steps" or "Proof state".
 
 
 A sketch next to the proof
@@ -154,7 +160,7 @@ A chain of equations
 --------------------
 
 When a proof is a chain of equalities or inequalities, write it as a
-``:calc:``: one ``:step:`` per line, each with its reason in a ``:p:``. See
+``:calc:``: one ``:step:`` per line, each with its reason in a ``:pf:``. See
 :ref:`tag-calc`.
 
 

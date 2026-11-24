@@ -111,14 +111,14 @@ each $i = 1, \ldots, m$::.
 
   :step: :claim: The flip $\mb{P}$ is involutory, invertible, Hermitian, and unitary ::.
 
-    :p: Direct computation using :ref:flip-defn:: yields $\mb{P}^2 = \mb{I}$,
+    :pf: Direct computation using :ref:flip-defn:: yields $\mb{P}^2 = \mb{I}$,
     which in turn means it is its own inverse.  :ref:flip-blocks:: means $\mb{P}$ is
     Hermitian. All Hermitian involutory matrices are unitary. :: ::
 
   :step: :claim: $\left\{ \mb{v}^{i} \right\}_{i=1}^m \cup \left\{ \mb{v}^{-i}
   \right\}_{i=1}^m$ make a complete basis of eigenvectors of $\mb{P}$ ::
 
-    :p:
+    :pf:
 
       :step: :claim: $\mb{P} \mb{v}^i = \mb{v}^i$ and $\mb{P}
       \mb{v}^{-i} = -\mb{v}^i$::. ::
@@ -325,7 +325,7 @@ $$
 
   :step: {:label:prev-stp} $\Longleftarrow$
 
-    :p:
+    :pf:
 
       :step: :let: $\mb{R} \in \mathbb{C}^{m \times m}$ be a unitary matrix such
       that $\mb{p} = \mb{R q}$. :: ::
@@ -334,7 +334,7 @@ $$
 
 	:claim: $\sum_{r=1}^m \left| \zeta_r \right|^2 = \sum_{r=1}^m \left| \zeta_{-r} \right|^2$. ::
 
-	:p: We have
+	:pf: We have
 	    $$
 	    \sum_{r=1}^m \left| \zeta_r \right|^2
             =
@@ -351,7 +351,7 @@ $$
 
       :step: $\,$ :qed:
 
-        :p: From the previous step and :ref:eqn-product-basis::. ::
+        :pf: From the previous step and :ref:eqn-product-basis::. ::
 
       ::
 
@@ -359,14 +359,14 @@ $$
 
   :step: $\Longrightarrow$
 
-    :p:
+    :pf:
 
       :step: :assume: $\mb{z}$ is neutral, that is, that $\mb{p}^* \mb{p} =
       \mb{q}^* \mb{q}$::. ::
 
       :step: :qed:
 
-	:p:
+	:pf:
 
 	  There are in fact infinitely many unitary matrices $\mb{R}$ in this case
 	  since there are infinitely many linear maps that take $\mb{p}$ to
@@ -685,11 +685,11 @@ book. ::
 
   :step: :claim: $\overline{\mb{v}}$ is a right eigenvector of $\overline{\lambda}$. ::
 
-    :p: Take the complex conjugate of the equation $\mb{B v} = \lambda \mb{v}$. :: ::
+    :pf: Take the complex conjugate of the equation $\mb{B v} = \lambda \mb{v}$. :: ::
 
   :step: :claim: $\mb{u}^*$ is a left eigenvector of $\lambda$. ::
 
-    :p: We have
+    :pf: We have
       $$ {:label: eqn-u}
       \begin{align}
       \mb{B} \mb{v} &= \lambda \mb{v} \\
@@ -705,16 +705,16 @@ book. ::
 
   :step: :claim: $\mb{u}^\top$ is a left eigenvector of $\overline{\lambda}$. ::
 
-    :p: Take the complex conjugate of the last step in :ref:eqn-u::, and recall $\overline{\mb{B}} = \mb{B}$. :: ::
+    :pf: Take the complex conjugate of the last step in :ref:eqn-u::, and recall $\overline{\mb{B}} = \mb{B}$. :: ::
 
   :step: :claim: $\left[\mb{v}, \mb{v} \right]_\mb{P} = 0 = \left[\mb{u}, \mb{u} \right]_\mb{P}$. ::
 
-    :p: Due to result 4.2.5 from :cite:thebook::, which says that the root subspace
+    :pf: Due to result 4.2.5 from :cite:thebook::, which says that the root subspace
     coresponding to a nonreal eigenvalue is $\mb{P}$-neutral. :: ::
 
   :step: :claim: $\left[\mb{v}, \overline{\mb{v}} \right]_\mb{P} = \overline{\left[\mb{u}, \overline{\mb{u}} \right]_\mb{P}} = \mb{u}^* \mb{v} = \mb{v}^\top \mb{P v}$. ::
 
-    :p: All these equations are established by direct evaluation.  For example,
+    :pf: All these equations are established by direct evaluation.  For example,
       $$
       \begin{align}
       \left[\mb{u}, \overline{\mb{u}}\right]_\mb{P}
@@ -756,13 +756,13 @@ book. ::
   \left(\mb{v} \mb{u}^*\right) = \left(\mb{v} \mb{u}^*\right)
   \mb{B}$. ::
 
-    :p: Immediate from the fact that $\mb{v}, \mb{u}^*$ are right, left
+    :pf: Immediate from the fact that $\mb{v}, \mb{u}^*$ are right, left
     eigenvectors of $\mb{B}$ corresponding to $\lambda$. :: ::
 
 
   :step: :claim: $\left(\mb{v} \mb{u}^*\right)^2 = \mb{v} \mb{u}^*$. ::
 
-    :p: $\left(\mb{v} \mb{u}^*\right)^2 = \mb{v} \mb{u}^* \mb{v}
+    :pf: $\left(\mb{v} \mb{u}^*\right)^2 = \mb{v} \mb{u}^* \mb{v}
     \mb{u}^* = \left(\mb{v}^\top \mb{P} \mb{v} \right) \mb{v}
     \mb{u}^* = \mb{v} \mb{u}^*$. :: ::
 
@@ -791,7 +791,7 @@ $\mb{v}^\top \mb{P} \mb{v} = 1$ purely in terms of $\mb{v}$.
 
   :step: :claim: $0 = \sum_{i \to j} \mb{v}_{i \to j} \overline{\mb{v}}_{j \to i}$ ::.
 
-    :p: We have
+    :pf: We have
       $$
       \begin{align}
       0
@@ -808,7 +808,7 @@ $\mb{v}^\top \mb{P} \mb{v} = 1$ purely in terms of $\mb{v}$.
 
   :step: {:label:stp-1} :claim: $\lambda^{-1} \sum_j \left|\into{v}{j}\right|^2 \left( d_j - 1 \right) = \overline{\lambda} \mb{v}^* \mb{v}$ ::.
 
-    :p:
+    :pf:
 
       :step: Applying :draft: such and such :: in $\star$, we have
         $$
@@ -838,7 +838,7 @@ $\mb{v}^\top \mb{P} \mb{v} = 1$ purely in terms of $\mb{v}$.
 
   :step: {:label:stp-2} :claim: $\sum_i \left|\into{v}{i}\right|^2 = \mb{v}^* \mb{v}$ ::.
 
-    :p: We have
+    :pf: We have
       $$
       \begin{align}
       \star
