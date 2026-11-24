@@ -2941,6 +2941,9 @@ var RSM = (() => {
       attributes: true,
       attributeFilter: ["data-reading-measure"]
     });
+    new ResizeObserver(() => {
+      html.style.setProperty("--rail-sheet-h", rail.offsetHeight + "px");
+    }).observe(rail);
     function setOpen(on, { persist = true } = {}) {
       const anchor = !isPhone() && on !== open ? anchorTop() : null;
       open = on;

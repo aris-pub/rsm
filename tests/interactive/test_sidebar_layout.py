@@ -149,3 +149,24 @@ def test_phone_sheet_does_not_hide_the_end_of_the_page(page: Page, interactive_s
         return {sheetTop: Math.round(sheet.top), lastBottom: Math.round(last.bottom)};
     }""")
     assert g["lastBottom"] <= g["sheetTop"], g
+
+
+def test_phone_sheet_leaves_no_large_gap_above_a_short_sheet(page: Page, interactive_server: str):
+    # The room at the end of the page follows the sheet's real height, so a
+    # short sheet does not leave a large empty area between the page and it.
+    _load(page, interactive_server, viewport=PHONE)
+    page.click('.rail-strip-btn[data-view="pinned"]')
+    page.wait_for_selector(".proof-rail.open", timeout=5_000)
+    page.wait_for_timeout(400)
+    page.evaluate("() => window.scrollTo(0, document.documentElement.scrollHeight)")
+    page.wait_for_timeout(300)
+    g = page.evaluate("""() => {
+        const sheet = document.querySelector('.proof-rail.open').getBoundingClientRect();
+        const blocks = [...document.querySelectorAll('.manuscript .hr')]
+            .filter((b) => b.getBoundingClientRect().height > 0);
+        const last = blocks[blocks.length - 1].getBoundingClientRect();
+        return {sheetTop: Math.round(sheet.top), lastBottom: Math.round(last.bottom),
+                sheetHeight: Math.round(sheet.height)};
+    }""")
+    assert g["lastBottom"] <= g["sheetTop"], g
+    assert g["sheetTop"] - g["lastBottom"] < 80, g
