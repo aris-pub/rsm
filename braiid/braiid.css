@@ -2478,7 +2478,7 @@ html.touch {
     display: flex; flex-direction: column;
   }
   .rail-hyp-empty {
-    color: var(--gray-400); font-style: italic;
+    color: var(--gray-700); font-style: italic;
     padding-left: calc(var(--rail-num-width, 2.8ch) + var(--chunk-sixth));
   }
 
