@@ -50,6 +50,17 @@ function markAll() {
   for (const wrap of document.querySelectorAll(".rsm-iframe-wrap")) mark(wrap);
 }
 
+// Wrap / No wrap above each example's source.
+document.addEventListener("click", (event) => {
+  const button = event.target.closest(".rsm-wrapswitch button");
+  if (!button) return;
+  const code = button.closest(".rsm-example-code");
+  code.classList.toggle("nowrap", button.dataset.wrap === "nowrap");
+  for (const b of code.querySelectorAll(".rsm-wrapswitch button")) {
+    b.setAttribute("aria-pressed", String(b === button));
+  }
+});
+
 document.addEventListener("click", (event) => {
   const button = event.target.closest(".rsm-viewswitch button");
   if (!button) return;

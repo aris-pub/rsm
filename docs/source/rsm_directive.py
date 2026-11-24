@@ -73,17 +73,25 @@ def highlight_rsm(source: str) -> str:
                     if best[i] is None or rank < best[i][0]:
                         best[i] = (rank, css)
 
-    parts = []
+    # One span per line, so that CSS can number the lines; a coloured run that
+    # crosses a line break is closed at the end of the line and opened again.
+    lines = [[]]
     i = 0
     while i < len(src):
         css = best[i][1] if best[i] else None
         j = i
         while j < len(src) and (best[j][1] if best[j] else None) == css:
             j += 1
-        text = escape(src[i:j].decode())
-        parts.append(f'<span class="{css}">{text}</span>' if css else text)
+        for k, piece in enumerate(src[i:j].decode().split("\n")):
+            if k:
+                lines.append([])
+            if piece:
+                text = escape(piece)
+                lines[-1].append(f'<span class="{css}">{text}</span>' if css else text)
         i = j
-    return "".join(parts)
+    if not lines[-1]:
+        lines.pop()
+    return "".join(f'<span class="ln">{"".join(line)}</span>' for line in lines)
 
 
 # ── Asset resolver ───────────────────────────────────────────────────────────
@@ -233,9 +241,17 @@ class RSMDirective(Directive):
 
 # ── Node visitors ────────────────────────────────────────────────────────────
 
+WRAP_SWITCH = '''<div class="rsm-wrapswitch rsm-switch" role="group" aria-label="Line wrapping">
+        <button type="button" data-wrap="wrap" aria-pressed="true">Wrap</button>
+        <button type="button" data-wrap="nowrap" aria-pressed="false">No wrap</button>
+      </div>'''
+
+
 def visit_rsm_highlighted_code_node(self, node):
     classes = " ".join(["highlight", "rsm-highlight"] + node.extra_classes)
-    self.body.append(f'<div class="{classes}"><pre>{node.html}</pre></div>')
+    # The source of an example has a Wrap / No wrap switch (example-view.js).
+    switch = WRAP_SWITCH if "rsm-example-code" in node.extra_classes else ""
+    self.body.append(f'<div class="{classes}">{switch}<pre>{node.html}</pre></div>')
 
 
 def depart_rsm_highlighted_code_node(self, node):

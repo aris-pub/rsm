@@ -41,6 +41,7 @@
   --braiid-gray-100: #EDF0F2;
   --braiid-gray-200: #DAE1E5;
   --braiid-gray-300: #C2CCD3;
+  --braiid-gray-600: #8B9FAD;
   --braiid-gray-700: #5F7186;
   --braiid-gray-800: #51636F;
   --braiid-gray-900: #3C4952;
@@ -292,6 +293,45 @@ html[data-theme="dark"] .rsm-example:not(.landing-band .rsm-example) {
   background: transparent;
 }
 
+/* ─── Line numbers and the Wrap / No wrap switch on the source ─── */
+/* The highlighter puts each line in a span.ln. */
+.rsm-highlight pre .ln {
+  display: block;
+}
+.rsm-example:not(.landing-band .rsm-example) .rsm-example-code {
+  position: relative;
+}
+.rsm-example:not(.landing-band .rsm-example) .rsm-example-code.highlight pre {
+  counter-reset: ln;
+  padding-left: 0;
+  overflow-x: auto;
+}
+.rsm-example:not(.landing-band .rsm-example) .rsm-example-code pre .ln {
+  position: relative;
+  min-height: 1lh;
+  padding-left: 3.2em;
+  padding-right: var(--chunk-quarter);
+}
+.rsm-example:not(.landing-band .rsm-example) .rsm-example-code pre .ln::before {
+  counter-increment: ln;
+  content: counter(ln);
+  position: absolute;
+  left: 0;
+  width: 2.3em;
+  text-align: right;
+  color: var(--braiid-gray-600);
+  user-select: none;
+}
+.rsm-example:not(.landing-band .rsm-example) .rsm-example-code.nowrap pre {
+  white-space: pre;
+}
+.rsm-wrapswitch {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+.landing-band .rsm-wrapswitch { display: none; }
+
 .rsm-example:not(.landing-band .rsm-example) .rsm-example-code pre {
   /* An example is at most 640 px tall; a longer source scrolls, and so does a
      longer page (the frame's onload in rsm_directive.py). */
@@ -347,7 +387,8 @@ html[data-theme="dark"] .rsm-example:not(.landing-band .rsm-example) {
 .rsm-switch {
   display: flex;
 }
-.rsm-viewswitch button {
+.rsm-viewswitch button,
+.rsm-wrapswitch button {
   font: 600 0.7rem/1 'Montserrat', sans-serif;
   padding: var(--chunk-twelfth) var(--chunk-sixth);
   border: 1px solid var(--pst-color-border);
@@ -355,14 +396,17 @@ html[data-theme="dark"] .rsm-example:not(.landing-band .rsm-example) {
   color: var(--pst-color-text-muted);
   cursor: pointer;
 }
-.rsm-viewswitch button:first-child {
+.rsm-viewswitch button:first-child,
+.rsm-wrapswitch button:first-child {
   border-radius: var(--radius-lg) 0 0 var(--radius-lg);
 }
-.rsm-viewswitch button:last-child {
+.rsm-viewswitch button:last-child,
+.rsm-wrapswitch button:last-child {
   border-left: none;
   border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
 }
-.rsm-viewswitch button[aria-pressed="true"] {
+.rsm-viewswitch button[aria-pressed="true"],
+.rsm-wrapswitch button[aria-pressed="true"] {
   background: var(--braiid-blue-600);
   border-color: var(--braiid-blue-600);
   color: #fff;
