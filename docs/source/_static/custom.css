@@ -331,6 +331,12 @@ html[data-theme="dark"] .rsm-example:not(.landing-band .rsm-example) {
   right: 0;
 }
 .landing-band .rsm-wrapswitch { display: none; }
+/* The docs' Copy button goes inside the source card, at its top right, below
+   the label row and its Wrap switch. */
+.rsm-example:not(.landing-band .rsm-example) .rsm-example-code .copybtn {
+  top: calc(1.5rem + var(--chunk-twelfth) + 6px);
+  right: 6px;
+}
 
 .rsm-example:not(.landing-band .rsm-example) .rsm-example-code pre {
   /* An example is at most 640 px tall; a longer source scrolls, and so does a
