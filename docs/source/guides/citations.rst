@@ -1,103 +1,117 @@
-.. _citations-guide:
 .. _guide-citations:
 
-Adding Citations and Bibliography
-=================================
+Citations
+=========
 
-This guide covers adding a bibliography and citing sources in your RSM
-manuscript.
+RSM reads the bibliography of a document as BibTeX, the format that reference
+managers such as Zotero, Mendeley and JabRef export. You paste the entries into
+the document, cite them by their keys, and RSM prints the citations and the
+list of references.
 
-
-Adding a references section
-----------------------------
-
-Use the ``:references:`` tag to define your bibliography. Entries use BibTeX
-notation:
-
-.. rsm::
-
-   ## Results
-
-   Our results extend the work of
-   :cite:knuth::.
-
-   :references:
-
-   @book{knuth,
-         title={The Art of Computer
-         Programming},
-         author={Knuth, Donald E},
-         year={2014},
-         publisher={Addison-Wesley
-         Professional},
-         doi={10.1137/1012065},
-        }
-
-   ::
+This page builds one short document with citations. The tags are listed in
+:ref:`ref-references`.
 
 
-Citing sources
---------------
-
-Use ``:cite:<key>::`` to cite a bibliography entry anywhere in your manuscript.
-By default the citation renders as a numbered link (``[1]``) with a tooltip preview.
-
-
-Citation style
---------------
-
-Every citation in a document renders the same way. Set ``:citation-style:`` in a
-``:config:`` block to switch the whole document from the default numeric style to
-author-year, either ``parens-author-year`` (``(Knuth, 2014)``) or ``author-parens-year``
-(``Knuth (2014)``). In author-year mode the bibliography is unnumbered and sorted by author
-then year. See the configuration reference for the full list of values.
-
-
-Multiple citations
+The whole document
 ------------------
 
-Cite multiple keys in a single tag by separating them with commas:
+.. rsm::
+
+   # Notes on sorting
+
+   ## Introduction
+
+   Most sorting methods are covered in :cite:knuth::, and both
+   :cite:knuth,sedgewick:: prove that sorting $n$ items by comparisons takes
+   at least $\log_2 n!$ comparisons.
+
+   :references:
+   @book{knuth,
+     title = {The Art of Computer Programming, Volume 3},
+     author = {Knuth, Donald E.},
+     year = {1998},
+     publisher = {Addison-Wesley},
+     doi = {10.5555/280635}
+   }
+
+   @book{sedgewick,
+     title = {Algorithms},
+     author = {Sedgewick, Robert and Wayne, Kevin},
+     year = {2011},
+     publisher = {Addison-Wesley},
+     doi = {10.5555/2011916}
+   }
+   ::
+
+The rest of this page goes through the parts of this document.
+
+
+Add the bibliography
+--------------------
+
+Put a ``:references:`` block at the end of the document, and paste the BibTeX
+entries into it, one after the other. Close the block with ``::``.
+
+The key of an entry is the word after the opening brace, such as ``knuth`` in
+``@book{knuth,``. Citations use this key.
+
+RSM warns about an entry without a ``doi``, because the reader cannot follow
+it to the work.
+
+
+Cite a work
+-----------
+
+Write ``:cite:`` and the key, and close it with ``::``, as in
+``:cite:knuth::``. To cite several works at once, separate their keys with
+commas, with no spaces: ``:cite:knuth,sedgewick::``.
+
+The build gives a warning for a citation of a key that is not in the
+bibliography.
+
+
+Choose how citations look
+-------------------------
+
+By default a citation is a number in brackets, such as [1], and the list of
+references is numbered in the order of the entries. To show the author
+and year instead, set ``:citation-style:`` in the ``:config:`` block, after
+the title:
 
 .. rsm::
 
-   ## Discussion
+   # Notes on sorting
 
-   Several authors have studied this
-   problem :cite:author1,author2::.
-
-   :references:
-
-   @article{author1,
-     title={First Paper},
-     author={Smith, Alice},
-     journal={J. Example},
-     year={2023},
-   }
-
-   @article{author2,
-     title={Second Paper},
-     author={Jones, Bob},
-     journal={J. Example},
-     year={2024},
-   }
-
+   :config: {:citation-style: author-parens-year}
    ::
 
+   ## Introduction
 
-Supported entry types
----------------------
+   Most sorting methods are covered in :cite:knuth::.
 
-RSM supports these BibTeX entry types: ``@book``, ``@article``, ``@inproceedings``,
-``@software``, ``@phdthesis``, ``@mastersthesis``, ``@techreport``, ``@misc``.
+   :references:
+   @book{knuth,
+     title = {The Art of Computer Programming, Volume 3},
+     author = {Knuth, Donald E.},
+     year = {1998},
+     publisher = {Addison-Wesley},
+     doi = {10.5555/280635}
+   }
+   ::
 
-Each entry can include: ``title``, ``author``, ``year``, ``journal``, ``publisher``,
-``doi``, ``url``, ``volume``, ``number``, ``pages``, ``booktitle``, ``note``,
-``editor``, ``institution``, ``school``, ``howpublished``.
+``author-parens-year`` prints Knuth (1998), and ``parens-author-year`` prints
+(Knuth, 1998). With either one, the list of references has no numbers and is
+sorted by author and then by year. The style applies to every citation in the
+document. See :ref:`ref-config`.
 
-When a ``doi`` is provided, RSM automatically adds a clickable DOI link to the
-rendered bibliography entry.
 
-.. tip::
+What the reader can do
+----------------------
 
-   Each bibliography item in the rendered output includes backlinks to every
-   place in the manuscript where it was cited.
+In the built page:
+
+- Hovering over a citation, or tapping it on a phone, shows the entry in a
+  tooltip, so the reader does not have to scroll to the end of the page.
+- Pointing at an entry in the list of references shows a "DOI" link to the
+  work, and a "cited" line with one link back to each place that cites it. On
+  a touch screen these links are always shown.

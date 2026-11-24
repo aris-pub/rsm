@@ -235,5 +235,4 @@ Best practices
 See also
 ********
 
-- :ref:`recipes` for more styling examples
 - :ref:`ref-meta-keys` for the ``:class:`` meta key

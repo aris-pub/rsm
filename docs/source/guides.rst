@@ -11,11 +11,9 @@ with copy-paste examples.
 
    guides/structured-proofs
    guides/interactive-figures
-   guides/tooltips
    guides/citations
    guides/multi-author
    guides/styling
    guides/converting
    guides/latex-mental-model
-   guides/recipes
    guides/publish-to-press
