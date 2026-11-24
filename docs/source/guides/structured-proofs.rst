@@ -1,7 +1,7 @@
 .. _guide-structured-proofs:
 
-Write a proof as numbered steps
-===============================
+Structured proofs
+=================
 
 In "How to Write a 21st Century Proof" [#lamport]_, Leslie Lamport argues
 that a proof written as paragraphs of prose hides its gaps, and proposes
