@@ -74,6 +74,11 @@ grammar:
     #!/usr/bin/env bash
     set -euo pipefail
     cd tree-sitter-rsm
+    # A fresh submodule checkout has no node_modules, so the tree-sitter CLI is missing.
+    if [ ! -d node_modules ]; then
+        echo "Installing the grammar's npm packages..."
+        npm ci
+    fi
     echo "Regenerating parser from grammar.js..."
     npm exec --no -- tree-sitter generate
     # node-gyp-build skips the compile when an addon already exists, so the
