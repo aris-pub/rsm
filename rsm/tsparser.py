@@ -1165,7 +1165,7 @@ def _abstractify(cst: TSTree) -> nodes.Manuscript | None:
             assert kind_node is not None and kind_node.text is not None
             assert label_node is not None and label_node.text is not None
             bib_node.label = label_node.text.decode("utf-8")
-            kind = kind_node.text.decode("utf-8").lower()
+            kind = kind_node.text.decode("utf-8").lstrip("@").lower()
             if kind not in _BIB_KINDS:
                 logger.warning(
                     f"entry {bib_node.label}: kind @{kind} is not known to RSM, "
