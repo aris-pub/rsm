@@ -933,10 +933,6 @@ def _figure_number(node: nodes.Node) -> str | None:
         return None
     if node.nonum or not getattr(node, "number", None):
         return None
-    # Outside any section full_number logs a warning before falling back to the
-    # bare number, so take that fallback directly.
-    if node.first_ancestor_of_type(node.number_within) is None:
-        return str(node.number)
     return node.full_number
 
 

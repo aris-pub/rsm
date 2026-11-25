@@ -12,7 +12,6 @@ subclasses whose only purpose is to differentiate themselves from others via the
 
 """
 
-import logging
 import textwrap
 from collections.abc import Callable, Generator, Iterable
 from datetime import datetime
@@ -27,8 +26,6 @@ from typing import (
     cast,
     overload,
 )
-
-logger = logging.getLogger("RSM").getChild("nodes")
 
 NodeSubType = TypeVar("NodeSubType", bound="Node")
 
@@ -496,11 +493,6 @@ class Node:
             return None
         ancestor = self.first_ancestor_of_type(self.number_within)
         if not ancestor:
-            logger.warning(
-                f"{self.__class__.__name__} numbered within "
-                f"{self.number_within} but no such ancestor was found; "
-                "using root node instead"
-            )
             ancestor = self.first_ancestor_of_type(Manuscript)
         if ancestor and ancestor.full_number:
             return f"{ancestor.full_number}.{self.number}"
