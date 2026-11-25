@@ -99,7 +99,12 @@ class TestNotePreview:
         page.set_viewport_size({"width": width, "height": height})
         serve_rsm_html(FIXTURE.read_text(), dark_theme=theme == "dark")
         page.wait_for_function(RSM_READY, timeout=10_000)
-        page.locator('a.note-marker[href="#third"]').hover()
+        marker = page.locator('a.note-marker[href="#third"]')
+        # A phone has no pointer: its preview opens on a tap.
+        if viewport_name.startswith("phone"):
+            marker.tap()
+        else:
+            marker.hover()
         box = page.locator(".tooltipster-base .tooltipster-box")
         box.wait_for(state="visible", timeout=3000)
         # The preview typesets its math after it opens.
