@@ -96,7 +96,7 @@ Each key, and where it is described.
    * - ``:lang:``
      - :ref:`Inline code <tag-code>`, :ref:`Code block <tag-codeblock>`,
        :ref:`Document settings <tag-config>`
-   * - ``:strong:``, ``:emphas:``
+   * - ``:strong:``, ``:emphas:``, ``:little:``, ``:insert:``, ``:delete:``
      - :ref:`Span <tag-span>`
    * - ``:view:``, ``:orientation:``
      - :ref:`Table of contents <tag-toc>`

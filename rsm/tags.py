@@ -170,6 +170,12 @@ email = MetaTagInfo(None, str)
 """Author email."""
 emphas = MetaTagInfo(None, bool)
 """Whether span is emphasized."""
+little = MetaTagInfo(None, bool)
+"""Whether span is in a <small> tag."""
+insert = MetaTagInfo(None, bool)
+"""Whether span is in an <ins> tag."""
+delete = MetaTagInfo(None, bool)
+"""Whether span is in a <del> tag."""
 goal = MetaTagInfo(None, "?")
 """Theorem goal."""
 icon = MetaTagInfo(None, list)

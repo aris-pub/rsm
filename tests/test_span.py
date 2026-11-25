@@ -1,3 +1,8 @@
+import logging
+
+import pytest
+
+import rsm
 from conftest import compare_have_want
 
 
@@ -222,3 +227,17 @@ def test_span_part_of_word_with_shortcut():
         </body>
         """,
     )
+
+
+@pytest.mark.parametrize(
+    "key, tag", [("little", "small"), ("insert", "ins"), ("delete", "del")]
+)
+def test_span_key_renders_its_tag(caplog, key, tag):
+    caplog.set_level(logging.WARNING)
+    h = rsm.render(
+        f"A :span: {{:{key}:}} few words :: here.",
+        handrails=False,
+        source_offsets=False,
+    )
+    assert f'<span class="span" data-nodeid="3"><{tag}>few words</{tag}></span>' in h, h
+    assert not caplog.records, caplog.text
