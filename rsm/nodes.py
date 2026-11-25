@@ -1517,6 +1517,8 @@ class Construct(NodeWithChildren):
         "then": "THEN",
         "new": "NEW",
         "assume": "ASSUME",
+        "suppose": "SUPPOSE",
+        "wlog": "WLOG",
         "prove": "PROVE",
         "pick": "PICK",
         "suffices": "SUFFICES",

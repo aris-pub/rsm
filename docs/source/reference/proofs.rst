@@ -198,6 +198,10 @@ assumptions and symbols are in force at each step. Each one ends with ``::``.
 ``:assume:``
    An assumption. Shown as "ASSUME".
 
+``:suppose:``, ``:wlog:``
+   Other ways to state an assumption, the second one made without loss of
+   generality. Shown as "SUPPOSE" and "WLOG".
+
 ``:let:``
    A new symbol and its value or its property. Shown as "LET".
 

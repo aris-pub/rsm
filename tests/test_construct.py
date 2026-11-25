@@ -487,3 +487,13 @@ def test_construct_keyword_keeps_space_before_reference():
     assert ">ASSUME</span>" in html
     assert 'href="#eq-x"' in html
     assert "ASSUME</span><a" not in html
+
+
+def test_suppose_and_wlog_show_keyword_and_assumption_class():
+    import rsm
+
+    for tag, keyword in [("suppose", "SUPPOSE"), ("wlog", "WLOG")]:
+        src = f"# T\n\n:theorem:\nA.\n::\n\n:proof:\n:step: :{tag}: $x$ ::.\n::\n::\n"
+        html = rsm.render(src, handrails=False, source_offsets=False)
+        assert f'class="construct {tag} assumption"' in html
+        assert f">{keyword}</span>" in html

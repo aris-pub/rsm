@@ -43,8 +43,9 @@ class ProofError(Exception):
 # Construct kinds that introduce a hypothesis vs state a goal. Used by the scope
 # computation in make_state. :pick: (existential instantiation) and :new: bring a
 # fresh symbol into the proof's scope just as :let: does, so they count as
-# hypotheses for the State panel.
-HYP_KINDS = ("let", "assume", "pick", "new")
+# hypotheses for the State panel. :suppose: and :wlog: state an assumption just
+# as :assume: does.
+HYP_KINDS = ("let", "assume", "pick", "new", "suppose", "wlog")
 GOAL_KINDS = ("claim", "claimblock")
 
 # Every construct introduces a symbol or assumption except these (assertions,
@@ -257,8 +258,8 @@ def _compute_tree(proof: nodes.Proof) -> None:
         key = (row_of[id(src)], dst)
         counts[key] = counts.get(key, 0) + 1
 
-    # Scope dependencies: a step that introduces a hypothesis (:let:/:assume:/
-    # :pick:/:new:) stays in scope for every later sibling (Lamport), so each
+    # Scope dependencies: a step that introduces a hypothesis (any of
+    # HYP_KINDS) stays in scope for every later sibling (Lamport), so each
     # later sibling depends on it even without an explicit reference. Without
     # these edges a setup step ("LET G be ...") could be reordered after the
     # steps that rely on it. Mirrors the in-scope hypotheses the State panel
