@@ -3,7 +3,9 @@
 Sections and headings
 =====================
 
-The first line of a document that starts with ``#`` is its title. Sections,
+A line that starts with ``#`` and a space is the title of the document. The
+title must be the first line of the document. Only blank lines, comments and a
+``:config:`` block (see :ref:`ref-config`) may come before it. Sections,
 subsections and subsubsections are numbered 1, 1.1 and 1.1.1. A section runs
 until the next heading of the same level or higher, so it has no closing
 ``::``.

@@ -206,3 +206,18 @@ def test_cite_of_a_label_that_is_not_a_bibliography_entry(caplog):
     html = rsm.render(src)
     assert 'Citation of "sec1", which is not a bibliography entry' in caplog.text
     assert 'class="reference cite unknown"' in html
+
+
+def test_config_before_the_title(caplog):
+    """rsm-pans: a :config: block may come before the # title line."""
+    from rsm.tsparser import TSParser
+
+    src = (
+        ":config: {:citation-style: author-parens-year}\n::\n\n"
+        "# T\n\nSee :cite:knuth::.\n" + _BIB
+    )
+    assert TSParser().parse(src).title == "T"
+    html = rsm.build(src, handrails=False, lint=False)
+    assert "The CST contains errors." not in caplog.text
+    assert "<h1>T</h1>" in html
+    assert _cite_text(html) == "Knuth (2014)"
