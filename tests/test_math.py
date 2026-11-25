@@ -415,3 +415,43 @@ def test_preamble_mathblock_shows_no_number_in_handrails():
     assert "hr-info-zone" not in html[preamble_start:paragraph_start]
     assert html.count('<div class="eqn-number"><p>(1)</p></div>') == 1
     assert "(2)" not in html
+
+
+def test_mathblock_fences_add_no_text():
+    # Both $$ fences are nodes in the parse tree, so that editors can color
+    # them. They must not add text to the page.
+    compare_have_want(
+        have=r"""
+        Some math
+        $${:label: fenced}
+          2+2=4
+        $$
+        """,
+        want=r"""        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
+
+        <main class="manuscriptwrapper">
+
+        <div class="manuscript" data-nodeid="0">
+
+        <section class="level-1">
+
+        <div class="paragraph" data-nodeid="1">
+
+        <p>Some math </p>
+        <div id="fenced" class="mathblock" data-nodeid="3">
+        $$
+        2+2=4
+        $$
+        </div>
+
+        </div>
+
+        </section>
+
+        </div>
+
+        </main>
+
+        </body>
+        """,
+    )
