@@ -2,6 +2,7 @@
 
 import logging
 from collections.abc import Callable
+from functools import partial
 from logging.handlers import BufferingHandler
 from typing import Any
 
@@ -13,6 +14,9 @@ logging.addLevelName(logging.INFO, "INF")
 logging.addLevelName(logging.WARN, "WRN")
 logging.addLevelName(logging.ERROR, "ERROR")
 logging.addLevelName(logging.CRITICAL, "CRITICAL")
+
+# Python uses the same name for code that does not come from a file.
+STRING_SOURCE_NAME = "<string>"
 
 # # Use a log record factory that understands a few extra attributes
 # # fmt: off
@@ -107,17 +111,24 @@ class JSONFormatter(logging.Formatter):
 
 
 class LintFormatter:
-    fmt_with_point = "src:%(start_row)d:%(start_col)d: %(levelname)s: %(message)s"
-    fmt_sans_point = "src:1:1: %(levelname)s: %(message)s"
-
     def __init__(
-        self, log_time: bool = True, log_lineno: bool = True, *args: Any, **kwargs: Any
+        self,
+        log_time: bool = True,
+        log_lineno: bool = True,
+        source_name: str = STRING_SOURCE_NAME,
+        *args: Any,
+        **kwargs: Any,
     ) -> None:
+        # The name goes into a %-style format string, so a "%" in a file name
+        # would otherwise be read as a format field.
+        name = source_name.replace("%", "%%")
         self._formatter_with_point = logging.Formatter(
-            self.fmt_with_point, *args, **kwargs
+            f"{name}:%(start_row)d:%(start_col)d: %(levelname)s: %(message)s",
+            *args,
+            **kwargs,
         )
         self._formatter_sans_point = logging.Formatter(
-            self.fmt_sans_point, *args, **kwargs
+            f"{name}:1:1: %(levelname)s: %(message)s", *args, **kwargs
         )
         self.log_time = log_time
 
@@ -157,6 +168,7 @@ def config_rsm_logger(
     fmt: str = "rsm",
     log_time: bool = True,
     log_lineno: bool = True,
+    source_name: str = STRING_SOURCE_NAME,
 ) -> None:
     """Configure logging for RSM applications.
 
@@ -166,21 +178,26 @@ def config_rsm_logger(
     way recommended by library author.  In particular, scripts such as rsm-build and
     rsm-lint use this configuration.
 
+    The "lint" format starts each message with `source_name`.
+
     """
     logging.getLogger("RSM").handlers.clear()
-    _config_rsm_logger(fmt, log_time, log_lineno)
+    _config_rsm_logger(fmt, log_time, log_lineno, source_name)
     _set_level(level)
 
 
 def _config_rsm_logger(
-    fmt: str = "rsm", log_time: bool = True, log_lineno: bool = True
+    fmt: str = "rsm",
+    log_time: bool = True,
+    log_lineno: bool = True,
+    source_name: str = STRING_SOURCE_NAME,
 ) -> None:
     handler = logging.StreamHandler()
     handler.setLevel(logging.WARN)
     formatters: dict[str, Callable[[bool, bool], logging.Formatter | LintFormatter]] = {
         "json": JSONFormatter,
         "rsm": RSMFormatter,
-        "lint": LintFormatter,
+        "lint": partial(LintFormatter, source_name=source_name),
         "plain": lambda *args, **kwargs: logging.Formatter(),
     }
     formatter = formatters[fmt]

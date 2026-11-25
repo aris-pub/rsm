@@ -181,3 +181,48 @@ class TestCLISubcommands:
         output_html = tmp_path / "test.html"
         assert output_html.exists()
         assert not (tmp_path / "static").exists()
+
+
+# The section on line 3, column 1 has no label, so the linter warns about it.
+UNLABELLED_SECTION = "# T\n\n## Sec\n\nText.\n"
+
+
+class TestCheckPrintsSourceName:
+    """'rsm check' starts each message with the source name as typed (rsm-n8m)."""
+
+    @pytest.mark.slow
+    def test_file_name_as_typed(self, tmp_path):
+        (tmp_path / "paper.rsm").write_text(UNLABELLED_SECTION)
+        result = subprocess.run(
+            ["rsm", "check", "paper.rsm"], cwd=tmp_path, capture_output=True, text=True
+        )
+        assert "paper.rsm:3:1: LINT: Section with no label" in result.stderr.split(
+            "\n"
+        ), result.stderr
+
+    @pytest.mark.slow
+    def test_relative_path_with_folder_as_typed(self, tmp_path):
+        (tmp_path / "drafts").mkdir()
+        (tmp_path / "drafts" / "paper.rsm").write_text(UNLABELLED_SECTION)
+        result = subprocess.run(
+            ["rsm", "check", "drafts/paper.rsm"],
+            cwd=tmp_path,
+            capture_output=True,
+            text=True,
+        )
+        assert (
+            "drafts/paper.rsm:3:1: LINT: Section with no label"
+            in result.stderr.split("\n")
+        ), result.stderr
+
+    @pytest.mark.slow
+    def test_string_source_prints_string_placeholder(self, tmp_path):
+        result = subprocess.run(
+            ["rsm", "check", "-c", UNLABELLED_SECTION],
+            cwd=tmp_path,
+            capture_output=True,
+            text=True,
+        )
+        assert "<string>:3:1: LINT: Section with no label" in result.stderr.split(
+            "\n"
+        ), result.stderr
