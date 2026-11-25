@@ -2994,7 +2994,9 @@ html:not(.touch) {
 /* On a page without the sidebar (no .rail-strip) the media queries below decide,
    once html.has-margin is set (by the builder's pre-paint script and by
    margin.js). With scripting off nothing can place the items, so the page
-   keeps its centered text and every item stays under its block.
+   keeps its centered text and every item stays under its block. A page with
+   no aside and no caption (the items that asides.js and captions.js hand to
+   margin.js) has nothing to put in the column, so it stays centered too.
    The column is on when the text column and the margin column, centered
    together, fit in the window with the page's side padding on each side: a
    window at least the Reading measure plus the gap and the column (17rem)
@@ -3005,7 +3007,7 @@ html:not(.touch) {
    16px, which is also the root size above 1024px. The rules are the same in
    all three. */
 @media screen and (min-width: 1104px) {
-  html.has-margin[data-reading-measure="narrow"]:not(:has(.rail-strip)) {
+  html.has-margin:has(.manuscript :is(.aside, :is(figure, .table-wrapper) > figcaption.hr))[data-reading-measure="narrow"]:not(:has(.rail-strip)) {
     --rsm-margin-on: 1;
     & main.manuscriptwrapper {
       max-width: calc(var(--content-max-width) + var(--rsm-margin-gap) + var(--rsm-margin-width));
@@ -3025,7 +3027,7 @@ html:not(.touch) {
   }
 }
 @media screen and (min-width: 1136px) {
-  html.has-margin:not([data-reading-measure="narrow"], [data-reading-measure="wide"], :has(.rail-strip)) {
+  html.has-margin:has(.manuscript :is(.aside, :is(figure, .table-wrapper) > figcaption.hr)):not([data-reading-measure="narrow"], [data-reading-measure="wide"], :has(.rail-strip)) {
     --rsm-margin-on: 1;
     & main.manuscriptwrapper {
       max-width: calc(var(--content-max-width) + var(--rsm-margin-gap) + var(--rsm-margin-width));
@@ -3045,7 +3047,7 @@ html:not(.touch) {
   }
 }
 @media screen and (min-width: 1360px) {
-  html.has-margin[data-reading-measure="wide"]:not(:has(.rail-strip)) {
+  html.has-margin:has(.manuscript :is(.aside, :is(figure, .table-wrapper) > figcaption.hr))[data-reading-measure="wide"]:not(:has(.rail-strip)) {
     --rsm-margin-on: 1;
     & main.manuscriptwrapper {
       max-width: calc(var(--content-max-width) + var(--rsm-margin-gap) + var(--rsm-margin-width));

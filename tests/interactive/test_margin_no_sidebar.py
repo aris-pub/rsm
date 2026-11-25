@@ -218,3 +218,49 @@ def test_without_js_the_page_is_as_before(browser, interactive_server: str):
     for cap, block in (("figCap", "fig"), ("tabCap", "tab")):
         assert g[cap]["t"] >= g[block]["t"] + 10, f"{cap} is not under its block: {g}"
         assert g[cap]["r"] <= g["text"]["r"] + 1, g
+
+
+_SIMPLE = """() => {
+    const html = document.documentElement;
+    const b = document.querySelector('.manuscript').getBoundingClientRect();
+    const cap = document.querySelector('.table-wrapper > figcaption');
+    const tab = document.querySelector('.table-wrapper');
+    return {
+        vw: html.clientWidth,
+        on: getComputedStyle(html).getPropertyValue('--rsm-margin-on').trim(),
+        text: {l: b.left, r: b.right, w: b.width},
+        cap: cap && cap.getBoundingClientRect().toJSON(),
+        tab: tab.getBoundingClientRect().toJSON(),
+    };
+}"""
+
+
+def _load_simple(page: Page, server: str, name: str, width: int) -> dict:
+    page.set_viewport_size({"width": width, "height": 900})
+    page.goto(f"{server}/{name}.html")
+    page.wait_for_function("() => window.__rsmShown === true", timeout=10_000)
+    page.evaluate("() => localStorage.clear()")
+    page.goto(f"{server}/{name}.html", wait_until="load")
+    page.wait_for_function("() => window.__rsmShown === true", timeout=10_000)
+    _settle(page)
+    return page.evaluate(_SIMPLE)
+
+
+def test_page_without_asides_or_captions_stays_centered(
+    page: Page, interactive_server: str
+):
+    g = _load_simple(page, interactive_server, "margin_none", 1440)
+    assert g["on"] != "1", g
+    left = g["text"]["l"]
+    right = g["vw"] - g["text"]["r"]
+    assert abs(left - right) <= 2, f"text is not centered: left {left}, right {right}"
+
+
+def test_page_with_only_a_caption_gets_the_column(page: Page, interactive_server: str):
+    g = _load_simple(page, interactive_server, "margin_caption_only", 1440)
+    assert g["on"] == "1", g
+    assert g["cap"]["left"] >= g["text"]["r"], f"caption is not in the margin: {g}"
+    assert abs(g["cap"]["top"] - g["tab"]["top"]) <= 2, g
+    left = g["text"]["l"]
+    right = g["vw"] - (g["text"]["r"] + 17 * 16)
+    assert abs(left - right) <= 2, f"left {left}, right {right}: {g}"

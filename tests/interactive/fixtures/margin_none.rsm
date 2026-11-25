@@ -1,0 +1,21 @@
+# Margin Without Asides or Captions
+
+## Results
+  {:label: sec-results}
+
+A paragraph with no aside, long enough to wrap onto a few lines so that the text
+column has a clear left and right edge to measure against at any width.
+
+:table: {
+  :label: tab-a
+}
+
+:tbody:
+
+:tr: :td:one:: :td:two:: :td:three:: ::
+
+::
+
+::
+
+Closing paragraph after the table, which has no caption.
