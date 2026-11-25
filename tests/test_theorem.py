@@ -1,3 +1,6 @@
+import re
+
+import rsm
 from conftest import compare_have_want
 
 
@@ -133,3 +136,10 @@ def test_multiple():
         </body>
         """,
     )
+
+
+def test_only_inline_math_before_halmos():
+    html = rsm.render(":theorem: $x$ ::\n", handrails=False, strict=True)
+    html = re.sub(r' data-nodeid="\d+"', "", html)
+    theorem = html[html.index('<div class="theorem"') :]
+    assert '<p><span class="math">\\(x\\)</span></p>' in theorem
