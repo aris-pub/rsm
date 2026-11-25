@@ -5,6 +5,7 @@ utilities.
 
 """
 
+import sys
 from argparse import ArgumentParser, Namespace
 from collections.abc import Callable
 from importlib.metadata import version
@@ -120,7 +121,11 @@ def _cmd_export(args: Namespace) -> int:
         kwargs["source"] = args.src
     else:
         kwargs["path"] = args.src
-    result = app.pandoc_export(**kwargs)
+    try:
+        result = app.pandoc_export(**kwargs)
+    except app.RSMApplicationError as exc:
+        print(f"export error: {exc}", file=sys.stderr)
+        return 1
     if result is None:
         return 1
     if result and not args.output:
@@ -139,8 +144,6 @@ def _cmd_import(args: Namespace) -> int:
     if args.string:
         result = app.pandoc_import(source=args.src, from_format=args.frm, **logkw)
     else:
-        import sys
-
         from rsm.importer import ImporterError, is_archive
 
         src = Path(args.src)

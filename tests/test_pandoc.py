@@ -1,11 +1,13 @@
 """Tests for rsm/pandoc.py — PandocTranslator (export) and PandocImporter (import)."""
 
 import shutil
+import sys
 from textwrap import dedent
 
 import pytest
 
-from rsm.app import ParserApp, pandoc_export, pandoc_import
+from rsm import cli
+from rsm.app import ParserApp, RSMApplicationError, pandoc_export, pandoc_import
 from rsm.pandoc import PANDOC_API_VERSION, PandocImporter, PandocTranslator
 
 pytestmark = pytest.mark.pandoc
@@ -977,6 +979,52 @@ def test_latex_export_copies_braiid_sty(tmp_path):
     assert (tmp_path / "braiid.sty").exists()
 
 
+_PDFLATEX_SKIP = pytest.mark.skipif(
+    shutil.which("pdflatex") is None, reason="pdflatex not installed"
+)
+
+
+@_PANDOC_SKIP
+@_PDFLATEX_SKIP
+def test_pdf_export_writes_pdf_file(tmp_path):
+    out = tmp_path / "paper.pdf"
+    pandoc_export(
+        source="# Doc\n\nHello $x^2$ world.", to_format="pdf", output=str(out)
+    )
+    assert out.read_bytes().startswith(b"%PDF")
+
+
+def test_pdf_export_without_output_file_fails():
+    with pytest.raises(RSMApplicationError, match="needs an output file"):
+        pandoc_export(source="# Doc\n\nHello.", to_format="pdf")
+
+
+@_PANDOC_SKIP
+def test_pdf_export_without_latex_names_what_to_install(tmp_path, monkeypatch):
+    # A PATH that holds pandoc and nothing else hides every LaTeX engine.
+    bindir = tmp_path / "bin"
+    bindir.mkdir()
+    (bindir / "pandoc").symlink_to(shutil.which("pandoc"))
+    monkeypatch.setenv("PATH", str(bindir))
+    out = tmp_path / "paper.pdf"
+    with pytest.raises(RSMApplicationError) as excinfo:
+        pandoc_export(source="# Doc\n\nHello.", to_format="pdf", output=str(out))
+    message = str(excinfo.value)
+    assert "pdflatex" in message
+    assert "LaTeX" in message
+    assert not out.exists()
+
+
+def test_cli_pdf_export_without_output_file_prints_error(tmp_path, monkeypatch, capsys):
+    src = tmp_path / "paper.rsm"
+    src.write_text("# Doc\n\nHello.\n")
+    monkeypatch.setattr(sys, "argv", ["rsm", "export", str(src), "--to", "pdf"])
+    assert cli.main() == 1
+    err = capsys.readouterr().err
+    assert "needs an output file" in err
+    assert "Traceback" not in err
+
+
 def test_mathblock_with_align_emits_rawblock():
     """Math blocks containing \\begin{align} must emit a RawBlock, not DisplayMath."""
     blocks = _blocks(
@@ -1080,7 +1128,7 @@ class TestCaptionFormat:
         ::
         """).strip()
         # This should not raise — pandoc should accept the JSON
-        result = pandoc_export(source, to_format="typst")
+        result = pandoc_export(source, to_format="latex")
         assert len(result) > 0
 
     def test_table_uses_pandoc_tuple_encoding(self):
@@ -1134,9 +1182,9 @@ class TestCaptionFormat:
         assert "longtable" in result or "tabular" in result
 
     def test_figure_reference_exports_as_portable_link(self):
-        """A :ref: to a figure must become a normal pandoc Link, not a Typst-only
-        RawInline. Pandoc drops a RawInline whose format does not match the export
-        target, which left figure cross-references blank in the LaTeX output."""
+        """A :ref: to a figure must become a normal pandoc Link, not a RawInline.
+        Pandoc drops a RawInline whose format does not match the export target,
+        which left figure cross-references blank in the LaTeX output."""
         blocks = _blocks("""\
         :figure: {
           :path: test.png
@@ -1147,17 +1195,12 @@ class TestCaptionFormat:
 
         See :ref:fig-x:: for details.
         """)
-        found = {"typst_raw": [], "links": []}
+        found = {"raw": [], "links": []}
 
         def walk(node):
             if isinstance(node, dict):
-                if (
-                    node.get("t") == "RawInline"
-                    and isinstance(node.get("c"), list)
-                    and node["c"]
-                    and node["c"][0] == "typst"
-                ):
-                    found["typst_raw"].append(node)
+                if node.get("t") == "RawInline":
+                    found["raw"].append(node)
                 if node.get("t") == "Link":
                     found["links"].append(node)
                 walk(node.get("c"))
@@ -1166,14 +1209,14 @@ class TestCaptionFormat:
                     walk(item)
 
         walk(blocks)
-        assert not found["typst_raw"], "figure ref must not be a Typst-only RawInline"
+        assert not found["raw"], "figure ref must not be a RawInline"
         assert any(link["c"][2][0] == "#fig-x" for link in found["links"]), (
             "figure ref must be a pandoc Link targeting #fig-x"
         )
 
 
 class TestCitationsAsPlainText:
-    """rsm-98c: Citations should render as plain text [N] for Typst compatibility."""
+    """rsm-98c: Citations should render as plain text [N]."""
 
     def test_cite_renders_as_plain_text_not_cite_object(self):
         blocks = _blocks("""\
@@ -1190,7 +1233,7 @@ class TestCitationsAsPlainText:
         import json
 
         full = json.dumps(blocks)
-        # Must NOT contain Pandoc Cite objects (Typst can't resolve them)
+        # Must NOT contain Pandoc Cite objects
         assert '"t": "Cite"' not in full, (
             "Citations should be plain text, not Cite objects"
         )

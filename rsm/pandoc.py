@@ -247,12 +247,7 @@ class PandocTranslator:
         return []
 
     def _block_paragraph(self, node: nodes.Paragraph) -> list[dict]:
-        # Emit label if the paragraph has one
-        label = getattr(node, "label", None)
-        result: list[dict] = []
-        if label and " " not in label:
-            result.append({"t": "RawBlock", "c": ["typst", f"<{label}>"]})
-        return result + self._paragraph_content_blocks(node)
+        return self._paragraph_content_blocks(node)
 
     def _paragraph_content_blocks(self, node: nodes.BaseParagraph) -> list[dict]:
         # A paragraph may contain block-level children: display math, code blocks
@@ -289,37 +284,13 @@ class PandocTranslator:
 
     def _block_mathblock(self, node: nodes.MathBlock) -> list[dict]:
         src = self._extract_math_source(node)
-        num = node.full_number
-        label = node.label or ""
-        label_raw = (
-            [{"t": "RawBlock", "c": ["typst", f"<{label}>"]}]
-            if label and " " not in label
-            else []
-        )
-
         stripped = src.strip()
         has_env = any(
             stripped.startswith(rf"\begin{{{env}}}") for env in self._LATEX_ENVS
         )
         if has_env:
-            return label_raw + [{"t": "RawBlock", "c": ["latex", stripped]}]
-
-        if num and not node.nonum:
-            math_block = {
-                "t": "Para",
-                "c": [{"t": "Math", "c": [{"t": "DisplayMath"}, src]}],
-            }
-            num_block = {
-                "t": "RawBlock",
-                "c": [
-                    "typst",
-                    f'#v(-2.2em)\n#align(right, text(fill: rgb("#0361A1"))[({num})])\n#v(0.5em)',
-                ],
-            }
-            return label_raw + [math_block, num_block]
-        return label_raw + [
-            {"t": "Para", "c": [{"t": "Math", "c": [{"t": "DisplayMath"}, src]}]}
-        ]
+            return [{"t": "RawBlock", "c": ["latex", stripped]}]
+        return [{"t": "Para", "c": [{"t": "Math", "c": [{"t": "DisplayMath"}, src]}]}]
 
     def _block_codeblock(self, node: nodes.CodeBlock) -> list[dict]:
         src = self._extract_code_source(node)
@@ -409,22 +380,6 @@ class PandocTranslator:
                     "{\\hypersetup{linkcolor=braiid-gray-900}\\tableofcontents}\\newpage",
                 ],
             },
-            {
-                "t": "RawBlock",
-                "c": [
-                    "typst",
-                    "#{\n"
-                    "  show outline: it => {\n"
-                    "    v(0.2em)\n"
-                    '    text(font: ("Montserrat", "Source Sans 3", "Source Sans Pro", "Noto Sans"), size: 16.5pt, weight: "medium", fill: rgb("#0C456E"))[Contents]\n'
-                    "    v(0.2em)\n"
-                    "    it\n"
-                    "  }\n"
-                    "  outline(indent: auto, depth: 3, title: none)\n"
-                    "}\n"
-                    "#v(0.5em)",
-                ],
-            },
         ]
 
     def _block_asset_placeholder(self, node: nodes.Node) -> list[dict]:
@@ -494,7 +449,6 @@ class PandocTranslator:
             )
         if anchor:
             inlines.insert(0, {"t": "Span", "c": [[anchor, [], []], []]})
-            inlines.append({"t": "RawInline", "c": ["typst", f" <{anchor}>"]})
         return {"t": "Para", "c": inlines}
 
     def _block_table(self, node: nodes.Table) -> list[dict]:
@@ -623,7 +577,7 @@ class PandocTranslator:
             else "#"
         )
         # A normal pandoc Link to the target's anchor works across all output
-        # formats (LaTeX \hyperref, HTML <a>, Typst #link); a format-specific
+        # formats (LaTeX \hyperref, HTML <a>); a format-specific
         # RawInline would be silently dropped whenever the export target differs.
         return [
             {"t": "Link", "c": [["", [], []], [{"t": "Str", "c": text}], [anchor, ""]]}

@@ -54,11 +54,6 @@ BRAIID quality output is default, not optional. This is the moat.
 - Collaboration built in (via Studio)
 - Readable syntax
 
-**vs Typst:**
-- Web-native from the start (not PDF with HTML as afterthought)
-- BRAIID quality as default output
-- Reading ecosystem (clone, annotate, own)
-
 **vs Quarto:**
 - Static + permanent (no runtime, no dependency rot)
 - Not executable-first (documents with interactive embeds)
@@ -116,7 +111,7 @@ RSM doesn't exist in isolation. It's part of the full Aris stack:
 - Semantic slicing/reuse (nice but not compelling)
 
 **What IS a moat:**
-1. **Web-native from the start** (Typst is PDF-first, HTML is afterthought)
+1. **Web-native from the start**
 2. **Static + interactive** (Quarto is executable-first, RSM is static with embeds)
 3. **BRAIID quality as default** (Distill-level output with 1% of the effort)
 4. **The reading ecosystem** (clone, annotate, own — see Studio strategy)

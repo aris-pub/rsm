@@ -52,10 +52,11 @@ the ``run()`` method on an :class:`RSMApp` instance will.
 
 import json
 import logging
+import re
 import subprocess
 from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Generic, NamedTuple, TypeVar, cast
+from typing import Any, Generic, NamedTuple, TypeVar
 
 from rsm import (
     builder,
@@ -656,6 +657,10 @@ def build(
 # ─── Pandoc export ────────────────────────────────────────────────────────────
 
 
+# Pandoc exits with this code when the program that makes a PDF is missing.
+_PANDOC_PDF_PROGRAM_NOT_FOUND = 47
+
+
 class _PandocRunner:
     """Pipe a pandoc JSON AST dict to the pandoc subprocess and return the result."""
 
@@ -668,10 +673,13 @@ class _PandocRunner:
         cmd = ["pandoc", "--from=json", f"--to={self.to_format}", "--standalone"]
         braiid_dir = Path(__file__).parent.parent / "braiid"
         lua_filter = braiid_dir / "braiid.lua"
-        if lua_filter.exists() and self.to_format in ("latex", "typst"):
+        if lua_filter.exists() and self.to_format == "latex":
             cmd += [f"--lua-filter={lua_filter}"]
         if self.to_format == "latex":
             cmd += ["-V", "header-includes=\\usepackage{braiid}"]
+        if self.to_format == "pdf":
+            # Without -o pandoc writes the PDF bytes to stdout, which is read as text.
+            cmd += ["-o", str(self.output)]
         try:
             proc = subprocess.run(
                 cmd, input=json_str, capture_output=True, text=True, check=True
@@ -681,41 +689,16 @@ class _PandocRunner:
                 "pandoc executable not found; install pandoc from https://pandoc.org"
             )
         except subprocess.CalledProcessError as e:
+            if e.returncode == _PANDOC_PDF_PROGRAM_NOT_FOUND:
+                match = re.search(r"'?([^'\s]+)'? not found", e.stderr)
+                engine = match.group(1) if match else "a LaTeX engine"
+                raise RSMApplicationError(
+                    f"PDF export needs LaTeX, and pandoc could not find {engine}. "
+                    f"Install a LaTeX distribution that includes {engine}, "
+                    "such as TeX Live or MacTeX."
+                )
             raise RSMApplicationError(f"pandoc failed: {e.stderr}")
         return proc.stdout
-
-
-def _inject_braiid_typst(typst_source: str, manuscript: nodes.Manuscript) -> str:
-    """Prepend braiid Typst template to pandoc-generated Typst source."""
-    template_path = Path(__file__).parent.parent / "braiid" / "braiid.typ"
-    if not template_path.exists():
-        return typst_source
-
-    template = template_path.read_text()
-
-    # Extract metadata for the template
-    title = getattr(manuscript, "title", "") or ""
-    authors = []
-    emails = {}
-    for child in manuscript.traverse():
-        if child.__class__.__name__ == "Author" and getattr(child, "name", None):
-            author = cast(nodes.Author, child)
-            authors.append(author.name)
-            email = getattr(child, "email", None)
-            if email:
-                emails[author.name] = email
-
-    # Build the preamble
-    authors_typst = ", ".join(f'"{a}"' for a in authors if a)
-    emails_typst = ", ".join(f'"{k}": "{v}"' for k, v in emails.items())
-    preamble = template + "\n\n"
-    preamble += "#show: braiid.with(\n"
-    preamble += f"  title: [{title}],\n" if title else ""
-    preamble += f"  authors: ({authors_typst},),\n" if authors_typst else ""
-    preamble += f"  emails: ({emails_typst},),\n" if emails_typst else ""
-    preamble += ")\n\n"
-
-    return preamble + typst_source
 
 
 class PandocExportApp(RSMApp[str]):
@@ -741,6 +724,11 @@ class PandocExportApp(RSMApp[str]):
         self._output = output
 
     def run(self, initial_args: Any = None) -> str | None:
+        if self._to_format == "pdf" and not self._output:
+            raise RSMApplicationError(
+                "PDF export needs an output file, for example: "
+                "rsm export paper.rsm --to pdf -o paper.pdf"
+            )
         # The pipeline's dict-unpacking (`call(**res)`) breaks on pandoc JSON AST
         # dicts because they contain hyphen keys (e.g. "pandoc-api-version") that
         # aren't valid Python identifiers. So the parser app runs the pipeline up
@@ -764,60 +752,8 @@ class PandocExportApp(RSMApp[str]):
                 if sty_src.exists() and sty_src.resolve() != sty_dst.resolve():
                     _shutil.copy2(sty_src, sty_dst)
 
-        # For Typst output, prepend the braiid template and clean up
-        if self._to_format == "typst" and self._output is None:
-            # Clean up Pandoc Typst output artifacts
-            import re as _re
-
-            result = result.replace("\\:", ":")
-            result = _re.sub(r"(\d);([.,)\s])", r"\1\2", result)
-            result = _re.sub(r"(\d);$", r"\1", result, flags=_re.MULTILINE)
-            # Remove duplicate Typst labels (keep first occurrence)
-            seen_labels = set()
-            lines = result.split("\n")
-            deduped = []
-            for line in lines:
-                m = _re.match(r"^<([a-zA-Z0-9_-]+)>$", line.strip())
-                if m:
-                    if m.group(1) in seen_labels:
-                        continue
-                    seen_labels.add(m.group(1))
-                deduped.append(line)
-            result = "\n".join(deduped)
-
-            # Inject RSM figure numbers: replace #figure( with
-            # #figure(supplement: "Figure X.Y", so braiid.typ can render
-            # section-relative numbering from the AST.
-            from .nodes import Figure as FigureNode
-
-            fig_numbers = []
-            for node in manuscript.traverse():
-                if isinstance(node, FigureNode) and node.full_number:
-                    fig_numbers.append(node.full_number)
-            if fig_numbers:
-                fig_idx = 0
-
-                def _inject_supplement(m: _re.Match[str]) -> str:
-                    nonlocal fig_idx
-                    if fig_idx < len(fig_numbers):
-                        num = fig_numbers[fig_idx]
-                        fig_idx += 1
-                        return f'#figure(supplement: "Figure {num}",'
-                    return m.group(0)
-
-                result = _re.sub(r"#figure\(", _inject_supplement, result)
-
-            # Attach labels to figures so they travel with the float.
-            # Pandoc emits: )\n<fig-label>  — move label onto the closing paren.
-            result = _re.sub(
-                r"\)\n<(fig-[a-zA-Z0-9_-]+)>",
-                r") <\1>",
-                result,
-            )
-
-            result = _inject_braiid_typst(result, manuscript)
-
-        if self._output:
+        # For PDF, pandoc has already written the file itself.
+        if self._output and self._to_format != "pdf":
             Path(self._output).write_text(result)
 
         return result

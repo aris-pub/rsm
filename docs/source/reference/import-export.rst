@@ -16,7 +16,7 @@ Export (RSM to other formats)
 
 ``rsm export`` converts an RSM manuscript to any Pandoc-supported output format.
 
-**Supported output formats**: ``latex``, ``pdf``, ``docx``, ``epub``, ``typst``,
+**Supported output formats**: ``latex``, ``pdf``, ``docx``, ``epub``,
 ``markdown``, ``html``, ``rst``, and any other format Pandoc supports.
 
 **Pipeline**: RSM source → RSM AST → Pandoc JSON AST → target format.
@@ -24,6 +24,10 @@ Export (RSM to other formats)
 For LaTeX output, RSM includes a custom ``braiid.sty`` package and a Lua filter
 (``braiid.lua``) that maps RSM-specific constructs (theorems, proofs, structured
 mathematics) to appropriate LaTeX environments.
+
+For PDF output, Pandoc makes the PDF with LaTeX. This needs a LaTeX
+installation that includes ``pdflatex``, and an output file given with ``-o``.
+The PDF uses the default look of Pandoc's LaTeX output, not the BRAIID style.
 
 **Limitations**:
 

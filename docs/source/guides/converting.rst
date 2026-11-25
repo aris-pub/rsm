@@ -31,11 +31,16 @@ directory. Compile with your usual LaTeX toolchain:
 Exporting RSM to PDF
 --------------------
 
-To go directly to PDF (via Typst):
+To go directly to PDF:
 
 .. code-block:: bash
 
    $ rsm export manuscript.rsm --to pdf -o manuscript.pdf
+
+Pandoc makes the PDF with LaTeX, so this needs a LaTeX installation that
+includes ``pdflatex``, such as TeX Live or MacTeX. The PDF uses the default
+look of Pandoc's LaTeX output, not the BRAIID style. A PDF must go to a file,
+so ``-o`` is required.
 
 
 Exporting to other formats

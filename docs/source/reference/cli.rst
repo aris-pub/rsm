@@ -155,7 +155,8 @@ Export ``rsm export``
 ---------------------
 
 Converts an RSM file to another format with `pandoc <https://pandoc.org>`_,
-such as LaTeX, PDF, EPUB or Word. Pandoc must be installed.
+such as LaTeX, PDF, EPUB or Word. Pandoc must be installed. PDF export also
+needs a LaTeX installation that includes ``pdflatex``.
 
 .. rubric:: Syntax
 
@@ -169,7 +170,8 @@ such as LaTeX, PDF, EPUB or Word. Pandoc must be installed.
    The output format, such as ``latex``, ``pdf``, ``epub`` or ``docx``.
 
 ``-o``, ``--output``
-   The output file. Without it, the result is printed.
+   The output file. Without it, the result is printed. PDF export requires
+   this option.
 
 .. rubric:: Related
 

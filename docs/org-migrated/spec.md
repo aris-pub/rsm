@@ -11,7 +11,6 @@ A markup language focused on meaning, not appearance.
 | LaTeX | Appearance (beautiful typesetting) |
 | Markdown | Simplicity (readable source) |
 | Word/Docs | What-you-see-is-what-you-get |
-| Typst | Composability (programmable typesetting) |
 | Quarto | Reproducibility (executable documents) |
 | RSM | Meaning (semantic structure) |
 
@@ -43,8 +42,6 @@ RSM says: the paper describes the research. The code lives in a repo. They're se
 ### Competitive Context
 
 **vs LaTeX**: Web-native output. No compilation errors. Collaboration built in.
-
-**vs Typst**: Web-native from the start, not PDF with HTML as afterthought.
 
 **vs Quarto**: Static and permanent. No runtime. No dependency rot.
 
