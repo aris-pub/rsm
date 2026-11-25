@@ -18,7 +18,8 @@ sheet.
 
 ``Proof steps``
    A graph of the steps of a proof and the results that they use. It shows
-   the proof that the reader last clicked in, or picked from its list.
+   the proof that the reader last clicked in or picked from its list. Before
+   that, it shows the proof on screen when the view opens.
 
 ``Proof state``
    For the step that the reader last clicked, the assumptions and symbols in

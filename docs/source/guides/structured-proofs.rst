@@ -142,12 +142,12 @@ In the built page:
 - With ``rsm build --sidebar``, the sidebar has a "Proof steps" view, a graph
   of the steps of a proof and the results that they use, and a "Proof state"
   view, which lists the assumptions and symbols in force at a step and the
-  claim that it proves. Both show the proof or step that the reader last
-  clicked. See :ref:`reading-sidebar`.
+  claim that it proves. On a wide screen, each view has its own icon in the
+  strip on the left. On a narrow screen, they are the "Steps" and "State" tabs
+  of the "Proof" sheet. See :ref:`reading-sidebar`.
 
-The example at the top of this page is built with the sidebar. Choose "Wide"
-above its page to see the strip of icons on the left, click a step of the
-proof, and open "Proof steps" or "Proof state".
+The example at the top of this page is built with the sidebar. Click a step
+of the proof, and open "Proof steps" or "Proof state".
 
 
 A sketch of the proof

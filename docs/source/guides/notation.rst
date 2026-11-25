@@ -93,7 +93,9 @@ What the reader can do
 ----------------------
 
 With ``rsm build --sidebar``, the sidebar has a "Notation" view, with one row
-for each symbol:
+for each symbol. On a wide screen, the view has its own icon in the strip on
+the left. On a narrow screen, it is the "Notation" tab of the "Document"
+sheet. In the view:
 
 - The reader types new LaTeX for the symbol, such as ``\mu``, and clicks
   "Rename". Every use of the symbol in the page changes. LaTeX that does not
@@ -104,6 +106,5 @@ for each symbol:
 The page keeps the reader's choices when it is opened again in the same
 browser, and "Copy link" in the sidebar copies them into the link.
 
-The example at the top of this page is built with the sidebar. Choose "Wide"
-above its page, open "Notation" from the strip of icons on the left, and
-change :math:`\lambda` to :math:`\mu`.
+The example at the top of this page is built with the sidebar. Open the
+"Notation" view and change :math:`\lambda` to :math:`\mu`.
