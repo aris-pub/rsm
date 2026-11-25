@@ -379,7 +379,8 @@ _WORD_VALUES = {
     "orientation": nodes.Contents.orientations,
 }
 
-_WHOLE_NUMBER_KEYS = {"toc_depth", "author_display_first", "author_display_last"}
+_AUTHOR_DISPLAY_KEYS = {"author_display_first", "author_display_last"}
+_WHOLE_NUMBER_KEYS = {"toc_depth"} | _AUTHOR_DISPLAY_KEYS
 
 # The grammar gives number, word and date values one shared token, so the form
 # of a number or a date is checked here.
@@ -439,8 +440,8 @@ def _value_is_valid(key: str, value: Any, keykind: str, pair: TSNode) -> bool:
     return ok
 
 
-def _log_meta_error(err: TSNode) -> None:
-    """Log an ERROR node found where meta is.
+def _log_meta_error(err: TSNode) -> list[str]:
+    """Log an ERROR node found where meta is, and return the keys it holds.
 
     When the ERROR holds a path, number, word or date key, the message names
     that key and its allowed values.
@@ -453,7 +454,7 @@ def _log_meta_error(err: TSNode) -> None:
             "Parse error in meta; the text at this position was ignored.",
             extra=_user_position(err.start_point, err.end_point),
         )
-        return
+        return []
     text = err.text or b""
     for i, cst_key in enumerate(keys):
         end = keys[i + 1].start_byte if i + 1 < len(keys) else err.end_byte
@@ -461,6 +462,7 @@ def _log_meta_error(err: TSNode) -> None:
         value = raw.decode("utf-8").strip().rstrip("}").strip()
         key = cst_key.named_children[0].type
         _log_bad_value(key, value, _allowed_values(key, cst_key.type), cst_key)
+    return [k.named_children[0].type for k in keys]
 
 
 def _descendants(node: TSNode) -> list[TSNode]:
@@ -536,8 +538,9 @@ def _check_plain_title(val: str, pair: TSNode, meta: TSNode) -> None:
 def _parse_meta_into_dict(node: TSNode) -> dict[str, Any]:
     # Only the pair children are read below, so an ERROR child would otherwise
     # be dropped with no message.
+    rejected = []
     for err in [c for c in node.named_children if c.type == "ERROR"]:
-        _log_meta_error(err)
+        rejected += _log_meta_error(err)
     pairs = {}
     for pair in [c for c in node.named_children if c.type.endswith("pair")]:
         if pair.named_children[0].type == "metakey_unknown":
@@ -556,8 +559,13 @@ def _parse_meta_into_dict(node: TSNode) -> dict[str, Any]:
         if key == "plain_title":
             _check_plain_title(val, pair, node)
         if not _value_is_valid(key, val, cst_key.type, pair):
+            rejected.append(key)
             continue
         pairs[key] = val
+    # The translator shortens the author list only when neither value was
+    # rejected, so a rejected value is kept as None instead of being dropped.
+    for key in _AUTHOR_DISPLAY_KEYS.intersection(rejected):
+        pairs[key] = None
     return pairs
 
 

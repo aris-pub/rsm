@@ -123,6 +123,22 @@ def test_bad_value_is_logged_and_every_author_listed(caplog, key, bad):
     assert "whole number" in errors[0].getMessage()
 
 
+@pytest.mark.parametrize(
+    "config",
+    [
+        "  :author-display-first: two\n  :author-display-last: 2\n",
+        "  :author-display-first: 3\n  :author-display-last: 2.5\n",
+        "  :author-display-first: -1\n  :author-display-last: 2\n",
+        "  :author-display-first: {3}\n  :author-display-last: 2\n",
+    ],
+)
+def test_one_bad_value_lists_every_author_even_when_the_other_is_good(
+    caplog, config
+):
+    _assert_full_list(_names_p(config))
+    assert "Invalid value for :author-display-" in caplog.text, caplog.text
+
+
 def test_affiliation_superscripts_stay_with_the_names():
     src = (
         "# Title\n\n:config: {\n  :author-display-first: 1\n"

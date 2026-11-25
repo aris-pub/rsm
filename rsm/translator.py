@@ -1678,8 +1678,12 @@ class Translator:
         engines get the full list. The page script hides the wrapped names and
         shows the "N more" button, which starts out hidden.
         """
-        first = int(getattr(self.tree, "author_display_first", 0) or 0)
-        last = int(getattr(self.tree, "author_display_last", 0) or 0)
+        first = getattr(self.tree, "author_display_first", 0)
+        last = getattr(self.tree, "author_display_last", 0)
+        # The parser keeps a rejected value as None.
+        if first is None or last is None:
+            return ", ".join(name_parts)
+        first, last = int(first), int(last)
         if (first == 0 and last == 0) or first + last >= len(name_parts):
             return ", ".join(name_parts)
         hidden = len(name_parts) - first - last
