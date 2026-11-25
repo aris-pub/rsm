@@ -1080,7 +1080,7 @@ class TestCaptionFormat:
         ::
         """).strip()
         # This should not raise — pandoc should accept the JSON
-        result = pandoc_export(source, to_format="typst")
+        result = pandoc_export(source, to_format="latex")
         assert len(result) > 0
 
     def test_table_uses_pandoc_tuple_encoding(self):
@@ -1134,9 +1134,9 @@ class TestCaptionFormat:
         assert "longtable" in result or "tabular" in result
 
     def test_figure_reference_exports_as_portable_link(self):
-        """A :ref: to a figure must become a normal pandoc Link, not a Typst-only
-        RawInline. Pandoc drops a RawInline whose format does not match the export
-        target, which left figure cross-references blank in the LaTeX output."""
+        """A :ref: to a figure must become a normal pandoc Link, not a RawInline.
+        Pandoc drops a RawInline whose format does not match the export target,
+        which left figure cross-references blank in the LaTeX output."""
         blocks = _blocks("""\
         :figure: {
           :path: test.png
@@ -1147,17 +1147,12 @@ class TestCaptionFormat:
 
         See :ref:fig-x:: for details.
         """)
-        found = {"typst_raw": [], "links": []}
+        found = {"raw": [], "links": []}
 
         def walk(node):
             if isinstance(node, dict):
-                if (
-                    node.get("t") == "RawInline"
-                    and isinstance(node.get("c"), list)
-                    and node["c"]
-                    and node["c"][0] == "typst"
-                ):
-                    found["typst_raw"].append(node)
+                if node.get("t") == "RawInline":
+                    found["raw"].append(node)
                 if node.get("t") == "Link":
                     found["links"].append(node)
                 walk(node.get("c"))
@@ -1166,14 +1161,14 @@ class TestCaptionFormat:
                     walk(item)
 
         walk(blocks)
-        assert not found["typst_raw"], "figure ref must not be a Typst-only RawInline"
+        assert not found["raw"], "figure ref must not be a RawInline"
         assert any(link["c"][2][0] == "#fig-x" for link in found["links"]), (
             "figure ref must be a pandoc Link targeting #fig-x"
         )
 
 
 class TestCitationsAsPlainText:
-    """rsm-98c: Citations should render as plain text [N] for Typst compatibility."""
+    """rsm-98c: Citations should render as plain text [N]."""
 
     def test_cite_renders_as_plain_text_not_cite_object(self):
         blocks = _blocks("""\
@@ -1190,7 +1185,7 @@ class TestCitationsAsPlainText:
         import json
 
         full = json.dumps(blocks)
-        # Must NOT contain Pandoc Cite objects (Typst can't resolve them)
+        # Must NOT contain Pandoc Cite objects
         assert '"t": "Cite"' not in full, (
             "Citations should be plain text, not Cite objects"
         )

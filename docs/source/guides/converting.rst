@@ -31,7 +31,7 @@ directory. Compile with your usual LaTeX toolchain:
 Exporting RSM to PDF
 --------------------
 
-To go directly to PDF (via Typst):
+To go directly to PDF:
 
 .. code-block:: bash
 

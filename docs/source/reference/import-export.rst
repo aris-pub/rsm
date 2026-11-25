@@ -16,7 +16,7 @@ Export (RSM to other formats)
 
 ``rsm export`` converts an RSM manuscript to any Pandoc-supported output format.
 
-**Supported output formats**: ``latex``, ``pdf``, ``docx``, ``epub``, ``typst``,
+**Supported output formats**: ``latex``, ``pdf``, ``docx``, ``epub``,
 ``markdown``, ``html``, ``rst``, and any other format Pandoc supports.
 
 **Pipeline**: RSM source → RSM AST → Pandoc JSON AST → target format.

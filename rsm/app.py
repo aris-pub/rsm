@@ -55,7 +55,7 @@ import logging
 import subprocess
 from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Generic, NamedTuple, TypeVar, cast
+from typing import Any, Generic, NamedTuple, TypeVar
 
 from rsm import (
     builder,
@@ -668,7 +668,7 @@ class _PandocRunner:
         cmd = ["pandoc", "--from=json", f"--to={self.to_format}", "--standalone"]
         braiid_dir = Path(__file__).parent.parent / "braiid"
         lua_filter = braiid_dir / "braiid.lua"
-        if lua_filter.exists() and self.to_format in ("latex", "typst"):
+        if lua_filter.exists() and self.to_format == "latex":
             cmd += [f"--lua-filter={lua_filter}"]
         if self.to_format == "latex":
             cmd += ["-V", "header-includes=\\usepackage{braiid}"]
@@ -683,39 +683,6 @@ class _PandocRunner:
         except subprocess.CalledProcessError as e:
             raise RSMApplicationError(f"pandoc failed: {e.stderr}")
         return proc.stdout
-
-
-def _inject_braiid_typst(typst_source: str, manuscript: nodes.Manuscript) -> str:
-    """Prepend braiid Typst template to pandoc-generated Typst source."""
-    template_path = Path(__file__).parent.parent / "braiid" / "braiid.typ"
-    if not template_path.exists():
-        return typst_source
-
-    template = template_path.read_text()
-
-    # Extract metadata for the template
-    title = getattr(manuscript, "title", "") or ""
-    authors = []
-    emails = {}
-    for child in manuscript.traverse():
-        if child.__class__.__name__ == "Author" and getattr(child, "name", None):
-            author = cast(nodes.Author, child)
-            authors.append(author.name)
-            email = getattr(child, "email", None)
-            if email:
-                emails[author.name] = email
-
-    # Build the preamble
-    authors_typst = ", ".join(f'"{a}"' for a in authors if a)
-    emails_typst = ", ".join(f'"{k}": "{v}"' for k, v in emails.items())
-    preamble = template + "\n\n"
-    preamble += "#show: braiid.with(\n"
-    preamble += f"  title: [{title}],\n" if title else ""
-    preamble += f"  authors: ({authors_typst},),\n" if authors_typst else ""
-    preamble += f"  emails: ({emails_typst},),\n" if emails_typst else ""
-    preamble += ")\n\n"
-
-    return preamble + typst_source
 
 
 class PandocExportApp(RSMApp[str]):
@@ -763,59 +730,6 @@ class PandocExportApp(RSMApp[str]):
                 sty_dst = Path(self._output).parent / "braiid.sty"
                 if sty_src.exists() and sty_src.resolve() != sty_dst.resolve():
                     _shutil.copy2(sty_src, sty_dst)
-
-        # For Typst output, prepend the braiid template and clean up
-        if self._to_format == "typst" and self._output is None:
-            # Clean up Pandoc Typst output artifacts
-            import re as _re
-
-            result = result.replace("\\:", ":")
-            result = _re.sub(r"(\d);([.,)\s])", r"\1\2", result)
-            result = _re.sub(r"(\d);$", r"\1", result, flags=_re.MULTILINE)
-            # Remove duplicate Typst labels (keep first occurrence)
-            seen_labels = set()
-            lines = result.split("\n")
-            deduped = []
-            for line in lines:
-                m = _re.match(r"^<([a-zA-Z0-9_-]+)>$", line.strip())
-                if m:
-                    if m.group(1) in seen_labels:
-                        continue
-                    seen_labels.add(m.group(1))
-                deduped.append(line)
-            result = "\n".join(deduped)
-
-            # Inject RSM figure numbers: replace #figure( with
-            # #figure(supplement: "Figure X.Y", so braiid.typ can render
-            # section-relative numbering from the AST.
-            from .nodes import Figure as FigureNode
-
-            fig_numbers = []
-            for node in manuscript.traverse():
-                if isinstance(node, FigureNode) and node.full_number:
-                    fig_numbers.append(node.full_number)
-            if fig_numbers:
-                fig_idx = 0
-
-                def _inject_supplement(m: _re.Match[str]) -> str:
-                    nonlocal fig_idx
-                    if fig_idx < len(fig_numbers):
-                        num = fig_numbers[fig_idx]
-                        fig_idx += 1
-                        return f'#figure(supplement: "Figure {num}",'
-                    return m.group(0)
-
-                result = _re.sub(r"#figure\(", _inject_supplement, result)
-
-            # Attach labels to figures so they travel with the float.
-            # Pandoc emits: )\n<fig-label>  — move label onto the closing paren.
-            result = _re.sub(
-                r"\)\n<(fig-[a-zA-Z0-9_-]+)>",
-                r") <\1>",
-                result,
-            )
-
-            result = _inject_braiid_typst(result, manuscript)
 
         if self._output:
             Path(self._output).write_text(result)

@@ -13,7 +13,6 @@ treat it like any other key they do not accept.
 
 import logging
 import re
-import shutil
 from textwrap import dedent
 
 import pytest
@@ -21,7 +20,7 @@ import pytest
 import rsm
 import rsm.nodes as nodes
 from rsm import app
-from rsm.app import ParserApp, pandoc_export
+from rsm.app import ParserApp
 from rsm.pandoc import PandocTranslator
 
 
@@ -204,13 +203,6 @@ def test_pandoc_export_carries_blockname():
 def test_pandoc_export_without_blockname():
     _, _, kvs = _pandoc_div(_src(meta=""))["c"][0]
     assert "blockname" not in dict(kvs)
-
-
-@pytest.mark.skipif(shutil.which("pandoc") is None, reason="pandoc not installed")
-def test_typst_export_heading_uses_blockname():
-    out = pandoc_export(source=_src(), to_format="typst")
-    assert "#strong[Hint]" in out
-    assert "Remark" not in out
 
 
 # Blocks that are not theorem-like, assets or tables do not accept :blockname:. RSM
