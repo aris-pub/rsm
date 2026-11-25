@@ -1,3 +1,6 @@
+import logging
+from pathlib import Path
+
 import rsm
 from conftest import compare_have_want
 
@@ -166,3 +169,27 @@ def test_nonum():
         </body>
         """,
     )
+
+
+def test_theorem_and_figure_without_sections_log_no_warning(caplog):
+    asset = Path(__file__).parent / "assets" / "test.html"
+    src = f"""\
+# T
+
+:theorem:
+
+  Statement.
+
+::
+
+:figure: {{
+  :path: {asset}
+}}
+:caption: A caption.
+::
+"""
+    caplog.set_level(logging.WARNING, logger="RSM")
+    html = rsm.render(src, handrails=True)
+    assert [r.getMessage() for r in caplog.records] == []
+    assert "Theorem 1." in html
+    assert "Figure 1." in html
