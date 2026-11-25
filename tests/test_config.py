@@ -373,8 +373,7 @@ def test_config_multiple_blocks_error():
     """Test that multiple config blocks raise an error."""
     from rsm.tsparser import RSMParserError, TSParser
 
-    with pytest.raises(RSMParserError, match="Multiple config blocks"):
-        TSParser().parse("""\
+    src = """\
         # Title
 
         :config: {
@@ -382,13 +381,17 @@ def test_config_multiple_blocks_error():
         }
         ::
 
-        # Content
+        Some content.
 
         :config: {
           :numbering: document
         }
         ::
-        """)
+        """
+    cst = TSParser().parse(src, abstractify=False)
+    assert not cst.root_node.has_error
+    with pytest.raises(RSMParserError, match="Multiple config blocks"):
+        TSParser().parse(src)
 
 
 def test_config_invalid_numbering_value_is_logged(caplog):
