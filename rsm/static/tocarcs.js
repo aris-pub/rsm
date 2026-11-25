@@ -5,6 +5,8 @@
 // static SVG. This module only adds hover focus: dim unrelated nodes/edges and
 // reveal the hovered section's full title. No layout runs in the browser.
 
+import { isTouch } from "./touch.js";
+
 // Node/label type must be a constant on-screen size no matter how the SVG is
 // scaled to fit its container. The graph geometry is in user units, so a fixed
 // user-unit font grows when a small graph renders large and shrinks when a big
@@ -114,6 +116,8 @@ export function wireTree(svg) {
   nodes.forEach((node) => {
     const idx = node.getAttribute("data-idx");
     node.addEventListener("mouseenter", () => {
+      // A tap sends mouseenter too, and the path would stay lit after the tap.
+      if (isTouch()) return;
       applyCone(idx);
     });
     node.addEventListener("mouseleave", () => {

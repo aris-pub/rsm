@@ -2761,7 +2761,7 @@ html.touch {
       top: 50%;
       transform: translateY(-50%);
 
-      :where(html:not(.touch)) &:hover {opacity: 100%};
+      :where(html:not(.touch)) &:hover {opacity: 100%}
 
     }
 
@@ -2860,12 +2860,14 @@ html.touch {
    the card has no hover look. */
 html:not(.touch) {
   .manuscriptwrapper :is(.bib-line > .bibitem-doi, .bib-line > .bibitem-url, .bib-cited) {opacity: 0; transition: opacity .15s;}
-  /* Hover, or keyboard focus inside the entry. A click focuses the handrail,
-     which has its own look, so plain focus does not light the card. */
-  .manuscriptwrapper .bibitem:is(:hover, :has(:focus-visible)) .bib-card {background: var(--surface-primary);}
-  .manuscriptwrapper .bibitem:is(:hover, :has(:focus-visible)) .bib-who {color: var(--primary-700);}
+  .manuscriptwrapper .bibitem:hover .bib-card {background: var(--surface-primary);}
+  .manuscriptwrapper .bibitem:hover .bib-who {color: var(--primary-700);}
   .manuscriptwrapper .bibitem:is(:hover, :focus-within) :is(.bib-line > .bibitem-doi, .bib-line > .bibitem-url, .bib-cited) {opacity: 1;}
 }
+/* Keyboard focus inside the entry lights the card on every page. A click
+   focuses the handrail, which has its own look, so plain focus does not. */
+.manuscriptwrapper .bibitem:has(:focus-visible) .bib-card {background: var(--surface-primary);}
+.manuscriptwrapper .bibitem:has(:focus-visible) .bib-who {color: var(--primary-700);}
 
 
 /* Highlighting */

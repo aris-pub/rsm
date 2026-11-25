@@ -112,3 +112,58 @@ def test_phone_tap_on_a_step_leaves_no_hover_effect(
         assert phone.evaluate(STEP_TAP_MARKS) == rest
     finally:
         ctx.close()
+
+
+# ---- effects that come from scripts or from the bibliography block -----------
+
+ASIDE_LIT = """() => [
+    document.getElementById('call-a-three').classList.contains('rsm-aside-lit'),
+    document.getElementById('a-three').classList.contains('rsm-aside-lit'),
+]"""
+TOC_NODE = '.toc.tree svg.toc-tree-h .toc-node[data-idx="5"] rect'
+TOC_FADED = "() => document.querySelectorAll('.toc.tree .toc-faded').length"
+BIB_CARD_BG = """() => getComputedStyle(
+    document.querySelector('#knuth .bib-card')).backgroundColor"""
+
+
+@pytest.mark.parametrize("touch", [True, False])
+def test_hovering_an_aside_phrase_lights_it_only_without_the_class(
+    page: Page, interactive_server, touch
+):
+    page.set_viewport_size({"width": 1000, "height": 900})
+    page.goto(f"{interactive_server}/asides.html")
+    page.wait_for_function(
+        "() => window.__rsmShown === true && !!document.querySelector("
+        "'a.aside-phrase[aria-controls]')",
+        timeout=10_000,
+    )
+    if touch:
+        page.evaluate(SET_TOUCH)
+    page.mouse.move(1, 1)
+    page.hover("#call-a-three")
+    page.wait_for_timeout(250)
+    assert page.evaluate(ASIDE_LIT) == ([False, False] if touch else [True, True])
+
+
+@pytest.mark.parametrize("touch", [True, False])
+def test_hovering_a_toc_node_shows_its_path_only_without_the_class(
+    page: Page, interactive_server, touch
+):
+    _load(page, f"{interactive_server}/toc_horizontal.html", touch=touch)
+    page.hover(TOC_NODE)
+    page.wait_for_timeout(250)
+    faded = page.evaluate(TOC_FADED)
+    assert (faded == 0) if touch else (faded > 0), faded
+
+
+@pytest.mark.parametrize("touch", [True, False])
+def test_keyboard_focus_in_a_bibliography_entry_lights_the_card(
+    page: Page, interactive_server, touch
+):
+    _load(page, f"{interactive_server}/notes.html", touch=touch)
+    page.locator("#knuth").scroll_into_view_if_needed()
+    rest = page.evaluate(BIB_CARD_BG)
+    page.focus("#knuth-doi")
+    page.wait_for_timeout(250)
+    assert page.evaluate("() => !!document.querySelector('#knuth-doi:focus-visible')")
+    assert page.evaluate(BIB_CARD_BG) != rest

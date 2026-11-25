@@ -575,6 +575,9 @@ var RSM = (() => {
     return pseudocodeLoadPromise;
   }
 
+  // rsm/static/touch.js
+  var isTouch = () => document.documentElement.classList.contains("touch");
+
   // rsm/static/tocarcs.js
   var LABEL_TARGET_PX = 13.5;
   var HOVER_TARGET_PX = 13;
@@ -652,6 +655,7 @@ var RSM = (() => {
     nodes.forEach((node) => {
       const idx = node.getAttribute("data-idx");
       node.addEventListener("mouseenter", () => {
+        if (isTouch()) return;
         applyCone(idx);
       });
       node.addEventListener("mouseleave", () => {
@@ -1149,9 +1153,6 @@ var RSM = (() => {
     schedule();
   }
 
-  // rsm/static/touch.js
-  var isTouch = () => document.documentElement.classList.contains("touch");
-
   // rsm/static/asides.js
   var READY_CLASS = "has-asides";
   var OPEN = "rsm-aside-open";
@@ -1244,6 +1245,7 @@ var RSM = (() => {
     return m ? { marker: m, aside } : null;
   }
   function onPointer(ev) {
+    if (isTouch()) return;
     const pair = pairFrom(ev.target);
     if (!pair) return;
     const into = pairFrom(ev.relatedTarget);

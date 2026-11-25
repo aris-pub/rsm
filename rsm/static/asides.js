@@ -129,6 +129,9 @@ function pairFrom(target) {
 }
 
 function onPointer(ev) {
+  // A tap sends mouseover too, and no mouseout until the next tap elsewhere,
+  // so on a touch page the pair would stay lit after the tap.
+  if (isTouch()) return;
   const pair = pairFrom(ev.target);
   if (!pair) return;
   const into = pairFrom(ev.relatedTarget);
