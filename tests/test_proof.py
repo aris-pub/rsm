@@ -1,3 +1,6 @@
+import re
+
+import rsm
 from conftest import compare_have_want
 
 
@@ -297,3 +300,21 @@ def test_two_steps():
         </body>
         """,
     )
+
+
+def test_subproof_of_only_inline_math_before_halmos():
+    src = """\
+:proof:
+
+:step: $a = 2c$.
+
+  :pf: $a = 2c$ ::
+
+::
+
+::
+"""
+    html = rsm.render(src, handrails=False, strict=True)
+    html = re.sub(r' data-nodeid="\d+"', "", html)
+    subproof = html[html.index('<div class="subproof"') :]
+    assert '<p><span class="math">\\(a = 2c\\)</span></p>' in subproof
