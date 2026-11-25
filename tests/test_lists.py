@@ -373,6 +373,17 @@ def test_enumerate_has_no_handrail_of_its_own():
     assert body.count('class="paragraphhr') == 1, body
 
 
+def test_item_ending_with_colon_before_nested_item():
+    body = _body(
+        ":enumerate:\n\n  :-: Cross out the multiples of each prime:\n\n"
+        "  :--: first of 2,\n\n::\n"
+    )
+    assert (
+        '<olclass="enumerate"><liclass="item">Crossoutthemultiplesofeachprime:'
+        '<olclass="enumerate"><liclass="item">firstof2,</li></ol></li></ol>'
+    ) in body, body
+
+
 @pytest.mark.parametrize(
     "src",
     [

@@ -7,7 +7,6 @@
 :proof: {:of: thm-stack}
 
   :step: A step with text before its equation:
-
   $$ {:label: eq-after-text}
   a = b
   $$
