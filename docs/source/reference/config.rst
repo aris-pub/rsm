@@ -77,6 +77,12 @@ A block that holds only meta keys and shows nothing in the page. It ends with
    How many authors to show at the end of a long list of authors, as a whole
    number such as ``2``. See ``:author-display-first:``.
 
+``:toc-depth:``
+   How many heading levels the list in each table of contents shows: ``1``
+   shows sections only, ``2`` adds subsections and ``3`` adds subsubsections.
+   Without it, the list shows every level. The graph of the table of contents
+   and the sidebar show every level. See :ref:`tag-toc`.
+
 ``:plain-title:``
    The title as plain text, for the browser tab, when the title holds math or
    other markup. Without it, the tab shows the title with each piece of math
@@ -103,4 +109,5 @@ A block that holds only meta keys and shows nothing in the page. It ends with
 
 .. rubric:: Related
 
-:ref:`Title <tag-title>`, :ref:`Citation <tag-cite>`.
+:ref:`Title <tag-title>`, :ref:`Citation <tag-cite>`,
+:ref:`Table of contents <tag-toc>`.

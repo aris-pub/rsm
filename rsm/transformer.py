@@ -960,8 +960,14 @@ class Transformer:
         # Reference nodes, so they are not counted as edges themselves.
         self._compute_toc_edges(toc)
 
+        # The parser has already checked that :toc-depth: is 1, 2 or 3.
+        depth = int(getattr(self.tree, "toc_depth", 3))
         current_parent: nodes.NodeWithChildren = toc
         for sec in self.tree.traverse(nodeclass=nodes.Section):
+            if isinstance(sec, nodes.Subsubsection) and depth < 3:
+                continue
+            if isinstance(sec, nodes.Subsection) and depth < 2:
+                continue
             item = nodes.Item()
             reftext = f"{sec.title}" if sec.nonum else f"{sec.full_number}. {sec.title}"
             ref = nodes.Reference(target=sec, overwrite_reftext=reftext)
@@ -988,7 +994,7 @@ class Transformer:
                     current_parent = current_parent.parent.parent
             elif isinstance(sec, nodes.Subsection):
                 current_parent.append(item)
-                if sec.first_of_type(nodes.Subsubsection):
+                if depth >= 3 and sec.first_of_type(nodes.Subsubsection):
                     itemize = nodes.Itemize()
                     item.append(itemize)
                     current_parent = itemize
@@ -1001,7 +1007,7 @@ class Transformer:
                         current_parent = current_parent.parent.parent
             elif isinstance(sec, nodes.Section):
                 toc.append(item)
-                if sec.first_of_type(nodes.Subsection):
+                if depth >= 2 and sec.first_of_type(nodes.Subsection):
                     itemize = nodes.Itemize()
                     item.append(itemize)
                     current_parent = itemize
