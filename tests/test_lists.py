@@ -341,9 +341,7 @@ def test_standalone_nested_list():
 
 
 def _list_handrails(body):
-    return body.count('data-menu-label="Itemize"') + body.count(
-        'data-menu-label="Enumerate"'
-    )
+    return body.count('data-menu-label="List"')
 
 
 def test_standalone_list_handrail_belongs_to_its_paragraph():

@@ -1497,11 +1497,11 @@ class TerminalBlock(NodeWithChildren):
 
 
 class Enumerate(TerminalBlock):
-    pass
+    classreftext: ClassVar[str] = "List"
 
 
 class Itemize(TerminalBlock):
-    pass
+    classreftext: ClassVar[str] = "List"
 
 
 class Keyword(Span):
@@ -2293,6 +2293,7 @@ class Caption(Paragraph):
 
 
 class Contents(Itemize):
+    classreftext: ClassVar[str] = "{nodeclass} {number}"
     newmetakeys: ClassVar[set] = {"view", "orientation"}
     orientations: ClassVar[tuple[str, ...]] = ("horizontal", "vertical")
 
@@ -2320,6 +2321,64 @@ class Item(BaseParagraph):
         Enumerate,
         Contents,
     }
+
+    @property
+    def full_number(self) -> str | None:
+        """The marker of an item of a numbered list, such as "2.a.i", or None.
+
+        RSM does not number list items: the browser draws the markers from the
+        list-style-type rules in braiid.css (decimal, then lower-alpha, then
+        lower-roman). This computes the same markers, so that a reference to an
+        item matches the page.
+        """
+        markers = []
+        item = self
+        while isinstance(item.parent, Enumerate):
+            siblings = [c for c in item.parent.children if isinstance(c, Item)]
+            markers.append(siblings.index(item) + 1)
+            if not isinstance(item.parent.parent, Item):
+                break
+            item = item.parent.parent
+        if not markers:
+            return None
+        markers.reverse()
+        return ".".join(_list_marker(n, depth) for depth, n in enumerate(markers))
+
+
+def _list_marker(number: int, depth: int) -> str:
+    """The marker that braiid.css draws for item ``number`` of a numbered list at
+    ``depth`` (0 for the outer list). Every list from the third level down is
+    lower-roman."""
+    if depth == 0:
+        return str(number)
+    if depth == 1:
+        letters = ""
+        while number:
+            number, rest = divmod(number - 1, 26)
+            letters = chr(ord("a") + rest) + letters
+        return letters
+    numerals = ""
+    for value, numeral in _ROMAN_NUMERALS:
+        count, number = divmod(number, value)
+        numerals += numeral * count
+    return numerals
+
+
+_ROMAN_NUMERALS = (
+    (1000, "m"),
+    (900, "cm"),
+    (500, "d"),
+    (400, "cd"),
+    (100, "c"),
+    (90, "xc"),
+    (50, "l"),
+    (40, "xl"),
+    (10, "x"),
+    (9, "ix"),
+    (5, "v"),
+    (4, "iv"),
+    (1, "i"),
+)
 
 
 def all_node_subtypes() -> list[type[Node]]:

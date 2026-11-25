@@ -242,3 +242,88 @@ def test_link_text_over_several_lines_keeps_every_line(
     tree = rsm.tsparser.TSParser().parse(source)
     (link,) = [n for n in tree.traverse() if isinstance(n, rsm.nodes.BaseReference)]
     assert link.overwrite_reftext == want_flat
+
+
+# Link text of a reference to a paragraph, a list or a list item (rsm-5bda,
+# Leo 2026-11-25). An item of a numbered list shows the marker that braiid.css
+# draws for it: decimal, then lower-alpha, then lower-roman.
+
+
+def _link_text(src, label):
+    html = rsm.render(src, handrails=False)
+    found = re.findall(rf'<a class="reference" href="#{label}">([^<]*)</a>', html)
+    assert len(found) == 1, html
+    return found[0]
+
+
+def _list_doc(kind, items, label):
+    body = "\n\n".join(f"  {item}" for item in items)
+    return f"# T\n\n:{kind}: {{:label: lst}}\n\n{body}\n\n::\n\nSee :ref:{label}::.\n"
+
+
+@pytest.mark.parametrize("kind", ["enumerate", "itemize"])
+def test_a_reference_to_a_list_reads_list(kind):
+    src = _list_doc(kind, [":-: one", ":-: two"], "lst")
+    assert _link_text(src, "lst") == "List"
+
+
+def test_a_reference_to_a_numbered_item_has_its_number():
+    src = _list_doc("enumerate", [":-: one", ":-: {:label: x} two"], "x")
+    assert _link_text(src, "x") == "Item 2"
+
+
+def test_a_reference_to_a_nested_numbered_item_has_a_letter():
+    items = [":-: one", ":-: two", ":--: two a", ":--: {:label: x} two b"]
+    assert _link_text(_list_doc("enumerate", items, "x"), "x") == "Item 2.b"
+
+
+def test_a_reference_to_a_third_level_numbered_item_has_a_roman_numeral():
+    items = [
+        ":-: one",
+        ":-: two",
+        ":--: two a",
+        ":---: two a i",
+        ":---: two a ii",
+        ":---: two a iii",
+        ":---: {:label: x} two a iv",
+    ]
+    assert _link_text(_list_doc("enumerate", items, "x"), "x") == "Item 2.a.iv"
+
+
+def test_letters_after_z_follow_the_list_marker():
+    items = [":-: one"] + [f":--: sub {n}" for n in range(27)]
+    items.append(":--: {:label: x} sub 28")
+    assert _link_text(_list_doc("enumerate", items, "x"), "x") == "Item 1.ab"
+
+
+def test_a_reference_to_a_bulleted_item_reads_item():
+    items = [":-: one", ":-: {:label: x} two", ":--: {:label: y} two a"]
+    src = _list_doc("itemize", items, "x") + "And :ref:y::.\n"
+    assert _link_text(src, "x") == "Item"
+    assert _link_text(src, "y") == "Item"
+
+
+def test_a_reference_to_a_paragraph_reads_paragraph():
+    src = "# T\n\n:paragraph: {:label: x} Some text.\n\nSee :ref:x::.\n"
+    assert _link_text(src, "x") == "Paragraph"
+
+
+def test_the_table_of_contents_keeps_its_reftext():
+    assert rsm.nodes.Contents().reftext == "Contents"
+
+
+@pytest.mark.parametrize(
+    "kind, items, label",
+    [
+        ("enumerate", [":-: one"], "lst"),
+        ("itemize", [":-: one"], "lst"),
+        ("enumerate", [":-: one", ":-: {:label: x :reftext: the second} two"], "x"),
+        ("itemize", [":-: {:label: x :reftext: the second} two"], "x"),
+    ],
+    ids=["enumerate", "itemize", "numbered-item", "bulleted-item"],
+)
+def test_reftext_meta_key_wins_for_lists_and_items(kind, items, label):
+    src = _list_doc(kind, items, label)
+    if label == "lst":
+        src = src.replace("{:label: lst}", "{:label: lst :reftext: the second}")
+    assert _link_text(src, label) == "the second"
