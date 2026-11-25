@@ -872,6 +872,29 @@ def _cmd_serve(args: Namespace) -> int:
     return 0
 
 
+def _check_serve_args(serve_parser: ArgumentParser, args: Namespace) -> None:
+    """Reject the options that change only the build of a source file.
+
+    Without a source file, rsm serve rebuilds each .rsm file in the folder
+    with its own command, and that command does not use these options.
+    """
+    if args.src is not None:
+        if args.log_format is None:
+            args.log_format = "rsm"
+        return
+    given = {
+        "-c": args.string,
+        "-p": args.print_output,
+        "-v": args.verbose > 0,
+        "--log-no-timestamps": not args.log_time,
+        "--log-no-lineno": not args.log_lineno,
+        "--log-format": args.log_format is not None,
+    }
+    for option, is_given in given.items():
+        if is_given:
+            serve_parser.error(f"{option} needs a source file")
+
+
 def main() -> int:
     """Main entry point for rsm CLI with subcommands."""
     parser = ArgumentParser(
@@ -1153,11 +1176,13 @@ def main() -> int:
         help="exclude line numbers in logs",
         action="store_false",
     )
+    # The default is None so that an explicit --log-format without a source
+    # file can be told apart from the default.
     log_opts.add_argument(
         "--log-format",
-        help="format for logs",
+        help="format for logs (default: rsm)",
         choices=["plain", "rsm", "json", "lint"],
-        default="rsm",
+        default=None,
     )
     log_opts.add_argument(
         "--strict",
@@ -1168,5 +1193,7 @@ def main() -> int:
     serve_parser.set_defaults(func=_cmd_serve)
 
     args = parser.parse_args()
+    if args.command == "serve":
+        _check_serve_args(serve_parser, args)
     status: int = args.func(args)
     return status
