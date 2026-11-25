@@ -92,11 +92,11 @@ def stderr_logs(capsys):
 def test_lint_format_positions_are_1_based(stderr_logs):
     lines = stderr_logs("lint")
     assert (
-        "src:2:3: ERROR: Invalid value for :accent: on line 2: 'bogus'."
+        "<string>:2:3: ERROR: Invalid value for :accent: on line 2: 'bogus'."
         in "\n".join(lines)
     )
-    assert "src:7:13: ERROR: Parse error in meta" in "\n".join(lines)
-    assert "src:9:1: WRN: The CST contains errors." in lines
+    assert "<string>:7:13: ERROR: Parse error in meta" in "\n".join(lines)
+    assert "<string>:9:1: WRN: The CST contains errors." in lines
 
 
 def test_rsm_format_positions_are_1_based(stderr_logs):
@@ -118,18 +118,20 @@ def test_rsm_check_lint_format_is_1_based(tmp_path):
     src_file = tmp_path / "t.rsm"
     src_file.write_text(SRC)
     proc = subprocess.run(
-        ["rsm", "check", str(src_file), "--log-format", "lint"],
+        ["rsm", "check", "t.rsm", "--log-format", "lint"],
+        cwd=tmp_path,
         capture_output=True,
         text=True,
     )
     lines = proc.stderr.strip().split("\n")
     assert any(
-        line.startswith("src:2:3: ERROR: Invalid value for :accent:") for line in lines
+        line.startswith("t.rsm:2:3: ERROR: Invalid value for :accent:")
+        for line in lines
     ), proc.stderr
     assert any(
-        line.startswith("src:7:13: ERROR: Parse error in meta") for line in lines
+        line.startswith("t.rsm:7:13: ERROR: Parse error in meta") for line in lines
     ), proc.stderr
-    assert "src:9:1: WRN: The CST contains errors." in lines, proc.stderr
+    assert "t.rsm:9:1: WRN: The CST contains errors." in lines, proc.stderr
 
 
 # The section and the manuscript start at line 1 and the math block at line 5.

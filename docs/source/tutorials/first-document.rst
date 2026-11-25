@@ -121,5 +121,5 @@ gives style hints, each with its line and column:
 
 .. code-block:: text
 
-   src:5:6: WRN: The CST contains errors.
-   src:3:1: LINT: Section with no label
+   paper.rsm:5:6: WRN: The CST contains errors.
+   paper.rsm:3:1: LINT: Section with no label

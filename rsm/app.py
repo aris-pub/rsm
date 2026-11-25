@@ -227,8 +227,11 @@ class RSMApp(Pipeline, Generic[T]):
         log_format: str = "rsm",
         log_time: bool = True,
         log_lineno: bool = True,
+        source_name: str = rsmlogger.STRING_SOURCE_NAME,
     ):
-        rsmlogger.config_rsm_logger(loglevel, log_format, log_time, log_lineno)
+        rsmlogger.config_rsm_logger(
+            loglevel, log_format, log_time, log_lineno, source_name
+        )
         logger.info("Application started")
         logger.info("Configuring...")
         # self.config = self.config.configure()
@@ -289,7 +292,14 @@ class _SourceApp(RSMApp[T]):
                 t.transform,
             ),
         ]
-        super().__init__(tasks, loglevel, log_format, log_time, log_lineno)
+        super().__init__(
+            tasks,
+            loglevel,
+            log_format,
+            log_time,
+            log_lineno,
+            str(srcpath) if srcpath else rsmlogger.STRING_SOURCE_NAME,
+        )
 
     @staticmethod
     def _validate_srcpath_and_plain(srcpath: Path | str | None, plain: str) -> None:
