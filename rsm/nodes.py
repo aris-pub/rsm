@@ -1266,8 +1266,9 @@ class Manuscript(Heading):
         self.lang = lang
         self.typography = typography
         self.citation_style = citation_style
-        # The document's section graph (a Contents node, attached to the tree
-        # only when the author wrote :toc:). Set by the transformer.
+        # The document's section graph with every heading level, for the
+        # sidebar. It is a Contents node that is not in the tree, separate
+        # from any :toc:. Set by the transformer.
         self.section_graph: Contents | None = None
 
     @property

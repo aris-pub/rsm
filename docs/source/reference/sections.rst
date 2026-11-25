@@ -145,9 +145,11 @@ sections refer to which. The tag holds no content, and ends with ``::``.
    on smaller screens. The default is ``vertical``.
 
 The ``:toc-depth:`` key of the ``:config:`` block sets how many heading levels
-the list shows: ``1`` shows sections only, ``2`` adds subsections and ``3``
-adds subsubsections. Without it, the list shows every level. The graph shows
-every level.
+the list and the graph show: ``1`` shows sections only, ``2`` adds
+subsections and ``3`` adds subsubsections. Without it, every level is shown.
+In the graph, an arrow that starts or ends in a hidden section is drawn from
+or to the nearest shown section that contains it. The sidebar shows every
+level.
 
 .. rubric:: Related
 

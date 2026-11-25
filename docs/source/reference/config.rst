@@ -78,10 +78,10 @@ A block that holds only meta keys and shows nothing in the page. It ends with
    number such as ``2``. See ``:author-display-first:``.
 
 ``:toc-depth:``
-   How many heading levels the list in each table of contents shows: ``1``
-   shows sections only, ``2`` adds subsections and ``3`` adds subsubsections.
-   Without it, the list shows every level. The graph of the table of contents
-   and the sidebar show every level. See :ref:`tag-toc`.
+   How many heading levels each table of contents shows, in the list and in
+   the graph: ``1`` shows sections only, ``2`` adds subsections and ``3``
+   adds subsubsections. Without it, every level is shown. The sidebar shows
+   every level. See :ref:`tag-toc`.
 
 ``:plain-title:``
    The title as plain text, for the browser tab, when the title holds math or
