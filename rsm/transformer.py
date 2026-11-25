@@ -285,22 +285,26 @@ class Transformer:
         _find_errors(self.parser.cst.root_node)
         # Invalid input that the parser repaired with an inserted token
         # (rsm-pn7).
-        from .tsparser import _missing_to_report, _note_calls_after_a_word
+        from .tsparser import _calls_after_a_word, _missing_to_report, _user_position
 
         error_nodes += _missing_to_report(self.parser.cst.root_node)
-        after_word = _note_calls_after_a_word(self.parser.cst.root_node)
-        halmos_bytes = {call.halmos_byte for call in after_word}
-        error_nodes = [n for n in error_nodes if n.start_byte not in halmos_bytes]
+        after_word = _calls_after_a_word(self.parser.cst.root_node)
+        covered = {call.error_byte for call in after_word}
+        error_nodes = [n for n in error_nodes if n.start_byte not in covered]
+
+        def _where(start: tuple[int, int], end: tuple[int, int]) -> str:
+            pos = _user_position(start, end)
+            return (
+                f"({pos['start_row']}, {pos['start_col']}) - "
+                f"({pos['end_row']}, {pos['end_col']})"
+            )
 
         if error_nodes or after_word:
             error_messages = [
-                f"  - ({call.start_point[0]}, {call.start_point[1]}) - "
-                f"({call.end_point[0]}, {call.end_point[1]}): {call.message}"
+                f"  - {_where(call.start_point, call.end_point)}: {call.message}"
                 for call in after_word
             ]
             for node in error_nodes:
-                start = node.start_point
-                end = node.end_point
                 if node.is_missing:
                     what = f"missing {node.type}"
                 elif node.text:
@@ -308,7 +312,7 @@ class Transformer:
                 else:
                     what = "unknown error"
                 error_messages.append(
-                    f"  - ({start[0]}, {start[1]}) - ({end[0]}, {end[1]}): {what}"
+                    f"  - {_where(node.start_point, node.end_point)}: {what}"
                 )
 
             error_summary = "\n".join(error_messages)

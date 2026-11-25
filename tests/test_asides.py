@@ -8,6 +8,7 @@ it, and where the block's handrail already reaches. On wide screens the scripts
 move it into the right-hand column.
 """
 
+import logging
 import re
 from html.parser import HTMLParser
 from textwrap import dedent
@@ -503,3 +504,58 @@ def test_space_after_a_call_before_math_is_kept():
     html = rsm.render(src, handrails=False)
     assert re.search(r"</a>\s+<span class=\"math\"[^>]*>\\\(R\^m", html), html
     assert re.search(r"</a>\s+<span class=\"math\"[^>]*>\\\(x", html), html
+
+
+# ---------------------------------------------------------------------------
+# An aside call right after a word (rsm-n0k8)
+# ---------------------------------------------------------------------------
+
+A_DEF = "\n\n:aside: {:label: a} The aside. ::\n"
+ASIDE_MESSAGE = (
+    "An aside call must come after a space. Put a space before :aside:, as in "
+    "'phrase :aside:a,words::'"
+)
+
+
+def _aside_space_records(caplog):
+    return [r for r in caplog.records if "Put a space before :aside:" in r.getMessage()]
+
+
+def test_aside_call_right_after_a_word_asks_for_a_space(caplog):
+    caplog.set_level(logging.WARNING, logger="RSM")
+    render("A phrase:aside:a,words:: and." + A_DEF)
+    (rec,) = _aside_space_records(caplog)
+    assert rec.getMessage() == ASIDE_MESSAGE
+    assert (rec.start_row, rec.start_col) == (1, 9)
+    assert (rec.end_row, rec.end_col) == (1, 25)
+    assert not any("The CST contains errors" in r.getMessage() for r in caplog.records)
+
+
+def test_aside_call_with_spaces_in_its_phrase_right_after_a_word(caplog):
+    caplog.set_level(logging.WARNING, logger="RSM")
+    render("A phrase:aside:a,the phrase a:: and." + A_DEF)
+    (rec,) = _aside_space_records(caplog)
+    assert "'phrase :aside:a,the phrase a::'" in rec.getMessage()
+
+
+def test_page_shows_the_clear_message_for_an_aside_call_after_a_word():
+    html = render("A phrase:aside:a,words:: and." + A_DEF)
+    assert "CST error" not in html
+    assert ASIDE_MESSAGE in html
+
+
+def test_aside_call_after_a_word_inside_a_block_gets_only_the_clear_message(caplog):
+    caplog.set_level(logging.WARNING, logger="RSM")
+    html = render(":theorem:\n\nA phrase:aside:a,words:: and.\n\n::\n" + A_DEF)
+    assert len(_aside_space_records(caplog)) == 1
+    assert not any("The CST contains errors" in r.getMessage() for r in caplog.records)
+    assert "CST error" not in html
+
+
+@pytest.mark.parametrize(
+    "src", ["A phrase :aside:a,words:: and.", "A (phrase):aside:a,words:: and."]
+)
+def test_aside_call_after_a_space_or_punctuation_gets_no_message(caplog, src):
+    caplog.set_level(logging.WARNING, logger="RSM")
+    render(src + A_DEF)
+    assert _aside_space_records(caplog) == []
