@@ -38,9 +38,16 @@ A block that holds only meta keys and shows nothing in the page. It ends with
    The typeface of the text: ``sans-serif`` (the default) or ``serif``.
 
 ``:numbering:``
-   How blocks are numbered: ``section`` (the default) numbers them within
-   each section, as in Theorem 2.1, ``document`` numbers them through the
-   whole document, as in Theorem 7, and ``none`` numbers nothing.
+   How sections and numbered blocks (theorems and the other theorem-like
+   blocks, figures, videos, tables, algorithms and display equations) are
+   numbered. ``section`` (the default) numbers the blocks within each
+   section, as in Theorem 2.1. ``document`` numbers the blocks through the
+   whole document, as in Theorem 7, and sections keep their numbers, as in
+   Section 2.1. ``none`` numbers no section and no block. A reference to a
+   block without a number shows the name of its kind, such as "Theorem", and
+   a reference to an equation without a number reads "the equation". A
+   ``:reftext:`` on the block replaces both. With
+   every value, citations, footnotes and proof steps keep their numbers.
 
 ``:citation-style:``
    How citations look: ``numeric`` (the default), as in [1],

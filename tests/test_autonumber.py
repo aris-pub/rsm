@@ -303,3 +303,101 @@ def test_numbering_none_leaves_tables_and_algorithms_without_numbers():
     )
     assert captions == ["Table. ", "Table. ", "Table. "]
     assert references == ["Table", "Table", "Table", "Algorithm", "Algorithm"]
+
+
+def _config(numbering):
+    return ":config: {\n  :numbering: " + numbering + "\n}\n::\n\n"
+
+
+SECTIONS = """# T
+
+{config}## One
+
+Text.
+
+## Two
+
+### Sub
+{{:label: sub}}
+
+#### Subsub
+{{:label: subsub}}
+
+:theorem: {{:label: thm}} A theorem.
+::
+
+See :ref:sub::, :ref:subsub:: and :ref:thm::.
+"""
+
+
+def test_numbering_document_numbers_subsections_within_their_section():
+    html = rsm.render(SECTIONS.format(config=_config("document")), handrails=True)
+    headings = re.findall(r"<h[34]>([^<]*)</h[34]>", html)
+    references = re.findall(r'<a class="reference"[^>]*>([^<]*)</a>', html)
+    assert headings == ["2.1. Sub", "2.1.1. Subsub"]
+    assert references == ["Section 2.1", "Section 2.1.1", "Theorem 1"]
+
+
+CITATION = """# T
+
+{config}See :cite:knuth::.
+
+:references:
+  @book{{knuth,
+    title={{Art of Computer Programming}},
+    author={{Knuth, Donald E}},
+    year={{2014}},
+    publisher={{Addison-Wesley}}
+  }}
+::
+"""
+
+
+def _cite_text(html):
+    m = re.search(r"<p>See (.*?)\.</p>", html, re.S)
+    assert m
+    return re.sub(r"<[^>]+>", "", m.group(1)).replace(" ", " ").strip()
+
+
+def test_numbering_none_keeps_citation_numbers():
+    html = rsm.render(CITATION.format(config=_config("none")), handrails=True)
+    assert _cite_text(html) == "[1]"
+    assert '<span class="bib-num">1</span>' in html
+
+
+def test_numbering_none_keeps_author_year_citations():
+    config = (
+        ":config: {\n  :numbering: none\n  :citation-style: parens-author-year\n}"
+        "\n::\n\n"
+    )
+    html = rsm.render(CITATION.format(config=config), handrails=True)
+    assert _cite_text(html) == "(Knuth, 2014)"
+
+
+EQUATIONS = """# T
+
+{config}## One
+
+$$ {{:label: eq}}
+x
+$$
+
+$$ {{:label: eqr, :reftext: the key bound}}
+y
+$$
+
+See :ref:eq:: and :ref:eqr::.
+"""
+
+
+def test_numbering_none_equation_reference_reads_the_equation():
+    html = rsm.render(EQUATIONS.format(config=_config("none")), handrails=True)
+    references = re.findall(r'<a class="reference"[^>]*>([^<]*)</a>', html)
+    assert references == ["the equation", "the key bound"]
+
+
+def test_reference_to_nonum_equation_reads_the_equation():
+    src = "# T\n\n$$ {:label: eq, :nonum:}\nx\n$$\n\nSee :ref:eq::.\n"
+    html = rsm.render(src, handrails=True)
+    references = re.findall(r'<a class="reference"[^>]*>([^<]*)</a>', html)
+    assert references == ["the equation"]

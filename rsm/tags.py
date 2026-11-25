@@ -201,7 +201,7 @@ collapsed = MetaTagInfo(None, bool)
 of = MetaTagInfo(None, str)
 """The label of the result a detached :proof: establishes (sets the proof tree root, the State pane goal, and the linked "Proof of ..." lead)."""
 numbering = MetaTagInfo(None, str)
-"""Numbering mode for theorems and sections (document, section, or none)."""
+"""Numbering mode for sections and numbered blocks (section, document, or none). With document, sections keep their section numbering. Citations are always numbered."""
 orientation = MetaTagInfo(None, str)
 """Table of contents graph direction: vertical (default) or horizontal (left to right from 768px, vertical on phones)."""
 orcid = MetaTagInfo(None, str)
