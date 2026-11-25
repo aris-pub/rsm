@@ -33,7 +33,7 @@ html_static_path = ["_static"]
 html_logo = "_static/logo.svg"
 html_favicon = "_static/favicon.svg"
 html_css_files = ["custom.css"]
-html_js_files = ["theme-sync.js"]
+html_js_files = ["theme-sync.js", "example-view.js"]
 
 # templates
 templates_path = ["_templates"]
@@ -116,11 +116,11 @@ html_theme_options = {
         },
     ],
     # footer
-    "footer_start": ["copyright"],
+    "footer_start": ["aris-copyright"],
     "footer_center": [],
     "footer_end": [],
     # page options
-    "show_prev_next": False,
+    "show_prev_next": True,
     "use_edit_page_button": False,
 }
 

@@ -7,7 +7,7 @@ The transform step is also responsible for 'fixing up' some syntactic sugar affo
 RSM markup to yield a sound manuscript.  For exmaple, for mathematical proofs, it is
 possible to have a sequence of ``:step:`` tags inside a parent ``:step:``.  However, in
 the final manuscript, those sub-steps will be wrapped by a :class:`rsm.nodes.SubProof`
-node, without the user having to manually create a ``:p:`` tag.  This wrapper node is
+node, without the user having to manually create a ``:pf:`` tag.  This wrapper node is
 created during the transform step.
 
 After the transform step, static analysis tools such as the linter may run over the
@@ -180,6 +180,7 @@ class Transformer:
         self.tree = tree
 
         self.prepare_paragraph_assets()
+        self.wrap_standalone_lists()
         self.check_calc_rows()
         self.check_tabs()
         self.collect_labels()
@@ -307,6 +308,27 @@ class Transformer:
             raise RSMTransformerError(
                 f"Strict mode enabled: CST errors detected in manuscript:\n{error_summary}"
             )
+
+    def wrap_standalone_lists(self) -> None:
+        """Put each list that is not part of a paragraph into a paragraph of its own.
+
+        A list after a blank line starts a paragraph that holds only the list, so
+        that every list is part of a paragraph, and the paragraph (not the list)
+        gets the handrail.
+        """
+        assert self.tree is not None
+        lists = [
+            node
+            for node in self.tree.traverse()
+            if isinstance(node, (nodes.Itemize, nodes.Enumerate))
+            and not isinstance(node, nodes.Contents)
+            and not isinstance(node.parent, nodes.BaseParagraph)
+            and node.first_ancestor_of_type(nodes.Contents) is None
+        ]
+        for lst in lists:
+            par = nodes.Paragraph()
+            lst.replace_self(par)
+            par.append(lst)
 
     def prepare_paragraph_assets(self) -> None:
         """Give each asset with :as-paragraph: no number and no caption.

@@ -1,0 +1,125 @@
+.. _ref-front-matter:
+
+Title, authors and abstract
+===========================
+
+The first lines of a document: its title, its authors and its abstract.
+Settings for the whole document, such as a date under the title, go in
+``:config:``. See :ref:`ref-config`.
+
+
+.. _tag-title:
+
+.. rst-class:: tag-card
+
+Title ``#``
+-----------
+
+The title of the document, on the first line, after ``#`` and a space. It can
+hold inline markup, such as math.
+
+.. rubric:: Syntax
+
+.. rsm::
+   :source-only:
+
+   # <title>
+
+.. rubric:: Related
+
+:ref:`Headings <tag-heading>`, :ref:`Document settings <tag-config>`.
+
+
+.. _tag-author:
+
+.. rst-class:: tag-card
+
+Author ``:author:``
+-------------------
+
+One author of the document. Write one ``:author:`` for each author, after the
+title. The page lists the names, with a mail icon and an ORCID icon for the
+authors who have them, and the rest of the details folded under a summary.
+All the information is in the meta keys, so the block ends with ``::`` right
+after the braces.
+
+.. rubric:: Syntax
+
+.. rsm::
+   :source-only:
+
+   :author: {
+     :name: <name>
+     :affiliation: <affiliation>
+   } ::
+
+.. rubric:: Meta keys
+
+``:name:``
+   The name of the author.
+
+``:affiliation:``
+   The institution of the author.
+
+``:email:``
+   An email address, linked from the mail icon next to the name.
+
+``:orcid:``
+   An ORCID iD, such as ``0000-0002-1825-0097``, linked from the ORCID icon
+   next to the name.
+
+``:author-note:``
+   A note on the author, such as "Equal contribution".
+
+.. rubric:: Example
+
+.. rsm::
+
+   # Sums of even numbers
+
+   :author: {
+     :name: Ada Lovelace
+     :affiliation: University of London
+     :email: ada@example.org
+   } ::
+
+   :author: {
+     :name: Charles Babbage
+     :affiliation: University of Cambridge
+   } ::
+
+.. rubric:: Related
+
+:ref:`Abstract <tag-abstract>`.
+
+
+.. _tag-abstract:
+
+.. rst-class:: tag-card
+
+Abstract ``:abstract:``
+-----------------------
+
+The abstract of the document, after the authors, headed "Abstract".
+
+.. rubric:: Syntax
+
+.. rsm::
+   :source-only:
+
+   :abstract: {:keywords: <word>, <word>}
+   <text>
+   ::
+
+.. rubric:: Meta keys
+
+``:keywords:``
+   Keywords, separated by commas, listed under the abstract.
+
+``:msc:``
+   Mathematics Subject Classification codes, separated by commas, listed
+   under the abstract.
+
+.. rubric:: Related
+
+:ref:`Author <tag-author>`.

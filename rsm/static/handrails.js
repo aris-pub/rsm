@@ -42,12 +42,11 @@ function pinHrefOf(hr) {
 let singletonMenu = null;
 let activeHr = null;
 
-// Touch (no-hover, coarse pointer): mirrors the @media query that hides the
-// per-block collapse chevron, so the menu carries collapse/expand instead.
-const IS_TOUCH =
-  typeof window !== "undefined" &&
-  typeof window.matchMedia === "function" &&
-  window.matchMedia("(hover: none) and (pointer: coarse)").matches;
+// A touch page: html.touch, which the builder's pre-paint script sets on a
+// device with no hover and a coarse pointer, and which a page that shows RSM in
+// a frame can set too. braiid.css hides the collapse chevron on it, so the menu
+// carries collapse/expand instead. Read at each use, since the class can change.
+const isTouch = () => document.documentElement.classList.contains("touch");
 let delegationAttached = false;
 
 export function setup() {
@@ -185,9 +184,9 @@ function showMenuFor(hr) {
   // into the menu: any chevron-collapsible block gets a Collapse/Expand item,
   // even if the build did not mark it menu-collapsible. Persist it on the node so
   // refreshCollapseLabels (which re-reads the attribute) keeps the label in sync.
-  // Desktop is unaffected: the chevron stays and IS_TOUCH is false.
+  // Desktop is unaffected: the chevron stays and isTouch() is false.
   if (
-    IS_TOUCH &&
+    isTouch() &&
     (!collapse || collapse === "disabled") &&
     hr.querySelector(":scope > .hr-collapse-zone .hr-collapse")
   ) {
@@ -285,7 +284,7 @@ function showMenuFor(hr) {
   // labeled rather than offered as a broken affordance. On desktop the label
   // flips to reflect the current mode.
   const isProof = hr.classList.contains("proof");
-  const touch = window.matchMedia("(hover: none) and (pointer: coarse)").matches;
+  const touch = isTouch();
   const reorder = isProof ? (touch ? "disabled" : "true") : null;
   const reorderEl = singletonMenu.querySelector('[data-role="reorder"]');
   const reorderSep = singletonMenu.querySelector('[data-role="reorder-sep"]');

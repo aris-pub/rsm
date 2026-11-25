@@ -146,7 +146,7 @@ math as its TeX source. A `:title:` meta value follows the same rules, as in
 | `:itemize:` | Unnumbered list |
 | `:lemma:` | Lemma |
 | `:mathblock:` | Display math (as-is content) |
-| `:p:` | Subproof (used inside steps) |
+| `:pf:` | Subproof (used inside steps) |
 | `:porism:` | Porism (corollary of a proof) |
 | `:problem:` | Problem |
 | `:proof:` | Proof |
@@ -460,12 +460,12 @@ Proofs follow a rigid nesting: **proof → steps → substeps/subproofs**.
   :step: {:label: step-1}
     Statement of what this step establishes.
 
-    :p: Justification for this step. :: ::
+    :pf: Justification for this step. :: ::
 
   :step:
     :claim: Some intermediate result. ::
 
-    :p:
+    :pf:
 
       :step: Substep inside the justification. ::
 
@@ -475,15 +475,15 @@ Proofs follow a rigid nesting: **proof → steps → substeps/subproofs**.
 
   :step: :qed:
 
-    :p: By :ref:step-1::. :: ::
+    :pf: By :ref:step-1::. :: ::
 
 ::
 ```
 
 **Key rules:**
-- `:step:` can only appear directly inside `:proof:`, `:sketch:`, `:calc:`, or inside a `:p:` (subproof)
-- `:p:` provides the justification for its parent step — it can contain nested steps
-- `:p:` closes with `:: ::` (its own Halmos, then the step's Halmos)
+- `:step:` can only appear directly inside `:proof:`, `:sketch:`, `:calc:`, or inside a `:pf:` (subproof)
+- `:pf:` provides the justification for its parent step — it can contain nested steps
+- `:pf:` closes with `:: ::` (its own Halmos, then the step's Halmos)
 - Proof constructs (`:let:`, `:assume:`, `:prove:`, `:claim:`, `:pick:` / `:st:`, `:qed:`) appear inline within steps
 - `:qed:` is a stamp — it has no content and no Halmos
 
@@ -511,7 +511,7 @@ is to place a `:sketch:` before the `:proof:` to give the reader a high-level ov
 ### Calculations
 
 A `:calc:` is a chain of relations. Each row is a `:step:` that holds one relation in
-`$...$`, followed by a `:p:` with the reason it holds. It can go anywhere a display
+`$...$`, followed by a `:pf:` with the reason it holds. It can go anywhere a display
 equation (`$$...$$`) can go, inside or outside a proof.
 
 Outside a proof:
@@ -521,13 +521,13 @@ Outside a proof:
 
   :step: $\|F(x)-F(y)\|^2 \ge c_0\sum_{j=1}^{k}a_j^2$
 
-    :p: By the bound for each scale. ::
+    :pf: By the bound for each scale. ::
 
   ::
 
   :step: $\ge \frac{c_0}{4L}\,d(x,y)^2$
 
-    :p: By Cauchy-Schwarz and $k \le L$. ::
+    :pf: By Cauchy-Schwarz and $k \le L$. ::
 
   ::
 
@@ -545,19 +545,19 @@ Inside a proof, as the justification of a step:
 
     :claim: $(a+b)^2 \ge 4ab$. ::
 
-    :p:
+    :pf:
 
       :calc:
 
         :step: $(a+b)^2 - 4ab = (a-b)^2$
 
-          :p: Expand and collect terms. ::
+          :pf: Expand and collect terms. ::
 
         ::
 
         :step: $\ge 0$
 
-          :p: A square is never negative. ::
+          :pf: A square is never negative. ::
 
         ::
 
@@ -593,12 +593,12 @@ These are stamps — they stand alone with no content and no Halmos:
 :step: {:label: stp-main}
   :claim: $a_n^{m+1} b_0 = 0$ ::
 
-  :p: By :ref:first-substep::. :: ::
+  :pf: By :ref:first-substep::. :: ::
 
 :step:
   :claim: $1 + u^{-1}x$ is a unit. ::
 
-  :p: By :prev:. :: ::
+  :pf: By :prev:. :: ::
 
 :step:
   Multiplying :prev2: by $\lambda$ and subtracting :prev:.
@@ -650,7 +650,7 @@ A multi-level proof showing nested subproofs and step references:
 
     :pick: $n \in \mathbb{N}$ :: :st: $x^n = 0$ ::.
 
-    :p: Such an $n$ exists by definition of nilpotent. :: ::
+    :pf: Such an $n$ exists by definition of nilpotent. :: ::
 
   :step:
 
@@ -659,12 +659,12 @@ A multi-level proof showing nested subproofs and step references:
     (1 + x)(1 - x + x^2 - \ldots + (-1)^n x^n) = 1.
     $$
 
-    :p: Multiplying the left-hand side directly yields the middle expression.
+    :pf: Multiplying the left-hand side directly yields the middle expression.
     The term $(-1)^n x^{n+1}$ equals $0$, by :ref:x-is-nilp::. :: ::
 
   :step: :ref:goal-1, Goal 1:: is :qed:.
 
-    :p: By :ref:eqn-main::. :: ::
+    :pf: By :ref:eqn-main::. :: ::
 
   :step: {:label: sufficiency}
 
@@ -673,22 +673,22 @@ A multi-level proof showing nested subproofs and step references:
 
   :step: :⊢: $u^{-1} x$ is nilpotent.::
 
-    :p: Immediately from $(u^{-1} x)^n = u^{-n} x^n = 0$. :: ::
+    :pf: Immediately from $(u^{-1} x)^n = u^{-n} x^n = 0$. :: ::
 
   :step: :⊢: $1 + u^{-1} x$ is a unit.::
 
-    :p: By :ref:goal-1, Goal 1::. :: ::
+    :pf: By :ref:goal-1, Goal 1::. :: ::
 
   :step: :⊢: $u + x$ is a unit.::
 
-    :p: Because both $u$ and $1 + u^{-1} x$ are units, and the units are
+    :pf: Because both $u$ and $1 + u^{-1} x$ are units, and the units are
     closed under multiplication. :: ::
 
   :step:
 
     :ref:goal-2, Goal 2:: is :qed:.
 
-    :p: By :ref:sufficiency::. :: ::
+    :pf: By :ref:sufficiency::. :: ::
 
 ::
 ```
@@ -824,9 +824,9 @@ as a resolver URL (`https://doi.org/10.1234/x`): either way it produces a single
 
 2. **`:qed:` with Halmos** — `:qed:` is a stamp. Write `:qed:`, never `:qed:::`.
 
-3. **`:step:` outside proof** — `:step:` is only valid inside `:proof:`, `:sketch:`, `:calc:`, or `:p:`.
+3. **`:step:` outside proof** — `:step:` is only valid inside `:proof:`, `:sketch:`, `:calc:`, or `:pf:`.
 
-4. **Subproof closing** — `:p:` needs `:: ::` (its own Halmos then the parent step's).
+4. **Subproof closing** — `:pf:` needs `:: ::` (its own Halmos then the parent step's).
    Forgetting the step's `::` is a frequent error.
 
 5. **`:prev:` stamps don't take content** — write `:prev:`, not `:prev: something ::`.
@@ -897,7 +897,7 @@ A **bold** and *italic* example.
 
     :pick: $n \in \mathbb{N}$ :: :st: $x^n = 0$ ::.
 
-    :p: By definition of nilpotent. :: ::
+    :pf: By definition of nilpotent. :: ::
 
   :step:
 
@@ -906,11 +906,11 @@ A **bold** and *italic* example.
     (1 + x)(1 - x + x^2 - \ldots + (-1)^n x^n) = 1.
     $$
 
-    :p: Direct computation, using :ref:x-nilp::. :: ::
+    :pf: Direct computation, using :ref:x-nilp::. :: ::
 
   :step: :qed:
 
-    :p: By :ref:eqn-main::. :: ::
+    :pf: By :ref:eqn-main::. :: ::
 
 ::
 ```

@@ -27,7 +27,7 @@
 
     A claim with a reason.
 
-    :p: The reason. ::
+    :pf: The reason. ::
 
   ::
 
@@ -47,7 +47,7 @@
 
     :step: $f(x) = a$
 
-      :p: Because of the first reason. ::
+      :pf: Because of the first reason. ::
 
     ::
 

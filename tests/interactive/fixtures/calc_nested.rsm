@@ -18,25 +18,25 @@
 
     :claim: The calculation below establishes the bound. ::
 
-    :p:
+    :pf:
 
       :calc:
 
         :step: $f(x) = a - b$
 
-          :p: Because the first reason holds. ::
+          :pf: Because the first reason holds. ::
 
         ::
 
         :step: $= a - c$
 
-          :p: Because the second reason holds. ::
+          :pf: Because the second reason holds. ::
 
         ::
 
         :step: $\le d$
 
-          :p: Because the third reason holds. ::
+          :pf: Because the third reason holds. ::
 
         ::
 

@@ -23,7 +23,10 @@ body {
   /* Dark-only palette value (no light counterpart); used by --text-subtle. */
   --gray-550: #788188;
   /* Base font size - mobile-first responsive scaling */
-  font-size: 12px;  /* Mobile default (< 640px) */
+  /* A page that shows this one in a frame can set --embedded-font-size on
+     this page's root, because inside a frame the window width is the
+     frame's and not the reader's screen. */
+  font-size: var(--embedded-font-size, 12px);  /* Mobile default (< 640px) */
 
   /* General */
   --side-padding: 1rem;    /* Mobile-first, scaled up at breakpoints */
@@ -510,9 +513,16 @@ body {
   /* Outermost wrapper when the the manuscript is embedded in another page */
   &.embedded {
     margin: 0;
-    padding-inline: 1.5rem;
+    padding-inline: var(--chunk-quarter);
     box-shadow: unset;
     border-radius: var(--radius-none);
+    /* Smaller headings, relative to the text, for a document shown inside
+       another page. */
+    --h1-size: 1.4em;
+    --h2-size: 1.2em;
+    --h3-size: 1.1em;
+    --h4-size: 1em;
+    --h5-size: 1em;
   }
 
 }
@@ -597,6 +607,8 @@ body {
     background: var(--surface-page);
     color: var(--extra-dark);
     border-radius: var(--radius-xl);
+    /* The padding is on the wrapper below, the same on every side. */
+    padding: 0;
 
     .manuscriptwrapper {
       /* Neutralise the document-layout rules: inside a tooltip the wrapper must
@@ -609,8 +621,24 @@ body {
       margin-inline: 0 !important;
       width: auto;
       max-width: 100%;
-      padding: 0 1rem 0 1rem;
+      padding: var(--chunk-third);
     }
+
+    /* The copied blocks keep the margins that space them on the page, which
+       would add to the padding at the top and bottom edges. */
+    .manuscriptwrapper :is(.hr, .paragraph, p):first-child {margin-block-start: 0;}
+    .manuscriptwrapper :is(.hr, .paragraph, p):last-child {margin-block-end: 0;}
+
+    /* The text after a label keeps the top padding that a handrail block gives
+       its first paragraph, so the label would sit further from its text than
+       on a page without handrails. */
+    .manuscriptwrapper .hr-label + .hr > .hr-content-zone > p:first-child {padding-top: 0;}
+
+    /* A section's tooltip has its heading and first block. The heading is set
+       a little larger than the text (no braiid token has this size), with
+       1/6 chunk under it, instead of its size and margins on the page. */
+    .manuscriptwrapper .heading {margin-block-end: var(--chunk-sixth);}
+    .manuscriptwrapper .heading :is(h1, h2, h3, h4, h5, h6) {font-size: 1.1em; margin: 0;}
 
     /* Short plain-text control labels (rail tabs/buttons): body font, tooltip
        size, wrapped by the instance maxWidth. Not document content, so no
@@ -811,7 +839,7 @@ body {
    aligns -- but render NONE of their own handrail chrome except the disclosure
    control: the native collapse, rendered in the info-zone (the right-margin
    per-row slot) and reglyphed as the math "because" sign. Collapsed shows the
-   relation, open reveals its :p: justification. No left rule, dots, menu,
+   relation, open reveals its :pf: justification. No left rule, dots, menu,
    spacer, or number. Presentation only; the handrail system is untouched. */
 .manuscriptwrapper .calc .step {
   margin-block: 0;
@@ -889,7 +917,7 @@ body {
   font-weight: var(--weight-semi);
 }
 /* Touch: give the because-mark a >=44px tap target. */
-@media (hover: none) and (pointer: coarse) {
+html.touch {
   .manuscriptwrapper .calc .step > .hr-info-zone .hr-collapse::after {
     content: "";
     position: absolute;
@@ -1221,13 +1249,15 @@ body {
 }
 
 /* Touch has no hover, so the gutter controls would be invisible and unreachable.
-   Under a no-hover, coarse-pointer environment, give every block a single
+   On a touch page (html.touch: the builder's pre-paint script sets it on a
+   device with no hover and a coarse pointer, and a page that shows RSM in a
+   frame can set it to show the touch look), give every block a single
    control: drop the per-block collapse chevron (collapse/expand moves into the
    dots menu) and reveal the menu-dots at rest. The dots carry a page-coloured
    background so they BREAK the vertical rule instead of sitting on top of it,
    and a >=44px invisible ::before is the tap target (the glyph stays small).
    Desktop keeps the chevron and the hover reveal above. */
-@media (hover: none) and (pointer: coarse) {
+html.touch {
   .manuscriptwrapper .hr > .hr-collapse-zone .hr-collapse { display: none; }
   /* Remove the fold column itself, on every block. Hiding only the chevron
      left the column 0 wide in foldable blocks but 12px wide (its spacer) in
@@ -1495,15 +1525,20 @@ body {
 }
 
 
+/* The label of a labelled block ("Theorem 1.1:") is semibold with or without
+   handrails, and in reference previews. */
+.manuscriptwrapper .hr-label span.label {font-weight: var(--weight-semi);}
+
+/* Without handrails the label has no line under it, so it needs only a small
+   gap. The handrail rule below sets its own padding and margin. */
+.manuscriptwrapper .hr-label {margin-bottom: var(--chunk-twelfth);}
+
 /* Labeled handrails */
 .manuscriptwrapper .hr.hr-labeled .hr-content-zone {
   .hr-label {
     padding-block: var(--chunk-sixth);
     border-bottom: var(--border-extrathin) solid var(--border-primary);
     margin-bottom: var(--chunk-sixth);
-
-    span.label {font-weight: var(--weight-semi);}
-
   }
 }
 
@@ -2443,7 +2478,7 @@ body {
     display: flex; flex-direction: column;
   }
   .rail-hyp-empty {
-    color: var(--gray-400); font-style: italic;
+    color: var(--gray-700); font-style: italic;
     padding-left: calc(var(--rail-num-width, 2.8ch) + var(--chunk-sixth));
   }
 
@@ -2923,9 +2958,9 @@ body {
 }
 /* On touch there is no fold column (see the touch block above), so a caption's
    rail is one column in, like every other block's. */
-@media screen and (hover: none) and (pointer: coarse) {
-  .manuscriptwrapper .manuscript .hr.rsm-cap-linked { padding-left: calc(2 * var(--hr-zone-width)); }
-  .manuscriptwrapper .manuscript .hr.rsm-cap-linked > .hr-border-zone { left: var(--cap-rail-x, 0px); }
+@media screen {
+  html.touch .manuscriptwrapper .manuscript .hr.rsm-cap-linked { padding-left: calc(2 * var(--hr-zone-width)); }
+  html.touch .manuscriptwrapper .manuscript .hr.rsm-cap-linked > .hr-border-zone { left: var(--cap-rail-x, 0px); }
 }
 
 /* The margin column (margin.js decides where each item goes; sidebar.js sets
@@ -2971,8 +3006,8 @@ body {
   font-weight: var(--weight-semi); }
 /* Author block */
 .manuscriptwrapper .author-block {
-  margin-top: 1.5rem;
-  margin-bottom: 3rem; }
+  margin-top: var(--chunk-half);
+  margin-bottom: var(--chunk-half); }
 
 .manuscriptwrapper .author-names {
   font-size: 1.0625rem;
@@ -2981,13 +3016,27 @@ body {
   line-height: var(--body-line-height);
   margin: 0; }
 
+.manuscriptwrapper .author-name {
+  white-space: nowrap; }
+
+.manuscriptwrapper .author-contact {
+  color: var(--text-subtle); }
+
+.manuscriptwrapper .author-contact:hover {
+  color: var(--link-hover); }
+
+.manuscriptwrapper .author-names .icon {
+  display: inline-flex;
+  margin-left: var(--chunk-twelfth);
+  vertical-align: -0.1em; }
+
 .manuscriptwrapper .author-names sup {
   font-weight: var(--weight-regular);
   color: var(--text-subtle);
   cursor: pointer; }
 
 .manuscriptwrapper .author-details {
-  margin-top: 0.75rem; }
+  margin-top: var(--chunk-twelfth); }
 
 .manuscriptwrapper .author-details summary {
   font-size: 0.875rem;
@@ -2996,8 +3045,16 @@ body {
   cursor: pointer;
   list-style: none;
   display: inline-flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 0.25em; }
+  gap: var(--chunk-sixth); }
+
+.manuscriptwrapper .author-count {
+  font-size: 0.75rem;
+  padding: var(--chunk-twelfth) var(--chunk-sixth);
+  border-radius: 999px;
+  background: var(--surface-hover);
+  color: var(--text-subtle); }
 
 .manuscriptwrapper .author-details summary::marker,
 .manuscriptwrapper .author-details summary::-webkit-details-marker {
@@ -3421,17 +3478,15 @@ same tint. */
   the phrase gets a tap target at least 44px tall. The glyph box is always taller
   than 1em, so 1em plus this padding is enough. Inline padding does not move the
   lines around it. */
-  @media (hover: none) and (pointer: coarse) {
-    html.has-asides:not(.rsm-margin) .manuscriptwrapper a.aside-phrase {
-      padding-block: max(.15em, calc(22px - .5em));
-    }
-    /* That padding reaches into the lines above and below. Any other control
-    there (a footnote marker, a reference) must stay on top of it, or tapping
-    it opens the aside instead. Positioning does not move inline content. */
-    html.has-asides:not(.rsm-margin) .manuscriptwrapper :is(a, button, [role="button"]):not(.aside-phrase) {
-      position: relative;
-      z-index: 1;
-    }
+  html.touch.has-asides:not(.rsm-margin) .manuscriptwrapper a.aside-phrase {
+    padding-block: max(.15em, calc(22px - .5em));
+  }
+  /* That padding reaches into the lines above and below. Any other control
+  there (a footnote marker, a reference) must stay on top of it, or tapping
+  it opens the aside instead. Positioning does not move inline content. */
+  html.touch.has-asides:not(.rsm-margin) .manuscriptwrapper :is(a, button, [role="button"]):not(.aside-phrase) {
+    position: relative;
+    z-index: 1;
   }
   /* The margin item rule clears padding (for captions): the card keeps its own. */
   html.rsm-margin .manuscriptwrapper .manuscript .aside.rsm-margin-item {
@@ -3512,7 +3567,7 @@ a.reference.external:hover::after {
 @media (min-width: 640px) {
   /* sm: Small tablets and up */
   :root {
-    font-size: 14px;  /* 116.7% of mobile */
+    font-size: var(--embedded-font-size, 14px);  /* 116.7% of mobile */
     --side-padding: 3rem;
   }
 }
@@ -3520,7 +3575,7 @@ a.reference.external:hover::after {
 @media (min-width: 1024px) {
   /* lg: Desktop and up */
   :root {
-    font-size: 16px;  /* 133% of mobile, 114% of tablet */
+    font-size: var(--embedded-font-size, 16px);  /* 133% of mobile, 114% of tablet */
     --side-padding: 6.5rem;
   }
 }
@@ -4209,6 +4264,13 @@ html:not(.has-toc-switch) .manuscriptwrapper .toc .toc-switch { display: none; }
     padding-bottom: calc(48px + 2 * var(--chunk-sixth) + var(--chunk-half) + env(safe-area-inset-bottom, 0px));
   }
   html.has-rail:has(.rail-strip) { scroll-padding-bottom: calc(48px + 2 * var(--chunk-sixth) + var(--chunk-half)); }
+  /* With a sheet open, the end of the manuscript must be able to scroll above
+     the sheet too, so leave room for the sheet (above the bar). sidebar.js
+     sets --rail-sheet-h to the sheet's height; the sheet is at most 62vh. */
+  html.has-rail.rail-open body:has(.rail-strip) {
+    padding-bottom: calc(48px + 3 * var(--chunk-sixth) + var(--border-extrathin)
+      + var(--rail-sheet-h, 62vh) + var(--chunk-half) + env(safe-area-inset-bottom, 0px));
+  }
   html.has-rail body:has(.rail-strip) :is(.rsm-back-pill, .rsm-shared-pill) {
     bottom: calc(48px + 2 * var(--chunk-sixth) + var(--chunk-third) + env(safe-area-inset-bottom, 0px));
   }

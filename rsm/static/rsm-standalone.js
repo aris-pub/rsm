@@ -1351,7 +1351,7 @@ var RSM = (() => {
       clone = copyOf($t);
       clone.children().slice(2).remove();
       stripHandrail(clone);
-      clone.css("font-size", "0.7rem");
+      clone.find(".hr-labeled").removeClass("hr-labeled");
       content = clone.html();
     } else if (tag === "A") {
       content = `<div>${$t.parent().html()}</div>`;
@@ -1361,7 +1361,6 @@ var RSM = (() => {
       } else if (classes.contains("step")) {
         clone = copyOf($t.find(".statement"));
         stripHandrail(clone);
-        clone.css("font-size", "0.7rem");
         content = clone.html();
       } else if (classes.contains("proof")) {
         clone = copyOf($t);
@@ -1741,7 +1740,7 @@ var RSM = (() => {
   }
   var singletonMenu = null;
   var activeHr = null;
-  var IS_TOUCH = typeof window !== "undefined" && typeof window.matchMedia === "function" && window.matchMedia("(hover: none) and (pointer: coarse)").matches;
+  var isTouch = () => document.documentElement.classList.contains("touch");
   var delegationAttached = false;
   function setup5() {
     if (delegationAttached) return;
@@ -1830,7 +1829,7 @@ var RSM = (() => {
     const label2 = hr.getAttribute("data-menu-label") || "";
     let collapse = hr.getAttribute("data-menu-collapse");
     const collapseAll2 = hr.getAttribute("data-menu-collapse-all");
-    if (IS_TOUCH && (!collapse || collapse === "disabled") && hr.querySelector(":scope > .hr-collapse-zone .hr-collapse")) {
+    if (isTouch() && (!collapse || collapse === "disabled") && hr.querySelector(":scope > .hr-collapse-zone .hr-collapse")) {
       collapse = "enabled";
       hr.setAttribute("data-menu-collapse", collapse);
     }
@@ -1895,7 +1894,7 @@ var RSM = (() => {
       if (textEl) textEl.textContent = isTree ? "View as list" : "View as tree";
     }
     const isProof = hr.classList.contains("proof");
-    const touch = window.matchMedia("(hover: none) and (pointer: coarse)").matches;
+    const touch = isTouch();
     const reorder = isProof ? touch ? "disabled" : "true" : null;
     const reorderEl = singletonMenu.querySelector('[data-role="reorder"]');
     const reorderSep = singletonMenu.querySelector('[data-role="reorder-sep"]');
@@ -2942,6 +2941,9 @@ var RSM = (() => {
       attributes: true,
       attributeFilter: ["data-reading-measure"]
     });
+    new ResizeObserver(() => {
+      html.style.setProperty("--rail-sheet-h", rail.offsetHeight + "px");
+    }).observe(rail);
     function setOpen(on, { persist = true } = {}) {
       const anchor = !isPhone() && on !== open ? anchorTop() : null;
       open = on;
@@ -3065,6 +3067,7 @@ var RSM = (() => {
     }
     function selectScope(scope) {
       for (const s of SCOPES) rail.classList.toggle("scope-" + s, s === scope);
+      if (scope === "proof") requestAnimationFrame(followProofOnScreen);
     }
     function selectSubview(view) {
       const inDoc = view === "doc-map" || view === "notation";
@@ -3268,6 +3271,16 @@ var RSM = (() => {
       updateState();
     }
     show(null);
+    function followProofOnScreen() {
+      if (current) return;
+      const shown = proofs.filter((p) => items2.has(p.getAttribute("data-nodeid")));
+      const onScreen = shown.find((p) => {
+        const r = p.getBoundingClientRect();
+        return r.bottom > 0 && r.top < window.innerHeight && r.height > 0;
+      });
+      const pick = onScreen || (shown.length === 1 ? shown[0] : null);
+      if (pick) show(pick.getAttribute("data-nodeid"));
+    }
     function stepsOf2(proofEl) {
       return [...proofEl.querySelectorAll(".step")].filter((s) => !s.closest(".calc"));
     }

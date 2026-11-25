@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RSM example</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600&family=Source+Sans+3:wght@400;600;700&display=swap">
+<style>
+  /* One docs example, alone at full window size (the Open button of an
+     example). The bar names the docs page and leads back to the example. */
+  :root {
+    --braiid-blue-50: #F0F8FF;
+    --braiid-blue-600: #027AC7;
+    --braiid-blue-950: #082C49;
+    --braiid-gray-0: #FFFFFF;
+    --braiid-gray-200: #DAE1E5;
+    --braiid-gray-700: #5F7186;
+    --chunk-twelfth: 0.25rem;
+    --chunk-sixth: 0.5rem;
+    --chunk-third: 1rem;
+    --radius-lg: 0.5rem;
+  }
+  html, body { margin: 0; height: 100%; }
+  body { display: flex; flex-direction: column; font-family: 'Source Sans 3', sans-serif; }
+  .bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--chunk-third);
+    padding: 10px 24px;
+    background: var(--braiid-blue-50);
+    color: var(--braiid-blue-950);
+    border-bottom: 1px solid var(--braiid-gray-200);
+    font-size: 14px;
+  }
+  .back {
+    color: inherit;
+    text-decoration: none;
+    font-weight: 600;
+    border: 1px solid var(--braiid-gray-200);
+    border-radius: var(--radius-lg);
+    padding: 4px 12px;
+  }
+  .switches { margin-left: auto; display: flex; gap: var(--chunk-sixth); }
+  .switch { display: flex; }
+  .switch button {
+    font: 600 11.2px/1 'Montserrat', sans-serif;
+    padding: var(--chunk-twelfth) var(--chunk-sixth);
+    border: 1px solid var(--braiid-gray-200);
+    background: var(--braiid-gray-0);
+    color: var(--braiid-gray-700);
+    cursor: pointer;
+  }
+  .switch button:first-child { border-radius: var(--radius-lg) 0 0 var(--radius-lg); }
+  .switch button:last-child { border-left: none; border-radius: 0 var(--radius-lg) var(--radius-lg) 0; }
+  .switch button[aria-pressed="true"] {
+    background: var(--braiid-blue-600);
+    border-color: var(--braiid-blue-600);
+    color: #fff;
+  }
+  .stage { flex: 1; overflow: auto; }
+  .frame { display: block; width: 100%; height: 100%; border: none; margin-inline: auto; }
+  /* Narrow: a phone's width. Touch: a phone's or a tablet's screen height. */
+  .stage.narrow .frame { width: 390px; border-inline: 1px solid var(--braiid-gray-200); }
+  .stage.touch .frame { height: 1180px; }
+  .stage.narrow.touch .frame { height: 844px; }
+</style>
+</head>
+<body>
+<div class="bar">
+  <a class="back" href="#">&larr; Back to the docs</a>
+  <span>Example from the RSM docs: <b class="title"></b></span>
+  <span class="switches">
+    <span class="switch" role="group" aria-label="Width of the page">
+      <button type="button" data-width="wide" aria-pressed="true">Wide</button>
+      <button type="button" data-width="narrow" aria-pressed="false">Narrow</button>
+    </span>
+    <span class="switch" role="group" aria-label="Pointer of the page">
+      <button type="button" data-input="mouse" aria-pressed="true">Mouse</button>
+      <button type="button" data-input="touch" aria-pressed="false">Touch</button>
+    </span>
+  </span>
+</div>
+<div class="stage"><iframe class="frame" sandbox="allow-scripts allow-same-origin"></iframe></div>
+<script>
+  const params = new URLSearchParams(location.search);
+  const frame = document.querySelector(".frame");
+  const stage = document.querySelector(".stage");
+  // The page opens in a new tab, so Back closes it, which returns the reader
+  // to the docs tab that they came from. A tab that the browser does not let
+  // a script close (opened some other way) goes to the docs page instead.
+  const back = document.querySelector(".back");
+  back.href = params.get("back") || "../index.html";
+  back.addEventListener("click", (event) => {
+    event.preventDefault();
+    window.close();
+    setTimeout(() => { location.href = back.href; }, 200);
+  });
+  document.querySelector(".title").textContent = params.get("title") || "";
+  if (params.get("title")) document.title = params.get("title") + " - RSM example";
+
+  // The example page is built in the docs' embedded style; shown alone, it
+  // takes the style of a normal RSM page.
+  frame.addEventListener("load", () => {
+    const doc = frame.contentDocument;
+    doc.querySelector(".manuscriptwrapper")?.classList.remove("embedded");
+    for (const s of doc.querySelectorAll("style")) {
+      if (s.textContent.includes("--embedded-font-size")) s.remove();
+    }
+    doc.documentElement.classList.remove("rsm-fits");
+    if (stage.classList.contains("touch")) doc.documentElement.classList.add("touch");
+  });
+  frame.src = params.get("page") || "";
+
+  function press(attr, value) {
+    for (const b of document.querySelectorAll(`.switch button[${attr}]`)) {
+      b.setAttribute("aria-pressed", String(b.getAttribute(attr) === value));
+    }
+  }
+  document.addEventListener("click", (event) => {
+    const button = event.target.closest(".switch button");
+    if (!button) return;
+    if (button.dataset.width) {
+      stage.classList.toggle("narrow", button.dataset.width === "narrow");
+      press("data-width", button.dataset.width);
+    } else {
+      const touch = button.dataset.input === "touch";
+      stage.classList.toggle("touch", touch);
+      frame.contentDocument?.documentElement.classList.toggle("touch", touch);
+      press("data-input", button.dataset.input);
+    }
+  });
+</script>
+</body>
+</html>

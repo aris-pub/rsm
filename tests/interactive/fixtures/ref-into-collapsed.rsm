@@ -16,7 +16,7 @@ Filler paragraph three, padding padding padding padding padding padding.
 
     :claim: The outer step, collapsed on load. ::
 
-    :p:
+    :pf:
 
       :step: {:label: st-inner} The inner step, hidden inside the collapsed outer step. ::
 

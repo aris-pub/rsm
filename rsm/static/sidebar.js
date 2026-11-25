@@ -221,6 +221,12 @@ export function setupStrip(strip, rail, api) {
     attributeFilter: ["data-reading-measure"],
   });
 
+  // braiid.css leaves room at the end of the page for the phone sheet, which
+  // sizes to its content: it reads the sheet's height from --rail-sheet-h.
+  new ResizeObserver(() => {
+    html.style.setProperty("--rail-sheet-h", rail.offsetHeight + "px");
+  }).observe(rail);
+
   function setOpen(on, { persist = true } = {}) {
     const anchor = !isPhone() && on !== open ? anchorTop() : null;
     open = on;

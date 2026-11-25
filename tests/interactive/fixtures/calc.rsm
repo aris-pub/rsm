@@ -4,13 +4,13 @@
 
   :step: $a = b$
 
-    :p: Because the first reason holds. ::
+    :pf: Because the first reason holds. ::
 
   ::
 
   :step: $= c$
 
-    :p: Because the second reason holds. ::
+    :pf: Because the second reason holds. ::
 
   ::
 

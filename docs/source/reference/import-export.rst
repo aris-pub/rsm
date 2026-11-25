@@ -55,4 +55,4 @@ See also
 --------
 
 - :ref:`converting-guide` for practical workflows
-- :ref:`cli-commands` for command flags
+- :ref:`ref-cli` for the options of each command

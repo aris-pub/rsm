@@ -1,5 +1,29 @@
 @import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Source+Sans+3:wght@300;400;500;600;700&family=Source+Code+Pro:wght@400;500&display=swap");
 
+/* ─── BRAIID spacing and radius tokens, copied from braiid.css because the
+   docs pages do not load it ─── */
+:root {
+  --chunk: 3rem;
+  --chunk-twelfth: 0.25rem;
+  --chunk-sixth: 0.5rem;
+  --chunk-quarter: 0.75rem;
+  --chunk-third: 1rem;
+  --chunk-half: 1.5rem;
+  --radius-sm: 0.125rem;
+  --radius-md: 0.25rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 1rem;
+}
+
+/* ─── Page width: wider than the theme's 88rem, and the text fills the space
+   between the sidebars, so wide windows have less empty space. ─── */
+.bd-page-width {
+  max-width: 100rem;
+}
+.bd-main .bd-content .bd-article-container {
+  max-width: none;
+}
+
 /* ─── BRAIID color primitives ─── */
 :root {
   --braiid-blue-400: #38B4F8;
@@ -17,6 +41,7 @@
   --braiid-gray-100: #EDF0F2;
   --braiid-gray-200: #DAE1E5;
   --braiid-gray-300: #C2CCD3;
+  --braiid-gray-600: #8B9FAD;
   --braiid-gray-700: #5F7186;
   --braiid-gray-800: #51636F;
   --braiid-gray-900: #3C4952;
@@ -92,100 +117,66 @@ html[data-theme="light"] .bd-header .navbar-icon-links a {
   color: var(--braiid-gray-700);
 }
 
-/* ─── Hero section ─── */
-.hero-section {
-  background: linear-gradient(135deg, var(--braiid-blue-950) 0%, var(--braiid-blue-800) 50%, var(--braiid-blue-700) 100%);
-  color: white;
-  padding: 3.5rem 2.5rem;
-  border-radius: 0.75rem;
-  margin-bottom: 3rem;
-  position: relative;
-  overflow: hidden;
-}
+/* ─── Landing page (index.rst) ─── */
+/* The page needs a title for the browser tab and the toctree, and the card
+   below shows the name, so the heading is hidden. */
+#rsm > h1 { display: none; }
 
-html[data-theme="dark"] .hero-section {
-  background: linear-gradient(135deg, var(--braiid-gray-950) 0%, var(--braiid-blue-950) 50%, var(--braiid-blue-900) 100%);
-  border: 1px solid var(--braiid-blue-800);
-}
+/* The landing page ends with its example, not with a link to the next page. */
+.bd-content:has(.landing-hero) .prev-next-area { display: none; }
+.landing-hero { background: linear-gradient(135deg, var(--braiid-blue-950) 0%, var(--braiid-blue-800) 60%, var(--braiid-blue-700) 100%);
+  color: #fff; border-radius: var(--radius-xl); padding: var(--chunk-half) var(--chunk-half); display: flex; flex-wrap: wrap; gap: var(--chunk-third) var(--chunk-half);
+  align-items: center; justify-content: space-between; margin: var(--chunk-sixth) 0 var(--chunk-half); }
+.landing-hero .name { font: 700 2.6rem/1 Montserrat, sans-serif; letter-spacing: -.03em; margin: 0; color: #fff; }
+.landing-hero .name span { color: var(--braiid-blue-400); }
+.landing-hero .kicker { font: 500 .8rem/1 Montserrat, sans-serif; letter-spacing: .12em; text-transform: uppercase; color: #7DCDFC; margin: var(--chunk-sixth) 0 var(--chunk-quarter); }
+.landing-hero .tag { font-size: 1.1rem; color: var(--braiid-blue-100); margin: 0; max-width: 30rem; line-height: 1.5; }
+.landing-hero .side { display: flex; flex-direction: column; gap: var(--chunk-quarter); align-items: flex-start; }
+.landing-hero .btns { display: flex; gap: var(--chunk-quarter); flex-wrap: wrap; }
+.landing-hero .btns a { padding: var(--chunk-sixth) var(--chunk-third); border-radius: var(--radius-lg); font: 600 .9rem Montserrat, sans-serif; text-decoration: none; }
+.landing-hero .btns .p { background: #fff; color: var(--braiid-blue-800); }
+.landing-hero .btns .s { color: #fff; border: 1.5px solid rgba(255,255,255,.55); }
+.landing-hero code.install { background: rgba(255,255,255,.1); color: #fff; border: 1px solid rgba(255,255,255,.25); padding: var(--chunk-twelfth) var(--chunk-quarter); border-radius: var(--radius-lg); font-size: .85rem; }
 
-.hero-section h1 {
-  font-size: 3.5rem;
-  font-weight: 700;
-  margin-bottom: 0;
-  color: white;
-  letter-spacing: -0.03em;
-  line-height: 1;
+.landing-band { background: var(--braiid-gray-75); border: 1px solid var(--pst-color-border); border-radius: var(--radius-xl); padding: var(--chunk-half) var(--chunk-half) var(--chunk-half); }
+html[data-theme="dark"] .landing-band { background: #10161a; }
+.landing-band h2 { font-size: 1.5rem; margin: 0 0 var(--chunk-twelfth); }
+.landing-band .sub { color: var(--pst-color-text-muted); margin: 0 0 var(--chunk-third); }
+.landing-band .rsm-example { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); gap: var(--chunk-third); border: none; overflow: visible; margin: 0; align-items: start; }
+@media (max-width: 900px) { .landing-band .rsm-example { grid-template-columns: 1fr; } }
+.landing-band .rsm-example-code, .landing-band .rsm-iframe-wrap { border-radius: var(--radius-lg); overflow: hidden; background: #fff; border: 1px solid var(--braiid-gray-200); box-shadow: 0 10px 30px rgba(8,44,73,.14), 0 2px 6px rgba(8,44,73,.06); }
+.landing-band .rsm-example-code::before, .landing-band .rsm-iframe-wrap::before { display: flex; align-items: center; gap: var(--chunk-sixth); height: 2.1rem; padding-inline: var(--chunk-third); font: 500 .78rem 'Source Code Pro', monospace; color: var(--braiid-gray-700); background: var(--braiid-gray-75); border-bottom: 1px solid var(--braiid-gray-200); }
+.landing-band .rsm-example-code::before { content: "euclid.rsm  ·  source"; }
+.landing-band .rsm-iframe-wrap::before { content: "euclid.html  ·  page"; }
+.landing-band .rsm-example-code pre { background: #fff !important; border: none !important; white-space: pre-wrap; font-size: .85rem; line-height: 1.55; }
+.landing-band .rsm-iframe-wrap { order: 2; }
+@media (max-width: 900px) {
+  .landing-band { padding: var(--chunk-third) var(--chunk-sixth) var(--chunk-third); border-radius: var(--radius-lg); }
+  .landing-band h2, .landing-band .sub, .landing-band .hint { padding-inline: var(--chunk-sixth); }
+  .landing-band .rsm-iframe-wrap { order: 1; }
+  .landing-band .rsm-example-code { order: 2; }
+  .landing-hero { padding: var(--chunk-third) var(--chunk-third); }
+  .landing-hero .name { font-size: 2.2rem; }
+  .landing-hero .side, .landing-hero .btns { width: 100%; }
+  .landing-hero .btns a { flex: 1; text-align: center; padding-inline: var(--chunk-sixth); }
 }
+.landing-band .hint { margin: var(--chunk-third) 0 0; font-size: .92rem; color: var(--pst-color-text-muted); }
 
-.hero-section .hero-dot {
-  color: var(--braiid-blue-400);
-}
+.landing-why { display: grid; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); gap: var(--chunk-half); margin: var(--chunk-sixth) 0 var(--chunk-third); }
+.landing-why h3 { font-size: 1.05rem; margin: 0 0 var(--chunk-sixth); color: var(--pst-color-text-base); }
+.landing-why h3 b { color: var(--braiid-blue-600); margin-right: var(--chunk-twelfth); }
+.landing-why p { margin: 0; color: var(--pst-color-text-muted); }
+.landing-next { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--chunk-third); margin: var(--chunk-half) 0 var(--chunk); }
+@media (max-width: 600px) { .landing-next { grid-template-columns: 1fr; } }
+.landing-next a { display: block; padding: var(--chunk-third) var(--chunk-third); border-radius: var(--radius-lg); border: 1px solid var(--pst-color-border); border-left: 4px solid var(--braiid-blue-600); text-decoration: none; transition: background-color .15s ease, border-color .15s ease, box-shadow .15s ease, transform .15s ease; }
+.landing-next a:hover, .landing-next a:focus-visible { background: var(--braiid-blue-50); border-color: var(--braiid-blue-600); box-shadow: 0 4px 14px rgba(8,44,73,.10); transform: translateY(-1px); }
+html[data-theme="dark"] .landing-next a:hover, html[data-theme="dark"] .landing-next a:focus-visible { background: rgba(56,180,248,.08); }
+.landing-next a:hover b, .landing-next a:focus-visible b { color: var(--braiid-blue-700); }
+html[data-theme="dark"] .landing-next a:hover b { color: var(--braiid-blue-400); }
+@media (prefers-reduced-motion: reduce) { .landing-next a { transition: none; } .landing-next a:hover { transform: none; } }
+.landing-next a b { display: block; color: var(--pst-color-text-base); font-family: Montserrat, sans-serif; }
+.landing-next a span { color: var(--pst-color-text-muted); font-size: .9rem; }
 
-.hero-section .hero-subtitle {
-  font-size: 1.15rem;
-  font-weight: 400;
-  color: var(--braiid-blue-300, #7DCDFC);
-  margin-top: 0.25rem;
-  margin-bottom: 1.25rem;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-}
-
-.hero-section .hero-tagline {
-  font-size: 1.15rem;
-  font-weight: 400;
-  color: var(--braiid-blue-100);
-  margin-bottom: 2rem;
-  max-width: 40rem;
-  line-height: 1.6;
-}
-
-.hero-section .hero-actions {
-  display: flex;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-
-.hero-section .hero-actions a {
-  display: inline-block;
-  padding: 0.6rem 1.5rem;
-  border-radius: 0.5rem;
-  font-weight: 600;
-  font-family: 'Montserrat', sans-serif;
-  font-size: 0.9rem;
-  text-decoration: none;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
-
-.hero-section .hero-actions a:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-}
-
-.hero-section .hero-actions .btn-primary {
-  background: white;
-  color: var(--braiid-blue-800);
-}
-
-.hero-section .hero-actions .btn-secondary {
-  background: transparent;
-  color: white;
-  border: 1.5px solid rgba(255, 255, 255, 0.5);
-}
-
-.hero-section .hero-actions .btn-secondary:hover {
-  border-color: white;
-}
-
-.hero-section::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 4px;
-  background: var(--braiid-blue-400);
-}
 
 /* ─── Grid cards ─── */
 html,
@@ -231,25 +222,240 @@ html[data-theme="dark"] .sd-card.sd-sphinx-override:hover {
 }
 
 /* ─── RSM source-only blocks (no rendered preview) ─── */
+.rsm-source-only {
+  margin-bottom: var(--chunk-third);
+}
 .rsm-source-only pre {
-  margin: 0;
   padding: 1em;
-  overflow-x: auto;
+  white-space: pre-wrap;
   line-height: 1.5;
-  border-radius: 0.5rem;
+  border-radius: var(--radius-lg);
   border: 1px solid var(--pst-color-border);
   background: var(--pst-color-surface);
 }
 
-/* ─── RSM iframe loading spinner ─── */
-.rsm-iframe-wrap {
-  position: relative;
-  width: 49%;
-  overflow: hidden;
+/* ─── RSM examples: source and result side by side, stacked when narrow ─── */
+/* The width that matters is the article's, which changes with the sidebars,
+   so the layout follows a container query on it, not a media query. */
+.bd-article-container {
+  container-type: inline-size;
 }
 
-.rsm-example.vertical .rsm-iframe-wrap {
+/* The landing page's example (.landing-band) has its own design, so these
+   rules leave it out.
+
+   A gray box holds the source and the result. The result sits in it as a
+   white page with a shadow, so that it reads as a separate document. */
+.rsm-example:not(.landing-band .rsm-example) {
+  margin-block: var(--chunk-third);
+  padding: var(--chunk-quarter);
+  display: grid;
+  gap: var(--chunk-quarter);
+  background: var(--braiid-gray-75);
+  border: 1px solid var(--pst-color-border);
+  border-radius: var(--radius-lg);
+}
+
+html[data-theme="dark"] .rsm-example:not(.landing-band .rsm-example) {
+  background: #10161a;
+}
+
+.rsm-example:not(.landing-band .rsm-example) .rsm-example-code::before,
+.rsm-example:not(.landing-band .rsm-example) .rsm-iframe-wrap::before {
+  display: block;
+  margin-bottom: var(--chunk-twelfth);
+  font: 600 0.7rem/1 'Montserrat', sans-serif;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--pst-color-text-muted);
+}
+
+.rsm-example:not(.landing-band .rsm-example) .rsm-example-code::before {
+  content: "Source";
+}
+
+.rsm-example:not(.landing-band .rsm-example) .rsm-iframe-wrap::before {
+  content: "Page";
+}
+
+/* Both labels have the height of the Desktop and Phone buttons, so the source
+   and the page start at the same height. */
+.rsm-example:not(.landing-band .rsm-example) .rsm-example-code::before,
+.rsm-example:not(.landing-band .rsm-example) .rsm-iframe-wrap::before {
+  display: flex;
+  align-items: center;
+  min-height: 1.5rem;
+}
+
+.rsm-example:not(.landing-band .rsm-example) .rsm-example-code {
+  margin: 0;
+  min-width: 0;
+  background: transparent;
+}
+
+/* ─── Line numbers and the Wrap / No wrap switch on the source ─── */
+/* The highlighter puts each line in a span.ln. */
+.rsm-highlight pre .ln {
+  display: block;
+}
+.rsm-example:not(.landing-band .rsm-example) .rsm-example-code {
+  position: relative;
+}
+.rsm-example:not(.landing-band .rsm-example) .rsm-example-code.highlight pre {
+  counter-reset: ln;
+  padding-left: 0;
+  overflow-x: auto;
+}
+.rsm-example:not(.landing-band .rsm-example) .rsm-example-code pre .ln {
+  position: relative;
+  min-height: 1lh;
+  /* The gray column is 2.9em wide and its numbers end 0.6em before its right
+     edge, so the code starts the same 0.6em after it. */
+  padding-left: 3.5em;
+  padding-right: var(--chunk-quarter);
+}
+.rsm-example:not(.landing-band .rsm-example) .rsm-example-code pre .ln::before {
+  counter-increment: ln;
+  content: counter(ln);
+  position: absolute;
+  left: 0;
+  width: 2.3em;
+  text-align: right;
+  color: var(--braiid-gray-600);
+  user-select: none;
+}
+.rsm-example:not(.landing-band .rsm-example) .rsm-example-code.nowrap pre {
+  white-space: pre;
+}
+.rsm-wrapswitch {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+.landing-band .rsm-wrapswitch { display: none; }
+.rsm-open {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--chunk-twelfth);
+  border-radius: var(--radius-lg);
+  text-decoration: none;
+}
+.landing-band .rsm-open { display: none; }
+
+/* The line numbers sit in a light gray column. */
+.rsm-example:not(.landing-band .rsm-example) .rsm-example-code.highlight pre {
+  background: linear-gradient(to right, var(--braiid-gray-75) 0 2.9em, var(--pst-color-background) 2.9em);
+}
+html[data-theme="dark"] .rsm-example:not(.landing-band .rsm-example) .rsm-example-code.highlight pre {
+  background: linear-gradient(to right, #10161a 0 2.9em, var(--pst-color-background) 2.9em);
+}
+/* The docs' Copy button goes inside the source card, at its top right, below
+   the label row and its Wrap switch. */
+.rsm-example:not(.landing-band .rsm-example) .rsm-example-code .copybtn {
+  top: calc(1.5rem + var(--chunk-twelfth) + 6px);
+  right: 6px;
+}
+
+.rsm-example:not(.landing-band .rsm-example) .rsm-example-code pre {
+  /* An example is at most 640 px tall; a longer source scrolls, and so does a
+     longer page (the frame's onload in rsm_directive.py). */
+  max-height: 640px;
+  overflow: auto;
+  white-space: pre-wrap;
+  margin: 0;
+  border: 1px solid var(--pst-color-border);
+  border-radius: var(--radius-lg);
+  background: var(--pst-color-background);
+  padding: var(--chunk-quarter);
+  font-family: 'Source Code Pro', monospace;
+}
+
+/* On a phone the box reaches the screen edges (the article has 16px side
+   padding there), so the source and result cards get the full width. */
+@media (max-width: 600px) {
+  .rsm-example:not(.landing-band .rsm-example) {
+    margin-inline: -16px;
+    padding: var(--chunk-sixth) var(--chunk-sixth);
+    border-inline: none;
+    border-radius: 0;
+  }
+}
+
+.rsm-example:not(.landing-band .rsm-example) .rsm-example-iframe {
+  border: 1px solid var(--pst-color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 4px 14px rgba(8, 44, 73, 0.08), 0 1px 3px rgba(8, 44, 73, 0.06);
+}
+
+/* The landing page lays out its example on its own. */
+@container (min-width: 44rem) {
+  .rsm-example:not(.stacked, .landing-band .rsm-example) {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: start;
+  }
+}
+
+.rsm-iframe-wrap {
+  position: relative;
+  min-height: 4rem;
+}
+
+/* ─── Wide / Narrow and Mouse / Touch switches in the Page label row (example-view.js) ─── */
+.rsm-viewswitch {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: flex;
+  gap: var(--chunk-sixth);
+}
+.rsm-switch {
+  display: flex;
+}
+.rsm-viewswitch button,
+.rsm-wrapswitch button,
+.rsm-open {
+  font: 600 0.7rem/1 'Montserrat', sans-serif;
+  padding: var(--chunk-twelfth) var(--chunk-sixth);
+  border: 1px solid var(--pst-color-border);
+  background: var(--pst-color-background);
+  color: var(--pst-color-text-muted);
+  cursor: pointer;
+}
+.rsm-viewswitch button:first-child,
+.rsm-wrapswitch button:first-child {
+  border-radius: var(--radius-lg) 0 0 var(--radius-lg);
+}
+.rsm-viewswitch button:last-child,
+.rsm-wrapswitch button:last-child {
+  border-left: none;
+  border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
+}
+.rsm-viewswitch button[aria-pressed="true"],
+.rsm-wrapswitch button[aria-pressed="true"] {
+  background: var(--braiid-blue-600);
+  border-color: var(--braiid-blue-600);
+  color: #fff;
+}
+.rsm-example.desktop-view:not(.landing-band .rsm-example) {
+  grid-template-columns: minmax(0, 1fr);
+}
+.rsm-iframe-wrap.phone-view .rsm-example-iframe {
+  width: 390px;
+  max-width: 100%;
+  margin-inline: auto;
+}
+/* On a phone the page cannot show its desktop layout, and the landing page's
+   example has its own design. */
+@media (max-width: 600px) {
+  .rsm-viewswitch { display: none; }
+}
+.landing-band .rsm-viewswitch { display: none; }
+
+.rsm-example-iframe {
+  display: block;
   width: 100%;
+  border: none;
+  background: white;
 }
 
 .rsm-iframe-spinner {
@@ -258,7 +464,7 @@ html[data-theme="dark"] .sd-card.sd-sphinx-override:hover {
   left: 50%;
   width: 1.5rem;
   height: 1.5rem;
-  margin: -0.75rem 0 0 -0.75rem;
+  margin: calc(-1 * var(--chunk-quarter)) 0 0 calc(-1 * var(--chunk-quarter));
   border: 2px solid var(--pst-color-border);
   border-top-color: var(--pst-color-primary);
   border-radius: 50%;
@@ -274,58 +480,6 @@ html[data-theme="dark"] .sd-card.sd-sphinx-override:hover {
   to { transform: rotate(360deg); }
 }
 
-/* ─── RSM example panels ─── */
-.rsm-example {
-  display: flex;
-  gap: 2%;
-  max-width: 100%;
-  overflow: hidden;
-}
-
-.rsm-example.vertical {
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.rsm-example-code {
-  width: 49% !important;
-  margin-top: 0 !important;
-}
-
-.rsm-example.vertical .rsm-example-code {
-  width: 100% !important;
-}
-
-.rsm-example-code .highlight {
-  height: 100%;
-  border-radius: 0.5rem;
-}
-
-.rsm-example-code .highlight pre {
-  height: 100%;
-  font-family: 'Source Code Pro', monospace;
-}
-
-.rsm-example .manuscriptwrapper.embedded {
-  width: 49%;
-  border-radius: 0.5rem;
-  border: 1px solid var(--pst-color-border);
-  padding-block: 1rem;
-  margin-bottom: 1em;
-}
-
-.rsm-example.vertical .manuscriptwrapper.embedded {
-  width: 100%;
-}
-
-.rsm-example-iframe {
-  width: 100%;
-  border: 1px solid var(--pst-color-border);
-  border-radius: 0.5rem;
-  background: white;
-  overflow: hidden;
-}
-
 /* ─── Code blocks ─── */
 .highlight pre {
   border-radius: 0.5rem;
@@ -339,6 +493,11 @@ html[data-theme="dark"] .sd-card.sd-sphinx-override:hover {
 }
 
 /* ─── Footer ─── */
+.bd-footer .copyright a {
+  color: inherit;
+  text-decoration: underline;
+}
+
 .bd-footer {
   border-top: 1px solid var(--pst-color-border);
   padding: 1.5rem 0;
@@ -452,4 +611,77 @@ html[data-theme="dark"] .sd-card.sd-sphinx-override:hover {
   button.openlive {
     display: none;
   }
+}
+
+/* ─── Language reference: one card per tag ─── */
+section.tag-card {
+  border: 1px solid var(--pst-color-border);
+  border-radius: var(--radius-xl);
+  padding: 0 var(--chunk-third) var(--chunk-sixth);
+  margin-block: var(--chunk-half);
+  overflow: hidden;
+}
+section.tag-card > h2 {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--chunk-sixth);
+  margin: 0 calc(-1 * var(--chunk-third)) var(--chunk-third);
+  padding: var(--chunk-sixth) var(--chunk-third);
+  background: var(--braiid-gray-75);
+  border-bottom: 1px solid var(--pst-color-border);
+  font-size: 1.4rem;
+}
+section.tag-card > h2 code {
+  background: none;
+  border: none;
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--braiid-blue-700);
+}
+section.tag-card > h2 code:first-of-type {
+  margin-left: auto;
+}
+section.tag-card .rubric {
+  font: 600 0.75rem Montserrat, sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--pst-color-text-muted);
+  margin: var(--chunk-third) 0 var(--chunk-sixth);
+  border: none;
+  padding: 0;
+}
+section.tag-card dl > dt code {
+  background: none;
+  border: none;
+  padding: 0;
+  font-weight: 500;
+  color: var(--braiid-blue-700);
+}
+section.tag-card dl {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  column-gap: var(--chunk-third);
+  margin: 0;
+}
+section.tag-card dl > dt,
+section.tag-card dl > dd {
+  margin: 0;
+  padding: var(--chunk-sixth) 0;
+  border-top: 1px solid var(--pst-color-border);
+}
+section.tag-card dl > dd > p {
+  margin: 0;
+}
+@media (max-width: 600px) {
+  section.tag-card dl {
+    grid-template-columns: 1fr;
+  }
+  section.tag-card dl > dd {
+    border-top: none;
+    padding-top: 0;
+  }
+}
+html[data-theme="dark"] section.tag-card > h2 {
+  background: #10161a;
 }

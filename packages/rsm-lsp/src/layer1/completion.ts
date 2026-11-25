@@ -42,7 +42,7 @@ const RSM_TAGS = [
   { tag: ':proof:', description: 'Proof' },
   { tag: ':sketch:', description: 'Proof sketch' },
   { tag: ':step:', description: 'Proof step (inside proofs)' },
-  { tag: ':p:', description: 'Subproof (used inside steps)' },
+  { tag: ':pf:', description: 'Subproof (used inside steps)' },
   { tag: ':calc:', description: 'Calculation: a chain of relations, each a :step: with its reason' },
 
   // Proof constructs

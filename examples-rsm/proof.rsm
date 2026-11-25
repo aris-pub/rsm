@@ -52,7 +52,7 @@
 
     :pick: $n \in \mathbb{N}$ :: :st: ${:label: nilpotency}x^n = 0$ ::.
 
-    :p: Such an $n$ exists by definition of nilpotent. :: ::
+    :pf: Such an $n$ exists by definition of nilpotent. :: ::
 
   :step:
 
@@ -63,12 +63,12 @@
     (1 + x)(1 - x + x^2 - \ldots + (-1)^n x^n) = 1 + (−1)^n x^{n+1} = 1
     $$
 
-    :p: Multiplying the left-hand side directly yields the middle expression.  The term
+    :pf: Multiplying the left-hand side directly yields the middle expression.  The term
     $(−1)^n x^{n+1}$ equals $0$, by :ref:x-is-nilp::.  :: ::
 
   :step: :ref:goal-1, Goal 1:: is :qed:.
 
-    :p: By :ref:eqn-1-plus-x-is-unit::.  :: ::
+    :pf: By :ref:eqn-1-plus-x-is-unit::.  :: ::
 
   :step: {:label: some-lbl}
 
@@ -77,21 +77,21 @@
 
   :step: :⊢: $u^{−1} x$ is nilpotent.::
 
-    :p: Immediately from $(u^{−1} x)^n = u^{−n} x^n = 0$. :: ::
+    :pf: Immediately from $(u^{−1} x)^n = u^{−n} x^n = 0$. :: ::
 
   :step: :⊢: $1 + u^{−1} x$ is unit.::
 
-    :p: By :ref:goal-1, Goal 1::. :: ::
+    :pf: By :ref:goal-1, Goal 1::. :: ::
 
   :step: :⊢: $u + x$ is a unit.::
 
-    :p: Because both $u$ and $1 + u^{-1} x$ are units, and the units are closed under multiplication. :: ::
+    :pf: Because both $u$ and $1 + u^{-1} x$ are units, and the units are closed under multiplication. :: ::
 
   :step:
 
     :ref:goal-2, Goal 2:: is :qed:
 
-    :p: By :ref:some-lbl::. :: ::
+    :pf: By :ref:some-lbl::. :: ::
 
 ::
 
@@ -129,11 +129,11 @@
 
   :step: :claim: $f$ is a unit in $A[x]$ $\iff$ $a_0$ is a unit in $A$ and $a_1, \ldots , a_n$ are nilpotent. ::
 
-    :p:
+    :pf:
 
       :step: :claim: $\Longrightarrow$ ::
 
-        :p:
+        :pf:
 
 	  :step: {:label:asm-f-unit}
 
@@ -143,33 +143,33 @@
 
 	  :step: :pick: $g \in A[x]$ :: :st: $fg = 1$ ::, and :write: $g = \sum_{j=0}^m b_j x^j$ ::.
 
-	    :p: Such a $g$ exists because $f$ is a unit, as assumed in :prev:. :: ::
+	    :pf: Such a $g$ exists because $f$ is a unit, as assumed in :prev:. :: ::
 
 	  :step: :write: $fg = \sum_k c_k x^k$ :: and observe :claim: $c_k = \sum_{r=0}^k a_r b_{k - r}$ ::.
 
-	    :p: By direct computation of the product $fg$. :: ::
+	    :pf: By direct computation of the product $fg$. :: ::
 
 	  :step: {:label:ck-is-zero}
 
 	    :claim: $c_0 = 1$ and $c_k = 0$ for each $k > 1$ ::.
 
-	    :p: From the fact that $fg = 1$. :: ::
+	    :pf: From the fact that $fg = 1$. :: ::
 
 	  :step: {:label:a0-b0-are-units}
 
 	    :claim: $a_0$ and $b_0$ are units in $A$. ::
 
-	    :p: Because $1 = c_0 = a_0 b_0$. :: ::
+	    :pf: Because $1 = c_0 = a_0 b_0$. :: ::
 
 	  :step: :claim: $a_1, \ldots , a_n$ are nilpotent. ::
 
-	    :p:
+	    :pf:
 
 	      :step: {:label:first-substep}
 
 	        :claim: $a^r_n b_{m+1-r} = 0$ for $r = 1, \ldots, m + 1$. ::
 
-	        :p:
+	        :pf:
 
 	          :step: We proceed by induction.  For the base case $r=1$, we have $a_n
 	          b_m = 0$ which is true because $a_n b_m = c_{n+m} = 0$, from
@@ -179,7 +179,7 @@
 
 	          :step: :claim: $a^{r+1}_n b_{m-r} = 0$ ::
 
-	            :p:
+	            :pf:
 
 	              Consider $0 = a_n^r c_{m+n-r}$,
 	              $$
@@ -196,7 +196,7 @@
 
 	      :step: :qed:
 
-	        :p:
+	        :pf:
 
 	          :step: We again proceed by induction.  To prove the base case that
 	          $a_n$ is nilpotent, observe $a_n^{m+1} b_0 = 0$ by
@@ -207,20 +207,20 @@
 
 	          :step: :claim: $a_{r-1}$ is nilpotent ::.
 
-	            :p:
+	            :pf:
 
 	              :step: :claim: $a_n x^n + a_{n-1} x^{n-1} + \ldots + a_r x^r $ is nilpotent. ::
 
-	        	:p: By inductive hypothesis, and the fact that the nilpotent
+	        	:pf: By inductive hypothesis, and the fact that the nilpotent
 	        	elements are closed under addition. :: ::
 
 	              :step: :claim: $f - (a_n x^n + a_{n-1} x^{n-1} + \ldots + a_r x^r)$ is a unit.::
 
-	        	:p: By Exercise 1, since $f$ is a unit, and the term in parenthesis is nilpotent. :: ::
+	        	:pf: By Exercise 1, since $f$ is a unit, and the term in parenthesis is nilpotent. :: ::
 
 	              :step: :qed:
 
-	        	:p: Applying THE SAME ARGUMENT to $f - (a_n x^n + a_{n-1}
+	        	:pf: Applying THE SAME ARGUMENT to $f - (a_n x^n + a_{n-1}
 	        	x^{n-1} + \ldots + a_r x^r)$, we find that its leading
 	        	coefficient, namely $a_{r-1}$, is nilpotent. :: ::
 
@@ -234,13 +234,13 @@
 
       :step: :claim: $\Longleftarrow$ ::
 
-        :p:
+        :pf:
 
           :step: :assume:{:label:asm-1} $a_0$ is a unit in $A$, and $a_1, \ldots, a_n$ are nilpotent. :: ::
 
           :step: :claim: Each $a_1 x, a_2 x^2, \ldots, a_n x^n$ is nilpotent. ::
 
-            :p: Immediate from the fact that the $a_1, \ldots, a_n$ are nilpotent. :: ::
+            :pf: Immediate from the fact that the $a_1, \ldots, a_n$ are nilpotent. :: ::
 
           :step: :write: $u \colon = \sum_{i=1}^{n} a_i x^i $. :: ::
 
@@ -248,12 +248,12 @@
 
             :claim: $u$ is nilpotent. ::
 
-            :p: Since each of the terms $a_i x^i$ for $i=1,\ldots,n$ is nilpotent, and
+            :pf: Since each of the terms $a_i x^i$ for $i=1,\ldots,n$ is nilpotent, and
             the nilpotent elements are closed under addition. :: ::
 
           :step: :claim: $f$ is a unit in $A[x]$. ::
 
-            :p: Writing $f = a_0 + u $, we can see that $f$ is the sum of a unit (namely
+            :pf: Writing $f = a_0 + u $, we can see that $f$ is the sum of a unit (namely
             $a_0$, by :ref:asm-1, assumption::) and a nilpotent element (namely $u$, by
             :prev:).  A previous step implies that $f$ is a unit. :: ::
 
@@ -266,24 +266,24 @@
 
   :step: :claim: $f$ is nilpotent $\iff$ $a_0, a_1, \ldots , a_n$ are nilpotent. ::
 
-    :p:
+    :pf:
 
       :step: :claim: $\Longrightarrow$ ::
 
-        :p:
+        :pf:
 
           :step: :pick: $m \in \mathbb{N}$ :: :st: $f^m = 0$ ::. ::
 
           :step: We proceed by induction.  For the base case, we have that :claim: $a_n$ is nilpotent in $A$::.
 
-            :p: Note the leading coefficient of $f^m$ is $a_n^m$.  It has to equal $0$
+            :pf: Note the leading coefficient of $f^m$ is $a_n^m$.  It has to equal $0$
             because $f = 0$. :: ::
 
           :step: :assume: $a_s$ is nilpotent for each $s = n, \ldots, r.$ :: ::
 
           :step: :claim: $a_{r-1}$ is nilpotent.::
 
-            :p: Note $g := f - (a_n x^n + \ldots + a_r x^r)$ is nilpotent since both $f$ and
+            :pf: Note $g := f - (a_n x^n + \ldots + a_r x^r)$ is nilpotent since both $f$ and
             the term in parenthesis are nilpotent.  By THE PREVIOUS ARGUMENT, the
             leading coefficient of $g$, namely $a_{r-1} x^{r-1}$, is nilpotent in
             $A[x]$, which in turn implies $a_{r-1}$ is nilpotent in $A$. :: ::
@@ -293,7 +293,7 @@
 
       :step: :claim: $\Longleftarrow$ ::
 
-        :p: Since $a_k$ is nilpotent then $a_k x^k$ is nilpotent, for each $k = 1,
+        :pf: Since $a_k$ is nilpotent then $a_k x^k$ is nilpotent, for each $k = 1,
         \ldots, n$.  The sum $f = \sum a_k x^k$ is nilpotent since the nilpotent
         elements are closed under addition. :: ::
 

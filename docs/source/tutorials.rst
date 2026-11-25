@@ -1,41 +1,19 @@
 .. _tutorials:
 
-Tutorials
-=========
+Tutorial
+========
 
-Step-by-step lessons that take you from beginner to confident RSM user.
-
-.. grid:: 1 2 2 2
-
-   .. grid-item-card:: I want to try RSM now
-      :class-card: sd-rounded-3
-
-      **Use RSM Studio** (no installation)
-
-      - Visit `rsm.studio <https://rsm.studio>`_
-      - Start typing immediately
-      - See output in real-time
-
-      **Next**: Read :ref:`markup` (5 min) to learn basic syntax
-
-   .. grid-item-card:: I want to install RSM locally
-      :class-card: sd-rounded-3
-
-      **Start here**
-
-      - :ref:`getting-started` (from zero to rendered output, 10 min)
-
-      **Next**: Explore the :ref:`guides` for common tasks
-
-
-All tutorials
-*************
+In the six pages of the tutorial you install RSM, write a paper and publish
+it. Read them in order, because each page assumes that you have read the ones
+before it. Every example has the RSM source next to the page that RSM makes
+from it.
 
 .. toctree::
    :maxdepth: 1
 
-   tutorials/getting-started
-   tutorials/markup
+   tutorials/first-document
+   tutorials/text
+   tutorials/theorems
    tutorials/references
-   tutorials/handrail
-   tutorials/example
+   tutorials/figures
+   tutorials/build

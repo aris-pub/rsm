@@ -9,10 +9,13 @@ with copy-paste examples.
 .. toctree::
    :maxdepth: 1
 
-   guides/tooltips
+   guides/structured-proofs
+   guides/notation
+   guides/footnotes-asides
+   guides/interactive-figures
    guides/citations
    guides/multi-author
    guides/styling
    guides/converting
-   guides/recipes
+   guides/latex-mental-model
    guides/publish-to-press

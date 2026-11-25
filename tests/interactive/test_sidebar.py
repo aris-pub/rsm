@@ -211,6 +211,22 @@ def test_proof_selection_follows_clicks_not_scroll(page: Page, interactive_serve
     ), "selection should persist when scrolling away"
 
 
+def test_opening_a_proof_view_shows_the_proof_without_a_click(
+    page: Page, interactive_server: str
+):
+    # Opening Proof steps before clicking anything shows the proof on screen,
+    # or the document's only proof, instead of "No proof selected".
+    _load(page, interactive_server)
+    page.evaluate("() => window.scrollTo(0, 0)")
+    _show(page, "steps")
+    page.wait_for_function(
+        "() => { const r = document.querySelector('.proof-rail');"
+        " return !r.classList.contains('no-proof')"
+        " && !!r.querySelector('.rail-proof .proof-rail-item.shown'); }",
+        timeout=5_000,
+    )
+
+
 def test_sidebar_absent_without_js(browser, interactive_server: str):
     """Graceful degradation (O8): with JS disabled the sidebar enhancement is
     not shown, but the paper's content remains fully present and readable."""

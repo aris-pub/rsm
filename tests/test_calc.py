@@ -17,13 +17,13 @@ CALC_SRC = """\
 
   :step: $f(x) = a$
 
-    :p: Because the first reason. ::
+    :pf: Because the first reason. ::
 
   ::
 
   :step: $= b$
 
-    :p: Because the second reason. ::
+    :pf: Because the second reason. ::
 
   ::
 
@@ -66,13 +66,13 @@ PROOF_WITH_CALC = """\
 
     :step: $f(x) = a$
 
-      :p: First reason. ::
+      :pf: First reason. ::
 
     ::
 
     :step: $= b$
 
-      :p: Second reason. ::
+      :pf: Second reason. ::
 
     ::
 
@@ -136,13 +136,13 @@ def _chain(label: str = "", indent: str = "") -> str:
 
   :step: $\\sum_{{j=1}}^k a_j = b$
 
-    :p: Because $\\frac{{1}}{{2}} \\le 1$. ::
+    :pf: Because $\\frac{{1}}{{2}} \\le 1$. ::
 
   ::
 
   :step: $\\le \\frac{{c}}{{4L}}$
 
-    :p: Because the second reason. ::
+    :pf: Because the second reason. ::
 
   ::
 
@@ -188,7 +188,7 @@ IN_STEP_P = (
 
     :claim: The calculation below gives the bound. ::
 
-    :p:
+    :pf:
 
 """
     + _chain("eq-c", "      ")
@@ -251,7 +251,7 @@ def test_calc_builds_anywhere(src):
 
 
 def test_calc_rejects_a_non_step_child_in_source():
-    src = "## Sec\n\n:calc:\n\n  :p: Not a relation. ::\n\n::\n"
+    src = "## Sec\n\n:calc:\n\n  :pf: Not a relation. ::\n\n::\n"
     with pytest.raises(nodes.RSMNodeError, match="Calc"):
         _parse(src)
 
@@ -278,7 +278,7 @@ def test_calc_row_cannot_be_labelled():
 
   :step: {:label: stp-row} $a = b$
 
-    :p: Reason. ::
+    :pf: Reason. ::
 
   ::
 

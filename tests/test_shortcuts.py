@@ -373,7 +373,7 @@ def test_prev_shortcut():
 
         :step: :qed:.
 
-           :p: Due to :prev:.::
+           :pf: Due to :prev:.::
 
         ::
 
@@ -487,7 +487,7 @@ def test_prev2_shortcut():
 
         :step: :qed:.
 
-           :p: Due to :prev2:.::
+           :pf: Due to :prev2:.::
 
         ::
 
@@ -615,7 +615,7 @@ def test_prev_and_prev2_shortcut():
 
         :step: :qed:.
 
-           :p: Due to :prev: and :prev2:.::
+           :pf: Due to :prev: and :prev2:.::
 
         ::
 
@@ -945,17 +945,21 @@ def test_turnstile_and_math_within_list():
 
         </div>
 
-        <ol class="enumerate" data-nodeid="3">
+        <div class="paragraph" data-nodeid="3">
 
-        <li id="one" class="item" data-nodeid="4">
-        <span class="construct claim" data-nodeid="5"><span class="keyword" data-nodeid="6">⊢</span> <span class="math" data-nodeid="9">\(2+2=4\)</span></span>.
+        <ol class="enumerate" data-nodeid="4">
+
+        <li id="one" class="item" data-nodeid="5">
+        <span class="construct claim" data-nodeid="6"><span class="keyword" data-nodeid="7">⊢</span> <span class="math" data-nodeid="10">\(2+2=4\)</span></span>.
         </li>
 
-        <li id="two" class="item" data-nodeid="12">
-        <span class="construct claim" data-nodeid="13"><span class="keyword" data-nodeid="14">⊢</span> <span class="math" data-nodeid="17">\(3+3=6\)</span></span>.
+        <li id="two" class="item" data-nodeid="13">
+        <span class="construct claim" data-nodeid="14"><span class="keyword" data-nodeid="15">⊢</span> <span class="math" data-nodeid="18">\(3+3=6\)</span></span>.
         </li>
 
         </ol>
+
+        </div>
 
         </section>
 

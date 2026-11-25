@@ -234,19 +234,12 @@ class TestReorderTouch:
     """Reorder needs a pointer and the wide dependency rail, so on coarse-pointer
     touch devices the menu item is shown disabled and labeled, not offered."""
 
-    # Playwright cannot emulate the pointer/hover media features, so stub
-    # matchMedia to report a coarse pointer for that one query (leaving others,
-    # e.g. prefers-reduced-motion, intact). showMenuFor reads it when the menu
-    # opens, so installing the stub before the click exercises the real path.
-    _STUB = """() => {
-      const orig = window.matchMedia.bind(window);
-      window.matchMedia = (q) => /pointer:\\s*coarse/.test(q)
-        ? { matches: true, media: q, onchange: null,
-            addListener() {}, removeListener() {},
-            addEventListener() {}, removeEventListener() {},
-            dispatchEvent() { return false; } }
-        : orig(q);
-    }"""
+    # A touch device is marked by the touch class on <html>, which the
+    # builder's pre-paint script sets on a no-hover, coarse-pointer device
+    # (Playwright cannot emulate those media features). showMenuFor reads the
+    # class when the menu opens, so setting it before the click exercises the
+    # real path.
+    _STUB = "() => document.documentElement.classList.add('touch')"
 
     def test_touch_disables_and_relabels_reorder(
         self, page: Page, interactive_server: str

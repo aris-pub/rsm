@@ -31,13 +31,13 @@ def test_real_life_example():
 
             :step: :claim: $L(G) = 0$ ::.
 
-              :p: $G$ has no self-loops by assumption.::
+              :pf: $G$ has no self-loops by assumption.::
 
             ::
 
             :step: :let: $u \in V(G)$::, :then: $\deg(u) = 0$::.
 
-              :p: Since $G$ has only one node, and it has no self-loops.::
+              :pf: Since $G$ has only one node, and it has no self-loops.::
 
             ::
 
@@ -50,7 +50,7 @@ def test_real_life_example():
             to $G$::. SUFFICES :assume: :span: :span:{:label: asm} the theorem is true for $G$
             ::::::, :prove: the theorem is true for $H$::.
 
-            :p: By induction. ::
+            :pf: By induction. ::
 
           ::
 
@@ -61,7 +61,7 @@ def test_real_life_example():
 
             :claim: $L(H) = L(G) + \deg_H(v)$::.
 
-            :p: Because the only added edges are those incident to $v$.::
+            :pf: Because the only added edges are those incident to $v$.::
 
           ::
 
@@ -90,7 +90,7 @@ def test_real_life_example():
 
           :step: :qed:
 
-            :p: We have
+            :pf: We have
               $$
                 \begin{align}
                 2 L(G) &= \sum_{u \in V(G)} \deg_G(u) \\
@@ -481,7 +481,7 @@ def test_construct_keyword_keeps_space_before_reference():
     src = (
         "# T\n\n"
         "$$ {:label: eq-x} a = b $$\n\n"
-        ":p: :assume: :ref:eq-x, the bound:: holds. ::\n"
+        ":pf: :assume: :ref:eq-x, the bound:: holds. ::\n"
     )
     html = rsm.render(src, handrails=False, source_offsets=False)
     assert ">ASSUME</span>" in html
