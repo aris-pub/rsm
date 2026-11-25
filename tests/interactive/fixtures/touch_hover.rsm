@@ -1,0 +1,29 @@
+# Hover on a touch page
+
+## Sec
+
+See :url:https://example.com:: for more.
+
+:theorem: {:label: thm-hover} A claim. ::
+
+:proof: {:of: thm-hover}
+
+  The proof starts here.
+
+  :step: {:label: stp-first} A first step. ::
+
+  :step: A last step. ::
+
+::
+
+$$
+  {:label: eq-hover}
+  a = b
+$$
+
+:figure: {
+  :label: fig-hover
+  :path: figure-light.png
+}
+:caption: A figure.
+::

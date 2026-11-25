@@ -9,6 +9,11 @@
 
 @layer base {
 
+/* Hover effects apply only without html.touch (the rules start with
+   :where(html:not(.touch))). On a phone a tap leaves :hover set on what was
+   tapped, so a hover effect would stay on after the tap. :where() adds no
+   specificity, so each rule wins or loses against the same rules as before. */
+
 /* Page-level background for dark mode */
 body {
   background: var(--surface-page);
@@ -691,7 +696,7 @@ body {
   transition: opacity 0.18s ease, transform 0.18s ease, visibility 0s;
 }
 
-.rsm-back-pill:hover { background: var(--primary-600); }
+:where(html:not(.touch)) .rsm-back-pill:hover { background: var(--primary-600); }
 .rsm-back-pill:focus-visible { outline: 2px solid var(--primary-600); outline-offset: 2px; }
 .rsm-back-pill-arrow { font-size: 1.05em; }
 
@@ -738,7 +743,7 @@ body {
   padding: var(--chunk-twelfth) var(--chunk-sixth);
   cursor: pointer;
 }
-.rsm-shared-pill-reset:hover,
+:where(html:not(.touch)) .rsm-shared-pill-reset:hover,
 .rsm-shared-pill-reset:focus-visible { background: var(--primary-100); }
 .rsm-shared-pill-x {
   font: inherit;
@@ -811,7 +816,7 @@ body {
   font-weight: var(--weight-semi);
 }
 .deplens-bar .deplens-add { color: var(--text-action); }
-.deplens-bar .deplens-add:hover,
+:where(html:not(.touch)) .deplens-bar .deplens-add:hover,
 .deplens-bar .deplens-add:focus-visible { background: var(--primary-100); }
 .deplens-bar .deplens-exit {
   display: inline-flex;
@@ -820,7 +825,7 @@ body {
   color: var(--almost-white);
   background: var(--primary-600);
 }
-.deplens-bar .deplens-exit:hover,
+:where(html:not(.touch)) .deplens-bar .deplens-exit:hover,
 .deplens-bar .deplens-exit:focus-visible { background: var(--primary-700); }
 .deplens-bar .deplens-exit-x { font-size: 1.1em; line-height: 1; }
 .deplens-kbd {
@@ -902,7 +907,7 @@ body {
   -webkit-mask: var(--calc-because) center / contain no-repeat;
   mask: var(--calc-because) center / contain no-repeat;
 }
-.manuscriptwrapper .calc .step:hover > .hr-info-zone .hr-collapse::before,
+:where(html:not(.touch)) .manuscriptwrapper .calc .step:hover > .hr-info-zone .hr-collapse::before,
 .manuscriptwrapper .calc .step:focus-within > .hr-info-zone .hr-collapse::before {
   background-color: var(--primary-700);
 }
@@ -911,7 +916,7 @@ body {
 }
 /* The chain has its own handrail, like a display equation. A labelled chain
    shows its number in the first row's info cell, above that row's mark. */
-.manuscriptwrapper .calc.hr:hover .hr-info-stack .eqn-number p,
+:where(html:not(.touch)) .manuscriptwrapper .calc.hr:hover .hr-info-stack .eqn-number p,
 .manuscriptwrapper .calc.hr:focus .hr-info-stack .eqn-number p {
   color: var(--extra-dark);
   font-weight: var(--weight-semi);
@@ -1298,7 +1303,7 @@ html.touch {
 .manuscriptwrapper .hr.hr-hidden {
   & > .hr-border-zone {opacity: 0%;}
 }
-.manuscriptwrapper .hr.hr-hidden:hover {
+:where(html:not(.touch)) .manuscriptwrapper .hr.hr-hidden:hover {
   & > .hr-border-zone {opacity: 100%;}
 }
 /* Layout-only handrail for assets: reserves the content-zone gutter so the asset
@@ -1311,11 +1316,11 @@ html.touch {
 .manuscriptwrapper .hr.hr-bare > .hr-spacer-zone {
   flex: 0 0 var(--hr-zone-width);
 }
-.manuscriptwrapper .step.hr:hover > .hr-info-zone p {
+:where(html:not(.touch)) .manuscriptwrapper .step.hr:hover > .hr-info-zone p {
   color: var(--extra-dark);
   font-weight: var(--weight-semi);
 }
-.manuscriptwrapper .mathblock.hr:hover > .hr-info-zone p,
+:where(html:not(.touch)) .manuscriptwrapper .mathblock.hr:hover > .hr-info-zone p,
 .manuscriptwrapper .mathblock.hr:focus > .hr-info-zone p,
 .manuscriptwrapper .paragraph.hr:focus > .hr-content-zone > .mathblock > .hr-info-zone p {
   color: var(--extra-dark);
@@ -1404,7 +1409,7 @@ html.touch {
   }
 
   /* Colors when hovered */
-  .hr-border-zone .hr-border-dots:hover {
+  :where(html:not(.touch)) & .hr-border-zone .hr-border-dots:hover {
     background: color-mix(in srgb, var(--handrail-active) 70%, white);
   }
 
@@ -1497,16 +1502,16 @@ html.touch {
     .hr-menu-item-text {color: var(--medium);}
   }
 
-  &:hover:not(.disabled), &.active:not(.disabled) {
+  :where(html:not(.touch)) &:hover:not(.disabled), &.active:not(.disabled) {
     background: var(--surface-hint);
     svg {stroke: var(--extra-dark);}
     .hr-menu-item-text {color: var(--gray-900);}
   }
 }
 .manuscriptwrapper .hr {
-  .hr-border-dots:hover, .hr-collapse:hover {background: var(--surface-hint);}
-  .hr-collapse:hover svg {stroke: var(--extra-dark);}
-  .hr-menu-item:hover, .hr-menu-item.active {background: var(--surface-hint);}
+  :where(html:not(.touch)) & .hr-border-dots:hover, :where(html:not(.touch)) & .hr-collapse:hover {background: var(--surface-hint);}
+  :where(html:not(.touch)) & .hr-collapse:hover svg {stroke: var(--extra-dark);}
+  :where(html:not(.touch)) & .hr-menu-item:hover, .hr-menu-item.active {background: var(--surface-hint);}
 }
 .manuscriptwrapper .hr-menu-zone .hr-menu-item {
   svg {stroke: var(--dark);}
@@ -1517,7 +1522,7 @@ html.touch {
     .hr-menu-item-text{color: var(--medium);}
   }
 
-  &:hover:not(.disabled), &.active:not(.disabled) {
+  :where(html:not(.touch)) &:hover:not(.disabled), &.active:not(.disabled) {
     svg {stroke: var(--extra-dark);}
     .hr-menu-item-text{color: var(--gray-900);}
   }
@@ -1619,9 +1624,9 @@ html.touch {
      content column that the offset steps' tombstones align to. Anchoring to the
      content-zone drops the proof tombstone into the same column as the steps. */
   &.proof > .hr-content-zone {position: relative;}
-  &.proof:hover > .hr-content-zone::after,
+  :where(html:not(.touch)) &.proof:hover > .hr-content-zone::after,
   &.proof:focus > .hr-content-zone::after,
-  &.proof .step:hover::after,
+  :where(html:not(.touch)) &.proof .step:hover::after,
   &.proof .step:focus::after {
     content: "";
     position: absolute;
@@ -1631,8 +1636,8 @@ html.touch {
     top: calc(100% - var(--chunk-sixth));
     border-radius: var(--radius-sm);
   }
-  &.proof:hover > .hr-content-zone::after, &.proof:focus > .hr-content-zone::after,
-  &.proof .step:hover::after, &.proof .step:focus::after {left: calc(100% + var(--chunk-sixth));}
+  :where(html:not(.touch)) &.proof:hover > .hr-content-zone::after, &.proof:focus > .hr-content-zone::after,
+  :where(html:not(.touch)) &.proof .step:hover::after, &.proof .step:focus::after {left: calc(100% + var(--chunk-sixth));}
   /* Tombstones ride the same flush right edge as the numbers (see .hr-shift-1),
      so the base rule above positions them at every depth; no per-level offset. */
 
@@ -1730,7 +1735,7 @@ html.touch {
     width: 20px;
     height: 20px;
   }
-  .toc-switch-btn:hover { color: var(--link-default); }
+  :where(html:not(.touch)) & .toc-switch-btn:hover { color: var(--link-default); }
   .toc-switch-btn[aria-pressed="true"] {
     background: var(--text-hilite-bg);
     color: var(--text-body);
@@ -1864,7 +1869,7 @@ html.touch {
     transition: fill 0.12s;
   }
 
-  .toc-tree .toc-node.level-0:hover circle.toc-root-dot,
+  :where(html:not(.touch)) & .toc-tree .toc-node.level-0:hover circle.toc-root-dot,
   .toc-tree .toc-node.level-0:focus-visible circle.toc-root-dot {
     fill: var(--primary-700);
   }
@@ -1927,7 +1932,7 @@ html.touch {
     cursor: pointer;
   }
   .rail-strip-btn svg { width: 1.25rem; height: 1.25rem; }
-  .rail-strip-btn:hover { color: var(--primary-700); background: var(--surface-hover); }
+  :where(html:not(.touch)) & .rail-strip-btn:hover { color: var(--primary-700); background: var(--surface-hover); }
   /* A view this document cannot show (no structured proofs). Its tooltip says why. */
   .rail-strip-btn[aria-disabled="true"],
   .rail-strip-btn[aria-disabled="true"]:hover {
@@ -2077,7 +2082,7 @@ html.touch {
     cursor: pointer;
   }
   .reading-opt svg { width: 1.25rem; height: 1.25rem; }
-  .reading-opt:hover { color: var(--text-body); background: var(--surface-hover); }
+  :where(html:not(.touch)) & .reading-opt:hover { color: var(--text-body); background: var(--surface-hover); }
   .reading-opt.active {
     color: var(--primary-800);
     background: var(--primary-50);
@@ -2195,7 +2200,7 @@ html.touch {
     margin-bottom: calc(-2rem / 24);
     padding-bottom: calc(2rem / 24);
   }
-  .pin-unpin:hover { color: var(--extra-dark); }
+  :where(html:not(.touch)) & .pin-unpin:hover { color: var(--extra-dark); }
   /* Like the handrail dots: shown while the mouse is on the pinned block. */
   .rail-pinned-body > [data-pin-target]:hover .pin-unpin,
   .pin-unpin:focus-visible { opacity: 1; }
@@ -2260,7 +2265,7 @@ html.touch {
     text-decoration: none;
     font-size: 0.85rem;
   }
-  .rail-proof-link:hover { background: var(--surface-hover); text-decoration: none; }
+  :where(html:not(.touch)) & .rail-proof-link:hover { background: var(--surface-hover); text-decoration: none; }
   .rail-proof-link:focus-visible {
     outline: var(--border-thin) solid var(--border-action);
     outline-offset: 1px;
@@ -2291,7 +2296,7 @@ html.touch {
     border-radius: var(--radius-lg);
     cursor: pointer;
   }
-  .proof-rail.proof-collapsed .proof-rail-item.shown .rail-collapsed-card:hover {
+  :where(html:not(.touch)) & .proof-rail.proof-collapsed .proof-rail-item.shown .rail-collapsed-card:hover {
     background: var(--primary-50);
     border-color: var(--primary-700);
   }
@@ -2330,7 +2335,7 @@ html.touch {
     font-weight: 600;
     cursor: pointer;
   }
-  .rail-notation-apply:hover {
+  :where(html:not(.touch)) & .rail-notation-apply:hover {
     background: var(--primary-900);
     border-color: var(--primary-900);
   }
@@ -2372,8 +2377,8 @@ html.touch {
     font-size: 1rem;
     line-height: 1;
   }
-  .rail-notation-reset:hover,
-  .rail-notation-locate:hover { color: var(--primary-700); }
+  :where(html:not(.touch)) & .rail-notation-reset:hover,
+  :where(html:not(.touch)) & .rail-notation-locate:hover { color: var(--primary-700); }
   .rail-notation-locate { display: inline-flex; }
   .rail-notation-locate svg { width: 16px; height: 16px; }
 
@@ -2497,7 +2502,7 @@ html.touch {
   .rail-jump-control { cursor: pointer; }
   /* The hover/focus wash is the semantic hover surface, so it follows a
      document that recolors its surfaces instead of a fixed gray. */
-  .rail-jump-row:hover,
+  :where(html:not(.touch)) & .rail-jump-row:hover,
   .rail-jump-row:focus-within { background: var(--surface-hover); }
   /* justify-self:end keeps the marker content-sized (not stretched to the
      column), so it stays right-aligned against the rule AND its measured
@@ -2636,7 +2641,7 @@ html.touch {
     user-select: none;
   }
 
-  .proof-focus-exit:hover,
+  :where(html:not(.touch)) & .proof-focus-exit:hover,
   .proof-focus-exit:focus-visible {
     color: var(--almost-white);
     background: var(--primary-700);
@@ -2756,7 +2761,7 @@ html.touch {
       top: 50%;
       transform: translateY(-50%);
 
-      &:hover {opacity: 100%};
+      :where(html:not(.touch)) &:hover {opacity: 100%};
 
     }
 
@@ -2953,7 +2958,8 @@ html:not(.touch) {
   }
   /* Hovering or focusing the block shows the caption's rail too, so the rail
      reads as the block's. */
-  .manuscriptwrapper .manuscript :is(figure, .table-wrapper):is(:hover, :focus-within) > .hr.rsm-cap-linked {
+  :where(html:not(.touch)) .manuscriptwrapper .manuscript :is(figure, .table-wrapper):hover > .hr.rsm-cap-linked,
+  .manuscriptwrapper .manuscript :is(figure, .table-wrapper):focus-within > .hr.rsm-cap-linked {
     & > .hr-border-zone { opacity: 100%; }
     & > .hr-border-zone .hr-border-dots { opacity: 100%; }
   }
@@ -3024,7 +3030,7 @@ html:not(.touch) {
 .manuscriptwrapper .author-contact {
   color: var(--text-subtle); }
 
-.manuscriptwrapper .author-contact:hover {
+:where(html:not(.touch)) .manuscriptwrapper .author-contact:hover {
   color: var(--link-hover); }
 
 .manuscriptwrapper .author-names .icon {
@@ -3069,7 +3075,7 @@ html:not(.touch) {
 .manuscriptwrapper .author-details[open] summary .icon {
   transform: rotate(180deg); }
 
-.manuscriptwrapper .author-details summary:hover {
+:where(html:not(.touch)) .manuscriptwrapper .author-details summary:hover {
   color: var(--text-body); }
 
 .manuscriptwrapper .author-affiliations {
@@ -3095,7 +3101,7 @@ html:not(.touch) {
 .manuscriptwrapper .author-correspondence a {
   color: var(--link-default); }
 
-.manuscriptwrapper .author-correspondence a:hover {
+:where(html:not(.touch)) .manuscriptwrapper .author-correspondence a:hover {
   color: var(--link-hover); }
 
 .manuscriptwrapper .author-note {
@@ -3194,7 +3200,7 @@ html:not(.touch) {
     white-space: nowrap;
   }
 
-  a:hover {
+  :where(html:not(.touch)) & a:hover {
     text-decoration: underline;
     color: var(--link-hover);
 
@@ -3258,7 +3264,7 @@ html:not(.touch) {
     svg {stroke: var(--almost-black)};
   }
 
-  & .close:hover {
+  :where(html:not(.touch)) & .close:hover {
     cursor: pointer;
     background: var(--light);
   }
@@ -3360,7 +3366,7 @@ Asides have no marker: their call is the phrase they are about (.aside-phrase). 
     font-weight: 600;
   }
 
-  a.note-marker:hover, a.note-marker:focus, a.note-marker:focus-visible {
+  :where(html:not(.touch)) & a.note-marker:hover, a.note-marker:focus, a.note-marker:focus-visible {
     color: var(--surface-page);
     background: var(--primary-700);
     text-decoration: none;
@@ -3508,11 +3514,11 @@ a.reference.external {
   color: var(--link-default);
 }
 
-a.reference.external:hover {
+:where(html:not(.touch)) a.reference.external:hover {
   color: var(--link-hover);
 }
 
-a.reference.external:hover::after {
+:where(html:not(.touch)) a.reference.external:hover::after {
   opacity: 1;
 }
 
@@ -3627,7 +3633,7 @@ a.reference.external:hover::after {
   transition: background-color 0.2s, color 0.2s;
 }
 
-.rsm-source-modal-icon-button:hover {
+:where(html:not(.touch)) .rsm-source-modal-icon-button:hover {
   color: var(--text-primary);
   background-color: var(--gray-200);
 }
@@ -3694,7 +3700,7 @@ a.reference.external:hover::after {
   touch-action: none;
   z-index: 3;
 }
-.proof.reorder-active .reorder-handle:hover,
+:where(html:not(.touch)) .proof.reorder-active .reorder-handle:hover,
 .proof.reorder-active .reorder-handle:focus-visible {
   color: var(--primary-700);
 }
@@ -3777,7 +3783,7 @@ a.reference.external:hover::after {
   border-radius: var(--radius-md);
   cursor: pointer;
 }
-.ref-pin:hover,
+:where(html:not(.touch)) .ref-pin:hover,
 .ref-pin:focus-visible {
   color: var(--primary-700);
   border-color: var(--primary-700);
@@ -3835,7 +3841,7 @@ a.reference.external:hover::after {
   margin-block-end: calc(-1 * var(--border-extrathin));
   border-bottom: var(--border-thin) solid transparent;
 }
-.manuscriptwrapper .tabs > .tab-label:hover {
+:where(html:not(.touch)) .manuscriptwrapper .tabs > .tab-label:hover {
   color: var(--text-action-hover);
 }
 .manuscriptwrapper .tabs > .tab-input:checked + .tab-label {
@@ -4360,14 +4366,14 @@ html:not(.has-toc-switch) .manuscriptwrapper .toc .toc-switch { display: none; }
   cursor: pointer;
 }
 .tooltipster-content .ref-pin svg { width: 1rem; height: 1rem; }
-.tooltipster-content .ref-pin:hover { background: var(--surface-primary); color: var(--text-body); }
+:where(html:not(.touch)) .tooltipster-content .ref-pin:hover { background: var(--surface-primary); color: var(--text-body); }
 .tooltipster-content .ref-pin:active { background: var(--primary-50); color: var(--primary-800); }
 .tooltipster-content .ref-pin:focus-visible {
   outline: var(--border-thin) solid var(--border-action);
   outline-offset: -2px;
 }
 .tooltipster-content .ref-pin[data-pinned] { color: var(--primary-700); }
-.tooltipster-content .ref-pin[data-pinned]:hover { background: var(--primary-50); color: var(--primary-800); }
+:where(html:not(.touch)) .tooltipster-content .ref-pin[data-pinned]:hover { background: var(--primary-50); color: var(--primary-800); }
 
 /* Notation: every use of a declared symbol is marked in the math (only with
    the sidebar); clicking one opens Notation with that symbol selected. */
@@ -4376,7 +4382,7 @@ html:not(.has-toc-switch) .manuscriptwrapper .toc .toc-switch { display: none; }
   border-radius: var(--radius-md);
   transition: background-color 0.15s;
 }
-.manuscript :is([class^="nt-"], [class*=" nt-"]):hover { background: var(--primary-100); }
+:where(html:not(.touch)) .manuscript :is([class^="nt-"], [class*=" nt-"]):hover { background: var(--primary-100); }
 .rail-notation-row.rail-notation-row-hi { animation: rail-notation-row 1.8s ease-out; }
 @keyframes rail-notation-row {
   0%, 50% { background: var(--primary-50); box-shadow: 0 0 0 var(--chunk-twelfth) var(--primary-50); }
@@ -4463,7 +4469,7 @@ html.rsm-minimap-on::-webkit-scrollbar { display: none; }
   background: var(--primary-500);
 }
 
-.rsm-minimap:hover .rsm-minimap-mark::after,
+:where(html:not(.touch)) .rsm-minimap:hover .rsm-minimap-mark::after,
 .rsm-minimap.is-touching .rsm-minimap-mark::after,
 .rsm-minimap:focus-within .rsm-minimap-mark::after { transform: scaleX(1); opacity: 1; }
 .rsm-minimap.has-hovered .rsm-minimap-mark::after { opacity: 0.35; }
