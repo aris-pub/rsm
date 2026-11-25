@@ -24,6 +24,7 @@ import * as margin from './margin.js';
 import * as captions from './captions.js';
 import * as asides from './asides.js';
 import * as mathscroll from './mathscroll.js';
+import * as authors from './authors.js';
 
 // For widgets and figures that render their own math, so they get MathJax with
 // the document's notation without loading a renderer of their own.
@@ -365,6 +366,13 @@ export async function onrender(root = null) {
       mathscroll.setup(root).catch((err) => console.error("Setting up mathscroll.js FAILED!", err));
     } catch (err) {
       console.error("Setting up mathscroll.js FAILED!", err);
+    }
+
+    // Shorten author lists (idempotent: a wired list no longer has [hidden])
+    try {
+      authors.setup(root);
+    } catch (err) {
+      console.error("Setting up authors.js FAILED!", err);
     }
 
     // Captions into the margin column (idempotent, picks up replaced DOM)

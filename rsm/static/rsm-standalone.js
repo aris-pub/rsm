@@ -4853,6 +4853,19 @@ var RSM = (() => {
     }
   }
 
+  // rsm/static/authors.js
+  function setup15(root2) {
+    for (const more of (root2 || document).querySelectorAll(".author-names > .author-more[hidden]")) {
+      const names = more.parentElement;
+      names.classList.add("is-shortened");
+      more.hidden = false;
+      more.querySelector("button").addEventListener("click", () => {
+        names.classList.remove("is-shortened");
+        more.remove();
+      });
+    }
+  }
+
   // rsm/static/onload.js
   window.rsm = Object.assign(window.rsm || {}, {
     renderMath,
@@ -5091,6 +5104,11 @@ var RSM = (() => {
         setup6(root2).catch((err) => console.error("Setting up mathscroll.js FAILED!", err));
       } catch (err) {
         console.error("Setting up mathscroll.js FAILED!", err);
+      }
+      try {
+        setup15(root2);
+      } catch (err) {
+        console.error("Setting up authors.js FAILED!", err);
       }
       try {
         setup14(root2);

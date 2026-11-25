@@ -106,9 +106,37 @@ Add an ORCID iD to link to the author's ORCID profile:
 Large author lists
 ------------------
 
-When a manuscript has six or more authors, RSM automatically collapses the
-author list to show only the first few, with an expandable "et al." link that
-reveals the full list.
+By default the page lists every author. To shorten a long list, set
+``:author-display-first:`` and ``:author-display-last:`` in the ``:config:``
+block. The page then shows the first and last authors and, between them, a
+button that reads "3 more" (the number of authors not shown). A click on the
+button shows every author.
+
+.. rsm::
+
+   # Graphs without triangles
+
+   :config: {
+     :author-display-first: 2
+     :author-display-last: 1
+   }
+   ::
+
+   :author: {:name: Ada Lovelace} ::
+
+   :author: {:name: Bo Chen} ::
+
+   :author: {:name: Cy Diaz} ::
+
+   :author: {:name: Dana Patel} ::
+
+   :author: {:name: Eli Novak} ::
+
+   :author: {:name: Fay Okafor} ::
+
+When only one of the two keys is given, the other one is 0. When the two
+numbers add up to the number of authors or more, the page shows every author.
+Readers without JavaScript always see every author.
 
 .. tip::
 

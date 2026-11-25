@@ -3021,6 +3021,30 @@ html:not(.touch) {
 .manuscriptwrapper .author-name {
   white-space: nowrap; }
 
+/* authors.js adds is-shortened. Without the script every name shows. */
+.manuscriptwrapper .author-names.is-shortened .author-hidden-names {
+  display: none; }
+
+.manuscriptwrapper .author-more-button {
+  font: inherit;
+  white-space: nowrap;
+  color: var(--text-action);
+  background: transparent;
+  border: var(--border-extrathin) solid var(--gray-300);
+  border-radius: 999px;
+  padding: 0 var(--chunk-sixth);
+  margin: 0 0.1em;
+  cursor: pointer; }
+
+.manuscriptwrapper .author-more-button:hover {
+  color: var(--text-action-hover);
+  border-color: var(--border-action-hover);
+  background: var(--surface-hover); }
+
+.manuscriptwrapper .author-more-button:focus-visible {
+  outline: var(--border-thin) solid var(--border-action);
+  outline-offset: 1px; }
+
 .manuscriptwrapper .author-contact {
   color: var(--text-subtle); }
 
