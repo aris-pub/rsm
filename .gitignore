@@ -147,3 +147,5 @@ node_modules/
 .dolt/
 *.db
 .beads-credential-key
+# Per-worktree tree-sitter build cache (TREE_SITTER_LIBDIR in the justfile)
+.tree-sitter-cache/

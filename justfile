@@ -4,6 +4,11 @@
 # Set shell for all recipes
 set shell := ["bash", "-c"]
 
+# tree-sitter test and parse compile the grammar into this directory. The default
+# is one shared directory in ~/.cache, so a build in one worktree could replace the
+# parser that another worktree is testing.
+export TREE_SITTER_LIBDIR := justfile_directory() / ".tree-sitter-cache"
+
 # List all available recipes
 default:
     @just --list
@@ -74,6 +79,11 @@ grammar:
     #!/usr/bin/env bash
     set -euo pipefail
     cd tree-sitter-rsm
+    # A fresh submodule checkout has no node_modules, so the tree-sitter CLI is missing.
+    if [ ! -d node_modules ]; then
+        echo "Installing the grammar's npm packages..."
+        npm ci
+    fi
     echo "Regenerating parser from grammar.js..."
     npm exec --no -- tree-sitter generate
     # node-gyp-build skips the compile when an addon already exists, so the
@@ -84,6 +94,17 @@ grammar:
     echo "Rebuilding the Python package..."
     uv sync --reinstall-package tree-sitter-rsm
     echo "Done! tree-sitter-rsm rebuilt successfully"
+
+# Run the grammar's corpus tests, building the parser into .tree-sitter-cache
+grammar-test:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    cd tree-sitter-rsm
+    if [ ! -d node_modules ]; then
+        echo "Installing the grammar's npm packages..."
+        npm ci
+    fi
+    npm exec --no -- tree-sitter test
 
 # Rebuild the standalone JS bundle (IIFE with window.RSM global)
 js-bundle:
