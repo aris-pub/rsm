@@ -3,9 +3,9 @@
 Notation
 ========
 
-Fields write the same thing in different ways: an eigenvalue is
-:math:`\lambda` in one book and :math:`\mu` in another, and an inner product
-is :math:`\langle x, y \rangle` or :math:`(x \mid y)`. In RSM, you declare the
+Authors in different fields use different symbols for the same thing. For
+example, an eigenvalue is :math:`\lambda` in one book and :math:`\mu` in
+another. In RSM, you declare the
 symbols of a document once, with the form that you prefer, and the reader can
 change how each one is shown. Every equation of the page follows the change.
 
