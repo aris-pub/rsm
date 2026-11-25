@@ -52,6 +52,7 @@ the ``run()`` method on an :class:`RSMApp` instance will.
 
 import json
 import logging
+import re
 import subprocess
 from collections.abc import Callable
 from pathlib import Path
@@ -656,6 +657,10 @@ def build(
 # ─── Pandoc export ────────────────────────────────────────────────────────────
 
 
+# Pandoc exits with this code when the program that makes a PDF is missing.
+_PANDOC_PDF_PROGRAM_NOT_FOUND = 47
+
+
 class _PandocRunner:
     """Pipe a pandoc JSON AST dict to the pandoc subprocess and return the result."""
 
@@ -672,6 +677,9 @@ class _PandocRunner:
             cmd += [f"--lua-filter={lua_filter}"]
         if self.to_format == "latex":
             cmd += ["-V", "header-includes=\\usepackage{braiid}"]
+        if self.to_format == "pdf":
+            # Without -o pandoc writes the PDF bytes to stdout, which is read as text.
+            cmd += ["-o", str(self.output)]
         try:
             proc = subprocess.run(
                 cmd, input=json_str, capture_output=True, text=True, check=True
@@ -681,6 +689,14 @@ class _PandocRunner:
                 "pandoc executable not found; install pandoc from https://pandoc.org"
             )
         except subprocess.CalledProcessError as e:
+            if e.returncode == _PANDOC_PDF_PROGRAM_NOT_FOUND:
+                match = re.search(r"'?([^'\s]+)'? not found", e.stderr)
+                engine = match.group(1) if match else "a LaTeX engine"
+                raise RSMApplicationError(
+                    f"PDF export needs LaTeX, and pandoc could not find {engine}. "
+                    f"Install a LaTeX distribution that includes {engine}, "
+                    "such as TeX Live or MacTeX."
+                )
             raise RSMApplicationError(f"pandoc failed: {e.stderr}")
         return proc.stdout
 
@@ -708,6 +724,11 @@ class PandocExportApp(RSMApp[str]):
         self._output = output
 
     def run(self, initial_args: Any = None) -> str | None:
+        if self._to_format == "pdf" and not self._output:
+            raise RSMApplicationError(
+                "PDF export needs an output file, for example: "
+                "rsm export paper.rsm --to pdf -o paper.pdf"
+            )
         # The pipeline's dict-unpacking (`call(**res)`) breaks on pandoc JSON AST
         # dicts because they contain hyphen keys (e.g. "pandoc-api-version") that
         # aren't valid Python identifiers. So the parser app runs the pipeline up
@@ -731,7 +752,8 @@ class PandocExportApp(RSMApp[str]):
                 if sty_src.exists() and sty_src.resolve() != sty_dst.resolve():
                     _shutil.copy2(sty_src, sty_dst)
 
-        if self._output:
+        # For PDF, pandoc has already written the file itself.
+        if self._output and self._to_format != "pdf":
             Path(self._output).write_text(result)
 
         return result

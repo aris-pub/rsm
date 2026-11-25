@@ -1,11 +1,13 @@
 """Tests for rsm/pandoc.py — PandocTranslator (export) and PandocImporter (import)."""
 
 import shutil
+import sys
 from textwrap import dedent
 
 import pytest
 
-from rsm.app import ParserApp, pandoc_export, pandoc_import
+from rsm import cli
+from rsm.app import ParserApp, RSMApplicationError, pandoc_export, pandoc_import
 from rsm.pandoc import PANDOC_API_VERSION, PandocImporter, PandocTranslator
 
 pytestmark = pytest.mark.pandoc
@@ -975,6 +977,52 @@ def test_latex_export_copies_braiid_sty(tmp_path):
     out = tmp_path / "test.tex"
     pandoc_export(source="# Doc\n\nHello.", to_format="latex", output=str(out))
     assert (tmp_path / "braiid.sty").exists()
+
+
+_PDFLATEX_SKIP = pytest.mark.skipif(
+    shutil.which("pdflatex") is None, reason="pdflatex not installed"
+)
+
+
+@_PANDOC_SKIP
+@_PDFLATEX_SKIP
+def test_pdf_export_writes_pdf_file(tmp_path):
+    out = tmp_path / "paper.pdf"
+    pandoc_export(
+        source="# Doc\n\nHello $x^2$ world.", to_format="pdf", output=str(out)
+    )
+    assert out.read_bytes().startswith(b"%PDF")
+
+
+def test_pdf_export_without_output_file_fails():
+    with pytest.raises(RSMApplicationError, match="needs an output file"):
+        pandoc_export(source="# Doc\n\nHello.", to_format="pdf")
+
+
+@_PANDOC_SKIP
+def test_pdf_export_without_latex_names_what_to_install(tmp_path, monkeypatch):
+    # A PATH that holds pandoc and nothing else hides every LaTeX engine.
+    bindir = tmp_path / "bin"
+    bindir.mkdir()
+    (bindir / "pandoc").symlink_to(shutil.which("pandoc"))
+    monkeypatch.setenv("PATH", str(bindir))
+    out = tmp_path / "paper.pdf"
+    with pytest.raises(RSMApplicationError) as excinfo:
+        pandoc_export(source="# Doc\n\nHello.", to_format="pdf", output=str(out))
+    message = str(excinfo.value)
+    assert "pdflatex" in message
+    assert "LaTeX" in message
+    assert not out.exists()
+
+
+def test_cli_pdf_export_without_output_file_prints_error(tmp_path, monkeypatch, capsys):
+    src = tmp_path / "paper.rsm"
+    src.write_text("# Doc\n\nHello.\n")
+    monkeypatch.setattr(sys, "argv", ["rsm", "export", str(src), "--to", "pdf"])
+    assert cli.main() == 1
+    err = capsys.readouterr().err
+    assert "needs an output file" in err
+    assert "Traceback" not in err
 
 
 def test_mathblock_with_align_emits_rawblock():

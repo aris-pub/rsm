@@ -25,6 +25,10 @@ For LaTeX output, RSM includes a custom ``braiid.sty`` package and a Lua filter
 (``braiid.lua``) that maps RSM-specific constructs (theorems, proofs, structured
 mathematics) to appropriate LaTeX environments.
 
+For PDF output, Pandoc makes the PDF with LaTeX. This needs a LaTeX
+installation that includes ``pdflatex``, and an output file given with ``-o``.
+The PDF uses the default look of Pandoc's LaTeX output, not the BRAIID style.
+
 **Limitations**:
 
 - Interactive features (handrails, tooltips) have no equivalent in static formats

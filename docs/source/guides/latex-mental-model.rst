@@ -107,4 +107,4 @@ is handled by the BRAIID design system.
 
 **The output is HTML, not PDF.**
 RSM produces responsive, interactive web documents. If you need PDF, RSM can
-export via Pandoc, but the primary target is the browser.
+export one through Pandoc and LaTeX, but the primary target is the browser.
