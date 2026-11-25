@@ -5,7 +5,8 @@ Math and code
 
 Math is written in LaTeX and shown with MathJax. Displayed equations are
 numbered within their section, such as (2.1), and a reference to one reads
-"(2.1)". Algorithms are numbered through the whole document.
+"(2.1)". Algorithms are also numbered within their section, and a reference
+to one reads "Algorithm 2.1".
 
 Every tag on this page takes the meta keys that all tags take, such as
 ``:label:`` and ``:nonum:``. See :ref:`ref-meta-keys`.
