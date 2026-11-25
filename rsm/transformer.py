@@ -518,10 +518,6 @@ class Transformer:
                         )
                     target = prev
 
-                if target.label is None or not target.label.strip():
-                    logger.warning(
-                        ":prev: references un-labeled step, link will not work"
-                    )
                 ref = nodes.Reference(
                     target=target, overwrite_reftext=pending.overwrite_reftext
                 )

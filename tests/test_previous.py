@@ -1,3 +1,5 @@
+import re
+
 import pytest
 
 import rsm
@@ -106,7 +108,7 @@ def test_works_with_no_reftext_and_no_label():
 
         </div>
 
-        <div class="step" data-nodeid="2">
+        <div id="n2" class="step" data-nodeid="2">
 
         <div class="statement" data-nodeid="3">
 
@@ -126,7 +128,7 @@ def test_works_with_no_reftext_and_no_label():
 
         <div class="paragraph" data-nodeid="8">
 
-        <p>Bar <span class="inline-wrapper"><a class="reference" href="#">Step ⟨1⟩</a><span>.</span></span></p>
+        <p>Bar <span class="inline-wrapper"><a class="reference" href="#n2">Step ⟨1⟩</a><span>.</span></span></p>
 
         </div>
 
@@ -222,7 +224,7 @@ def test_works_with_reftext_and_label():
     )
 
 
-def test_works_with_reftext_and_no_label(caplog):
+def test_works_with_reftext_and_no_label():
     compare_have_want(
         have="""\
         :proof:
@@ -250,7 +252,7 @@ def test_works_with_reftext_and_no_label(caplog):
 
         </div>
 
-        <div class="step" data-nodeid="2">
+        <div id="n2" class="step" data-nodeid="2">
 
         <div class="statement" data-nodeid="3">
 
@@ -270,7 +272,7 @@ def test_works_with_reftext_and_no_label(caplog):
 
         <div class="paragraph" data-nodeid="8">
 
-        <p>Bar <span class="inline-wrapper"><a class="reference" href="#">bar</a><span>.</span></span></p>
+        <p>Bar <span class="inline-wrapper"><a class="reference" href="#n2">bar</a><span>.</span></span></p>
 
         </div>
 
@@ -291,7 +293,6 @@ def test_works_with_reftext_and_no_label(caplog):
         </body>
         """,
     )
-    assert ":prev: references un-labeled step, link will not work" in caplog.text
 
 
 def test_previous_outside_step():
@@ -302,3 +303,55 @@ def test_previous_outside_step():
             """,
             want="X",
         )
+
+
+UNLABELLED_STEPS = """\
+:proof:
+
+  :step: :claim: $x$ ::.
+  ::
+
+  :step: :claim: $y$ ::.
+  ::
+
+  :step: By :prev: and :prev2:. :claim: $z$ ::.
+  ::
+
+::
+"""
+
+LABELLED_STEPS = """\
+:proof:
+
+  :step: {:label: first} :claim: $x$ ::.
+  ::
+
+  :step: By :prev:. :claim: $y$ ::.
+  ::
+
+::
+"""
+
+
+def _step_ids(html):
+    return re.findall(r'<div id="([^"]*)" class="step', html)
+
+
+def _ref_hrefs(html):
+    return re.findall(r'<a class="reference" href="([^"]*)"', html)
+
+
+@pytest.mark.parametrize("handrails", [False, True])
+def test_prev_to_unlabelled_step_links_to_step_id(handrails, caplog):
+    html = rsm.render(UNLABELLED_STEPS, handrails=handrails)
+    ids = _step_ids(html)
+    assert len(ids) == 3
+    assert _ref_hrefs(html) == [f"#{ids[1]}", f"#{ids[0]}"]
+    assert "un-labeled step" not in caplog.text
+
+
+@pytest.mark.parametrize("handrails", [False, True])
+def test_prev_to_labelled_step_links_to_label(handrails):
+    html = rsm.render(LABELLED_STEPS, handrails=handrails)
+    assert _step_ids(html)[0] == "first"
+    assert _ref_hrefs(html) == ["#first"]

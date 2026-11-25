@@ -1,0 +1,17 @@
+# Prev to an unlabelled step
+
+:theorem:
+
+  Every number is fine.
+
+::
+
+:proof:
+
+  :step: :claim: The first number is fine ::.
+  ::
+
+  :step: By :prev:, :claim: the second number is fine ::.
+  ::
+
+::

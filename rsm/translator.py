@@ -727,6 +727,20 @@ def _section_anchor_id(section: "nodes.Section") -> str:
     return ""
 
 
+def _step_anchor_id(step: "nodes.Step") -> str:
+    """Return the id of a proof step, for the step itself and for :prev: links to it.
+
+    A :prev: can point at a step that has no label, so an unlabelled step gets
+    "n" plus its node id in all output, with or without handrails. Handrails
+    give other unlabelled blocks the same kind of id.
+    """
+    if step.label:
+        return step.label
+    if step.nodeid is not None:
+        return f"n{step.nodeid}"
+    return ""
+
+
 # FOR DOCUMENTATION: Classes that inherit from EditCommand are meant to encapsulate
 # _reusable_ operations that convert a node into HTML text.  If an operation is not
 # reusable on multiple node classes and is particular to just one node class, it should
@@ -1014,6 +1028,8 @@ class AppendNodeTag(AppendOpenTag):
         id_ = node.label
         if not id_ and isinstance(node, nodes.Section):
             id_ = _section_anchor_id(node)
+        if not id_ and isinstance(node, nodes.Step):
+            id_ = _step_anchor_id(node)
         if not id_ and node.nodeid is not None and "hr" in classes:
             # Synthetic id so every HANDRAIL BLOCK is hash-addressable: the rail
             # and keyboard jumps navigate by location.hash and ride the native
@@ -2462,6 +2478,8 @@ class Translator:
             # table of contents link it to "#".
             if isinstance(node.target, nodes.Section):
                 href = f"#{_section_anchor_id(node.target)}"
+            elif isinstance(node.target, nodes.Step):
+                href = f"#{_step_anchor_id(node.target)}"
             else:
                 href = f"#{node.target.label}"
             tag_text = self._make_ahref_tag_text(node, node.target, href)
