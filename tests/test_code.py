@@ -860,3 +860,48 @@ def test_codeblock_in_paragraph_fence_middle():
         </body>
         """,
     )
+
+
+def test_closing_backtick_and_fences_add_no_text():
+    # The closing backtick and both ``` fences are nodes in the parse tree, so
+    # that editors can color them. They must not add text to the page.
+    compare_have_want(
+        have="""\
+        Use `x` here.
+
+        ```
+        y = 1
+        ```
+        """,
+        want="""\
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
+
+        <main class="manuscriptwrapper">
+
+        <div class="manuscript" data-nodeid="0">
+
+        <section class="level-1">
+
+        <div class="paragraph" data-nodeid="1">
+
+        <p>Use <span class="code" data-nodeid="3"><code>x</code></span> here.</p>
+
+        </div>
+
+        <div class="codeblock" data-nodeid="6">
+
+        <pre>
+        <code>y = 1</code>
+        </pre>
+
+        </div>
+
+        </section>
+
+        </div>
+
+        </main>
+
+        </body>
+        """,
+    )
