@@ -18,7 +18,13 @@ def test_inline_cannot_contain_block():
         <section class="level-1">
 
         <h1>My Title</h1>
-        <span class="error" data-nodeid="1">[CST error at (3, 1) - (3, 72)]</span>
+
+        <div class="paragraph" data-nodeid="1">
+
+        <p>This is a paragraph <span class="span" data-nodeid="3">with an inline <span class="error" data-nodeid="5">[CST error at (3, 43) - (3, 52)]</span> with a block.</span></p>
+
+        </div>
+        <span class="error" data-nodeid="7">[CST error at (3, 70) - (3, 72)]</span>
         </section>
 
         </div>
