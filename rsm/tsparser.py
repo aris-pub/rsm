@@ -1077,15 +1077,21 @@ def _abstractify(cst: TSTree) -> nodes.Manuscript | None:
             ast_node_type = "mathblock"
 
         elif cst_node.type == "td":
-            # td tags are special because the entire contents are in the first children,
-            # so we might as well add that with the current parent and ignore the
-            # current node
-            if cst_node.named_children:
-                stack.append((parent, cst_node.named_children[0]))
-                continue
-            # An empty cell (:td:::) has no tdcontent child. Emit an empty
-            # TableDatum so the row keeps its columns instead of crashing.
+            # The td node becomes the TableDatum, so that it gets the cell's meta.
+            # Its tdcontent child is unpacked into it by the branch below.
             ast_node_type = "td"
+
+        elif cst_node.type == "tdcontent" and isinstance(parent, nodes.TableDatum):
+            # A tdcontent is a cell of its own only in the short row form (:tr:
+            # a : b ::). Inside a :td: the cell already exists.
+            stack += reversed(
+                [
+                    (parent, c)
+                    for c in cst_node.named_children
+                    if c.type in PUSH_THESE_TYPES
+                ]
+            )
+            continue
 
         elif cst_node.type == "paragraph":
             first = cst_node.named_children[0]
