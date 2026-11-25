@@ -4,6 +4,11 @@
 # Set shell for all recipes
 set shell := ["bash", "-c"]
 
+# tree-sitter test and parse compile the grammar into this directory. The default
+# is one shared directory in ~/.cache, so a build in one worktree could replace the
+# parser that another worktree is testing.
+export TREE_SITTER_LIBDIR := justfile_directory() / ".tree-sitter-cache"
+
 # List all available recipes
 default:
     @just --list
