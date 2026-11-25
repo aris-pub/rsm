@@ -46,6 +46,46 @@ from .util import EscapedString
 
 logger = logging.getLogger("RSM").getChild("parse")
 
+_BIB_KINDS = {
+    "article",
+    "book",
+    "conference",
+    "incollection",
+    "inproceedings",
+    "mastersthesis",
+    "misc",
+    "phdthesis",
+    "software",
+    "techreport",
+    "unpublished",
+    "webpage",
+}
+
+_BIB_FIELDS = {
+    "address",
+    "author",
+    "booktitle",
+    "doi",
+    "edition",
+    "editor",
+    "howpublished",
+    "institution",
+    "journal",
+    "month",
+    "note",
+    "number",
+    "organization",
+    "pages",
+    "publisher",
+    "school",
+    "series",
+    "title",
+    "url",
+    "verbatim",
+    "volume",
+    "year",
+}
+
 
 def _user_position(
     start_point: tuple[int, int], end_point: tuple[int, int]
@@ -62,6 +102,59 @@ def _user_position(
         "end_row": end_row + 1,
         "end_col": end_col + 1,
     }
+
+
+def _bib_field_name(pair: TSNode) -> str:
+    key_node = pair.named_children[0]
+    assert key_node.type == "key" and key_node.text is not None
+    return key_node.text.decode("utf-8").split("=")[0].strip().lower()
+
+
+def _ingest_bib_field(bib_node: nodes.Bibitem, pair: TSNode) -> None:
+    """Set one field of a BibTeX entry on `bib_node`, or warn and skip it."""
+    key = _bib_field_name(pair)
+    where = _user_position(pair.start_point, pair.end_point)
+    entry = f"entry {bib_node.label}: field {key}"
+    if key not in _BIB_FIELDS:
+        logger.warning(f"{entry} is not used, skipped", extra=where)
+        return
+    value_node = pair.named_children[-1]
+    if value_node.type == "quotedvalue":
+        logger.warning(
+            f"{entry} is in quotes, skipped. Write the value in braces, as in "
+            f"{key} = {{...}}",
+            extra=where,
+        )
+        return
+    if value_node.type == "barevalue":
+        logger.warning(
+            f"{entry} is not in braces, skipped. Write the value in braces, as in "
+            f"{key} = {{...}}",
+            extra=where,
+        )
+        return
+    if value_node.type != "value" or pair.has_error:
+        logger.warning(
+            f"{entry} cannot be read, skipped. Write it as {key} = {{...}}",
+            extra=where,
+        )
+        return
+    assert value_node.text is not None
+    value = value_node.text.decode("utf-8")
+    if "{" in value:
+        logger.warning(
+            f"{entry} has braces inside its value. RSM ignores these braces and "
+            "keeps the text inside them. Write accented letters as they are, "
+            "such as ö, not as LaTeX commands.",
+            extra=where,
+        )
+        value = value.replace("{", "").replace("}", "")
+    # BibTeX calls the issue number "number", but on a node `number` is the
+    # citation index assigned by autonumbering, so store the issue under
+    # `issue` to keep it from being overwritten.
+    if key == "number":
+        key = "issue"
+    setattr(bib_node, key, value)
 
 
 class RSMParserError(Exception):
@@ -1056,6 +1149,14 @@ def _abstractify(cst: TSTree) -> nodes.Manuscript | None:
             for c in [c for c in cst_node.named_children if c.type == "ERROR"]:
                 logger.warning(msg=f"Bibitem at {(c.start_point)} has an error")
 
+            for c in [c for c in cst_node.named_children if c.type == "bibstring"]:
+                name = _bib_field_name(c.named_children[1])
+                logger.warning(
+                    f"@string {name} is not used, skipped. Write the value in "
+                    "each entry that uses it.",
+                    extra=_user_position(c.start_point, c.end_point),
+                )
+
             continue
         if cst_node.type == "bibitem":
             bib_node = nodes.Bibitem()
@@ -1063,19 +1164,26 @@ def _abstractify(cst: TSTree) -> nodes.Manuscript | None:
             label_node = cst_node.child_by_field_name("label")
             assert kind_node is not None and kind_node.text is not None
             assert label_node is not None and label_node.text is not None
-            bib_node.kind = kind_node.text.decode("utf-8")
             bib_node.label = label_node.text.decode("utf-8")
-            for pair in [c for c in cst_node.named_children if c.type == "bibitempair"]:
-                key_node, value_node = pair.named_children
-                assert key_node.text is not None and value_node.text is not None
-                key = key_node.text.decode("utf-8").split("=")[0].strip()
-                value = value_node.text.decode("utf-8")
-                # BibTeX calls the issue number "number", but on a node `number`
-                # is the citation index assigned by autonumbering, so store the
-                # issue under `issue` to keep it from being overwritten.
-                if key == "number":
-                    key = "issue"
-                setattr(bib_node, key, value)
+            kind = kind_node.text.decode("utf-8").lower()
+            if kind not in _BIB_KINDS:
+                logger.warning(
+                    f"entry {bib_node.label}: kind @{kind} is not known to RSM, "
+                    "read as @misc",
+                    extra=_user_position(kind_node.start_point, kind_node.end_point),
+                )
+                kind = "misc"
+            bib_node.kind = kind
+            for part in cst_node.named_children:
+                if part.type == "bibitempair":
+                    _ingest_bib_field(bib_node, part)
+                elif part.type == "ERROR":
+                    logger.warning(
+                        f"entry {bib_node.label}: RSM cannot read part of this "
+                        "entry, skipped. Write each field as name = {...}, with a "
+                        "comma between fields.",
+                        extra=_user_position(part.start_point, part.end_point),
+                    )
 
             # Bibitems are pushed with the Bibliography as their parent.
             assert isinstance(parent, nodes.Bibliography)
