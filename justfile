@@ -106,7 +106,23 @@ changelog version="Unreleased":
     if [ -z "$LAST_TAG" ]; then COMMITS=$(git log --oneline --no-merges); else COMMITS=$(git log --oneline --no-merges "${LAST_TAG}..HEAD"); fi
     DATE=$(date +%Y-%m-%d)
     PROMPT="Generate a CHANGELOG entry for version $VERSION (date: $DATE). Commits since last tag: $COMMITS. Rules: Skip ci/test/chore/docs commits and submodule updates. Group into Keep-a-Changelog sections: Added (feat:), Fixed (fix:), Changed (other). Rewrite as user-friendly prose. Omit empty sections. If no user-visible changes output: _No user-visible changes._ Output only raw markdown (no preamble, no code fences): ## [$VERSION] - $DATE, then ### Added, ### Fixed, ### Changed sections as needed."
-    entry=$(claude --print "$PROMPT")
+    # --safe-mode skips the user's hooks, settings and CLAUDE.md, which can change the reply.
+    entry=$(claude --print --safe-mode "$PROMPT")
+    # awk runs END after exit, so a bad line sets a flag that END reads.
+    if ! printf "%s\n" "$entry" | awk -v h="## [$VERSION] - " '
+        NF == 0 { next }
+        !started { if (index($0, h) != 1) { bad = 1; exit } started = 1; next }
+        /^### (Added|Changed|Fixed)$/ { section = 1; next }
+        section && /^- / { items++; next }
+        section && /^  [^ ]/ { next }
+        $0 == "_No user-visible changes._" { items++; next }
+        { bad = 1; exit }
+        END { exit (bad || !started || !items) }
+    '; then
+        echo "error: claude did not return changelog entries, so CHANGELOG.md is unchanged. The output was:" >&2
+        printf "%s\n" "$entry" >&2
+        exit 1
+    fi
     if [ -f CHANGELOG.md ]; then { head -1 CHANGELOG.md; printf "\n%s\n" "$entry"; tail -n +2 CHANGELOG.md; } > CHANGELOG.tmp && mv CHANGELOG.tmp CHANGELOG.md; else printf "# Changelog\n\n%s\n" "$entry" > CHANGELOG.md; fi
     echo "==> CHANGELOG.md updated for $VERSION"
 
