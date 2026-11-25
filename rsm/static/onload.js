@@ -342,11 +342,18 @@ export async function onrender(root = null) {
       if (elements.length && window.pseudocode) {
         await libs.loadMathJax();
         elements.forEach(el => {
+          const host = el.closest("[data-caption-name]");
           pseudocode.renderElement(el, {
             lineNumber: true,
             noEnd: true,
           });
           el.classList.add("rendered");
+          // pseudocode.js numbers captions with its own page-wide count, so
+          // the caption gets RSM's name and number for the block instead.
+          const keyword = host && host.querySelector(
+            ".ps-algorithm.with-caption > .ps-line:first-child > .ps-keyword"
+          );
+          if (keyword) keyword.textContent = host.dataset.captionName + " ";
         });
         libs.refreshMathStyles();
       }

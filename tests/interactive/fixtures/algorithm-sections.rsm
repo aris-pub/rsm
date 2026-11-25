@@ -1,0 +1,25 @@
+# Algorithms in sections
+
+## One
+
+:algorithm: {:label: alg-a}
+\begin{algorithm}
+\caption{First}
+\begin{algorithmic}
+\STATE $x = 1$
+\end{algorithmic}
+\end{algorithm}
+::
+
+## Two
+
+:algorithm: {:label: alg-b}
+\begin{algorithm}
+\caption{Second}
+\begin{algorithmic}
+\STATE $x = 2$
+\end{algorithmic}
+\end{algorithm}
+::
+
+See :ref:alg-b::.

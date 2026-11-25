@@ -39,7 +39,7 @@ def test_real_life_example():
 
         <section class="level-1">
 
-        <div class="algorithm">
+        <div class="algorithm" data-caption-name="Algorithm 1">
 
         <pre class="pseudocode">
         \begin{algorithm}
@@ -102,7 +102,7 @@ def test_label():
 
         <section class="level-1">
 
-        <div id="alg" class="algorithm">
+        <div id="alg" class="algorithm" data-caption-name="Algorithm 1">
 
         <pre class="pseudocode">
         \begin{algorithm}
@@ -145,7 +145,7 @@ def test_handrails():
 
         <section class="level-1">
 
-        <div class="algorithm hr hr-hidden" tabindex=0 data-nodeid="1">
+        <div class="algorithm hr hr-hidden" data-caption-name="Algorithm 1" tabindex=0 data-nodeid="1">
 
         <div class="hr-collapse-zone">
         <div class="hr-spacer"></div>
@@ -216,7 +216,7 @@ def test_handrails_with_label():
 
         <section class="level-1">
 
-        <div id="alg-test" class="algorithm hr hr-hidden" tabindex=0 data-nodeid="1">
+        <div id="alg-test" class="algorithm hr hr-hidden" data-caption-name="Algorithm 1" tabindex=0 data-nodeid="1">
 
         <div class="hr-collapse-zone">
         <div class="hr-spacer"></div>
