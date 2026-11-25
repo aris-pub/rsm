@@ -26,6 +26,9 @@
 // document, for anything that depends on where the items ended up.
 
 export const MARGIN_CLASS = "rsm-margin";
+// Set once scripts run (the builder's pre-paint script sets it even earlier).
+// braiid.css gives a page without the sidebar the column only while it is set.
+export const READY_CLASS = "has-margin";
 // The same numbers as --rsm-margin-width and --rsm-margin-gap in braiid.css.
 export const MARGIN_REM = 15;
 export const MARGIN_GAP_REM = 2;
@@ -121,6 +124,7 @@ export function setup() {
   if (ready) return;
   ready = true;
   const html = document.documentElement;
+  html.classList.add(READY_CLASS);
   new MutationObserver(schedule).observe(html, {
     attributes: true,
     attributeFilter: ["class", "data-reading-measure"],

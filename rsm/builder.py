@@ -222,6 +222,18 @@ class HTMLBuilder(BaseBuilder):
             "  </script>\n"
         )
 
+    def _margin_preload_script(self) -> str:
+        """A pre-paint script that sets html.has-margin. braiid.css gives a page
+        without the sidebar the margin column only while that class is set,
+        because margin.js places the items in it. With scripting off it never
+        runs, so the text stays centered and every aside and caption stays
+        under its block."""
+        return (
+            "\n  <script>\n"
+            "    document.documentElement.classList.add('has-margin');\n"
+            "  </script>\n"
+        )
+
     def _toc_switch_preload_script(self) -> str:
         """A pre-paint script that shows the table of contents' list/graph
         buttons from the first paint. tocarcs.js also sets html.has-toc-switch
@@ -284,6 +296,7 @@ class HTMLBuilder(BaseBuilder):
             self._sidebar_preload_script()
             + self._touch_preload_script()
             + self._asides_preload_script()
+            + self._margin_preload_script()
             + self._toc_switch_preload_script()
             + self._loading_preload_script()
         )
@@ -488,6 +501,7 @@ class StandaloneBuilder(HTMLBuilder):
             self._sidebar_preload_script()
             + self._touch_preload_script()
             + self._asides_preload_script()
+            + self._margin_preload_script()
             + self._toc_switch_preload_script()
             + self._loading_preload_script()
         )

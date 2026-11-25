@@ -195,3 +195,26 @@ def test_print_has_no_margin(page: Page, interactive_server: str):
     assert g["on"] != "1", g
     for cap in ("figCap", "tabCap"):
         assert g[cap]["r"] <= g["text"]["r"] + 1, g
+
+
+def test_without_js_the_page_is_as_before(browser, interactive_server: str):
+    """Without scripts nothing places items in the column, so the text column
+    stays centered and every aside and caption stays under its block."""
+    ctx = browser.new_context(
+        java_script_enabled=False, viewport={"width": 1440, "height": 900}
+    )
+    page = ctx.new_page()
+    page.goto(f"{interactive_server}/{NAME}.html")
+    page.wait_for_timeout(300)
+    g = _geom(page)
+    ctx.close()
+    assert g["on"] != "1", g
+    left = g["text"]["l"]
+    right = g["vw"] - g["text"]["r"]
+    assert abs(left - right) <= 2, f"text is not centered: left {left}, right {right}"
+    assert g["shown"], g
+    assert g["aside"]["t"] >= g["marker"]["b"], f"aside is not under its phrase: {g}"
+    assert g["aside"]["r"] <= g["text"]["r"] + 1, g
+    for cap, block in (("figCap", "fig"), ("tabCap", "tab")):
+        assert g[cap]["t"] >= g[block]["t"] + 10, f"{cap} is not under its block: {g}"
+        assert g[cap]["r"] <= g["text"]["r"] + 1, g
