@@ -42,3 +42,13 @@ class TestStrictModeRaises:
         )
         assert isinstance(result, str)
         assert "CST error" not in result
+
+
+def test_strict_build_fails_on_a_note_call_right_after_a_word():
+    with pytest.raises(RSMTransformerError, match="Put a space before :note:"):
+        rsm.build(
+            source="A fact:note:n1:: and.\n\n:note: {:label: n1} The note. ::\n",
+            strict=True,
+            handrails=False,
+            lint=False,
+        )

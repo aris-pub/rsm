@@ -33,7 +33,7 @@ import re
 from collections.abc import Callable
 from datetime import datetime
 from itertools import groupby
-from typing import Any, cast
+from typing import Any, NamedTuple, cast
 
 import tree_sitter
 import tree_sitter_rsm
@@ -909,6 +909,55 @@ def _missing_to_report(root: TSNode) -> list[TSNode]:
     return found
 
 
+# The characters after which the scanner ends text at a colon so that a tag can
+# start (is_punctuation in tree-sitter-rsm/src/scanner.c), and the colon itself.
+_TAG_CAN_FOLLOW = "([\"')].,;!?/-‘“:"
+
+
+class NoteCallAfterWord(NamedTuple):
+    start_point: tuple[int, int]
+    end_point: tuple[int, int]
+    halmos_byte: int
+    message: str
+
+
+def _note_calls_after_a_word(root: TSNode) -> list[NoteCallAfterWord]:
+    """The footnote calls written right after a word, as in 'fact:note:n1::'.
+
+    The scanner ends text at a colon only after whitespace or punctuation, so
+    such a call stays in the text and its closing '::' is left over as an
+    ERROR, or closes the block around the paragraph.
+    """
+    src = root.text or b""
+    found = []
+    stack = [root]
+    while stack:
+        node = stack.pop()
+        stack.extend(reversed(node.children))
+        if node.type != "text" or src[node.end_byte : node.end_byte + 2] != b"::":
+            continue
+        m = re.search(rb"(\S+):note:([^\s:]*)\Z", node.text or b"")
+        if m is None:
+            continue
+        word = m.group(1).decode("utf-8", errors="replace")
+        if word[-1] in _TAG_CAN_FOLLOW:
+            continue
+        label = m.group(2).decode("utf-8", errors="replace")
+        row, col = node.start_point
+        found.append(
+            NoteCallAfterWord(
+                start_point=(row, col + m.end(1)),
+                end_point=(node.end_point[0], node.end_point[1] + 2),
+                halmos_byte=node.end_byte,
+                message=(
+                    "A footnote call must come after a space. Put a space "
+                    f"before :note:, as in '{word} :note:{label}::'"
+                ),
+            )
+        )
+    return found
+
+
 def _report_missing(cst: TSTree, root: nodes.Manuscript) -> None:
     """Log each MISSING node to report, and put a CST error in the page right
     after the deepest node whose source holds it, as for an ERROR node. After,
@@ -945,6 +994,14 @@ def _abstractify(cst: TSTree) -> nodes.Manuscript | None:
     # The same for headings whose title carries inline markup.
     title_builds: list[tuple[nodes.Heading, nodes.Span]] = []
     raw_html_nodes: list[nodes.RawHtml] = []
+    # A footnote call right after a word leaves its '::' as an ERROR. The
+    # call's own message covers that ERROR, so it gets no second message.
+    halmos_after_word = set()
+    for call in _note_calls_after_a_word(cst.root_node):
+        logger.error(
+            call.message, extra=_user_position(call.start_point, call.end_point)
+        )
+        halmos_after_word.add(call.halmos_byte)
     stack: list[tuple[nodes.Node | None, TSNode]] = [(None, cst.root_node)]
     # The asserts below that a tree-sitter field or its text is not None hold
     # because the grammar always makes these fields, and the tree keeps the
@@ -1160,7 +1217,8 @@ def _abstractify(cst: TSTree) -> nodes.Manuscript | None:
                 ast_node.text = cst_node.text.decode("utf-8")
         elif ast_node_type == "ERROR":
             pos = _user_position(cst_node.start_point, cst_node.end_point)
-            logger.warning("The CST contains errors.", extra=pos)
+            if cst_node.start_byte not in halmos_after_word:
+                logger.warning("The CST contains errors.", extra=pos)
             ast_node = nodes.Error(
                 f"[CST error at ({pos['start_row']}, {pos['start_col']}) - "
                 f"({pos['end_row']}, {pos['end_col']})]",
