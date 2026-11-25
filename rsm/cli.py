@@ -16,8 +16,18 @@ import livereload
 from rsm import app
 
 
-def _add_common_args(parser: ArgumentParser) -> None:
-    """Add common arguments shared by all subcommands."""
+def _add_common_args(
+    parser: ArgumentParser,
+    *,
+    handrails: bool = False,
+    page_style: bool = False,
+    verbose: bool = True,
+    strict: bool = True,
+) -> None:
+    """Add the arguments shared by the subcommands that read one RSM source.
+
+    The keyword flags add the options that only some subcommands use.
+    """
     parser.add_argument(
         "src",
         help="RSM source path",
@@ -32,32 +42,35 @@ def _add_common_args(parser: ArgumentParser) -> None:
     )
 
     output_opts = parser.add_argument_group("output control")
-    output_opts.add_argument(
-        "-r",
-        "--handrails",
-        help="output handrails",
-        action="store_true",
-    )
-    output_opts.add_argument(
-        "--css",
-        help="path to custom CSS file",
-        type=str,
-        default=None,
-    )
-    output_opts.add_argument(
-        "--menu-right",
-        help="position handrail context menus to the right instead of left",
-        action="store_true",
-    )
+    if handrails:
+        output_opts.add_argument(
+            "-r",
+            "--handrails",
+            help="output handrails",
+            action="store_true",
+        )
+    if page_style:
+        output_opts.add_argument(
+            "--css",
+            help="path to custom CSS file",
+            type=str,
+            default=None,
+        )
+        output_opts.add_argument(
+            "--menu-right",
+            help="position handrail context menus to the right instead of left",
+            action="store_true",
+        )
 
     log_opts = parser.add_argument_group("logging control")
-    log_opts.add_argument(
-        "-v",
-        "--verbose",
-        help="verbosity",
-        action="count",
-        default=0,
-    )
+    if verbose:
+        log_opts.add_argument(
+            "-v",
+            "--verbose",
+            help="verbosity",
+            action="count",
+            default=0,
+        )
     log_opts.add_argument(
         "--log-no-timestamps",
         dest="log_time",
@@ -76,11 +89,12 @@ def _add_common_args(parser: ArgumentParser) -> None:
         choices=["plain", "rsm", "json", "lint"],
         default="rsm",
     )
-    log_opts.add_argument(
-        "--strict",
-        help="raise exception on CST errors (halt build on syntax errors)",
-        action="store_true",
-    )
+    if strict:
+        log_opts.add_argument(
+            "--strict",
+            help="raise exception on CST errors (halt build on syntax errors)",
+            action="store_true",
+        )
 
 
 def _run_app(func: Callable, args: Namespace, print_output: bool = True) -> int:
@@ -172,7 +186,17 @@ def _cmd_render(args: Namespace) -> int:
 
 def _cmd_check(args: Namespace) -> int:
     """Handle 'rsm check' subcommand."""
-    return _run_app(app.lint, args, print_output=False)
+    kwargs = {
+        "log_format": args.log_format,
+        "log_time": args.log_time,
+        "log_lineno": args.log_lineno,
+    }
+    if args.string:
+        kwargs["source"] = args.src
+    else:
+        kwargs["path"] = args.src
+    app.lint(**kwargs)
+    return 0
 
 
 def _cmd_parse(args: Namespace) -> int:
@@ -264,7 +288,6 @@ def _cmd_build(args: Namespace) -> int:
             custom_css = str(auto_css_path)
 
     kwargs = {
-        "handrails": args.handrails,
         "loglevel": app.RSMApp.default_log_level - args.verbose * 10,
         "log_format": args.log_format,
         "log_time": args.log_time,
@@ -658,7 +681,6 @@ def _cmd_serve(args: Namespace) -> int:
 
         # Initial build
         kwargs = {
-            "handrails": args.handrails,
             "loglevel": app.RSMApp.default_log_level - args.verbose * 10,
             "log_format": args.log_format,
             "log_time": args.log_time,
@@ -892,7 +914,7 @@ def main() -> int:
         "build",
         help="build RSM source to HTML with assets",
     )
-    _add_common_args(build_parser)
+    _add_common_args(build_parser, page_style=True)
     build_parser.add_argument(
         "--standalone",
         help="output single self-contained HTML file",
@@ -922,14 +944,14 @@ def main() -> int:
         help="add the reader sidebar (contents, notation, proofs, pinned, reading)",
         action="store_true",
     )
-    build_parser.set_defaults(handrails=True, func=_cmd_build)
+    build_parser.set_defaults(func=_cmd_build)
 
     # Render subcommand
     render_parser = subparsers.add_parser(
         "render",
         help="render RSM source to HTML (stdout only)",
     )
-    _add_common_args(render_parser)
+    _add_common_args(render_parser, handrails=True)
     render_parser.add_argument(
         "-s",
         "--silent",
@@ -948,7 +970,7 @@ def main() -> int:
         "check",
         help="check RSM source for errors",
     )
-    _add_common_args(check_parser)
+    _add_common_args(check_parser, verbose=False, strict=False)
     check_parser.set_defaults(log_format="lint", func=_cmd_check)
 
     # Parse subcommand
@@ -1059,12 +1081,6 @@ def main() -> int:
     # Output control
     output_opts = serve_parser.add_argument_group("output control")
     output_opts.add_argument(
-        "-r",
-        "--handrails",
-        help="output handrails",
-        action="store_true",
-    )
-    output_opts.add_argument(
         "--css",
         help="path to custom CSS file",
         type=str,
@@ -1149,7 +1165,7 @@ def main() -> int:
         action="store_true",
     )
 
-    serve_parser.set_defaults(handrails=True, func=_cmd_serve)
+    serve_parser.set_defaults(func=_cmd_serve)
 
     args = parser.parse_args()
     status: int = args.func(args)
