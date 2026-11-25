@@ -110,6 +110,15 @@ reference manager exports. RSM prints it as a list of references, numbered or
 sorted by author, and warns about an entry without a DOI. Put it at the end of
 the document.
 
+RSM reads entry kinds in capitals too, such as ``@Article``, and reads a kind
+that RSM does not know, such as ``@manual``, as ``@misc``. RSM skips a field
+that it does not use, such as ``keywords``, a value in quotes or a value that
+is a bare word, and ``@string`` definitions. RSM ignores braces inside a value
+and keeps the text inside them, and does not read LaTeX commands. Each of
+these gives a warning that names the entry key and the field, and the rest of
+the entry is kept. See :ref:`guide-citations` for the kinds and fields that
+RSM uses.
+
 .. rubric:: Syntax
 
 .. rsm::

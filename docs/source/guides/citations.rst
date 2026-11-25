@@ -55,19 +55,28 @@ entries into it, one after the other. Close the block with ``::``.
 The key of an entry is the word after the opening brace, such as ``knuth`` in
 ``@book{knuth,``. Citations use this key.
 
-RSM reads a subset of BibTeX, not everything that BibTeX and LaTeX accept:
+RSM reads a subset of BibTeX, not everything that BibTeX and LaTeX accept.
+Entries outside this subset never stop the build. RSM keeps each entry, and
+gives a warning that names the entry key and the field:
 
 - The entry kinds are ``@article``, ``@book``, ``@conference``,
   ``@incollection``, ``@inproceedings``, ``@mastersthesis``, ``@misc``,
   ``@phdthesis``, ``@software``, ``@techreport``, ``@unpublished`` and
-  ``@webpage``.
+  ``@webpage``. RSM reads them in capitals too, such as ``@Article``. RSM
+  reads any other kind, such as ``@manual``, as ``@misc`` and gives a warning.
 - The fields are ``title``, ``author``, ``editor``, ``year``, ``month``,
   ``journal``, ``booktitle``, ``series``, ``volume``, ``number``, ``pages``,
   ``edition``, ``publisher``, ``organization``, ``institution``, ``school``,
-  ``address``, ``howpublished``, ``note``, ``doi`` and ``url``.
-- Each value is written in braces, with no braces inside it. Values in quotes,
-  ``@string`` definitions and LaTeX commands such as ``{\"o}`` are not read.
-  Write accented letters as they are, such as ö.
+  ``address``, ``howpublished``, ``note``, ``doi`` and ``url``. RSM skips any
+  other field, such as ``keywords`` or ``abstract``, and gives a warning.
+- Each value is written in braces. RSM skips a value in quotes, such as
+  ``title = "Sorting"``, or a value that is a bare word, such as
+  ``journal = jcp``, and gives a warning.
+- RSM ignores braces inside a value and keeps the text inside them, so
+  ``{A {B} C}`` reads "A B C", and gives a warning. RSM does not read LaTeX
+  commands: ``{Erd\H{o}s}`` reads ``Erd\Hos``. Write accented letters as they
+  are, such as ö.
+- RSM skips ``@string`` definitions and gives a warning that names each one.
 
 RSM warns about an entry without a ``doi``, because the reader cannot follow
 it to the work.
