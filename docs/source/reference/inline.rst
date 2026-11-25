@@ -52,6 +52,17 @@ A piece of text with meta keys, such as a class for custom styles.
 ``:emphas:``
    Makes the text italic, as ``*`` does.
 
+``:little:``
+   Makes the text smaller, with an HTML ``<small>`` tag.
+
+``:insert:``
+   Marks the text as inserted, with an HTML ``<ins>`` tag. Browsers underline
+   it.
+
+``:delete:``
+   Marks the text as deleted, with an HTML ``<del>`` tag. Browsers strike it
+   through.
+
 ``:class:``
    One or more CSS classes, separated by commas. See :ref:`styling`.
 

@@ -1,11 +1,13 @@
 """Tests for rsm/pandoc.py — PandocTranslator (export) and PandocImporter (import)."""
 
+import logging
 import shutil
 import sys
 from textwrap import dedent
 
 import pytest
 
+import rsm
 from rsm import cli
 from rsm.app import ParserApp, RSMApplicationError, pandoc_export, pandoc_import
 from rsm.pandoc import PANDOC_API_VERSION, PandocImporter, PandocTranslator
@@ -881,6 +883,19 @@ def test_roundtrip_ordered_list():
     assert "One" in markdown_out
     assert "Two" in markdown_out
 
+
+
+@_PANDOC_SKIP
+def test_import_keeps_strikeout_and_small_caps(caplog):
+    caplog.set_level(logging.WARNING)
+    rsm_text = pandoc_import(
+        source="Some ~~struck~~ and [small]{.smallcaps} text.\n",
+        from_format="markdown",
+    )
+    h = rsm.render(rsm_text, handrails=False, source_offsets=False)
+    assert "<del>struck</del>" in h, h
+    assert "<small>small</small>" in h, h
+    assert not caplog.records, caplog.text
 
 def test_abstract_in_meta():
     """Abstract content should appear in Pandoc meta, not as body blocks."""
