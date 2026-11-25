@@ -1553,6 +1553,16 @@ class Math(NodeWithChildren):
         self.preamble = preamble
 
 
+def _equation_reftext(node: "Node") -> str | None:
+    """The reference text of an equation that has no number and no :reftext:.
+
+    Without it, the reference would read "()".
+    """
+    if node.full_number or node.reftext_template != node.classreftext:
+        return None
+    return "the equation"
+
+
 class MathBlock(TerminalBlock):
     autonumber = True
     _number_within = Section
@@ -1567,6 +1577,10 @@ class MathBlock(TerminalBlock):
         super().__init__(**kwargs)
         self.isclaim = isclaim
         self.preamble = preamble
+
+    @property
+    def reftext(self) -> str:
+        return _equation_reftext(self) or super().reftext
 
     @property
     def long_reftext(self) -> str:
@@ -1997,6 +2011,10 @@ class Calc(NodeWithChildren):
     _number_within = Section
     _number_as = MathBlock
     classreftext: ClassVar[str] = "({number})"
+
+    @property
+    def reftext(self) -> str:
+        return _equation_reftext(self) or super().reftext
 
     @property
     def long_reftext(self) -> str:

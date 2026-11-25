@@ -858,21 +858,20 @@ class Transformer:
 
             if node.autonumber and not node.nonum:
                 number_within: type[nodes.Node] | tuple[type[nodes.Node], ...]
-                # Apply numbering mode from config
-                if numbering_mode == "none":
-                    # Don't assign numbers when numbering is none
+                # The bibliography is not a block, so :numbering: leaves the
+                # citation numbers alone. Sections keep their own numbering
+                # (2.1, 2.1.1) in every mode except none.
+                is_bibitem = isinstance(node, nodes.Bibitem)
+                is_section = isinstance(node, nodes.Section)
+                if numbering_mode == "none" and not is_bibitem:
                     node.nonum = True
                     continue
-                elif numbering_mode == "document":
-                    # Number within manuscript (1, 2, 3...)
+                elif numbering_mode == "document" and not is_section:
                     number_within = nodes.Manuscript
-                else:
-                    # Default to section numbering (1.1, 1.2, 2.1...)
-                    number_within = node.number_within
-
-                # Override node's number_within for full_number property
-                if numbering_mode == "document":
+                    # full_number reads number_within to build the prefix.
                     node._number_within_override = nodes.Manuscript
+                else:
+                    number_within = node.number_within
 
                 counts[type(node)] = defaultdict(lambda: count(start=1))
                 num = next(counts[number_within][node.number_as])

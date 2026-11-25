@@ -39,14 +39,14 @@ def test_defaults():
     s = rsm.nodes.Step()
     assert s.reftext.strip() == "Step ⟨⟩"
     m = rsm.nodes.MathBlock()
-    assert m.reftext.strip() == "()"
+    assert m.reftext.strip() == "the equation"
 
 
 def test_nonum():
     s = rsm.nodes.Step(nonum=True)
     assert s.reftext.strip() == "Step ⟨⟩"
     m = rsm.nodes.MathBlock(nonum=True)
-    assert m.reftext.strip() == "()"
+    assert m.reftext.strip() == "the equation"
 
 
 def test_simple():
