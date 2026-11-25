@@ -844,3 +844,58 @@ def test_notes_from_the_appendix_join_the_same_list():
     refs_heading = html.index("<h2>References</h2>")
     assert html.count("<h2>Notes</h2>") == 1
     assert notes_heading < html.index('id="z"') < refs_heading
+
+
+# ---------------------------------------------------------------------------
+# A footnote call right after a word (rsm-g0v5, rsm-8pl)
+# ---------------------------------------------------------------------------
+
+N1 = "\n\n:note: {:label: n1} The note. ::\n"
+
+
+def _space_records(caplog) -> list[logging.LogRecord]:
+    return [r for r in caplog.records if "Put a space before :note:" in r.getMessage()]
+
+
+def test_call_right_after_a_word_asks_for_a_space(caplog):
+    caplog.set_level(logging.WARNING, logger="RSM")
+    render("A fact:note:n1:: and." + N1)
+    (rec,) = _space_records(caplog)
+    assert "'fact :note:n1::'" in rec.getMessage()
+    assert (rec.start_row, rec.start_col) == (1, 7)
+    assert (rec.end_row, rec.end_col) == (1, 17)
+    assert not any("The CST contains errors" in r.getMessage() for r in caplog.records)
+
+
+def test_call_right_after_a_word_gives_its_line_and_column(caplog):
+    caplog.set_level(logging.WARNING, logger="RSM")
+    render("First line.\nA self-test:note:n1:: and more." + N1)
+    (rec,) = _space_records(caplog)
+    assert "'self-test :note:n1::'" in rec.getMessage()
+    assert (rec.start_row, rec.start_col) == (2, 12)
+
+
+@pytest.mark.parametrize(
+    "src",
+    [
+        "A fact.:note:n1:: and.",
+        "A (self-test):note:n1:: and.",
+        "A fact :note:n1:: and.",
+    ],
+)
+def test_call_after_punctuation_or_a_space_still_works(caplog, src):
+    caplog.set_level(logging.WARNING, logger="RSM")
+    tree = transform(src + N1)
+    assert len(calls(tree)) == 1
+    assert errors(tree) == []
+    assert _space_records(caplog) == []
+
+
+def test_marker_has_no_space_before_it_even_with_one_in_the_source():
+    html = render("A fact :note:n1:: and." + N1)
+    assert 'A fact<a id="call-n1"' in html
+
+
+def test_marker_keeps_the_space_after_it():
+    html = render("A fact :note:n1:: and." + N1)
+    assert ">1</a> and." in html

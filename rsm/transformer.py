@@ -285,12 +285,19 @@ class Transformer:
         _find_errors(self.parser.cst.root_node)
         # Invalid input that the parser repaired with an inserted token
         # (rsm-pn7).
-        from .tsparser import _missing_to_report
+        from .tsparser import _missing_to_report, _note_calls_after_a_word
 
         error_nodes += _missing_to_report(self.parser.cst.root_node)
+        after_word = _note_calls_after_a_word(self.parser.cst.root_node)
+        halmos_bytes = {call.halmos_byte for call in after_word}
+        error_nodes = [n for n in error_nodes if n.start_byte not in halmos_bytes]
 
-        if error_nodes:
-            error_messages = []
+        if error_nodes or after_word:
+            error_messages = [
+                f"  - ({call.start_point[0]}, {call.start_point[1]}) - "
+                f"({call.end_point[0]}, {call.end_point[1]}): {call.message}"
+                for call in after_word
+            ]
             for node in error_nodes:
                 start = node.start_point
                 end = node.end_point
