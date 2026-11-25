@@ -85,11 +85,12 @@ The menu holds the actions that make sense for the block:
 The margin
 ----------
 
-A page built with ``rsm build --sidebar`` has a margin column on the right
-when the window is wide enough. The captions of figures and tables sit there,
-level with their block, and so do asides. Otherwise, captions sit under their
-block, and an aside opens under its block when the reader clicks or taps its
-phrase.
+When the window is wide enough, the page has a margin column on the right.
+The captions of figures and tables sit there, level with their block, and so
+do asides. How wide the window has to be depends on the width of the text,
+and on a page built with ``rsm build --sidebar`` also on whether a sidebar
+view is open. Otherwise, captions sit under their block, and an aside opens
+under its block when the reader clicks or taps its phrase.
 
 
 The keyboard

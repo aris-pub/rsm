@@ -1061,7 +1061,8 @@ var RSM = (() => {
     schedule();
   }
   function marginOn() {
-    return document.documentElement.classList.contains(MARGIN_CLASS);
+    const on = getComputedStyle(document.documentElement).getPropertyValue("--rsm-margin-on");
+    return on.trim() === "1";
   }
   function clear(item) {
     item.style.removeProperty("left");
@@ -1185,10 +1186,7 @@ var RSM = (() => {
     document.addEventListener("focusout", onFocus);
     window.addEventListener("hashchange", openHashTarget);
     openHashTarget();
-    new MutationObserver(syncExpanded).observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ["class"]
-    });
+    document.addEventListener("rsm:margin-layout", syncExpanded);
   }
   function syncExpanded() {
     const toggles = !marginOn();

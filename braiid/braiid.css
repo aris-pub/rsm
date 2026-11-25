@@ -2965,15 +2965,20 @@ html:not(.touch) {
   html.touch .manuscriptwrapper .manuscript .hr.rsm-cap-linked > .hr-border-zone { left: var(--cap-rail-x, 0px); }
 }
 
-/* The margin column (margin.js decides where each item goes; sidebar.js sets
-   html.rsm-margin when the column fits). The page widens by the column, the
-   text keeps its width, and items are placed in the column at their anchors.
-   Screen only: print keeps captions under their blocks. */
+/* The margin column. margin.js places each item in it level with its anchor.
+   The page widens by the column and the text keeps its width. Screen only:
+   print keeps captions under their blocks.
+
+   --rsm-margin-on on <html> is 1 while the column is on, and margin.js and
+   asides.js read it. On a page with the sidebar, sidebar.js decides and sets
+   html.rsm-margin. */
 :root {
   --rsm-margin-width: 15rem;
   --rsm-margin-gap: 2rem;
+  --rsm-margin-on: 0;
 }
 @media screen {
+  html.rsm-margin { --rsm-margin-on: 1; }
   html.rsm-margin main.manuscriptwrapper {
     padding-right: calc(var(--side-padding) + var(--rsm-margin-gap) + var(--rsm-margin-width));
   }
@@ -2985,6 +2990,76 @@ html:not(.touch) {
   }
   /* Beside the text the caption's empty number zone would only narrow it. */
   html.rsm-margin .manuscriptwrapper .manuscript .hr.rsm-margin-item > .hr-info-zone { display: none; }
+}
+/* On a page without the sidebar (no .rail-strip) the media queries below decide.
+   The column is on when the text column and the margin column, centered
+   together, fit in the window with the page's side padding on each side: a
+   window at least the Reading measure plus the gap and the column (17rem)
+   wide. The wrapper then grows by the gap and the column, and its padding
+   keeps the text column at its width. A media query cannot read a custom
+   property, and rem in a media query is the browser's default size, not the
+   root size, so the widths are in px: 52rem, 54rem and 68rem plus 17rem, at
+   16px, which is also the root size above 1024px. The rules are the same in
+   all three. */
+@media screen and (min-width: 1104px) {
+  html[data-reading-measure="narrow"]:not(:has(.rail-strip)) {
+    --rsm-margin-on: 1;
+    & main.manuscriptwrapper {
+      max-width: calc(var(--content-max-width) + var(--rsm-margin-gap) + var(--rsm-margin-width));
+      padding-right: calc(var(--side-padding) + var(--rsm-margin-gap) + var(--rsm-margin-width));
+    }
+    & .manuscriptwrapper .manuscript .rsm-margin-item {
+      position: absolute;
+      width: var(--rsm-margin-width);
+      margin: 0;
+      padding-left: 0;
+    }
+    & .manuscriptwrapper .manuscript .hr.rsm-margin-item > .hr-info-zone { display: none; }
+    &.has-asides .manuscriptwrapper .manuscript .aside.rsm-margin-item {
+      display: block;
+      padding: .65em .85em;
+    }
+  }
+}
+@media screen and (min-width: 1136px) {
+  html:not([data-reading-measure="narrow"], [data-reading-measure="wide"], :has(.rail-strip)) {
+    --rsm-margin-on: 1;
+    & main.manuscriptwrapper {
+      max-width: calc(var(--content-max-width) + var(--rsm-margin-gap) + var(--rsm-margin-width));
+      padding-right: calc(var(--side-padding) + var(--rsm-margin-gap) + var(--rsm-margin-width));
+    }
+    & .manuscriptwrapper .manuscript .rsm-margin-item {
+      position: absolute;
+      width: var(--rsm-margin-width);
+      margin: 0;
+      padding-left: 0;
+    }
+    & .manuscriptwrapper .manuscript .hr.rsm-margin-item > .hr-info-zone { display: none; }
+    &.has-asides .manuscriptwrapper .manuscript .aside.rsm-margin-item {
+      display: block;
+      padding: .65em .85em;
+    }
+  }
+}
+@media screen and (min-width: 1360px) {
+  html[data-reading-measure="wide"]:not(:has(.rail-strip)) {
+    --rsm-margin-on: 1;
+    & main.manuscriptwrapper {
+      max-width: calc(var(--content-max-width) + var(--rsm-margin-gap) + var(--rsm-margin-width));
+      padding-right: calc(var(--side-padding) + var(--rsm-margin-gap) + var(--rsm-margin-width));
+    }
+    & .manuscriptwrapper .manuscript .rsm-margin-item {
+      position: absolute;
+      width: var(--rsm-margin-width);
+      margin: 0;
+      padding-left: 0;
+    }
+    & .manuscriptwrapper .manuscript .hr.rsm-margin-item > .hr-info-zone { display: none; }
+    &.has-asides .manuscriptwrapper .manuscript .aside.rsm-margin-item {
+      display: block;
+      padding: .65em .85em;
+    }
+  }
 }
 /* A <video> keeps its intrinsic pixel width otherwise and overflows the figure
    on a narrow screen (rsm-29p). height:auto keeps the aspect ratio. */
@@ -3414,7 +3489,7 @@ kept for handrails) and no number. The HTML puts each aside at the end of the
 block that calls it, so the block's handrail covers it. Without scripts it stays
 there, open. asides.js sets html.has-asides (the builder's pre-paint script sets
 it before first paint), and then an aside is either in the margin column
-(html.rsm-margin, placed by margin.js) or closed until its phrase opens it.
+(placed by margin.js) or closed until its phrase opens it.
 Screen only: print shows every aside below its block. */
 /* --text-subtle alone is below AA contrast on the tint, so the text is moved
    halfway to the body colour. In dark mode even that reads dim, and a lit aside
@@ -3494,6 +3569,7 @@ same tint. */
 }
 
 @media screen {
+  /* On a page without the sidebar the margin column rules show the aside again. */
   html.has-asides:not(.rsm-margin) .manuscriptwrapper .aside:not(.rsm-aside-open) {
     display: none;
   }

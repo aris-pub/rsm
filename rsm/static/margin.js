@@ -3,11 +3,14 @@
 // The right-hand margin column, shared by everything that can sit beside the
 // text (captions now, asides later).
 //
-// Whether the column fits is decided elsewhere (sidebar.js, which knows the
-// strip, the panel and the Reading width) and shown by one class on <html>:
-// MARGIN_CLASS. While it is set, braiid.css widens the page by the column and
-// makes each margin item absolutely positioned and MARGIN_REM wide. Without it
-// items stay where the page's own CSS puts them (a caption under its block).
+// Whether the column fits is decided elsewhere: on a page with the sidebar by
+// sidebar.js (which knows the strip, the panel and the Reading width), which
+// sets MARGIN_CLASS on <html>, and on a page without it by media queries in
+// braiid.css. Either way braiid.css shows the result as --rsm-margin-on on
+// <html>, which marginOn() reads. While it is on, braiid.css widens the page by
+// the column and makes each margin item absolutely positioned and MARGIN_REM
+// wide. Otherwise items stay where the page's own CSS puts them (a caption
+// under its block).
 //
 // API:
 //   addMarginItem(anchor, item)  put `item` in the column, its top level with
@@ -17,10 +20,10 @@
 //                                order of their anchors, and one that would
 //                                overlap the item above it is pushed down below
 //                                it (items never overlap).
-// The column re-lays itself out on resize, on content size changes and when
-// MARGIN_CLASS changes, so callers rarely need layoutMargin(). After every pass
-// it dispatches "rsm:margin-layout" on document, for anything that depends on
-// where the items ended up.
+// The column re-lays itself out on resize, on content size changes, when
+// MARGIN_CLASS changes and when the Reading width changes, so callers rarely
+// need layoutMargin(). After every pass it dispatches "rsm:margin-layout" on
+// document, for anything that depends on where the items ended up.
 
 export const MARGIN_CLASS = "rsm-margin";
 // The same numbers as --rsm-margin-width and --rsm-margin-gap in braiid.css.
@@ -58,7 +61,8 @@ export function removeMarginItem(item) {
 }
 
 export function marginOn() {
-  return document.documentElement.classList.contains(MARGIN_CLASS);
+  const on = getComputedStyle(document.documentElement).getPropertyValue("--rsm-margin-on");
+  return on.trim() === "1";
 }
 
 function clear(item) {
