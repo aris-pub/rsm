@@ -1,0 +1,17 @@
+# Algorithms without numbers
+
+:config: {
+  :numbering: none
+}
+::
+
+## One
+
+:algorithm: {:label: alg-a}
+\begin{algorithm}
+\caption{First}
+\begin{algorithmic}
+\STATE $x = 1$
+\end{algorithmic}
+\end{algorithm}
+::

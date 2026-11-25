@@ -426,7 +426,8 @@ def test_algorithm_inside_paragraph():
     body = _body("Before\n:algorithm:\nx\n::\nafter.\n")
     assert body.count('class="paragraph"') == 1, body
     assert (
-        '<divclass="paragraph"><p>Before</p><divclass="algorithm">'
+        '<divclass="paragraph"><p>Before</p>'
+        '<divclass="algorithm"data-caption-name="Algorithm1">'
         '<preclass="pseudocode">x</pre></div><p>after.</p></div>'
     ) in body, body
 

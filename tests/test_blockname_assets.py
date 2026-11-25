@@ -34,8 +34,7 @@ BODIES = {
 }
 
 DEFAULT = {"html": "Figure", "figure": "Figure", "video": "Video", "table": "Table"}
-# Tables are numbered across the whole manuscript, assets within their section.
-NUMBER = {"html": "1.1", "figure": "1.1", "video": "1.1", "table": "1"}
+NUMBER = {"html": "1.1", "figure": "1.1", "video": "1.1", "table": "1.1"}
 CLASS = {
     "html": nodes.Figure,
     "figure": nodes.Figure,
@@ -206,4 +205,4 @@ def test_numbering_unchanged():
         "Figure 1.3",
         "Diagram 1.4",
     ]
-    assert [n.reftext for n in tables] == ["Data 1", "Table 2"]
+    assert [n.reftext for n in tables] == ["Data 1.1", "Table 1.2"]

@@ -1696,6 +1696,7 @@ class Algorithm(TerminalBlock):
     """
 
     autonumber = True
+    _number_within = Section
     has_handrail = True
 
 
@@ -2258,6 +2259,7 @@ class Draft(NodeWithChildren):
 
 class Table(NodeWithChildren):
     autonumber = True
+    _number_within = Section
     newmetakeys: ClassVar[set] = {"blockname"}
 
     def __init__(self, blockname: str = "", **kwargs: Any) -> None:

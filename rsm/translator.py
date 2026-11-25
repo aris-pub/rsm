@@ -926,15 +926,19 @@ class AppendOpenTag(AppendTextAndDefer):
         return self._edit_command_repr(["tag", "id", "classes", "newline_inner"])
 
 
-def _caption_label(parent: nodes.Node) -> AppendOpenCloseTag:
-    """A caption's label, "Figure 1. ". A block with no number (:nonum:, or numbering turned
-    off) keeps the name without the number, "Figure. ", not "Figure None. "."""
-    name = parent.classreftext.format(
+def _caption_name(parent: nodes.Node) -> str:
+    """The name in a caption's label, "Figure 1". A block with no number (:nonum:, or
+    numbering turned off) keeps the name without the number, "Figure", not "Figure None"."""
+    return parent.classreftext.format(
         nodeclass=parent.kindname, number=parent.full_number or ""
     ).strip()
+
+
+def _caption_label(parent: nodes.Node) -> AppendOpenCloseTag:
+    """A caption's label, "Figure 1. "."""
     return AppendOpenCloseTag(
         tag="span",
-        content=f"{name}. ",
+        content=f"{_caption_name(parent)}. ",
         classes=["label"],
         newline_inner=False,
         newline_outer=False,
@@ -2358,7 +2362,11 @@ class Translator:
         return AppendBatchAndDefer(
             [
                 *self._close_p_before(node),
-                AppendOpenTag(id=node.label, classes=["algorithm"]),
+                AppendOpenTag(
+                    id=node.label,
+                    classes=["algorithm"],
+                    **{"data-caption-name": _caption_name(node)},
+                ),
                 AppendOpenTag("pre", classes=["pseudocode"]),
             ]
         )
@@ -4685,7 +4693,11 @@ class HandrailsTranslator(Translator):
         return self._reopen_p_after(node, base_batch)
 
     def visit_algorithm(self, node: nodes.Algorithm) -> AppendBatchAndDefer:
-        batch = self._replace_node_with_handrails(node, collapse_in_hr=False)
+        batch = self._replace_node_with_handrails(
+            node,
+            collapse_in_hr=False,
+            extra_attrs={"data-caption-name": _caption_name(node)},
+        )
         if "hr-hidden" not in batch.items[0].classes:
             batch.items[0].classes.append("hr-hidden")
         # Inside a paragraph, an algorithm gets the same offset as display math.

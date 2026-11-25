@@ -3,9 +3,8 @@
 Figures, tables and video
 =========================
 
-Figures and videos are numbered within their section, such as Figure 2.1.
-Tables are numbered through the whole document, such as Table 3. Each kind has
-its own counter.
+Figures, videos and tables are numbered within their section, such as
+Figure 2.1 and Table 2.1. Each kind has its own counter.
 
 Every tag on this page also takes the meta keys that all tags take, such as
 ``:label:`` and ``:nonum:``. See :ref:`ref-meta-keys`.

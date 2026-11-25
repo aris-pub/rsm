@@ -5084,11 +5084,16 @@ var RSM = (() => {
         if (elements.length && window.pseudocode) {
           await loadMathJax();
           elements.forEach((el) => {
+            const host = el.closest("[data-caption-name]");
             pseudocode.renderElement(el, {
               lineNumber: true,
               noEnd: true
             });
             el.classList.add("rendered");
+            const keyword = host && host.querySelector(
+              ".ps-algorithm.with-caption > .ps-line:first-child > .ps-keyword"
+            );
+            if (keyword) keyword.textContent = host.dataset.captionName + " ";
           });
           refreshMathStyles();
         }

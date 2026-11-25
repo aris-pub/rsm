@@ -1,4 +1,5 @@
 import logging
+import re
 from pathlib import Path
 
 import rsm
@@ -193,3 +194,112 @@ def test_theorem_and_figure_without_sections_log_no_warning(caplog):
     assert [r.getMessage() for r in caplog.records] == []
     assert "Theorem 1." in html
     assert "Figure 1." in html
+
+
+TABLES_AND_ALGORITHMS = r"""# T
+
+{config}{section_one}:table: {{:label: tab1}}
+:tbody:
+:tr: :td:a:: ::
+::
+:caption: First.
+::
+
+:algorithm: {{:label: alg1}}
+\begin{{algorithm}}
+\begin{{algorithmic}}
+\STATE $x = 1$
+\end{{algorithmic}}
+\end{{algorithm}}
+::
+
+{section_two}:table: {{:label: tab2}}
+:tbody:
+:tr: :td:b:: ::
+::
+:caption: Second.
+::
+
+:table: {{:label: tab3}}
+:tbody:
+:tr: :td:c:: ::
+::
+:caption: Third.
+::
+
+:algorithm: {{:label: alg2}}
+\begin{{algorithm}}
+\begin{{algorithmic}}
+\STATE $x = 2$
+\end{{algorithmic}}
+\end{{algorithm}}
+::
+
+See :ref:tab1::, :ref:tab2::, :ref:tab3::, :ref:alg1:: and :ref:alg2::.
+"""
+
+
+def _numbers(config="", sections=True):
+    src = TABLES_AND_ALGORITHMS.format(
+        config=config,
+        section_one="## One\n\n" if sections else "",
+        section_two="## Two\n\n" if sections else "",
+    )
+    html = rsm.render(src, handrails=True)
+    captions = re.findall(r'<span class="label">([^<]*)</span>', html)
+    references = re.findall(r'<a class="reference"[^>]*>([^<]*)</a>', html)
+    menus = [
+        label
+        for label in re.findall(r'data-menu-label="([^"]+)"', html)
+        if label.startswith("Algorithm")
+    ]
+    return captions, references, menus
+
+
+def test_tables_and_algorithms_are_numbered_within_their_section():
+    captions, references, menus = _numbers()
+    assert captions == ["Table 1.1. ", "Table 2.1. ", "Table 2.2. "]
+    assert references == [
+        "Table 1.1",
+        "Table 2.1",
+        "Table 2.2",
+        "Algorithm 1.1",
+        "Algorithm 2.1",
+    ]
+    assert menus == ["Algorithm 1.1", "Algorithm 2.1"]
+
+
+def test_tables_and_algorithms_without_sections_are_numbered_through_the_document():
+    captions, references, menus = _numbers(sections=False)
+    assert captions == ["Table 1. ", "Table 2. ", "Table 3. "]
+    assert references == [
+        "Table 1",
+        "Table 2",
+        "Table 3",
+        "Algorithm 1",
+        "Algorithm 2",
+    ]
+    assert menus == ["Algorithm 1", "Algorithm 2"]
+
+
+def test_numbering_document_numbers_tables_and_algorithms_through_the_document():
+    captions, references, menus = _numbers(
+        config=":config: {\n  :numbering: document\n}\n::\n\n"
+    )
+    assert captions == ["Table 1. ", "Table 2. ", "Table 3. "]
+    assert references == [
+        "Table 1",
+        "Table 2",
+        "Table 3",
+        "Algorithm 1",
+        "Algorithm 2",
+    ]
+    assert menus == ["Algorithm 1", "Algorithm 2"]
+
+
+def test_numbering_none_leaves_tables_and_algorithms_without_numbers():
+    captions, references, menus = _numbers(
+        config=":config: {\n  :numbering: none\n}\n::\n\n"
+    )
+    assert captions == ["Table. ", "Table. ", "Table. "]
+    assert references == ["Table", "Table", "Table", "Algorithm", "Algorithm"]

@@ -73,3 +73,29 @@ class TestAlgorithmRendering:
             timeout=10_000
         )
         page.wait_for_function(ALGORITHM_MATH_STYLED, timeout=10_000)
+
+
+CAPTION_LABELS = """() => [...document.querySelectorAll(
+    '.manuscript .ps-algorithm.with-caption > .ps-line:first-child > .ps-keyword'
+)].map((k) => k.textContent.trim())"""
+
+
+class TestAlgorithmCaptionNumber:
+    """The caption drawn by pseudocode.js carries RSM's number for the algorithm,
+    not the count of captions that pseudocode.js keeps itself."""
+
+    def test_caption_reads_the_section_number(
+        self, page: Page, interactive_server: str
+    ):
+        page.goto(f"{interactive_server}/algorithm-sections.html")
+        wait_for_rsm(page)
+        expect(page.locator(".ps-root").first).to_be_visible(timeout=10_000)
+        assert page.evaluate(CAPTION_LABELS) == ["Algorithm 1.1", "Algorithm 2.1"]
+
+    def test_caption_has_no_number_under_numbering_none(
+        self, page: Page, interactive_server: str
+    ):
+        page.goto(f"{interactive_server}/algorithm-numbering-none.html")
+        wait_for_rsm(page)
+        expect(page.locator(".ps-root").first).to_be_visible(timeout=10_000)
+        assert page.evaluate(CAPTION_LABELS) == ["Algorithm"]
