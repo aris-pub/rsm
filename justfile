@@ -95,6 +95,17 @@ grammar:
     uv sync --reinstall-package tree-sitter-rsm
     echo "Done! tree-sitter-rsm rebuilt successfully"
 
+# Run the grammar's corpus tests, building the parser into .tree-sitter-cache
+grammar-test:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    cd tree-sitter-rsm
+    if [ ! -d node_modules ]; then
+        echo "Installing the grammar's npm packages..."
+        npm ci
+    fi
+    npm exec --no -- tree-sitter test
+
 # Rebuild the standalone JS bundle (IIFE with window.RSM global)
 js-bundle:
     npx --yes esbuild@0.28.2 rsm/static/onload.js --bundle --format=iife --global-name=RSM --outfile=rsm/static/rsm-standalone.js
