@@ -4,7 +4,8 @@ Document settings
 =================
 
 Settings for the whole document go in the meta keys of one ``:config:``
-block, near the top of the document.
+block. The block can go anywhere in the document. It is the only block that
+can go before the title.
 
 
 .. _tag-config:
