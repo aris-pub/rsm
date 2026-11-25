@@ -875,6 +875,62 @@ def test_call_right_after_a_word_gives_its_line_and_column(caplog):
     assert (rec.start_row, rec.start_col) == (2, 12)
 
 
+SPACE_MESSAGE = (
+    "A footnote call must come after a space. Put a space before :note:, as in "
+    "'fact :note:n1::'"
+)
+
+
+def test_page_shows_the_clear_message_at_the_leftover_halmos():
+    tree = transform("A fact:note:n1:: and." + N1)
+    (error,) = errors(tree)
+    assert error.text == SPACE_MESSAGE
+    assert error.start_point == (0, 14)
+    html = render("A fact:note:n1:: and." + N1)
+    assert "CST error" not in html
+    assert (
+        html.index("A fact:note:n1")
+        < html.index(SPACE_MESSAGE)
+        < html.index("and.</p>")
+    )
+
+
+IN_A_BLOCK = ":theorem:\n\nA fact:note:n1:: and.\n\n::\n" + N1
+
+
+def test_call_whose_halmos_closes_a_block_gets_only_the_clear_message(caplog):
+    caplog.set_level(logging.WARNING, logger="RSM")
+    render(IN_A_BLOCK)
+    (rec,) = _space_records(caplog)
+    assert (rec.start_row, rec.start_col) == (3, 7)
+    assert not any("The CST contains errors" in r.getMessage() for r in caplog.records)
+
+
+def test_page_shows_only_the_clear_message_when_the_halmos_closes_a_block():
+    (error,) = errors(transform(IN_A_BLOCK))
+    assert error.text == SPACE_MESSAGE
+    html = render(IN_A_BLOCK)
+    assert "CST error" not in html
+    assert html.count(SPACE_MESSAGE) == 1
+
+
+def test_call_whose_halmos_closes_a_nested_block_gets_only_the_clear_message(
+    caplog,
+):
+    caplog.set_level(logging.WARNING, logger="RSM")
+    tree = transform(":proof:\n\n:step: A fact:note:n1:: and.\n\n::\n\n::\n" + N1)
+    assert [e.text for e in errors(tree)] == [SPACE_MESSAGE]
+    assert len(_space_records(caplog)) == 1
+    assert not any("The CST contains errors" in r.getMessage() for r in caplog.records)
+
+
+def test_a_stray_halmos_unrelated_to_the_call_still_gets_the_generic_error(caplog):
+    caplog.set_level(logging.WARNING, logger="RSM")
+    tree = transform("A fact:note:n1:: and.\n\nB.\n\n::\n" + N1)
+    texts = [e.text for e in errors(tree)]
+    assert texts == [SPACE_MESSAGE, "[CST error at (5, 1) - (5, 3)]"]
+
+
 @pytest.mark.parametrize(
     "src",
     [
