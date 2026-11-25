@@ -122,3 +122,46 @@ def test_assumption_in_a_claim_step_still_propagates_to_siblings():
     # ...and, under Rule 1, also in the later sibling case two (the claim in
     # case one does not confine the assumption to that step).
     assert assume in hyps["st-case2"]
+
+
+SRC_SUPPOSE_WLOG = """\
+# S
+
+:lemma:
+
+  The claim.
+
+::
+
+:proof:
+
+  :step:
+
+    :suppose: $P$ ::.
+
+  ::
+
+  :step:
+
+    :wlog: $Q$ ::.
+
+  ::
+
+  :step:
+
+    :qed:
+
+    :pf: Done. ::
+
+  ::
+
+::
+"""
+
+
+def test_suppose_and_wlog_are_listed_as_assumptions():
+    p = _proof(SRC_SUPPOSE_WLOG)
+    constructs = {c.kind: c for c in p.traverse(nodeclass=nodes.Construct)}
+    hyps = [h["node"] for h in p.step_state[-1]["hyps"]]
+    assert constructs["suppose"] in hyps
+    assert constructs["wlog"] in hyps
