@@ -11,13 +11,14 @@
 //   in the column level with its phrase, sharing the column and its push-down
 //   with captions.
 // - Otherwise each aside is hidden, and its phrase opens and closes it in place
-//   below its block. On pointer devices, hovering the phrase of a closed aside
-//   shows a preview of it.
+//   below its block. Except on a touch page (html.touch), hovering the phrase
+//   of a closed aside shows a preview of it.
 //
 // Either way, hovering or focusing a phrase lights its aside and the other way
 // around (OPEN and LIT classes below).
 
 import { addMarginItem, marginOn } from "./margin.js";
+import { isTouch } from "./touch.js";
 
 export const READY_CLASS = "has-asides";
 const OPEN = "rsm-aside-open";
@@ -165,5 +166,5 @@ export function previewWanted(marker) {
   const aside = asideOf(marker);
   if (!aside || marginOn()) return false;
   if (aside.classList.contains(OPEN)) return false;
-  return window.matchMedia("(hover: hover)").matches;
+  return !isTouch();
 }

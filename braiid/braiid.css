@@ -2851,7 +2851,9 @@ html.touch {
   .bib-body .bibitem-doi, .bib-body .bibitem-url {order: 4;}
   .bib-cited {order: 5;}
 }
-@media (hover: hover) {
+/* A touch page (html.touch) has no hover, so there the links always show and
+   the card has no hover look. */
+html:not(.touch) {
   .manuscriptwrapper :is(.bib-line > .bibitem-doi, .bib-line > .bibitem-url, .bib-cited) {opacity: 0; transition: opacity .15s;}
   /* Hover, or keyboard focus inside the entry. A click focuses the handrail,
      which has its own look, so plain focus does not light the card. */

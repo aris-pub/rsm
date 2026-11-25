@@ -5,11 +5,14 @@ paint on a touch device, so that a page can also be shown as on a touch device
 import re
 from pathlib import Path
 
+import pytest
+
 import rsm
 
 ROOT = Path(__file__).resolve().parents[1]
 BRAIID = (ROOT / "braiid" / "braiid.css").read_text()
-HANDRAILS = (ROOT / "rsm" / "static" / "handrails.js").read_text()
+STATIC = ROOT / "rsm" / "static"
+TOUCH_JS = (STATIC / "touch.js").read_text()
 
 TOUCH_QUERY = "(hover: none) and (pointer: coarse)"
 
@@ -27,6 +30,19 @@ def test_braiid_touch_rules_key_on_the_touch_class():
     assert "html.touch" in BRAIID
 
 
-def test_handrails_reads_touch_from_the_class():
-    assert TOUCH_QUERY not in HANDRAILS
-    assert "classList.contains(\"touch\")" in HANDRAILS
+def test_touch_js_reads_touch_from_the_class():
+    assert 'classList.contains("touch")' in TOUCH_JS
+
+
+@pytest.mark.parametrize(
+    "name", ["handrails.js", "tooltips.js", "asides.js", "minimap.js"]
+)
+def test_scripts_read_touch_from_the_class_not_the_device(name):
+    src = (STATIC / name).read_text()
+    assert 'from "./touch.js"' in src or "from './touch.js'" in src
+    assert TOUCH_QUERY not in src
+    assert "(hover: hover)" not in src
+
+
+def test_braiid_has_no_hover_media_query():
+    assert not re.search(r"@media[^{]*hover", BRAIID)

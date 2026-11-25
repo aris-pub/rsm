@@ -1149,6 +1149,9 @@ var RSM = (() => {
     schedule();
   }
 
+  // rsm/static/touch.js
+  var isTouch = () => document.documentElement.classList.contains("touch");
+
   // rsm/static/asides.js
   var READY_CLASS = "has-asides";
   var OPEN = "rsm-aside-open";
@@ -1272,7 +1275,7 @@ var RSM = (() => {
     const aside = asideOf(marker);
     if (!aside || marginOn()) return false;
     if (aside.classList.contains(OPEN)) return false;
-    return window.matchMedia("(hover: hover)").matches;
+    return !isTouch();
   }
 
   // rsm/static/rawhtml.js
@@ -1590,7 +1593,7 @@ var RSM = (() => {
     tapBound.add(el);
     let touched = false;
     el.addEventListener("pointerdown", (ev) => {
-      touched = ev.pointerType === "touch";
+      touched = ev.pointerType === "touch" || isTouch();
     });
     el.addEventListener("click", (ev) => {
       if (!touched) return;
@@ -1600,8 +1603,17 @@ var RSM = (() => {
       if ($(el).tooltipster("status").open) ev.preventDefault();
     });
   }
+  var pointingStopped = false;
+  function stopPointingOnTouchPages() {
+    if (pointingStopped) return;
+    pointingStopped = true;
+    $.tooltipster.on("start", (ev) => {
+      if (isTouch() && ev.event && ev.event.type === "mouseenter") ev.stop();
+    });
+  }
   function createTooltips() {
     setupPinDelegation();
+    stopPointingOnTouchPages();
     const $previewed = $(
       '.manuscriptwrapper a.reference:not(.external):not(.tooltipstered), .manuscriptwrapper a.note-marker[data-note-kind="note"]:not(.tooltipstered)'
     );
@@ -1740,7 +1752,6 @@ var RSM = (() => {
   }
   var singletonMenu = null;
   var activeHr = null;
-  var isTouch = () => document.documentElement.classList.contains("touch");
   var delegationAttached = false;
   function setup5() {
     if (delegationAttached) return;
@@ -4635,6 +4646,9 @@ var RSM = (() => {
       window.scrollTo({ top: top - window.innerHeight / 2, behavior: behavior() });
       lastJumped = m.el;
     }
+    function fingerLike(ev) {
+      return ev.pointerType !== "mouse" || isTouch();
+    }
     function localY(ev) {
       return ev.clientY - trackRect().top;
     }
@@ -4646,7 +4660,7 @@ var RSM = (() => {
       } catch (e) {
       }
       const y = localY(ev);
-      drag = { startY: y, moved: false, touch: ev.pointerType !== "mouse" };
+      drag = { startY: y, moved: false, touch: fingerLike(ev) };
       nav.classList.add("is-touching");
       if (phoneMql.matches) wake();
       if (drag.touch) setHovered(nearest(y, TOUCH_HOVER_PX));
@@ -4662,7 +4676,7 @@ var RSM = (() => {
         if (drag.moved) scrollToY(y, "instant");
         return;
       }
-      setHovered(nearest(y, ev.pointerType === "mouse" ? HOVER_PX : TOUCH_HOVER_PX));
+      setHovered(nearest(y, fingerLike(ev) ? TOUCH_HOVER_PX : HOVER_PX));
     }
     function endDrag() {
       drag = null;

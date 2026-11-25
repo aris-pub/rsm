@@ -6,6 +6,7 @@
 import { typesetMath } from "./libraries.js";
 import { previewWanted } from "./asides.js";
 import { cloneWithoutRawHtml, withoutRawHtml } from "./rawhtml.js";
+import { isTouch } from "./touch.js";
 
 // Like $el.clone(), but an :html: or :htmlblock: in the copy shows its fallback (rawhtml.js).
 const copyOf = ($el) => $($el.toArray().map(cloneWithoutRawHtml));
@@ -392,17 +393,19 @@ const PREVIEW_OPTIONS = {
 
 // On touch, the first tap on `el` opens its preview instead of following the
 // link, and a second tap on it while the preview is open follows the link. A
-// tap anywhere else closes the preview (tooltipster's tap close). A mouse click
-// or Enter still follows the link at once. `el` must already have its tooltip.
-// A WeakSet, not a data attribute, marks bound links: the sidebar clones
-// references (prooftree.js) and a copied attribute would leave the clone unbound.
+// tap anywhere else closes the preview (tooltipster's tap close). On a touch
+// page (isTouch) a mouse click counts as a tap. Elsewhere a mouse click, and
+// Enter on any page, still follow the link at once. `el` must already have its
+// tooltip. A WeakSet, not a data attribute, marks bound links: the sidebar
+// clones references (prooftree.js) and a copied attribute would leave the clone
+// unbound.
 const tapBound = new WeakSet();
 export function tapToPreview(el) {
   if (tapBound.has(el)) return;
   tapBound.add(el);
   let touched = false;
   el.addEventListener("pointerdown", (ev) => {
-    touched = ev.pointerType === "touch";
+    touched = ev.pointerType === "touch" || isTouch();
   });
   el.addEventListener("click", (ev) => {
     if (!touched) return;
@@ -415,8 +418,20 @@ export function tapToPreview(el) {
   });
 }
 
+// On a phone tooltipster ignores the mouseenter that a tap fires, so pointing
+// opens no tooltip. Do the same for a mouse on a touch page.
+let pointingStopped = false;
+function stopPointingOnTouchPages() {
+  if (pointingStopped) return;
+  pointingStopped = true;
+  $.tooltipster.on("start", (ev) => {
+    if (isTouch() && ev.event && ev.event.type === "mouseenter") ev.stop();
+  });
+}
+
 export function createTooltips() {
   setupPinDelegation();
+  stopPointingOnTouchPages();
   // Footnote markers get the same preview as references, and both open it on a
   // tap through tapToPreview. Aside phrases are set up below.
   const $previewed = $(
@@ -434,7 +449,7 @@ export function createTooltips() {
   });
 
   // Aside phrases get the same preview, but only while the aside is closed
-  // below its block on a pointer device (asides.js says when). A tap or click
+  // below its block on a page without html.touch (asides.js says when). A tap or click
   // opens the aside itself, so touch never opens a preview.
   $(".manuscriptwrapper a.aside-phrase:not(.tooltipstered)").tooltipster({
     ...PREVIEW_OPTIONS,

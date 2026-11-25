@@ -15,6 +15,8 @@
 // and the reader's Reading view toggle (html[data-reading-minimap], persisted in
 // the rsm-reading localStorage object by prooftree.js).
 
+import { isTouch } from "./touch.js";
+
 const PHONE = "(max-width: 767px)";
 const REDUCED_MOTION = "(prefers-reduced-motion: reduce)";
 const HOVER_PX = 12;
@@ -354,6 +356,11 @@ function build(main) {
     lastJumped = m.el;
   }
 
+  // On a touch page a mouse acts as a finger.
+  function fingerLike(ev) {
+    return ev.pointerType !== "mouse" || isTouch();
+  }
+
   function localY(ev) {
     return ev.clientY - trackRect().top;
   }
@@ -367,7 +374,7 @@ function build(main) {
       /* capture is best effort */
     }
     const y = localY(ev);
-    drag = { startY: y, moved: false, touch: ev.pointerType !== "mouse" };
+    drag = { startY: y, moved: false, touch: fingerLike(ev) };
     nav.classList.add("is-touching");
     if (phoneMql.matches) wake();
     if (drag.touch) setHovered(nearest(y, TOUCH_HOVER_PX));
@@ -384,7 +391,7 @@ function build(main) {
       if (drag.moved) scrollToY(y, "instant");
       return;
     }
-    setHovered(nearest(y, ev.pointerType === "mouse" ? HOVER_PX : TOUCH_HOVER_PX));
+    setHovered(nearest(y, fingerLike(ev) ? TOUCH_HOVER_PX : HOVER_PX));
   }
 
   function endDrag() {

@@ -6,6 +6,7 @@
 import * as tocarcs from './tocarcs.js';
 import { lensConeSizes } from './deplens.js';
 import { pinTarget, unpinTarget, isPinned } from './tooltips.js';
+import { isTouch } from './touch.js';
 
 // Blocks a reader can keep open in the sidebar's Pinned view.
 const PINNABLE = [
@@ -42,11 +43,8 @@ function pinHrefOf(hr) {
 let singletonMenu = null;
 let activeHr = null;
 
-// A touch page: html.touch, which the builder's pre-paint script sets on a
-// device with no hover and a coarse pointer, and which a page that shows RSM in
-// a frame can set too. braiid.css hides the collapse chevron on it, so the menu
-// carries collapse/expand instead. Read at each use, since the class can change.
-const isTouch = () => document.documentElement.classList.contains("touch");
+// braiid.css hides the collapse chevron on a touch page (isTouch), so the menu
+// carries collapse/expand instead.
 let delegationAttached = false;
 
 export function setup() {
