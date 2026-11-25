@@ -98,6 +98,10 @@ changelog version="Unreleased":
     #!/usr/bin/env bash
     set -euo pipefail
     VERSION="{{version}}"
+    if [ -f CHANGELOG.md ] && awk -v h="## [$VERSION]" 'index($0, h) == 1 { found = 1 } END { exit !found }' CHANGELOG.md; then
+        echo "error: CHANGELOG.md already has a section for $VERSION. Edit that section instead of generating a new one." >&2
+        exit 1
+    fi
     LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
     if [ -z "$LAST_TAG" ]; then COMMITS=$(git log --oneline --no-merges); else COMMITS=$(git log --oneline --no-merges "${LAST_TAG}..HEAD"); fi
     DATE=$(date +%Y-%m-%d)
