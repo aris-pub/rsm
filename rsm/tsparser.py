@@ -382,6 +382,9 @@ _WORD_VALUES = {
 _AUTHOR_DISPLAY_KEYS = {"author_display_first", "author_display_last"}
 _WHOLE_NUMBER_KEYS = {"toc_depth"} | _AUTHOR_DISPLAY_KEYS
 
+# The smallest and largest value of a whole-number key that has limits.
+_WHOLE_NUMBER_RANGES = {"toc_depth": (1, 3)}
+
 # The grammar gives number, word and date values one shared token, so the form
 # of a number or a date is checked here.
 _NUMBER = re.compile(r"\d+(\.\d+)?")
@@ -403,6 +406,9 @@ _SHAPE_ALLOWED = {
 def _allowed_values(key: str, keykind: str) -> str:
     if key in _WORD_VALUES:
         return ", ".join(_WORD_VALUES[key])
+    if key in _WHOLE_NUMBER_RANGES:
+        low, high = _WHOLE_NUMBER_RANGES[key]
+        return f"a whole number from {low} to {high}"
     if key in _WHOLE_NUMBER_KEYS:
         return "a whole number, such as 2"
     return _SHAPE_ALLOWED[keykind]
@@ -423,6 +429,9 @@ def _value_is_valid(key: str, value: Any, keykind: str, pair: TSNode) -> bool:
         ok = value in _WORD_VALUES[key]
     elif key in _WHOLE_NUMBER_KEYS:
         ok = value.isdigit()
+        if ok and key in _WHOLE_NUMBER_RANGES:
+            low, high = _WHOLE_NUMBER_RANGES[key]
+            ok = low <= int(value) <= high
     elif keykind == "metakey_number":
         ok = _NUMBER.fullmatch(value) is not None
     elif keykind == "metakey_date":

@@ -941,13 +941,15 @@ class Transformer:
                 node.remove_self()
         # The section graph is computed whether or not the author asked for a
         # table of contents: the sidebar's Contents view draws it too, and the
-        # sidebar is a build option independent of :toc:.
+        # sidebar is a build option independent of :toc:. It is a separate
+        # node because the sidebar shows every level whatever :toc-depth: is.
+        # Edges are computed before the TOC's own Reference nodes are made, so
+        # those are not counted as edges.
+        graph = nodes.Contents()
+        self._compute_toc_edges(graph)
+        self.tree.section_graph = graph
         if toc is None:
-            graph = nodes.Contents()
-            self._compute_toc_edges(graph)
-            self.tree.section_graph = graph
             return
-        self.tree.section_graph = toc
 
         # :toc: is a standard block grammatically, but its contents are
         # auto-generated here; author-written content is not allowed.
@@ -956,12 +958,16 @@ class Transformer:
             for child in list(toc.children):
                 child.remove_self()
 
-        # Compute cross-section reference edges before creating the TOC's own
-        # Reference nodes, so they are not counted as edges themselves.
-        self._compute_toc_edges(toc)
+        # The parser has already checked that :toc-depth: is 1, 2 or 3.
+        depth = int(getattr(self.tree, "toc_depth", 3))
+        self._compute_toc_edges(toc, depth)
 
         current_parent: nodes.NodeWithChildren = toc
         for sec in self.tree.traverse(nodeclass=nodes.Section):
+            if isinstance(sec, nodes.Subsubsection) and depth < 3:
+                continue
+            if isinstance(sec, nodes.Subsection) and depth < 2:
+                continue
             item = nodes.Item()
             reftext = f"{sec.title}" if sec.nonum else f"{sec.full_number}. {sec.title}"
             ref = nodes.Reference(target=sec, overwrite_reftext=reftext)
@@ -988,7 +994,7 @@ class Transformer:
                     current_parent = current_parent.parent.parent
             elif isinstance(sec, nodes.Subsection):
                 current_parent.append(item)
-                if sec.first_of_type(nodes.Subsubsection):
+                if depth >= 3 and sec.first_of_type(nodes.Subsubsection):
                     itemize = nodes.Itemize()
                     item.append(itemize)
                     current_parent = itemize
@@ -1001,14 +1007,14 @@ class Transformer:
                         current_parent = current_parent.parent.parent
             elif isinstance(sec, nodes.Section):
                 toc.append(item)
-                if sec.first_of_type(nodes.Subsection):
+                if depth >= 2 and sec.first_of_type(nodes.Subsection):
                     itemize = nodes.Itemize()
                     item.append(itemize)
                     current_parent = itemize
             else:
                 raise RSMTransformerError("How did we get here?")
 
-    def _compute_toc_edges(self, toc: nodes.Contents) -> None:
+    def _compute_toc_edges(self, toc: nodes.Contents, depth: int = 3) -> None:
         """Derive cross-section reference edges for the TOC tree view.
 
         Each resolved Reference contributes an edge between the nearest
@@ -1017,14 +1023,12 @@ class Transformer:
         parallel references collapse into a count, and references to an
         earlier section are dependencies ("dep") while references to a later
         section are forward pointers ("fwd").
+
+        Only sections down to heading level *depth* get a row. An edge that
+        starts or ends in a deeper section is moved to its nearest ancestor
+        section that has a row.
         """
         assert self.tree is not None
-        # Unnumbered sections (a colophon, say) are back-matter and stay out
-        # of the table of contents.
-        sections = [
-            sec for sec in self.tree.traverse(nodeclass=nodes.Section) if not sec.nonum
-        ]
-        row_of = {id(sec): row for row, sec in enumerate(sections)}
 
         def depth_of(sec: nodes.Section) -> int:
             if isinstance(sec, nodes.Subsubsection):
@@ -1032,6 +1036,15 @@ class Transformer:
             if isinstance(sec, nodes.Subsection):
                 return 2
             return 1
+
+        # Unnumbered sections (a colophon, say) are back-matter and stay out
+        # of the table of contents.
+        sections = [
+            sec
+            for sec in self.tree.traverse(nodeclass=nodes.Section)
+            if not sec.nonum and depth_of(sec) <= depth
+        ]
+        row_of = {id(sec): row for row, sec in enumerate(sections)}
 
         toc.tree_nodes = [
             {
@@ -1052,6 +1065,11 @@ class Transformer:
                 ancestor = ancestor.parent
             return ancestor
 
+        def shown(sec: nodes.Section | None) -> nodes.Section | None:
+            while sec is not None and depth_of(sec) > depth:
+                sec = nearest_section(sec)
+            return sec
+
         counts: dict[tuple[int, int], int] = {}
         for ref in self.tree.traverse(nodeclass=nodes.Reference):
             src = nearest_section(ref)
@@ -1063,6 +1081,7 @@ class Transformer:
                 dst = nearest_section(target)
             else:
                 dst = None
+            src, dst = shown(src), shown(dst)
             if src is None or dst is None or src is dst:
                 continue
             # A reference touching an unnumbered (out-of-TOC) section has no row.

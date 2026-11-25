@@ -144,6 +144,14 @@ sections refer to which. The tag holds no content, and ends with ``::``.
    graph is shown only on screens at least 768 pixels wide, and a vertical one
    on smaller screens. The default is ``vertical``.
 
+The ``:toc-depth:`` key of the ``:config:`` block sets how many heading levels
+the list and the graph show: ``1`` shows sections only, ``2`` adds
+subsections and ``3`` adds subsubsections. Without it, every level is shown.
+In the graph, an arrow that starts or ends in a hidden section is drawn from
+or to the nearest shown section that contains it. The sidebar shows every
+level.
+
 .. rubric:: Related
 
-:ref:`Headings <tag-heading>`, :ref:`reading-sidebar`.
+:ref:`Headings <tag-heading>`, :ref:`Document settings <tag-config>`,
+:ref:`reading-sidebar`.
