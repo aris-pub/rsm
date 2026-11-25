@@ -145,6 +145,8 @@ class TestHoverPreview:
     ):
         # Without the margin column an aside is closed below its paragraph, and
         # its phrase previews the aside itself (tests/interactive/test_asides.py).
+        # At 1000px the page has no margin column.
+        page.set_viewport_size({"width": 1000, "height": 720})
         _open(page, interactive_server)
         page.locator('a.aside-phrase[href="#side"]').hover()
         preview = page.locator(PREVIEW)

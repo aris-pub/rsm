@@ -1,0 +1,44 @@
+# Margin Without the Sidebar
+
+## Results
+  {:label: sec-results}
+
+A graph on $n$ vertices with no triangle has at most $n^2/4$ edges. The bound is
+reached by a :aside:bip,complete bipartite graph:: with two equal parts. More text
+follows here so that the paragraph has a few lines and a clear right edge.
+
+:aside: {:label: bip}
+A graph whose vertices are split into two parts, with an edge between every
+pair of vertices in different parts.
+::
+
+A paragraph between the aside and the figure, long enough to wrap onto a second
+line at any reading width.
+
+:figure: {
+  :label: fig-a
+  :path: figure-light.png
+  :scale: 0.3
+}
+:caption: A figure caption.
+::
+
+A paragraph between the figure and the table.
+
+:table: {
+  :label: tab-a
+}
+
+:tbody:
+
+:tr: :td:one:: :td:two:: :td:three:: ::
+
+:tr: :td:four:: :td:five:: :td:six:: ::
+
+::
+
+:caption: A table caption.
+
+::
+
+Closing paragraph after the table, so the page has text below the last block.

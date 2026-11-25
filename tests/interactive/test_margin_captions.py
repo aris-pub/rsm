@@ -502,7 +502,9 @@ def plain_page(tmp_path: Path):
 
 
 def test_without_sidebar_captions_stack(page: Page, plain_page: str):
-    page.set_viewport_size({"width": 1440, "height": 900})
+    # Below 1136px a page without the sidebar has no margin column at the
+    # default Reading width (tests/interactive/test_margin_no_sidebar.py).
+    page.set_viewport_size({"width": 1100, "height": 900})
     page.goto(plain_page)
     page.wait_for_function(RSM_READY, timeout=10_000)
     _settle(page)

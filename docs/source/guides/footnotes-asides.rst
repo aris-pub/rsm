@@ -76,12 +76,10 @@ In the built page:
 - Hovering over a footnote number, or tapping it on a phone, shows the
   footnote in a tooltip. Each footnote at the end of the document links back
   to its call.
-- The reader clicks or taps the phrase of an aside, and the aside opens under
-  its paragraph.
-- A page built with ``rsm build --sidebar`` has a margin column on the right
-  when the window is wide enough, and each aside sits there, level with its
-  phrase.
+- When the window is wide enough, the page has a margin column on the right,
+  and each aside sits there, level with its phrase.
+- On a narrower window, the reader clicks or taps the phrase of an aside, and
+  the aside opens under its paragraph.
 
-The example at the top of this page is built with the sidebar. Click "Open"
-above its page to see it in its own tab, and make the window wide to see the
-aside in the margin.
+Click "Open" above the example at the top of this page to see it in its own
+tab, and make the window wide to see the aside in the margin.

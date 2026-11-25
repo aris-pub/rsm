@@ -7,7 +7,7 @@
 //
 // The call of an aside is the phrase the aside is about (a.aside-phrase).
 //
-// - With the margin column on (html.rsm-margin, see margin.js), every aside sits
+// - With the margin column on (marginOn() in margin.js), every aside sits
 //   in the column level with its phrase, sharing the column and its push-down
 //   with captions.
 // - Otherwise each aside is hidden, and its phrase opens and closes it in place
@@ -57,11 +57,10 @@ export function setup(root = document) {
   document.addEventListener("focusout", onFocus);
   window.addEventListener("hashchange", openHashTarget);
   openHashTarget();
-  // The phrase is a toggle only while the column is off.
-  new MutationObserver(syncExpanded).observe(document.documentElement, {
-    attributes: true,
-    attributeFilter: ["class"],
-  });
+  // The phrase is a toggle only while the column is off. The column turns on
+  // and off with the window width too, not only with a class, and margin.js
+  // lays out after every such change.
+  document.addEventListener("rsm:margin-layout", syncExpanded);
 }
 
 function syncExpanded() {

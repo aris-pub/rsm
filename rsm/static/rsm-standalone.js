@@ -1044,6 +1044,7 @@ var RSM = (() => {
 
   // rsm/static/margin.js
   var MARGIN_CLASS = "rsm-margin";
+  var READY_CLASS = "has-margin";
   var MARGIN_REM = 15;
   var MARGIN_GAP_REM = 2;
   var STACK_GAP_REM = 0.75;
@@ -1061,7 +1062,8 @@ var RSM = (() => {
     schedule();
   }
   function marginOn() {
-    return document.documentElement.classList.contains(MARGIN_CLASS);
+    const on = getComputedStyle(document.documentElement).getPropertyValue("--rsm-margin-on");
+    return on.trim() === "1";
   }
   function clear(item) {
     item.style.removeProperty("left");
@@ -1112,6 +1114,7 @@ var RSM = (() => {
     if (ready) return;
     ready = true;
     const html = document.documentElement;
+    html.classList.add(READY_CLASS);
     new MutationObserver(schedule).observe(html, {
       attributes: true,
       attributeFilter: ["class", "data-reading-measure"]
@@ -1153,7 +1156,7 @@ var RSM = (() => {
   var isTouch = () => document.documentElement.classList.contains("touch");
 
   // rsm/static/asides.js
-  var READY_CLASS = "has-asides";
+  var READY_CLASS2 = "has-asides";
   var OPEN = "rsm-aside-open";
   var LIT = "rsm-aside-lit";
   var MARKERS = ".manuscriptwrapper a.aside-phrase";
@@ -1167,7 +1170,7 @@ var RSM = (() => {
     return document.getElementById("call-" + aside.id);
   }
   function setup4(root2 = document) {
-    document.documentElement.classList.add(READY_CLASS);
+    document.documentElement.classList.add(READY_CLASS2);
     for (const marker of root2.querySelectorAll(MARKERS)) {
       const aside = asideOf(marker);
       if (!aside) continue;
@@ -1185,10 +1188,7 @@ var RSM = (() => {
     document.addEventListener("focusout", onFocus);
     window.addEventListener("hashchange", openHashTarget);
     openHashTarget();
-    new MutationObserver(syncExpanded).observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ["class"]
-    });
+    document.addEventListener("rsm:margin-layout", syncExpanded);
   }
   function syncExpanded() {
     const toggles = !marginOn();
