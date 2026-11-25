@@ -11,6 +11,7 @@ with copy-paste examples.
 
    guides/structured-proofs
    guides/notation
+   guides/footnotes-asides
    guides/interactive-figures
    guides/citations
    guides/multi-author
