@@ -1202,3 +1202,109 @@ def test_empty_cell():
         </body>
         """,
     )
+
+
+def test_cell_with_meta_keeps_class():
+    compare_have_want(
+        have="""
+        :table:
+
+        :tbody:
+
+        :tr: :td: {:class: x} b :: :td:c:: ::
+
+        ::
+
+        ::
+        """,
+        want="""
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
+
+        <main class="manuscriptwrapper">
+
+        <div class="manuscript" data-nodeid="0">
+
+        <section class="level-1">
+
+        <div class="table-wrapper">
+
+        <table class="table" data-nodeid="1">
+
+        <tbody class="tablebody" data-nodeid="2">
+
+        <tr class="tablerow" data-nodeid="3">
+
+        <td class="tabledatum x" data-nodeid="4">b</td>
+
+        <td class="tabledatum" data-nodeid="6">c</td>
+
+        </tr>
+
+        </tbody>
+
+        </table>
+
+        </div>
+
+        </section>
+
+        </div>
+
+        </main>
+
+        </body>
+        """,
+    )
+
+
+def test_empty_cell_with_meta_keeps_class():
+    compare_have_want(
+        have="""
+        :table:
+
+        :tbody:
+
+        :tr: :td: {:class: x} :: :td:c:: ::
+
+        ::
+
+        ::
+        """,
+        want="""
+        <body data-accent="blue" data-lang="en" data-typography="sans-serif">
+
+        <main class="manuscriptwrapper">
+
+        <div class="manuscript" data-nodeid="0">
+
+        <section class="level-1">
+
+        <div class="table-wrapper">
+
+        <table class="table" data-nodeid="1">
+
+        <tbody class="tablebody" data-nodeid="2">
+
+        <tr class="tablerow" data-nodeid="3">
+
+        <td class="tabledatum x" data-nodeid="4"></td>
+
+        <td class="tabledatum" data-nodeid="5">c</td>
+
+        </tr>
+
+        </tbody>
+
+        </table>
+
+        </div>
+
+        </section>
+
+        </div>
+
+        </main>
+
+        </body>
+        """,
+    )
