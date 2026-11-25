@@ -63,6 +63,20 @@ A block that holds only meta keys and shows nothing in the page. It ends with
    Turns off the map of the page that replaces the scroll bar, and keeps the
    browser's own scroll bar. See :ref:`reading-minimap`.
 
+``:author-display-first:``
+   How many authors to show at the start of a long list of authors, as a
+   whole number such as ``3``. The page shows the first authors, a button
+   that reads "5 more" (the number of authors not shown) and the last
+   authors set by ``:author-display-last:``. A click on the button shows
+   every author. When only one of the two keys is given, the other one is 0.
+   When neither is given, or when the two numbers add up to the number of
+   authors or more, the page shows every author. Readers without
+   JavaScript always see every author.
+
+``:author-display-last:``
+   How many authors to show at the end of a long list of authors, as a whole
+   number such as ``2``. See ``:author-display-first:``.
+
 ``:plain-title:``
    The title as plain text, for the browser tab, when the title holds math or
    other markup. Without it, the tab shows the title with each piece of math

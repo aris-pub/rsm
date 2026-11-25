@@ -42,6 +42,9 @@ title. The page lists the names, with a mail icon and an ORCID icon for the
 authors who have them, and the rest of the details folded under a summary.
 All the information is in the meta keys, so the block ends with ``::`` right
 after the braces.
+To show only the first and last authors of a long list, use
+``:author-display-first:`` and ``:author-display-last:`` in
+:ref:`Settings <tag-config>`.
 
 .. rubric:: Syntax
 

@@ -1655,7 +1655,7 @@ class Translator:
                 )
             name_parts.append(f'<span class="author-name">{name_html}</span>')
 
-        names_line = ", ".join(name_parts) if name_parts else ""
+        names_line = self._author_names_line(name_parts)
 
         # Build the full block content: names + details
         html = f'\n<p class="author-names">{names_line}</p>\n' if names_line else ""
@@ -1670,6 +1670,40 @@ class Translator:
 
     def leave_authorblock(self, node: nodes.AuthorBlock) -> EditCommand:
         return self.leave_node(node)
+
+    def _author_names_line(self, name_parts: list[str]) -> str:
+        """Join the names, wrapping the middle ones when the list is shortened.
+
+        Every name stays in the HTML, so readers without JavaScript and search
+        engines get the full list. The page script hides the wrapped names and
+        shows the "N more" button, which starts out hidden.
+        """
+        first = int(getattr(self.tree, "author_display_first", 0) or 0)
+        last = int(getattr(self.tree, "author_display_last", 0) or 0)
+        if (first == 0 and last == 0) or first + last >= len(name_parts):
+            return ", ".join(name_parts)
+        hidden = len(name_parts) - first - last
+        # Each separator sits in the same span as the name after it, so the
+        # commas are right whether the hidden names show or not.
+        sep = [", " if i else "" for i in range(len(name_parts))]
+        head = "".join(s + n for s, n in zip(sep[:first], name_parts[:first]))
+        middle = "".join(
+            s + n
+            for s, n in zip(sep[first : first + hidden], name_parts[first:])
+        )
+        tail = "".join(
+            s + n
+            for s, n in zip(sep[first + hidden :], name_parts[first + hidden :])
+        )
+        noun = "author" if hidden == 1 else "authors"
+        button = (
+            f'<button type="button" class="author-more-button" '
+            f'aria-label="Show {hidden} more {noun}">{hidden} more</button>'
+        )
+        return (
+            f'{head}<span class="author-more" hidden>{sep[first]}{button}</span>'
+            f'<span class="author-hidden-names">{middle}</span>{tail}'
+        )
 
     def visit_authornotes(self, node: nodes.AuthorNotes) -> EditCommand:
         return AppendText("")

@@ -153,9 +153,9 @@ on the same line. Without it, <title> holds the title's text with math as $TeX$.
 affiliation = MetaTagInfo(None, datetime)
 """Author institutional affiliation."""
 author_display_first = MetaTagInfo(None, int)
-"""Number of authors to display at start when >5 authors."""
+"""Number of authors shown at the start of a shortened author list."""
 author_display_last = MetaTagInfo(None, int)
-"""Number of authors to display at end when >5 authors."""
+"""Number of authors shown at the end of a shortened author list."""
 no_minimap = MetaTagInfo(None, bool)
 """Turn the minimap off, set in the config block."""
 author_note = MetaTagInfo(None, str)
