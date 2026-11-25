@@ -7,8 +7,29 @@ The ``rsm`` command builds, checks and converts RSM files. ``rsm --help``
 lists the subcommands, and ``rsm <subcommand> --help`` lists the options of
 one. ``rsm --version`` prints the version.
 
-Most subcommands take ``-c`` to read the source from the command line instead
-of a file, as in ``rsm render -c "# Title"``.
+Each section below lists every option of its subcommand. Several
+subcommands share these options:
+
+``-c``, ``--string``
+   Reads the source from the command line instead of a file, as in
+   ``rsm render -c "# Title"``.
+
+``-v``, ``--verbose``
+   Prints more messages. Each ``-v`` adds a level, so ``-vv`` prints more
+   than ``-v``.
+
+``--log-format``
+   The format of the messages: ``plain``, ``rsm``, ``json`` or ``lint``.
+   The default is ``rsm``.
+
+``--log-no-timestamps``
+   Leaves the time out of the messages in the ``rsm`` and ``json`` formats.
+
+``--log-no-lineno``
+   Leaves the ``lineno`` field out of the messages in the ``json`` format.
+
+``--strict``
+   Stops with an error at the first syntax error in the source.
 
 
 .. _cli-build:
@@ -56,6 +77,9 @@ The page has handrails.
    Stops with an error at the first syntax error, instead of building the
    page with the error marked.
 
+It also takes ``-c``, ``-v``, ``--log-format``, ``--log-no-timestamps`` and
+``--log-no-lineno``, described at the top of this page.
+
 .. rubric:: Related
 
 :ref:`Serve <cli-serve>`, :ref:`tutorial-build`.
@@ -69,7 +93,7 @@ Serve ``rsm serve``
 -------------------
 
 Builds the page, opens it in the browser and builds it again each time the
-file is saved. It takes the options of ``rsm build``, and these:
+file is saved. It takes every option of ``rsm build``, and these:
 
 .. rubric:: Syntax
 
@@ -84,6 +108,11 @@ file is saved. It takes the options of ``rsm build``, and these:
 
 ``--no-browser``
    Does not open the browser.
+
+Without a file, ``rsm serve`` serves the current folder and builds each
+``.rsm`` file in it again each time the file is saved. In this case it does
+not take ``-c``, ``-p``, ``-v``, ``--log-format``, ``--log-no-timestamps`` or
+``--log-no-lineno``.
 
 .. rubric:: Related
 
@@ -108,11 +137,12 @@ column, without building a page.
 
 .. rubric:: Options
 
-``--strict``
-   Stops at the first syntax error.
-
 ``--log-format``
-   The format of the messages: ``plain``, ``rsm``, ``json`` or ``lint``.
+   The format of the messages: ``plain``, ``rsm``, ``json`` or ``lint``. The
+   default for ``rsm check`` is ``lint``.
+
+It also takes ``-c``, ``--log-no-timestamps`` and ``--log-no-lineno``,
+described at the top of this page.
 
 .. rubric:: Related
 
@@ -141,6 +171,12 @@ Prints the HTML of the document body, with no page around it and no files.
 
 ``-s``, ``--silent``
    Prints only the messages, not the HTML.
+
+``--sidebar``
+   Adds the reader sidebar. See :ref:`reading-sidebar`.
+
+It also takes ``-c``, ``-v``, ``--log-format``, ``--log-no-timestamps``,
+``--log-no-lineno`` and ``--strict``, described at the top of this page.
 
 .. rubric:: Related
 
@@ -172,6 +208,9 @@ needs a LaTeX installation that includes ``pdflatex``.
 ``-o``, ``--output``
    The output file. Without it, the result is printed. PDF export requires
    this option.
+
+It also takes ``-c``, ``-v``, ``--log-format``, ``--log-no-timestamps``,
+``--log-no-lineno`` and ``--strict``, described at the top of this page.
 
 .. rubric:: Related
 
@@ -206,6 +245,9 @@ holds a project of several files.
 
 ``-o``, ``--output``
    The output file. Without it, the result is printed.
+
+It also takes ``-c``, ``-v``, ``--log-format``, ``--log-no-timestamps`` and
+``--log-no-lineno``, described at the top of this page.
 
 .. rubric:: Related
 
@@ -256,3 +298,6 @@ Prints the parsed document as JSON, for tools that read RSM.
 
 ``--pretty``
    Indents the JSON.
+
+It also takes ``-c``, ``-v``, ``--log-format``, ``--log-no-timestamps``,
+``--log-no-lineno`` and ``--strict``, described at the top of this page.
