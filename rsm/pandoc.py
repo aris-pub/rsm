@@ -20,7 +20,7 @@ Analogy with the rest of the codebase:
 import copy
 import logging
 import re
-from collections.abc import Iterator
+from collections.abc import Iterable, Iterator
 from datetime import datetime
 from typing import Any
 
@@ -1156,6 +1156,11 @@ class PandocImporter:
         rsm_text = PandocImporter().from_json(json.loads(proc.stdout))
     """
 
+    def __init__(self, unnumbered: Iterable[str] = ()) -> None:
+        # Theorem-like classes declared with \newtheorem*. The JSON AST does not
+        # record this, so the caller reads it from the LaTeX source.
+        self._unnumbered = set(unnumbered)
+
     def from_json(self, pandoc_ast: dict) -> str:
         meta = pandoc_ast.get("meta", {})
         # The amsthm cleanup edits the blocks, so work on a copy of the input.
@@ -1515,6 +1520,8 @@ class PandocImporter:
         title = self._theorem_titles.get(id(c))
         if title:
             keys.append(f":title: {self._render_inlines(_escape_meta_braces(title))}")
+        if any(cls in self._unnumbered for cls in classes):
+            keys.append(":nonum:")
         meta = f" {{{', '.join(keys)}}}" if keys else ""
         # Map well-known classes to RSM constructs
         for cls in classes:

@@ -583,6 +583,57 @@ def test_text_around_a_mathblock_has_no_stray_spaces():
     assert "::\n\nBy this.\n" in out, repr(out)
 
 
+def test_unnumbered_theorem_kinds_get_nonum():
+    import rsm
+
+    remark = _div(
+        "r:a",
+        "remark",
+        [{"t": "Para", "c": [*_thm_heading("Remark", "1"), *_words("Z.")]}],
+    )
+    lemma = _div(
+        "", "lemma", [{"t": "Para", "c": [*_thm_heading("Lemma", "1"), *_words("Y.")]}]
+    )
+    out = PandocImporter(unnumbered={"remark"}).from_json({"blocks": [remark, lemma]})
+    assert ":remark: {:label: thm-1, :nonum:}" in out, out
+    assert ":lemma: {:label: thm-2}" in out, out
+    tree = _parse_without_errors(out)
+    (node,) = tree.traverse(nodeclass=rsm.nodes.Remark)
+    assert node.nonum
+
+
+def test_unnumbered_theorem_kinds_are_read_from_the_preamble():
+    from rsm.importer import unnumbered_theorems
+
+    tex = r"""\documentclass{article}
+\newtheorem{theorem}{Theorem}
+\newtheorem*{remark}{Remark}
+\newtheorem* {claim} {Claim}
+% \newtheorem*{lemma}{Lemma}
+\begin{document}
+\end{document}
+"""
+    assert unnumbered_theorems(tex) == {"remark", "claim"}
+
+
+@pytest.mark.skipif(shutil.which("pandoc") is None, reason="pandoc not installed")
+def test_latex_import_of_an_unnumbered_theorem():
+    from rsm.app import pandoc_import
+
+    src = r"""\documentclass{article}
+\usepackage{amsthm}
+\newtheorem*{remark}{Remark}
+\begin{document}
+\begin{remark}
+Rem.
+\end{remark}
+\end{document}
+"""
+    out = pandoc_import(source=src, from_format="latex")
+    assert ":remark: {:label: thm-1, :nonum:}" in out, out
+    assert "Remark 1" not in out, out
+
+
 def _titled_proof(title_inlines, body):
     heading = _emph(*_words("Proof", "of"), {"t": "Space"}, *title_inlines)
     para = [heading, {"t": "Space"}, *_words(body), {"t": "Str", "c": " ◻"}]
