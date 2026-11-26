@@ -1126,16 +1126,20 @@ def _display_math(src: str) -> tuple[str, bool]:
     environment by its unstarred form.
     """
     src = _LABEL.sub("", _LABEL_LINE.sub("", _drop_qedhere(src)))
-    src = _NOTAG.sub("", _TAG.sub("", src))
+    src = _TAG.sub("", src)
     m = _DISPLAY_ENV.fullmatch(src)
     if not m:
-        return src.strip(), False
+        return _NOTAG.sub("", src).strip(), False
     env, star, body = m.groups()
+    # LaTeX gives no number to an environment whose every line has \nonumber.
+    rows = [row for row in re.split(r"\\\\", body) if row.strip()]
+    numbered = not star and not (rows and all(_NOTAG.search(row) for row in rows))
+    body = _NOTAG.sub("", body)
     if env == "equation":
-        return body.strip(), not star
+        return body.strip(), numbered
     if env in _NUMBERED_ENVS:
-        return f"\\begin{{{env}}}{body}\\end{{{env}}}", not star
-    return src.strip(), False
+        return f"\\begin{{{env}}}{body}\\end{{{env}}}", numbered
+    return _NOTAG.sub("", src).strip(), False
 
 
 def _drop_kind_word(inlines: list, words: tuple) -> None:

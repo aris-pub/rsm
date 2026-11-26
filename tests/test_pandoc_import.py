@@ -630,6 +630,24 @@ def test_tag_is_dropped_from_display_math():
     assert "a &= b \\\\\nc &= d" in out, out
 
 
+def test_math_with_every_line_unnumbered_gets_nonum():
+    for src, body in (
+        (
+            "\\begin{align}\na &= b \\nonumber \\\\\nc &= d \\notag\n\\end{align}",
+            "\\begin{align}\na &= b \\\\\nc &= d\n\\end{align}",
+        ),
+        (
+            "\\begin{align}\na &= b \\nonumber \\\\\nc &= d \\notag \\\\\n\\end{align}",
+            "\\begin{align}\na &= b \\\\\nc &= d \\\\\n\\end{align}",
+        ),
+        ("\\begin{equation}\nx \\nonumber\n\\end{equation}", "x"),
+    ):
+        out = _import_math(src)
+        assert f":mathblock: {{:nonum:}}\n  {body}\n::" in out, out
+    out = _import_math("\\begin{align}\na &= b \\nonumber \\\\\nc &= d\n\\end{align}")
+    assert ":mathblock: {:label: eqn-1}" in out, out
+
+
 def test_qedhere_is_dropped_from_math():
     out = _import_math("x = y \\qedhere")
     assert ":mathblock: {:nonum:}\n  x = y\n::" in out, out
