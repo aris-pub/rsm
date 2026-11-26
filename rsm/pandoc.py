@@ -287,6 +287,8 @@ class PandocTranslator:
         "flalign*",
         "alignat",
         "alignat*",
+        "equation",
+        "equation*",
         "split",
     }
 
@@ -321,12 +323,9 @@ class PandocTranslator:
         if not m:
             return src
         env, body = m.groups()
-        if env.endswith("*"):
-            # A starred environment prints no number, but a reference to the block
-            # still needs a place to link to.
-            if node.label:
-                return rf"\phantomsection\label{{{node.label}}}{src}"
-            return src
+        # The number of a block comes only from RSM, so a star is layout only and
+        # a starred environment is treated as its unstarred form.
+        env = env.removesuffix("*")
         number = node.full_number
         tag = ""
         if number:
@@ -341,12 +340,16 @@ class PandocTranslator:
                 # is kept from taking a number of its own.
                 body = _notag_lines(body)
             return f"\\begin{{{env}}}{body}{tag}\n\\end{{{env}}}"
-        inner = self._INNER_ENVS.get(env)
-        if not inner:
-            return src
         outer = "equation" if number else "equation*"
         # A blank line inside an equation is a LaTeX error.
         tag_line = f"{tag}\n" if tag else ""
+        if env == "equation":
+            # The body goes straight into the outer equation, since an equation
+            # inside an equation is a LaTeX error.
+            return f"\\begin{{{outer}}}\n{body}\n{tag_line}\\end{{{outer}}}"
+        inner = self._INNER_ENVS.get(env)
+        if not inner:
+            return src
         return (
             f"\\begin{{{outer}}}\n\\begin{{{inner}}}{body}\\end{{{inner}}}\n"
             f"{tag_line}\\end{{{outer}}}"

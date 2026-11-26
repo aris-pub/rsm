@@ -107,6 +107,16 @@ Every RSM tag ends with ``::`` (the Halmos). This replaces LaTeX's
 ``\end{environment}`` and closing braces. It takes a few minutes to get used
 to, then it becomes natural.
 
+**LaTeX in math is for typesetting and layout only.**
+Write math in LaTeX, but write labels, numbers, references, sections and
+captions with RSM tags and meta keys. RSM numbers every displayed equation
+itself, and only ``:nonum:`` removes the number, in the HTML and in LaTeX and
+PDF export. A starred environment such as ``align*`` lays out the lines and
+does not remove the number. RSM warns when math uses a LaTeX command for
+structure, such as ``\label``, ``\tag``, ``\notag``, ``\ref``, ``\eqref``,
+``\cite``, ``\section`` or ``\caption``, and says what to write in RSM
+instead. See :ref:`tag-mathblock` for the whole list.
+
 **Semantic, not visual.**
 LaTeX mixes semantics and presentation (``\textbf`` is visual,
 ``\begin{theorem}`` is semantic). In RSM, all tags are semantic. Presentation

@@ -967,6 +967,74 @@ def _alt_nodes(alt: str) -> list[nodes.Node]:
     return result
 
 
+_SECTIONING = {
+    "part",
+    "chapter",
+    "section",
+    "subsection",
+    "subsubsection",
+    "paragraph",
+    "subparagraph",
+}
+_NO_NUMBER = "does not remove the number in RSM. Use :nonum: on the block."
+_REF = (
+    "in math is not a reference in RSM. Write :ref:<label>:: outside the math instead."
+)
+_STRUCTURE_COMMANDS = {
+    "label": "in math is ignored by RSM. Give the block a :label: instead.",
+    "tag": (
+        "in math does not set the number in RSM. RSM numbers the block. "
+        "Use :nonum: on the block to remove the number."
+    ),
+    "notag": _NO_NUMBER,
+    "nonumber": _NO_NUMBER,
+    "ref": _REF,
+    "eqref": _REF,
+    "cite": (
+        "in math is not a citation in RSM. Write :cite:<key>:: outside the math "
+        "instead."
+    ),
+    "caption": (
+        "in math is ignored by RSM. Use :caption: in a :figure: or a :table: instead."
+    ),
+} | dict.fromkeys(
+    _SECTIONING,
+    "in math does not start a section in RSM. Use a heading such as ## Title instead.",
+)
+_STARRED_ENVS = {"align*", "gather*", "multline*", "flalign*", "alignat*", "equation*"}
+# \\ and \% are matched as control symbols, so that the letters after \\ are not
+# read as a command and a % after \ does not start a comment.
+_MATH_TOKEN = re.compile(
+    r"\\begin\s*\{(?P<env>[A-Za-z]+\*)\}|\\(?P<cmd>[A-Za-z]+)|\\.|%[^\n]*", re.DOTALL
+)
+
+
+def _warn_structure_commands(
+    text: str, start_point: tuple[int, int], numbered: bool
+) -> None:
+    """Warn about each LaTeX command in math that is about document structure.
+
+    `numbered` is whether the math is a block that RSM numbers. Only then does a
+    starred environment try to remove a number.
+    """
+    for m in _MATH_TOKEN.finditer(text):
+        name = m.group("cmd")
+        if name in _STRUCTURE_COMMANDS:
+            msg = f"\\{name} {_STRUCTURE_COMMANDS[name]}"
+        elif numbered and m.group("env") in _STARRED_ENVS:
+            msg = f"{m.group('env')} {_NO_NUMBER}"
+        else:
+            continue
+        before = text[: m.start()].encode("utf-8")
+        row = start_point[0] + before.count(b"\n")
+        line_start = before.rfind(b"\n") + 1
+        col = len(before) - line_start
+        if line_start == 0:
+            col += start_point[1]
+        width = len(m.group(0).encode("utf-8"))
+        logger.warning(msg, extra=_user_position((row, col), (row, col + width)))
+
+
 def _check_raw_html(raw: nodes.RawHtml) -> None:
     """Put the fallback of a :html: in its place when it is part of a link's
     text (a :ref: or :url: reftext, or the phrase of an aside call), and warn
@@ -1474,6 +1542,14 @@ def _abstractify(cst: TSTree) -> nodes.Manuscript | None:
             assert asis.text is not None
             text = asis.text.decode("utf-8")
             child: nodes.Node
+            if ast_node_type in ["math", "mathblock"]:
+                numbered = (
+                    ast_node_type == "mathblock"
+                    and not ast_node.nonum
+                    and not ast_node.preamble
+                    and getattr(ast_root_node, "numbering", "section") != "none"
+                )
+                _warn_structure_commands(text, asis.start_point, numbered)
             if ast_node_type in ["code", "codeblock"]:
                 child = nodes.SourceCode(text, lang=ast_node.lang)
             else:

@@ -22,6 +22,12 @@ Inline math ``$`` ``:math:``
 
 Math inside a line of text. ``$...$`` and ``:math:...::`` are the same.
 
+LaTeX in RSM math is for typesetting and layout only. Labels, numbers,
+references, sections and captions come from RSM tags and meta keys, not from
+LaTeX. RSM warns when math uses a LaTeX command for one of these, such as
+``\label``, ``\ref`` or ``\cite``. The list of these commands is under
+:ref:`Displayed math <tag-mathblock>`.
+
 .. rubric:: Syntax
 
 .. rsm::
@@ -48,6 +54,43 @@ opening ``$$``. ``:mathblock:`` does the same, and ends at a ``::`` on a line
 of its own, with only spaces around it. A ``::`` inside a line of math, as in
 ``a::b``, is part of the math.
 
+RSM numbers every displayed equation itself, in the HTML and in LaTeX and PDF
+export. Only ``:nonum:`` on the block, or ``:numbering: none`` in
+``:config:``, leaves an equation without a number. LaTeX in the block is for
+typesetting and layout only. A starred environment such as ``align*`` lays out
+the lines as ``align`` does, and the block keeps its number.
+
+.. rubric:: LaTeX commands about structure
+
+RSM warns when math uses one of these LaTeX commands, and gives the line of the
+command. The warnings are the same for inline math, displayed math and
+``:preamble:`` blocks.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 60
+
+   * - LaTeX
+     - What to write in RSM
+   * - ``\label``
+     - ``:label:`` on the block.
+   * - ``\tag``, ``\notag``, ``\nonumber``
+     - Nothing to set the number, since RSM numbers the block.
+       ``:nonum:`` on the block to remove the number.
+   * - ``align*``, ``gather*``, ``multline*``, ``flalign*``, ``alignat*``,
+       ``equation*``
+     - ``:nonum:`` on the block to remove the number. RSM warns about these
+       only in a block that RSM numbers.
+   * - ``\ref``, ``\eqref``
+     - ``:ref:<label>::`` outside the math.
+   * - ``\cite``
+     - ``:cite:<key>::`` outside the math.
+   * - ``\part``, ``\chapter``, ``\section``, ``\subsection``,
+       ``\subsubsection``, ``\paragraph``, ``\subparagraph``
+     - A heading, such as ``## Title``.
+   * - ``\caption``
+     - ``:caption:`` in a ``:figure:`` or a ``:table:``.
+
 .. rubric:: Syntax
 
 .. rsm::
@@ -62,7 +105,9 @@ of its own, with only spaces around it. A ``::`` inside a line of math, as in
 ``:preamble:``
    Hides the block and runs it before all other math, so that LaTeX
    definitions in it, such as ``\newcommand``, apply to the whole document.
-   The block is not numbered.
+   The block is not numbered. Definitions in the preamble are for
+   typesetting only, and RSM warns about the LaTeX commands for structure in
+   it, as in any other math.
 
 ``:isclaim:``
    Makes the equation the claim of the proof step that it is in, as
