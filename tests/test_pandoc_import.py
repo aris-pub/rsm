@@ -342,3 +342,31 @@ def test_raw_html_with_double_colon_is_dropped_with_warning(caplog):
         assert ":html" not in out, out
         assert "'::'" in caplog.text
         assert "end of the tag" in caplog.text
+
+
+def _para_with_link(text_inlines: list, url: str) -> dict:
+    return {
+        "blocks": [
+            {
+                "t": "Para",
+                "c": [
+                    {"t": "Str", "c": "See"},
+                    {"t": "Space"},
+                    {"t": "Link", "c": [["", [], []], text_inlines, [url, ""]]},
+                ],
+            }
+        ]
+    }
+
+
+def test_link_keeps_its_text():
+    # A Markdown link [the book](https://example.org) lost "the book".
+    text = [{"t": "Str", "c": "the"}, {"t": "Space"}, {"t": "Str", "c": "book"}]
+    out = PandocImporter().from_json(_para_with_link(text, "https://example.org"))
+    assert ":url:https://example.org, the book::" in out
+
+
+def test_link_whose_text_is_its_address_has_no_text():
+    text = [{"t": "Str", "c": "https://example.org"}]
+    out = PandocImporter().from_json(_para_with_link(text, "https://example.org"))
+    assert ":url:https://example.org::" in out

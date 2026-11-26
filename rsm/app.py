@@ -665,6 +665,10 @@ def build(
 # Pandoc exits with this code when the program that makes a PDF is missing.
 _PANDOC_PDF_PROGRAM_NOT_FOUND = 47
 
+# Formats that pandoc writes as bytes. Read from its output as text they fail
+# to decode, so pandoc writes them to the output file itself.
+_BINARY_FORMATS = {"pdf", "docx", "odt", "epub", "epub2", "epub3", "pptx"}
+
 
 class _PandocRunner:
     """Pipe a pandoc JSON AST dict to the pandoc subprocess and return the result."""
@@ -684,8 +688,7 @@ class _PandocRunner:
             cmd += [f"--include-in-header={braiid_dir / 'theorems.tex'}"]
         if self.to_format == "latex":
             cmd += ["-V", "header-includes=\\usepackage{braiid}"]
-        if self.to_format == "pdf":
-            # Without -o pandoc writes the PDF bytes to stdout, which is read as text.
+        if self.to_format in _BINARY_FORMATS:
             cmd += ["-o", str(self.output)]
         try:
             proc = subprocess.run(
@@ -731,10 +734,11 @@ class PandocExportApp(RSMApp[str]):
         self._output = output
 
     def run(self, initial_args: Any = None) -> str | None:
-        if self._to_format == "pdf" and not self._output:
+        if self._to_format in _BINARY_FORMATS and not self._output:
+            fmt = self._to_format
             raise RSMApplicationError(
-                "PDF export needs an output file, for example: "
-                "rsm export paper.rsm --to pdf -o paper.pdf"
+                f"{fmt.upper()} export needs an output file, for example: "
+                f"rsm export paper.rsm --to {fmt} -o paper.{fmt}"
             )
         # The pipeline's dict-unpacking (`call(**res)`) breaks on pandoc JSON AST
         # dicts because they contain hyphen keys (e.g. "pandoc-api-version") that
@@ -759,8 +763,8 @@ class PandocExportApp(RSMApp[str]):
                 if sty_src.exists() and sty_src.resolve() != sty_dst.resolve():
                     _shutil.copy2(sty_src, sty_dst)
 
-        # For PDF, pandoc has already written the file itself.
-        if self._output and self._to_format != "pdf":
+        # For a binary format, pandoc has already written the file itself.
+        if self._output and self._to_format not in _BINARY_FORMATS:
             Path(self._output).write_text(result)
 
         return result
