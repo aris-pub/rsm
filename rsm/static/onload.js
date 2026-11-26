@@ -68,6 +68,14 @@ export async function onload(root = null, { keys = true } = {}) {
       console.error("Loading pseudocode FAILED!", err);
     }
 
+    // Close the author block (idempotent). Runs before the handrail passes so
+    // that restoreCollapse finds the block's state.
+    try {
+      authors.setup(root);
+    } catch (err) {
+      console.error("Setting up authors.js FAILED!", err);
+    }
+
     // Handrails - set up event listeners once
     try {
       handrails.setup();
@@ -373,13 +381,6 @@ export async function onrender(root = null) {
       mathscroll.setup(root).catch((err) => console.error("Setting up mathscroll.js FAILED!", err));
     } catch (err) {
       console.error("Setting up mathscroll.js FAILED!", err);
-    }
-
-    // Shorten author lists (idempotent: a wired list no longer has [hidden])
-    try {
-      authors.setup(root);
-    } catch (err) {
-      console.error("Setting up authors.js FAILED!", err);
     }
 
     // Captions into the margin column (idempotent, picks up replaced DOM)

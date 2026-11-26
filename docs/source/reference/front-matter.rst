@@ -39,7 +39,13 @@ Author ``:author:``
 
 One author of the document. Write one ``:author:`` for each author, after the
 title. The page lists the names, with a mail icon and an ORCID icon for the
-authors who have them, and the rest of the details folded under a summary.
+authors who have them. Under the names, a gray label counts the affiliations,
+emails, ORCID iDs and notes, such as "2 affiliations · 1 email". A click on the
+label, or on the arrow to the left of the block, opens the block: the label
+is replaced by the numbered affiliations, the notes, the correspondence
+address and the ORCID iDs. The arrow closes the block again. Pointing at a
+name, or tapping it on a phone, shows that author's affiliation and note in a
+tooltip. Readers without JavaScript see all of it.
 All the information is in the meta keys, so the block ends with ``::`` right
 after the braces.
 To show only the first and last authors of a long list, use

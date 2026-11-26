@@ -1,0 +1,55 @@
+# Graphs without triangles
+
+:config: {
+  :author-display-first: 3
+  :author-display-last: 2
+}
+::
+
+:author: {
+  :name: Ada Lovelace
+  :affiliation: University of London
+  :email: ada@example.org
+  :orcid: 0000-0002-1825-0097
+  :author-note: Equal contribution
+} ::
+
+:author: {
+  :name: Bo Chen
+  :affiliation: ETH Zurich
+  :author-note: Equal contribution
+} ::
+
+:author: {
+  :name: Cy Diaz
+  :affiliation: Universidad de Chile
+} ::
+
+:author: {
+  :name: Dana Patel
+  :affiliation: IIT Delhi
+} ::
+
+:author: {
+  :name: Eli Novak
+  :affiliation: University of London
+} ::
+
+:author: {
+  :name: Fay Okafor
+  :affiliation: ETH Zurich
+} ::
+
+:author: {
+  :name: Gil Moreau
+  :affiliation: Universidad de Chile
+} ::
+
+:author: {
+  :name: Hana Sato
+  :affiliation: IIT Delhi
+} ::
+
+:abstract:
+We give a short proof of Mantel's theorem.
+::

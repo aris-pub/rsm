@@ -80,8 +80,9 @@ designations, or other annotations:
    ## Introduction
    This is a joint work.
 
-Notes are rendered as symbols after the author name, with the note text
-displayed in a footnote below the author block.
+When the authors have more than one note, each note gets a symbol after the
+author name. The note text is in the author details (see
+:ref:`multi-author-reader`).
 
 
 ORCID identifiers
@@ -110,7 +111,9 @@ By default the page lists every author. To shorten a long list, set
 ``:author-display-first:`` and ``:author-display-last:`` in the ``:config:``
 block. The page then shows the first and last authors and, between them, a
 button that reads "3 more" (the number of authors not shown). A click on the
-button shows every author.
+button opens the author block: it shows every author, with a "Show fewer"
+button where the hidden authors end, and the author details. A click on "Show
+fewer" closes the block again.
 
 .. rsm::
 
@@ -137,6 +140,31 @@ button shows every author.
 When only one of the two keys is given, the other one is 0. When the two
 numbers add up to the number of authors or more, the page shows every author.
 Readers without JavaScript always see every author.
+
+.. _multi-author-reader:
+
+What the reader can do
+----------------------
+
+In the built page, the author block is closed when the page loads. Closed, it
+shows the names (only the first and last ones when the list is shortened) and,
+under them, a gray label that counts the affiliations, emails, ORCID iDs and
+notes, such as "4 affiliations · 1 email · 1 ORCID · 1 note".
+
+- A click on the label, on the "3 more" button, or on the arrow to the left of
+  the block opens the block. Open, it shows every name and the details: the
+  numbered affiliations, the notes, the correspondence address and the ORCID
+  iDs.
+- A click on the arrow, or on the "Show fewer" button, closes the block. The
+  arrow points right when the block is closed and down when it is open. On a
+  touch screen the arrow is not shown, and the block's menu has an Expand or
+  Collapse item instead.
+- Pointing at an author's name, or tapping it on a phone, shows that author's
+  affiliation and note in a tooltip. Pointing at a superscript number shows
+  its affiliation.
+
+Readers without JavaScript see every name and all the details, with no
+buttons.
 
 .. tip::
 

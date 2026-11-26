@@ -1636,7 +1636,18 @@ class Translator:
         for author in authors:
             if not author.name:
                 continue
-            name_html = _wrap_hyphenated_words(author.name)
+            # authors.js builds the name's tooltip from these attributes.
+            tip_attrs = ""
+            if author.affiliation:
+                tip_attrs += (
+                    f' data-affiliation="{html_escape(author.affiliation, quote=True)}"'
+                )
+            if author.author_note:
+                tip_attrs += f' data-note="{html_escape(author.author_note, quote=True)}"'
+            name_html = (
+                f'<span class="author-name-text"{tip_attrs}>'
+                f"{_wrap_hyphenated_words(author.name)}</span>"
+            )
             sup_parts = []
             if author.affiliation_number is not None and total_affiliations > 1:
                 tooltip = aff_by_num.get(author.affiliation_number, "")
@@ -1665,7 +1676,6 @@ class Translator:
 
         names_line = self._author_names_line(name_parts)
 
-        # Build the full block content: names + details
         html = f'\n<p class="author-names">{names_line}</p>\n' if names_line else ""
         html += self._make_authornotes_html(notes_node)
 
@@ -1683,8 +1693,10 @@ class Translator:
         """Join the names, wrapping the middle ones when the list is shortened.
 
         Every name stays in the HTML, so readers without JavaScript and search
-        engines get the full list. The page script hides the wrapped names and
-        shows the "N more" button, which starts out hidden.
+        engines get the full list. The "N more" pill sits where the hidden
+        names start and the "Show fewer" pill where they end. Both start out
+        hidden, and the stylesheet shows one of them once the page script sets
+        the block's state.
         """
         first = getattr(self.tree, "author_display_first", 0)
         last = getattr(self.tree, "author_display_last", 0)
@@ -1708,13 +1720,18 @@ class Translator:
             for s, n in zip(sep[first + hidden :], name_parts[first + hidden :])
         )
         noun = "author" if hidden == 1 else "authors"
-        button = (
-            f'<button type="button" class="author-more-button" '
+        more = (
+            f'<button type="button" class="author-more-button" aria-expanded="false" '
             f'aria-label="Show {hidden} more {noun}">{hidden} more</button>'
         )
+        fewer = (
+            '<button type="button" class="author-more-button" aria-expanded="true" '
+            'aria-label="Show fewer authors">Show fewer</button>'
+        )
         return (
-            f'{head}<span class="author-more" hidden>{sep[first]}{button}</span>'
-            f'<span class="author-hidden-names">{middle}</span>{tail}'
+            f'{head}<span class="author-more" hidden>{sep[first]}{more}</span>'
+            f'<span class="author-hidden-names">{middle}'
+            f'<span class="author-fewer" hidden> {fewer}</span></span>{tail}'
         )
 
     def visit_authornotes(self, node: nodes.AuthorNotes) -> EditCommand:
@@ -1735,20 +1752,22 @@ class Translator:
         total_affiliations = len(node.affiliation_map)
         total_notes = len(node.note_map)
 
-        # The folded summary counts what the details hold.
+        # The summary label counts what the details hold. It starts out hidden,
+        # and the stylesheet shows it while the page script has the block closed.
         counts = [
             (len(node.affiliation_map), "affiliation", "affiliations"),
             (len(node.emails), "email", "emails"),
             (len(node.orcids), "ORCID", "ORCIDs"),
             (len(node.note_map), "note", "notes"),
         ]
-        labels = "".join(
-            f'<span class="author-count">{n} {one if n == 1 else many}</span>'
-            for n, one, many in counts
-            if n
+        label = '<span aria-hidden="true"> · </span>'.join(
+            f"{n} {one if n == 1 else many}" for n, one, many in counts if n
         )
-        html = '<details class="author-details">\n'
-        html += f"<summary>{labels}{self._icon_ref('chevron-down')}</summary>\n"
+        html = (
+            '<button type="button" class="author-summary" aria-expanded="false" '
+            f"hidden>{label}</button>\n"
+        )
+        html += '<div class="author-details">\n'
 
         if node.affiliation_map:
             html += '<ol class="author-affiliations">\n'
@@ -1780,7 +1799,7 @@ class Translator:
             for name, orcid in node.orcids:
                 html += f'<p class="author-orcid">{_wrap_hyphenated_words(f"{name}: {orcid}")}</p>\n'
 
-        html += "</details>\n"
+        html += "</div>\n"
         return html
 
     def visit_abstract(self, node: nodes.Abstract) -> AppendBatchAndDefer:
