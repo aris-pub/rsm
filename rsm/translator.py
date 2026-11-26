@@ -2365,7 +2365,7 @@ class Translator:
                 AppendOpenTag(
                     id=node.label,
                     classes=["algorithm"],
-                    **{"data-caption-name": _caption_name(node)},
+                    **{"data-caption-name": _caption_name(node)},  # type: ignore[arg-type]  # these keys go to **kwargs, but mypy checks the values against the named parameters too
                 ),
                 AppendOpenTag("pre", classes=["pseudocode"]),
             ]
