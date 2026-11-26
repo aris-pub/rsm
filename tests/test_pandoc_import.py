@@ -767,6 +767,32 @@ def test_titled_theorem_moves_its_title_into_meta():
     assert thm.title
 
 
+def test_braces_in_a_theorem_title_are_escaped():
+    import rsm
+
+    heading = [
+        {"t": "Strong", "c": _words("Theorem", "1")},
+        {"t": "Space"},
+        {"t": "Str", "c": "(The"},
+        {"t": "Space"},
+        {"t": "Str", "c": "set"},
+        {"t": "Space"},
+        {"t": "Math", "c": [{"t": "InlineMath"}, "\\{a\\}"]},
+        {"t": "Space"},
+        _emph({"t": "Str", "c": "{b}"}),
+        {"t": "Str", "c": ")."},
+        {"t": "Space"},
+        {"t": "Space"},
+    ]
+    para = {"t": "Para", "c": [*heading, *_words("Z.")]}
+    out = PandocImporter().from_json({"blocks": [_div("", "theorem", [para])]})
+    assert ":title: The set $\\{a\\}$ *\\{b\\}*}" in out, out
+    tree = _parse_without_errors(out)
+    (thm,) = tree.traverse(nodeclass=rsm.nodes.Theorem)
+    assert thm.label == "thm-1"
+    assert "Z." in _body(out, "theorem")
+
+
 def test_titled_theorem_without_a_source_label_gets_a_title():
     heading = [
         {"t": "Strong", "c": _words("Lemma", "2")},

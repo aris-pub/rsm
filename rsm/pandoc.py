@@ -926,6 +926,34 @@ def _theorem_heading(inlines: list) -> tuple[int, list | None]:
     return 0, None
 
 
+def _escape_meta_braces(inlines: list) -> list:
+    """Return copies of ``inlines`` with { and } in text escaped with a backslash.
+
+    A brace ends a meta value, so a title that holds one would not parse. Math
+    is left alone because the meta scanner reads $...$ whole.
+    """
+    out: list = []
+    for inl in inlines:
+        t = inl.get("t")
+        if t == "Str":
+            text = inl["c"].replace("{", "\\{").replace("}", "\\}")
+            out.append({"t": "Str", "c": text})
+        elif t in (
+            "Emph",
+            "Strong",
+            "Strikeout",
+            "SmallCaps",
+            "Superscript",
+            "Subscript",
+        ):
+            out.append({"t": t, "c": _escape_meta_braces(inl["c"])})
+        elif t == "Span":
+            out.append({"t": t, "c": [inl["c"][0], _escape_meta_braces(inl["c"][1])]})
+        else:
+            out.append(inl)
+    return out
+
+
 def _proof_heading_length(inlines: list) -> int:
     # Only the default heading. A titled proof is handled by
     # _proof_title_target, or keeps its title.
@@ -1486,7 +1514,7 @@ class PandocImporter:
         keys = [f":label: {label}"] if label else []
         title = self._theorem_titles.get(id(c))
         if title:
-            keys.append(f":title: {self._render_inlines(title)}")
+            keys.append(f":title: {self._render_inlines(_escape_meta_braces(title))}")
         meta = f" {{{', '.join(keys)}}}" if keys else ""
         # Map well-known classes to RSM constructs
         for cls in classes:
