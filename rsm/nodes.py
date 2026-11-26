@@ -1652,13 +1652,21 @@ class HtmlBlock(NodeWithChildren):
 
 
 class CodeBlock(TerminalBlock):
-    classreftext: ClassVar[str] = "Code Block {number}"
-    newmetakeys: ClassVar[set] = {"lang"}
+    autonumber = True
+    _number_within = Section
+    newmetakeys: ClassVar[set] = {"lang", "blockname"}
 
-    def __init__(self, source: str = "", lang: str = "", **kwargs: Any) -> None:
+    def __init__(
+        self, source: str = "", lang: str = "", blockname: str = "", **kwargs: Any
+    ) -> None:
         super().__init__(**kwargs)
         self.lang = lang
         self.source = SourceCode(source, lang)
+        self.blockname = blockname
+
+    @property
+    def kindname(self) -> str:
+        return self.blockname or "Code Block"
 
 
 class Algorithm(TerminalBlock):
@@ -2042,6 +2050,9 @@ class Step(Paragraph):
     def reftext(self) -> str:
         if self.in_calc:
             return "Relation"
+        # Without a number the template would leave empty brackets, "Step ⟨⟩".
+        if not self.full_number and self.reftext_template == self.classreftext:
+            return "Step"
         return super().reftext
 
 
@@ -2310,6 +2321,7 @@ class Caption(Paragraph):
         Figure,
         Video,
         Table,
+        CodeBlock,
     }
 
 

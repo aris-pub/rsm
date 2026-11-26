@@ -37,14 +37,14 @@ def test_defaults():
     p = rsm.nodes.Proof()
     assert p.reftext.strip() == "Proof"
     s = rsm.nodes.Step()
-    assert s.reftext.strip() == "Step ⟨⟩"
+    assert s.reftext.strip() == "Step"
     m = rsm.nodes.MathBlock()
     assert m.reftext.strip() == "the equation"
 
 
 def test_nonum():
     s = rsm.nodes.Step(nonum=True)
-    assert s.reftext.strip() == "Step ⟨⟩"
+    assert s.reftext.strip() == "Step"
     m = rsm.nodes.MathBlock(nonum=True)
     assert m.reftext.strip() == "the equation"
 
@@ -327,3 +327,20 @@ def test_reftext_meta_key_wins_for_lists_and_items(kind, items, label):
     if label == "lst":
         src = src.replace("{:label: lst}", "{:label: lst :reftext: the second}")
     assert _link_text(src, label) == "the second"
+
+
+def test_a_ref_to_an_unnumbered_step_reads_step():
+    src = """# T
+
+:theorem: {:label: thm} A claim.::
+
+:proof:
+  :step: {:label: st-a, :nonum:} Foo.::
+  :step: {:label: st-b} Bar.::
+  :step: :qed: By :ref:st-a:: and :ref:st-b::.::
+::
+"""
+    html = rsm.render(src)
+    refs = re.findall(r'<a class="reference" href="#st-[ab]">([^<]*)</a>', html)
+    assert refs[0] == "Step"
+    assert re.fullmatch(r"Step ⟨\d⟩", refs[1])

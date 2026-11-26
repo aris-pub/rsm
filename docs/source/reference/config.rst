@@ -39,8 +39,8 @@ A block that holds only meta keys and shows nothing in the page. It ends with
 
 ``:numbering:``
    How sections and numbered blocks (theorems and the other theorem-like
-   blocks, figures, videos, tables, algorithms and display equations) are
-   numbered. ``section`` (the default) numbers the blocks within each
+   blocks, figures, videos, tables, algorithms, code blocks and display
+   equations) are numbered. ``section`` (the default) numbers the blocks within each
    section, as in Theorem 2.1. ``document`` numbers the blocks through the
    whole document, as in Theorem 7, and sections keep their numbers, as in
    Section 2.1. ``none`` numbers no section and no block. A reference to a

@@ -945,6 +945,10 @@ def _caption_label(parent: nodes.Node) -> AppendOpenCloseTag:
     )
 
 
+def _has_caption(node: nodes.Node) -> bool:
+    return any(isinstance(c, nodes.Caption) for c in getattr(node, "children", ()))
+
+
 def _figure_number(node: nodes.Node) -> str | None:
     """The number of a :figure:, :html: or :video: block, or None when it has none."""
     if not isinstance(node, nodes.Asset):
@@ -2349,6 +2353,11 @@ class Translator:
 
     def visit_codeblock(self, node: nodes.CodeBlock) -> AppendBatchAndDefer:
         items = self._close_p_before(node)
+        if _has_caption(node):
+            # As in a figure, the caption follows the code inside a <figure>, so
+            # visit_caption closes the <pre>.
+            items += [AppendNodeTag(node, "figure"), AppendText("<pre>")]
+            return AppendBatchAndDefer(items)
         items += [
             AppendNodeTag(node, "div", newline_inner=True, newline_outer=True),
             AppendOpenTag("pre"),
@@ -3185,10 +3194,12 @@ class Translator:
         caption = _caption_label(parent)
         # Tables use figcaption outside <table> (inside table-wrapper) so the caption
         # doesn't participate in the table's intrinsic width calculation.
-        use_figcaption = isinstance(parent, (nodes.Asset, nodes.Table))
+        use_figcaption = isinstance(parent, (nodes.Asset, nodes.Table, nodes.CodeBlock))
         items: list[EditCommand] = []
         if isinstance(parent, nodes.Table):
             items.append(AppendText("\n</table>\n"))
+        if isinstance(parent, nodes.CodeBlock):
+            items.append(AppendText("</pre>\n"))
         items.extend(
             [
                 AppendOpenTag("figcaption" if use_figcaption else "caption"),
@@ -4626,10 +4637,21 @@ class HandrailsTranslator(Translator):
         )
         figcaption_classes.extend(additional_classes)
 
-        use_figcaption = isinstance(parent, (nodes.Asset, nodes.Table))
+        use_figcaption = isinstance(parent, (nodes.Asset, nodes.Table, nodes.CodeBlock))
         items: list[EditCommand] = []
         if isinstance(parent, nodes.Table):
             items.append(AppendText("\n</table>\n"))
+        if isinstance(parent, nodes.CodeBlock):
+            # Close the code's bare handrail, opened in visit_codeblock.
+            items.append(
+                AppendText(
+                    "</pre>\n</div>\n"
+                    + self._hr_info_zone_icon(None).make_text()
+                    + "</div>\n"
+                )
+            )
+            if self._terminal_block_in_p(parent):
+                figcaption_classes.append("hr-offset")
         has_static = isinstance(parent, nodes.Asset) and parent.static
         # The rail names the captioned block ("Figure", "Video", "Table"), the
         # same word the caption's own label starts with.
@@ -4670,7 +4692,12 @@ class HandrailsTranslator(Translator):
         return batch
 
     def visit_codeblock(self, node: nodes.CodeBlock) -> AppendBatchAndDefer:
-        batch = self._replace_node_with_handrails(node, collapse_in_hr=False)
+        if _has_caption(node):
+            return self._captioned_codeblock_handrails(node)
+        # The menu names the kind of block, as a caption's menu does.
+        batch = self._replace_node_with_handrails(
+            node, collapse_in_hr=False, menu_label=node.kindname
+        )
         close_p = self._close_p_before(node)
         batch.items[:0] = close_p
         handrail_idx = len(close_p)
@@ -4683,13 +4710,38 @@ class HandrailsTranslator(Translator):
         batch.items.append(AppendOpenTag("pre"))
         return AppendBatchAndDefer(batch.items)
 
+    def _captioned_codeblock_handrails(
+        self, node: nodes.CodeBlock
+    ) -> AppendBatchAndDefer:
+        # Laid out as a figure (see _asset_handrails): a plain <figure> holds the
+        # code in a bare handrail, and the caption after it carries the menu.
+        # visit_caption closes the bare handrail.
+        offset = self._terminal_block_in_p(node)
+        body_classes = "hr hr-bare" + (" hr-offset" if offset else "")
+        body = (
+            f'<div class="{body_classes}">'
+            + self._hr_collapse_zone(collapsible=False).make_text()
+            + self._hr_menu_zone_empty().make_text()
+            + self._hr_border_zone_empty().make_text()
+            + self._hr_spacer_zone().make_text()
+            + '<div class="hr-content-zone">\n<pre>'
+        )
+        return AppendBatchAndDefer(
+            [
+                *self._close_p_before(node),
+                AppendNodeTag(node, "figure"),
+                AppendText(body),
+            ]
+        )
+
     @auto_leave_deferred
     def leave_codeblock(
         self, node: nodes.CodeBlock, base_batch: EditCommandBatch
     ) -> EditCommand:
-        base_batch.items.insert(
-            -1, self._hr_info_zone_icon(getattr(node, "icon", None))
-        )
+        if not _has_caption(node):
+            base_batch.items.insert(
+                -1, self._hr_info_zone_icon(getattr(node, "icon", None))
+            )
         return self._reopen_p_after(node, base_batch)
 
     def visit_algorithm(self, node: nodes.Algorithm) -> AppendBatchAndDefer:

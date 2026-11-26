@@ -1,0 +1,17 @@
+# Sorting
+
+## Insertion sort
+
+The function below sorts a list in place.
+
+:codeblock: {:lang: python, :label: code-sort}
+def sort(xs):
+    for i in range(1, len(xs)):
+        j = i
+        while j > 0 and xs[j - 1] > xs[j]:
+            xs[j - 1], xs[j] = xs[j], xs[j - 1]
+            j -= 1
+:caption: Insertion sort.
+::
+
+It takes quadratic time in the worst case. See :ref:code-sort::.

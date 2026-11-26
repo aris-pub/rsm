@@ -2907,7 +2907,12 @@ html:not(.touch) {
   max-width: 100%; }
 .manuscriptwrapper figure.as-paragraph > .hr-content-zone :is(img, video) {
   height: auto; }
-/* Captions of every captioned block (figure, widget, video, table): small,
+/* A code block with a caption is laid out as a figure. The figure gives the
+   spacing around it, and the code keeps its lines flush left. */
+.manuscriptwrapper figure.codeblock pre {
+  margin-block: 0;
+  text-align: left; }
+/* Captions of every captioned block (figure, widget, video, table, code block): small,
    unboxed, subtle text, with the label ("Figure 2.3.") bold in the body colour
    on its own line. The same look under the block and in the margin column. */
 .manuscriptwrapper :is(figure, .table-wrapper) > figcaption {

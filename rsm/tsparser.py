@@ -1469,8 +1469,8 @@ def _abstractify(cst: TSTree) -> nodes.Manuscript | None:
         ]:
             # "asis_text" is not pushed to the stack for further processing so must
             # handle it here
-            asis = cst_node.named_children[-1]
-            assert asis.type == "asis_text"
+            # A :codeblock: may end with a caption, after its code.
+            asis = next(c for c in cst_node.named_children if c.type == "asis_text")
             assert asis.text is not None
             text = asis.text.decode("utf-8")
             child: nodes.Node

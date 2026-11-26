@@ -213,10 +213,12 @@ references.
 Caption ``:caption:``
 ---------------------
 
-The caption of a ``:figure:``, ``:video:`` or ``:table:``. It goes inside the
-block, after its content, and runs to the block's closing ``::``. RSM puts
-the block's label, such as "Figure 1.1.", before it.
+The caption of a ``:figure:``, ``:video:``, ``:table:`` or ``:codeblock:``. It
+goes inside the block, after its content, and runs to the block's closing
+``::``. In a ``:codeblock:`` it starts on a line of its own. RSM puts the
+block's label, such as "Figure 1.1.", before it.
 
 .. rubric:: Related
 
-:ref:`Figure <tag-figure>`, :ref:`Video <tag-video>`, :ref:`Table <tag-table>`.
+:ref:`Figure <tag-figure>`, :ref:`Video <tag-video>`, :ref:`Table <tag-table>`,
+:ref:`Code block <tag-codeblock>`.

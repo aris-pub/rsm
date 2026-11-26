@@ -83,7 +83,7 @@ Each key, and where it is described.
        :ref:`Paragraph <tag-paragraph>`, :ref:`Tabs <tag-tabs>`
    * - ``:blockname:``
      - :ref:`Theorem <tag-theorem>`, :ref:`Figure <tag-figure>`,
-       :ref:`Table <tag-table>`
+       :ref:`Table <tag-table>`, :ref:`Code block <tag-codeblock>`
    * - ``:of:``
      - :ref:`Proof <tag-proof>`
    * - ``:path:``, ``:alt:``, ``:static:``, ``:dark:``, ``:scale:``,

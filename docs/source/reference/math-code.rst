@@ -6,7 +6,8 @@ Math and code
 Math is written in LaTeX and shown with MathJax. Displayed equations are
 numbered within their section, such as (2.1), and a reference to one reads
 "(2.1)". Algorithms are also numbered within their section, and a reference
-to one reads "Algorithm 2.1".
+to one reads "Algorithm 2.1". Code blocks are numbered within their section
+too, with their own counter, and a reference to one reads "Code Block 2.1".
 
 Every tag on this page takes the meta keys that all tags take, such as
 ``:label:`` and ``:nonum:``. See :ref:`ref-meta-keys`.
@@ -158,6 +159,14 @@ Code block ``:codeblock:``
 Lines of code, in a fixed-width font, with syntax colors for the language in
 ``:lang:``. The lines are shown as written.
 
+Code blocks are numbered within their section, such as Code Block 2.1, with
+their own counter. A reference to one reads "Code Block 2.1", or its
+``:reftext:``. A code block can end with a ``:caption:`` on a line of its own,
+after the code. RSM shows the caption under the block, with the label "Code
+Block 2.1." before it, or in the margin column when the page is wide enough. A
+code block without a caption shows no label. A block that is written between
+two lines of three backticks is numbered the same way but takes no caption.
+
 .. rubric:: Syntax
 
 .. rsm::
@@ -165,6 +174,7 @@ Lines of code, in a fixed-width font, with syntax colors for the language in
 
    :codeblock: {:lang: python}
    <code>
+   :caption: <caption>
    ::
 
 .. rubric:: Meta keys
@@ -172,18 +182,26 @@ Lines of code, in a fixed-width font, with syntax colors for the language in
 ``:lang:``
    The language of the code, such as ``python``.
 
+``:blockname:``
+   A name that replaces "Code Block" in the block's label and in references
+   to it, such as ``Listing``.
+
 .. rubric:: Example
 
 .. rsm::
 
-   :codeblock: {:lang: python}
+   :codeblock: {:lang: python, :label: code-square}
    def square(x):
        return x * x
+   :caption: The square of a number.
    ::
+
+   :ref:code-square:: returns the square of its argument.
 
 .. rubric:: Related
 
-:ref:`Inline code <tag-code>`, :ref:`Algorithm <tag-algorithm>`.
+:ref:`Inline code <tag-code>`, :ref:`Algorithm <tag-algorithm>`,
+:ref:`Caption <tag-caption>`.
 
 
 .. _tag-algorithm:
