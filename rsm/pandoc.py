@@ -289,7 +289,7 @@ class PandocTranslator:
             stripped.startswith(rf"\begin{{{env}}}") for env in self._LATEX_ENVS
         )
         if has_env:
-            return [{"t": "RawBlock", "c": ["latex", stripped]}]
+            return [{"t": "RawBlock", "c": ["latex", self._number_env(node, stripped)]}]
         math = {"t": "Math", "c": [{"t": "DisplayMath"}, src]}
         if not node.full_number:
             return [{"t": "Para", "c": [math]}]
@@ -297,6 +297,42 @@ class PandocTranslator:
         # agrees with the text of references to the equation.
         attrs = [node.label or "", ["equation"], [["number", node.full_number]]]
         return [{"t": "Para", "c": [{"t": "Span", "c": [attrs, [math]]}]}]
+
+    # The HTML gives a math block one number, but these environments number each
+    # line with LaTeX's own counter. Each one is replaced by its inner form inside an
+    # equation that is tagged with RSM's number.
+    _INNER_ENVS = {
+        "align": "aligned",
+        "gather": "gathered",
+        "alignat": "alignedat",
+        "split": "split",
+    }
+
+    def _number_env(self, node: nodes.MathBlock, src: str) -> str:
+        m = re.fullmatch(r"\\begin\{(\w+)\}(.*)\\end\{\1\}", src, re.DOTALL)
+        if not m:
+            return src
+        env, body = m.groups()
+        number = node.full_number
+        tag = ""
+        if number:
+            tag = rf"\tag{{{number}}}"
+            if node.label:
+                tag += rf"\label{{{node.label}}}"
+        if env == "multline":
+            if not number:
+                return rf"\begin{{multline*}}{body}\end{{multline*}}"
+            return f"\\begin{{multline}}{body}{tag}\n\\end{{multline}}"
+        inner = self._INNER_ENVS.get(env)
+        if not inner:
+            return src
+        outer = "equation" if number else "equation*"
+        # A blank line inside an equation is a LaTeX error.
+        tag_line = f"{tag}\n" if tag else ""
+        return (
+            f"\\begin{{{outer}}}\n\\begin{{{inner}}}{body}\\end{{{inner}}}\n"
+            f"{tag_line}\\end{{{outer}}}"
+        )
 
     def _block_codeblock(self, node: nodes.CodeBlock) -> list[dict]:
         src = self._extract_code_source(node)

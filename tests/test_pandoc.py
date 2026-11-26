@@ -1061,9 +1061,11 @@ def test_mathblock_with_align_emits_rawblock():
     )
     raw_blocks = [b for b in blocks if b["t"] == "RawBlock" and b["c"][0] == "latex"]
     assert raw_blocks
+    # The block has one number, so align becomes aligned inside a tagged equation.
     content = raw_blocks[0]["c"][1]
-    assert r"\begin{align}" in content
-    assert r"\end{align}" in content
+    assert r"\begin{aligned}" in content
+    assert r"\end{aligned}" in content
+    assert r"\tag{1}" in content
 
 
 @_PANDOC_SKIP
