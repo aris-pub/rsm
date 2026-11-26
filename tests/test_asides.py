@@ -559,3 +559,32 @@ def test_aside_call_after_a_space_or_punctuation_gets_no_message(caplog, src):
     caplog.set_level(logging.WARNING, logger="RSM")
     render(src + A_DEF)
     assert _aside_space_records(caplog) == []
+
+
+MARKUP_CALL = "A word:aside:a,a :span: {:strong:} bold :: phrase:: and."
+MARKUP_MESSAGE = (
+    "An aside call must come after a space. Put a space before :aside:, as in "
+    "'word :aside:a,a :span: {:strong:} bold :: phrase::'"
+)
+
+
+def test_aside_call_with_markup_in_its_phrase_right_after_a_word(caplog):
+    caplog.set_level(logging.WARNING, logger="RSM")
+    render(MARKUP_CALL + A_DEF)
+    (rec,) = _aside_space_records(caplog)
+    assert rec.getMessage() == MARKUP_MESSAGE
+    assert (rec.start_row, rec.start_col) == (1, 7)
+    assert (rec.end_row, rec.end_col) == (1, 52)
+    assert not any("The CST contains errors" in r.getMessage() for r in caplog.records)
+
+
+def test_page_shows_the_clear_message_for_a_markup_aside_call_after_a_word():
+    html = render(MARKUP_CALL + A_DEF)
+    assert "CST error" not in html
+    assert MARKUP_MESSAGE in html
+
+
+def test_aside_call_with_markup_in_its_phrase_after_a_space_gets_no_message(caplog):
+    caplog.set_level(logging.WARNING, logger="RSM")
+    render("A word :aside:a,a :span: {:strong:} bold :: phrase:: and." + A_DEF)
+    assert _aside_space_records(caplog) == []

@@ -100,3 +100,16 @@ def test_strict_build_fails_on_an_aside_call_right_after_a_word():
         "  - (1, 9) - (1, 25): An aside call must come after a space. Put a "
         "space before :aside:, as in 'phrase :aside:a,words::'"
     ]
+
+
+def test_strict_build_fails_on_a_markup_aside_call_right_after_a_word():
+    message = _strict_error(
+        "A word:aside:a,a :span: {:strong:} bold :: phrase:: and.\n\n"
+        ":aside: {:label: a} The aside. ::\n"
+    )
+    lines = [line for line in message.split("\n") if line.startswith("  - ")]
+    assert lines == [
+        "  - (1, 7) - (1, 52): An aside call must come after a space. Put a "
+        "space before :aside:, as in 'word :aside:a,a :span: {:strong:} bold :: "
+        "phrase::'"
+    ]
