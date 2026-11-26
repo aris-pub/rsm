@@ -174,31 +174,6 @@ class TestMakeCLIFileOutput:
         assert "Both custom" in output_html.read_text()
 
     @pytest.mark.slow
-    def test_make_cli_print_flag(self, tmp_path):
-        """Test rsm build -p prints HTML to stdout AND creates files."""
-        src = "# Test\n\nPrint flag.\n"
-        src_file = tmp_path / "test.rsm"
-        src_file.write_text(src)
-
-        result = subprocess.run(
-            f"rsm build {src_file} -p",
-            cwd=tmp_path,
-            shell=True,
-            capture_output=True,
-            check=True,
-        )
-
-        # Should print HTML to stdout
-        stdout = result.stdout.decode("utf-8")
-        assert "<html" in stdout
-        assert "Print flag" in stdout
-
-        # Should also create files (test.html from test.rsm)
-        output_html = tmp_path / "test.html"
-        assert output_html.exists()
-        assert "Print flag" in output_html.read_text()
-
-    @pytest.mark.slow
     def test_make_cli_standalone_flag(self, tmp_path):
         """Test rsm build --standalone creates single HTML file."""
         src = "# Test\n\nStandalone.\n"

@@ -307,9 +307,7 @@ def _cmd_build(args: Namespace) -> int:
     else:
         kwargs["path"] = args.src
 
-    output = app.build(**kwargs)
-    if args.print_output and output:
-        print(output)
+    app.build(**kwargs)
     return 0
 
 
@@ -700,9 +698,7 @@ def _cmd_serve(args: Namespace) -> int:
         else:
             kwargs["path"] = args.src
 
-        output = app.build(**kwargs)
-        if args.print_output and output:
-            print(output)
+        app.build(**kwargs)
 
         # Watch source and CSS files for changes
         server = livereload.Server()
@@ -884,7 +880,6 @@ def _check_serve_args(serve_parser: ArgumentParser, args: Namespace) -> None:
         return
     given = {
         "-c": args.string,
-        "-p": args.print_output,
         "-v": args.verbose > 0,
         "--log-no-timestamps": not args.log_time,
         "--log-no-lineno": not args.log_lineno,
@@ -949,13 +944,6 @@ def main() -> int:
         help="output path and/or filename",
         type=str,
         default=None,
-    )
-    build_parser.add_argument(
-        "-p",
-        "--print",
-        help="print HTML to stdout",
-        action="store_true",
-        dest="print_output",
     )
     build_parser.add_argument(
         "--no-theme-toggle",
@@ -1125,13 +1113,6 @@ def main() -> int:
         help="output path and/or filename (for build)",
         type=str,
         default=None,
-    )
-    output_opts.add_argument(
-        "-p",
-        "--print",
-        help="print HTML to stdout on each rebuild",
-        action="store_true",
-        dest="print_output",
     )
     output_opts.add_argument(
         "--port",

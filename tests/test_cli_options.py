@@ -30,7 +30,6 @@ KEPT = {
         ["--strict"],
         ["--standalone"],
         ["-o", "out"],
-        ["-p"],
         ["--no-theme-toggle"],
         ["--sidebar"],
     ],
@@ -77,7 +76,6 @@ KEPT = {
         ["--menu-right"],
         ["--standalone"],
         ["-o", "out"],
-        ["-p"],
         ["--port", "5600"],
         ["--no-browser"],
         ["--sidebar"],
@@ -91,7 +89,7 @@ KEPT = {
 }
 
 REMOVED = {
-    "build": [["-r"], ["--handrails"]],
+    "build": [["-r"], ["--handrails"], ["-p"], ["--print"]],
     "render": [["--css", "x.css"], ["--menu-right"]],
     "check": [
         ["-r"],
@@ -104,7 +102,7 @@ REMOVED = {
     ],
     "parse": [["-r"], ["--handrails"], ["--css", "x.css"], ["--menu-right"]],
     "export": [["-r"], ["--handrails"], ["--css", "x.css"], ["--menu-right"]],
-    "serve": [["-r"], ["--handrails"]],
+    "serve": [["-r"], ["--handrails"], ["-p"], ["--print"]],
 }
 
 
@@ -142,8 +140,6 @@ def test_removed_option_is_rejected(monkeypatch, capsys, command, option):
 SERVE_NEEDS_FILE = [
     ["-c"],
     ["--string"],
-    ["-p"],
-    ["--print"],
     ["-v"],
     ["--verbose"],
     ["--log-no-timestamps"],
