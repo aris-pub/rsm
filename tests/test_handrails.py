@@ -836,7 +836,7 @@ def test_author():
 
         <div class="hr-content-zone">
 
-        <p class="author-names"><span class="author-name"><span class="author-name-text">Leo Torres</span><a class="author-contact" href="mailto:leo@leotrs.com" aria-label="Email Leo Torres"><span class="icon mail" aria-hidden="true"><svg overflow="visible"><use href="#hr-icon-mail" width="100%" height="100%"/></svg></span></a></span></p>
+        <p class="author-names"><span class="author-name"><span class="author-name-text">Leo Torres</span><a class="author-contact" href="mailto:leo@leotrs.com" aria-label="Email Leo Torres" data-tip="Email Leo Torres"><span class="icon mail" aria-hidden="true"><svg overflow="visible"><use href="#hr-icon-mail" width="100%" height="100%"/></svg></span></a></span></p>
         <button type="button" class="author-summary" aria-expanded="false" hidden>1 email</button>
         <div class="author-details">
         <p class="author-correspondence">Correspondence: <a href="mailto:leo@leotrs.com">leo@leotrs.com</a></p>
