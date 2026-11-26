@@ -222,8 +222,37 @@ MULTI = dedent(
       \begin{flalign} h &= i \\ j &= k \end{flalign}
     ::
 
+    :mathblock: {:label: e-gstar}
+      \begin{gather*} x = 1 \\ y = 2 \end{gather*}
+    ::
+
+    :mathblock: {:label: e-mstar}
+      \begin{multline*} p + q \\ + r \end{multline*}
+    ::
+
+    :mathblock: {:label: e-fstar}
+      \begin{flalign*} a &= b \\ c &= d \end{flalign*}
+    ::
+
+    :mathblock: {:label: e-atstar}
+      \begin{alignat*}{2} a &= b &\quad c &= d \end{alignat*}
+    ::
+
+    :mathblock: {:label: e-eqstar}
+      \begin{equation*} m = n \end{equation*}
+    ::
+
+    :mathblock: {:label: e-eq}
+      \begin{equation} o = p \end{equation}
+    ::
+
+    :mathblock: {:label: e-starnonum, :nonum:}
+      \begin{align*} w &= z \end{align*}
+    ::
+
     See :ref:e-align::, :ref:e-gather::, :ref:e-alignat::, :ref:e-multline::,
-    :ref:e-flalign:: and :ref:e-star::.
+    :ref:e-flalign::, :ref:e-star::, :ref:e-gstar::, :ref:e-mstar::,
+    :ref:e-fstar::, :ref:e-atstar::, :ref:e-eqstar:: and :ref:e-eq::.
     """
 )
 
@@ -260,14 +289,65 @@ def test_multline_has_one_rsm_number(multi_latex):
     ) in multi_latex
 
 
-def test_starred_form_has_no_number(multi_latex):
-    assert r"\begin{align*} u &= v \end{align*}" in multi_latex
-    assert not re.search(r"\\tag\{[^}]*\}\\label\{e-star\}", multi_latex)
+# The number of a math block comes only from RSM. A star in the name of an
+# environment is layout only, so a starred block prints RSM's number, as its
+# unstarred form does.
 
 
-def test_labelled_starred_form_has_anchor(multi_latex):
-    # Without a label, the reference to the block links to nowhere.
-    assert r"\phantomsection\label{e-star}\begin{align*}" in multi_latex
+def test_starred_align_has_rsm_number(multi_latex):
+    assert (
+        r"\begin{equation} \begin{aligned} u &= v \end{aligned}"
+        r" \tag{1.5}\label{e-star} \end{equation}"
+    ) in multi_latex
+    assert r"\begin{align*}" not in multi_latex
+
+
+def test_starred_gather_has_rsm_number(multi_latex):
+    assert (
+        r"\begin{equation} \begin{gathered} x = 1 \\ y = 2 \end{gathered}"
+        r" \tag{1.7}\label{e-gstar} \end{equation}"
+    ) in multi_latex
+
+
+def test_starred_multline_has_rsm_number(multi_latex):
+    assert (
+        r"\begin{multline} p + q \\ + r \tag{1.8}\label{e-mstar} \end{multline}"
+    ) in multi_latex
+
+
+def test_starred_flalign_has_rsm_number(multi_latex):
+    assert (
+        r"\begin{flalign} a &= b \notag\\ c &= d \tag{1.9}\label{e-fstar}"
+        r" \end{flalign}"
+    ) in multi_latex
+
+
+def test_starred_alignat_has_rsm_number(multi_latex):
+    assert (
+        r"\begin{equation} \begin{alignedat}{2} a &= b &\quad c &= d"
+        r" \end{alignedat} \tag{1.10}\label{e-atstar} \end{equation}"
+    ) in multi_latex
+
+
+def test_starred_equation_has_rsm_number(multi_latex):
+    assert (
+        r"\begin{equation} m = n \tag{1.11}\label{e-eqstar} \end{equation}"
+    ) in multi_latex
+    assert r"\begin{equation*} m = n" not in multi_latex
+
+
+def test_equation_has_one_rsm_number(multi_latex):
+    # An equation inside the equation that carries RSM's number is a LaTeX error.
+    assert (
+        r"\begin{equation} o = p \tag{1.12}\label{e-eq} \end{equation}"
+    ) in multi_latex
+
+
+def test_nonum_starred_block_has_no_number(multi_latex):
+    assert (
+        r"\begin{equation*} \begin{aligned} w &= z \end{aligned} \end{equation*}"
+    ) in multi_latex
+    assert not re.search(r"\\tag\{[^}]*\}\\label\{e-starnonum\}", multi_latex)
 
 
 def test_flalign_has_one_rsm_number(multi_latex):
@@ -297,6 +377,13 @@ def test_multiline_references_match(multi_latex):
     assert r"\hyperref[e-alignat]{(1.3)}" in multi_latex
     assert r"\hyperref[e-multline]{(1.4)}" in multi_latex
     assert r"\hyperref[e-flalign]{(1.6)}" in multi_latex
+    assert r"\hyperref[e-star]{(1.5)}" in multi_latex
+    assert r"\hyperref[e-gstar]{(1.7)}" in multi_latex
+    assert r"\hyperref[e-mstar]{(1.8)}" in multi_latex
+    assert r"\hyperref[e-fstar]{(1.9)}" in multi_latex
+    assert r"\hyperref[e-atstar]{(1.10)}" in multi_latex
+    assert r"\hyperref[e-eqstar]{(1.11)}" in multi_latex
+    assert r"\hyperref[e-eq]{(1.12)}" in multi_latex
 
 
 @pytest.mark.skipif(shutil.which("pdflatex") is None, reason="pdflatex not installed")
@@ -307,9 +394,9 @@ def test_pdf_multiline_numbers(tmp_path):
     text = subprocess.run(
         ["pdftotext", str(out), "-"], capture_output=True, text=True, check=True
     ).stdout
-    # Each of the five numbered blocks prints its number once, and the sentence that
-    # refers to them prints each number once more. No line has a number of its own.
-    # The starred block prints no number, but the reference to it prints RSM's.
+    # Each numbered block, starred or not, prints its number once, and the sentence
+    # that refers to them prints each number once more. No line has a number of its
+    # own, and the :nonum: blocks print none.
     numbers = re.findall(r"\(\d[\d.]*\)", text)
-    printed = ["(1.1)", "(1.2)", "(1.3)", "(1.4)", "(1.6)"]
-    assert sorted(numbers) == sorted(printed * 2 + ["(1.5)"])
+    printed = [f"(1.{n})" for n in range(1, 13)]
+    assert sorted(numbers) == sorted(printed * 2)
