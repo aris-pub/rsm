@@ -85,7 +85,6 @@ Build-time decisions that vary per invocation:
 - `--output`: Where to write the output
 - `--standalone`: Packaging format (single HTML vs separate assets)
 - `--css`: Which CSS file to apply (overrides auto-detection)
-- `--handrails`: Debug features for development
 - `--menu-right`: UI preference for context menu position
 - `--verbose`, `--log-*`: Logging and tooling behavior
 - `--port`, `--no-browser`: Development server options

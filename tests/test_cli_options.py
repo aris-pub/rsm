@@ -30,7 +30,6 @@ KEPT = {
         ["--strict"],
         ["--standalone"],
         ["-o", "out"],
-        ["-p"],
         ["--no-theme-toggle"],
         ["--sidebar"],
     ],
@@ -77,7 +76,6 @@ KEPT = {
         ["--menu-right"],
         ["--standalone"],
         ["-o", "out"],
-        ["-p"],
         ["--port", "5600"],
         ["--no-browser"],
         ["--sidebar"],
@@ -91,7 +89,7 @@ KEPT = {
 }
 
 REMOVED = {
-    "build": [["-r"], ["--handrails"]],
+    "build": [["-r"], ["--handrails"], ["-p"], ["--print"]],
     "render": [["--css", "x.css"], ["--menu-right"]],
     "check": [
         ["-r"],
@@ -104,7 +102,7 @@ REMOVED = {
     ],
     "parse": [["-r"], ["--handrails"], ["--css", "x.css"], ["--menu-right"]],
     "export": [["-r"], ["--handrails"], ["--css", "x.css"], ["--menu-right"]],
-    "serve": [["-r"], ["--handrails"]],
+    "serve": [["-r"], ["--handrails"], ["-p"], ["--print"]],
 }
 
 
@@ -142,8 +140,6 @@ def test_removed_option_is_rejected(monkeypatch, capsys, command, option):
 SERVE_NEEDS_FILE = [
     ["-c"],
     ["--string"],
-    ["-p"],
-    ["--print"],
     ["-v"],
     ["--verbose"],
     ["--log-no-timestamps"],
@@ -192,3 +188,24 @@ def test_serve_with_file_defaults_to_rsm_log_format(monkeypatch):
     status, calls = _parse(monkeypatch, "serve", [])
     assert status == 0
     assert calls[0].log_format == "rsm"
+
+
+
+def _help_text(monkeypatch, capsys, command):
+    monkeypatch.setattr("sys.argv", ["rsm", command, "--help"])
+    with pytest.raises(SystemExit):
+        cli.main()
+    return capsys.readouterr().out
+
+
+def test_spec_lists_only_options_of_build_and_serve(monkeypatch, capsys):
+    import re
+    from pathlib import Path
+
+    spec = Path(__file__).parent.parent / "docs" / "org-migrated" / "spec.md"
+    listed = set(re.findall(r"`(--[a-z][a-z-]*[a-z])`", spec.read_text()))
+    help_text = _help_text(monkeypatch, capsys, "build")
+    help_text += _help_text(monkeypatch, capsys, "serve")
+    accepted = set(re.findall(r"--[a-z][a-z-]*[a-z]", help_text))
+    assert listed
+    assert listed - accepted == set()

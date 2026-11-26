@@ -26,7 +26,9 @@ subcommands share these options:
    Leaves the time out of the messages in the ``rsm`` and ``json`` formats.
 
 ``--log-no-lineno``
-   Leaves the ``lineno`` field out of the messages in the ``json`` format.
+   Leaves the file name and line number of the RSM code that printed the
+   message out of the messages in the ``rsm`` format, and the ``lineno``
+   field out of the messages in the ``json`` format.
 
 ``--strict``
    Stops with an error at the first syntax error in the source.
@@ -70,9 +72,6 @@ The page has handrails.
 ``--no-theme-toggle``
    Leaves out the button that switches between light and dark mode.
 
-``-p``, ``--print``
-   Prints the HTML instead of writing files.
-
 ``--strict``
    Stops with an error at the first syntax error, instead of building the
    page with the error marked.
@@ -111,7 +110,7 @@ file is saved. It takes every option of ``rsm build``, and these:
 
 Without a file, ``rsm serve`` serves the current folder and builds each
 ``.rsm`` file in it again each time the file is saved. In this case it does
-not take ``-c``, ``-p``, ``-v``, ``--log-format``, ``--log-no-timestamps`` or
+not take ``-c``, ``-v``, ``--log-format``, ``--log-no-timestamps`` or
 ``--log-no-lineno``.
 
 .. rubric:: Related
