@@ -681,11 +681,11 @@ class _PandocRunner:
         json_str = json.dumps(pandoc_ast)
         cmd = ["pandoc", "--from=json", f"--to={self.to_format}", "--standalone"]
         braiid_dir = Path(__file__).parent.parent / "braiid"
+        # The filter prints RSM's numbers and the theorem and proof headings, which
+        # are only attributes in the AST, so every format needs it.
+        cmd += [f"--lua-filter={braiid_dir / 'braiid.lua'}"]
         if self.to_format in ("latex", "pdf"):
-            cmd += [
-                f"--lua-filter={braiid_dir / 'braiid.lua'}",
-                f"--include-in-header={braiid_dir / 'theorems.tex'}",
-            ]
+            cmd += [f"--include-in-header={braiid_dir / 'theorems.tex'}"]
         if self.to_format == "latex":
             cmd += ["-V", "header-includes=\\usepackage{braiid}"]
         if self.to_format in _BINARY_FORMATS:
@@ -708,7 +708,26 @@ class _PandocRunner:
                     "such as TeX Live or MacTeX."
                 )
             raise RSMApplicationError(f"pandoc failed: {e.stderr}")
+        # pandoc still succeeds when it cannot convert something (it writes math
+        # that it cannot read as raw TeX, for example), so its warnings are the
+        # only sign that the output differs from the source.
+        for warning in _pandoc_warnings(proc.stderr):
+            logger.warning("pandoc: %s", warning)
         return proc.stdout
+
+
+def _pandoc_warnings(stderr: str) -> list[str]:
+    """Split pandoc's stderr into warnings, one for each line that starts with [."""
+    warnings: list[str] = []
+    for line in stderr.splitlines():
+        if not line.strip():
+            continue
+        if line.startswith("[") or not warnings:
+            warnings.append(line)
+        else:
+            # Indented lines that follow a warning show where the problem is.
+            warnings[-1] += "\n" + line
+    return warnings
 
 
 class PandocExportApp(RSMApp[str]):

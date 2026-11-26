@@ -1,13 +1,14 @@
-"""Theorem-like blocks, proofs and equations in LaTeX and PDF export.
+"""Theorem-like blocks, proofs and equations in pandoc export.
 
 RSM numbers these blocks itself. The heading of each block and every reference to it
 must print the same number, and :blockname: must name the block in both places, as
-in the HTML output.
+in the HTML output. Every export format prints these headings, not only LaTeX and PDF.
 """
 
 import re
 import shutil
 import subprocess
+import zipfile
 from textwrap import dedent
 
 import pytest
@@ -400,3 +401,183 @@ def test_pdf_multiline_numbers(tmp_path):
     numbers = re.findall(r"\(\d[\d.]*\)", text)
     printed = [f"(1.{n})" for n in range(1, 13)]
     assert sorted(numbers) == sorted(printed * 2)
+
+
+# Formats other than LaTeX have no theorem environments, so the headings are part of
+# the text. Each heading must appear once.
+
+
+def test_markdown_theorem_has_bold_run_in_heading():
+    md = pandoc_export(source=SRC, to_format="markdown")
+    assert "**Theorem 1.1 (Main result).** Every graph is fine." in md
+    assert "**Lemma 1.2.** Some lemma." in md
+    assert "**Hint 1.3.** What does inversion" in md
+    assert "Remark" not in md
+
+
+def test_markdown_proof_has_title():
+    md = pandoc_export(source=SRC, to_format="markdown")
+    assert "*Proof.* Clearly true." in md
+
+
+def test_markdown_proof_of_names_the_result():
+    md = pandoc_export(source=PROOF_OF, to_format="markdown")
+    assert "*Proof of [Theorem 1.1](#thm-main).* Clearly true." in md
+
+
+def test_markdown_nonum_heading_has_no_number():
+    src = SRC.replace("  :title: Main result", "  :title: Main result\n  :nonum:")
+    md = pandoc_export(source=src, to_format="markdown")
+    assert "**Theorem (Main result).** Every graph is fine." in md
+    assert "**Lemma 1.1.** Some lemma." in md
+
+
+def test_html_theorem_heading():
+    html = pandoc_export(source=PROOF_OF, to_format="html")
+    text = " ".join(re.sub(r"<[^>]+>", "", html).split())
+    assert "Theorem 1.1 (Main result). Every graph is fine." in text
+    assert "Proof of Theorem 1.1. Clearly true." in text
+    assert text.count("Theorem 1.1 (Main result).") == 1
+
+
+def test_latex_has_no_text_heading(latex):
+    assert "Theorem 1.1 (Main result)." not in latex
+    assert r"\textbf{Lemma" not in latex
+    assert r"\emph{Proof" not in latex
+
+
+def _plain_text_of(tmp_path, src: str, fmt: str) -> str:
+    out = tmp_path / f"doc.{fmt}"
+    pandoc_export(source=src, to_format=fmt, output=str(out))
+    plain = subprocess.run(
+        ["pandoc", str(out), "-t", "plain", "--wrap=none"],
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout
+    return " ".join(plain.split())
+
+
+@pytest.mark.parametrize("fmt", ["docx", "odt", "epub"])
+def test_binary_formats_have_theorem_and_proof_headings(tmp_path, fmt):
+    text = _plain_text_of(tmp_path, PROOF_OF, fmt)
+    assert "Theorem 1.1 (Main result). Every graph is fine." in text
+    assert "Lemma 1.2. Some lemma." in text
+    assert "Proof of Theorem 1.1. Clearly true." in text
+    assert "Hint 1.3. What does inversion" in text
+    assert text.count("Theorem 1.1 (Main result).") == 1
+
+
+# Formats other than LaTeX have no equation tags (pandoc drops \tag outside LaTeX),
+# so the number is written into the math after a wide space.
+
+
+def test_markdown_equation_has_rsm_number():
+    md = pandoc_export(source=SRC, to_format="markdown")
+    assert r"$$a + b = c \qquad (1.1)$$" in md
+
+
+def test_html_equation_has_rsm_number():
+    html = pandoc_export(source=SRC, to_format="html")
+    assert re.search(r"<mn>1\.1</mn>", html)
+
+
+@pytest.mark.parametrize("fmt", ["docx", "epub"])
+def test_binary_formats_have_equation_numbers(tmp_path, fmt):
+    text = _plain_text_of(tmp_path, SRC, fmt)
+    assert re.search(r"a \+ b = c \(1\.1\)", text)
+
+
+def test_unnumbered_equation_has_no_number():
+    src = SRC.replace(":mathblock: {:label: eq-one}", ":mathblock: {:nonum:}").replace(
+        " and :ref:eq-one::", ""
+    )
+    md = pandoc_export(source=src, to_format="markdown")
+    assert "$$a + b = c$$" in md
+    assert "qquad" not in md
+
+
+# Formats other than LaTeX cannot show raw LaTeX, so a math block that holds an
+# amsmath environment is sent to them as display math, in the inner form where
+# amsmath has one, with RSM's number after it.
+
+
+@pytest.fixture(scope="module")
+def multi_markdown():
+    return pandoc_export(source=MULTI, to_format="markdown")
+
+
+@pytest.mark.parametrize(
+    "math",
+    [
+        r"$$\begin{aligned} a &= b \\ c &= d \end{aligned} \qquad (1.1)$$",
+        r"$$\begin{gathered} x = 1 \\ y = 2 \end{gathered} \qquad (1.2)$$",
+        r"$$\begin{alignedat}{2} a &= b &\quad c &= d \end{alignedat} \qquad (1.3)$$",
+        r"$$\begin{multline} p + q \\ + r \end{multline} \qquad (1.4)$$",
+        r"$$\begin{aligned} u &= v \end{aligned} \qquad (1.5)$$",
+        r"$$\begin{aligned} s &= t \end{aligned}$$",
+        r"$$\begin{flalign} a &= b \\ c &= \begin{cases} 1 \\ 2 \end{cases} \\ e &= "
+        r"\sum_{\substack{f \\ g}} h \end{flalign} \qquad (1.6)$$",
+        r"$$\begin{flalign} h &= i \\ j &= k \end{flalign}$$",
+        r"$$\begin{gathered} x = 1 \\ y = 2 \end{gathered} \qquad (1.7)$$",
+        r"$$\begin{multline} p + q \\ + r \end{multline} \qquad (1.8)$$",
+        r"$$\begin{flalign} a &= b \\ c &= d \end{flalign} \qquad (1.9)$$",
+        r"$$\begin{alignedat}{2} a &= b &\quad c &= d \end{alignedat} \qquad (1.10)$$",
+        r"$$m = n \qquad (1.11)$$",
+        r"$$o = p \qquad (1.12)$$",
+        r"$$\begin{aligned} w &= z \end{aligned}$$",
+    ],
+)
+def test_markdown_amsmath_block_is_display_math(multi_markdown, math):
+    assert math in " ".join(multi_markdown.split())
+
+
+def test_markdown_amsmath_block_has_no_raw_latex(multi_markdown):
+    assert r"\begin{equation}" not in multi_markdown
+    assert r"\tag" not in multi_markdown
+    assert "{=latex}" not in multi_markdown
+
+
+def _numbers(text: str) -> list[str]:
+    return sorted(re.findall(r"\(1\.\d+\)", text))
+
+
+# Each numbered block shows its number once, and the sentence that refers to them
+# shows each number once more. The :nonum: blocks show none.
+PRINTED_TWICE = sorted([f"(1.{n})" for n in range(1, 13)] * 2)
+
+
+def _mathml_text(xhtml: str) -> str:
+    # The annotation repeats the TeX source of each formula.
+    text = re.sub(r"<annotation[^>]*>.*?</annotation>", "", xhtml, flags=re.DOTALL)
+    return re.sub(r"<[^>]+>", "", text)
+
+
+def test_html_amsmath_blocks_are_math_with_numbers():
+    html = pandoc_export(source=MULTI, to_format="html")
+    assert html.count('<math display="block"') == 15
+    assert _numbers(_mathml_text(html)) == PRINTED_TWICE
+
+
+def test_docx_amsmath_blocks_are_word_math_with_numbers(tmp_path):
+    out = tmp_path / "multi.docx"
+    pandoc_export(source=MULTI, to_format="docx", output=str(out))
+    with zipfile.ZipFile(out) as z:
+        xml = z.read("word/document.xml").decode()
+    assert xml.count("<m:oMathPara>") == 15
+    md = subprocess.run(
+        ["pandoc", str(out), "-s", "-t", "markdown", "--wrap=none"],
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout
+    assert _numbers(md) == PRINTED_TWICE
+
+
+def test_epub_amsmath_blocks_are_math_with_numbers(tmp_path):
+    out = tmp_path / "multi.epub"
+    pandoc_export(source=MULTI, to_format="epub", output=str(out))
+    with zipfile.ZipFile(out) as z:
+        xhtml = "".join(z.read(n).decode() for n in z.namelist() if n.endswith(".xhtml"))
+    assert xhtml.count('<math display="block"') == 15
+    assert _numbers(_mathml_text(xhtml)) == PRINTED_TWICE
