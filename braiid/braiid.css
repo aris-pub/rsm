@@ -1301,6 +1301,9 @@ html.touch {
 .manuscriptwrapper .hr.hr-hidden:hover {
   & > .hr-border-zone {opacity: 100%;}
 }
+/* A collapsed block shows its rail and foot at rest, hidden handrail or not:
+   the foot alone would read as a stray dash. */
+.manuscriptwrapper .hr.hr-hidden.hr-collapsed > .hr-border-zone {opacity: 100%;}
 /* Layout-only handrail for assets: reserves the content-zone gutter so the asset
    aligns with the reading column, but shows no chrome at all, even on hover. The
    empty zones carry no icons, so pin them to the standard zone width or the

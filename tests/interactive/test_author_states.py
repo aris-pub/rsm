@@ -312,3 +312,16 @@ class TestFoot:
         page.wait_for_timeout(200)
         assert _state(page) == "open"
         assert not self._hr_collapsed(page)
+
+
+def test_closed_block_shows_its_rail_and_foot_at_rest(page: Page, interactive_server: str):
+    # A collapsed block with a hidden handrail shows its rail and foot at
+    # rest, as a collapsed theorem does, not a lone dash.
+    _load(page, interactive_server)
+    page.mouse.move(1, 1)
+    page.wait_for_timeout(300)
+    zone = page.evaluate(
+        "() => getComputedStyle(document.querySelector('.author-block > .hr > .hr-border-zone')).opacity"
+    )
+    assert _state(page) == "closed"
+    assert zone == "1", zone
