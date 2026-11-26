@@ -1,6 +1,7 @@
-""":codeblock: and :mathblock: end only at a :: on a line of its own (rsm-ytxt).
+"""Blocks whose content is taken as is end only at a :: on a line of its own (rsm-ytxt).
 
-A :: inside a line of code or math, as in std::vector or a::b, is content.
+These are :codeblock:, :mathblock:, :algorithm:, :htmlblock: and :notation:. A ::
+inside a line of their content, as in std::vector or a::b, is content.
 """
 
 import rsm
@@ -124,3 +125,72 @@ def test_mathblock_normal_forms():
     m = _manuscript(":mathblock:\n  2+2=4\n::\n\n$$\na::b\n$$\n")
     assert not _of_type(m, nodes.Error)
     assert len(_of_type(m, nodes.MathBlock)) == 2
+
+
+def test_algorithm_keeps_double_colon_inside_a_line():
+    m = _manuscript(
+        ":algorithm:\n"
+        "\\begin{algorithm}\n"
+        "\\State $xs \\gets x::xs$\n"
+        "\\end{algorithm}\n"
+        "  ::\n"
+        "\n"
+        "After.\n"
+    )
+    assert not _of_type(m, nodes.Error)
+    (block,) = _of_type(m, nodes.Algorithm)
+    text = "".join(n.text for n in block.traverse() if isinstance(n, nodes.Text))
+    assert "x::xs" in text
+    assert text.rstrip().endswith("\\end{algorithm}")
+    assert _paragraph_text(m) == ["After."]
+
+
+def test_htmlblock_keeps_double_colon_inside_a_line():
+    m = _manuscript(
+        ":htmlblock:\n"
+        '<style>p::before { content: "a::b"; }</style>\n'
+        "<p>x</p>\n"
+        "::\n"
+        "\n"
+        "After.\n"
+    )
+    assert not _of_type(m, nodes.Error)
+    (block,) = _of_type(m, nodes.HtmlBlock)
+    assert 'p::before { content: "a::b"; }' in block.html
+    assert "<p>x</p>" in block.html
+    assert _paragraph_text(m) == ["After."]
+
+
+def test_htmlblock_in_a_figure_keeps_double_colon():
+    m = _manuscript(
+        ':figure:\n\n  :htmlblock:\n  <style>p::after { content: "x"; }</style>\n  ::\n\n::\n'
+    )
+    assert not _of_type(m, nodes.Error)
+    (figure,) = _of_type(m, nodes.Figure)
+    assert figure.htmlblock.html.strip() == '<style>p::after { content: "x"; }</style>'
+
+
+def test_notation_keeps_double_colon_inside_a_line():
+    m = _manuscript(
+        "# T\n\n"
+        ":notation:\n"
+        "  \\cons $a::b$ list with head a and tail b\n"
+        "  \\eig $\\lambda$ general eigenvalue\n"
+        "::\n"
+    )
+    assert not _of_type(m, nodes.Error)
+    (block,) = _of_type(m, nodes.Notation)
+    assert block.entries == [
+        {"macro": "\\cons", "default": "a::b", "label": "list with head a and tail b"},
+        {"macro": "\\eig", "default": "\\lambda", "label": "general eigenvalue"},
+    ]
+
+
+def test_inline_tags_still_end_at_the_first_double_colon():
+    m = _manuscript("Run :code: x = 1 :: and :math: y :: now.\n")
+    assert not _of_type(m, nodes.Error)
+    (code,) = _of_type(m, nodes.Code)
+    (math,) = _of_type(m, nodes.Math)
+    assert _code(code).strip() == "x = 1"
+    assert "".join(t.text for t in math.traverse() if type(t) is nodes.Text).strip() == "y"
+    assert _paragraph_text(m) == ["Run  and y now."]

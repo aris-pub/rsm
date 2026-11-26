@@ -97,7 +97,8 @@ Notation ``:notation:``
 LaTeX macros for the symbols of the document, one per line, each with its
 default form and a name. The reader can change how each symbol is shown, in
 the notation panel of the sidebar. The block itself shows nothing in the
-page.
+page. The block ends at a ``::`` on a line of its own, with only spaces around
+it. A ``::`` inside a line, as in ``$a::b$``, is part of the block.
 
 .. rubric:: Syntax
 
@@ -217,7 +218,9 @@ Algorithm ``:algorithm:``
 
 Pseudocode, written with the LaTeX ``algorithmic`` commands and shown with
 `pseudocode.js <https://saswat.padhi.me/pseudocode.js/>`_. The content is
-LaTeX, not RSM.
+LaTeX, not RSM. The block ends at a ``::`` on a line of its own, with only
+spaces around it. A ``::`` inside a line, as in ``$x::xs$``, is part of the
+content.
 
 .. rubric:: Syntax
 

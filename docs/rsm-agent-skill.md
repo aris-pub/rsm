@@ -731,9 +731,9 @@ display text: every `:cite:` in a document renders the same way, set document-wi
 | Shortcut | Equivalent |
 |----------|------------|
 | `$...$` | `:math:...::` |
-| `$$...$$` | `:mathblock:...::` (display math) |
+| `$$...$$` | `:mathblock:`, then the math, then `::` on a line of its own (display math) |
 | `` `...` `` | `:code:...::` |
-| ```` ```...``` ```` | `:codeblock:...::` |
+| ```` ```...``` ```` | `:codeblock:`, then the code, then `::` on a line of its own |
 | `**...**` | `:span:{:strong:}...::` |
 | `*...*` | `:span:{:emphas:}...::` |
 | `:-:` | List item (inside `:enumerate:` or `:itemize:`) |
