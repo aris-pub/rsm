@@ -20,7 +20,7 @@ Analogy with the rest of the codebase:
 import copy
 import logging
 import re
-from collections.abc import Callable, Iterator
+from collections.abc import Iterator
 from datetime import datetime
 from typing import Any
 
@@ -855,32 +855,46 @@ def _rstrip_spaces(inlines: list) -> list:
     return inlines[:i]
 
 
-def _drop_leading_inline(blocks: list, matches: Callable[[list], int]) -> bool:
-    """Drop the first ``matches(inlines)`` inlines of the first paragraph."""
-    if not blocks or blocks[0].get("t") not in ("Para", "Plain"):
-        return False
-    inlines = blocks[0]["c"]
-    n = matches(inlines)
-    if not n:
-        return False
-    rest = _lstrip_spaces(inlines[n:])
+def _first_inlines(blocks: list) -> list:
+    if blocks and blocks[0].get("t") in ("Para", "Plain"):
+        inlines: list = blocks[0]["c"]
+        return inlines
+    return []
+
+
+def _drop_leading_inlines(blocks: list, n: int) -> None:
+    """Drop the first ``n`` inlines of the first paragraph, and the spaces after."""
+    rest = _lstrip_spaces(blocks[0]["c"][n:])
     if rest:
         blocks[0] = {"t": blocks[0]["t"], "c": rest}
     else:
         del blocks[0]
-    return True
 
 
-def _theorem_heading_length(inlines: list) -> int:
-    # A titled theorem ("**Theorem 1** (Mantel).") does not match, so its
-    # heading stays in the body.
+def _theorem_heading(inlines: list) -> tuple[int, list | None]:
+    """Return the length of a theorem heading and the inlines of its title.
+
+    pandoc writes "**Theorem 1**." for an untitled theorem and
+    "**Theorem 1** (Mantel)." for \\begin{theorem}[Mantel].
+    """
+    if not inlines or inlines[0].get("t") != "Strong":
+        return 0, None
+    if len(inlines) >= 2 and inlines[1] == {"t": "Str", "c": "."}:
+        return 2, None
     if (
-        len(inlines) >= 2
-        and inlines[0].get("t") == "Strong"
-        and inlines[1] == {"t": "Str", "c": "."}
+        len(inlines) < 3
+        or inlines[1].get("t") != "Space"
+        or inlines[2].get("t") != "Str"
+        or not inlines[2]["c"].startswith("(")
     ):
-        return 2
-    return 0
+        return 0, None
+    for j in range(2, len(inlines)):
+        if inlines[j].get("t") == "Str" and inlines[j]["c"].endswith(")."):
+            title = [dict(inl) for inl in inlines[2 : j + 1]]
+            title[0]["c"] = title[0]["c"][1:]
+            title[-1]["c"] = title[-1]["c"][:-2]
+            return j + 1, [inl for inl in title if inl != {"t": "Str", "c": ""}]
+    return 0, None
 
 
 def _proof_heading_length(inlines: list) -> int:
@@ -958,26 +972,39 @@ def _drop_tombstone(blocks: list) -> None:
         del blocks[-1]
 
 
-def _strip_amsthm_markup(blocks: list, theorem_classes: tuple) -> None:
+def _strip_amsthm_markup(
+    blocks: list, theorem_classes: tuple, titles: dict[int, list]
+) -> None:
+    """Remove pandoc's amsthm markup in place.
+
+    The title of a titled theorem goes into ``titles``, keyed by the id of the
+    Div's content, which is also the key of the Div's generated label.
+    """
     for b in blocks:
         t = b.get("t")
         if t == "Div":
             classes, inner = b["c"][0][1], b["c"][1]
-            _strip_amsthm_markup(inner, theorem_classes)
+            _strip_amsthm_markup(inner, theorem_classes, titles)
             if "proof" in classes:
-                _drop_leading_inline(inner, _proof_heading_length)
+                n = _proof_heading_length(_first_inlines(inner))
+                if n:
+                    _drop_leading_inlines(inner, n)
                 _drop_tombstone(inner)
             elif any(cls in theorem_classes for cls in classes):
-                if _drop_leading_inline(inner, _theorem_heading_length):
+                n, title = _theorem_heading(_first_inlines(inner))
+                if n:
+                    _drop_leading_inlines(inner, n)
                     _drop_theorem_italics(inner)
+                if title:
+                    titles[id(b["c"])] = title
         elif t == "BlockQuote":
-            _strip_amsthm_markup(b["c"], theorem_classes)
+            _strip_amsthm_markup(b["c"], theorem_classes, titles)
         elif t == "BulletList":
             for item in b["c"]:
-                _strip_amsthm_markup(item, theorem_classes)
+                _strip_amsthm_markup(item, theorem_classes, titles)
         elif t == "OrderedList":
             for item in b["c"][1]:
-                _strip_amsthm_markup(item, theorem_classes)
+                _strip_amsthm_markup(item, theorem_classes, titles)
 
 
 def _drop_kind_word(inlines: list, words: tuple) -> None:
@@ -1030,7 +1057,8 @@ class PandocImporter:
         meta = pandoc_ast.get("meta", {})
         # The amsthm cleanup edits the blocks, so work on a copy of the input.
         blocks = copy.deepcopy(pandoc_ast.get("blocks", []))
-        _strip_amsthm_markup(blocks, self._THEOREM_CLASSES)
+        self._theorem_titles: dict[int, list] = {}
+        _strip_amsthm_markup(blocks, self._THEOREM_CLASSES, self._theorem_titles)
         # Assign generated labels (sec-N, thm-N, eqn-N) and map each source
         # \label to its generated name, so a \ref emitted before its target
         # still resolves.
@@ -1371,7 +1399,11 @@ class PandocImporter:
             return ""
         inner = "".join(self._render_block(b) for b in blocks).strip()
         label = self._label_of.get(id(c))
-        meta = f" {{:label: {label}}}" if label else ""
+        keys = [f":label: {label}"] if label else []
+        title = self._theorem_titles.get(id(c))
+        if title:
+            keys.append(f":title: {self._render_inlines(title)}")
+        meta = f" {{{', '.join(keys)}}}" if keys else ""
         # Map well-known classes to RSM constructs
         for cls in classes:
             if cls == "proof":

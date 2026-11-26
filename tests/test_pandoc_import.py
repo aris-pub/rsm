@@ -594,3 +594,48 @@ By Theorem~\ref{thm:mantel} we are done.
     html = rsm.render(out, handrails=False, source_offsets=False)
     assert 'class="error"' not in html
     assert "Theorem Theorem" not in html
+
+
+def test_titled_theorem_moves_its_title_into_meta():
+    import rsm
+
+    math = {"t": "Math", "c": [{"t": "InlineMath"}, "K_3"]}
+    heading = [
+        {"t": "Strong", "c": _words("Theorem", "1")},
+        {"t": "Space"},
+        {"t": "Str", "c": "(Mantel,"},
+        {"t": "Space"},
+        math,
+        {"t": "Str", "c": "-free)."},
+        {"t": "Space"},
+        {"t": "Space"},
+    ]
+    statement = _emph(*_words("X"), {"t": "Space"}, _emph(*_words("y")))
+    ast = {
+        "blocks": [
+            _div("thm:a", "theorem", [{"t": "Para", "c": [*heading, statement]}])
+        ]
+    }
+    out = PandocImporter().from_json(ast)
+    assert ":theorem: {:label: thm-1, :title: Mantel, $K_3$-free}" in out, out
+    body = _body(out, "theorem")
+    assert "**Theorem" not in body, out
+    assert "\n\nX *y*\n" in body + "\n", out
+    tree = _parse_without_errors(out)
+    (thm,) = tree.traverse(nodeclass=rsm.nodes.Theorem)
+    assert thm.label == "thm-1"
+    assert thm.title
+
+
+def test_titled_theorem_without_a_source_label_gets_a_title():
+    heading = [
+        {"t": "Strong", "c": _words("Lemma", "2")},
+        {"t": "Space"},
+        {"t": "Str", "c": "(Key)."},
+        {"t": "Space"},
+        {"t": "Space"},
+    ]
+    para = {"t": "Para", "c": [*heading, *_words("Z.")]}
+    out = PandocImporter().from_json({"blocks": [_div("", "lemma", [para])]})
+    assert ":lemma: {:label: thm-1, :title: Key}" in out, out
+    assert "Key)." not in _body(out, "lemma"), out
