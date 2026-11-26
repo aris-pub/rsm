@@ -1,94 +1,149 @@
 .. _converting-guide:
 
-Converting Between RSM and Other Formats
-========================================
+Converting and exporting
+========================
 
-RSM can import from and export to other document formats via Pandoc.
+``rsm export`` turns an RSM document into LaTeX, PDF, Word and the other
+formats that `Pandoc <https://pandoc.org>`_ can write. ``rsm import`` turns a
+Markdown or LaTeX file, or a file in another format that Pandoc can read,
+into RSM source. Both commands need Pandoc, which you install separately:
+see https://pandoc.org/installing.html.
 
-.. note::
 
-   These commands require `Pandoc <https://pandoc.org/installing.html>`_
-   to be installed.
-
-
-Exporting RSM to LaTeX
-----------------------
-
-To export an RSM manuscript to LaTeX for journal submission:
+Export to LaTeX
+---------------
 
 .. code-block:: bash
 
-   $ rsm export manuscript.rsm --to latex -o manuscript.tex
+   rsm export paper.rsm --to latex -o paper.tex
 
-This produces a ``.tex`` file with a ``braiid.sty`` package in the same
-directory. Compile with your usual LaTeX toolchain:
-
-.. code-block:: bash
-
-   $ pdflatex manuscript.tex
-
-
-Exporting RSM to PDF
---------------------
-
-To go directly to PDF:
+RSM writes ``paper.tex`` and copies ``braiid.sty``, the LaTeX package that
+sets the look of the output, into the same folder. ``braiid.sty`` loads
+``fontspec``, so compile with XeLaTeX or LuaLaTeX:
 
 .. code-block:: bash
 
-   $ rsm export manuscript.rsm --to pdf -o manuscript.pdf
+   xelatex paper.tex
+
+The LaTeX keeps the structure of the document:
+
+- Sections, theorems, proofs and equations have the same numbers as on the
+  web page, so "Theorem 1.1" in the text and in the LaTeX are the same.
+- Theorem-like blocks become LaTeX theorem environments, with their titles
+  and their ``:blockname:``. A proof with ``:of:`` is titled "Proof of"
+  followed by a link to the result.
+- References and citations become links, and the ``:references:`` block
+  becomes a numbered list of references.
+- The title, the authors and the abstract go at the top.
+
+Without ``-o``, the LaTeX is printed instead of written to a file.
+
+
+Export to PDF
+-------------
+
+.. code-block:: bash
+
+   rsm export paper.rsm --to pdf -o paper.pdf
 
 Pandoc makes the PDF with LaTeX, so this needs a LaTeX installation that
-includes ``pdflatex``, such as TeX Live or MacTeX. The PDF uses the default
-look of Pandoc's LaTeX output, not the BRAIID style. A PDF must go to a file,
-so ``-o`` is required.
+includes ``pdflatex``, such as TeX Live or MacTeX. The PDF does not use
+``braiid.sty``, so it has the default look of Pandoc's LaTeX output. The
+numbers and the links are the same as in the LaTeX export.
 
 
-Exporting to other formats
---------------------------
+Export to Word, EPUB and other formats
+--------------------------------------
 
-Any Pandoc-supported format works:
-
-.. code-block:: bash
-
-   $ rsm export manuscript.rsm --to docx -o manuscript.docx
-   $ rsm export manuscript.rsm --to epub -o manuscript.epub
-
-
-Importing a Markdown draft
---------------------------
-
-To convert an existing Markdown file to RSM source:
+Give the format to ``--to``:
 
 .. code-block:: bash
 
-   $ rsm import draft.md -o manuscript.rsm
+   rsm export paper.rsm --to docx -o paper.docx
+   rsm export paper.rsm --to epub -o paper.epub
+   rsm export paper.rsm --to markdown -o paper.md
 
-The output is valid RSM that you can edit and build normally. You may need
-to adjust the result for RSM-specific features like structured proofs or
-``:config:`` settings.
+``--to`` takes any format that Pandoc can write. Word (``docx``),
+OpenDocument (``odt``), EPUB, PowerPoint (``pptx``) and PDF are not text,
+so they need ``-o``. A text format such as Markdown is printed when ``-o`` is
+left out.
 
 
-Importing from LaTeX
+What an export leaves out
+-------------------------
+
+An exported file is static, so the parts of the page that the reader works
+with are not in it: the handrails, the tooltips, the sidebar and the proof
+tools.
+
+A figure that holds HTML shows its ``:static:`` image if it has one, and a
+note that points to the web page otherwise. An ``:html:`` or ``:htmlblock:``
+outside a figure is replaced by its ``:alt:`` text. See
+:ref:`guide-interactive-figures`.
+
+
+Import a Markdown file
+----------------------
+
+.. code-block:: bash
+
+   rsm import draft.md -o paper.rsm
+
+Markdown is the default input format. RSM writes:
+
+- the ``title`` and ``author`` from the YAML block at the top of the file as
+  the title and the ``:author:`` blocks,
+- each heading as a section, one level below the title, so ``# Intro``
+  becomes ``## Intro``,
+- emphasis, lists, links, inline math and display math as the RSM
+  equivalents.
+
+Each section and each display equation gets a label, such as ``sec-1`` and
+``eqn-1``, so that you can refer to it.
+
+Without ``-o``, the RSM source is printed.
+
+
+Import a LaTeX paper
 --------------------
 
 .. code-block:: bash
 
-   $ rsm import paper.tex --from latex -o manuscript.rsm
+   rsm import paper.tex --from latex -o paper.rsm
 
-
-Importing from other formats
------------------------------
-
-Specify the source format with ``--from``:
+The source can also be a folder that holds a LaTeX project of several files,
+or an archive of one (``.zip``, ``.tar``, ``.tar.gz``). RSM finds the main
+file, the one with ``\documentclass``, and puts in the files that it loads
+with ``\input`` and ``\include``. When the project has several files with
+``\documentclass``, RSM picks the one named ``main``, ``ms`` or ``paper``, or
+you name it with ``--main``:
 
 .. code-block:: bash
 
-   $ rsm import document.docx --from docx -o manuscript.rsm
-   $ rsm import page.html --from html -o manuscript.rsm
+   rsm import project.zip --from latex --main paper.tex -o paper.rsm
+
+RSM writes:
+
+- ``\title``, ``\author`` and the ``abstract`` environment as the front
+  matter,
+- sections, theorems, proofs and equations as their RSM blocks, each with a
+  label, and ``\ref`` and ``\eqref`` as ``:ref:``,
+- ``\cite`` as ``:cite:``, and the entries of the ``.bib`` file or of
+  ``thebibliography`` as BibTeX entries in a ``:references:`` block.
+
+Read the result before you build it. Pandoc does not read every LaTeX
+package, and RSM drops commands that it does not know.
 
 
-See also
---------
+Import other formats
+--------------------
 
-- :ref:`import-export-ref` for supported formats and limitations
-- :ref:`ref-cli` for the options of each command
+Give the format to ``--from``, such as ``docx`` or ``html``:
+
+.. code-block:: bash
+
+   rsm import notes.docx --from docx -o notes.rsm
+
+``--from`` takes any format that Pandoc can read.
+
+See :ref:`ref-cli` for every option of ``rsm export`` and ``rsm import``.
