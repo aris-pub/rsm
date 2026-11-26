@@ -22,10 +22,11 @@ Export (RSM to other formats)
 **Pipeline**: RSM source → RSM AST → Pandoc JSON AST → target format.
 
 For LaTeX and PDF output, RSM uses a Lua filter (``braiid.lua``) that maps
-theorem-like blocks and proofs to LaTeX environments. Theorem-like blocks and
-display equations print the numbers that RSM gives them, so their numbers agree with
-the text of references to them, and a block's ``:blockname:`` names it in its
-heading. LaTeX output also uses a custom ``braiid.sty`` package for its look.
+theorem-like blocks and proofs to LaTeX environments. Sections, theorem-like blocks
+and display equations print the numbers that RSM gives them, so their numbers agree
+with the text of references to them, and a block's ``:blockname:`` names it in its
+heading. A proof with ``:of:`` is titled "Proof of" followed by a link to the
+result, as in HTML. LaTeX output also uses a custom ``braiid.sty`` package for its look.
 
 For PDF output, Pandoc makes the PDF with LaTeX. This needs a LaTeX
 installation that includes ``pdflatex``, and an output file given with ``-o``.

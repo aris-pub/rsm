@@ -111,6 +111,29 @@ def test_proof_environment(latex):
     assert re.search(r"\\begin\{proof\}\s*Clearly true\.\s*\\end\{proof\}", latex)
 
 
+PROOF_OF = SRC.replace(":proof:\n", ":proof: {:of: thm-main}\n")
+
+
+def test_proof_of_names_the_result():
+    latex = pandoc_export(source=PROOF_OF, to_format="latex")
+    assert re.search(
+        r"\\begin\{proof\}\[\{\{Proof of \\hyperref\[thm-main\]\{Theorem 1\.1\}\}\}\]\s*"
+        r"Clearly true\.\s*\\end\{proof\}",
+        latex,
+    )
+
+
+@pytest.mark.skipif(shutil.which("pdflatex") is None, reason="pdflatex not installed")
+@pytest.mark.skipif(shutil.which("pdftotext") is None, reason="pdftotext not installed")
+def test_pdf_proof_of_names_the_result(tmp_path):
+    out = tmp_path / "doc.pdf"
+    pandoc_export(source=PROOF_OF, to_format="pdf", output=str(out))
+    text = subprocess.run(
+        ["pdftotext", str(out), "-"], capture_output=True, text=True, check=True
+    ).stdout
+    assert "Proof of Theorem 1.1. Clearly true." in " ".join(text.split())
+
+
 def test_equation_has_rsm_number_and_label(latex):
     assert re.search(
         r"\\begin\{equation\}\s*a \+ b = c\s*\\tag\{1\.1\}\\label\{eq-one\}\s*"
@@ -191,7 +214,16 @@ MULTI = dedent(
       \begin{align} s &= t \end{align}
     ::
 
-    See :ref:e-align::, :ref:e-gather::, :ref:e-alignat:: and :ref:e-multline::.
+    :mathblock: {:label: e-flalign}
+      \begin{flalign} a &= b \\ c &= \begin{cases} 1 \\ 2 \end{cases} \\ e &= \sum_{\substack{f \\ g}} h \end{flalign}
+    ::
+
+    :mathblock: {:label: e-flnonum, :nonum:}
+      \begin{flalign} h &= i \\ j &= k \end{flalign}
+    ::
+
+    See :ref:e-align::, :ref:e-gather::, :ref:e-alignat::, :ref:e-multline::,
+    :ref:e-flalign:: and :ref:e-star::.
     """
 )
 
@@ -230,7 +262,26 @@ def test_multline_has_one_rsm_number(multi_latex):
 
 def test_starred_form_has_no_number(multi_latex):
     assert r"\begin{align*} u &= v \end{align*}" in multi_latex
-    assert r"\label{e-star}" not in multi_latex
+    assert not re.search(r"\\tag\{[^}]*\}\\label\{e-star\}", multi_latex)
+
+
+def test_labelled_starred_form_has_anchor(multi_latex):
+    # Without a label, the reference to the block links to nowhere.
+    assert r"\phantomsection\label{e-star}\begin{align*}" in multi_latex
+
+
+def test_flalign_has_one_rsm_number(multi_latex):
+    # amsmath has no inner form of flalign, so every line but the last gets \notag.
+    # A \\ inside braces or inside a nested environment does not end a line.
+    assert (
+        r"\begin{flalign} a &= b \notag\\ c &= \begin{cases} 1 \\ 2 \end{cases}"
+        r" \notag\\ e &= \sum_{\substack{f \\ g}} h \tag{1.6}\label{e-flalign}"
+        r" \end{flalign}"
+    ) in multi_latex
+
+
+def test_nonum_flalign_has_no_number(multi_latex):
+    assert r"\begin{flalign*} h &= i \\ j &= k \end{flalign*}" in multi_latex
 
 
 def test_nonum_multiline_block_has_no_number(multi_latex):
@@ -245,6 +296,7 @@ def test_multiline_references_match(multi_latex):
     assert r"\hyperref[e-gather]{(1.2)}" in multi_latex
     assert r"\hyperref[e-alignat]{(1.3)}" in multi_latex
     assert r"\hyperref[e-multline]{(1.4)}" in multi_latex
+    assert r"\hyperref[e-flalign]{(1.6)}" in multi_latex
 
 
 @pytest.mark.skipif(shutil.which("pdflatex") is None, reason="pdflatex not installed")
@@ -255,7 +307,9 @@ def test_pdf_multiline_numbers(tmp_path):
     text = subprocess.run(
         ["pdftotext", str(out), "-"], capture_output=True, text=True, check=True
     ).stdout
-    # Each of the four numbered blocks prints its number once, and the sentence that
+    # Each of the five numbered blocks prints its number once, and the sentence that
     # refers to them prints each number once more. No line has a number of its own.
+    # The starred block prints no number, but the reference to it prints RSM's.
     numbers = re.findall(r"\(\d[\d.]*\)", text)
-    assert sorted(numbers) == sorted(["(1.1)", "(1.2)", "(1.3)", "(1.4)"] * 2)
+    printed = ["(1.1)", "(1.2)", "(1.3)", "(1.4)", "(1.6)"]
+    assert sorted(numbers) == sorted(printed * 2 + ["(1.5)"])

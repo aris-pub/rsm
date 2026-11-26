@@ -1,4 +1,5 @@
--- braiid.lua: Pandoc Lua filter for theorem environments and equation numbers.
+-- braiid.lua: Pandoc Lua filter for theorem environments, equation numbers and
+-- section numbers.
 --
 -- Maps Div nodes with semantic classes (theorem, definition, proof, etc.)
 -- to LaTeX environments: \begin{...}\end{...}. The environments are defined in
@@ -38,6 +39,16 @@ function Div(el)
   for _, cls in ipairs(el.classes) do
     if cls == "proof" or cls == "sketch" then
       local opt = cls == "sketch" and "[Proof sketch]" or ""
+      local of = el.attributes["of"]
+      if of then
+        local link = pandoc.Link({pandoc.Str(el.attributes["of-text"])}, "#" .. of)
+        local text = pandoc.write(
+          pandoc.Pandoc({pandoc.Plain({pandoc.Str("Proof of "), link})}), "latex"
+        )
+        -- The ] of \hyperref[...] would end the optional argument of proof, and
+        -- then of the \item that amsthm passes it to, so it sits in two groups.
+        opt = "[{{" .. text .. "}}]"
+      end
       return {pandoc.RawBlock("latex", "\\begin{proof}" .. opt)}
         .. el.content
         .. {pandoc.RawBlock("latex", "\\end{proof}")}
@@ -56,6 +67,14 @@ function Div(el)
         .. {pandoc.RawBlock("latex", "\\end{" .. cls .. "}")}
     end
   end
+end
+
+function Header(el)
+  if not fmt:match("latex") or not el.attributes["number"] then
+    return nil
+  end
+  local number = "\\renewcommand{\\rsmsecnum}{" .. latex_text(el.attributes["number"]) .. "}"
+  return {pandoc.RawBlock("latex", number), el}
 end
 
 function Span(el)
