@@ -465,3 +465,32 @@ def test_binary_formats_have_theorem_and_proof_headings(tmp_path, fmt):
     assert "Proof of Theorem 1.1. Clearly true." in text
     assert "Hint 1.3. What does inversion" in text
     assert text.count("Theorem 1.1 (Main result).") == 1
+
+
+# Formats other than LaTeX have no equation tags (pandoc drops \tag outside LaTeX),
+# so the number is written into the math after a wide space.
+
+
+def test_markdown_equation_has_rsm_number():
+    md = pandoc_export(source=SRC, to_format="markdown")
+    assert r"$$a + b = c \qquad (1.1)$$" in md
+
+
+def test_html_equation_has_rsm_number():
+    html = pandoc_export(source=SRC, to_format="html")
+    assert re.search(r"<mn>1\.1</mn>", html)
+
+
+@pytest.mark.parametrize("fmt", ["docx", "epub"])
+def test_binary_formats_have_equation_numbers(tmp_path, fmt):
+    text = _plain_text_of(tmp_path, SRC, fmt)
+    assert re.search(r"a \+ b = c \(1\.1\)", text)
+
+
+def test_unnumbered_equation_has_no_number():
+    src = SRC.replace(":mathblock: {:label: eq-one}", ":mathblock: {:nonum:}").replace(
+        " and :ref:eq-one::", ""
+    )
+    md = pandoc_export(source=src, to_format="markdown")
+    assert "$$a + b = c$$" in md
+    assert "qquad" not in md

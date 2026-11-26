@@ -9,8 +9,8 @@
 -- Other formats (Word, EPUB, HTML, Markdown and the rest) have no theorem
 -- environments and do not number headings. For them the filter writes the same
 -- headings into the text: "Theorem 1.1 (Title)." in bold before the statement,
--- "Proof." or "Proof of Theorem 1.1." in italics before the proof, and the number
--- before each section title.
+-- "Proof." or "Proof of Theorem 1.1." in italics before the proof, the number
+-- before each section title, and the number after each numbered equation.
 
 local theorem_envs = {
   theorem = true,
@@ -124,12 +124,18 @@ function Header(el)
 end
 
 function Span(el)
-  if not fmt:match("latex") or not el.classes:includes("equation") then
+  if not el.classes:includes("equation") then
     return nil
   end
   local math = el.content[1]
   if #el.content ~= 1 or math.t ~= "Math" or math.mathtype ~= "DisplayMath" then
     return nil
+  end
+  if not fmt:match("latex") then
+    -- pandoc drops \tag when it converts math for Word, EPUB and HTML, so the
+    -- number is written into the math itself.
+    math.text = math.text .. " \\qquad (" .. el.attributes["number"] .. ")"
+    return el
   end
   local tag = "\\tag{" .. el.attributes["number"] .. "}"
   local label = el.identifier ~= "" and ("\\label{" .. el.identifier .. "}") or ""
