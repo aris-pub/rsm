@@ -316,7 +316,6 @@ class LinterApp(ParserApp):
         self,
         srcpath: Path | str | None = None,
         plain: str = "",
-        loglevel: int = RSMApp.default_log_level,
         log_format: str = "rsm",
         log_time: bool = True,
         log_lineno: bool = True,
@@ -548,17 +547,13 @@ def render(
 def lint(
     source: str = "",
     path: str = "",
-    handrails: bool = False,
-    loglevel: int = RSMApp.default_log_level,
     log_format: str = "rsm",
     log_time: bool = True,
     log_lineno: bool = True,
-    strict: bool = False,
 ) -> nodes.Manuscript | None:
     return LinterApp(
         srcpath=path,
         plain=source,
-        loglevel=loglevel,
         log_format=log_format,
         log_time=log_time,
         log_lineno=log_lineno,

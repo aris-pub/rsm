@@ -109,3 +109,18 @@ def test_json_logs_of_wrong_manuscript():
 def test_plain_logs_of_wrong_manuscript():
     have = run(WRONG_MANUSCRIPT, "plain", split=True)
     assert have == [r["msg"] for r in WRONG_MANUSCRIPT_LOGS]
+
+
+@pytest.mark.parametrize("option", ["handrails", "strict", "loglevel"])
+def test_lint_rejects_options_that_it_does_not_use(option):
+    import rsm
+
+    with pytest.raises(TypeError):
+        rsm.lint("# Title\n", **{option: True})
+
+
+def test_linter_app_rejects_loglevel():
+    from rsm.app import LinterApp
+
+    with pytest.raises(TypeError):
+        LinterApp(plain="# Title\n", loglevel=10)
