@@ -21,7 +21,7 @@ function hasTwoStates(block) {
 export function setup(root) {
   for (const block of (root || document).querySelectorAll(BLOCK)) {
     if (block.hasAttribute("data-authors") || !hasTwoStates(block)) continue;
-    block.setAttribute("data-authors", "closed");
+    setOpen(block, false);
   }
   setupClicks();
 }
@@ -42,8 +42,12 @@ export function isOpen(block) {
   return block.getAttribute("data-authors") === "open";
 }
 
+// The handrail also takes hr-collapsed when closed, which draws the foot that
+// every collapsed block has.
 export function setOpen(block, open) {
   block.setAttribute("data-authors", open ? "open" : "closed");
+  const hr = handrailOf(block);
+  if (hr) hr.classList.toggle("hr-collapsed", !open);
 }
 
 // Go through the handrail when there is one, so that its chevron and its menu

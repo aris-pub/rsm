@@ -283,3 +283,32 @@ class TestNothingToOpen:
         expect(page.locator(SUMMARY)).to_have_count(0)
         expect(page.locator(MORE)).to_have_count(0)
         assert _names_text(page) == "Ada Lovelace, Bo Chen"
+
+
+class TestFoot:
+    """A closed author block shows the foot of the handrail, as every other
+    collapsed block does (the hr-collapsed class draws it)."""
+
+    def _hr_collapsed(self, page: Page) -> bool:
+        return page.evaluate(
+            "() => document.querySelector('.author-block > .hr').classList.contains('hr-collapsed')"
+        )
+
+    def test_closed_block_has_the_foot_and_keeps_its_content(
+        self, page: Page, interactive_server: str
+    ):
+        _load(page, interactive_server)
+        page.evaluate("() => localStorage.clear()")
+        page.reload()
+        page.wait_for_function(RSM_READY, timeout=10_000)
+        assert _state(page) == "closed"
+        assert self._hr_collapsed(page)
+        assert page.locator(".author-names").is_visible()
+        assert page.locator(".author-summary").is_visible()
+
+    def test_open_block_has_no_foot(self, page: Page, interactive_server: str):
+        _load(page, interactive_server)
+        page.locator(".author-summary").click()
+        page.wait_for_timeout(200)
+        assert _state(page) == "open"
+        assert not self._hr_collapsed(page)

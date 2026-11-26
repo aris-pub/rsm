@@ -1742,7 +1742,7 @@ var RSM = (() => {
   function setup5(root2) {
     for (const block of (root2 || document).querySelectorAll(BLOCK)) {
       if (block.hasAttribute("data-authors") || !hasTwoStates(block)) continue;
-      block.setAttribute("data-authors", "closed");
+      setOpen(block, false);
     }
     setupClicks();
   }
@@ -1758,6 +1758,8 @@ var RSM = (() => {
   }
   function setOpen(block, open) {
     block.setAttribute("data-authors", open ? "open" : "closed");
+    const hr = handrailOf2(block);
+    if (hr) hr.classList.toggle("hr-collapsed", !open);
   }
   function toggle2(block) {
     const hr = handrailOf2(block);
