@@ -1170,6 +1170,9 @@ class PandocImporter:
         "exercise",
         "proposition",
         "problem",
+        "definition",
+        "remark",
+        "porism",
     )
 
     def _next_label(self, kind: str) -> str:

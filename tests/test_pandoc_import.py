@@ -518,6 +518,30 @@ def test_proof_tombstone_in_its_own_paragraph_is_dropped():
     _parse_without_errors(out)
 
 
+def test_definition_remark_and_porism_become_rsm_blocks():
+    import rsm
+
+    for cls, name in (
+        ("definition", "Definition"),
+        ("remark", "Remark"),
+        ("porism", "Porism"),
+    ):
+        block = _div(
+            "x:a", cls, [{"t": "Para", "c": [*_thm_heading(name, "1"), *_words("Z.")]}]
+        )
+        ref_para = {
+            "t": "Para",
+            "c": [{"t": "Str", "c": name + " "}, _ref("x:a")],
+        }
+        out = PandocImporter().from_json({"blocks": [block, ref_para]})
+        assert f":{cls}: {{:label: thm-1}}" in out, out
+        assert name + " 1" not in _body(out, cls), out
+        assert _last_line(out) == ":ref:thm-1::", out
+        tree = _parse_without_errors(out)
+        (node,) = tree.traverse(nodeclass=getattr(rsm.nodes, name))
+        assert node.label == "thm-1"
+
+
 def _titled_proof(title_inlines, body):
     heading = _emph(*_words("Proof", "of"), {"t": "Space"}, *title_inlines)
     para = [heading, {"t": "Space"}, *_words(body), {"t": "Str", "c": " ◻"}]
