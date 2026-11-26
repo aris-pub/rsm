@@ -38,9 +38,10 @@ figure = BlockTagInfo(None)
 """Figure float. It holds an image, a video, or HTML: from a file named by :path:,
 or from an :htmlblock: inside it."""
 htmlblock = BlockTagInfo(None)
-"""A block of raw HTML, written into the HTML page as is:
-``:htmlblock: {:alt: fallback} <div>...</div> ::``. It is not numbered. :alt:
-stands in for the HTML where HTML cannot be, as for :html:."""
+"""A block of raw HTML, written into the HTML page as is. The HTML starts on the
+line after ``:htmlblock: {:alt: fallback}`` and ends at a ``::`` on a line of its
+own. It is not numbered. :alt: stands in for the HTML where HTML cannot be, as for
+:html:."""
 itemize = BlockTagInfo(None)
 """Unnumbered list."""
 lemma = BlockTagInfo(None)

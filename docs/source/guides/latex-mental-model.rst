@@ -56,7 +56,14 @@ Environments
    * - ``\begin{figure}...\end{figure}``
      - ``:figure: {:path: img.png} ::``
    * - ``\begin{equation}...\end{equation}``
-     - ``:mathblock: ... ::`` or ``$$ ... $$``
+     - ``$$ ... $$``, or ``:mathblock:`` with the closing ``::`` on a line of
+       its own:
+
+       .. code-block:: text
+
+          :mathblock:
+          ...
+          ::
 
 
 Inline commands

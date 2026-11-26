@@ -170,6 +170,9 @@ HTML written into the page as it is: ``:html:`` inside a line of text, and
 ``:htmlblock:`` as a block of its own. Where HTML cannot be shown, such as in
 tooltips and in files exported to PDF or LaTeX, RSM shows the text in
 ``:alt:`` instead. An ``:htmlblock:`` can also go inside a ``:figure:``.
+``:html:`` ends at the first ``::``. ``:htmlblock:`` ends at a ``::`` on a
+line of its own, with only spaces around it, so a ``::`` inside a line of
+HTML, as in the CSS selector ``p::before``, is part of the HTML.
 
 .. rubric:: Syntax
 
