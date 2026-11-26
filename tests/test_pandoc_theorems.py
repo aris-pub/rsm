@@ -8,6 +8,7 @@ in the HTML output. Every export format prints these headings, not only LaTeX an
 import re
 import shutil
 import subprocess
+import zipfile
 from textwrap import dedent
 
 import pytest
@@ -494,3 +495,89 @@ def test_unnumbered_equation_has_no_number():
     md = pandoc_export(source=src, to_format="markdown")
     assert "$$a + b = c$$" in md
     assert "qquad" not in md
+
+
+# Formats other than LaTeX cannot show raw LaTeX, so a math block that holds an
+# amsmath environment is sent to them as display math, in the inner form where
+# amsmath has one, with RSM's number after it.
+
+
+@pytest.fixture(scope="module")
+def multi_markdown():
+    return pandoc_export(source=MULTI, to_format="markdown")
+
+
+@pytest.mark.parametrize(
+    "math",
+    [
+        r"$$\begin{aligned} a &= b \\ c &= d \end{aligned} \qquad (1.1)$$",
+        r"$$\begin{gathered} x = 1 \\ y = 2 \end{gathered} \qquad (1.2)$$",
+        r"$$\begin{alignedat}{2} a &= b &\quad c &= d \end{alignedat} \qquad (1.3)$$",
+        r"$$\begin{multline} p + q \\ + r \end{multline} \qquad (1.4)$$",
+        r"$$\begin{aligned} u &= v \end{aligned} \qquad (1.5)$$",
+        r"$$\begin{aligned} s &= t \end{aligned}$$",
+        r"$$\begin{flalign} a &= b \\ c &= \begin{cases} 1 \\ 2 \end{cases} \\ e &= "
+        r"\sum_{\substack{f \\ g}} h \end{flalign} \qquad (1.6)$$",
+        r"$$\begin{flalign} h &= i \\ j &= k \end{flalign}$$",
+        r"$$\begin{gathered} x = 1 \\ y = 2 \end{gathered} \qquad (1.7)$$",
+        r"$$\begin{multline} p + q \\ + r \end{multline} \qquad (1.8)$$",
+        r"$$\begin{flalign} a &= b \\ c &= d \end{flalign} \qquad (1.9)$$",
+        r"$$\begin{alignedat}{2} a &= b &\quad c &= d \end{alignedat} \qquad (1.10)$$",
+        r"$$m = n \qquad (1.11)$$",
+        r"$$o = p \qquad (1.12)$$",
+        r"$$\begin{aligned} w &= z \end{aligned}$$",
+    ],
+)
+def test_markdown_amsmath_block_is_display_math(multi_markdown, math):
+    assert math in " ".join(multi_markdown.split())
+
+
+def test_markdown_amsmath_block_has_no_raw_latex(multi_markdown):
+    assert r"\begin{equation}" not in multi_markdown
+    assert r"\tag" not in multi_markdown
+    assert "{=latex}" not in multi_markdown
+
+
+def _numbers(text: str) -> list[str]:
+    return sorted(re.findall(r"\(1\.\d+\)", text))
+
+
+# Each numbered block shows its number once, and the sentence that refers to them
+# shows each number once more. The :nonum: blocks show none.
+PRINTED_TWICE = sorted([f"(1.{n})" for n in range(1, 13)] * 2)
+
+
+def _mathml_text(xhtml: str) -> str:
+    # The annotation repeats the TeX source of each formula.
+    text = re.sub(r"<annotation[^>]*>.*?</annotation>", "", xhtml, flags=re.DOTALL)
+    return re.sub(r"<[^>]+>", "", text)
+
+
+def test_html_amsmath_blocks_are_math_with_numbers():
+    html = pandoc_export(source=MULTI, to_format="html")
+    assert html.count('<math display="block"') == 15
+    assert _numbers(_mathml_text(html)) == PRINTED_TWICE
+
+
+def test_docx_amsmath_blocks_are_word_math_with_numbers(tmp_path):
+    out = tmp_path / "multi.docx"
+    pandoc_export(source=MULTI, to_format="docx", output=str(out))
+    with zipfile.ZipFile(out) as z:
+        xml = z.read("word/document.xml").decode()
+    assert xml.count("<m:oMathPara>") == 15
+    md = subprocess.run(
+        ["pandoc", str(out), "-s", "-t", "markdown", "--wrap=none"],
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout
+    assert _numbers(md) == PRINTED_TWICE
+
+
+def test_epub_amsmath_blocks_are_math_with_numbers(tmp_path):
+    out = tmp_path / "multi.epub"
+    pandoc_export(source=MULTI, to_format="epub", output=str(out))
+    with zipfile.ZipFile(out) as z:
+        xhtml = "".join(z.read(n).decode() for n in z.namelist() if n.endswith(".xhtml"))
+    assert xhtml.count('<math display="block"') == 15
+    assert _numbers(_mathml_text(xhtml)) == PRINTED_TWICE

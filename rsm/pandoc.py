@@ -299,7 +299,14 @@ class PandocTranslator:
             stripped.startswith(rf"\begin{{{env}}}") for env in self._LATEX_ENVS
         )
         if has_env:
-            return [{"t": "RawBlock", "c": ["latex", self._number_env(node, stripped)]}]
+            # Other formats drop raw LaTeX, so the block also carries a display math
+            # form, and braiid.lua keeps the one that suits the output format.
+            raw = {"t": "RawBlock", "c": ["latex", self._number_env(node, stripped)]}
+            display = self._display_math(node, self._display_env(stripped))
+            return [{"t": "Div", "c": [["", ["math-env"], []], [raw, *display]]}]
+        return self._display_math(node, src)
+
+    def _display_math(self, node: nodes.MathBlock, src: str) -> list[dict]:
         math = {"t": "Math", "c": [{"t": "DisplayMath"}, src]}
         if not node.full_number:
             return [{"t": "Para", "c": [math]}]
@@ -317,6 +324,19 @@ class PandocTranslator:
         "alignat": "alignedat",
         "split": "split",
     }
+
+    def _display_env(self, src: str) -> str:
+        # RSM gives the block one number, which braiid.lua writes after the math, so
+        # the environment takes the inner form that numbers no line itself.
+        m = re.fullmatch(r"\\begin\{([\w*]+)\}(.*)\\end\{\1\}", src, re.DOTALL)
+        if not m:
+            return src
+        env, body = m.groups()
+        env = env.removesuffix("*")
+        if env == "equation":
+            return body.strip()
+        inner = self._INNER_ENVS.get(env, env)
+        return f"\\begin{{{inner}}}{body}\\end{{{inner}}}"
 
     def _number_env(self, node: nodes.MathBlock, src: str) -> str:
         m = re.fullmatch(r"\\begin\{([\w*]+)\}(.*)\\end\{\1\}", src, re.DOTALL)

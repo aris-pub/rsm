@@ -78,6 +78,11 @@ local function text_div(el)
 end
 
 function Div(el)
+  if el.classes:includes("math-env") then
+    -- The translator gives an amsmath block as raw LaTeX first, then as display
+    -- math for the formats that drop raw LaTeX.
+    return fmt:match("latex") and el.content[1] or el.content[2]
+  end
   if not fmt:match("latex") then
     return text_div(el)
   end
