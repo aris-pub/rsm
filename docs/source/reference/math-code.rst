@@ -44,7 +44,9 @@ Displayed math ``$$`` ``:mathblock:``
 An equation on its own lines, numbered. ``$$`` on a line of its own starts it
 and another ``$$`` ends it. With no blank line before or after it, the
 equation belongs to the paragraph around it. Meta keys go in braces after the
-opening ``$$``. ``:mathblock: ... ::`` is the same.
+opening ``$$``. ``:mathblock:`` does the same, and ends at a ``::`` on a line
+of its own, with only spaces around it. A ``::`` inside a line of math, as in
+``a::b``, is part of the math.
 
 .. rubric:: Syntax
 
@@ -157,7 +159,9 @@ Code block ``:codeblock:``
 --------------------------
 
 Lines of code, in a fixed-width font, with syntax colors for the language in
-``:lang:``. The lines are shown as written.
+``:lang:``. The lines are shown as written. The block ends at a ``::`` on a
+line of its own, with only spaces around it. A ``::`` inside a line of code, as
+in ``std::vector``, is part of the code.
 
 Code blocks are numbered within their section, such as Code Block 2.1, with
 their own counter. A reference to one reads "Code Block 2.1", or its
