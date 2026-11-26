@@ -3151,7 +3151,8 @@ html:not(.touch) {
 
 /* The same hover and focus as the sidebar's icon buttons. */
 .manuscriptwrapper .author-contact:hover {
-  background: var(--surface-hover); }
+  background: var(--primary-100);
+  box-shadow: 0 0 0 var(--border-thin) var(--primary-100); }
 
 .manuscriptwrapper .author-contact:focus-visible {
   outline: var(--border-thin) solid var(--border-action);
