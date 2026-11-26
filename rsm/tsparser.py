@@ -110,6 +110,11 @@ def _bib_field_name(pair: TSNode) -> str:
     return key_node.text.decode("utf-8").split("=")[0].strip().lower()
 
 
+# The grammar keeps a % in the text of a value, so that the comment does not
+# take the closing brace and the later fields with it. RSM cuts the value here.
+_BIB_COMMENT = re.compile(r"(?<!\\)%")
+
+
 def _ingest_bib_field(bib_node: nodes.Bibitem, pair: TSNode) -> None:
     """Set one field of a BibTeX entry on `bib_node`, or warn and skip it."""
     key = _bib_field_name(pair)
@@ -141,6 +146,13 @@ def _ingest_bib_field(bib_node: nodes.Bibitem, pair: TSNode) -> None:
         return
     assert value_node.text is not None
     value = value_node.text.decode("utf-8")
+    if _BIB_COMMENT.search(value):
+        logger.warning(
+            f"{entry} is cut at a % (a % starts a comment), skipped. Write a "
+            "percent sign in a value as \\%",
+            extra=where,
+        )
+        return
     if "{" in value:
         logger.warning(
             f"{entry} has braces inside its value. RSM ignores these braces and "
@@ -149,6 +161,7 @@ def _ingest_bib_field(bib_node: nodes.Bibitem, pair: TSNode) -> None:
             extra=where,
         )
         value = value.replace("{", "").replace("}", "")
+    value = value.replace("\\%", "%")
     # BibTeX calls the issue number "number", but on a node `number` is the
     # citation index assigned by autonumbering, so store the issue under
     # `issue` to keep it from being overwritten.
@@ -1208,7 +1221,19 @@ def _abstractify(cst: TSTree) -> nodes.Manuscript | None:
             )
 
             for c in [c for c in cst_node.named_children if c.type == "ERROR"]:
-                logger.warning(msg=f"Bibitem at {(c.start_point)} has an error")
+                where = _user_position(c.start_point, c.end_point)
+                line_col = f"line {where['start_row']}, column {where['start_col']}"
+                label = next((n for n in c.named_children if n.type == "label"), None)
+                fix = (
+                    "Write it as @kind{key, name = {...}, name = {...}}, with a "
+                    "comma between fields."
+                )
+                if label is not None and label.text is not None:
+                    key = label.text.decode("utf-8").strip()
+                    msg = f"entry {key}: RSM cannot read this entry at {line_col}, skipped. {fix}"
+                else:
+                    msg = f"RSM cannot read this entry at {line_col}, skipped. {fix}"
+                logger.warning(msg, extra=where)
 
             for c in [c for c in cst_node.named_children if c.type == "bibstring"]:
                 name = _bib_field_name(c.named_children[1])

@@ -77,6 +77,10 @@ gives a warning that names the entry key and the field:
   commands: ``{Erd\H{o}s}`` reads ``Erd\Hos``. Write accented letters as they
   are, such as ö.
 - RSM skips ``@string`` definitions and gives a warning that names each one.
+- A ``%`` starts a comment everywhere in RSM, also inside a value. Write a
+  percent sign in a value as ``\%``, as in
+  ``title = {Sales up 50\% in a year}``. When a ``%`` cuts a value, RSM skips
+  that field, reads the later fields, and gives a warning.
 
 RSM warns about an entry without a ``doi``, because the reader cannot follow
 it to the work.
