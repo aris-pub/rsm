@@ -1084,24 +1084,35 @@ def _calls_after_a_word(root: TSNode) -> list[CallAfterWord]:
         if node.type != "text" or src[node.end_byte : node.end_byte + 2] != b"::":
             continue
         matches = [
-            (tag, what, m)
+            (tag, what, m, node)
             for tag, (pattern, what) in _CALL_AFTER_WORD.items()
             if (m := re.search(pattern, node.text or b"")) is not None
         ]
         if not matches:
+            # Inline markup in an aside phrase ends the text, so the call
+            # starts in an earlier text sibling.
+            prev = node.prev_sibling
+            while prev is not None and not matches:
+                pattern, what = _CALL_AFTER_WORD["aside"]
+                if prev.type == "text" and (m := re.search(pattern, prev.text or b"")):
+                    matches = [("aside", what, m, prev)]
+                prev = prev.prev_sibling
+        if not matches:
             continue
-        tag, what, m = matches[0]
+        tag, what, m, first = matches[0]
         word = m.group(1).decode("utf-8", errors="replace")
         if word[-1] in _TAG_CAN_FOLLOW:
             continue
-        rest = m.group(2).decode("utf-8", errors="replace")
+        rest = src[first.start_byte + m.start(2) : node.end_byte].decode(
+            "utf-8", errors="replace"
+        )
         halmos = node.end_byte
         later = [b for b in stray if b >= halmos]
         error_byte = None
         if later and (later[0] == halmos or _closes_a_block(node, halmos)):
             error_byte = later[0]
             stray.remove(error_byte)
-        row, col = node.start_point
+        row, col = first.start_point
         found.append(
             CallAfterWord(
                 start_point=(row, col + m.end(1)),
