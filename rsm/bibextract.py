@@ -101,7 +101,15 @@ def extract_references(tex: str, root: str | Path, cited: set[str]) -> list[Refe
     keep_all = not cited or "*" in cited
 
     def keep(pairs: list[tuple[str, str]], source: str) -> list[Reference]:
-        return [Reference(k, source, t) for k, t in pairs if keep_all or k in cited]
+        # A key can appear twice, for example in two .bib files under the root.
+        # bibtex uses the first entry, and RSM needs each key once.
+        seen: set[str] = set()
+        refs = []
+        for k, t in pairs:
+            if (keep_all or k in cited) and k not in seen:
+                seen.add(k)
+                refs.append(Reference(k, source, t))
+        return refs
 
     # Try each source in order and take the first that actually yields cited
     # references. A source can be present but belong to a different paper (a

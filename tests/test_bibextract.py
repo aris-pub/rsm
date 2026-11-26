@@ -206,3 +206,22 @@ def test_apacite_style_bibitem_key(tmp_path):
     _write(tmp_path / "p.bbl", bbl)
     refs = extract_references(r"\cite{AuthKey} \bibliography{p}", tmp_path, {"AuthKey"})
     assert [r.key for r in refs] == ["AuthKey"]
+
+
+def test_key_in_two_bib_files_is_kept_once(tmp_path):
+    # Seen in bead rsm-v1yn: the same entry in two .bib files under the root
+    # was written twice into :references:.
+    _write(tmp_path / "a.bib", "@book{k, title={First}, author={A}}")
+    _write(tmp_path / "sub" / "b.bib", "@book{k, title={Second}, author={B}}")
+    refs = extract_references(r"\cite{k}", tmp_path, {"k"})
+    assert [r.key for r in refs] == ["k"]
+    assert "First" in refs[0].raw
+
+
+def test_bibitem_key_given_twice_is_kept_once(tmp_path):
+    tex = (
+        r"\cite{k} \begin{thebibliography}{1}\bibitem{k} One. \bibitem{k} Two."
+        r"\end{thebibliography}"
+    )
+    refs = extract_references(tex, tmp_path, cited_keys(tex))
+    assert [r.key for r in refs] == ["k"]
