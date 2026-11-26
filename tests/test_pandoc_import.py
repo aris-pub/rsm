@@ -620,6 +620,14 @@ def test_label_counter_skips_unnumbered_math():
     assert _last_line(out) == ":ref:eqn-1::", out
 
 
+def test_qedhere_is_dropped_from_math():
+    out = _import_math("x = y \\qedhere")
+    assert ":mathblock: {:nonum:}\n  x = y\n::" in out, out
+    inline = {"t": "Math", "c": [{"t": "InlineMath"}, "a\\qedhere"]}
+    out = PandocImporter().from_json({"blocks": [{"t": "Para", "c": [inline]}]})
+    assert out.strip() == "$a$", out
+
+
 def test_text_around_a_mathblock_has_no_stray_spaces():
     para = {
         "t": "Para",

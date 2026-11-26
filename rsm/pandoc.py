@@ -1105,6 +1105,15 @@ _DISPLAY_ENV = re.compile(
 _NUMBERED_ENVS = ("align", "alignat", "eqnarray", "flalign", "gather", "multline")
 
 
+_QEDHERE = re.compile(r"[ \t]*\\qedhere(?![A-Za-z])")
+
+
+def _drop_qedhere(src: str) -> str:
+    # \qedhere places amsthm's tombstone, which the importer removes and RSM
+    # draws itself.
+    return _QEDHERE.sub("", src)
+
+
 def _display_math(src: str) -> tuple[str, bool]:
     """Return the TeX for the :mathblock: of one pandoc display math, and whether
     LaTeX numbers it.
@@ -1114,7 +1123,7 @@ def _display_math(src: str) -> tuple[str, bool]:
     are dropped, an equation environment is replaced by its body, and a starred
     environment by its unstarred form.
     """
-    src = _NOTAG.sub("", _LABEL.sub("", _LABEL_LINE.sub("", src)))
+    src = _NOTAG.sub("", _LABEL.sub("", _LABEL_LINE.sub("", _drop_qedhere(src))))
     m = _DISPLAY_ENV.fullmatch(src)
     if not m:
         return src.strip(), False
@@ -1693,6 +1702,7 @@ class PandocImporter:
 
     def _inline_math(self, c: list) -> str:
         math_type, src = c
+        src = _drop_qedhere(src)
         is_display = isinstance(math_type, dict) and math_type.get("t") == "DisplayMath"
         # $...$ sits directly against adjacent text; the verbose :math: ... ::
         # form cannot. Fall back to it for display math (handled by _block_para
