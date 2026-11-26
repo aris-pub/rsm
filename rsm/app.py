@@ -708,7 +708,26 @@ class _PandocRunner:
                     "such as TeX Live or MacTeX."
                 )
             raise RSMApplicationError(f"pandoc failed: {e.stderr}")
+        # pandoc still succeeds when it cannot convert something (it writes math
+        # that it cannot read as raw TeX, for example), so its warnings are the
+        # only sign that the output differs from the source.
+        for warning in _pandoc_warnings(proc.stderr):
+            logger.warning("pandoc: %s", warning)
         return proc.stdout
+
+
+def _pandoc_warnings(stderr: str) -> list[str]:
+    """Split pandoc's stderr into warnings, one for each line that starts with [."""
+    warnings: list[str] = []
+    for line in stderr.splitlines():
+        if not line.strip():
+            continue
+        if line.startswith("[") or not warnings:
+            warnings.append(line)
+        else:
+            # Indented lines that follow a warning show where the problem is.
+            warnings[-1] += "\n" + line
+    return warnings
 
 
 class PandocExportApp(RSMApp[str]):

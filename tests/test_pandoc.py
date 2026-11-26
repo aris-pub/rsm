@@ -1452,3 +1452,39 @@ class TestStaticWidgetRefText:
 
     def test_handwritten_text_with_markup_is_kept(self):
         assert self._ref_text("", ":ref:w,*Widget* above::") == "Widget above"
+
+
+# pandoc writes what it cannot convert (such as math with an unknown command) as
+# raw TeX, and prints a warning on stderr. The export succeeds, so the warning is
+# logged for the user to see.
+
+_BAD_MATH = "# Doc\n\n## Sec\n\n$$x \\bogusmacro y$$\n"
+
+
+@_PANDOC_SKIP
+@pytest.mark.parametrize("fmt", ["html", "docx"])
+def test_export_logs_pandoc_warnings(tmp_path, caplog, fmt):
+    caplog.set_level(logging.WARNING, logger="RSM")
+    pandoc_export(source=_BAD_MATH, to_format=fmt, output=str(tmp_path / f"doc.{fmt}"))
+    warnings = [
+        r
+        for r in caplog.records
+        if r.levelno == logging.WARNING and "pandoc" in r.getMessage()
+    ]
+    assert len(warnings) == 1
+    message = warnings[0].getMessage()
+    assert message.startswith("pandoc: ")
+    assert "Could not convert TeX math" in message
+    # The lines that follow the warning belong to it.
+    assert "unexpected" in message
+
+
+@_PANDOC_SKIP
+def test_export_without_pandoc_warnings_logs_none(tmp_path, caplog):
+    caplog.set_level(logging.WARNING, logger="RSM")
+    pandoc_export(
+        source="# Doc\n\n## Sec\n\n$$x + y$$\n",
+        to_format="docx",
+        output=str(tmp_path / "doc.docx"),
+    )
+    assert not [r for r in caplog.records if "pandoc" in r.getMessage()]
