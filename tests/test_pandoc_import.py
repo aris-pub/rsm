@@ -628,6 +628,44 @@ def test_qedhere_is_dropped_from_math():
     assert out.strip() == "$a$", out
 
 
+def test_display_math_in_a_list_item_becomes_a_mathblock():
+    import rsm
+
+    math = _display("\\begin{align}\\label{e}\na &= b \\\\\nc &= d\n\\end{align}")
+    item = [
+        {
+            "t": "Plain",
+            "c": [
+                *_words("First", "and"),
+                {"t": "SoftBreak"},
+                math,
+                {"t": "SoftBreak"},
+                *_words("more."),
+            ],
+        }
+    ]
+    lst = {"t": "BulletList", "c": [item, [{"t": "Plain", "c": _words("Second.")}]]}
+    ref_para = {"t": "Para", "c": [_ref("e", kind="eqref")]}
+    out = PandocImporter().from_json({"blocks": [lst, ref_para]})
+    assert (
+        "  :-: First and\n"
+        "  :mathblock: {:label: eqn-1}\n"
+        "    \\begin{align}\n"
+        "    a &= b \\\\\n"
+        "    c &= d\n"
+        "    \\end{align}\n"
+        "  ::\n"
+        "  more.\n"
+    ) in out, out
+    assert "  :-: Second." in out, out
+    assert _last_line(out) == ":ref:eqn-1::", out
+    tree = _parse_without_errors(out)
+    items = list(tree.traverse(nodeclass=rsm.nodes.Item))
+    assert len(items) == 2
+    (block,) = items[0].traverse(nodeclass=rsm.nodes.MathBlock)
+    assert block.label == "eqn-1"
+
+
 def test_text_around_a_mathblock_has_no_stray_spaces():
     para = {
         "t": "Para",

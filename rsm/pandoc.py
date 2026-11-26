@@ -1408,40 +1408,47 @@ class PandocImporter:
         meta = f"\n  {{:label: {label}}}" if label else ""
         return f"{prefix} {text}{meta}\n\n"
 
+    def _para_pieces(self, inlines: list) -> list[tuple[str, str, str]]:
+        """Split a paragraph at its display math, which RSM writes as a block.
+
+        Each piece is ("text", text, "") or ("math", meta, src), where meta is
+        the :mathblock: meta with its leading space, or "".
+        """
+        pieces: list[tuple[str, str, str]] = []
+        pending: list[dict] = []
+
+        def flush() -> None:
+            text = self._render_inlines(_strip_spaces(pending))
+            if text:
+                pieces.append(("text", text, ""))
+            pending.clear()
+
+        for inline in inlines:
+            if not _is_display_math(inline):
+                pending.append(inline)
+                continue
+            flush()
+            src, numbered = _display_math(inline["c"][1])
+            label = self._label_of.get(id(inline))
+            if not numbered:
+                meta = " {:nonum:}"
+            elif label:
+                meta = f" {{:label: {label}}}"
+            else:
+                meta = ""
+            pieces.append(("math", meta, src))
+        flush()
+        return pieces
+
     def _block_para(self, c: list) -> str:
         titled = self._pending_para
         self._pending_para = None
-        # DisplayMath inside Para inlines must be flushed as a block construct.
         result: list[str] = []
-        pending: list[dict] = []
-        for inline in c:
-            if (
-                inline.get("t") == "Math"
-                and isinstance(inline.get("c"), list)
-                and len(inline["c"]) >= 1
-                and inline["c"][0].get("t") == "DisplayMath"
-            ):
-                if pending:
-                    text = self._render_inlines(_strip_spaces(pending))
-                    if text:
-                        result.append(f"{_escape_trailing_colon(text)}\n\n")
-                    pending = []
-                src = inline["c"][1] if len(inline["c"]) >= 2 else ""
-                src, numbered = _display_math(src)
-                label = self._label_of.get(id(inline))
-                if not numbered:
-                    meta = " {:nonum:}"
-                elif label:
-                    meta = f" {{:label: {label}}}"
-                else:
-                    meta = ""
-                result.append(f":mathblock:{meta}\n  {src}\n::\n\n")
-            else:
-                pending.append(inline)
-        if pending:
-            text = self._render_inlines(_strip_spaces(pending))
-            if text:
+        for kind, text, src in self._para_pieces(c):
+            if kind == "text":
                 result.append(f"{_escape_trailing_colon(text)}\n\n")
+            else:
+                result.append(f":mathblock:{text}\n  {src}\n::\n\n")
         body = "".join(result)
         if titled is None:
             return body
@@ -1473,6 +1480,43 @@ class PandocImporter:
         items = self._list_item_lines(item_list, 1)
         return ":enumerate:\n\n" + "\n\n".join(items) + "\n\n::\n\n"
 
+    def _item_content_lines(self, blocks: list) -> list[str]:
+        """Render the blocks of one list item as lines with no blank line between.
+
+        An item ends at a blank line, so its text is folded onto one line, and
+        its display math becomes a :mathblock: on lines of its own, which RSM
+        reads as part of the item.
+        """
+        lines: list[str] = []
+        text = ""
+
+        def flush() -> None:
+            # Fold paragraph or line breaks (e.g. from a \\ in the source) into
+            # spaces, or the extra paragraph would break out of the list and
+            # orphan later items.
+            folded = re.sub(r"\s*\n\s*", " ", text).strip()
+            if folded:
+                lines.append(folded)
+
+        for b in blocks:
+            t = b.get("t") if isinstance(b, dict) else None
+            if t not in ("Para", "Plain"):
+                text += self._render_block(b).strip()
+                continue
+            for kind, piece, src in self._para_pieces(b["c"]):
+                if kind == "text":
+                    text += _escape_trailing_colon(piece) if t == "Para" else piece
+                    continue
+                flush()
+                text = ""
+                lines.append(f":mathblock:{piece}")
+                lines.extend(
+                    f"  {line.rstrip()}" for line in src.splitlines() if line.strip()
+                )
+                lines.append("::")
+        flush()
+        return lines
+
     def _list_item_lines(self, pandoc_items: list, depth: int) -> list[str]:
         # Emit a flat sequence of items with depth markers (:-:, :--:, :---:),
         # recursing one level deeper into a nested list. RSM has no mixed list
@@ -1491,13 +1535,10 @@ class PandocImporter:
                     sublists.append(b.get("c", [None, []])[1])
                 else:
                     text_blocks.append(b)
-            text = "".join(self._render_block(b).strip() for b in text_blocks)
-            # An item is a single inline paragraph, so fold internal paragraph or
-            # line breaks (e.g. from a \\ in the source) into spaces; otherwise
-            # the extra paragraph breaks out of the list and orphans later items.
-            text = re.sub(r"\s*\n\s*", " ", text).strip()
-            if text:
-                lines.append(f"  {marker} {text}")
+            item_lines = self._item_content_lines(text_blocks)
+            if item_lines:
+                rest = "".join(f"\n  {line}" for line in item_lines[1:])
+                lines.append(f"  {marker} {item_lines[0]}{rest}")
                 child_depth = depth + 1
             else:
                 # An item that is only a nested list keeps that list at this
