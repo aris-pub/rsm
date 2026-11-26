@@ -718,8 +718,7 @@ def _cmd_serve(args: Namespace) -> int:
             for rsm_file in rsm_files:
                 print(f"  - {rsm_file.name}")
                 # Create build command for this specific file
-                output_name = rsm_file.stem  # filename without extension
-                build_cmd = f"rsm build {rsm_file} -o {output_name}"
+                build_cmd = f"rsm build {rsm_file} -o {output_dir / rsm_file.stem}"
                 if args.css:
                     build_cmd += f" --css {args.css}"
                 if args.menu_right:
@@ -768,8 +767,7 @@ def _cmd_serve(args: Namespace) -> int:
                 def css_rebuild_callback() -> None:
                     # Rebuild all RSM files
                     for rsm_file in rsm_files:
-                        output_name = rsm_file.stem
-                        cmd = f"rsm build {rsm_file} -o {output_name}"
+                        cmd = f"rsm build {rsm_file} -o {output_dir / rsm_file.stem}"
                         if args.css:
                             cmd += f" --css {args.css}"
                         if args.menu_right:
