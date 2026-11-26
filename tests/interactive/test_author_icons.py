@@ -33,7 +33,7 @@ def test_hover_gives_the_icon_the_standard_background(page: Page, interactive_se
     after = _bg(page, icon)
     hover = page.evaluate(
         "() => { const d = document.createElement('div');"
-        " d.style.background = 'var(--surface-hover)';"
+        " d.style.background = 'var(--primary-100)';"
         " document.querySelector('.manuscriptwrapper').appendChild(d);"
         " const c = getComputedStyle(d).backgroundColor; d.remove(); return c; }"
     )
