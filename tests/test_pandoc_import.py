@@ -561,10 +561,63 @@ def test_label_inside_other_math_leaves_no_blank_line():
     assert "\\begin{align}\na &= b\n\\end{align}" in out, out
 
 
-def test_starred_equation_is_left_as_written():
-    src = "\\begin{equation*}\nx\n\\end{equation*}"
-    out = PandocImporter().from_json({"blocks": [{"t": "Para", "c": [_display(src)]}]})
-    assert src in out, out
+def _import_math(src):
+    return PandocImporter().from_json({"blocks": [{"t": "Para", "c": [_display(src)]}]})
+
+
+def test_unnumbered_display_math_gets_nonum():
+    cases = [
+        ("\\begin{equation*}\na\n\\end{equation*}", "a"),
+        ("f", "f"),
+        (
+            "\\begin{align*}\nb &= c \\\\\nd &= e\n\\end{align*}",
+            "\\begin{align}\nb &= c \\\\\nd &= e\n\\end{align}",
+        ),
+        ("\\begin{gather*}\nl\n\\end{gather*}", "\\begin{gather}\nl\n\\end{gather}"),
+        (
+            "\\begin{multline*}\nm \\\\ n\n\\end{multline*}",
+            "\\begin{multline}\nm \\\\ n\n\\end{multline}",
+        ),
+        (
+            "\\begin{alignat*}{2}\nx &= y\n\\end{alignat*}",
+            "\\begin{alignat}{2}\nx &= y\n\\end{alignat}",
+        ),
+        (
+            "\\begin{aligned}\nx &= y\n\\end{aligned}",
+            "\\begin{aligned}\nx &= y\n\\end{aligned}",
+        ),
+    ]
+    for src, body in cases:
+        out = _import_math(src)
+        assert f":mathblock: {{:nonum:}}\n  {body}\n::" in out, out
+        assert "*}" not in out, out
+        _parse_without_errors(out)
+
+
+def test_numbered_display_math_keeps_its_label_and_number():
+    src = "\\begin{align}\n\\label{al}\nh &= i \\\\\nj &= k \\nonumber\n\\end{align}"
+    out = _import_math(src)
+    assert (
+        ":mathblock: {:label: eqn-1}\n  \\begin{align}\nh &= i \\\\\nj &= k\n\\end{align}\n::"
+        in out
+    ), out
+    out = _import_math("\\begin{gather}\nr \\\\ s\n\\end{gather}")
+    assert ":mathblock: {:label: eqn-1}\n  \\begin{gather}" in out, out
+
+
+def test_label_counter_skips_unnumbered_math():
+    para = {
+        "t": "Para",
+        "c": [
+            _display("f"),
+            _display("\\begin{equation}\\label{e}\nx\n\\end{equation}"),
+        ],
+    }
+    ref_para = {"t": "Para", "c": [_ref("e", kind="eqref")]}
+    out = PandocImporter().from_json({"blocks": [para, ref_para]})
+    assert ":mathblock: {:nonum:}\n  f\n::" in out, out
+    assert ":mathblock: {:label: eqn-1}\n  x\n::" in out, out
+    assert _last_line(out) == ":ref:eqn-1::", out
 
 
 def test_text_around_a_mathblock_has_no_stray_spaces():

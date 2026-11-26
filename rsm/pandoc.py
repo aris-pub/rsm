@@ -1095,19 +1095,35 @@ def _strip_amsthm_markup(
 
 _LABEL_LINE = re.compile(r"^[ \t]*\\label\{[^}]*\}[ \t]*\n", re.MULTILINE)
 _LABEL = re.compile(r"\\label\{[^}]*\}")
-_EQUATION_ENV = re.compile(r"\s*\\begin\{equation\}(.*)\\end\{equation\}\s*", re.DOTALL)
+_NOTAG = re.compile(r"[ \t]*\\(?:nonumber|notag)(?![A-Za-z])")
+_DISPLAY_ENV = re.compile(
+    r"\s*\\begin\{([A-Za-z]+)(\*?)\}(.*)\\end\{\1\2\}\s*", re.DOTALL
+)
+# The environments that LaTeX numbers when they are not starred. pandoc writes
+# \[...\] and $$...$$ as bare math, and an environment such as aligned can only
+# sit inside those, so all other display math is unnumbered.
+_NUMBERED_ENVS = ("align", "alignat", "eqnarray", "flalign", "gather", "multline")
 
 
-def _mathblock_source(src: str) -> str:
-    """Return the TeX to put in a :mathblock: for one pandoc display math.
+def _display_math(src: str) -> tuple[str, bool]:
+    """Return the TeX for the :mathblock: of one pandoc display math, and whether
+    LaTeX numbers it.
 
-    The label is already in the :mathblock: meta, and RSM numbers a :mathblock:
-    itself, so the \\label and an equation environment around the math are
-    dropped. Other environments, such as align or equation*, are kept.
+    The label goes in the :mathblock: meta, and RSM gives a :mathblock: one
+    number of its own or none with :nonum:, so \\label, \\nonumber and \\notag
+    are dropped, an equation environment is replaced by its body, and a starred
+    environment by its unstarred form.
     """
-    src = _LABEL.sub("", _LABEL_LINE.sub("", src))
-    m = _EQUATION_ENV.fullmatch(src)
-    return m.group(1).strip() if m else src
+    src = _NOTAG.sub("", _LABEL.sub("", _LABEL_LINE.sub("", src)))
+    m = _DISPLAY_ENV.fullmatch(src)
+    if not m:
+        return src.strip(), False
+    env, star, body = m.groups()
+    if env == "equation":
+        return body.strip(), not star
+    if env in _NUMBERED_ENVS:
+        return f"\\begin{{{env}}}{body}\\end{{{env}}}", not star
+    return src.strip(), False
 
 
 def _drop_kind_word(inlines: list, words: tuple) -> None:
@@ -1270,7 +1286,7 @@ class PandocImporter:
                 self._assign_labels(inner_blocks)
             elif t in ("Para", "Plain"):
                 for inl in c:
-                    if _is_display_math(inl):
+                    if _is_display_math(inl) and _display_math(inl["c"][1])[1]:
                         gen = self._next_label("eqn")
                         self._label_of[id(inl)] = gen
                         lbl = _math_label(inl["c"][1])
@@ -1402,9 +1418,14 @@ class PandocImporter:
                         result.append(f"{_escape_trailing_colon(text)}\n\n")
                     pending = []
                 src = inline["c"][1] if len(inline["c"]) >= 2 else ""
-                src = _mathblock_source(src)
+                src, numbered = _display_math(src)
                 label = self._label_of.get(id(inline))
-                meta = f" {{:label: {label}}}" if label else ""
+                if not numbered:
+                    meta = " {:nonum:}"
+                elif label:
+                    meta = f" {{:label: {label}}}"
+                else:
+                    meta = ""
                 result.append(f":mathblock:{meta}\n  {src}\n::\n\n")
             else:
                 pending.append(inline)
