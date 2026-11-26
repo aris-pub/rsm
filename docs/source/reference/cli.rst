@@ -206,8 +206,9 @@ needs a LaTeX installation that includes ``pdflatex``.
    The output format, such as ``latex``, ``pdf``, ``epub`` or ``docx``.
 
 ``-o``, ``--output``
-   The output file. Without it, the result is printed. PDF export requires
-   this option.
+   The output file. Without it, the result is printed. Export to PDF, Word
+   (``docx``), OpenDocument (``odt``), EPUB and PowerPoint (``pptx``)
+   requires this option, because these files are not text.
 
 It also takes ``-c``, ``-v``, ``--log-format``, ``--log-no-timestamps``,
 ``--log-no-lineno`` and ``--strict``, described at the top of this page.
