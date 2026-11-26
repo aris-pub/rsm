@@ -7,6 +7,7 @@ import * as tocarcs from './tocarcs.js';
 import { lensConeSizes } from './deplens.js';
 import { pinTarget, unpinTarget, isPinned } from './tooltips.js';
 import { isTouch } from './touch.js';
+import { authorBlockOf, isOpen as authorsOpen, setOpen as setAuthorsOpen } from './authors.js';
 
 // Blocks a reader can keep open in the sidebar's Pinned view.
 const PINNABLE = [
@@ -515,7 +516,7 @@ function refreshCollapseLabels(hr) {
   if (collapse && collapse !== "disabled") {
     syncCollapseLabel(
       singletonMenu.querySelector('[data-role="collapse"]'),
-      hr.classList.contains("hr-collapsed"),
+      isFolded(hr),
       { collapse: ["Collapse", "collapse", "#hr-icon-collapse"],
         expand: ["Expand", "expand", "#hr-icon-expand"] },
     );
@@ -608,14 +609,34 @@ function updateHeight(entries) {
 };
 
 
+// The author block's handrail does not fold its content: its chevron switches
+// the block between closed and open (authors.js), and braiid.css turns the
+// chevron to show the state.
+function isFolded(hr) {
+  const authors = authorBlockOf(hr);
+  if (authors) return !authorsOpen(authors);
+  return hr.classList.contains("hr-collapsed");
+}
+
+function setAuthorsState(hr, open) {
+  const authors = authorBlockOf(hr);
+  if (!authors) return false;
+  setAuthorsOpen(authors, open);
+  notifyHandrailToggle(hr, !open);
+  syncCollapseButton(hr);
+  return true;
+}
+
+
 export function toggleHandrail(target) {
   const hr = target.closest ? target.closest(".hr") : target;
-  if (hr.classList.contains("hr-collapsed")) { openHandrail(hr) }
+  if (isFolded(hr)) { openHandrail(hr) }
   else { closeHandrail(hr) };
 };
 
 
 export function openHandrail(hr) {
+  if (setAuthorsState(hr, true)) return;
   hr.classList.remove("hr-collapsed");
   const rest = getRest(hr);
   rest.forEach(el => { el.classList.remove("hide"); });
@@ -631,6 +652,7 @@ export function openHandrail(hr) {
 
 
 export function closeHandrail(hr) {
+  if (setAuthorsState(hr, false)) return;
   hr.classList.add("hr-collapsed");
   const rest = getRest(hr);
   rest.forEach(el => { el.classList.add("hide"); });
@@ -655,7 +677,7 @@ export function closeHandrail(hr) {
 function syncCollapseButton(hr) {
   const btn = hr.querySelector(":scope > .hr-collapse-zone > .hr-collapse");
   if (!btn || btn.tagName !== "BUTTON") return;
-  const collapsed = hr.classList.contains("hr-collapsed");
+  const collapsed = isFolded(hr);
   const name = (hr.getAttribute("data-menu-label") || "").trim() || "this block";
   btn.setAttribute("aria-expanded", collapsed ? "false" : "true");
   // The fold label is drawn by CSS, which screen readers may skip, so a folded
@@ -778,7 +800,7 @@ export function restoreCollapse(root) {
     const key = collapseKey(hr);
     if (key == null || !(key in state)) continue;
     const wantCollapsed = state[key];
-    const isCollapsed = hr.classList.contains("hr-collapsed");
+    const isCollapsed = isFolded(hr);
     if (wantCollapsed && !isCollapsed) closeHandrail(hr);
     else if (!wantCollapsed && isCollapsed) openHandrail(hr);
   }

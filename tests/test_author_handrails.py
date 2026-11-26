@@ -52,13 +52,13 @@ def test_single_author_with_handrails():
 
         <div class="hr-content-zone">
 
-        <p class="author-names"><span class="author-name">Alice</span></p>
-        <details class="author-details">
-        <summary><span class="author-count">1 affiliation</span><div class="icon chevron-down"><svg overflow="visible"><use href="#hr-icon-chevron-down" width="100%" height="100%"/></svg></div></summary>
+        <p class="author-names"><span class="author-name"><span class="author-name-text" data-affiliation="MIT">Alice</span></span></p>
+        <button type="button" class="author-summary" aria-expanded="false" hidden>1 affiliation</button>
+        <div class="author-details">
         <ol class="author-affiliations">
         <li>MIT</li>
         </ol>
-        </details>
+        </div>
 
         </div>
 
@@ -153,9 +153,9 @@ def test_six_authors_with_handrails():
 
         <div class="hr-content-zone">
 
-        <p class="author-names"><span class="author-name">Author 1<sup data-tooltip="MIT">1</sup></span>, <span class="author-name">Author 2<sup data-tooltip="Harvard">2</sup></span>, <span class="author-name">Author 3<sup data-tooltip="Stanford">3</sup></span>, <span class="author-name">Author 4<sup data-tooltip="Berkeley">4</sup></span>, <span class="author-name">Author 5<sup data-tooltip="Yale">5</sup></span>, <span class="author-name">Author 6<sup data-tooltip="Princeton">6</sup></span></p>
-        <details class="author-details">
-        <summary><span class="author-count">6 affiliations</span><div class="icon chevron-down"><svg overflow="visible"><use href="#hr-icon-chevron-down" width="100%" height="100%"/></svg></div></summary>
+        <p class="author-names"><span class="author-name"><span class="author-name-text" data-affiliation="MIT">Author 1</span><sup data-tooltip="MIT">1</sup></span>, <span class="author-name"><span class="author-name-text" data-affiliation="Harvard">Author 2</span><sup data-tooltip="Harvard">2</sup></span>, <span class="author-name"><span class="author-name-text" data-affiliation="Stanford">Author 3</span><sup data-tooltip="Stanford">3</sup></span>, <span class="author-name"><span class="author-name-text" data-affiliation="Berkeley">Author 4</span><sup data-tooltip="Berkeley">4</sup></span>, <span class="author-name"><span class="author-name-text" data-affiliation="Yale">Author 5</span><sup data-tooltip="Yale">5</sup></span>, <span class="author-name"><span class="author-name-text" data-affiliation="Princeton">Author 6</span><sup data-tooltip="Princeton">6</sup></span></p>
+        <button type="button" class="author-summary" aria-expanded="false" hidden>6 affiliations</button>
+        <div class="author-details">
         <ol class="author-affiliations">
         <li value="1"><sup>1</sup>MIT</li>
         <li value="2"><sup>2</sup>Harvard</li>
@@ -164,7 +164,7 @@ def test_six_authors_with_handrails():
         <li value="5"><sup>5</sup>Yale</li>
         <li value="6"><sup>6</sup>Princeton</li>
         </ol>
-        </details>
+        </div>
 
         </div>
 

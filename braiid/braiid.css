@@ -3106,9 +3106,23 @@ html:not(.touch) {
 .manuscriptwrapper .author-name {
   white-space: nowrap; }
 
-/* authors.js adds is-shortened. Without the script every name shows. */
-.manuscriptwrapper .author-names.is-shortened .author-hidden-names {
+/* authors.js sets data-authors to closed or open. Without the script the
+   attribute is never set, so every name and all the details show, and the
+   controls keep their hidden attribute. */
+.manuscriptwrapper .author-block[data-authors="closed"] .author-hidden-names,
+.manuscriptwrapper .author-block[data-authors="closed"] .author-details {
   display: none; }
+
+.manuscriptwrapper .author-block[data-authors="closed"] .author-more,
+.manuscriptwrapper .author-block[data-authors="open"] .author-fewer {
+  display: inline; }
+
+.manuscriptwrapper .author-block[data-authors="closed"] .author-summary {
+  display: inline-block; }
+
+/* The chevron points right when closed and down when open. */
+.manuscriptwrapper .author-block[data-authors="open"] > .hr > .hr-collapse-zone .hr-collapse .icon {
+  transform: rotate(90deg); }
 
 .manuscriptwrapper .author-more-button {
   font: inherit;
@@ -3149,37 +3163,28 @@ html:not(.touch) {
 .manuscriptwrapper .author-details {
   margin-top: var(--chunk-twelfth); }
 
-.manuscriptwrapper .author-details summary {
-  font-size: 0.875rem;
+.manuscriptwrapper .author-summary {
+  font-family: inherit;
   font-weight: var(--weight-regular);
+  font-size: 0.84rem;
+  line-height: var(--body-line-height);
   color: var(--text-subtle);
-  cursor: pointer;
-  list-style: none;
-  display: inline-flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--chunk-sixth); }
-
-.manuscriptwrapper .author-count {
-  font-size: 0.75rem;
-  padding: var(--chunk-twelfth) var(--chunk-sixth);
-  border-radius: 999px;
   background: var(--surface-hover);
-  color: var(--text-subtle); }
+  border: 0;
+  border-radius: 999px;
+  padding: 0.15em 0.7em;
+  margin: 0.4em 0 0 0;
+  cursor: pointer; }
 
-.manuscriptwrapper .author-details summary::marker,
-.manuscriptwrapper .author-details summary::-webkit-details-marker {
-  display: none; }
-
-.manuscriptwrapper .author-details summary .icon {
-  display: inline-flex;
-  transition: transform 0.15s ease; }
-
-.manuscriptwrapper .author-details[open] summary .icon {
-  transform: rotate(180deg); }
-
-.manuscriptwrapper .author-details summary:hover {
+.manuscriptwrapper .author-summary:hover {
   color: var(--text-body); }
+
+.manuscriptwrapper .author-summary:focus-visible {
+  outline: var(--border-thin) solid var(--border-action);
+  outline-offset: 1px; }
+
+.manuscriptwrapper .author-tip p {
+  margin: 0; }
 
 .manuscriptwrapper .author-affiliations {
   list-style: none;

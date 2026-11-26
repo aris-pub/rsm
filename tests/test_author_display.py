@@ -1,7 +1,7 @@
 """:author-display-first: and :author-display-last: shorten the author list.
 
 Every name stays in the HTML. The names between the first and the last ones
-are wrapped so that the page script can hide them behind a "N more" button.
+are wrapped so that the page script can hide them behind a "N more" pill.
 """
 
 import logging
@@ -45,6 +45,11 @@ def _visible_text(p):
     return p.get_text()
 
 
+def _remove_pills(p):
+    for pill in p.select(".author-more, .author-fewer"):
+        pill.decompose()
+
+
 def _assert_full_list(p, names=NAMES):
     assert p.select_one(".author-more") is None
     assert p.select_one(".author-hidden-names") is None
@@ -65,9 +70,9 @@ def test_both_keys_shorten_the_list():
     )
 
 
-def test_full_list_text_without_the_button():
+def test_full_list_text_without_the_pills():
     p = _names_p("  :author-display-first: 3\n  :author-display-last: 2\n")
-    p.select_one(".author-more").decompose()
+    _remove_pills(p)
     assert p.get_text() == ", ".join(NAMES)
 
 
@@ -86,7 +91,7 @@ def test_last_alone_counts_first_as_zero():
     p = _names_p("  :author-display-last: 2\n")
     assert p.select_one(".author-more button").get_text() == "6 more"
     assert _visible_text(p) == "6 more, Gil Moreau, Hana Sato"
-    p.select_one(".author-more").decompose()
+    _remove_pills(p)
     assert p.get_text() == ", ".join(NAMES)
 
 
@@ -151,4 +156,4 @@ def test_affiliation_superscripts_stay_with_the_names():
     p = soup.select_one("p.author-names")
     sups = [s.select_one("sup").get_text() for s in p.select(".author-name")]
     assert sups == ["1", "2"] * 4
-    assert soup.select_one(".author-count").get_text() == "2 affiliations"
+    assert soup.select_one(".author-summary").get_text() == "2 affiliations"

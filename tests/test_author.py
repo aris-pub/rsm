@@ -34,14 +34,14 @@ def test_simple():
         <p class="manuscript-date">March 29, 2022</p>
 
         <div class="author-block">
-        <p class="author-names"><span class="author-name">Leo Torres<a class="author-contact" href="mailto:leo@leotrs.com" aria-label="Email Leo Torres"><span class="icon mail" aria-hidden="true"><svg overflow="visible"><use href="#hr-icon-mail" width="100%" height="100%"/></svg></span></a></span></p>
-        <details class="author-details">
-        <summary><span class="author-count">1 affiliation</span><span class="author-count">1 email</span><div class="icon chevron-down"><svg overflow="visible"><use href="#hr-icon-chevron-down" width="100%" height="100%"/></svg></div></summary>
+        <p class="author-names"><span class="author-name"><span class="author-name-text" data-affiliation="Max Planck Institute for Mathematics in the Sciences">Leo Torres</span><a class="author-contact" href="mailto:leo@leotrs.com" aria-label="Email Leo Torres"><span class="icon mail" aria-hidden="true"><svg overflow="visible"><use href="#hr-icon-mail" width="100%" height="100%"/></svg></span></a></span></p>
+        <button type="button" class="author-summary" aria-expanded="false" hidden>1 affiliation<span aria-hidden="true"> · </span>1 email</button>
+        <div class="author-details">
         <ol class="author-affiliations">
         <li>Max Planck Institute for Mathematics in the Sciences</li>
         </ol>
         <p class="author-correspondence">Correspondence: <a href="mailto:leo@leotrs.com">leo@leotrs.com</a></p>
-        </details>
+        </div>
         </div>
 
         </section>
@@ -125,14 +125,14 @@ def test_author_with_orcid():
         <h1>My Title</h1>
 
         <div class="author-block">
-        <p class="author-names"><span class="author-name">Leo Torres<a class="author-contact" href="https://orcid.org/0000-0001-2345-6789" aria-label="ORCID record of Leo Torres"><span class="icon orcid" aria-hidden="true"><svg overflow="visible"><use href="#hr-icon-orcid" width="100%" height="100%"/></svg></span></a></span></p>
-        <details class="author-details">
-        <summary><span class="author-count">1 affiliation</span><span class="author-count">1 ORCID</span><div class="icon chevron-down"><svg overflow="visible"><use href="#hr-icon-chevron-down" width="100%" height="100%"/></svg></div></summary>
+        <p class="author-names"><span class="author-name"><span class="author-name-text" data-affiliation="Some University">Leo Torres</span><a class="author-contact" href="https://orcid.org/0000-0001-2345-6789" aria-label="ORCID record of Leo Torres"><span class="icon orcid" aria-hidden="true"><svg overflow="visible"><use href="#hr-icon-orcid" width="100%" height="100%"/></svg></span></a></span></p>
+        <button type="button" class="author-summary" aria-expanded="false" hidden>1 affiliation<span aria-hidden="true"> · </span>1 ORCID</button>
+        <div class="author-details">
         <ol class="author-affiliations">
         <li>Some University</li>
         </ol>
         <p class="author-orcid">Leo Torres: <span class="hyphenated">0000-0001-2345-6789</span></p>
-        </details>
+        </div>
         </div>
 
         </section>
@@ -169,11 +169,11 @@ def test_author_with_note():
         <h1>My Title</h1>
 
         <div class="author-block">
-        <p class="author-names"><span class="author-name">Leo Torres</span></p>
-        <details class="author-details">
-        <summary><span class="author-count">1 note</span><div class="icon chevron-down"><svg overflow="visible"><use href="#hr-icon-chevron-down" width="100%" height="100%"/></svg></div></summary>
+        <p class="author-names"><span class="author-name"><span class="author-name-text" data-note="Equal contribution">Leo Torres</span></span></p>
+        <button type="button" class="author-summary" aria-expanded="false" hidden>1 note</button>
+        <div class="author-details">
         <p class="author-note">Equal contribution</p>
-        </details>
+        </div>
         </div>
 
         </section>
@@ -212,13 +212,13 @@ def test_author_multiline_affiliation():
         <h1>My Title</h1>
 
         <div class="author-block">
-        <p class="author-names"><span class="author-name">Leo Torres</span></p>
-        <details class="author-details">
-        <summary><span class="author-count">1 affiliation</span><div class="icon chevron-down"><svg overflow="visible"><use href="#hr-icon-chevron-down" width="100%" height="100%"/></svg></div></summary>
+        <p class="author-names"><span class="author-name"><span class="author-name-text" data-affiliation="Department of Mathematics University of Somewhere Building 123">Leo Torres</span></span></p>
+        <button type="button" class="author-summary" aria-expanded="false" hidden>1 affiliation</button>
+        <div class="author-details">
         <ol class="author-affiliations">
         <li>Department of Mathematics University of Somewhere Building 123</li>
         </ol>
-        </details>
+        </div>
         </div>
 
         </section>

@@ -1650,6 +1650,23 @@ var RSM = (() => {
         setTooltipContent(instance, text);
       }
     });
+    const $authorNames = $(
+      ".manuscriptwrapper .author-name-text:is([data-affiliation], [data-note]):not(.tooltipstered)"
+    );
+    $authorNames.tooltipster({
+      ...PREVIEW_OPTIONS,
+      interactive: false,
+      functionInit: function(instance, helper) {
+        const tip = $('<div class="author-tip"></div>');
+        for (const key of ["affiliation", "note"]) {
+          const text = helper.origin.getAttribute(`data-${key}`);
+          if (text) tip.append($("<p></p>").text(text));
+        }
+        instance.content($('<div class="manuscriptwrapper"></div>').append(tip));
+      },
+      functionReady: void 0
+    });
+    $authorNames.each((_, el) => tapToPreview(el));
     $(".proof-rail a.toc-node:not(.tooltipstered), .manuscriptwrapper a.toc-node:not(.tooltipstered)").tooltipster({
       theme: ["tooltipster-shadow", "tooltipster-shadow-rsm"],
       delay: 200,
@@ -1717,6 +1734,51 @@ var RSM = (() => {
     tt.content($content);
   }
 
+  // rsm/static/authors.js
+  var BLOCK = ".author-block";
+  function hasTwoStates(block) {
+    return !!block.querySelector(".author-hidden-names, .author-details");
+  }
+  function setup5(root2) {
+    for (const block of (root2 || document).querySelectorAll(BLOCK)) {
+      if (block.hasAttribute("data-authors") || !hasTwoStates(block)) continue;
+      block.setAttribute("data-authors", "closed");
+    }
+    setupClicks();
+  }
+  function handrailOf2(block) {
+    return block.querySelector(":scope > .hr");
+  }
+  function authorBlockOf(hr) {
+    const block = hr.parentElement;
+    return block && block.matches(`${BLOCK}[data-authors]`) ? block : null;
+  }
+  function isOpen(block) {
+    return block.getAttribute("data-authors") === "open";
+  }
+  function setOpen(block, open) {
+    block.setAttribute("data-authors", open ? "open" : "closed");
+  }
+  function toggle2(block) {
+    const hr = handrailOf2(block);
+    const open = !isOpen(block);
+    if (hr) (open ? openHandrail : closeHandrail)(hr);
+    else setOpen(block, open);
+  }
+  var clicksAttached = false;
+  function setupClicks() {
+    if (clicksAttached) return;
+    clicksAttached = true;
+    document.addEventListener("click", (ev) => {
+      const control = ev.target.closest(
+        `${BLOCK} .author-more-button, ${BLOCK} .author-summary`
+      );
+      if (!control) return;
+      const block = control.closest(`${BLOCK}[data-authors]`);
+      if (block) toggle2(block);
+    });
+  }
+
   // rsm/static/handrails.js
   var PINNABLE = [
     "paragraph",
@@ -1753,7 +1815,7 @@ var RSM = (() => {
   var singletonMenu = null;
   var activeHr = null;
   var delegationAttached = false;
-  function setup5() {
+  function setup6() {
     if (delegationAttached) return;
     delegationAttached = true;
     document.addEventListener("click", function(ev) {
@@ -2050,7 +2112,7 @@ var RSM = (() => {
     if (collapse && collapse !== "disabled") {
       syncCollapseLabel(
         singletonMenu.querySelector('[data-role="collapse"]'),
-        hr.classList.contains("hr-collapsed"),
+        isFolded(hr),
         {
           collapse: ["Collapse", "collapse", "#hr-icon-collapse"],
           expand: ["Expand", "expand", "#hr-icon-expand"]
@@ -2120,9 +2182,22 @@ var RSM = (() => {
       });
     }
   }
+  function isFolded(hr) {
+    const authors = authorBlockOf(hr);
+    if (authors) return !isOpen(authors);
+    return hr.classList.contains("hr-collapsed");
+  }
+  function setAuthorsState(hr, open) {
+    const authors = authorBlockOf(hr);
+    if (!authors) return false;
+    setOpen(authors, open);
+    notifyHandrailToggle(hr, !open);
+    syncCollapseButton(hr);
+    return true;
+  }
   function toggleHandrail(target) {
     const hr = target.closest ? target.closest(".hr") : target;
-    if (hr.classList.contains("hr-collapsed")) {
+    if (isFolded(hr)) {
       openHandrail(hr);
     } else {
       closeHandrail(hr);
@@ -2130,6 +2205,7 @@ var RSM = (() => {
     ;
   }
   function openHandrail(hr) {
+    if (setAuthorsState(hr, true)) return;
     hr.classList.remove("hr-collapsed");
     const rest = getRest(hr);
     rest.forEach((el) => {
@@ -2145,6 +2221,7 @@ var RSM = (() => {
     if (use) use.setAttribute("href", "#hr-icon-collapse");
   }
   function closeHandrail(hr) {
+    if (setAuthorsState(hr, false)) return;
     hr.classList.add("hr-collapsed");
     const rest = getRest(hr);
     rest.forEach((el) => {
@@ -2162,7 +2239,7 @@ var RSM = (() => {
   function syncCollapseButton(hr) {
     const btn = hr.querySelector(":scope > .hr-collapse-zone > .hr-collapse");
     if (!btn || btn.tagName !== "BUTTON") return;
-    const collapsed = hr.classList.contains("hr-collapsed");
+    const collapsed = isFolded(hr);
     const name = (hr.getAttribute("data-menu-label") || "").trim() || "this block";
     btn.setAttribute("aria-expanded", collapsed ? "false" : "true");
     const fold = hr.querySelector(
@@ -2233,7 +2310,7 @@ var RSM = (() => {
       const key = collapseKey(hr);
       if (key == null || !(key in state)) continue;
       const wantCollapsed = state[key];
-      const isCollapsed = hr.classList.contains("hr-collapsed");
+      const isCollapsed = isFolded(hr);
       if (wantCollapsed && !isCollapsed) closeHandrail(hr);
       else if (!wantCollapsed && isCollapsed) openHandrail(hr);
     }
@@ -2477,7 +2554,7 @@ var RSM = (() => {
   function refresh(root2 = document) {
     root2.querySelectorAll(ZONES).forEach(update);
   }
-  async function setup6(root2 = document) {
+  async function setup7(root2 = document) {
     if (!observer && typeof ResizeObserver !== "undefined") {
       observer = new ResizeObserver((entries) => entries.forEach((e) => update(e.target)));
     }
@@ -2503,7 +2580,7 @@ var RSM = (() => {
 
   // rsm/static/keyboard.js
   var MATH_SCROLL_STEP = 40;
-  function setup7(root2) {
+  function setup8(root2) {
     function ignore(event) {
       if (event.metaKey || event.ctrlKey || event.altKey) return true;
       const t = event.target;
@@ -2955,7 +3032,7 @@ var RSM = (() => {
     new ResizeObserver(() => {
       html.style.setProperty("--rail-sheet-h", rail.offsetHeight + "px");
     }).observe(rail);
-    function setOpen(on, { persist = true } = {}) {
+    function setOpen2(on, { persist = true } = {}) {
       const anchor = !isPhone() && on !== open ? anchorTop() : null;
       open = on;
       html.classList.toggle("rail-open", on);
@@ -2975,15 +3052,15 @@ var RSM = (() => {
       paintStrip();
       requestAnimationFrame(fitGraphs);
     }
-    function openView(id, { toggle: toggle2 = true, persist = true } = {}) {
+    function openView(id, { toggle: toggle3 = true, persist = true } = {}) {
       id = translate(id);
       if (!VIEWS[id] || !has(id)) return;
-      if (toggle2 && open && id === view) {
-        setOpen(false);
+      if (toggle3 && open && id === view) {
+        setOpen2(false);
         return;
       }
       select(id);
-      setOpen(true, { persist });
+      setOpen2(true, { persist });
       if (isPhone()) rail.scrollTop = 0;
     }
     strip.addEventListener("click", (ev) => {
@@ -2995,7 +3072,7 @@ var RSM = (() => {
       if (ev.key !== "Escape" || !open || ev.defaultPrevented) return;
       if (document.querySelector(".hr-menu-open, .proof-rail.focusing")) return;
       const inside = rail.contains(document.activeElement);
-      setOpen(false);
+      setOpen2(false);
       if (inside) strip.querySelector(`.rail-strip-btn[data-view="${view}"]`)?.focus();
     });
     rail.addEventListener("rail:subview", () => {
@@ -3013,7 +3090,7 @@ var RSM = (() => {
       else select(id);
     });
     document.addEventListener("rail:unpin", (ev) => {
-      if (open && !(ev.detail && ev.detail.remaining > 0)) setOpen(false, { persist: false });
+      if (open && !(ev.detail && ev.detail.remaining > 0)) setOpen2(false, { persist: false });
     });
     document.addEventListener("rail:pin", (ev) => {
       const persist = !(ev.detail && ev.detail.transient);
@@ -3022,7 +3099,7 @@ var RSM = (() => {
     function arrange() {
       html.classList.toggle("rail-phone", isPhone());
       view = translate(view);
-      if (isPhone() && open) setOpen(false, { persist: false });
+      if (isPhone() && open) setOpen2(false, { persist: false });
       layout();
       paintHead();
       paintStrip();
@@ -3039,11 +3116,11 @@ var RSM = (() => {
     requestAnimationFrame(
       () => requestAnimationFrame(() => html.classList.add("rail-ready"))
     );
-    return { open: (id) => openView(id, { toggle: false }), close: () => setOpen(false) };
+    return { open: (id) => openView(id, { toggle: false }), close: () => setOpen2(false) };
   }
 
   // rsm/static/prooftree.js
-  function setup8(root2 = document) {
+  function setup9(root2 = document) {
     const rail = root2.querySelector(".proof-rail");
     if (!rail) return;
     const lsKey = "rsm-sidebar:" + location.pathname;
@@ -3487,15 +3564,15 @@ var RSM = (() => {
         clone.querySelectorAll(".hr-label, .construct.let, .construct.assume").forEach((n) => n.remove());
         text.appendChild(clone);
         preview.appendChild(text);
-        const toggle2 = document.createElement("button");
-        toggle2.type = "button";
-        toggle2.className = "rail-goal-toggle";
-        toggle2.textContent = "show more";
-        toggle2.addEventListener("click", () => {
+        const toggle3 = document.createElement("button");
+        toggle3.type = "button";
+        toggle3.className = "rail-goal-toggle";
+        toggle3.textContent = "show more";
+        toggle3.addEventListener("click", () => {
           const clamped = text.classList.toggle("clamped");
-          toggle2.textContent = clamped ? "show more" : "show less";
+          toggle3.textContent = clamped ? "show more" : "show less";
         });
-        preview.appendChild(toggle2);
+        preview.appendChild(toggle3);
         summary.appendChild(preview);
         goalB.body.appendChild(summary);
       } else if (goalEl) {
@@ -3569,7 +3646,7 @@ var RSM = (() => {
 
   // rsm/static/focusmode.js
   var focusEnabled = () => document.documentElement.getAttribute("data-focus-mode") === "on";
-  function setup9(root2 = document) {
+  function setup10(root2 = document) {
     const rail = root2.querySelector(".proof-rail");
     if (!rail) return;
     let active = null;
@@ -3855,7 +3932,7 @@ var RSM = (() => {
       liveRegion.textContent = msg;
     });
   }
-  function setup10(root2 = document) {
+  function setup11(root2 = document) {
     root2.addEventListener("reorder:toggle", (ev) => {
       const proof = ev.target.closest && ev.target.closest(".proof.hr");
       if (!proof) return;
@@ -4269,7 +4346,7 @@ var RSM = (() => {
     shared = { state };
     if (state && state.v === SCHEMA) restoreNotation(state);
   }
-  function setup11(root2 = document) {
+  function setup12(root2 = document) {
     if (!window.__shareviewWired) {
       window.__shareviewWired = true;
       document.addEventListener("click", (ev) => {
@@ -4300,7 +4377,7 @@ var RSM = (() => {
     ".tooltipster-content .ref-pin[data-tip]"
   ].join(", ");
   var wired = false;
-  function setup12() {
+  function setup13() {
     if (wired) return;
     if (!document.querySelector(".rail-strip, .proof-rail")) return;
     wired = true;
@@ -4392,7 +4469,7 @@ var RSM = (() => {
   var READING_KEY = "rsm-reading";
   var mm = null;
   var switchObserver = null;
-  function setup13(root2 = document) {
+  function setup14(root2 = document) {
     if (root2 !== document) return;
     if (!document.body || document.body.getAttribute("data-minimap") === "false") return;
     if (!document.querySelector("main.manuscriptwrapper")) return;
@@ -4823,7 +4900,7 @@ var RSM = (() => {
   // rsm/static/captions.js
   var CAPTIONS = ".manuscript :is(figure, .table-wrapper) > figcaption.hr";
   var listening2 = false;
-  function setup14(root2 = document) {
+  function setup15(root2 = document) {
     for (const cap of root2.querySelectorAll(CAPTIONS)) {
       cap.classList.add("rsm-cap-linked");
       addMarginItem(cap.parentElement, cap);
@@ -4850,19 +4927,6 @@ var RSM = (() => {
       cap.style.setProperty("--cap-rail-x", x - box.left + "px");
       cap.style.setProperty("--cap-rail-y", block.top - box.top + "px");
       cap.style.setProperty("--cap-rail-h", block.height + "px");
-    }
-  }
-
-  // rsm/static/authors.js
-  function setup15(root2) {
-    for (const more of (root2 || document).querySelectorAll(".author-names > .author-more[hidden]")) {
-      const names = more.parentElement;
-      names.classList.add("is-shortened");
-      more.hidden = false;
-      more.querySelector("button").addEventListener("click", () => {
-        names.classList.remove("is-shortened");
-        more.remove();
-      });
     }
   }
 
@@ -4898,7 +4962,12 @@ var RSM = (() => {
         console.error("Loading pseudocode FAILED!", err);
       }
       try {
-        setup5();
+        setup5(root2);
+      } catch (err) {
+        console.error("Setting up authors.js FAILED!", err);
+      }
+      try {
+        setup6();
         initCollapseButtons(root2);
         collapseInitial(root2);
         restoreCollapse(root2);
@@ -4911,17 +4980,17 @@ var RSM = (() => {
         console.error("Loading tocarcs.js FAILED!", err);
       }
       try {
-        setup8(root2);
+        setup9(root2);
       } catch (err) {
         console.error("Loading prooftree.js FAILED!", err);
       }
       try {
-        setup9(root2);
+        setup10(root2);
       } catch (err) {
         console.error("Loading focusmode.js FAILED!", err);
       }
       try {
-        setup10(root2);
+        setup11(root2);
       } catch (err) {
         console.error("Loading reorder.js FAILED!", err);
       }
@@ -4937,7 +5006,7 @@ var RSM = (() => {
       }
       try {
         if (keys) {
-          setup7(root2);
+          setup8(root2);
         }
       } catch (err) {
         console.error("Loading keyboard.js FAILED!", err);
@@ -4980,18 +5049,18 @@ var RSM = (() => {
         console.error("Announcing changed notation FAILED!", err);
       }
       try {
-        setup12();
+        setup13();
       } catch (err) {
         console.error("Loading interface tooltips FAILED!", err);
       }
       try {
-        setup11(root2);
+        setup12(root2);
       } catch (err) {
         console.error("Loading shareview.js FAILED!", err);
       }
       window.__rsmPlace = placeReaderEarly;
       try {
-        setup13(root2);
+        setup14(root2);
       } catch (err) {
         console.error("Loading minimap.js FAILED!", err);
       }
@@ -5106,17 +5175,12 @@ var RSM = (() => {
         console.error("Re-observing offset handrails FAILED!", err);
       }
       try {
-        setup6(root2).catch((err) => console.error("Setting up mathscroll.js FAILED!", err));
+        setup7(root2).catch((err) => console.error("Setting up mathscroll.js FAILED!", err));
       } catch (err) {
         console.error("Setting up mathscroll.js FAILED!", err);
       }
       try {
         setup15(root2);
-      } catch (err) {
-        console.error("Setting up authors.js FAILED!", err);
-      }
-      try {
-        setup14(root2);
       } catch (err) {
         console.error("Placing captions FAILED!", err);
       }

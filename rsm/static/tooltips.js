@@ -480,6 +480,27 @@ export function createTooltips() {
     },
   });
 
+  // An author's name shows that author's affiliation and note. Touch opens it
+  // through tapToPreview, as for references.
+  const $authorNames = $(
+    ".manuscriptwrapper .author-name-text:is([data-affiliation], [data-note]):not(.tooltipstered)"
+  );
+  $authorNames.tooltipster({
+    ...PREVIEW_OPTIONS,
+    interactive: false,
+    functionInit: function (instance, helper) {
+      const tip = $('<div class="author-tip"></div>');
+      for (const key of ["affiliation", "note"]) {
+        const text = helper.origin.getAttribute(`data-${key}`);
+        if (text) tip.append($("<p></p>").text(text));
+      }
+      // .manuscriptwrapper so that the page's CSS applies inside the tooltip.
+      instance.content($('<div class="manuscriptwrapper"></div>').append(tip));
+    },
+    functionReady: undefined,
+  });
+  $authorNames.each((_, el) => tapToPreview(el));
+
   // DAG nodes: show the link target's rendered excerpt (math and all), the same
   // way reference tooltips do, so the graph is not the odd one out. Falls back to
   // the plain-text statement in data-tooltip when the target cannot be excerpted.
