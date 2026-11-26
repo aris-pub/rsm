@@ -1,123 +1,90 @@
 .. _multi-author-guide:
+.. _guide-front-matter:
 
-Writing Multi-Author Papers
-============================
+Authors and front matter
+========================
 
-This guide covers setting up multiple authors with affiliations, notes, and
-ORCID identifiers.
+The front matter of an RSM document is its title, its authors and its
+abstract. RSM lays them out at the top of the page, numbers the affiliations,
+and folds the details that a reader rarely needs under one line.
 
-
-Multiple authors
-----------------
-
-Add one ``:author:`` block per author:
-
-.. rsm::
-
-   # Collaborative Research
-
-   :author: {
-     :name: Alice Smith
-     :affiliation: Example University
-   } ::
-
-   :author: {
-     :name: Bob Jones
-     :affiliation: Example University
-   } ::
-
-   ## Introduction
-   Our joint work shows that...
-
-Authors sharing the same affiliation text are grouped automatically with a
-shared superscript number.
+This page builds the front matter of one short document. The tags are listed
+in :ref:`ref-front-matter`.
 
 
-Different affiliations
+The whole front matter
 ----------------------
 
 .. rsm::
 
-   # Cross-Institution Study
-
-   :author: {
-     :name: Alice Smith
-     :affiliation: Example University
-   } ::
-
-   :author: {
-     :name: Carlos Garcia
-     :affiliation: Other Institute
-   } ::
-
-   ## Introduction
-   Combining perspectives from both
-   institutions...
-
-
-Author notes
-------------
-
-Use ``:author-note:`` to add equal contribution markers, corresponding author
-designations, or other annotations:
-
-.. rsm::
-
-   # Noted Authors
-
-   :author: {
-     :name: Alice Smith
-     :affiliation: Example University
-     :author-note: Equal contribution
-   } ::
-
-   :author: {
-     :name: Bob Jones
-     :affiliation: Example University
-     :author-note: Equal contribution
-   } ::
-
-   ## Introduction
-   This is a joint work.
-
-When the authors have more than one note, each note gets a symbol after the
-author name. The note text is in the author details (see
-:ref:`multi-author-reader`).
-
-
-ORCID identifiers
-------------------
-
-Add an ORCID iD to link to the author's ORCID profile:
-
-.. rsm::
-
-   # With ORCID
-
-   :author: {
-     :name: Alice Smith
-     :affiliation: Example University
-     :orcid: 0000-0001-2345-6789
-   } ::
-
-   ## Introduction
-   Research with verified identity.
-
-
-Large author lists
-------------------
-
-By default the page lists every author. To shorten a long list, set
-``:author-display-first:`` and ``:author-display-last:`` in the ``:config:``
-block. The page then shows the first and last authors and, between them, a
-button that reads "3 more" (the number of authors not shown). A click on the
-button opens the author block: it shows every author, with a "Show fewer"
-button where the hidden authors end, and the author details. A click on "Show
-fewer" closes the block again.
-
-.. rsm::
-
    # Graphs without triangles
+
+   :author: {
+     :name: Ada Lovelace
+     :affiliation: University of London
+     :email: ada@example.org
+     :orcid: 0000-0002-1825-0097
+     :author-note: Equal contribution
+   } ::
+
+   :author: {
+     :name: Bo Chen
+     :affiliation: ETH Zurich
+     :author-note: Equal contribution
+   } ::
+
+   :author: {
+     :name: Cy Diaz
+     :affiliation: University of London
+   } ::
+
+   :abstract: {:keywords: graphs, triangles, extremal, :msc: 05C35}
+   We give a short proof of Mantel's theorem.
+   ::
+
+   ## Results
+
+   A graph on $n$ vertices with no triangle has at most $n^2/4$ edges.
+
+The rest of this page goes through the parts of this front matter.
+
+
+The title
+---------
+
+The first line that starts with ``#`` and a space is the title of the
+document. Only blank lines, comments and a ``:config:`` block may come before
+it.
+
+
+Add the authors
+---------------
+
+Write one ``:author:`` block for each author, after the title, in the order
+in which the names should appear. All the information goes in the meta keys,
+so each block ends with ``::`` right after the closing brace.
+
+- ``:name:`` is the name, as it should be printed.
+- ``:affiliation:`` is the institution. Authors with the same affiliation text
+  share one number, so write it the same way each time.
+- ``:email:`` adds a mail icon next to the name, and a "Correspondence" line
+  with the address under the authors.
+- ``:orcid:`` adds an ORCID icon next to the name, linked to the author's
+  ORCID record.
+- ``:author-note:`` adds a note, such as "Equal contribution". The notes are
+  listed under the authors, once each.
+
+
+Shorten a long list of authors
+------------------------------
+
+By default the page lists every author. To show only the first and the last
+few, set ``:author-display-first:`` and ``:author-display-last:`` in the
+``:config:`` block:
+
+.. rsm::
+
+   # A large collaboration
 
    :config: {
      :author-display-first: 2
@@ -137,41 +104,38 @@ fewer" closes the block again.
 
    :author: {:name: Fay Okafor} ::
 
+The page shows the first two names, a "3 more" button, and the last name.
 When only one of the two keys is given, the other one is 0. When the two
-numbers add up to the number of authors or more, the page shows every author.
-Readers without JavaScript always see every author.
+numbers add up to the number of authors or more, every author is shown.
 
-.. _multi-author-reader:
+
+Add the abstract
+----------------
+
+The ``:abstract:`` block comes after the authors. It is headed "Abstract", and
+its ``:keywords:`` and ``:msc:`` (Mathematics Subject Classification codes)
+are listed under its text, each separated by commas.
+
 
 What the reader can do
 ----------------------
 
-In the built page, the author block is closed when the reader first opens the
-page. The page remembers whether the reader left the block open or closed, so
-the block is the same after a reload. Closed, it
-shows the names (only the first and last ones when the list is shortened) and,
-at the foot of the rail, a line that counts the affiliations, emails, ORCID iDs and
-notes, such as "4 affiliations · 1 email · 1 ORCID · 1 note".
+The author block has two states, closed and open. It is closed when the
+reader first opens the page, and the page remembers the reader's choice.
 
-- A click on the label, on the "3 more" button, or on the arrow to the left of
-  the block opens the block. Open, it shows every name and the details: the
-  numbered affiliations, the notes, the correspondence address and the ORCID
-  iDs.
-- A click on the arrow, or on the "Show fewer" button, closes the block. The
-  arrow turns as on any other folded block. On a
-  touch screen the arrow is not shown, and the block's menu has an Expand or
-  Collapse item instead. A block that has nothing to open (every author is
-  shown and there are no affiliations, emails, ORCID iDs or notes) has no
-  arrow.
+- Closed, the block shows the names (only the first and last ones when the
+  list is shortened) and, at the foot of its rail, a line that counts the
+  details, such as "2 affiliations · 1 email · 1 ORCID · 1 note", as a folded
+  proof counts its steps.
+- Open, it shows every name and the details: the numbered affiliations, the
+  notes, the correspondence address and the ORCID iDs.
+- The arrow to the left of the block, the "3 more" button and the line at the
+  foot open the block. The arrow and the "Show fewer" button close it. A block
+  with nothing to open has no arrow.
 - Pointing at an author's name, or tapping it on a phone, shows that author's
-  affiliation and note in a tooltip. Pointing at a superscript number shows
-  its affiliation.
+  affiliation and note in a tooltip. Pointing at an affiliation number shows
+  that affiliation.
+- The mail and ORCID icons next to a name link to the author's address and
+  ORCID record.
 
-Readers without JavaScript see every name and all the details, with no
-buttons.
-
-.. tip::
-
-   Combine ``:affiliation:``, ``:author-note:``, and ``:orcid:`` as needed. RSM
-   handles the numbering and grouping of shared affiliations and notes
-   automatically.
+Readers without JavaScript see every name and all the details.
