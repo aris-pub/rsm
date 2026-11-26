@@ -1,8 +1,8 @@
-"""Theorem-like blocks, proofs and equations in LaTeX and PDF export.
+"""Theorem-like blocks, proofs and equations in pandoc export.
 
 RSM numbers these blocks itself. The heading of each block and every reference to it
 must print the same number, and :blockname: must name the block in both places, as
-in the HTML output.
+in the HTML output. Every export format prints these headings, not only LaTeX and PDF.
 """
 
 import re
@@ -12,6 +12,7 @@ from textwrap import dedent
 
 import pytest
 
+from rsm import app
 from rsm.app import pandoc_export
 
 pytestmark = pytest.mark.skipif(
@@ -400,3 +401,76 @@ def test_pdf_multiline_numbers(tmp_path):
     numbers = re.findall(r"\(\d[\d.]*\)", text)
     printed = [f"(1.{n})" for n in range(1, 13)]
     assert sorted(numbers) == sorted(printed * 2)
+
+
+# Formats other than LaTeX have no theorem environments, so the headings are part of
+# the text. Each heading must appear once.
+
+
+def test_markdown_theorem_has_bold_run_in_heading():
+    md = pandoc_export(source=SRC, to_format="markdown")
+    assert "**Theorem 1.1 (Main result).** Every graph is fine." in md
+    assert "**Lemma 1.2.** Some lemma." in md
+    assert "**Hint 1.3.** What does inversion" in md
+    assert "Remark" not in md
+
+
+def test_markdown_proof_has_title():
+    md = pandoc_export(source=SRC, to_format="markdown")
+    assert "*Proof.* Clearly true." in md
+
+
+def test_markdown_proof_of_names_the_result():
+    md = pandoc_export(source=PROOF_OF, to_format="markdown")
+    assert "*Proof of [Theorem 1.1](#thm-main).* Clearly true." in md
+
+
+def test_markdown_nonum_heading_has_no_number():
+    src = SRC.replace("  :title: Main result", "  :title: Main result\n  :nonum:")
+    md = pandoc_export(source=src, to_format="markdown")
+    assert "**Theorem (Main result).** Every graph is fine." in md
+    assert "**Lemma 1.1.** Some lemma." in md
+
+
+def test_html_theorem_heading():
+    html = pandoc_export(source=PROOF_OF, to_format="html")
+    text = " ".join(re.sub(r"<[^>]+>", "", html).split())
+    assert "Theorem 1.1 (Main result). Every graph is fine." in text
+    assert "Proof of Theorem 1.1. Clearly true." in text
+    assert text.count("Theorem 1.1 (Main result).") == 1
+
+
+def test_latex_has_no_text_heading(latex):
+    assert "Theorem 1.1 (Main result)." not in latex
+    assert r"\textbf{Lemma" not in latex
+    assert r"\emph{Proof" not in latex
+
+
+# Word, EPUB and ODT are binary formats that pandoc writes to a file.
+needs_binary_export = pytest.mark.skipif(
+    not hasattr(app, "_BINARY_FORMATS"),
+    reason="binary export (branch export-binary) is not merged",
+)
+
+
+def _plain_text_of(tmp_path, src: str, fmt: str) -> str:
+    out = tmp_path / f"doc.{fmt}"
+    pandoc_export(source=src, to_format=fmt, output=str(out))
+    plain = subprocess.run(
+        ["pandoc", str(out), "-t", "plain", "--wrap=none"],
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout
+    return " ".join(plain.split())
+
+
+@needs_binary_export
+@pytest.mark.parametrize("fmt", ["docx", "odt", "epub"])
+def test_binary_formats_have_theorem_and_proof_headings(tmp_path, fmt):
+    text = _plain_text_of(tmp_path, PROOF_OF, fmt)
+    assert "Theorem 1.1 (Main result). Every graph is fine." in text
+    assert "Lemma 1.2. Some lemma." in text
+    assert "Proof of Theorem 1.1. Clearly true." in text
+    assert "Hint 1.3. What does inversion" in text
+    assert text.count("Theorem 1.1 (Main result).") == 1

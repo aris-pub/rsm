@@ -677,11 +677,11 @@ class _PandocRunner:
         json_str = json.dumps(pandoc_ast)
         cmd = ["pandoc", "--from=json", f"--to={self.to_format}", "--standalone"]
         braiid_dir = Path(__file__).parent.parent / "braiid"
+        # The filter prints RSM's numbers and the theorem and proof headings, which
+        # are only attributes in the AST, so every format needs it.
+        cmd += [f"--lua-filter={braiid_dir / 'braiid.lua'}"]
         if self.to_format in ("latex", "pdf"):
-            cmd += [
-                f"--lua-filter={braiid_dir / 'braiid.lua'}",
-                f"--include-in-header={braiid_dir / 'theorems.tex'}",
-            ]
+            cmd += [f"--include-in-header={braiid_dir / 'theorems.tex'}"]
         if self.to_format == "latex":
             cmd += ["-V", "header-includes=\\usepackage{braiid}"]
         if self.to_format == "pdf":
