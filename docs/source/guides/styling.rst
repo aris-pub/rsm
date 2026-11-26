@@ -1,238 +1,167 @@
 .. _styling:
 
-Styling with CSS
-=================
+Styling
+=======
 
-RSM manuscripts are rendered as HTML, which means you can apply CSS classes to any tag
-using the ``:class:`` meta tag. This allows you to customize the appearance of your
-manuscript without writing custom HTML.
+RSM pages come with their own stylesheet. To change how one part of a
+document looks, give that part a CSS class with the ``:class:`` meta key. The
+class can be one of the classes that RSM provides, or one that you define in
+your own stylesheet.
 
-How :class: works
-*****************
 
-The ``:class:`` meta tag accepts one or more CSS class names (separated by spaces) and
-applies them to the rendered HTML element. RSM includes built-in CSS classes for common
-styling needs, and you can also use custom CSS classes if you provide your own stylesheet.
+Give a block or a phrase a class
+--------------------------------
 
-Basic syntax
-------------
+Write ``:class:`` in the meta keys of any tag, with one or more class names
+separated by commas. It works on blocks, on paragraphs, on a phrase marked
+with ``:span:``, and on math:
 
-.. code-block:: text
+.. rsm::
 
-   :tag: {:class: class-name} content ::
+   :paragraph: {:class: large} This paragraph is larger than the others.
 
-Or for block tags:
-
-.. code-block:: text
-
-   :tag: {
-     :class: class-name another-class
-   }
-
-   Content here.
-
+   :theorem: {:class: small}
+   This theorem is in a smaller font.
    ::
 
-Built-in CSS classes
-********************
+   Only :span: {:class: large} these words :: are larger, and so is this
+   formula: $ {:class: large} E = mc^2 $.
 
-RSM provides several built-in CSS classes you can use immediately.
+The class goes on the HTML element for that part, as in
+``<div class="paragraph large">``, so any CSS rule written for the class
+applies to it.
 
-Font sizes
-----------
 
-RSM includes pre-defined font size classes:
+Change the text size
+--------------------
 
-.. rsm::
+RSM provides ten size classes, from smallest to largest. The sizes are
+relative to the root font size of the page.
 
-   :paragraph: {:class: tiny} Tiny text (0.6rem)
+.. list-table::
+   :header-rows: 1
 
-   :paragraph: {:class: smallest} Smallest text (0.7rem)
-
-   :paragraph: {:class: smaller} Smaller text (0.8rem)
-
-   :paragraph: {:class: small} Small text (0.9rem)
-
-   :paragraph: {:class: normal} Normal text (1rem)
-
-   :paragraph: {:class: large} Large text (1.2rem)
-
-   :paragraph: {:class: larger} Larger text (1.4rem)
-
-   :paragraph: {:class: largest} Largest text (1.6rem)
-
-   :paragraph: {:class: huge} Huge text (2rem)
-
-   :paragraph: {:class: huger} Huger text (2.5rem)
-
-These font size classes work on any tag: blocks, inlines, paragraphs, or even math:
-
-.. rsm::
-
-   Normal equation: $E = mc^2$
-
-   Large equation: $ {:class: large} E = mc^2 $
-
-   Huge equation: $ {:class: huge} E = mc^2 $
-
-Practical examples
-******************
-
-Emphasizing important theorems
--------------------------------
-
-Combine ``:class:`` with multiple classes for custom styling:
+   * - Class
+     - Size
+   * - ``tiny``
+     - 0.5rem
+   * - ``smallest``
+     - 0.7rem
+   * - ``smaller``
+     - 0.8rem
+   * - ``small``
+     - 0.9rem
+   * - ``normal``
+     - 1rem
+   * - ``large``
+     - 1.2rem
+   * - ``larger``
+     - 1.44rem
+   * - ``largest``
+     - 1.7281rem
+   * - ``huge``
+     - 2.0741rem
+   * - ``huger``
+     - 2.488rem
 
 .. rsm::
 
-   :theorem: {
-     :title: Main Result
-     :class: large
-   }
+   :paragraph: {:class: smaller} Smaller text.
 
-   This is our central theorem, displayed
-   in a larger font.
+   :paragraph: {:class: larger} Larger text.
 
-   ::
+   $$ {:class: larger}
+   e^{i\pi} + 1 = 0
+   $$
 
-Small notes and asides
-----------------------
 
-Use smaller font sizes for footnotes or side comments:
+Mark text as a draft
+--------------------
+
+The ``draft`` class shows text in the accent color of the page, so that
+unfinished passages stand out while you write:
 
 .. rsm::
 
-   The main argument proceeds as follows...
-
-   :paragraph: {:class: small} Note: This
-   proof technique was first used by Euler
-   in 1750.
+   The bound holds for every $n$. :span: {:class: draft} Check the case
+   $n = 2$ again. ::
 
 
-Multiple classes
-----------------
+Write your own stylesheet
+-------------------------
 
-You can apply multiple CSS classes by separating them with spaces:
-
-.. code-block:: text
-
-   :span: {:class: type1 type2} Styled text ::
-
-   :block-tag: {
-     :class: type1 type2
-   }
-   Styled text
-   ::
-
-
-Using custom CSS
-****************
-
-By default, the ``rsm`` CLI utilities will search the current working directory for a
-css file with the same name as the file you are processing. For example,
-
-.. code-block:: bash
-
-   $ rsm build manuscript.rsm
-
-Will include ``manuscript.css`` if it exists. To use a file with a different name, use
-the ``--css`` flag.
-
-.. code-block:: bash
-
-   $ rsm build manuscript.rsm --css styles.css
-
-Then in your RSM manuscript, reference your custom classes:
-
-.. code-block:: text
-
-   :paragraph: {:class: my-custom-class} Styled content ::
-
-Your CSS file should define the class:
+To define your own classes, write them in a CSS file next to the RSM file,
+with the same name. For ``paper.rsm``, the stylesheet is ``paper.css``.
+``rsm build`` and ``rsm serve`` add it to the page:
 
 .. code-block:: css
 
-   .my-custom-class {
-     color: #007acc;
-     border-left: 4px solid #007acc;
-     padding-left: 1em;
+   .note-box {
+     border-left: 3px solid var(--primary-600);
+     background: var(--surface-hover);
+     padding: 0.5em 1em;
    }
 
-Complete example
-----------------
+To use a file with another name, pass it with ``--css``:
 
-Here's a full example showing custom CSS in action:
+.. code-block:: bash
+
+   rsm build paper.rsm --css styles.css
+
+A folder build copies the stylesheet into the ``assets`` folder and links it
+from the page. A standalone build (``--standalone``) puts the stylesheet
+inside the HTML file.
+
+The example below uses that stylesheet:
 
 .. rsm::
    :custom-css: _static/custom-example.css
 
-   ## RSM Styling
+   :paragraph: {:class: note-box} This paragraph has a colored border on the
+   left and a light background.
 
-   :span:{:class: highlight-box} This
-   phrase:: has a custom highlight style
-   with a colored border and background.
 
-   :theorem: {
-     :title: Main Theorem
-     :class: emphasis-theorem
-   }
-   This theorem uses custom styling to
-   stand out from regular theorems.
-   ::
+Follow the light and dark themes
+--------------------------------
 
-To create this, you would write the RSM source above and define these CSS classes:
+Readers can switch the page between a light and a dark theme. A color
+written as a fixed value, such as ``#fff3cd``, stays the same in both themes,
+and can be hard to read in one of them. The stylesheet of the page defines
+CSS variables that change with the theme, and a rule that uses them follows
+the theme:
 
-.. code-block:: css
+.. list-table::
+   :header-rows: 1
 
-   .highlight-box {
-     background-color: #fff3cd;
-     border-left: 4px solid #ffc107;
-   }
+   * - Variable
+     - Used for
+   * - ``--text-body``
+     - body text
+   * - ``--text-subtle``
+     - quieter text, such as labels
+   * - ``--surface-page``
+     - the page background
+   * - ``--surface-hover``
+     - a light background, such as the one in the example above
+   * - ``--border-primary``
+     - borders and rules
+   * - ``--primary-600``
+     - the accent color, set with ``:accent:`` in the ``:config:`` block
 
-   .emphasis-theorem {
-     background-color: #e7f3ff;
-     border: 2px solid #0066cc;
-     padding: 1.5em;
-     border-radius: 8px;
-   }
+The ``note-box`` class above uses ``--primary-600`` and ``--surface-hover``,
+so its border follows the accent color and its background follows the theme.
 
-Save your RSM source as ``manuscript.rsm`` and your CSS as ``manuscript.css``. Build with:
 
-.. code-block:: bash
+Use classes for looks, not for structure
+----------------------------------------
 
-   $ rsm build manuscript.rsm
+A class changes how a part looks, not what it is. To write a theorem, use
+``:theorem:``, and to start a section, use ``##``. A paragraph styled to look
+like a theorem is not numbered and cannot be referenced.
 
-The CSS file will be automatically included since it has the same name as the RSM file.
+If you need a class to change how one of the RSM tags looks in every document,
+`open an issue <https://github.com/aris-pub/rsm/issues>`_, because the
+default may need to change.
 
-Best practices
-**************
-
-.. warning::
-
-   **Keep styling semantic**: Use ``:class:`` for presentation only, not content structure or
-   document layout.
-
-   Don't use ``:class:`` to fake structural elements like headings, sections, or theorems.
-   If you need a theorem, use ``:theorem:``. If you need a section, use ``##``. Don't
-   create a paragraph with custom styling to look like a theorem, as that breaks semantic
-   meaning and accessibility.
-
-   The ``:class:`` meta tag is for *how something looks*, not *what it is*.
-
-   **If you find yourself using** ``:class:`` **to override RSM's default behavior for semantic
-   tags**, please `open an issue <https://github.com/aris-pub/rsm/issues>`_ or contribute to
-   the language. The defaults should work for most cases. If they don't for you, we want to know.
-
-1. **Use built-in classes first**: RSM's built-in classes handle common cases and work
-   consistently across themes.
-
-2. **Test across themes**: If providing custom CSS, test your manuscript in both light
-   and dark themes.
-
-3. **Avoid inline styles**: RSM doesn't support inlined HTML/CSS. Always use CSS classes
-   via ``:class:``.
-
-See also
-********
-
-- :ref:`ref-meta-keys` for the ``:class:`` meta key
+See :ref:`ref-meta-keys` for the ``:class:`` meta key, and :ref:`ref-cli` for
+the ``--css`` option.
