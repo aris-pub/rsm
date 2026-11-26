@@ -23,7 +23,7 @@ author = BlockTagInfo(None)
 references = BlockTagInfo(None)
 """List of bibliography items."""
 codeblock = BlockTagInfo(None)
-"""Code listing."""
+"""Code listing. It is numbered, and takes a :caption: after its code."""
 config = BlockTagInfo(None)
 """Document configuration."""
 corollary = BlockTagInfo(None)
@@ -88,7 +88,7 @@ ParagraphTagInfo = namedtuple("ParagraphTagInfo", ["x"])
 item = ParagraphTagInfo(None)
 """Item in enumerate or itemize."""
 caption = ParagraphTagInfo(None)
-"""Figure or table caption."""
+"""Caption of a figure, table or code block."""
 paragraph = ParagraphTagInfo(None)
 """Generic paragraph.  Use when adding meta tags to a paragraph."""
 
@@ -164,8 +164,8 @@ as_paragraph = MetaTagInfo(None, bool)
 """Whether a figure or video sits at the level of a paragraph: no number, no
 caption, and a handrail like a paragraph's."""
 blockname = MetaTagInfo(None, str)
-"""Name a theorem-like block, an asset (figure, video) or a table is called by, in
-place of its type's name, such as "Hint"."""
+"""A name to use in place of the block's type name, such as "Hint". Theorem-like
+blocks, assets (figure, video), tables and code blocks take it."""
 email = MetaTagInfo(None, str)
 """Author email."""
 emphas = MetaTagInfo(None, bool)
