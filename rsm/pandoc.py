@@ -17,8 +17,10 @@ Analogy with the rest of the codebase:
 - ``PandocImporter``: pandoc JSON dict → RSM source text  (we own the RSM text)
 """
 
+import copy
 import logging
 import re
+from collections.abc import Iterable, Iterator
 from datetime import datetime
 from typing import Any
 
@@ -844,6 +846,352 @@ def _escape_trailing_colon(text: str) -> str:
     return text
 
 
+# pandoc's LaTeX reader typesets amsthm environments itself: it writes the
+# heading ("**Theorem 1**." or "*Proof.*"), the italic body of the plain style
+# and the closing tombstone into the Div. RSM draws all of these, so they are
+# removed before the Div becomes a :theorem: or :proof: (bead rsm-v1yn).
+
+_TOMBSTONE = "◻"
+_NBSP = " "
+_KIND_WORD_AT_END = re.compile(r"(?<![A-Za-z])([A-Za-z]+\.?)$")
+# Equations are left out: RSM writes a reference to one as "(1.1)", so a word
+# such as "Equation" before it is not printed twice.
+_KIND_WORDS = {
+    "section": (
+        "section",
+        "sections",
+        "subsection",
+        "subsections",
+        "subsubsection",
+        "subsubsections",
+        "sec.",
+        "secs.",
+    ),
+    "figure": ("figure", "figures", "fig.", "figs."),
+    "table": ("table", "tables", "tab.", "tabs."),
+    "theorem": ("theorem", "theorems", "thm.", "thms."),
+    "lemma": ("lemma", "lemmas", "lemmata", "lem.", "lems."),
+    "proposition": ("proposition", "propositions", "prop.", "props."),
+    "corollary": ("corollary", "corollaries", "cor.", "cors."),
+    "definition": ("definition", "definitions", "def.", "defs."),
+}
+
+
+def _kind_words(kind: str) -> tuple[str, ...]:
+    """Return the words that name ``kind`` in the text: "Theorems", "Thm." and so on."""
+    return _KIND_WORDS.get(kind, (kind, kind + "s"))
+
+
+def _is_space(inline: dict) -> bool:
+    return inline.get("t") in ("Space", "SoftBreak")
+
+
+def _lstrip_spaces(inlines: list) -> list:
+    i = 0
+    while i < len(inlines) and _is_space(inlines[i]):
+        i += 1
+    return inlines[i:]
+
+
+def _rstrip_spaces(inlines: list) -> list:
+    i = len(inlines)
+    while i > 0 and _is_space(inlines[i - 1]):
+        i -= 1
+    return inlines[:i]
+
+
+def _strip_spaces(inlines: list) -> list:
+    return _rstrip_spaces(_lstrip_spaces(inlines))
+
+
+def _first_inlines(blocks: list) -> list:
+    if blocks and blocks[0].get("t") in ("Para", "Plain"):
+        inlines: list = blocks[0]["c"]
+        return inlines
+    return []
+
+
+def _drop_leading_inlines(blocks: list, n: int) -> None:
+    """Drop the first ``n`` inlines of the first paragraph, and the spaces after."""
+    rest = _lstrip_spaces(blocks[0]["c"][n:])
+    if rest:
+        blocks[0] = {"t": blocks[0]["t"], "c": rest}
+    else:
+        del blocks[0]
+
+
+def _theorem_heading(inlines: list) -> tuple[int, list | None]:
+    """Return the length of a theorem heading and the inlines of its title.
+
+    pandoc writes "**Theorem 1**." for an untitled theorem and
+    "**Theorem 1** (Mantel)." for \\begin{theorem}[Mantel].
+    """
+    if not inlines or inlines[0].get("t") != "Strong":
+        return 0, None
+    if len(inlines) >= 2 and inlines[1] == {"t": "Str", "c": "."}:
+        return 2, None
+    if (
+        len(inlines) < 3
+        or inlines[1].get("t") != "Space"
+        or inlines[2].get("t") != "Str"
+        or not inlines[2]["c"].startswith("(")
+    ):
+        return 0, None
+    for j in range(2, len(inlines)):
+        if inlines[j].get("t") == "Str" and inlines[j]["c"].endswith(")."):
+            title = [dict(inl) for inl in inlines[2 : j + 1]]
+            title[0]["c"] = title[0]["c"][1:]
+            title[-1]["c"] = title[-1]["c"][:-2]
+            return j + 1, [inl for inl in title if inl != {"t": "Str", "c": ""}]
+    return 0, None
+
+
+def _escape_meta_braces(inlines: list) -> list:
+    """Return copies of ``inlines`` with { and } in text escaped with a backslash.
+
+    A brace ends a meta value, so a title that holds one would not parse. Math
+    is left alone because the meta scanner reads $...$ whole.
+    """
+    out: list = []
+    for inl in inlines:
+        t = inl.get("t")
+        if t == "Str":
+            text = inl["c"].replace("{", "\\{").replace("}", "\\}")
+            out.append({"t": "Str", "c": text})
+        elif t in (
+            "Emph",
+            "Strong",
+            "Strikeout",
+            "SmallCaps",
+            "Superscript",
+            "Subscript",
+        ):
+            out.append({"t": t, "c": _escape_meta_braces(inl["c"])})
+        elif t == "Span":
+            out.append({"t": t, "c": [inl["c"][0], _escape_meta_braces(inl["c"][1])]})
+        else:
+            out.append(inl)
+    return out
+
+
+def _proof_heading_length(inlines: list) -> int:
+    # Only the default heading. A titled proof is handled by
+    # _proof_title_target, or keeps its title.
+    if inlines and inlines[0] == {"t": "Emph", "c": [{"t": "Str", "c": "Proof."}]}:
+        return 1
+    return 0
+
+
+def _proof_title_target(inlines: list) -> str | None:
+    """Return the source label of the one \\ref in a proof's title, if any.
+
+    pandoc writes \\begin{proof}[Proof of Lemma~\\ref{a}] as an Emph that holds
+    the whole title. A title with no \\ref, or with more than one, returns None.
+    """
+    if not inlines or inlines[0].get("t") != "Emph":
+        return None
+    refs = [
+        inl
+        for inl in inlines[0]["c"]
+        if inl.get("t") == "Link" and "reference-type" in dict(inl["c"][0][2])
+    ]
+    if len(refs) != 1:
+        return None
+    attrs, _inlines, target = refs[0]["c"]
+    label: str = dict(attrs[2]).get("reference") or target[0].lstrip("#")
+    return label
+
+
+def _leaf_paragraphs(blocks: list) -> Iterator[dict]:
+    for b in blocks:
+        t = b.get("t")
+        if t in ("Para", "Plain"):
+            yield b
+        elif t == "BulletList":
+            for item in b["c"]:
+                yield from _leaf_paragraphs(item)
+        elif t == "OrderedList":
+            for item in b["c"][1]:
+                yield from _leaf_paragraphs(item)
+        elif t == "BlockQuote":
+            yield from _leaf_paragraphs(b["c"])
+        elif t == "Div":
+            yield from _leaf_paragraphs(b["c"][1])
+
+
+def _sole_emph(inlines: list) -> dict | None:
+    core = _rstrip_spaces(_lstrip_spaces(inlines))
+    if len(core) == 1 and core[0].get("t") == "Emph":
+        emph: dict = core[0]
+        return emph
+    return None
+
+
+def _drop_theorem_italics(blocks: list) -> None:
+    # The plain style wraps every paragraph of the body in one Emph. An upright
+    # style (definition, remark) does not, so the body is unwrapped only when
+    # every paragraph is wrapped. Emphasis that the author wrote sits inside
+    # that outer Emph and is kept.
+    leaves = [p for p in _leaf_paragraphs(blocks) if p["c"]]
+    emphs = [_sole_emph(p["c"]) for p in leaves]
+    if not leaves or any(e is None for e in emphs):
+        return
+    for p, e in zip(leaves, emphs, strict=True):
+        assert e is not None
+        p["c"] = e["c"]
+
+
+def _drop_tombstone(blocks: list) -> None:
+    if not blocks:
+        return
+    last = blocks[-1]
+    t = last.get("t")
+    if t == "BulletList" and last["c"]:
+        _drop_tombstone(last["c"][-1])
+        return
+    if t == "OrderedList" and last["c"][1]:
+        _drop_tombstone(last["c"][1][-1])
+        return
+    if t not in ("Para", "Plain"):
+        return
+    inlines = last["c"]
+    if not inlines or inlines[-1].get("t") != "Str":
+        return
+    text = inlines[-1]["c"]
+    if not text.endswith(_TOMBSTONE):
+        return
+    rest = text[: -len(_TOMBSTONE)].rstrip(" " + _NBSP)
+    inlines = inlines[:-1] + ([{"t": "Str", "c": rest}] if rest else [])
+    inlines = _rstrip_spaces(inlines)
+    if inlines:
+        blocks[-1] = {"t": t, "c": inlines}
+    else:
+        del blocks[-1]
+
+
+def _strip_amsthm_markup(
+    blocks: list,
+    theorem_classes: tuple,
+    titles: dict[int, list],
+    proof_of: dict[int, str],
+) -> None:
+    """Remove pandoc's amsthm markup in place.
+
+    The title of a titled theorem goes into ``titles``, and the source label
+    named by the title of a proof goes into ``proof_of``. Both are keyed by the
+    id of the Div's content, which is also the key of the Div's generated label.
+    """
+    for b in blocks:
+        t = b.get("t")
+        if t == "Div":
+            classes, inner = b["c"][0][1], b["c"][1]
+            _strip_amsthm_markup(inner, theorem_classes, titles, proof_of)
+            if "proof" in classes:
+                first = _first_inlines(inner)
+                n = _proof_heading_length(first)
+                target = None if n else _proof_title_target(first)
+                if target:
+                    proof_of[id(b["c"])] = target
+                    n = 1
+                if n:
+                    _drop_leading_inlines(inner, n)
+                _drop_tombstone(inner)
+            elif any(cls in theorem_classes for cls in classes):
+                n, title = _theorem_heading(_first_inlines(inner))
+                if n:
+                    _drop_leading_inlines(inner, n)
+                    _drop_theorem_italics(inner)
+                if title:
+                    titles[id(b["c"])] = title
+        elif t == "BlockQuote":
+            _strip_amsthm_markup(b["c"], theorem_classes, titles, proof_of)
+        elif t == "BulletList":
+            for item in b["c"]:
+                _strip_amsthm_markup(item, theorem_classes, titles, proof_of)
+        elif t == "OrderedList":
+            for item in b["c"][1]:
+                _strip_amsthm_markup(item, theorem_classes, titles, proof_of)
+
+
+_LABEL_LINE = re.compile(r"^[ \t]*\\label\{[^}]*\}[ \t]*\n", re.MULTILINE)
+_LABEL = re.compile(r"\\label\{[^}]*\}")
+_NOTAG = re.compile(r"[ \t]*\\(?:nonumber|notag)(?![A-Za-z])")
+# Numbers in RSM come only from RSM, so a \tag that the author wrote is dropped.
+_TAG = re.compile(r"[ \t]*\\tag\*?\s*\{[^}]*\}")
+_DISPLAY_ENV = re.compile(
+    r"\s*\\begin\{([A-Za-z]+)(\*?)\}(.*)\\end\{\1\2\}\s*", re.DOTALL
+)
+# The environments that LaTeX numbers when they are not starred. pandoc writes
+# \[...\] and $$...$$ as bare math, and an environment such as aligned can only
+# sit inside those, so all other display math is unnumbered.
+_NUMBERED_ENVS = ("align", "alignat", "eqnarray", "flalign", "gather", "multline")
+
+
+_QEDHERE = re.compile(r"[ \t]*\\qedhere(?![A-Za-z])")
+
+
+def _drop_qedhere(src: str) -> str:
+    # \qedhere places amsthm's tombstone, which the importer removes and RSM
+    # draws itself.
+    return _QEDHERE.sub("", src)
+
+
+def _display_math(src: str) -> tuple[str, bool]:
+    """Return the TeX for the :mathblock: of one pandoc display math, and whether
+    LaTeX numbers it.
+
+    The label goes in the :mathblock: meta, and RSM gives a :mathblock: one
+    number of its own or none with :nonum:, so \\label, \\tag, \\nonumber and
+    \\notag are dropped, an equation environment is replaced by its body, and a starred
+    environment by its unstarred form.
+    """
+    src = _LABEL.sub("", _LABEL_LINE.sub("", _drop_qedhere(src)))
+    src = _TAG.sub("", src)
+    m = _DISPLAY_ENV.fullmatch(src)
+    if not m:
+        return _NOTAG.sub("", src).strip(), False
+    env, star, body = m.groups()
+    # LaTeX gives no number to an environment whose every line has \nonumber.
+    rows = [row for row in re.split(r"\\\\", body) if row.strip()]
+    numbered = not star and not (rows and all(_NOTAG.search(row) for row in rows))
+    body = _NOTAG.sub("", body)
+    if env == "equation":
+        return body.strip(), numbered
+    if env in _NUMBERED_ENVS:
+        return f"\\begin{{{env}}}{body}\\end{{{env}}}", numbered
+    return _NOTAG.sub("", src).strip(), False
+
+
+def _drop_kind_word(inlines: list, words: tuple) -> None:
+    """Remove a kind word such as "Theorem" from the end of ``inlines``.
+
+    RSM's reference text already names the kind ("Theorem 1.1"), so keeping the
+    word would print it twice.
+    """
+    if not inlines:
+        return
+    if inlines[-1].get("t") == "Space":
+        if len(inlines) < 2 or inlines[-2].get("t") != "Str":
+            return
+        text = inlines[-2]["c"]
+        drop_space = True
+    elif inlines[-1].get("t") == "Str" and inlines[-1]["c"].endswith(_NBSP):
+        text = inlines[-1]["c"].rstrip(_NBSP)
+        drop_space = False
+    else:
+        return
+    m = _KIND_WORD_AT_END.search(text)
+    if not m or m.group(1).lower() not in words:
+        return
+    if drop_space:
+        inlines.pop()
+    rest = text[: m.start()]
+    if rest:
+        inlines[-1] = {"t": "Str", "c": rest}
+    else:
+        inlines.pop()
+
+
 class PandocImporter:
     """Convert a pandoc JSON AST dict to RSM source text.
 
@@ -860,14 +1208,26 @@ class PandocImporter:
         rsm_text = PandocImporter().from_json(json.loads(proc.stdout))
     """
 
+    def __init__(self, unnumbered: Iterable[str] = ()) -> None:
+        # Theorem-like classes declared with \newtheorem*. The JSON AST does not
+        # record this, so the caller reads it from the LaTeX source.
+        self._unnumbered = set(unnumbered)
+
     def from_json(self, pandoc_ast: dict) -> str:
         meta = pandoc_ast.get("meta", {})
-        blocks = pandoc_ast.get("blocks", [])
+        # The amsthm cleanup edits the blocks, so work on a copy of the input.
+        blocks = copy.deepcopy(pandoc_ast.get("blocks", []))
+        self._theorem_titles: dict[int, list] = {}
+        self._proof_of: dict[int, str] = {}
+        _strip_amsthm_markup(
+            blocks, self._THEOREM_CLASSES, self._theorem_titles, self._proof_of
+        )
         # Assign generated labels (sec-N, thm-N, eqn-N) and map each source
         # \label to its generated name, so a \ref emitted before its target
         # still resolves.
         self._label_of: dict[int, str] = {}
         self._ref_map: dict[str, str] = {}
+        self._kind_words: dict[str, tuple[str, ...]] = {}
         self._label_n = {"sec": 0, "thm": 0, "eqn": 0, "fig": 0, "tab": 0, "note": 0}
         self._pending_notes: list[str] = []
         self._assign_labels(blocks)
@@ -916,6 +1276,9 @@ class PandocImporter:
         "exercise",
         "proposition",
         "problem",
+        "definition",
+        "remark",
+        "porism",
     )
 
     def _next_label(self, kind: str) -> str:
@@ -940,6 +1303,9 @@ class PandocImporter:
                 self._label_of[id(c)] = gen
                 if c[1][0]:
                     self._ref_map[c[1][0]] = gen
+                    # Level 4 and deeper become run-in paragraphs, not sections.
+                    if c[0] <= 3:
+                        self._kind_words[c[1][0]] = _kind_words("section")
             elif t == "Div":
                 attr, inner_blocks = c
                 if any(cls in self._THEOREM_CLASSES for cls in attr[1]):
@@ -947,10 +1313,16 @@ class PandocImporter:
                     self._label_of[id(c)] = gen
                     if attr[0]:
                         self._ref_map[attr[0]] = gen
+                        self._kind_words[attr[0]] = tuple(
+                            word
+                            for cls in attr[1]
+                            if cls in self._THEOREM_CLASSES
+                            for word in _kind_words(cls)
+                        )
                 self._assign_labels(inner_blocks)
             elif t in ("Para", "Plain"):
                 for inl in c:
-                    if _is_display_math(inl):
+                    if _is_display_math(inl) and _display_math(inl["c"][1])[1]:
                         gen = self._next_label("eqn")
                         self._label_of[id(inl)] = gen
                         lbl = _math_label(inl["c"][1])
@@ -969,12 +1341,14 @@ class PandocImporter:
                 self._label_of[id(c)] = gen
                 if c[0][0]:
                     self._ref_map[c[0][0]] = gen
+                    self._kind_words[c[0][0]] = _kind_words("figure")
                 self._assign_labels(c[2])
             elif t == "Table":
                 gen = self._next_label("tab")
                 self._label_of[id(c)] = gen
                 if c[0][0]:
                     self._ref_map[c[0][0]] = gen
+                    self._kind_words[c[0][0]] = _kind_words("table")
 
     # ── Meta ──────────────────────────────────────────────────────────────────
 
@@ -1061,35 +1435,47 @@ class PandocImporter:
         meta = f"\n  {{:label: {label}}}" if label else ""
         return f"{prefix} {text}{meta}\n\n"
 
+    def _para_pieces(self, inlines: list) -> list[tuple[str, str, str]]:
+        """Split a paragraph at its display math, which RSM writes as a block.
+
+        Each piece is ("text", text, "") or ("math", meta, src), where meta is
+        the :mathblock: meta with its leading space, or "".
+        """
+        pieces: list[tuple[str, str, str]] = []
+        pending: list[dict] = []
+
+        def flush() -> None:
+            text = self._render_inlines(_strip_spaces(pending))
+            if text:
+                pieces.append(("text", text, ""))
+            pending.clear()
+
+        for inline in inlines:
+            if not _is_display_math(inline):
+                pending.append(inline)
+                continue
+            flush()
+            src, numbered = _display_math(inline["c"][1])
+            label = self._label_of.get(id(inline))
+            if not numbered:
+                meta = " {:nonum:}"
+            elif label:
+                meta = f" {{:label: {label}}}"
+            else:
+                meta = ""
+            pieces.append(("math", meta, src))
+        flush()
+        return pieces
+
     def _block_para(self, c: list) -> str:
         titled = self._pending_para
         self._pending_para = None
-        # DisplayMath inside Para inlines must be flushed as a block construct.
         result: list[str] = []
-        pending: list[dict] = []
-        for inline in c:
-            if (
-                inline.get("t") == "Math"
-                and isinstance(inline.get("c"), list)
-                and len(inline["c"]) >= 1
-                and inline["c"][0].get("t") == "DisplayMath"
-            ):
-                if pending:
-                    text = self._render_inlines(pending)
-                    if text:
-                        result.append(f"{_escape_trailing_colon(text)}\n\n")
-                    pending = []
-                src = inline["c"][1] if len(inline["c"]) >= 2 else ""
-                src = re.sub(r"\\label\{[^}]*\}", "", src)
-                label = self._label_of.get(id(inline))
-                meta = f" {{:label: {label}}}" if label else ""
-                result.append(f":mathblock:{meta}\n  {src}\n::\n\n")
-            else:
-                pending.append(inline)
-        if pending:
-            text = self._render_inlines(pending)
-            if text:
+        for kind, text, src in self._para_pieces(c):
+            if kind == "text":
                 result.append(f"{_escape_trailing_colon(text)}\n\n")
+            else:
+                result.append(f":mathblock:{text}\n  {src}\n::\n\n")
         body = "".join(result)
         if titled is None:
             return body
@@ -1121,6 +1507,45 @@ class PandocImporter:
         items = self._list_item_lines(item_list, 1)
         return ":enumerate:\n\n" + "\n\n".join(items) + "\n\n::\n\n"
 
+    def _item_content_lines(self, blocks: list) -> list[str]:
+        """Render the blocks of one list item as lines with no blank line between.
+
+        An item ends at a blank line, so its text is folded onto one line, and
+        its display math becomes a :mathblock: on lines of its own, which RSM
+        reads as part of the item.
+        """
+        lines: list[str] = []
+        text = ""
+
+        def flush() -> None:
+            # Fold paragraph or line breaks (e.g. from a \\ in the source) into
+            # spaces, or the extra paragraph would break out of the list and
+            # orphan later items.
+            folded = re.sub(r"\s*\n\s*", " ", text).strip()
+            if folded:
+                lines.append(folded)
+
+        for b in blocks:
+            t = b.get("t") if isinstance(b, dict) else None
+            if t not in ("Para", "Plain"):
+                text += "\n" + self._render_block(b).strip()
+                continue
+            for kind, piece, src in self._para_pieces(b["c"]):
+                if kind == "text":
+                    # The line break becomes the space between two blocks.
+                    text += "\n"
+                    text += _escape_trailing_colon(piece) if t == "Para" else piece
+                    continue
+                flush()
+                text = ""
+                lines.append(f":mathblock:{piece}")
+                lines.extend(
+                    f"  {line.rstrip()}" for line in src.splitlines() if line.strip()
+                )
+                lines.append("::")
+        flush()
+        return lines
+
     def _list_item_lines(self, pandoc_items: list, depth: int) -> list[str]:
         # Emit a flat sequence of items with depth markers (:-:, :--:, :---:),
         # recursing one level deeper into a nested list. RSM has no mixed list
@@ -1139,13 +1564,10 @@ class PandocImporter:
                     sublists.append(b.get("c", [None, []])[1])
                 else:
                     text_blocks.append(b)
-            text = "".join(self._render_block(b).strip() for b in text_blocks)
-            # An item is a single inline paragraph, so fold internal paragraph or
-            # line breaks (e.g. from a \\ in the source) into spaces; otherwise
-            # the extra paragraph breaks out of the list and orphans later items.
-            text = re.sub(r"\s*\n\s*", " ", text).strip()
-            if text:
-                lines.append(f"  {marker} {text}")
+            item_lines = self._item_content_lines(text_blocks)
+            if item_lines:
+                rest = "".join(f"\n  {line}" for line in item_lines[1:])
+                lines.append(f"  {marker} {item_lines[0]}{rest}")
                 child_depth = depth + 1
             else:
                 # An item that is only a nested list keeps that list at this
@@ -1194,10 +1616,20 @@ class PandocImporter:
             return ""
         inner = "".join(self._render_block(b) for b in blocks).strip()
         label = self._label_of.get(id(c))
-        meta = f" {{:label: {label}}}" if label else ""
+        keys = [f":label: {label}"] if label else []
+        title = self._theorem_titles.get(id(c))
+        if title:
+            keys.append(f":title: {self._render_inlines(_escape_meta_braces(title))}")
+        if any(cls in self._unnumbered for cls in classes):
+            keys.append(":nonum:")
+        meta = f" {{{', '.join(keys)}}}" if keys else ""
         # Map well-known classes to RSM constructs
         for cls in classes:
             if cls == "proof":
+                of = self._proof_of.get(id(c))
+                if of:
+                    of = sanitize_key(self._ref_map.get(of, of))
+                    return f":proof: {{:of: {of}}}\n\n{inner}\n\n::\n\n"
                 return f":proof:\n\n{inner}\n\n::\n\n"
             if cls in self._THEOREM_CLASSES:
                 return f":{cls}:{meta}\n\n{inner}\n\n::\n\n"
@@ -1279,7 +1711,23 @@ class PandocImporter:
     # ── Inline rendering ──────────────────────────────────────────────────────
 
     def _render_inlines(self, inlines: list) -> str:
-        return "".join(self._render_inline(i) for i in inlines)
+        kept: list[dict] = []
+        for inline in inlines:
+            words = self._ref_kind_words(inline)
+            if words:
+                _drop_kind_word(kept, words)
+            kept.append(inline)
+        return "".join(self._render_inline(i) for i in kept)
+
+    def _ref_kind_words(self, inline: dict) -> tuple[str, ...]:
+        if inline.get("t") != "Link":
+            return ()
+        attrs, _inlines, target = inline["c"]
+        kv = dict(attrs[2]) if len(attrs) >= 3 else {}
+        if "reference-type" not in kv:
+            return ()
+        tgt = kv.get("reference") or target[0].lstrip("#")
+        return self._kind_words.get(tgt, ())
 
     def _render_inline(self, inline: dict) -> str:
         t = inline.get("t", "")
@@ -1324,6 +1772,7 @@ class PandocImporter:
 
     def _inline_math(self, c: list) -> str:
         math_type, src = c
+        src = _drop_qedhere(src)
         is_display = isinstance(math_type, dict) and math_type.get("t") == "DisplayMath"
         # $...$ sits directly against adjacent text; the verbose :math: ... ::
         # form cannot. Fall back to it for display math (handled by _block_para

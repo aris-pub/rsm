@@ -866,7 +866,15 @@ class PandocImportApp(RSMApp):
             except subprocess.CalledProcessError as e:
                 raise RSMApplicationError(f"pandoc failed: {e.stderr}")
         pandoc_ast = json.loads(proc.stdout)
-        return pandoc_module.PandocImporter().from_json(pandoc_ast)
+        unnumbered: set[str] = set()
+        if self._from_format == "latex":
+            from rsm.importer import unnumbered_theorems
+
+            tex = self._source or Path(self._path).read_text(
+                encoding="utf-8", errors="replace"
+            )
+            unnumbered = unnumbered_theorems(tex)
+        return pandoc_module.PandocImporter(unnumbered=unnumbered).from_json(pandoc_ast)
 
 
 def pandoc_import(

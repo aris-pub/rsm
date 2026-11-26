@@ -279,6 +279,21 @@ _MACRO_DEF = re.compile(
 )
 
 
+_UNNUMBERED_THEOREM = re.compile(r"\\newtheorem\*\s*\{\s*([^}\s]+)\s*\}")
+_COMMENT = re.compile(r"(?<!\\)%.*")
+
+
+def unnumbered_theorems(tex: str) -> set[str]:
+    """Return the environments that the preamble declares with \\newtheorem*.
+
+    pandoc numbers these like any theorem and gives no sign that they are
+    unnumbered, so the importer reads them from the source.
+    """
+    doc = re.search(r"\\begin\{document\}", tex)
+    preamble = _COMMENT.sub("", tex[: doc.start()] if doc else tex)
+    return set(_UNNUMBERED_THEOREM.findall(preamble))
+
+
 def preamble_macros(tex: str) -> list[str]:
     """Extract macro definitions from the LaTeX preamble (bead rsm-ddx.2).
 
