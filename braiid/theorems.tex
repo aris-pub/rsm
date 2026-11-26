@@ -1,0 +1,19 @@
+% theorems.tex: theorem environments for LaTeX and PDF export, used with braiid.lua.
+%
+% RSM numbers theorem-like blocks itself, and braiid.lua sets \rsmblockname to the
+% kind and RSM's number (for example "Theorem 1.1") before each block. The
+% environments are unnumbered so that LaTeX does not print numbers of its own, which
+% could differ from the numbers in references to the blocks.
+\usepackage{amsthm}
+\newcommand{\rsmblockname}{}
+\theoremstyle{definition}
+\newtheorem*{theorem}{\rsmblockname}
+\newtheorem*{proposition}{\rsmblockname}
+\newtheorem*{lemma}{\rsmblockname}
+\newtheorem*{corollary}{\rsmblockname}
+\newtheorem*{definition}{\rsmblockname}
+\newtheorem*{example}{\rsmblockname}
+\newtheorem*{exercise}{\rsmblockname}
+\newtheorem*{problem}{\rsmblockname}
+\newtheorem*{porism}{\rsmblockname}
+\newtheorem*{remark}{\rsmblockname}

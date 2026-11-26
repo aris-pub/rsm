@@ -188,10 +188,15 @@ def test_display_math():
         """
     )
     paras = [b for b in blocks if b["t"] == "Para"]
+    # A numbered equation sits in a Span that carries its number.
+    spans = [i for p in paras for i in p["c"] if i.get("t") == "Span"]
+    assert spans
+    (_, classes, kvs), content = spans[0]["c"]
+    assert classes == ["equation"]
+    assert dict(kvs) == {"number": "1"}
     display_math = [
         i
-        for p in paras
-        for i in p["c"]
+        for i in content
         if i.get("t") == "Math" and i["c"][0].get("t") == "DisplayMath"
     ]
     assert display_math
@@ -1056,9 +1061,11 @@ def test_mathblock_with_align_emits_rawblock():
     )
     raw_blocks = [b for b in blocks if b["t"] == "RawBlock" and b["c"][0] == "latex"]
     assert raw_blocks
+    # The block has one number, so align becomes aligned inside a tagged equation.
     content = raw_blocks[0]["c"][1]
-    assert r"\begin{align}" in content
-    assert r"\end{align}" in content
+    assert r"\begin{aligned}" in content
+    assert r"\end{aligned}" in content
+    assert r"\tag{1}" in content
 
 
 @_PANDOC_SKIP
