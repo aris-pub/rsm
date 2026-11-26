@@ -185,7 +185,7 @@ class RSMParserError(Exception):
         super().__init__(self.msg)
 
 
-DELIMS = ":%$`*{#"
+DELIMS = ":%$`*{}#"
 PUSH_THESE_TYPES = {
     "ERROR",
     "appendix",
