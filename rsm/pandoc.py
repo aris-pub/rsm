@@ -923,11 +923,31 @@ def _theorem_heading(inlines: list) -> tuple[int, list | None]:
 
 
 def _proof_heading_length(inlines: list) -> int:
-    # Only the default heading: "\begin{proof}[Proof of X]" gives a different
-    # Emph and is left alone.
+    # Only the default heading. A titled proof is handled by
+    # _proof_title_target, or keeps its title.
     if inlines and inlines[0] == {"t": "Emph", "c": [{"t": "Str", "c": "Proof."}]}:
         return 1
     return 0
+
+
+def _proof_title_target(inlines: list) -> str | None:
+    """Return the source label of the one \\ref in a proof's title, if any.
+
+    pandoc writes \\begin{proof}[Proof of Lemma~\\ref{a}] as an Emph that holds
+    the whole title. A title with no \\ref, or with more than one, returns None.
+    """
+    if not inlines or inlines[0].get("t") != "Emph":
+        return None
+    refs = [
+        inl
+        for inl in inlines[0]["c"]
+        if inl.get("t") == "Link" and "reference-type" in dict(inl["c"][0][2])
+    ]
+    if len(refs) != 1:
+        return None
+    attrs, _inlines, target = refs[0]["c"]
+    label: str = dict(attrs[2]).get("reference") or target[0].lstrip("#")
+    return label
 
 
 def _leaf_paragraphs(blocks: list) -> Iterator[dict]:
@@ -998,20 +1018,29 @@ def _drop_tombstone(blocks: list) -> None:
 
 
 def _strip_amsthm_markup(
-    blocks: list, theorem_classes: tuple, titles: dict[int, list]
+    blocks: list,
+    theorem_classes: tuple,
+    titles: dict[int, list],
+    proof_of: dict[int, str],
 ) -> None:
     """Remove pandoc's amsthm markup in place.
 
-    The title of a titled theorem goes into ``titles``, keyed by the id of the
-    Div's content, which is also the key of the Div's generated label.
+    The title of a titled theorem goes into ``titles``, and the source label
+    named by the title of a proof goes into ``proof_of``. Both are keyed by the
+    id of the Div's content, which is also the key of the Div's generated label.
     """
     for b in blocks:
         t = b.get("t")
         if t == "Div":
             classes, inner = b["c"][0][1], b["c"][1]
-            _strip_amsthm_markup(inner, theorem_classes, titles)
+            _strip_amsthm_markup(inner, theorem_classes, titles, proof_of)
             if "proof" in classes:
-                n = _proof_heading_length(_first_inlines(inner))
+                first = _first_inlines(inner)
+                n = _proof_heading_length(first)
+                target = None if n else _proof_title_target(first)
+                if target:
+                    proof_of[id(b["c"])] = target
+                    n = 1
                 if n:
                     _drop_leading_inlines(inner, n)
                 _drop_tombstone(inner)
@@ -1023,13 +1052,13 @@ def _strip_amsthm_markup(
                 if title:
                     titles[id(b["c"])] = title
         elif t == "BlockQuote":
-            _strip_amsthm_markup(b["c"], theorem_classes, titles)
+            _strip_amsthm_markup(b["c"], theorem_classes, titles, proof_of)
         elif t == "BulletList":
             for item in b["c"]:
-                _strip_amsthm_markup(item, theorem_classes, titles)
+                _strip_amsthm_markup(item, theorem_classes, titles, proof_of)
         elif t == "OrderedList":
             for item in b["c"][1]:
-                _strip_amsthm_markup(item, theorem_classes, titles)
+                _strip_amsthm_markup(item, theorem_classes, titles, proof_of)
 
 
 def _drop_kind_word(inlines: list, words: tuple) -> None:
@@ -1083,7 +1112,10 @@ class PandocImporter:
         # The amsthm cleanup edits the blocks, so work on a copy of the input.
         blocks = copy.deepcopy(pandoc_ast.get("blocks", []))
         self._theorem_titles: dict[int, list] = {}
-        _strip_amsthm_markup(blocks, self._THEOREM_CLASSES, self._theorem_titles)
+        self._proof_of: dict[int, str] = {}
+        _strip_amsthm_markup(
+            blocks, self._THEOREM_CLASSES, self._theorem_titles, self._proof_of
+        )
         # Assign generated labels (sec-N, thm-N, eqn-N) and map each source
         # \label to its generated name, so a \ref emitted before its target
         # still resolves.
@@ -1435,6 +1467,10 @@ class PandocImporter:
         # Map well-known classes to RSM constructs
         for cls in classes:
             if cls == "proof":
+                of = self._proof_of.get(id(c))
+                if of:
+                    of = sanitize_key(self._ref_map.get(of, of))
+                    return f":proof: {{:of: {of}}}\n\n{inner}\n\n::\n\n"
                 return f":proof:\n\n{inner}\n\n::\n\n"
             if cls in self._THEOREM_CLASSES:
                 return f":{cls}:{meta}\n\n{inner}\n\n::\n\n"

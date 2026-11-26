@@ -518,6 +518,38 @@ def test_proof_tombstone_in_its_own_paragraph_is_dropped():
     _parse_without_errors(out)
 
 
+def _titled_proof(title_inlines, body):
+    heading = _emph(*_words("Proof", "of"), {"t": "Space"}, *title_inlines)
+    para = [heading, {"t": "Space"}, *_words(body), {"t": "Str", "c": " ◻"}]
+    return _div("", "proof", [{"t": "Para", "c": para}])
+
+
+def test_proof_titled_with_a_ref_gets_of():
+    import rsm
+
+    lemma = _div("lem:a", "lemma", [{"t": "Para", "c": _words("X.")}])
+    for title in (
+        [{"t": "Str", "c": "Lemma "}, _ref("lem:a"), {"t": "Str", "c": "."}],
+        [_ref("lem:a"), {"t": "Str", "c": "."}],
+    ):
+        ast = {"blocks": [lemma, _titled_proof(title, "P.")]}
+        out = PandocImporter().from_json(ast)
+        assert ":proof: {:of: thm-1}" in out, out
+        body = _body(out, "proof")
+        assert "Proof of" not in body and ":ref:" not in body, out
+        assert body.rstrip().endswith("P."), out
+        tree = _parse_without_errors(out)
+        (proof,) = tree.traverse(nodeclass=rsm.nodes.Proof)
+        assert getattr(proof, "of", None) == "thm-1"
+
+
+def test_proof_titled_without_a_ref_keeps_its_title():
+    ast = {"blocks": [_titled_proof(_words("Mantel."), "P.")]}
+    out = PandocImporter().from_json(ast)
+    assert ":proof:\n" in out, out
+    assert "*Proof of Mantel.* P." in _body(out, "proof"), out
+
+
 def _ref_ast(before, target_block, target):
     return {
         "blocks": [
