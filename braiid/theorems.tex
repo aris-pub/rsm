@@ -4,6 +4,15 @@
 % kind and RSM's number (for example "Theorem 1.1") before each block. The
 % environments are unnumbered so that LaTeX does not print numbers of its own, which
 % could differ from the numbers in references to the blocks.
+%
+% Sections are numbered in the same way: braiid.lua sets \rsmsecnum to RSM's number
+% (for example "1.1" or "A") before each numbered heading, and LaTeX prints it in
+% place of its own counter.
+\setcounter{secnumdepth}{3}
+\newcommand{\rsmsecnum}{}
+\renewcommand{\thesection}{\rsmsecnum}
+\renewcommand{\thesubsection}{\rsmsecnum}
+\renewcommand{\thesubsubsection}{\rsmsecnum}
 \usepackage{amsthm}
 \newcommand{\rsmblockname}{}
 \theoremstyle{definition}

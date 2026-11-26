@@ -240,7 +240,15 @@ class PandocTranslator:
         level = max(1, node.__class__.level - 1)
         anchor = node.label or ""
         title_inlines = [{"t": "Str", "c": node.title}] if node.title else []
-        header = {"t": "Header", "c": [level, [anchor, [], []], title_inlines]}
+        # braiid.lua prints RSM's number, so that the heading agrees with the HTML
+        # and with the text of references to the section.
+        number = node.full_number
+        attrs = (
+            [anchor, [], [["number", number]]]
+            if number
+            else [anchor, ["unnumbered"], []]
+        )
+        header = {"t": "Header", "c": [level, attrs, title_inlines]}
         return [header] + self._walk_children_as_blocks(node)
 
     def _block_abstract(self, node: nodes.Abstract) -> list[dict]:
@@ -309,20 +317,30 @@ class PandocTranslator:
     }
 
     def _number_env(self, node: nodes.MathBlock, src: str) -> str:
-        m = re.fullmatch(r"\\begin\{(\w+)\}(.*)\\end\{\1\}", src, re.DOTALL)
+        m = re.fullmatch(r"\\begin\{([\w*]+)\}(.*)\\end\{\1\}", src, re.DOTALL)
         if not m:
             return src
         env, body = m.groups()
+        if env.endswith("*"):
+            # A starred environment prints no number, but a reference to the block
+            # still needs a place to link to.
+            if node.label:
+                return rf"\phantomsection\label{{{node.label}}}{src}"
+            return src
         number = node.full_number
         tag = ""
         if number:
             tag = rf"\tag{{{number}}}"
             if node.label:
                 tag += rf"\label{{{node.label}}}"
-        if env == "multline":
+        if env in ("multline", "flalign"):
             if not number:
-                return rf"\begin{{multline*}}{body}\end{{multline*}}"
-            return f"\\begin{{multline}}{body}{tag}\n\\end{{multline}}"
+                return rf"\begin{{{env}*}}{body}\end{{{env}*}}"
+            if env == "flalign":
+                # amsmath has no inner form of flalign, so every line but the last
+                # is kept from taking a number of its own.
+                body = _notag_lines(body)
+            return f"\\begin{{{env}}}{body}{tag}\n\\end{{{env}}}"
         inner = self._INNER_ENVS.get(env)
         if not inner:
             return src
@@ -378,7 +396,12 @@ class PandocTranslator:
     def _block_proof(self, node: nodes.Proof) -> list[dict]:
         cls = "sketch" if isinstance(node, nodes.Sketch) else "proof"
         inner = self._walk_children_as_blocks(node)
-        return [{"t": "Div", "c": [["", [cls], []], inner]}]
+        kvs = []
+        proves = getattr(node, "proves", None)
+        if proves is not None:
+            # braiid.lua titles the proof "Proof of <link>", as in the HTML.
+            kvs = [["of", proves.label], ["of-text", proves.reftext]]
+        return [{"t": "Div", "c": [["", [cls], kvs], inner]}]
 
     def _block_html(self, node: nodes.HtmlBlock) -> list[dict]:
         # Raw HTML has no place outside a web page, so its :alt: stands in.
@@ -445,7 +468,11 @@ class PandocTranslator:
     def _block_bibliography(self, node: nodes.Bibliography) -> list[dict]:
         header = {
             "t": "Header",
-            "c": [1, ["references", [], []], [{"t": "Str", "c": "References"}]],
+            "c": [
+                1,
+                ["references", ["unnumbered"], []],
+                [{"t": "Str", "c": "References"}],
+            ],
         }
         items = [
             [self._format_bibitem(child)]
@@ -709,6 +736,40 @@ def _is_display_math(inline: dict) -> bool:
         and isinstance(inline["c"][0], dict)
         and inline["c"][0].get("t") == "DisplayMath"
     )
+
+
+def _notag_lines(body: str) -> str:
+    """Put \\notag before each \\\\ that ends a line of an amsmath environment.
+
+    A \\\\ inside braces or inside a nested environment (such as cases) does not end
+    a line of the outer environment, so it is left alone.
+    """
+    out = []
+    braces = 0
+    envs = 0
+    i = 0
+    while i < len(body):
+        ch = body[i]
+        if ch == "\\":
+            if body.startswith("\\\\", i):
+                out.append("\\notag\\\\" if braces == 0 and envs == 0 else "\\\\")
+                i += 2
+                continue
+            if body.startswith("\\begin{", i):
+                envs += 1
+            elif body.startswith("\\end{", i):
+                envs -= 1
+            # Copy the next character too, so that \{ and \} do not count as braces.
+            out.append(body[i : i + 2])
+            i += 2
+            continue
+        if ch == "{":
+            braces += 1
+        elif ch == "}":
+            braces -= 1
+        out.append(ch)
+        i += 1
+    return "".join(out)
 
 
 def _math_label(src: str) -> str | None:
