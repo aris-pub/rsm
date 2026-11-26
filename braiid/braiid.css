@@ -3145,10 +3145,17 @@ html:not(.touch) {
   outline-offset: 1px; }
 
 .manuscriptwrapper .author-contact {
+  display: inline-flex;
+  border-radius: var(--radius-md);
   color: var(--text-subtle); }
 
+/* The same hover and focus as the sidebar's icon buttons. */
 .manuscriptwrapper .author-contact:hover {
-  color: var(--link-hover); }
+  background: var(--surface-hover); }
+
+.manuscriptwrapper .author-contact:focus-visible {
+  outline: var(--border-thin) solid var(--border-action);
+  outline-offset: 1px; }
 
 .manuscriptwrapper .author-names .icon {
   display: inline-flex;

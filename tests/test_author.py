@@ -34,7 +34,7 @@ def test_simple():
         <p class="manuscript-date">March 29, 2022</p>
 
         <div class="author-block">
-        <p class="author-names"><span class="author-name"><span class="author-name-text" data-affiliation="Max Planck Institute for Mathematics in the Sciences">Leo Torres</span><a class="author-contact" href="mailto:leo@leotrs.com" aria-label="Email Leo Torres"><span class="icon mail" aria-hidden="true"><svg overflow="visible"><use href="#hr-icon-mail" width="100%" height="100%"/></svg></span></a></span></p>
+        <p class="author-names"><span class="author-name"><span class="author-name-text" data-affiliation="Max Planck Institute for Mathematics in the Sciences">Leo Torres</span><a class="author-contact" href="mailto:leo@leotrs.com" aria-label="Email Leo Torres" data-tip="Email Leo Torres"><span class="icon mail" aria-hidden="true"><svg overflow="visible"><use href="#hr-icon-mail" width="100%" height="100%"/></svg></span></a></span></p>
         <button type="button" class="author-summary" aria-expanded="false" hidden>1 affiliation<span aria-hidden="true"> · </span>1 email</button>
         <div class="author-details">
         <ol class="author-affiliations">
@@ -125,7 +125,7 @@ def test_author_with_orcid():
         <h1>My Title</h1>
 
         <div class="author-block">
-        <p class="author-names"><span class="author-name"><span class="author-name-text" data-affiliation="Some University">Leo Torres</span><a class="author-contact" href="https://orcid.org/0000-0001-2345-6789" aria-label="ORCID record of Leo Torres"><span class="icon orcid" aria-hidden="true"><svg overflow="visible"><use href="#hr-icon-orcid" width="100%" height="100%"/></svg></span></a></span></p>
+        <p class="author-names"><span class="author-name"><span class="author-name-text" data-affiliation="Some University">Leo Torres</span><a class="author-contact" href="https://orcid.org/0000-0001-2345-6789" aria-label="ORCID record of Leo Torres" data-tip="ORCID record of Leo Torres"><span class="icon orcid" aria-hidden="true"><svg overflow="visible"><use href="#hr-icon-orcid" width="100%" height="100%"/></svg></span></a></span></p>
         <button type="button" class="author-summary" aria-expanded="false" hidden>1 affiliation<span aria-hidden="true"> · </span>1 ORCID</button>
         <div class="author-details">
         <ol class="author-affiliations">

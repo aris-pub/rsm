@@ -1,7 +1,8 @@
 // uitip.js
 //
 // Interface tooltips: one small label for the controls of the reader interface
-// (the sidebar strip and panel, the pin control in reference previews). They
+// (the sidebar strip and panel, the pin control in reference previews, the
+// mail and ORCID icons next to an author's name). They
 // are deliberately distinct from the reference previews (tooltipster), which
 // show manuscript content. A control opts in with data-tip="Label".
 //
@@ -13,13 +14,14 @@ const SCOPE = [
   ".rail-strip [data-tip]",
   ".proof-rail [data-tip]",
   ".tooltipster-content .ref-pin[data-tip]",
+  ".author-contact[data-tip]",
 ].join(", ");
 
 let wired = false;
 
 export function setup() {
   if (wired) return;
-  if (!document.querySelector(".rail-strip, .proof-rail")) return;
+  if (!document.querySelector(".rail-strip, .proof-rail, .author-contact[data-tip]")) return;
   wired = true;
 
   const tip = document.createElement("div");

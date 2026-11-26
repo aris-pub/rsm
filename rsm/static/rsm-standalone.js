@@ -4374,12 +4374,13 @@ var RSM = (() => {
   var SCOPE = [
     ".rail-strip [data-tip]",
     ".proof-rail [data-tip]",
-    ".tooltipster-content .ref-pin[data-tip]"
+    ".tooltipster-content .ref-pin[data-tip]",
+    ".author-contact[data-tip]"
   ].join(", ");
   var wired = false;
   function setup13() {
     if (wired) return;
-    if (!document.querySelector(".rail-strip, .proof-rail")) return;
+    if (!document.querySelector(".rail-strip, .proof-rail, .author-contact[data-tip]")) return;
     wired = true;
     const tip = document.createElement("div");
     tip.className = "ui-tip";

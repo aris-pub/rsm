@@ -1664,13 +1664,15 @@ class Translator:
                 email = html_escape(author.email, quote=True)
                 name_html += (
                     f'<a class="author-contact" href="mailto:{email}" '
-                    f'aria-label="Email {name_attr}">{self._inline_icon("mail")}</a>'
+                    f'aria-label="Email {name_attr}" data-tip="Email {name_attr}">'
+                    f'{self._inline_icon("mail")}</a>'
                 )
             if author.orcid:
                 orcid = html_escape(author.orcid, quote=True)
                 name_html += (
                     f'<a class="author-contact" href="https://orcid.org/{orcid}" '
-                    f'aria-label="ORCID record of {name_attr}">{self._inline_icon("orcid")}</a>'
+                    f'aria-label="ORCID record of {name_attr}" '
+                    f'data-tip="ORCID record of {name_attr}">{self._inline_icon("orcid")}</a>'
                 )
             name_parts.append(f'<span class="author-name">{name_html}</span>')
 
