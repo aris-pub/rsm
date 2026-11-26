@@ -11,7 +11,6 @@ from textwrap import dedent
 
 import pytest
 
-from rsm import app
 from rsm.app import pandoc_export
 
 pytestmark = pytest.mark.skipif(
@@ -136,10 +135,6 @@ def test_latex_section_titles_have_no_number(latex):
     assert "1 Sec" not in latex
 
 
-@pytest.mark.skipif(
-    not hasattr(app, "_BINARY_FORMATS"),
-    reason="binary export (branch export-binary) is not merged",
-)
 @pytest.mark.parametrize("fmt", ["docx", "odt", "epub"])
 def test_binary_formats_have_section_numbers(tmp_path, fmt):
     out = tmp_path / f"doc.{fmt}"

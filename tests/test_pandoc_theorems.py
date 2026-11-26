@@ -12,7 +12,6 @@ from textwrap import dedent
 
 import pytest
 
-from rsm import app
 from rsm.app import pandoc_export
 
 pytestmark = pytest.mark.skipif(
@@ -446,13 +445,6 @@ def test_latex_has_no_text_heading(latex):
     assert r"\emph{Proof" not in latex
 
 
-# Word, EPUB and ODT are binary formats that pandoc writes to a file.
-needs_binary_export = pytest.mark.skipif(
-    not hasattr(app, "_BINARY_FORMATS"),
-    reason="binary export (branch export-binary) is not merged",
-)
-
-
 def _plain_text_of(tmp_path, src: str, fmt: str) -> str:
     out = tmp_path / f"doc.{fmt}"
     pandoc_export(source=src, to_format=fmt, output=str(out))
@@ -465,7 +457,6 @@ def _plain_text_of(tmp_path, src: str, fmt: str) -> str:
     return " ".join(plain.split())
 
 
-@needs_binary_export
 @pytest.mark.parametrize("fmt", ["docx", "odt", "epub"])
 def test_binary_formats_have_theorem_and_proof_headings(tmp_path, fmt):
     text = _plain_text_of(tmp_path, PROOF_OF, fmt)
