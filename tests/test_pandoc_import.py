@@ -1,5 +1,9 @@
 """Unit tests for the pandoc AST to RSM import translator (PandocImporter)."""
 
+import shutil
+
+import pytest
+
 from rsm.pandoc import PandocImporter
 
 
@@ -342,3 +346,251 @@ def test_raw_html_with_double_colon_is_dropped_with_warning(caplog):
         assert ":html" not in out, out
         assert "'::'" in caplog.text
         assert "end of the tag" in caplog.text
+
+
+# The dicts below copy what pandoc 3's LaTeX reader writes for amsthm theorems,
+# proofs and \ref (bead rsm-v1yn).
+
+
+def _thm_heading(name, number):
+    return [
+        {"t": "Strong", "c": [*_words(name), {"t": "Space"}, *_words(number)]},
+        {"t": "Str", "c": "."},
+        {"t": "Space"},
+        {"t": "Space"},
+    ]
+
+
+def _emph(*inlines):
+    return {"t": "Emph", "c": list(inlines)}
+
+
+def _div(ident, cls, blocks):
+    return {"t": "Div", "c": [[ident, [cls], []], blocks]}
+
+
+def _ref(target, text="1", kind="ref"):
+    return {
+        "t": "Link",
+        "c": [
+            ["", [], [["reference-type", kind], ["reference", target]]],
+            [{"t": "Str", "c": text}],
+            ["#" + target, ""],
+        ],
+    }
+
+
+def _body(out, tag):
+    start = out.index(f":{tag}:")
+    end = out.index("\n::", start)
+    return out[start:end]
+
+
+def test_theorem_heading_and_italic_style_are_dropped():
+    statement = _emph(
+        *_words("A", "graph"),
+        {"t": "Space"},
+        _emph(*_words("has")),
+        {"t": "Space"},
+        *_words("edges."),
+    )
+    ast = {
+        "blocks": [
+            _div(
+                "thm:a",
+                "theorem",
+                [
+                    {"t": "Para", "c": [*_thm_heading("Theorem", "1"), statement]},
+                    {"t": "Para", "c": [_emph(*_words("Second", "para."))]},
+                ],
+            )
+        ]
+    }
+    out = PandocImporter().from_json(ast)
+    body = _body(out, "theorem")
+    assert "Theorem 1" not in body, out
+    assert "A graph *has* edges." in body, out
+    assert "\n\nSecond para." in body, out
+    _parse_without_errors(out)
+
+
+def test_upright_theorem_keeps_its_body():
+    heading = _thm_heading("Lemma", "2")
+    ast = {
+        "blocks": [
+            _div("", "lemma", [{"t": "Para", "c": [*heading, *_words("A", "lemma.")]}])
+        ]
+    }
+    body = _body(PandocImporter().from_json(ast), "lemma")
+    assert "Lemma 2" not in body
+    assert "A lemma." in body
+
+
+def test_theorem_italics_are_dropped_inside_lists():
+    ast = {
+        "blocks": [
+            _div(
+                "",
+                "lemma",
+                [
+                    {"t": "Para", "c": _thm_heading("Lemma", "1")},
+                    {
+                        "t": "OrderedList",
+                        "c": [
+                            [1, {"t": "DefaultStyle"}, {"t": "DefaultDelim"}],
+                            [[{"t": "Para", "c": [_emph(*_words("x"))]}]],
+                        ],
+                    },
+                ],
+            )
+        ]
+    }
+    out = PandocImporter().from_json(ast)
+    body = _body(out, "lemma")
+    assert "Lemma 1" not in body, out
+    assert "*" not in body, out
+    _parse_without_errors(out)
+
+
+def test_display_math_in_italic_theorem_becomes_a_mathblock():
+    math = {"t": "Math", "c": [{"t": "DisplayMath"}, "a=b"]}
+    statement = _emph(
+        *_words("X."), {"t": "SoftBreak"}, math, {"t": "SoftBreak"}, *_words("Y.")
+    )
+    ast = {
+        "blocks": [
+            _div(
+                "",
+                "theorem",
+                [{"t": "Para", "c": [*_thm_heading("Theorem", "1"), statement]}],
+            )
+        ]
+    }
+    out = PandocImporter().from_json(ast)
+    assert ":mathblock:" in out, out
+    assert "*" not in _body(out, "theorem"), out
+
+
+def test_proof_heading_and_tombstone_are_dropped():
+    ast = {
+        "blocks": [
+            _div(
+                "",
+                "proof",
+                [
+                    {
+                        "t": "Para",
+                        "c": [
+                            _emph(*_words("Proof.")),
+                            {"t": "Space"},
+                            *_words("By", "magic."),
+                            {"t": "Str", "c": " ◻"},
+                        ],
+                    }
+                ],
+            )
+        ]
+    }
+    out = PandocImporter().from_json(ast)
+    body = _body(out, "proof")
+    assert "Proof." not in body, out
+    assert "◻" not in out, out
+    assert body.rstrip().endswith("By magic."), out
+
+
+def test_proof_tombstone_in_its_own_paragraph_is_dropped():
+    first = [_emph(*_words("Proof.")), {"t": "Space"}, *_words("A.")]
+    ast = {
+        "blocks": [
+            _div(
+                "",
+                "proof",
+                [
+                    {"t": "Para", "c": first},
+                    {"t": "BulletList", "c": [[{"t": "Para", "c": _words("z")}]]},
+                    {"t": "Para", "c": [{"t": "Str", "c": " ◻"}]},
+                ],
+            )
+        ]
+    }
+    out = PandocImporter().from_json(ast)
+    assert "◻" not in out, out
+    _parse_without_errors(out)
+
+
+def _ref_ast(before, target_block, target):
+    return {
+        "blocks": [
+            target_block,
+            {"t": "Para", "c": [*before, _ref(target), {"t": "Str", "c": "."}]},
+        ]
+    }
+
+
+def _last_line(out):
+    return out.rstrip().splitlines()[-1]
+
+
+_THM = _div("thm:a", "theorem", [{"t": "Para", "c": _words("X.")}])
+_SEC = {"t": "Header", "c": [1, ["sec:a", [], []], _words("Intro")]}
+_FIG = {
+    "t": "Figure",
+    "c": [["fig:a", [], []], [None, []], [{"t": "Plain", "c": []}]],
+}
+
+
+def test_kind_word_before_a_ref_to_that_kind_is_dropped():
+    cases = [
+        ([{"t": "Str", "c": "Theorem "}], _THM, "thm:a", "thm-1"),
+        ([*_words("theorem"), {"t": "Space"}], _THM, "thm:a", "thm-1"),
+        ([{"t": "Str", "c": "Section "}], _SEC, "sec:a", "sec-1"),
+        ([*_words("By", "section"), {"t": "Space"}], _SEC, "sec:a", "sec-1"),
+        ([{"t": "Str", "c": "Figure "}], _FIG, "fig:a", "fig-1"),
+    ]
+    for before, block, target, label in cases:
+        line = _last_line(PandocImporter().from_json(_ref_ast(before, block, target)))
+        assert line in (f":ref:{label}::.", f"By :ref:{label}::."), line
+
+
+def test_kind_word_after_an_open_paren_is_dropped():
+    out = PandocImporter().from_json(
+        _ref_ast([{"t": "Str", "c": "(Theorem "}], _THM, "thm:a")
+    )
+    assert _last_line(out) == "(:ref:thm-1::.", out
+
+
+def test_words_that_do_not_match_the_target_kind_are_kept():
+    for word in ("Lemma", "Section", "Subtheorem"):
+        before = [{"t": "Str", "c": word + " "}]
+        out = PandocImporter().from_json(_ref_ast(before, _THM, "thm:a"))
+        assert _last_line(out) == f"{word} :ref:thm-1::.", out
+
+
+@pytest.mark.skipif(shutil.which("pandoc") is None, reason="pandoc not installed")
+def test_latex_import_of_theorem_proof_and_ref():
+    import rsm
+    from rsm.app import pandoc_import
+
+    src = r"""\documentclass{article}
+\usepackage{amsthm}
+\newtheorem{theorem}{Theorem}
+\begin{document}
+\section{Results}
+\begin{theorem}\label{thm:mantel}
+A triangle-free graph has at most $n^2/4$ edges.
+\end{theorem}
+\begin{proof}
+By Theorem~\ref{thm:mantel} we are done.
+\end{proof}
+\end{document}
+"""
+    out = pandoc_import(source=src, from_format="latex")
+    assert "A triangle-free graph has at most $n^2/4$ edges." in out, out
+    assert "*A triangle" not in out, out
+    assert "**Theorem" not in out, out
+    assert "Proof." not in out, out
+    assert "◻" not in out, out
+    assert "By :ref:thm-1:: we are done." in out, out
+    html = rsm.render(out, handrails=False, source_offsets=False)
+    assert 'class="error"' not in html
+    assert "Theorem Theorem" not in html

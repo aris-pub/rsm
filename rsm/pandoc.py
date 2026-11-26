@@ -17,8 +17,10 @@ Analogy with the rest of the codebase:
 - ``PandocImporter``: pandoc JSON dict → RSM source text  (we own the RSM text)
 """
 
+import copy
 import logging
 import re
+from collections.abc import Callable, Iterator
 from datetime import datetime
 from typing import Any
 
@@ -824,6 +826,190 @@ def _escape_trailing_colon(text: str) -> str:
     return text
 
 
+# pandoc's LaTeX reader typesets amsthm environments itself: it writes the
+# heading ("**Theorem 1**." or "*Proof.*"), the italic body of the plain style
+# and the closing tombstone into the Div. RSM draws all of these, so they are
+# removed before the Div becomes a :theorem: or :proof: (bead rsm-v1yn).
+
+_TOMBSTONE = "◻"
+_NBSP = " "
+_KIND_WORD_AT_END = re.compile(r"(?<![A-Za-z])([A-Za-z]+)$")
+_SECTION_WORDS = ("section", "subsection", "subsubsection")
+
+
+def _is_space(inline: dict) -> bool:
+    return inline.get("t") in ("Space", "SoftBreak")
+
+
+def _lstrip_spaces(inlines: list) -> list:
+    i = 0
+    while i < len(inlines) and _is_space(inlines[i]):
+        i += 1
+    return inlines[i:]
+
+
+def _rstrip_spaces(inlines: list) -> list:
+    i = len(inlines)
+    while i > 0 and _is_space(inlines[i - 1]):
+        i -= 1
+    return inlines[:i]
+
+
+def _drop_leading_inline(blocks: list, matches: Callable[[list], int]) -> bool:
+    """Drop the first ``matches(inlines)`` inlines of the first paragraph."""
+    if not blocks or blocks[0].get("t") not in ("Para", "Plain"):
+        return False
+    inlines = blocks[0]["c"]
+    n = matches(inlines)
+    if not n:
+        return False
+    rest = _lstrip_spaces(inlines[n:])
+    if rest:
+        blocks[0] = {"t": blocks[0]["t"], "c": rest}
+    else:
+        del blocks[0]
+    return True
+
+
+def _theorem_heading_length(inlines: list) -> int:
+    # A titled theorem ("**Theorem 1** (Mantel).") does not match, so its
+    # heading stays in the body.
+    if (
+        len(inlines) >= 2
+        and inlines[0].get("t") == "Strong"
+        and inlines[1] == {"t": "Str", "c": "."}
+    ):
+        return 2
+    return 0
+
+
+def _proof_heading_length(inlines: list) -> int:
+    # Only the default heading: "\begin{proof}[Proof of X]" gives a different
+    # Emph and is left alone.
+    if inlines and inlines[0] == {"t": "Emph", "c": [{"t": "Str", "c": "Proof."}]}:
+        return 1
+    return 0
+
+
+def _leaf_paragraphs(blocks: list) -> Iterator[dict]:
+    for b in blocks:
+        t = b.get("t")
+        if t in ("Para", "Plain"):
+            yield b
+        elif t == "BulletList":
+            for item in b["c"]:
+                yield from _leaf_paragraphs(item)
+        elif t == "OrderedList":
+            for item in b["c"][1]:
+                yield from _leaf_paragraphs(item)
+        elif t == "BlockQuote":
+            yield from _leaf_paragraphs(b["c"])
+        elif t == "Div":
+            yield from _leaf_paragraphs(b["c"][1])
+
+
+def _sole_emph(inlines: list) -> dict | None:
+    core = _rstrip_spaces(_lstrip_spaces(inlines))
+    if len(core) == 1 and core[0].get("t") == "Emph":
+        emph: dict = core[0]
+        return emph
+    return None
+
+
+def _drop_theorem_italics(blocks: list) -> None:
+    # The plain style wraps every paragraph of the body in one Emph. An upright
+    # style (definition, remark) does not, so the body is unwrapped only when
+    # every paragraph is wrapped. Emphasis that the author wrote sits inside
+    # that outer Emph and is kept.
+    leaves = [p for p in _leaf_paragraphs(blocks) if p["c"]]
+    emphs = [_sole_emph(p["c"]) for p in leaves]
+    if not leaves or any(e is None for e in emphs):
+        return
+    for p, e in zip(leaves, emphs, strict=True):
+        assert e is not None
+        p["c"] = e["c"]
+
+
+def _drop_tombstone(blocks: list) -> None:
+    if not blocks:
+        return
+    last = blocks[-1]
+    t = last.get("t")
+    if t == "BulletList" and last["c"]:
+        _drop_tombstone(last["c"][-1])
+        return
+    if t == "OrderedList" and last["c"][1]:
+        _drop_tombstone(last["c"][1][-1])
+        return
+    if t not in ("Para", "Plain"):
+        return
+    inlines = last["c"]
+    if not inlines or inlines[-1].get("t") != "Str":
+        return
+    text = inlines[-1]["c"]
+    if not text.endswith(_TOMBSTONE):
+        return
+    rest = text[: -len(_TOMBSTONE)].rstrip(" " + _NBSP)
+    inlines = inlines[:-1] + ([{"t": "Str", "c": rest}] if rest else [])
+    inlines = _rstrip_spaces(inlines)
+    if inlines:
+        blocks[-1] = {"t": t, "c": inlines}
+    else:
+        del blocks[-1]
+
+
+def _strip_amsthm_markup(blocks: list, theorem_classes: tuple) -> None:
+    for b in blocks:
+        t = b.get("t")
+        if t == "Div":
+            classes, inner = b["c"][0][1], b["c"][1]
+            _strip_amsthm_markup(inner, theorem_classes)
+            if "proof" in classes:
+                _drop_leading_inline(inner, _proof_heading_length)
+                _drop_tombstone(inner)
+            elif any(cls in theorem_classes for cls in classes):
+                if _drop_leading_inline(inner, _theorem_heading_length):
+                    _drop_theorem_italics(inner)
+        elif t == "BlockQuote":
+            _strip_amsthm_markup(b["c"], theorem_classes)
+        elif t == "BulletList":
+            for item in b["c"]:
+                _strip_amsthm_markup(item, theorem_classes)
+        elif t == "OrderedList":
+            for item in b["c"][1]:
+                _strip_amsthm_markup(item, theorem_classes)
+
+
+def _drop_kind_word(inlines: list, words: tuple) -> None:
+    """Remove a kind word such as "Theorem" from the end of ``inlines``.
+
+    RSM's reference text already names the kind ("Theorem 1.1"), so keeping the
+    word would print it twice.
+    """
+    if not inlines:
+        return
+    if inlines[-1].get("t") == "Space":
+        if len(inlines) < 2 or inlines[-2].get("t") != "Str":
+            return
+        text = inlines[-2]["c"]
+        drop_space = True
+    elif inlines[-1].get("t") == "Str" and inlines[-1]["c"].endswith(_NBSP):
+        text = inlines[-1]["c"].rstrip(_NBSP)
+        drop_space = False
+    else:
+        return
+    m = _KIND_WORD_AT_END.search(text)
+    if not m or m.group(1).lower() not in words:
+        return
+    if drop_space:
+        inlines.pop()
+    rest = text[: m.start()]
+    if rest:
+        inlines[-1] = {"t": "Str", "c": rest}
+    else:
+        inlines.pop()
+
+
 class PandocImporter:
     """Convert a pandoc JSON AST dict to RSM source text.
 
@@ -842,12 +1028,15 @@ class PandocImporter:
 
     def from_json(self, pandoc_ast: dict) -> str:
         meta = pandoc_ast.get("meta", {})
-        blocks = pandoc_ast.get("blocks", [])
+        # The amsthm cleanup edits the blocks, so work on a copy of the input.
+        blocks = copy.deepcopy(pandoc_ast.get("blocks", []))
+        _strip_amsthm_markup(blocks, self._THEOREM_CLASSES)
         # Assign generated labels (sec-N, thm-N, eqn-N) and map each source
         # \label to its generated name, so a \ref emitted before its target
         # still resolves.
         self._label_of: dict[int, str] = {}
         self._ref_map: dict[str, str] = {}
+        self._kind_words: dict[str, tuple[str, ...]] = {}
         self._label_n = {"sec": 0, "thm": 0, "eqn": 0, "fig": 0, "tab": 0, "note": 0}
         self._pending_notes: list[str] = []
         self._assign_labels(blocks)
@@ -920,6 +1109,9 @@ class PandocImporter:
                 self._label_of[id(c)] = gen
                 if c[1][0]:
                     self._ref_map[c[1][0]] = gen
+                    # Level 4 and deeper become run-in paragraphs, not sections.
+                    if c[0] <= 3:
+                        self._kind_words[c[1][0]] = _SECTION_WORDS
             elif t == "Div":
                 attr, inner_blocks = c
                 if any(cls in self._THEOREM_CLASSES for cls in attr[1]):
@@ -927,6 +1119,9 @@ class PandocImporter:
                     self._label_of[id(c)] = gen
                     if attr[0]:
                         self._ref_map[attr[0]] = gen
+                        self._kind_words[attr[0]] = tuple(
+                            cls for cls in attr[1] if cls in self._THEOREM_CLASSES
+                        )
                 self._assign_labels(inner_blocks)
             elif t in ("Para", "Plain"):
                 for inl in c:
@@ -949,12 +1144,14 @@ class PandocImporter:
                 self._label_of[id(c)] = gen
                 if c[0][0]:
                     self._ref_map[c[0][0]] = gen
+                    self._kind_words[c[0][0]] = ("figure",)
                 self._assign_labels(c[2])
             elif t == "Table":
                 gen = self._next_label("tab")
                 self._label_of[id(c)] = gen
                 if c[0][0]:
                     self._ref_map[c[0][0]] = gen
+                    self._kind_words[c[0][0]] = ("table",)
 
     # ── Meta ──────────────────────────────────────────────────────────────────
 
@@ -1259,7 +1456,23 @@ class PandocImporter:
     # ── Inline rendering ──────────────────────────────────────────────────────
 
     def _render_inlines(self, inlines: list) -> str:
-        return "".join(self._render_inline(i) for i in inlines)
+        kept: list[dict] = []
+        for inline in inlines:
+            words = self._ref_kind_words(inline)
+            if words:
+                _drop_kind_word(kept, words)
+            kept.append(inline)
+        return "".join(self._render_inline(i) for i in kept)
+
+    def _ref_kind_words(self, inline: dict) -> tuple[str, ...]:
+        if inline.get("t") != "Link":
+            return ()
+        attrs, _inlines, target = inline["c"]
+        kv = dict(attrs[2]) if len(attrs) >= 3 else {}
+        if "reference-type" not in kv:
+            return ()
+        tgt = kv.get("reference") or target[0].lstrip("#")
+        return self._kind_words.get(tgt, ())
 
     def _render_inline(self, inline: dict) -> str:
         t = inline.get("t", "")
