@@ -183,54 +183,57 @@ def serve_rsm_html(page: Any, tmp_path: Path) -> Callable[[str, bool], Any]:
             html_content = html_content.replace("<html", '<html class="dark-theme"', 1)
             html_file.write_text(html_content)
 
-        # Start HTTP server in background thread
-        class ThreadedHTTPServer(socketserver.TCPServer):
+        # A page asks for some 30 script files at once. A server that handles
+        # one request at a time, with the default queue of 5, resets the
+        # connections over that, and the page then runs with scripts missing.
+        class ThreadedHTTPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
             allow_reuse_address = True
+            daemon_threads = True
+            request_queue_size = 128
 
         # Find available port
         with socketserver.TCPServer(("127.0.0.1", 0), handler) as s:
             port = s.server_address[1]
 
-        # Create server serving the output directory
-        import os
+        # Serve the output directory without changing the process's working
+        # directory, so requests made after the load (fonts fetched on hover)
+        # are served from the same place.
+        import functools
 
-        original_dir = os.getcwd()
-        os.chdir(output_dir)
-
-        server = ThreadedHTTPServer(("127.0.0.1", port), handler)
+        server = ThreadedHTTPServer(
+            ("127.0.0.1", port),
+            functools.partial(handler, directory=str(output_dir)),
+        )
         servers.append(server)
         server_thread = threading.Thread(target=server.serve_forever, daemon=True)
         server_thread.start()
 
-        try:
-            # Navigate to the file using HTTP
-            page.goto(f"http://127.0.0.1:{port}/test.html")
+        # Navigate to the file using HTTP
+        page.goto(f"http://127.0.0.1:{port}/test.html")
 
-            # Wait for RSM JavaScript initialization to complete
-            page.wait_for_function("() => window.__rsmShown === true", timeout=10000)
+        # Wait for RSM JavaScript initialization to complete
+        page.wait_for_function("() => window.__rsmShown === true", timeout=10000)
 
-            # Wait for fonts to fully load, including dynamically-injected @font-face
-            # rules (e.g. MathJax's fonts). A single document.fonts.ready check is unreliable
-            # here: if the CSS hasn't been parsed yet, status is trivially 'loaded'
-            # because no font loads are pending. The double-ready pattern gives the
-            # browser a tick to discover newly-injected @font-face rules.
-            page.wait_for_function(
-                """async () => {
-                await document.fonts.ready;
-                await new Promise(r => setTimeout(r, 100));
-                await document.fonts.ready;
-                return document.fonts.status === 'loaded';
-            }""",
-                timeout=15000,
-            )
+        # Wait for fonts to fully load, including dynamically-injected @font-face
+        # rules (e.g. MathJax's fonts). A single document.fonts.ready check is unreliable
+        # here: if the CSS hasn't been parsed yet, status is trivially 'loaded'
+        # because no font loads are pending. The double-ready pattern gives the
+        # browser a tick to discover newly-injected @font-face rules.
+        page.wait_for_function(
+            """async () => {
+            await document.fonts.ready;
+            await new Promise(r => setTimeout(r, 100));
+            await document.fonts.ready;
+            return document.fonts.status === 'loaded';
+        }""",
+            timeout=15000,
+        )
 
-            # Wait for rendering (CSS transitions, layout reflow after font swap)
-            page.wait_for_timeout(1500)
+        # Wait for rendering (CSS transitions, layout reflow after font swap)
+        page.wait_for_timeout(1500)
 
-            # Return the body element for clean screenshots
-            return page.locator("body")
-        finally:
-            os.chdir(original_dir)
+        # Return the body element for clean screenshots
+        return page.locator("body")
 
     # The server stays up until the test ends: opening an aside or a pin can
     # fetch a font the first load did not need, and a stopped server leaves
