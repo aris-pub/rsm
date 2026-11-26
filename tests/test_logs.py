@@ -213,3 +213,29 @@ def test_plain_logs_of_wrong_manuscript():
 def test_plain_logs_of_wrong_manuscript_verbose():
     have = run(WRONG_MANUSCRIPT, "plain", verbose=1, split=True)
     assert have == [r["msg"] for r in WRONG_MANUSCRIPT_LOGS_V]
+
+
+def _rsm_format(log_lineno: bool) -> str:
+    import logging
+
+    from rsm.rsmlogger import RSMFormatter
+
+    record = logging.LogRecord(
+        "RSM", logging.WARNING, "/x/app.py", 42, "Something", None, None
+    )
+    return RSMFormatter(log_time=False, log_lineno=log_lineno).format(record)
+
+
+def test_rsm_format_prints_file_and_line_by_default():
+    assert "(app.py:42)" in _rsm_format(log_lineno=True)
+
+
+def test_rsm_format_leaves_out_file_and_line_with_log_no_lineno():
+    assert "app.py:42" not in _rsm_format(log_lineno=False)
+
+
+@pytest.mark.slow
+def test_rsm_logs_of_wrong_manuscript_have_no_lineno():
+    output = run(WRONG_MANUSCRIPT, "rsm")
+    assert output
+    assert not re.search(r"\(\w+\.py:\d+\)", output)

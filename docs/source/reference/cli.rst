@@ -26,7 +26,9 @@ subcommands share these options:
    Leaves the time out of the messages in the ``rsm`` and ``json`` formats.
 
 ``--log-no-lineno``
-   Leaves the ``lineno`` field out of the messages in the ``json`` format.
+   Leaves the file name and line number of the RSM code that printed the
+   message out of the messages in the ``rsm`` format, and the ``lineno``
+   field out of the messages in the ``json`` format.
 
 ``--strict``
    Stops with an error at the first syntax error in the source.

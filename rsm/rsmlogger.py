@@ -79,7 +79,7 @@ class RSMFormatter(logging.Formatter):
             + self.COLORS.get(record.levelno, self.grey)
             + self.msgformat
             + (self.point if hasattr(record, "start_row") else "")
-            + self.suffix
+            + (self.suffix if self.log_lineno else "")
         )
         formatter = logging.Formatter(fmt, datefmt="%H:%M:%S")
         return formatter.format(record)
