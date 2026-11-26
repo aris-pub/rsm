@@ -68,6 +68,13 @@ OpenDocument (``odt``), EPUB, PowerPoint (``pptx``) and PDF are not text,
 so they need ``-o``. A text format such as Markdown is printed when ``-o`` is
 left out.
 
+These formats have the same headings and numbers as the web page: "1
+Results" for a section, "Theorem 1.1 (Mantel)." before a theorem, "Proof of
+Theorem 1.1." before its proof, and "(1.1)" after a numbered equation.
+
+When Pandoc cannot convert a formula to the target format, it writes the
+formula as TeX, and RSM shows Pandoc's warning.
+
 
 What an export leaves out
 -------------------------
@@ -126,13 +133,29 @@ RSM writes:
 
 - ``\title``, ``\author`` and the ``abstract`` environment as the front
   matter,
-- sections, theorems, proofs and equations as their RSM blocks, each with a
-  label, and ``\ref`` and ``\eqref`` as ``:ref:``,
+- sections as RSM sections, each with a label,
+- the environments ``theorem``, ``lemma``, ``proposition``, ``corollary``,
+  ``definition``, ``remark``, ``example``, ``exercise``, ``problem`` and
+  ``porism`` as their RSM blocks, each with a label. A title, as in
+  ``\begin{theorem}[Mantel]``, becomes the ``:title:``, and an environment
+  declared with ``\newtheorem*`` gets ``:nonum:``,
+- ``proof`` as ``:proof:``. A proof titled with a reference, as in
+  ``\begin{proof}[Proof of Lemma~\ref{lem:key}]``, gets ``:of:`` with that
+  lemma,
+- display math as ``:mathblock:``. Math that LaTeX numbers, such as
+  ``equation`` and ``align``, gets a label. Math that LaTeX leaves
+  unnumbered, such as ``equation*`` and ``\[...\]``, gets ``:nonum:``.
+  ``\tag`` is dropped, because RSM numbers the equations itself,
+- ``\ref`` and ``\eqref`` as ``:ref:``. RSM writes the kind of the target in
+  the text of a reference, so a word such as "Theorem" in
+  ``Theorem~\ref{thm:main}`` is dropped,
 - ``\cite`` as ``:cite:``, and the entries of the ``.bib`` file or of
   ``thebibliography`` as BibTeX entries in a ``:references:`` block.
 
 Read the result before you build it. Pandoc does not read every LaTeX
-package, and RSM drops commands that it does not know.
+package, RSM drops commands that it does not know, and an environment with
+another name, such as ``thm`` from ``\newtheorem{thm}{Theorem}``, is imported
+as plain text.
 
 
 Import other formats
