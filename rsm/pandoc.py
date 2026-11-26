@@ -880,6 +880,10 @@ def _rstrip_spaces(inlines: list) -> list:
     return inlines[:i]
 
 
+def _strip_spaces(inlines: list) -> list:
+    return _rstrip_spaces(_lstrip_spaces(inlines))
+
+
 def _first_inlines(blocks: list) -> list:
     if blocks and blocks[0].get("t") in ("Para", "Plain"):
         inlines: list = blocks[0]["c"]
@@ -1360,7 +1364,7 @@ class PandocImporter:
                 and inline["c"][0].get("t") == "DisplayMath"
             ):
                 if pending:
-                    text = self._render_inlines(pending)
+                    text = self._render_inlines(_strip_spaces(pending))
                     if text:
                         result.append(f"{_escape_trailing_colon(text)}\n\n")
                     pending = []
@@ -1372,7 +1376,7 @@ class PandocImporter:
             else:
                 pending.append(inline)
         if pending:
-            text = self._render_inlines(pending)
+            text = self._render_inlines(_strip_spaces(pending))
             if text:
                 result.append(f"{_escape_trailing_colon(text)}\n\n")
         body = "".join(result)

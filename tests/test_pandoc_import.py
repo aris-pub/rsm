@@ -567,6 +567,22 @@ def test_starred_equation_is_left_as_written():
     assert src in out, out
 
 
+def test_text_around_a_mathblock_has_no_stray_spaces():
+    para = {
+        "t": "Para",
+        "c": [
+            *_words("and"),
+            {"t": "SoftBreak"},
+            _display("x"),
+            {"t": "SoftBreak"},
+            *_words("By", "this."),
+        ],
+    }
+    out = PandocImporter().from_json({"blocks": [para]})
+    assert out.startswith("and\n\n:mathblock:"), repr(out)
+    assert "::\n\nBy this.\n" in out, repr(out)
+
+
 def _titled_proof(title_inlines, body):
     heading = _emph(*_words("Proof", "of"), {"t": "Space"}, *title_inlines)
     para = [heading, {"t": "Space"}, *_words(body), {"t": "Str", "c": " ◻"}]
