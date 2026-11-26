@@ -188,10 +188,15 @@ def test_display_math():
         """
     )
     paras = [b for b in blocks if b["t"] == "Para"]
+    # A numbered equation sits in a Span that carries its number.
+    spans = [i for p in paras for i in p["c"] if i.get("t") == "Span"]
+    assert spans
+    (_, classes, kvs), content = spans[0]["c"]
+    assert classes == ["equation"]
+    assert dict(kvs) == {"number": "1"}
     display_math = [
         i
-        for p in paras
-        for i in p["c"]
+        for i in content
         if i.get("t") == "Math" and i["c"][0].get("t") == "DisplayMath"
     ]
     assert display_math

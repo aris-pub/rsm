@@ -290,7 +290,13 @@ class PandocTranslator:
         )
         if has_env:
             return [{"t": "RawBlock", "c": ["latex", stripped]}]
-        return [{"t": "Para", "c": [{"t": "Math", "c": [{"t": "DisplayMath"}, src]}]}]
+        math = {"t": "Math", "c": [{"t": "DisplayMath"}, src]}
+        if not node.full_number:
+            return [{"t": "Para", "c": [math]}]
+        # braiid.lua prints RSM's number as the equation's tag, so that the number
+        # agrees with the text of references to the equation.
+        attrs = [node.label or "", ["equation"], [["number", node.full_number]]]
+        return [{"t": "Para", "c": [{"t": "Span", "c": [attrs, [math]]}]}]
 
     def _block_codeblock(self, node: nodes.CodeBlock) -> list[dict]:
         src = self._extract_code_source(node)
@@ -324,6 +330,8 @@ class PandocTranslator:
         classname = type(node).__name__.lower()
         anchor = node.label or ""
         kvs = []
+        if node.full_number:
+            kvs.append(["number", node.full_number])
         if node.title:
             kvs.append(["title", node.title])
         if node.blockname:

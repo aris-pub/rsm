@@ -682,9 +682,11 @@ class _PandocRunner:
         json_str = json.dumps(pandoc_ast)
         cmd = ["pandoc", "--from=json", f"--to={self.to_format}", "--standalone"]
         braiid_dir = Path(__file__).parent.parent / "braiid"
-        lua_filter = braiid_dir / "braiid.lua"
-        if lua_filter.exists() and self.to_format == "latex":
-            cmd += [f"--lua-filter={lua_filter}"]
+        if self.to_format in ("latex", "pdf"):
+            cmd += [
+                f"--lua-filter={braiid_dir / 'braiid.lua'}",
+                f"--include-in-header={braiid_dir / 'theorems.tex'}",
+            ]
         if self.to_format == "latex":
             cmd += ["-V", "header-includes=\\usepackage{braiid}"]
         if self.to_format == "pdf":
