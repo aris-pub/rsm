@@ -611,12 +611,34 @@ rsm build {rsm_file.name} --standalone
     return 0
 
 
+def _folder_build_cmd(rsm_file: Path, output_dir: Path, args: Namespace) -> list[str]:
+    """Return the command that rebuilds one .rsm file for rsm serve without a file.
+
+    The command is a list, not a shell string, so that paths with spaces stay whole.
+    """
+    cmd = ["rsm", "build", str(rsm_file), "-o", str(output_dir / rsm_file.stem)]
+    if args.css:
+        cmd.extend(["--css", args.css])
+    if args.menu_right:
+        cmd.append("--menu-right")
+    if args.sidebar:
+        cmd.append("--sidebar")
+    if args.no_theme_toggle:
+        cmd.append("--no-theme-toggle")
+    if args.strict:
+        cmd.append("--strict")
+    if args.standalone:
+        cmd.append("--standalone")
+    return cmd
+
+
 def _cmd_serve(args: Namespace) -> int:
     """Handle 'rsm serve' subcommand.
 
     Two modes:
     1. With src: Build the source file first, then serve with auto-rebuild
-    2. Without src: Just serve existing HTML files in current directory
+    2. Without src: Watch the .rsm files of the current folder, rebuild each one
+       into the output folder, and serve the output folder
     """
     import threading
     import time
@@ -675,8 +697,6 @@ def _cmd_serve(args: Namespace) -> int:
         if args.log_format != "rsm":
             cmd_parts.extend(["--log-format", args.log_format])
 
-        cmd = " ".join(cmd_parts)
-
         # Initial build
         kwargs = {
             "loglevel": app.RSMApp.default_log_level - args.verbose * 10,
@@ -702,39 +722,25 @@ def _cmd_serve(args: Namespace) -> int:
 
         # Watch source and CSS files for changes
         server = livereload.Server()
-        server.watch(args.src, livereload.shell(cmd))
+        server.watch(args.src, livereload.shell(cmd_parts))
         if custom_css:
-            server.watch(custom_css, livereload.shell(cmd))
+            server.watch(custom_css, livereload.shell(cmd_parts))
 
     # Mode 2: Serve and watch all .rsm files in directory
     else:
         server = livereload.Server()
 
-        # Find all .rsm files in current directory
-        rsm_files = list(output_dir.glob("*.rsm"))
+        rsm_files = sorted(Path().glob("*.rsm"))
 
         if rsm_files:
             print(f"Watching {len(rsm_files)} RSM file(s) for changes...")
             for rsm_file in rsm_files:
                 print(f"  - {rsm_file.name}")
-                # Create build command for this specific file
-                build_cmd = f"rsm build {rsm_file} -o {output_dir / rsm_file.stem}"
-                if args.css:
-                    build_cmd += f" --css {args.css}"
-                if args.menu_right:
-                    build_cmd += " --menu-right"
-                if args.sidebar:
-                    build_cmd += " --sidebar"
-                if args.no_theme_toggle:
-                    build_cmd += " --no-theme-toggle"
-                if args.strict:
-                    build_cmd += " --strict"
-                if args.standalone:
-                    build_cmd += " --standalone"
+                build_cmd = _folder_build_cmd(rsm_file, output_dir, args)
 
                 # Add a callback to regenerate index after build
                 def rebuild_callback(
-                    rsm_path: Path = rsm_file, cmd: str = build_cmd
+                    rsm_path: Path = rsm_file, cmd: list[str] = build_cmd
                 ) -> None:
                     # Rebuild the specific file
                     livereload.shell(cmd)()
@@ -767,20 +773,9 @@ def _cmd_serve(args: Namespace) -> int:
                 def css_rebuild_callback() -> None:
                     # Rebuild all RSM files
                     for rsm_file in rsm_files:
-                        cmd = f"rsm build {rsm_file} -o {output_dir / rsm_file.stem}"
-                        if args.css:
-                            cmd += f" --css {args.css}"
-                        if args.menu_right:
-                            cmd += " --menu-right"
-                        if args.sidebar:
-                            cmd += " --sidebar"
-                        if args.no_theme_toggle:
-                            cmd += " --no-theme-toggle"
-                        if args.strict:
-                            cmd += " --strict"
-                        if args.standalone:
-                            cmd += " --standalone"
-                        livereload.shell(cmd)()
+                        livereload.shell(
+                            _folder_build_cmd(rsm_file, output_dir, args)
+                        )()
                     # Regenerate index
                     html_files = _find_html_files(str(output_dir))
                     if len(html_files) > 1:
