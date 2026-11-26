@@ -552,6 +552,49 @@ def test_kind_word_before_a_ref_to_that_kind_is_dropped():
         assert line in (f":ref:{label}::.", f"By :ref:{label}::."), line
 
 
+def test_plural_and_short_kind_words_before_a_ref_are_dropped():
+    cases = [
+        ("Theorems", _THM, "thm:a", "thm-1"),
+        ("Thm.", _THM, "thm:a", "thm-1"),
+        ("thm.", _THM, "thm:a", "thm-1"),
+        ("Sections", _SEC, "sec:a", "sec-1"),
+        ("Sec.", _SEC, "sec:a", "sec-1"),
+        ("Secs.", _SEC, "sec:a", "sec-1"),
+        ("Fig.", _FIG, "fig:a", "fig-1"),
+        ("Figures", _FIG, "fig:a", "fig-1"),
+    ]
+    for word, block, target, label in cases:
+        for before in (
+            [{"t": "Str", "c": word + " "}],
+            [{"t": "Str", "c": word}, {"t": "Space"}],
+        ):
+            out = PandocImporter().from_json(_ref_ast(before, block, target))
+            assert _last_line(out) == f":ref:{label}::.", out
+
+
+def test_plural_kind_word_before_a_group_of_refs_is_dropped():
+    sec_b = {"t": "Header", "c": [1, ["sec:b", [], []], _words("More")]}
+    para = {
+        "t": "Para",
+        "c": [
+            {"t": "Str", "c": "Sections "},
+            _ref("sec:a"),
+            {"t": "Space"},
+            {"t": "Str", "c": "and "},
+            _ref("sec:b"),
+        ],
+    }
+    out = PandocImporter().from_json({"blocks": [_SEC, sec_b, para]})
+    assert _last_line(out) == ":ref:sec-1:: and :ref:sec-2::", out
+
+
+def test_short_and_plural_words_of_another_kind_are_kept():
+    for word in ("Eq.", "Equation", "Fig.", "Lemmas", "Sections"):
+        before = [{"t": "Str", "c": word + " "}]
+        out = PandocImporter().from_json(_ref_ast(before, _THM, "thm:a"))
+        assert _last_line(out) == f"{word} :ref:thm-1::.", out
+
+
 def test_kind_word_after_an_open_paren_is_dropped():
     out = PandocImporter().from_json(
         _ref_ast([{"t": "Str", "c": "(Theorem "}], _THM, "thm:a")

@@ -833,8 +833,33 @@ def _escape_trailing_colon(text: str) -> str:
 
 _TOMBSTONE = "◻"
 _NBSP = " "
-_KIND_WORD_AT_END = re.compile(r"(?<![A-Za-z])([A-Za-z]+)$")
-_SECTION_WORDS = ("section", "subsection", "subsubsection")
+_KIND_WORD_AT_END = re.compile(r"(?<![A-Za-z])([A-Za-z]+\.?)$")
+# Equations are left out: RSM writes a reference to one as "(1.1)", so a word
+# such as "Equation" before it is not printed twice.
+_KIND_WORDS = {
+    "section": (
+        "section",
+        "sections",
+        "subsection",
+        "subsections",
+        "subsubsection",
+        "subsubsections",
+        "sec.",
+        "secs.",
+    ),
+    "figure": ("figure", "figures", "fig.", "figs."),
+    "table": ("table", "tables", "tab.", "tabs."),
+    "theorem": ("theorem", "theorems", "thm.", "thms."),
+    "lemma": ("lemma", "lemmas", "lemmata", "lem.", "lems."),
+    "proposition": ("proposition", "propositions", "prop.", "props."),
+    "corollary": ("corollary", "corollaries", "cor.", "cors."),
+    "definition": ("definition", "definitions", "def.", "defs."),
+}
+
+
+def _kind_words(kind: str) -> tuple[str, ...]:
+    """Return the words that name ``kind`` in the text: "Theorems", "Thm." and so on."""
+    return _KIND_WORDS.get(kind, (kind, kind + "s"))
 
 
 def _is_space(inline: dict) -> bool:
@@ -1139,7 +1164,7 @@ class PandocImporter:
                     self._ref_map[c[1][0]] = gen
                     # Level 4 and deeper become run-in paragraphs, not sections.
                     if c[0] <= 3:
-                        self._kind_words[c[1][0]] = _SECTION_WORDS
+                        self._kind_words[c[1][0]] = _kind_words("section")
             elif t == "Div":
                 attr, inner_blocks = c
                 if any(cls in self._THEOREM_CLASSES for cls in attr[1]):
@@ -1148,7 +1173,10 @@ class PandocImporter:
                     if attr[0]:
                         self._ref_map[attr[0]] = gen
                         self._kind_words[attr[0]] = tuple(
-                            cls for cls in attr[1] if cls in self._THEOREM_CLASSES
+                            word
+                            for cls in attr[1]
+                            if cls in self._THEOREM_CLASSES
+                            for word in _kind_words(cls)
                         )
                 self._assign_labels(inner_blocks)
             elif t in ("Para", "Plain"):
@@ -1172,14 +1200,14 @@ class PandocImporter:
                 self._label_of[id(c)] = gen
                 if c[0][0]:
                     self._ref_map[c[0][0]] = gen
-                    self._kind_words[c[0][0]] = ("figure",)
+                    self._kind_words[c[0][0]] = _kind_words("figure")
                 self._assign_labels(c[2])
             elif t == "Table":
                 gen = self._next_label("tab")
                 self._label_of[id(c)] = gen
                 if c[0][0]:
                     self._ref_map[c[0][0]] = gen
-                    self._kind_words[c[0][0]] = ("table",)
+                    self._kind_words[c[0][0]] = _kind_words("table")
 
     # ── Meta ──────────────────────────────────────────────────────────────────
 
