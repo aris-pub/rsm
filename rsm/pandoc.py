@@ -1061,6 +1061,23 @@ def _strip_amsthm_markup(
                 _strip_amsthm_markup(item, theorem_classes, titles, proof_of)
 
 
+_LABEL_LINE = re.compile(r"^[ \t]*\\label\{[^}]*\}[ \t]*\n", re.MULTILINE)
+_LABEL = re.compile(r"\\label\{[^}]*\}")
+_EQUATION_ENV = re.compile(r"\s*\\begin\{equation\}(.*)\\end\{equation\}\s*", re.DOTALL)
+
+
+def _mathblock_source(src: str) -> str:
+    """Return the TeX to put in a :mathblock: for one pandoc display math.
+
+    The label is already in the :mathblock: meta, and RSM numbers a :mathblock:
+    itself, so the \\label and an equation environment around the math are
+    dropped. Other environments, such as align or equation*, are kept.
+    """
+    src = _LABEL.sub("", _LABEL_LINE.sub("", src))
+    m = _EQUATION_ENV.fullmatch(src)
+    return m.group(1).strip() if m else src
+
+
 def _drop_kind_word(inlines: list, words: tuple) -> None:
     """Remove a kind word such as "Theorem" from the end of ``inlines``.
 
@@ -1348,7 +1365,7 @@ class PandocImporter:
                         result.append(f"{_escape_trailing_colon(text)}\n\n")
                     pending = []
                 src = inline["c"][1] if len(inline["c"]) >= 2 else ""
-                src = re.sub(r"\\label\{[^}]*\}", "", src)
+                src = _mathblock_source(src)
                 label = self._label_of.get(id(inline))
                 meta = f" {{:label: {label}}}" if label else ""
                 result.append(f":mathblock:{meta}\n  {src}\n::\n\n")

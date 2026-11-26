@@ -542,6 +542,31 @@ def test_definition_remark_and_porism_become_rsm_blocks():
         assert node.label == "thm-1"
 
 
+def _display(src):
+    return {"t": "Math", "c": [{"t": "DisplayMath"}, src]}
+
+
+def test_equation_environment_becomes_a_mathblock_of_its_math():
+    src = "\\begin{equation}\n\\label{eq:am}\nxy \\le z.\n\\end{equation}"
+    para = {"t": "Para", "c": [*_words("and"), {"t": "SoftBreak"}, _display(src)]}
+    ref_para = {"t": "Para", "c": [_ref("eq:am", kind="eqref")]}
+    out = PandocImporter().from_json({"blocks": [para, ref_para]})
+    assert ":mathblock: {:label: eqn-1}\n  xy \\le z.\n::" in out, out
+    assert _last_line(out) == ":ref:eqn-1::", out
+
+
+def test_label_inside_other_math_leaves_no_blank_line():
+    src = "\\begin{align}\n\\label{eq:a}\na &= b\n\\end{align}"
+    out = PandocImporter().from_json({"blocks": [{"t": "Para", "c": [_display(src)]}]})
+    assert "\\begin{align}\na &= b\n\\end{align}" in out, out
+
+
+def test_starred_equation_is_left_as_written():
+    src = "\\begin{equation*}\nx\n\\end{equation*}"
+    out = PandocImporter().from_json({"blocks": [{"t": "Para", "c": [_display(src)]}]})
+    assert src in out, out
+
+
 def _titled_proof(title_inlines, body):
     heading = _emph(*_words("Proof", "of"), {"t": "Space"}, *title_inlines)
     para = [heading, {"t": "Space"}, *_words(body), {"t": "Str", "c": " ◻"}]
