@@ -195,3 +195,24 @@ class TestNameTooltip:
     def test_tooltip_data_is_escaped(self):
         block = _block(authors=[("A", 'Lab "X" & Co', "", "", ""), ("B", "U", "", "", "")])
         assert block.select(".author-name-text")[0]["data-affiliation"] == 'Lab "X" & Co'
+
+
+class TestChevron:
+    """The handrail chevron is left out when the block has nothing to open."""
+
+    def _chevron(self, config="", authors=AUTHORS):
+        block = _block(config, authors, handrails=True)
+        return block.select_one(".hr > .hr-collapse-zone button.hr-collapse")
+
+    def test_no_chevron_when_there_is_nothing_to_open(self):
+        assert self._chevron(authors=[("A", "", "", "", ""), ("B", "", "", "", "")]) is None
+
+    def test_chevron_when_there_are_details(self):
+        assert self._chevron(authors=[("A", "U", "", "", ""), ("B", "", "", "", "")])
+
+    def test_chevron_when_the_list_is_shortened(self):
+        bare = [(name, "", "", "", "") for name, *_ in AUTHORS]
+        assert self._chevron(SHORTEN, bare)
+
+    def test_chevron_with_shortened_list_and_details(self):
+        assert self._chevron(SHORTEN)

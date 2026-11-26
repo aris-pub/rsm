@@ -622,8 +622,7 @@ function setAuthorsState(hr, open) {
   const authors = authorBlockOf(hr);
   if (!authors) return false;
   setAuthorsOpen(authors, open);
-  // The author block always starts closed, so its state is not saved.
-  withoutPersist(() => notifyHandrailToggle(hr, !open));
+  notifyHandrailToggle(hr, !open);
   syncCollapseButton(hr);
   return true;
 }
@@ -798,7 +797,6 @@ export function restoreCollapse(root) {
   suppressPersist = true;
   for (const hr of (root || document).querySelectorAll(".hr")) {
     if (hr.closest(".rsm-source")) continue;
-    if (authorBlockOf(hr)) continue;
     const key = collapseKey(hr);
     if (key == null || !(key in state)) continue;
     const wantCollapsed = state[key];

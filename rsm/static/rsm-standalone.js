@@ -2191,7 +2191,7 @@ var RSM = (() => {
     const authors = authorBlockOf(hr);
     if (!authors) return false;
     setOpen(authors, open);
-    withoutPersist(() => notifyHandrailToggle(hr, !open));
+    notifyHandrailToggle(hr, !open);
     syncCollapseButton(hr);
     return true;
   }
@@ -2307,7 +2307,6 @@ var RSM = (() => {
     suppressPersist = true;
     for (const hr of (root2 || document).querySelectorAll(".hr")) {
       if (hr.closest(".rsm-source")) continue;
-      if (authorBlockOf(hr)) continue;
       const key = collapseKey(hr);
       if (key == null || !(key in state)) continue;
       const wantCollapsed = state[key];

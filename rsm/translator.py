@@ -1676,8 +1676,11 @@ class Translator:
 
         names_line = self._author_names_line(name_parts)
 
+        details = self._make_authornotes_html(notes_node)
+        # Whether the block has anything to open: hidden names or details.
+        self._author_block_opens = bool(details) or "author-hidden-names" in names_line
         html = f'\n<p class="author-names">{names_line}</p>\n' if names_line else ""
-        html += self._make_authornotes_html(notes_node)
+        html += details
 
         return AppendBatchAndDefer(
             [
@@ -4440,12 +4443,15 @@ class HandrailsTranslator(Translator):
 
     def visit_authorblock(self, node: nodes.AuthorBlock) -> AppendBatchAndDefer:
         batch = super().visit_authorblock(node)
+        # With no hidden names and no details there is nothing to open, so the
+        # block gets no chevron.
         batch = self._wrap_batch_item_with_handrails(
             1,
             batch,
             classes=["heading", "hr-hidden"],
             link="disabled",
             node=node,
+            collapse_in_hr=self._author_block_opens,
         )
         return batch
 

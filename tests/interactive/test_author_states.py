@@ -240,3 +240,46 @@ class TestWithoutJavaScript:
             for i in range(page.locator(sel).count()):
                 expect(page.locator(sel).nth(i)).to_be_hidden()
         ctx.close()
+
+
+def _reload(page: Page) -> None:
+    page.reload()
+    page.wait_for_function(RSM_READY, timeout=10_000)
+
+
+class TestRemembered:
+    """The block remembers the reader's choice across reloads, like other folds."""
+
+    @pytest.mark.parametrize("control", ["chevron", "pill", "summary"])
+    def test_open_stays_open_after_reload(self, page: Page, interactive_server, control):
+        _load(page, interactive_server)
+        _press(page, control)
+        _assert_open(page)
+        _reload(page)
+        _assert_open(page)
+
+    @pytest.mark.parametrize("control", ["chevron", "pill"])
+    def test_closed_stays_closed_after_reload(self, page: Page, interactive_server, control):
+        _load(page, interactive_server)
+        _press(page, "summary")
+        _reload(page)
+        _assert_open(page)
+        _press(page, control)
+        _assert_closed(page)
+        _reload(page)
+        _assert_closed(page)
+
+    def test_full_list_remembers_too(self, page: Page, interactive_server):
+        _load(page, interactive_server, "author_states_full")
+        _press(page, "summary")
+        _reload(page)
+        _assert_open(page, short=False)
+
+
+class TestNothingToOpen:
+    def test_no_chevron_and_no_controls(self, page: Page, interactive_server):
+        _load(page, interactive_server, "author_states_bare")
+        expect(page.locator(CHEVRON)).to_have_count(0)
+        expect(page.locator(SUMMARY)).to_have_count(0)
+        expect(page.locator(MORE)).to_have_count(0)
+        assert _names_text(page) == "Ada Lovelace, Bo Chen"
