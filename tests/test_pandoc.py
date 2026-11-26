@@ -809,7 +809,7 @@ def test_import_url():
             ]
         )
     )
-    assert ":url: https://example.com ::" in result
+    assert ":url:https://example.com, click here::" in result
 
 
 def test_import_rawinline_latex():

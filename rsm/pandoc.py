@@ -1313,14 +1313,18 @@ class PandocImporter:
         return f"${src}$"
 
     def _inline_link(self, c: list) -> str:
-        attrs, _inlines, target = c
+        attrs, inlines, target = c
         kv = dict(attrs[2]) if len(attrs) >= 3 else {}
         # pandoc marks \ref/\eqref/\autoref links with a reference-type; emit an
         # RSM :ref: to the generated label instead of a URL link.
         if "reference-type" in kv:
             tgt: str = kv.get("reference") or target[0].lstrip("#")
             return f":ref:{sanitize_key(self._ref_map.get(tgt, tgt))}::"
-        return f":url: {target[0]} ::"
+        url = target[0]
+        text = self._render_inlines(inlines).strip()
+        if not text or text == url:
+            return f":url:{url}::"
+        return f":url:{url}, {text}::"
 
     def _inline_image(self, c: list) -> str:
         _attrs, _alt, target = c
