@@ -1096,6 +1096,8 @@ def _strip_amsthm_markup(
 _LABEL_LINE = re.compile(r"^[ \t]*\\label\{[^}]*\}[ \t]*\n", re.MULTILINE)
 _LABEL = re.compile(r"\\label\{[^}]*\}")
 _NOTAG = re.compile(r"[ \t]*\\(?:nonumber|notag)(?![A-Za-z])")
+# Numbers in RSM come only from RSM, so a \tag that the author wrote is dropped.
+_TAG = re.compile(r"[ \t]*\\tag\*?\s*\{[^}]*\}")
 _DISPLAY_ENV = re.compile(
     r"\s*\\begin\{([A-Za-z]+)(\*?)\}(.*)\\end\{\1\2\}\s*", re.DOTALL
 )
@@ -1119,11 +1121,12 @@ def _display_math(src: str) -> tuple[str, bool]:
     LaTeX numbers it.
 
     The label goes in the :mathblock: meta, and RSM gives a :mathblock: one
-    number of its own or none with :nonum:, so \\label, \\nonumber and \\notag
-    are dropped, an equation environment is replaced by its body, and a starred
+    number of its own or none with :nonum:, so \\label, \\tag, \\nonumber and
+    \\notag are dropped, an equation environment is replaced by its body, and a starred
     environment by its unstarred form.
     """
-    src = _NOTAG.sub("", _LABEL.sub("", _LABEL_LINE.sub("", _drop_qedhere(src))))
+    src = _LABEL.sub("", _LABEL_LINE.sub("", _drop_qedhere(src)))
+    src = _NOTAG.sub("", _TAG.sub("", src))
     m = _DISPLAY_ENV.fullmatch(src)
     if not m:
         return src.strip(), False

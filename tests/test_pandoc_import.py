@@ -620,6 +620,16 @@ def test_label_counter_skips_unnumbered_math():
     assert _last_line(out) == ":ref:eqn-1::", out
 
 
+def test_tag_is_dropped_from_display_math():
+    out = _import_math("\\begin{equation}\nx = y \\tag{A}\n\\end{equation}")
+    assert ":mathblock: {:label: eqn-1}\n  x = y\n::" in out, out
+    out = _import_math(
+        "\\begin{align}\na &= b \\tag*{$\\star$} \\\\\nc &= d\n\\end{align}"
+    )
+    assert "\\tag" not in out, out
+    assert "a &= b \\\\\nc &= d" in out, out
+
+
 def test_qedhere_is_dropped_from_math():
     out = _import_math("x = y \\qedhere")
     assert ":mathblock: {:nonum:}\n  x = y\n::" in out, out
