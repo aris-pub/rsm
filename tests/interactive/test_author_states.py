@@ -51,8 +51,11 @@ def _names_text(page: Page) -> str:
     return " ".join(page.locator(NAMES).inner_text().split())
 
 
-def _rotation(page: Page) -> str:
-    return page.locator(CHEVRON_ICON).evaluate("(e) => getComputedStyle(e).transform")
+def _chevron_icon(page: Page) -> str:
+    """The chevron's icon, as on every other block: expand when folded."""
+    return page.locator(CHEVRON_ICON).evaluate(
+        "(e) => e.querySelector('use').getAttribute('href')"
+    )
 
 
 def _press(page: Page, control: str) -> None:
@@ -74,7 +77,7 @@ def _assert_closed(page: Page, short=True):
     expect(page.locator(FEWER)).to_have_count(1 if short else 0)
     if short:
         expect(page.locator(FEWER)).to_be_hidden()
-    assert _rotation(page) == "none"
+    assert _chevron_icon(page) == "#hr-icon-expand"
     expect(page.locator(CHEVRON)).to_have_attribute("aria-expanded", "false")
 
 
@@ -86,8 +89,7 @@ def _assert_open(page: Page, short=True):
     if short:
         expect(page.locator(MORE)).to_be_hidden()
         expect(page.locator(FEWER)).to_be_visible()
-    # A quarter turn: the chevron points down.
-    assert _rotation(page) == "matrix(0, 1, -1, 0, 0, 0)"
+    assert _chevron_icon(page) == "#hr-icon-collapse"
     expect(page.locator(CHEVRON)).to_have_attribute("aria-expanded", "true")
 
 
@@ -325,3 +327,16 @@ def test_closed_block_shows_its_rail_and_foot_at_rest(page: Page, interactive_se
     )
     assert _state(page) == "closed"
     assert zone == "1", zone
+
+
+
+def test_closed_summary_is_a_fold_label(page: Page, interactive_server: str):
+    # The closed block's summary looks like a collapsed proof's fold label:
+    # italic, no background, no pill.
+    _load(page, interactive_server)
+    st = page.locator(SUMMARY).evaluate(
+        "(e) => { const s = getComputedStyle(e);"
+        " return [s.fontStyle, s.backgroundColor, s.borderTopLeftRadius]; }"
+    )
+    assert st[0] == "italic", st
+    assert st[1] in ("rgba(0, 0, 0, 0)", "transparent"), st

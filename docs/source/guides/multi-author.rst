@@ -150,7 +150,7 @@ In the built page, the author block is closed when the reader first opens the
 page. The page remembers whether the reader left the block open or closed, so
 the block is the same after a reload. Closed, it
 shows the names (only the first and last ones when the list is shortened) and,
-under them, a gray label that counts the affiliations, emails, ORCID iDs and
+at the foot of the rail, a line that counts the affiliations, emails, ORCID iDs and
 notes, such as "4 affiliations · 1 email · 1 ORCID · 1 note".
 
 - A click on the label, on the "3 more" button, or on the arrow to the left of
@@ -158,7 +158,7 @@ notes, such as "4 affiliations · 1 email · 1 ORCID · 1 note".
   numbered affiliations, the notes, the correspondence address and the ORCID
   iDs.
 - A click on the arrow, or on the "Show fewer" button, closes the block. The
-  arrow points right when the block is closed and down when it is open. On a
+  arrow turns as on any other folded block. On a
   touch screen the arrow is not shown, and the block's menu has an Expand or
   Collapse item instead. A block that has nothing to open (every author is
   shown and there are no affiliations, emails, ORCID iDs or notes) has no

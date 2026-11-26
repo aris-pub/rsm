@@ -39,10 +39,11 @@ Author ``:author:``
 
 One author of the document. Write one ``:author:`` for each author, after the
 title. The page lists the names, with a mail icon and an ORCID icon for the
-authors who have them. Under the names, a gray label counts the affiliations,
-emails, ORCID iDs and notes, such as "2 affiliations · 1 email". A click on the
-label, or on the arrow to the left of the block, opens the block: the label
-is replaced by the numbered affiliations, the notes, the correspondence
+authors who have them. The block starts folded, and at the foot of its rail
+a line counts the affiliations, emails, ORCID iDs and notes, such as
+"2 affiliations · 1 email", as a folded proof counts its steps. A click on
+that line, or on the arrow to the left of the block, opens the block: the
+line is replaced by the numbered affiliations, the notes, the correspondence
 address and the ORCID iDs. The arrow closes the block again. Pointing at a
 name, or tapping it on a phone, shows that author's affiliation and note in a
 tooltip. Readers without JavaScript see all of it.

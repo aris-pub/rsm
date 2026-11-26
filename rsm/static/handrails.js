@@ -635,6 +635,16 @@ export function toggleHandrail(target) {
 };
 
 
+// The chevron shows "collapse" on an open block and "expand" on a folded one.
+export function setFoldIcon(hr, folded) {
+  const icon = hr.querySelector(":scope > .hr-collapse-zone .icon.expand, :scope > .hr-collapse-zone .icon.collapse");
+  if (!icon) return;
+  icon.classList.toggle("expand", folded);
+  icon.classList.toggle("collapse", !folded);
+  const use = icon.querySelector("use");
+  if (use) use.setAttribute("href", folded ? "#hr-icon-expand" : "#hr-icon-collapse");
+}
+
 export function openHandrail(hr) {
   if (setAuthorsState(hr, true)) return;
   hr.classList.remove("hr-collapsed");
@@ -642,12 +652,7 @@ export function openHandrail(hr) {
   rest.forEach(el => { el.classList.remove("hide"); });
   notifyHandrailToggle(hr, false);
   syncCollapseButton(hr);
-  const icon = hr.querySelector(":scope > .hr-collapse-zone .icon.expand");
-  if (!icon) return;
-  icon.classList.remove("expand");
-  icon.classList.add("collapse");
-  const use = icon.querySelector("use");
-  if (use) use.setAttribute("href", "#hr-icon-collapse");
+  setFoldIcon(hr, false);
 }
 
 
@@ -658,12 +663,7 @@ export function closeHandrail(hr) {
   rest.forEach(el => { el.classList.add("hide"); });
   notifyHandrailToggle(hr, true);
   syncCollapseButton(hr);
-  const icon = hr.querySelector(":scope > .hr-collapse-zone .icon.collapse");
-  if (!icon) return;
-  icon.classList.remove("collapse");
-  icon.classList.add("expand");
-  const use = icon.querySelector("use");
-  if (use) use.setAttribute("href", "#hr-icon-expand");
+  setFoldIcon(hr, true);
 }
 
 
