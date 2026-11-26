@@ -8,7 +8,7 @@
 // all switch the same state. Without JavaScript the attribute is never set, so
 // every name and all the details show and the controls stay hidden.
 
-import { openHandrail, closeHandrail } from "./handrails.js";
+import { openHandrail, closeHandrail, setFoldIcon } from "./handrails.js";
 
 const BLOCK = ".author-block";
 
@@ -47,7 +47,10 @@ export function isOpen(block) {
 export function setOpen(block, open) {
   block.setAttribute("data-authors", open ? "open" : "closed");
   const hr = handrailOf(block);
-  if (hr) hr.classList.toggle("hr-collapsed", !open);
+  if (hr) {
+    hr.classList.toggle("hr-collapsed", !open);
+    setFoldIcon(hr, !open);
+  }
 }
 
 // Go through the handrail when there is one, so that its chevron and its menu

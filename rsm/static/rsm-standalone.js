@@ -1759,7 +1759,10 @@ var RSM = (() => {
   function setOpen(block, open) {
     block.setAttribute("data-authors", open ? "open" : "closed");
     const hr = handrailOf2(block);
-    if (hr) hr.classList.toggle("hr-collapsed", !open);
+    if (hr) {
+      hr.classList.toggle("hr-collapsed", !open);
+      setFoldIcon(hr, !open);
+    }
   }
   function toggle2(block) {
     const hr = handrailOf2(block);
@@ -2206,6 +2209,14 @@ var RSM = (() => {
     }
     ;
   }
+  function setFoldIcon(hr, folded) {
+    const icon = hr.querySelector(":scope > .hr-collapse-zone .icon.expand, :scope > .hr-collapse-zone .icon.collapse");
+    if (!icon) return;
+    icon.classList.toggle("expand", folded);
+    icon.classList.toggle("collapse", !folded);
+    const use = icon.querySelector("use");
+    if (use) use.setAttribute("href", folded ? "#hr-icon-expand" : "#hr-icon-collapse");
+  }
   function openHandrail(hr) {
     if (setAuthorsState(hr, true)) return;
     hr.classList.remove("hr-collapsed");
@@ -2215,12 +2226,7 @@ var RSM = (() => {
     });
     notifyHandrailToggle(hr, false);
     syncCollapseButton(hr);
-    const icon = hr.querySelector(":scope > .hr-collapse-zone .icon.expand");
-    if (!icon) return;
-    icon.classList.remove("expand");
-    icon.classList.add("collapse");
-    const use = icon.querySelector("use");
-    if (use) use.setAttribute("href", "#hr-icon-collapse");
+    setFoldIcon(hr, false);
   }
   function closeHandrail(hr) {
     if (setAuthorsState(hr, false)) return;
@@ -2231,12 +2237,7 @@ var RSM = (() => {
     });
     notifyHandrailToggle(hr, true);
     syncCollapseButton(hr);
-    const icon = hr.querySelector(":scope > .hr-collapse-zone .icon.collapse");
-    if (!icon) return;
-    icon.classList.remove("collapse");
-    icon.classList.add("expand");
-    const use = icon.querySelector("use");
-    if (use) use.setAttribute("href", "#hr-icon-expand");
+    setFoldIcon(hr, true);
   }
   function syncCollapseButton(hr) {
     const btn = hr.querySelector(":scope > .hr-collapse-zone > .hr-collapse");
