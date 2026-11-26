@@ -809,7 +809,7 @@ def test_import_url():
             ]
         )
     )
-    assert ":url: https://example.com ::" in result
+    assert ":url:https://example.com, click here::" in result
 
 
 def test_import_rawinline_latex():
@@ -1046,7 +1046,11 @@ def test_cli_pdf_export_without_output_file_prints_error(tmp_path, monkeypatch, 
 
 
 def test_mathblock_with_align_emits_rawblock():
-    """Math blocks containing \\begin{align} must emit a RawBlock, not DisplayMath."""
+    """Math blocks containing \\begin{align} must emit a RawBlock for LaTeX.
+
+    The RawBlock sits in a math-env Div next to a display math form for the other
+    formats.
+    """
     blocks = _blocks(
         r"""
         # Doc
@@ -1059,13 +1063,20 @@ def test_mathblock_with_align_emits_rawblock():
         $$
         """
     )
-    raw_blocks = [b for b in blocks if b["t"] == "RawBlock" and b["c"][0] == "latex"]
-    assert raw_blocks
+    divs = [b for b in blocks if b["t"] == "Div" and "math-env" in b["c"][0][1]]
+    assert len(divs) == 1
+    raw, display = divs[0]["c"][1]
+    assert raw["t"] == "RawBlock" and raw["c"][0] == "latex"
     # The block has one number, so align becomes aligned inside a tagged equation.
-    content = raw_blocks[0]["c"][1]
+    content = raw["c"][1]
     assert r"\begin{aligned}" in content
     assert r"\end{aligned}" in content
     assert r"\tag{1}" in content
+    (span,) = display["c"]
+    assert dict(span["c"][0][2]) == {"number": "1"}
+    (math,) = span["c"][1]
+    assert math["c"][0]["t"] == "DisplayMath"
+    assert math["c"][1].startswith(r"\begin{aligned}")
 
 
 @_PANDOC_SKIP
@@ -1441,3 +1452,39 @@ class TestStaticWidgetRefText:
 
     def test_handwritten_text_with_markup_is_kept(self):
         assert self._ref_text("", ":ref:w,*Widget* above::") == "Widget above"
+
+
+# pandoc writes what it cannot convert (such as math with an unknown command) as
+# raw TeX, and prints a warning on stderr. The export succeeds, so the warning is
+# logged for the user to see.
+
+_BAD_MATH = "# Doc\n\n## Sec\n\n$$x \\bogusmacro y$$\n"
+
+
+@_PANDOC_SKIP
+@pytest.mark.parametrize("fmt", ["html", "docx"])
+def test_export_logs_pandoc_warnings(tmp_path, caplog, fmt):
+    caplog.set_level(logging.WARNING, logger="RSM")
+    pandoc_export(source=_BAD_MATH, to_format=fmt, output=str(tmp_path / f"doc.{fmt}"))
+    warnings = [
+        r
+        for r in caplog.records
+        if r.levelno == logging.WARNING and "pandoc" in r.getMessage()
+    ]
+    assert len(warnings) == 1
+    message = warnings[0].getMessage()
+    assert message.startswith("pandoc: ")
+    assert "Could not convert TeX math" in message
+    # The lines that follow the warning belong to it.
+    assert "unexpected" in message
+
+
+@_PANDOC_SKIP
+def test_export_without_pandoc_warnings_logs_none(tmp_path, caplog):
+    caplog.set_level(logging.WARNING, logger="RSM")
+    pandoc_export(
+        source="# Doc\n\n## Sec\n\n$$x + y$$\n",
+        to_format="docx",
+        output=str(tmp_path / "doc.docx"),
+    )
+    assert not [r for r in caplog.records if "pandoc" in r.getMessage()]

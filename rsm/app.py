@@ -665,6 +665,10 @@ def build(
 # Pandoc exits with this code when the program that makes a PDF is missing.
 _PANDOC_PDF_PROGRAM_NOT_FOUND = 47
 
+# Formats that pandoc writes as bytes. Read from its output as text they fail
+# to decode, so pandoc writes them to the output file itself.
+_BINARY_FORMATS = {"pdf", "docx", "odt", "epub", "epub2", "epub3", "pptx"}
+
 
 class _PandocRunner:
     """Pipe a pandoc JSON AST dict to the pandoc subprocess and return the result."""
@@ -677,15 +681,14 @@ class _PandocRunner:
         json_str = json.dumps(pandoc_ast)
         cmd = ["pandoc", "--from=json", f"--to={self.to_format}", "--standalone"]
         braiid_dir = Path(__file__).parent.parent / "braiid"
+        # The filter prints RSM's numbers and the theorem and proof headings, which
+        # are only attributes in the AST, so every format needs it.
+        cmd += [f"--lua-filter={braiid_dir / 'braiid.lua'}"]
         if self.to_format in ("latex", "pdf"):
-            cmd += [
-                f"--lua-filter={braiid_dir / 'braiid.lua'}",
-                f"--include-in-header={braiid_dir / 'theorems.tex'}",
-            ]
+            cmd += [f"--include-in-header={braiid_dir / 'theorems.tex'}"]
         if self.to_format == "latex":
             cmd += ["-V", "header-includes=\\usepackage{braiid}"]
-        if self.to_format == "pdf":
-            # Without -o pandoc writes the PDF bytes to stdout, which is read as text.
+        if self.to_format in _BINARY_FORMATS:
             cmd += ["-o", str(self.output)]
         try:
             proc = subprocess.run(
@@ -705,7 +708,26 @@ class _PandocRunner:
                     "such as TeX Live or MacTeX."
                 )
             raise RSMApplicationError(f"pandoc failed: {e.stderr}")
+        # pandoc still succeeds when it cannot convert something (it writes math
+        # that it cannot read as raw TeX, for example), so its warnings are the
+        # only sign that the output differs from the source.
+        for warning in _pandoc_warnings(proc.stderr):
+            logger.warning("pandoc: %s", warning)
         return proc.stdout
+
+
+def _pandoc_warnings(stderr: str) -> list[str]:
+    """Split pandoc's stderr into warnings, one for each line that starts with [."""
+    warnings: list[str] = []
+    for line in stderr.splitlines():
+        if not line.strip():
+            continue
+        if line.startswith("[") or not warnings:
+            warnings.append(line)
+        else:
+            # Indented lines that follow a warning show where the problem is.
+            warnings[-1] += "\n" + line
+    return warnings
 
 
 class PandocExportApp(RSMApp[str]):
@@ -731,10 +753,11 @@ class PandocExportApp(RSMApp[str]):
         self._output = output
 
     def run(self, initial_args: Any = None) -> str | None:
-        if self._to_format == "pdf" and not self._output:
+        if self._to_format in _BINARY_FORMATS and not self._output:
+            fmt = self._to_format
             raise RSMApplicationError(
-                "PDF export needs an output file, for example: "
-                "rsm export paper.rsm --to pdf -o paper.pdf"
+                f"{fmt.upper()} export needs an output file, for example: "
+                f"rsm export paper.rsm --to {fmt} -o paper.{fmt}"
             )
         # The pipeline's dict-unpacking (`call(**res)`) breaks on pandoc JSON AST
         # dicts because they contain hyphen keys (e.g. "pandoc-api-version") that
@@ -759,8 +782,8 @@ class PandocExportApp(RSMApp[str]):
                 if sty_src.exists() and sty_src.resolve() != sty_dst.resolve():
                     _shutil.copy2(sty_src, sty_dst)
 
-        # For PDF, pandoc has already written the file itself.
-        if self._output and self._to_format != "pdf":
+        # For a binary format, pandoc has already written the file itself.
+        if self._output and self._to_format not in _BINARY_FORMATS:
             Path(self._output).write_text(result)
 
         return result
