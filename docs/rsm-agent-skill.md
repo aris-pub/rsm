@@ -822,9 +822,9 @@ each entry, and gives a warning that names the entry key and the field:
   "A B C", and gives a warning. RSM does not read LaTeX commands: `{Erd\H{o}s}` reads
   `Erd\Hos`. Write accented letters as they are, such as ö.
 - RSM skips `@string` definitions and gives a warning that names each one.
-- Write a percent sign in a value as `\%`, as in `title = {Sales up 50\% in a year}`,
-  because `%` starts a comment in RSM. A `%` right after a brace, as in `{% off}`, starts a
-  comment that cuts the value. RSM then skips the field and gives a warning.
+- A `%` starts a comment everywhere in RSM, also inside a value. Write a percent sign in a
+  value as `\%`, as in `title = {Sales up 50\% in a year}`. When a `%` cuts a value, RSM
+  skips that field, reads the later fields, and gives a warning.
 
 RSM warns about an entry without a `doi`, because the reader cannot follow it to the work.
 

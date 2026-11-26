@@ -287,31 +287,34 @@ def test_unreadable_entry_warning_without_a_key_names_the_line(caplog):
 
 @pytest.mark.parametrize(
     "value",
-    ["{% off}", "{A {B}% off}"],
-    ids=["after-opening-brace", "after-inner-brace"],
+    ["{Sales up 50% in a year}", "{% off}", "{A {B}% off}", "{A {50% B} C}"],
+    ids=["middle", "after-opening-brace", "after-inner-brace", "inside-inner-braces"],
 )
-def test_value_cut_at_a_percent_sign_warns(caplog, value):
-    src = _src(f"@article{{a,\n  title = {value},\n  year = {{2000}}\n}}")
-    caplog.set_level(logging.WARNING, logger="RSM")
-    TSParser().parse(src)
-    msgs = [r.getMessage() for r in caplog.records if r.levelno == logging.WARNING]
+@pytest.mark.parametrize("sep", ["\n  ", " "], ids=["lines", "one-line"])
+def test_value_cut_at_a_percent_sign_warns_and_keeps_later_fields(caplog, value, sep):
+    entry = (
+        f"@article{{a,{sep}title = {value},{sep}year = {{2000}},{sep}volume = {{3}}}}"
+    )
+    items, html, msgs = _build(caplog, entry + "\n@book{b, title = {B}}")
+    assert set(items) == {"a", "b"}
+    assert items["a"].title == ""
+    assert items["a"].year == "2000"
+    assert items["a"].volume == "3"
+    assert items["b"].title == "B"
+    _assert_cited(html, "a")
     warning = [m for m in msgs if m.startswith("entry a: field title")]
     assert len(warning) == 1, msgs
     assert "%" in warning[0]
     assert "\\%" in warning[0]
 
 
-def test_value_with_a_percent_sign_in_the_text_gives_no_percent_warning(caplog):
-    items, html, msgs = _build(caplog, "@article{a, title = {Sales up 50% in a year}}")
-    assert items["a"].title == "Sales up 50% in a year"
-    assert not any("%" in m for m in msgs), msgs
-
-
 @pytest.mark.parametrize("field", ["title", "author", "journal"])
 def test_escaped_percent_sign_in_a_value_is_a_percent_sign_in_the_page(caplog, field):
     entry = "@article{a, title = {T}, author = {A}, journal = {J}, year = {2000}}"
-    entry = entry.replace(f"{field} = {{", f"{field} = {{50\\% off ")
+    entry = entry.replace(f"{field} = {{", f"{field} = {{Up 50\\% off ")
     items, html, msgs = _build(caplog, entry)
-    assert getattr(items["a"], field).startswith("50% off")
-    assert "50% off" in html
+    assert getattr(items["a"], field).startswith("Up 50% off")
+    assert items["a"].year == "2000"
+    assert "Up 50% off" in html
     assert "\\%" not in html
+    assert not any("%" in m for m in msgs), msgs

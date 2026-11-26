@@ -110,19 +110,9 @@ def _bib_field_name(pair: TSNode) -> str:
     return key_node.text.decode("utf-8").split("=")[0].strip().lower()
 
 
-def _has_comment_inside_braces(pair: TSNode) -> bool:
-    # A comment is an extra in the grammar, so tree-sitter may put it anywhere
-    # in the pair. Only a comment after the opening brace cuts the value.
-    brace = next((c for c in pair.children if c.type == "{"), None)
-    if brace is None:
-        return False
-    nodes_left = list(pair.children)
-    while nodes_left:
-        node = nodes_left.pop()
-        if node.type == "comment" and node.start_byte > brace.start_byte:
-            return True
-        nodes_left.extend(node.children)
-    return False
+# The grammar keeps a % in the text of a value, so that the comment does not
+# take the closing brace and the later fields with it. RSM cuts the value here.
+_BIB_COMMENT = re.compile(r"(?<!\\)%")
 
 
 def _ingest_bib_field(bib_node: nodes.Bibitem, pair: TSNode) -> None:
@@ -132,13 +122,6 @@ def _ingest_bib_field(bib_node: nodes.Bibitem, pair: TSNode) -> None:
     entry = f"entry {bib_node.label}: field {key}"
     if key not in _BIB_FIELDS:
         logger.warning(f"{entry} is not used, skipped", extra=where)
-        return
-    if _has_comment_inside_braces(pair):
-        logger.warning(
-            f"{entry} is cut at a % (a % starts a comment), skipped. Write a "
-            "percent sign in a value as \\%",
-            extra=where,
-        )
         return
     value_node = pair.named_children[-1]
     if value_node.type == "quotedvalue":
@@ -163,6 +146,13 @@ def _ingest_bib_field(bib_node: nodes.Bibitem, pair: TSNode) -> None:
         return
     assert value_node.text is not None
     value = value_node.text.decode("utf-8")
+    if _BIB_COMMENT.search(value):
+        logger.warning(
+            f"{entry} is cut at a % (a % starts a comment), skipped. Write a "
+            "percent sign in a value as \\%",
+            extra=where,
+        )
+        return
     if "{" in value:
         logger.warning(
             f"{entry} has braces inside its value. RSM ignores these braces and "
