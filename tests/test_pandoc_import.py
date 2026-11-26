@@ -694,6 +694,13 @@ def test_display_math_in_a_list_item_becomes_a_mathblock():
     assert block.label == "eqn-1"
 
 
+def test_blocks_in_one_list_item_are_joined_with_a_space():
+    for t in ("Plain", "Para"):
+        item = [{"t": t, "c": _words("First.")}, {"t": t, "c": _words("Second.")}]
+        out = PandocImporter().from_json({"blocks": [{"t": "BulletList", "c": [item]}]})
+        assert "  :-: First. Second.\n" in out, out
+
+
 def test_text_around_a_mathblock_has_no_stray_spaces():
     para = {
         "t": "Para",

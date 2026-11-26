@@ -1508,10 +1508,12 @@ class PandocImporter:
         for b in blocks:
             t = b.get("t") if isinstance(b, dict) else None
             if t not in ("Para", "Plain"):
-                text += self._render_block(b).strip()
+                text += "\n" + self._render_block(b).strip()
                 continue
             for kind, piece, src in self._para_pieces(b["c"]):
                 if kind == "text":
+                    # The line break becomes the space between two blocks.
+                    text += "\n"
                     text += _escape_trailing_colon(piece) if t == "Para" else piece
                     continue
                 flush()
