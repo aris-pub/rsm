@@ -220,3 +220,98 @@ def test_field_name_in_capitals_is_read(caplog):
     assert items["a"].title == "A"
     assert items["a"].year == "2000"
     assert not any("not used" in m for m in msgs), msgs
+
+
+@pytest.mark.parametrize(
+    "entry",
+    ["@online{a, title = {A},}", "@online{a,\n  title = {A},\n}"],
+    ids=["one-line", "lines"],
+)
+def test_one_field_with_a_trailing_comma_is_read(caplog, entry):
+    items, html, msgs = _build(caplog, entry)
+    assert items["a"].title == "A"
+    _assert_cited(html, "a")
+    assert not any("cannot read" in m for m in msgs), msgs
+
+
+@pytest.mark.parametrize(
+    "entries",
+    [
+        "@comment{x}\n@article{a, title = {A}}",
+        "@article{a, title = {A}}\n@comment{x}",
+        "@COMMENT{some {nested} text, with = signs}\n@article{a, title = {A}}",
+    ],
+    ids=["before", "after", "nested"],
+)
+def test_comment_entry_is_skipped_without_a_warning(caplog, entries):
+    items, html, msgs = _build(caplog, entries)
+    assert set(items) == {"a"}
+    assert items["a"].title == "A"
+    _assert_cited(html, "a")
+    assert not any("comment" in m.lower() for m in msgs), msgs
+    assert not any("cannot read" in m for m in msgs), msgs
+
+
+def test_comment_entry_alone_builds(caplog):
+    src = "# T\n\nText.\n\n:references:\n@comment{x}\n::\n"
+    caplog.set_level(logging.WARNING, logger="RSM")
+    rsm.render(src, handrails=False, source_offsets=False, strict=True)
+    msgs = [r.getMessage() for r in caplog.records if r.levelno >= logging.WARNING]
+    assert msgs == []
+
+
+def _unreadable_entry_warnings(caplog, entries: str) -> list[str]:
+    src = _src(entries)
+    caplog.set_level(logging.WARNING, logger="RSM")
+    TSParser().parse(src)
+    msgs = [r.getMessage() for r in caplog.records if r.levelno == logging.WARNING]
+    assert not any("Point" in m for m in msgs), msgs
+    return [m for m in msgs if "cannot read this entry" in m]
+
+
+def test_unreadable_entry_warning_names_the_key_and_the_line(caplog):
+    # The value of title has no closing quote, so the whole entry is an ERROR.
+    warnings = _unreadable_entry_warnings(caplog, '@article{a,\n  title = "Q\n}')
+    assert len(warnings) == 1, warnings
+    assert warnings[0].startswith("entry a: ")
+    # The entry starts on line 6 of the source made by _src.
+    assert "line 6, column 1" in warnings[0]
+
+
+def test_unreadable_entry_warning_without_a_key_names_the_line(caplog):
+    # A stray closing brace makes an ERROR that holds no entry key.
+    warnings = _unreadable_entry_warnings(caplog, "}\n@book{b, title = {B}}")
+    assert len(warnings) == 1, warnings
+    assert "line 6, column 1" in warnings[0]
+
+
+@pytest.mark.parametrize(
+    "value",
+    ["{% off}", "{A {B}% off}"],
+    ids=["after-opening-brace", "after-inner-brace"],
+)
+def test_value_cut_at_a_percent_sign_warns(caplog, value):
+    src = _src(f"@article{{a,\n  title = {value},\n  year = {{2000}}\n}}")
+    caplog.set_level(logging.WARNING, logger="RSM")
+    TSParser().parse(src)
+    msgs = [r.getMessage() for r in caplog.records if r.levelno == logging.WARNING]
+    warning = [m for m in msgs if m.startswith("entry a: field title")]
+    assert len(warning) == 1, msgs
+    assert "%" in warning[0]
+    assert "\\%" in warning[0]
+
+
+def test_value_with_a_percent_sign_in_the_text_gives_no_percent_warning(caplog):
+    items, html, msgs = _build(caplog, "@article{a, title = {Sales up 50% in a year}}")
+    assert items["a"].title == "Sales up 50% in a year"
+    assert not any("%" in m for m in msgs), msgs
+
+
+@pytest.mark.parametrize("field", ["title", "author", "journal"])
+def test_escaped_percent_sign_in_a_value_is_a_percent_sign_in_the_page(caplog, field):
+    entry = "@article{a, title = {T}, author = {A}, journal = {J}, year = {2000}}"
+    entry = entry.replace(f"{field} = {{", f"{field} = {{50\\% off ")
+    items, html, msgs = _build(caplog, entry)
+    assert getattr(items["a"], field).startswith("50% off")
+    assert "50% off" in html
+    assert "\\%" not in html

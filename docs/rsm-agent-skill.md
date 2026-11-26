@@ -770,9 +770,9 @@ Long rows use explicit `:td:...::` for each cell.
 
 ## Bibliography
 
-A `:references:` block at document end contains BibTeX-style entries. The syntax is
-essentially a subset of BibTeX — `@type{label, key={value}, ...}` — so existing `.bib`
-entries can often be pasted in with minimal adjustment:
+A `:references:` block at the end of the document holds BibTeX entries, one after the
+other, and closes with `::`. The key of an entry is the word after the opening brace, such
+as `knuth1997` in `@book{knuth1997,`. Citations use this key.
 
 ```
 :references:
@@ -804,12 +804,29 @@ entries can often be pasted in with minimal adjustment:
 ::
 ```
 
-Supported entry types: `article`, `book`, `inproceedings`, `incollection`, `phdthesis`,
-`mastersthesis`, `techreport`, `misc`, and `webpage`. Any other type (such as `software`)
-still renders with its author, title, year, and any link, just without type-specific fields.
+RSM reads a subset of BibTeX. Entries outside this subset never stop the build. RSM keeps
+each entry, and gives a warning that names the entry key and the field:
 
-Supported fields: `title`, `author`, `year`, `publisher`, `journal`, `volume`, `number`,
-`booktitle`, `howpublished`, `institution`, `school`, `doi`, `url`.
+- The entry kinds are `@article`, `@book`, `@conference`, `@incollection`,
+  `@inproceedings`, `@mastersthesis`, `@misc`, `@phdthesis`, `@software`, `@techreport`,
+  `@unpublished` and `@webpage`. RSM reads them in capitals too, such as `@Article`. RSM
+  reads any other kind, such as `@manual`, as `@misc` and gives a warning.
+- The fields are `title`, `author`, `editor`, `year`, `month`, `journal`, `booktitle`,
+  `series`, `volume`, `number`, `pages`, `edition`, `publisher`, `organization`,
+  `institution`, `school`, `address`, `howpublished`, `note`, `doi` and `url`. RSM skips
+  any other field, such as `keywords` or `abstract`, and gives a warning.
+- Each value is written in braces. RSM skips a value in quotes, such as
+  `title = "Sorting"`, or a value that is a bare word, such as `journal = jcp`, and gives
+  a warning.
+- RSM ignores braces inside a value and keeps the text inside them, so `{A {B} C}` reads
+  "A B C", and gives a warning. RSM does not read LaTeX commands: `{Erd\H{o}s}` reads
+  `Erd\Hos`. Write accented letters as they are, such as ö.
+- RSM skips `@string` definitions and gives a warning that names each one.
+- Write a percent sign in a value as `\%`, as in `title = {Sales up 50\% in a year}`,
+  because `%` starts a comment in RSM. A `%` right after a brace, as in `{% off}`, starts a
+  comment that cuts the value. RSM then skips the field and gives a warning.
+
+RSM warns about an entry without a `doi`, because the reader cannot follow it to the work.
 
 An article renders as `Author. "Title". Journal Volume(Number) (Year).`. The issue
 `number` prints in parentheses next to the volume, and any absent field is omitted. A
