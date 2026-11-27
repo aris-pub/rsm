@@ -80,13 +80,3 @@ with the details of the paper filled in. Upload the new file, or leave the
 file out to change only the details. The new version keeps the same address,
 and each version also keeps its own, such as
 ``/2026/graphs-without-triangles/v1``.
-
-
-Limits
-------
-
-- A single HTML file must be saved as UTF-8.
-- A ZIP file can be at most 50 MB, or 200 MB unpacked, with at most 500
-  files in it. A folder build of an RSM paper holds about 60 files.
-- A ZIP file can hold web pages, styles, scripts, images, fonts and data
-  files, but not another ZIP file.
