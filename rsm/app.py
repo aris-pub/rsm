@@ -688,9 +688,16 @@ class _PandocRunner:
         if self.to_format in ("latex", "pdf"):
             cmd += [f"--include-in-header={braiid_dir / 'theorems.tex'}"]
         env = None
-        if self.to_format in ("latex", "pdf"):
+        if self.to_format == "latex":
             cmd += ["-V", "header-includes=\\usepackage{braiid}"]
         if self.to_format == "pdf":
+            # Pandoc compiles in a folder of its own, so braiid.sty gets the
+            # absolute path of the fonts that ship with RSM.
+            fonts = f"{(braiid_dir / 'fonts').as_posix()}/"
+            cmd += [
+                "-V",
+                f"header-includes=\\def\\braiidfontpath{{{fonts}}}\\usepackage{{braiid}}",
+            ]
             # braiid.sty loads fontspec, which needs XeLaTeX or LuaLaTeX. LaTeX
             # finds braiid.sty through TEXINPUTS, because pandoc compiles in a
             # folder of its own (the trailing separator keeps the default paths).
@@ -789,6 +796,10 @@ class PandocExportApp(RSMApp[str]):
                 sty_dst = Path(self._output).parent / "braiid.sty"
                 if sty_src.exists() and sty_src.resolve() != sty_dst.resolve():
                     _shutil.copy2(sty_src, sty_dst)
+                fonts_src = sty_src.parent / "fonts"
+                fonts_dst = sty_dst.parent / "fonts"
+                if fonts_src.resolve() != fonts_dst.resolve():
+                    _shutil.copytree(fonts_src, fonts_dst, dirs_exist_ok=True)
 
         # For a binary format, pandoc has already written the file itself.
         if self._output and self._to_format not in _BINARY_FORMATS:

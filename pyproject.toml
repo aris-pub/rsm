@@ -47,7 +47,7 @@ exclude = ["tests*"]
 
 [tool.setuptools.package-data]
 rsm = ["*.so", "*.dll", "static/**/*", "*.rb"]
-braiid = ["*.css", "*.md", "*.lua", "*.tex", "*.sty"]
+braiid = ["*.css", "*.md", "*.lua", "*.tex", "*.sty", "fonts/*.otf", "fonts/*.txt"]
 
 
 # Tool configurations
