@@ -108,3 +108,42 @@ def test_standalone_math_and_pseudocode_use_inlined_libraries(page: Page, tmp_pa
     assert page.evaluate(
         "() => [...document.fonts].some(f => f.family.replace(/\"/g, '') === 'MJXTEX-I' && f.status === 'loaded')"
     )
+
+
+KEYS_SRC = "# T\n\n## A\n\nFirst paragraph.\n\nSecond paragraph.\n"
+
+
+def test_standalone_page_has_the_keyboard_shortcuts(page: Page, tmp_path):
+    # A standalone page, such as a paper on Press, is read like any other page,
+    # so j moves to the next block as it does in a folder build.
+    out = tmp_path / "keys.html"
+    out.write_text(rsm.build(KEYS_SRC, handrails=True, lint=False, standalone=True))
+    page.goto(out.as_uri(), wait_until="load")
+    page.wait_for_function("() => window.__rsmShown === true", timeout=10_000)
+    assert page.evaluate("() => document.activeElement === document.body")
+    page.keyboard.press("j")
+    assert page.evaluate("() => document.activeElement !== document.body")
+
+
+SECTIONS_SRC = "# T\n\n## Alpha\n\nA.\n\n## Beta\n\nB.\n\n## Gamma\n\nC.\n"
+
+
+def _focused_section(page: Page) -> str:
+    return page.evaluate(
+        "() => { const s = document.activeElement.closest('.section');"
+        " return s ? s.querySelector('h2').textContent : ''; }"
+    )
+
+
+def test_l_goes_forward_and_h_goes_back_as_in_vim(page: Page, tmp_path):
+    out = tmp_path / "sections.html"
+    out.write_text(rsm.build(SECTIONS_SRC, handrails=True, lint=False, standalone=True))
+    page.goto(out.as_uri(), wait_until="load")
+    page.wait_for_function("() => window.__rsmShown === true", timeout=10_000)
+    page.locator("h2", has_text="Beta").click()
+    assert "Beta" in _focused_section(page)
+    page.keyboard.press("l")
+    assert "Gamma" in _focused_section(page)
+    page.keyboard.press("h")
+    page.keyboard.press("h")
+    assert "Alpha" in _focused_section(page)

@@ -524,7 +524,7 @@ class StandaloneBuilder(HTMLBuilder):
 {inline_js}
   </script>
   <script>
-    window.addEventListener('load', function() {{ RSM.onload(null, {{keys: false}}); }});
+    window.addEventListener('load', function() {{ RSM.onload(null); }});
   </script>{dark_mode_script}{sidebar_preload}
 
   <title>__TITLE_PLACEHOLDER__</title>

@@ -1971,7 +1971,8 @@ var RSM = (() => {
       const textEl = tocViewEl.querySelector(".hr-menu-item-text");
       if (textEl) textEl.textContent = isTree ? "View as list" : "View as tree";
     }
-    const isProof = hr.classList.contains("proof");
+    const id = hr.dataset.nodeid;
+    const isProof = hr.classList.contains("proof") && !!id && !!document.querySelector(`.proof-rail-item[data-proof="${id}"]`);
     const touch = isTouch();
     const reorder = isProof ? touch ? "disabled" : "true" : null;
     const reorderEl = singletonMenu.querySelector('[data-role="reorder"]');
@@ -2604,7 +2605,7 @@ var RSM = (() => {
       if (["h", "l"].includes(event.key)) {
         event.preventDefault();
         event.stopPropagation();
-        focusUpOrDown(event.key == "h" ? "down" : "up", root2);
+        focusUpOrDown(event.key == "l" ? "down" : "up", root2);
       }
     });
     root2.addEventListener("keydown", (event) => {
@@ -2784,7 +2785,6 @@ var RSM = (() => {
   function focusPrevOrNext(direction, root2) {
     const focusableElements = getFocusableElements(root2);
     let index = focusableElements.indexOf(document.activeElement);
-    console.log("index of current focused element:", index);
     if (index !== -1) {
       if (direction == "next") {
         do {
@@ -2800,8 +2800,6 @@ var RSM = (() => {
     } else {
       index = 0;
     }
-    console.log("element to be focused:", focusableElements[index]);
-    console.log("index of element to be focused:", index);
     focusableElements[index].focus();
     maybeScrollToMiddle(focusableElements[index], direction == "next" ? "down" : "up");
   }

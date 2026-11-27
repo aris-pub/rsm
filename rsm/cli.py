@@ -940,7 +940,7 @@ def main() -> int:
     )
     build_parser.add_argument(
         "--no-theme-toggle",
-        help="disable dark mode toggle button",
+        help="do not apply the reader's saved reading settings (theme, typeface, size) before the page is drawn",
         action="store_true",
     )
     build_parser.add_argument(
@@ -1125,7 +1125,7 @@ def main() -> int:
     )
     output_opts.add_argument(
         "--no-theme-toggle",
-        help="disable dark mode toggle button",
+        help="do not apply the reader's saved reading settings (theme, typeface, size) before the page is drawn",
         action="store_true",
     )
 
