@@ -3,8 +3,7 @@
 Why RSM
 =======
 
-Most papers are now read on screens, but most of them are still written to
-be printed. RSM is a language for papers that are read on screens first. This
+RSM is a language for papers that are read on screens first. This
 page explains what that changes for the reader, why RSM is a new language,
 and when another tool fits better.
 
