@@ -1,79 +1,77 @@
 .. _design-principles:
 
-Design principles
-=================
+What an RSM page looks like, and why
+====================================
 
-These principles decide what RSM does and what it leaves out.
-
-
-.. _web-first:
-
-The page is the main output
----------------------------
-
-RSM makes web pages first. HTML is a standard that every browser reads, and
-old HTML pages still open today. RSM can also export to PDF, LaTeX and other
-formats through pandoc, for readers and journals that need them.
+An RSM page should read like a well set paper. Everything else that the page
+can do comes after that. This page explains the choices that follow from it.
 
 
-.. _semantic-markup:
+It looks like a paper
+---------------------
+
+An RSM page is one column of text, set for reading, with the math, the
+theorems and the figures in their places, as in a paper. It has as little
+interface as possible: no toolbars, no buttons in the text, no badges. The
+controls of a block, its handrail, show only when the pointer is over the
+block. The sidebar is closed until the reader opens it.
+
+On a touch screen there is no pointer to show the controls, so the handrail
+of each block shows a small menu button all the time, and nothing else.
+
 
 Tags say what a part is, not how it looks
 -----------------------------------------
 
-``:theorem:``, ``:ref:`` and ``:cite:`` say what a part of the document is.
-RSM decides how to show it: the number, the link text, the tooltip, the place
-in the table of contents. Because of this:
+``:theorem:``, ``:ref:`` and ``:cite:`` say what a part of the document is,
+and RSM decides how to show it: the number, the text of a reference, the
+tooltip, the place in the table of contents. Because of this:
 
-- screen readers can say "Theorem 1" instead of guessing from the styling,
-- tooltips, folding and the sidebar come from the tags, with no extra work by
-  the author,
-- the look of all RSM pages can change without changing any document.
+- the features of the page, such as tooltips, folding and the proof views,
+  come from the tags, with no extra work by the author,
+- a screen reader can name a block, as in "Theorem 1.1", and the buttons
+  that fold it,
+- the look of every RSM page can improve without any change to the
+  documents.
 
 
 The look comes with RSM
 -----------------------
 
-Every RSM page is styled by BRAIID, the design system of RSM. The author does
-not need to choose fonts, colors or spacing. BRAIID is made for papers: type
-for mixed math and text, handrails that show the structure of the document,
-layouts for phones and computers, and dark mode. An author can still add their
-own CSS (see :ref:`styling`).
+Every RSM page is styled by BRAIID, the design system of RSM, so the author
+does not choose fonts, colors or spacing. BRAIID is made for papers: type
+that mixes text and math, a layout for phones and one for computers, a dark
+theme, and the handrails. The same look carries over to exported LaTeX and
+PDF. An author can still add their own CSS (see :ref:`styling`).
 
 
-.. _progressive-enhancement:
+The reader can change it
+------------------------
 
-The page works without JavaScript
----------------------------------
-
-JavaScript adds features to a page that is complete without it. With
-JavaScript turned off, all text, headings, figures, tables, citations and the
-list of references still show, and math shows as its LaTeX source. Tooltips, folding, the sidebar and the
-scroll bar map need JavaScript. A page stays readable when it is archived,
-printed or opened where scripts are blocked.
-
-
-.. _static-documents-not-executable-notebooks:
-
-A document does not run code
-----------------------------
-
-An RSM document and the code of the research are separate. A document can
-hold an interactive chart, made beforehand with a library such as Plotly, as
-an HTML file, with a still image for the places where HTML cannot show (see
-:ref:`tutorial-figures`). A built page is a set of static files: it needs no
-server that runs code, and it does not break when the libraries of the
-research change.
+Readers differ: some read on a phone, some need larger type or more
+contrast, some read with a screen reader or with the keyboard only. With the
+sidebar, the reader can change the typeface, including a typeface made for
+low vision, the size of the type, the line height, the width of the column
+and the theme. The page can be read with the keyboard only (see
+:ref:`reading-keyboard`).
 
 
-.. _humane-design:
+It works without JavaScript
+---------------------------
 
-Little on the screen, good defaults
------------------------------------
+JavaScript adds the features to a page that is complete without it. With
+JavaScript turned off, the text, the headings, the figures, the tables, the
+citations and the list of references all show, every block is open, and math
+shows as its LaTeX source. A page stays readable when it is archived,
+printed, or opened where scripts are blocked.
 
-- Controls show when they are needed. On a computer, a handrail shows only
-  when the pointer is over its block.
-- ``rsm build`` makes a complete page with no settings. Numbering, colors,
-  typography and dark mode work from the start.
-- RSM is a command that reads text files and writes web pages. It needs no
-  account.
+
+It is a set of files
+--------------------
+
+A built page is a set of static files: HTML, CSS, JavaScript and images. It
+needs no server that runs code and no account, so it can be put on any web
+server, sent as one file (with ``--standalone``), or kept in an archive. An
+RSM document does not run the code of the research. An interactive figure is
+made beforehand, with a library such as Plotly, and added as a piece of HTML
+with a still image beside it (see :ref:`guide-interactive-figures`).
