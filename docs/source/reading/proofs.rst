@@ -130,6 +130,42 @@ reloaded, and goes with a link made with **Copy a link to this view**.
 Calculations
 ------------
 
-A calculation is a chain of equalities or inequalities, one per line. Each
-line has a **∵** mark on the right: click it to show or hide the reason for
-that line.
+A calculation is a chain of equalities or inequalities, one per line, and
+each line has a reason. The reasons start hidden, so the chain reads as plain
+math. Each line has a **∵** mark on the right: click it to show the reason
+for that line, and click it again to hide it.
+
+.. rsm::
+
+   Let $G$ be a graph with $n$ vertices and $e$ edges and no triangle, and
+   let $d(v)$ be the degree of a vertex $v$.
+
+   :calc: {:label: calc-deg}
+
+     :step: $\sum_{v} d(v)^2 = \sum_{uv} \big(d(u) + d(v)\big)$
+
+       :pf: Each vertex $v$ is an end of $d(v)$ edges, so $d(v)$ appears
+       $d(v)$ times in the sum on the right. ::
+
+     ::
+
+     :step: $\le \sum_{uv} n$
+
+       :pf: The two ends of an edge have no common neighbor, because $G$ has
+       no triangle, so $d(u) + d(v) \le n$. ::
+
+     ::
+
+     :step: $= n e$
+
+       :pf: The sum has one term for each of the $e$ edges. ::
+
+     ::
+
+   ::
+
+   By :ref:calc-deg::, $\sum_v d(v)^2 \le n e$.
+
+A calculation with a label has a number, on its first line, like an
+equation. Point at a reference to it, such as "(1)" above, to see the
+calculation in a tooltip, without the reasons.
