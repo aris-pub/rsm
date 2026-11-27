@@ -181,7 +181,11 @@ def config_rsm_logger(
     The "lint" format starts each message with `source_name`.
 
     """
-    logging.getLogger("RSM").handlers.clear()
+    # Remove only the handler that an earlier run added, so that handlers that
+    # the calling program put on the "RSM" logger stay.
+    for h in list(logger.handlers):
+        if getattr(h, "_rsm_own", False):
+            logger.removeHandler(h)
     _config_rsm_logger(fmt, log_time, log_lineno, source_name)
     _set_level(level)
 
@@ -193,6 +197,7 @@ def _config_rsm_logger(
     source_name: str = STRING_SOURCE_NAME,
 ) -> None:
     handler = logging.StreamHandler()
+    handler._rsm_own = True  # type: ignore[attr-defined]
     handler.setLevel(logging.WARN)
     formatters: dict[str, Callable[[bool, bool], logging.Formatter | LintFormatter]] = {
         "json": JSONFormatter,
