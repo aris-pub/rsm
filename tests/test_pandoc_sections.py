@@ -85,7 +85,7 @@ def test_reference_matches_heading(latex):
     assert r"\hyperref[sub-a]{Section 1.1}" in latex
 
 
-@pytest.mark.skipif(shutil.which("pdflatex") is None, reason="pdflatex not installed")
+@pytest.mark.skipif(shutil.which("xelatex") is None, reason="xelatex not installed")
 @pytest.mark.skipif(shutil.which("pdftotext") is None, reason="pdftotext not installed")
 def test_pdf_headings_have_rsm_numbers(tmp_path):
     out = tmp_path / "doc.pdf"

@@ -51,6 +51,7 @@ the ``run()`` method on an :class:`RSMApp` instance will.
 """
 
 import json
+import os
 import logging
 import re
 import subprocess
@@ -686,13 +687,20 @@ class _PandocRunner:
         cmd += [f"--lua-filter={braiid_dir / 'braiid.lua'}"]
         if self.to_format in ("latex", "pdf"):
             cmd += [f"--include-in-header={braiid_dir / 'theorems.tex'}"]
-        if self.to_format == "latex":
+        env = None
+        if self.to_format in ("latex", "pdf"):
             cmd += ["-V", "header-includes=\\usepackage{braiid}"]
+        if self.to_format == "pdf":
+            # braiid.sty loads fontspec, which needs XeLaTeX or LuaLaTeX. LaTeX
+            # finds braiid.sty through TEXINPUTS, because pandoc compiles in a
+            # folder of its own (the trailing separator keeps the default paths).
+            cmd += ["--pdf-engine=xelatex"]
+            env = {**os.environ, "TEXINPUTS": f"{braiid_dir}{os.pathsep}"}
         if self.to_format in _BINARY_FORMATS:
             cmd += ["-o", str(self.output)]
         try:
             proc = subprocess.run(
-                cmd, input=json_str, capture_output=True, text=True, check=True
+                cmd, input=json_str, capture_output=True, text=True, check=True, env=env
             )
         except FileNotFoundError:
             raise RSMApplicationError(

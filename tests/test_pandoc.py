@@ -1000,7 +1000,7 @@ def test_latex_export_copies_braiid_sty(tmp_path):
 
 
 _PDFLATEX_SKIP = pytest.mark.skipif(
-    shutil.which("pdflatex") is None, reason="pdflatex not installed"
+    shutil.which("xelatex") is None, reason="xelatex not installed"
 )
 
 
@@ -1030,7 +1030,7 @@ def test_pdf_export_without_latex_names_what_to_install(tmp_path, monkeypatch):
     with pytest.raises(RSMApplicationError) as excinfo:
         pandoc_export(source="# Doc\n\nHello.", to_format="pdf", output=str(out))
     message = str(excinfo.value)
-    assert "pdflatex" in message
+    assert "xelatex" in message
     assert "LaTeX" in message
     assert not out.exists()
 

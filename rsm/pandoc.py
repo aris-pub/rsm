@@ -513,18 +513,26 @@ class PandocTranslator:
         return [header, bib_list]
 
     def _format_bibitem(self, node: nodes.Bibitem) -> dict:
-        parts = []
+        # The title is a pandoc Quoted, so each format prints its own opening
+        # and closing quote marks (a straight " prints as two closing ones in
+        # LaTeX).
+        parts: list[list[dict]] = []
         if node.author:
-            parts.append(node.author)
+            parts.append([{"t": "Str", "c": node.author.strip(".")}])
         if node.title:
-            parts.append(f'"{node.title}"')
+            title = [{"t": "Str", "c": node.title.strip(".")}]
+            parts.append([{"t": "Quoted", "c": [{"t": "DoubleQuote"}, title]}])
         if node.journal:
-            parts.append(node.journal)
+            parts.append([{"t": "Str", "c": node.journal.strip(".")}])
         if node.year:
-            parts.append(str(node.year))
-        text = ". ".join(p.strip(".") for p in parts) + "." if parts else "?"
+            parts.append([{"t": "Str", "c": str(node.year).strip(".")}])
+        inlines: list[dict] = []
+        for i, part in enumerate(parts):
+            if i:
+                inlines += [{"t": "Str", "c": "."}, {"t": "Space"}]
+            inlines += part
+        inlines.append({"t": "Str", "c": "." if parts else "?"})
         anchor = f"ref-{node.label}" if node.label else ""
-        inlines: list[dict] = [{"t": "Str", "c": text}]
         # Add DOI or URL as a clickable link
         link_url = None
         if getattr(node, "doi", None):
