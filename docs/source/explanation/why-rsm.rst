@@ -3,63 +3,70 @@
 Why RSM
 =======
 
-RSM exists because most papers are now read on screens, while the tools for
-writing them still make printed pages. This page explains what that costs the
-reader, and why RSM is a language of its own instead of an extension of
-another one.
+Most papers are now read on screens, but most of them are still written to
+be printed. RSM is a language for papers that are read on screens first. This
+page explains what that changes for the reader, why RSM is a new language,
+and when another tool fits better.
 
 
-A web page instead of a PDF
----------------------------
+Screens instead of paper
+------------------------
 
-A PDF has a fixed page size, a fixed layout and a fixed typeface. It reads
-well on the screen that it was set for, and badly on a phone, where the reader
-zooms and scrolls sideways. A reader who needs larger type, another typeface
-or more contrast cannot get them without other tools.
+A PDF is a printed page shown on a screen. It has a fixed width, a fixed
+layout and a fixed typeface. On a laptop it reads well enough. On a phone,
+the reader zooms in and scrolls sideways along every line. A reader who needs
+larger type, more contrast or a dark background has no way to get them.
 
-An RSM page is a web page. Its layout follows the width of the screen, and
-the reader can switch to dark mode. With the sidebar, the reader can also
-change the typeface, the size of the type and the line height. Because RSM knows what each part of the document is,
-the page can also do things that a PDF cannot:
+An RSM document is a web page. The text fits the width of the screen, and
+the reader can change the typeface, the size and the theme. The page is
+also built from what the author wrote: RSM knows which part is a theorem,
+which is its proof, which steps the proof has and which earlier steps each
+one uses. With that, the page can do things that a printed page cannot:
 
-- show a theorem, an equation or a reference in a tooltip, without leaving the
-  current place,
-- fold and open sections, proofs and proof steps,
-- show how the steps of a proof depend on each other, and which assumptions
-  hold at each step.
+- show a theorem or an equation in a tooltip, where it is cited, so the reader
+  keeps their place,
+- fold a proof down to its main steps and open only the ones the reader wants,
+- show which steps a step uses, and what is assumed and left to prove at it,
+- let the reader rename a symbol, everywhere in the paper at once.
 
-See :ref:`reading` for all of them.
-
-LaTeX lays out a fixed page better than any web browser does. RSM does not
-compete with it there: it makes pages whose layout changes with the screen,
-and CSS, the layout language of the web, is made for that.
-
-
-When another tool fits better
------------------------------
-
-- **A journal that wants LaTeX or a PDF.** RSM can export to LaTeX and PDF
-  through pandoc (see :ref:`ref-cli`), but it has no journal templates.
-- **A document that runs code.** An RSM document does not run code when it is
-  built. It can hold a chart made elsewhere, as an HTML file. For documents
-  that run Python, R or Julia, tools such as Jupyter and Quarto fit better.
-- **Short documents without math.** Markdown is simpler and needs no new
-  tool.
+See :ref:`reading` for all of them. A printed copy is still there when it is
+needed: RSM exports to LaTeX and PDF (see :ref:`converting-guide`).
 
 
 Why a new language
 ------------------
 
-**Not Markdown.** Markdown is popular because it has very little syntax.
-Papers need much more: labels on any part, numbered theorems, proofs,
-citations, meta keys. Adding all of them to Markdown would remove what makes
-Markdown simple, and the result would be a new language that looks like
-Markdown but does not behave like it.
+A page that does these things needs a source that says what each part of the
+document is. The existing languages do not say it, or say it only in part.
 
-**Not reStructuredText.** RSM began as an extension of reStructuredText and
-Sphinx. Its main features did not fit the extension system, and testing them
-was slow and hard, so RSM became a language of its own.
+**LaTeX** describes how to set a page. Theorems, proofs and labels exist as
+commands that different packages define in different ways, and the steps
+inside a proof are only paragraphs of text. A program that reads LaTeX source
+cannot tell reliably what each part is.
 
-RSM is built around the parts of a paper: sections, theorems, proofs, steps,
-equations, figures, references and citations are each a tag, with a label
-that links to it. See :ref:`ref-syntax-basics`.
+**Markdown** is popular because it has very little syntax. Papers need much
+more: labels on any part, numbered theorems, proofs with steps, citations,
+footnotes. Adding all of them to Markdown would take away what makes it
+simple, and the result would look like Markdown without behaving like it.
+
+**reStructuredText** was RSM's starting point: the first versions of RSM were
+an extension of reStructuredText and Sphinx. RSM's main features did not fit
+the extension system, and testing them was slow and hard, so RSM became a
+language of its own.
+
+In RSM, each part of a paper is a tag: sections, theorems, proofs, steps,
+equations, figures, references and citations. Any of them can have a label,
+and a reference to the label links to it. See :ref:`ref-syntax-basics`.
+
+
+When another tool fits better
+-----------------------------
+
+- **A journal that wants its own LaTeX template.** RSM exports to LaTeX and
+  PDF, with its own look, but it has no journal templates.
+- **A document that runs code.** An RSM document does not run code when it is
+  built. It can hold a chart made elsewhere (see
+  :ref:`guide-interactive-figures`). For documents that run Python, R or
+  Julia, tools such as Jupyter and Quarto fit better.
+- **A short document without math or proofs.** Markdown is simpler, and
+  needs no new tool.
