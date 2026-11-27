@@ -17,9 +17,11 @@ Export to LaTeX
 
    rsm export paper.rsm --to latex -o paper.tex
 
-RSM writes ``paper.tex`` and copies ``braiid.sty``, the LaTeX package that
-sets the look of the output, into the same folder. ``braiid.sty`` loads
-``fontspec``, so compile with XeLaTeX or LuaLaTeX:
+RSM writes ``paper.tex`` and copies two things into the same folder:
+``braiid.sty``, the LaTeX package that sets the look of the output, and a
+``fonts`` folder with the fonts of the web page (Source Sans 3, Source Code
+Pro and Montserrat). ``braiid.sty`` loads the fonts with ``fontspec``, so
+compile with XeLaTeX or LuaLaTeX:
 
 .. code-block:: bash
 
@@ -46,10 +48,10 @@ Export to PDF
 
    rsm export paper.rsm --to pdf -o paper.pdf
 
-Pandoc makes the PDF with LaTeX, so this needs a LaTeX installation that
-includes ``pdflatex``, such as TeX Live or MacTeX. The PDF does not use
-``braiid.sty``, so it has the default look of Pandoc's LaTeX output. The
-numbers and the links are the same as in the LaTeX export.
+Pandoc makes the PDF with XeLaTeX, so this needs a LaTeX installation that
+includes ``xelatex``, such as TeX Live or MacTeX. The PDF uses ``braiid.sty``
+and the fonts that ship with RSM, so it looks the same as the LaTeX export,
+on any computer.
 
 For example, this document:
 
