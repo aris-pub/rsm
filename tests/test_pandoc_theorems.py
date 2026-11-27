@@ -124,7 +124,7 @@ def test_proof_of_names_the_result():
     )
 
 
-@pytest.mark.skipif(shutil.which("pdflatex") is None, reason="pdflatex not installed")
+@pytest.mark.skipif(shutil.which("xelatex") is None, reason="xelatex not installed")
 @pytest.mark.skipif(shutil.which("pdftotext") is None, reason="pdftotext not installed")
 def test_pdf_proof_of_names_the_result(tmp_path):
     out = tmp_path / "doc.pdf"
@@ -168,11 +168,16 @@ def _pdf_text(tmp_path) -> str:
     ).stdout
 
 
-@pytest.mark.skipif(shutil.which("pdflatex") is None, reason="pdflatex not installed")
+@pytest.mark.skipif(shutil.which("xelatex") is None, reason="xelatex not installed")
 @pytest.mark.skipif(shutil.which("pdftotext") is None, reason="pdftotext not installed")
 def test_pdf_headings_and_references(tmp_path):
     layout = _pdf_text(tmp_path)
-    assert re.search(r"^\s*a\+b=c\s+\(1\.1\)\s*$", layout, re.MULTILINE)
+    # XeLaTeX writes math letters as Unicode math italics, so normalize them
+    # before looking for the equation line with its number.
+    import unicodedata
+
+    plain = unicodedata.normalize("NFKC", layout)
+    assert re.search(r"^\s*a\s*\+\s*b\s*=\s*c\s+\(1\.1\)\s*$", plain, re.MULTILINE)
     text = " ".join(layout.split())
     assert "Theorem 1.1 (Main result). Every graph is fine." in text
     assert "Lemma 1.2. Some lemma." in text
@@ -387,7 +392,7 @@ def test_multiline_references_match(multi_latex):
     assert r"\hyperref[e-eq]{(1.12)}" in multi_latex
 
 
-@pytest.mark.skipif(shutil.which("pdflatex") is None, reason="pdflatex not installed")
+@pytest.mark.skipif(shutil.which("xelatex") is None, reason="xelatex not installed")
 @pytest.mark.skipif(shutil.which("pdftotext") is None, reason="pdftotext not installed")
 def test_pdf_multiline_numbers(tmp_path):
     out = tmp_path / "multi.pdf"
