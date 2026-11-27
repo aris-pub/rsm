@@ -51,6 +51,57 @@ includes ``pdflatex``, such as TeX Live or MacTeX. The PDF does not use
 ``braiid.sty``, so it has the default look of Pandoc's LaTeX output. The
 numbers and the links are the same as in the LaTeX export.
 
+For example, this document:
+
+.. rsm::
+
+   # Graphs without triangles
+
+   :author: {
+     :name: Ada Lovelace
+     :affiliation: University of London
+   } ::
+
+   :abstract:
+   We give a short proof of Mantel's theorem.
+   ::
+
+   ## Results
+
+   :theorem: {:label: thm-mantel, :title: Mantel}
+   A graph with $n$ vertices and no triangle has at most $n^2/4$ edges.
+   ::
+
+   :proof: {:of: thm-mantel}
+   Let $e$ be the number of edges and $d(v)$ the degree of a vertex $v$. The
+   two ends of an edge $uv$ have no common neighbor, so $d(u) + d(v) \le n$.
+   Summing over the edges gives
+   $$ {:label: eq-sum}
+   \sum_{v} d(v)^2 = \sum_{uv} \big(d(u) + d(v)\big) \le n e.
+   $$
+   By the Cauchy-Schwarz inequality :cite:bondy::,
+   $\sum_v d(v)^2 \ge (2e)^2/n$. With :ref:eq-sum::, this gives
+   $4e^2/n \le ne$, that is, $e \le n^2/4$.
+   ::
+
+   :references:
+   @book{bondy,
+     author = {Bondy, J. A. and Murty, U. S. R.},
+     title = {Graph Theory},
+     year = {2008},
+     publisher = {Springer}
+   }
+   ::
+
+exports to this PDF (click the image to open the PDF):
+
+.. image:: /_static/examples/mantel-pdf.png
+   :target: ../_static/examples/mantel.pdf
+   :alt: The first page of the PDF: the title, the author, the abstract,
+         section 1 with Theorem 1.1 (Mantel), its proof with equation (1.1),
+         and the references.
+   :width: 600px
+
 
 Export to Word, EPUB and other formats
 --------------------------------------
