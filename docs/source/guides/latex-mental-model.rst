@@ -1,127 +1,192 @@
 .. _latex-mental-model:
 
-RSM for LaTeX Users
+RSM for LaTeX users
 ===================
 
-If you already know LaTeX, most RSM concepts have direct equivalents. This
-page maps LaTeX thinking to RSM thinking.
+Most of what you write in LaTeX has a direct equivalent in RSM, and the math
+is the same LaTeX. This page shows one paper in both languages, lists the
+equivalents, and explains the few things that RSM does differently.
 
 
-Document structure
-------------------
+The same paper in LaTeX and in RSM
+----------------------------------
+
+In LaTeX:
+
+.. code-block:: latex
+
+   \documentclass{article}
+   \usepackage{amsthm}
+   \newtheorem{theorem}{Theorem}
+   \title{Graphs without triangles}
+   \author{Ada Lovelace \\ University of London}
+   \begin{document}
+   \maketitle
+   \begin{abstract}
+   We give a short proof of Mantel's theorem.
+   \end{abstract}
+
+   \section{Results}
+
+   \begin{theorem}[Mantel]\label{thm:mantel}
+   A graph with $n$ vertices and no triangle has at most $n^2/4$ edges.
+   \end{theorem}
+
+   \begin{proof}
+   The two ends of an edge $uv$ have no common neighbor, so
+   \begin{equation}\label{eq:sum}
+   \sum_v d(v)^2 = \sum_{uv} \big(d(u) + d(v)\big) \le n e.
+   \end{equation}
+   By \eqref{eq:sum} and the Cauchy-Schwarz inequality, $e \le n^2/4$.
+   \end{proof}
+
+   \end{document}
+
+In RSM:
+
+.. rsm::
+
+   # Graphs without triangles
+
+   :author: {
+     :name: Ada Lovelace
+     :affiliation: University of London
+   } ::
+
+   :abstract:
+   We give a short proof of Mantel's theorem.
+   ::
+
+   ## Results
+
+   :theorem: {:label: thm-mantel, :title: Mantel}
+   A graph with $n$ vertices and no triangle has at most $n^2/4$ edges.
+   ::
+
+   :proof: {:of: thm-mantel}
+   The two ends of an edge $uv$ have no common neighbor, so
+   $$ {:label: eq-sum}
+   \sum_v d(v)^2 = \sum_{uv} \big(d(u) + d(v)\big) \le n e.
+   $$
+   By :ref:eq-sum:: and the Cauchy-Schwarz inequality, $e \le n^2/4$.
+   ::
+
+The RSM version has no preamble, a label is a meta key in braces instead of a
+``\label`` command, and ``::`` ends each block.
+
+
+Equivalents
+-----------
 
 .. list-table::
    :header-rows: 1
-   :widths: 40 40
+   :widths: 45 55
 
    * - LaTeX
      - RSM
-   * - ``\documentclass{article}``
-     - Not needed. RSM has one document type.
    * - ``\title{...}``
      - ``# Title``
    * - ``\author{...}``
-     - ``:author: {:name: ... :affiliation: ...} ::``
-   * - ``\begin{abstract}...\end{abstract}``
-     - ``:abstract: ... ::``
-   * - ``\section{...}``
-     - ``## Heading``
-   * - ``\subsection{...}``
-     - ``### Heading``
+     - ``:author:``, with ``:name:``, ``:affiliation:``, ``:email:`` and
+       ``:orcid:``. See :ref:`multi-author-guide`.
+   * - ``\begin{abstract}``
+     - ``:abstract:``
+   * - ``\section``, ``\subsection``, ``\subsubsection``
+     - ``##``, ``###``, ``####``
+   * - ``\section*{...}``
+     - ``## ... {:nonum:}``
    * - ``\appendix``
      - ``:appendix:``
-   * - ``\bibliography{refs}``
-     - ``:references: ... ::`` (inline BibTeX entries)
-
-
-Environments
-------------
-
-.. list-table::
-   :header-rows: 1
-   :widths: 40 40
-
-   * - LaTeX
-     - RSM
-   * - ``\begin{theorem}...\end{theorem}``
-     - ``:theorem: ... ::``
-   * - ``\begin{proof}...\end{proof}``
-     - ``:proof: ... ::``
-   * - ``\begin{definition}...\end{definition}``
-     - ``:definition: ... ::``
-   * - ``\begin{lemma}...\end{lemma}``
-     - ``:lemma: ... ::``
-   * - ``\begin{enumerate}...\end{enumerate}``
-     - ``:enumerate: :-: item :-: item ::``
-   * - ``\begin{figure}...\end{figure}``
-     - ``:figure: {:path: img.png} ::``
-   * - ``\begin{equation}...\end{equation}``
-     - ``$$ ... $$``, or ``:mathblock:`` with the closing ``::`` on a line of
-       its own:
-
-       .. code-block:: text
-
-          :mathblock:
-          ...
-          ::
-
-
-Inline commands
----------------
-
-.. list-table::
-   :header-rows: 1
-   :widths: 40 40
-
-   * - LaTeX
-     - RSM
-   * - ``\textbf{bold}``
-     - ``**bold**``
-   * - ``\textit{italic}``
-     - ``*italic*``
-   * - ``$x^2$``
-     - ``$x^2$``
+   * - ``\begin{theorem}``, ``lemma``, ``proposition``, ``corollary``,
+       ``definition``, ``remark``, ``example``
+     - ``:theorem:``, ``:lemma:``, ``:proposition:``, ``:corollary:``,
+       ``:definition:``, ``:remark:``, ``:example:``
+   * - ``\newtheorem{claim}{Claim}``
+     - ``:lemma: {:blockname: Claim}``
+   * - ``\begin{theorem}[Mantel]``
+     - ``:theorem: {:title: Mantel}``
+   * - ``\begin{proof}``
+     - ``:proof:``, and ``:proof: {:of: <label>}`` for "Proof of Theorem 1.1"
+   * - ``\label{key}``
+     - ``{:label: key}`` in the meta keys of the block
+   * - ``\ref{key}``, ``\eqref{key}``
+     - ``:ref:key::``. RSM writes "Theorem 1.1" or "(1.1)", so leave out the
+       word "Theorem".
    * - ``\cite{key}``
      - ``:cite:key::``
-   * - ``\ref{label}``
-     - ``:ref:label::``
-   * - ``\label{name}``
-     - ``:label: name`` (as a meta tag)
-   * - ``\verb|code|``
-     - `````code````` or ``:code:code::``
+   * - ``\bibliography{refs}`` and a ``.bib`` file
+     - ``:references:`` with the BibTeX entries in it. See
+       :ref:`guide-citations`.
+   * - ``\begin{equation}``
+     - ``$$`` on lines of their own, or ``:mathblock:``
+   * - ``\[ ... \]``, ``equation*``
+     - ``$$ {:nonum:}``
+   * - ``\newcommand{\eig}{\lambda}``
+     - ``:notation:``. See :ref:`guide-notation`.
+   * - ``\begin{itemize}``, ``\begin{enumerate}``, ``\item``
+     - ``:itemize:``, ``:enumerate:``, ``:-:``
+   * - ``\begin{figure}``, ``\includegraphics``, ``\caption``
+     - ``:figure: {:path: plot.png}`` with ``:caption:`` inside
+   * - ``\begin{table}``, ``tabular``
+     - ``:table:``, ``:tr:``
+   * - ``\footnote{...}``
+     - ``:note:``. See :ref:`guide-footnotes-asides`.
+   * - ``\textbf{...}``, ``\emph{...}``
+     - ``**...**``, ``*...*``
+   * - ``\texttt{...}``
+     - ```...```
+   * - ``\href{url}{text}``, ``\url{url}``
+     - ``:url:url, text::``, ``:url:url::``
+   * - ``% comment``
+     - ``% comment``
+
+See :ref:`language-reference` for every tag.
 
 
-Key differences
----------------
+What RSM does differently
+-------------------------
 
-**No preamble.**
-RSM has no equivalent of ``\usepackage`` or preamble configuration.
-Document-level settings use ``:config: {:accent: blue :numbering: section} ::``.
+**RSM numbers everything itself.** Sections, theorems, figures and equations
+get their numbers from RSM, on the web page and in every export. ``:nonum:``
+on a block leaves it unnumbered, and ``:numbering:`` in the ``:config:``
+block numbers the blocks within each section (the default), through the whole
+document, or not at all.
 
-**No compilation.**
-``rsm build`` produces HTML directly. No ``.aux`` files, no multiple passes,
-no BibTeX/biber step. Citations resolve in a single build.
-
-**Tags close with Halmos.**
-Every RSM tag ends with ``::`` (the Halmos). This replaces LaTeX's
-``\end{environment}`` and closing braces. It takes a few minutes to get used
-to, then it becomes natural.
-
-**LaTeX in math is for typesetting and layout only.**
-Write math in LaTeX, but write labels, numbers, references, sections and
-captions with RSM tags and meta keys. RSM numbers every displayed equation
-itself, and only ``:nonum:`` removes the number, in the HTML and in LaTeX and
-PDF export. A starred environment such as ``align*`` lays out the lines and
-does not remove the number. RSM warns when math uses a LaTeX command for
-structure, such as ``\label``, ``\tag``, ``\notag``, ``\ref``, ``\eqref``,
-``\cite``, ``\section`` or ``\caption``, and says what to write in RSM
+**LaTeX goes in math only, and only for typesetting and layout.** Write the
+math in LaTeX, but write the structure of the document with RSM tags: labels,
+numbers, references, citations, sections and captions. A starred environment
+such as ``align*`` lays out the lines and does not remove the number. RSM
+warns when math uses a LaTeX command for structure, such as ``\label``,
+``\tag``, ``\ref``, ``\cite`` or ``\section``, and says what to write
 instead. See :ref:`tag-mathblock` for the whole list.
 
-**Semantic, not visual.**
-LaTeX mixes semantics and presentation (``\textbf`` is visual,
-``\begin{theorem}`` is semantic). In RSM, all tags are semantic. Presentation
-is handled by the BRAIID design system.
+**There is no preamble.** Settings go in the ``:config:`` block, and macros
+for the symbols of the paper go in ``:notation:``, where the reader can
+change how each symbol is shown.
 
-**The output is HTML, not PDF.**
-RSM produces responsive, interactive web documents. If you need PDF, RSM can
-export one through Pandoc and LaTeX, but the primary target is the browser.
+**There is one build.** ``rsm build`` writes the web page in one step, with
+every reference and citation resolved. There are no ``.aux`` files and no
+BibTeX step.
+
+**A double colon ends a tag.** A block such as ``:theorem:`` ends with ``::`` on its
+own line, as ``\end{theorem}`` ends an environment. An inline tag such as
+``:ref:key::`` ends with ``::`` too. Headings and paragraphs need none.
+
+**The output is a web page.** The reader can open proofs step by step, read
+the statement of a result in a tooltip, and change the notation. For a
+journal or a printed copy, export to LaTeX or PDF: see
+:ref:`converting-guide`.
+
+
+Bring a paper over from LaTeX
+-----------------------------
+
+``rsm import`` turns a LaTeX paper, or a folder or archive that holds a
+LaTeX project, into RSM source:
+
+.. code-block:: bash
+
+   rsm import paper.tex --from latex -o paper.rsm
+
+See :ref:`converting-guide` for what the import writes and what to check
+afterwards.

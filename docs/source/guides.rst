@@ -18,4 +18,5 @@ with copy-paste examples.
    guides/styling
    guides/converting
    guides/latex-mental-model
+   guides/python-api
    guides/publish-to-press
