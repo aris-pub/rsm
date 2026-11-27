@@ -11,4 +11,5 @@ a page.
 
    explanation/why-rsm
    explanation/design-principles
+   explanation/structured-proofs
    explanation/how-rsm-works
