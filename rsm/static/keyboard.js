@@ -37,7 +37,7 @@ export function setup(root) {
     if (['h', 'l'].includes(event.key)) {
       event.preventDefault();
       event.stopPropagation();
-      focusUpOrDown(event.key == 'h' ? "down" : "up", root);
+      focusUpOrDown(event.key == 'l' ? "down" : "up", root);
     }
   });
 
@@ -260,7 +260,6 @@ function focusUpOrDown(direction, root) {
 function focusPrevOrNext(direction, root) {
   const focusableElements = getFocusableElements(root);
   let index = focusableElements.indexOf(document.activeElement);
-  console.log('index of current focused element:', index);
   if (index !== -1) {
     if (direction == "next") {
       do { index = (index + 1) % focusableElements.length; }
@@ -272,8 +271,6 @@ function focusPrevOrNext(direction, root) {
       console.log(`unknown direction ${direction}`);
     }
   } else { index = 0; }
-  console.log('element to be focused:', focusableElements[index]);
-  console.log('index of element to be focused:', index);
   focusableElements[index].focus();
   maybeScrollToMiddle(focusableElements[index], direction == "next" ? "down" : "up");
 }

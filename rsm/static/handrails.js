@@ -101,8 +101,8 @@ export function setup() {
   });
 
   // Open a folded block from the keyboard. This lives here, not in keyboard.js,
-  // so it works in the standalone build too (that build loads onload with
-  // keys:false, so keyboard.js never runs). Enter or Space acts only when the
+  // so it works on a page that loads onload with keys:false too (Studio does,
+  // so that keyboard.js never runs there). Enter or Space acts only when the
   // handrail block ITSELF is focused and currently folded: it opens the block
   // and keeps focus on it. An open block, or focus on an inner control or
   // widget, is left alone, so Enter stays free for the block's menu and typing
@@ -282,7 +282,11 @@ function showMenuFor(hr) {
   // affords, so on coarse-pointer touch devices it is shown disabled and
   // labeled rather than offered as a broken affordance. On desktop the label
   // flips to reflect the current mode.
-  const isProof = hr.classList.contains("proof");
+  // It also needs the proof's step graph, which only the sidebar holds, so a
+  // page built without the sidebar does not offer it.
+  const id = hr.dataset.nodeid;
+  const isProof = hr.classList.contains("proof") &&
+    !!id && !!document.querySelector(`.proof-rail-item[data-proof="${id}"]`);
   const touch = isTouch();
   const reorder = isProof ? (touch ? "disabled" : "true") : null;
   const reorderEl = singletonMenu.querySelector('[data-role="reorder"]');

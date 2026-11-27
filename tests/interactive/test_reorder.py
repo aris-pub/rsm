@@ -309,3 +309,21 @@ class TestRejectionReason:
         page.mouse.up()
         status = page.locator(".reorder-sr-status")
         expect(status).to_contain_text("Move blocked: Step 4 uses Step 2", timeout=2000)
+
+
+def test_reorder_is_not_offered_without_the_sidebar(page: Page, tmp_path):
+    # Reorder needs the step graph that only the sidebar has, so a page built
+    # without the sidebar does not offer it.
+    import rsm
+
+    src = (
+        "# T\n\n:theorem: {:label: t}\nA.\n::\n\n:proof:\n\n"
+        "  :step: :claim: One ::.\n  ::\n\n  :step: :claim: Two ::.\n  ::\n\n::\n"
+    )
+    out = tmp_path / "plain.html"
+    out.write_text(rsm.build(src, handrails=True, lint=False, standalone=True))
+    page.set_viewport_size({"width": 1400, "height": 900})
+    page.goto(out.as_uri(), wait_until="load")
+    page.wait_for_function(RSM_READY, timeout=10_000)
+    _open_proof_menu(page)
+    expect(page.locator('.hr-menu [data-role="reorder"]').first).to_be_hidden()
