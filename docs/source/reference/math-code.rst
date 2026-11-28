@@ -22,11 +22,11 @@ Inline math ``$`` ``:math:``
 
 Math inside a line of text. ``$...$`` and ``:math:...::`` are the same.
 
-LaTeX in RSM math is for typesetting and layout only. Labels, numbers,
-references, sections and captions come from RSM tags and meta keys, not from
-LaTeX. RSM warns when math uses a LaTeX command for one of these, such as
-``\label``, ``\ref`` or ``\cite``. The list of these commands is under
-:ref:`Displayed math <tag-mathblock>`.
+LaTeX in RSM math is for typesetting only. Labels, numbers, references,
+citations, sections, captions and footnotes come from RSM tags and meta keys,
+not from LaTeX. The build stops with an error when math uses a LaTeX command
+for one of these, such as ``\label``, ``\ref`` or ``\cite``. The list of these
+commands is under :ref:`Displayed math <tag-mathblock>`.
 
 .. rubric:: Syntax
 
@@ -57,13 +57,14 @@ of its own, with only spaces around it. A ``::`` inside a line of math, as in
 RSM numbers every displayed equation itself, in the HTML and in LaTeX and PDF
 export. Only ``:nonum:`` on the block, or ``:numbering: none`` in
 ``:config:``, leaves an equation without a number. LaTeX in the block is for
-typesetting and layout only. A starred environment such as ``align*`` lays out
-the lines as ``align`` does, and the block keeps its number.
+typesetting only, so starred environments such as ``align*`` are not allowed.
+Write ``align`` and put ``:nonum:`` on the block instead.
 
-.. rubric:: LaTeX commands about structure
+.. rubric:: LaTeX commands that are not allowed in math
 
-RSM warns when math uses one of these LaTeX commands, and gives the line of the
-command. The warnings are the same for inline math, displayed math and
+The build stops with an error when math uses one of these LaTeX commands or
+environments. The error gives the command, its line, and what to write in RSM
+instead. The rule is the same for inline math, displayed math and
 ``:preamble:`` blocks.
 
 .. list-table::
@@ -74,22 +75,29 @@ command. The warnings are the same for inline math, displayed math and
      - What to write in RSM
    * - ``\label``
      - ``:label:`` on the block.
-   * - ``\tag``, ``\notag``, ``\nonumber``
+   * - ``\tag``, ``\tag*``, ``\notag``, ``\nonumber``
      - Nothing to set the number, since RSM numbers the block.
        ``:nonum:`` on the block to remove the number.
    * - ``align*``, ``gather*``, ``multline*``, ``flalign*``, ``alignat*``,
        ``equation*``
-     - ``:nonum:`` on the block to remove the number. RSM warns about these
-       only in a block that RSM numbers.
-   * - ``\ref``, ``\eqref``
+     - The same environment without the star, and ``:nonum:`` on the block
+       to remove the number.
+   * - ``eqnarray``, ``eqnarray*``
+     - ``align``, and ``:nonum:`` on the block to remove the number.
+   * - ``\ref``, ``\eqref``, ``\pageref``, ``\autoref``, ``\cref``,
+       ``\Cref``, ``\nameref``, ``\hyperref``
      - ``:ref:<label>::`` outside the math.
-   * - ``\cite``
+   * - ``\cite``, ``\citep``, ``\citet``, ``\citealp``, ``\citealt``,
+       ``\citeauthor``, ``\citeyear``, ``\citeyearpar``, ``\nocite``,
+       ``\parencite``, ``\textcite``, ``\autocite``
      - ``:cite:<key>::`` outside the math.
    * - ``\part``, ``\chapter``, ``\section``, ``\subsection``,
        ``\subsubsection``, ``\paragraph``, ``\subparagraph``
      - A heading, such as ``## Title``.
    * - ``\caption``
      - ``:caption:`` in a ``:figure:`` or a ``:table:``.
+   * - ``\footnote``, ``\footnotemark``, ``\footnotetext``
+     - A ``:note:`` outside the math.
 
 .. rubric:: Syntax
 
@@ -106,7 +114,7 @@ command. The warnings are the same for inline math, displayed math and
    Hides the block and runs it before all other math, so that LaTeX
    definitions in it, such as ``\newcommand``, apply to the whole document.
    The block is not numbered. Definitions in the preamble are for
-   typesetting only, and RSM warns about the LaTeX commands for structure in
+   typesetting only, and the LaTeX commands listed above are not allowed in
    it, as in any other math.
 
 ``:isclaim:``

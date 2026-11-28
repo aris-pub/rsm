@@ -152,13 +152,14 @@ on a block leaves it unnumbered, and ``:numbering:`` in the ``:config:``
 block numbers the blocks within each section (the default), through the whole
 document, or not at all.
 
-**LaTeX goes in math only, and only for typesetting and layout.** Write the
-math in LaTeX, but write the structure of the document with RSM tags: labels,
-numbers, references, citations, sections and captions. A starred environment
-such as ``align*`` lays out the lines and does not remove the number. RSM
-warns when math uses a LaTeX command for structure, such as ``\label``,
-``\tag``, ``\ref``, ``\cite`` or ``\section``, and says what to write
-instead. See :ref:`tag-mathblock` for the whole list.
+**LaTeX goes in math only, and only for typesetting.** Write the math in
+LaTeX, but write the structure of the document with RSM tags: labels,
+numbers, references, citations, sections, captions and footnotes. The build
+stops with an error when math uses a LaTeX command for one of these, such as
+``\label``, ``\tag``, ``\ref``, ``\cite`` or ``\section``, and the error says
+what to write instead. Starred environments such as ``align*`` and
+``equation*`` are not allowed either: write ``align`` or ``equation`` and put
+``:nonum:`` on the block. See :ref:`tag-mathblock` for the whole list.
 
 **There is no preamble.** Settings go in the ``:config:`` block, and macros
 for the symbols of the paper go in ``:notation:``, where the reader can

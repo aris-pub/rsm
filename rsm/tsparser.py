@@ -179,8 +179,15 @@ class RSMParserError(Exception):
 
     """
 
-    def __init__(self, pos: int | None = None, msg: str | None = None) -> None:
+    def __init__(
+        self,
+        pos: int | None = None,
+        msg: str | None = None,
+        position: dict[str, int] | None = None,
+    ) -> None:
         self.pos = pos
+        # The fields of _user_position, so that rsm check points at the source.
+        self.position = position or {}
         self.msg = f"Parser error at position {self.pos}" if msg is None else msg
         super().__init__(self.msg)
 
@@ -976,53 +983,75 @@ _SECTIONING = {
     "paragraph",
     "subparagraph",
 }
-_NO_NUMBER = "does not remove the number in RSM. Use :nonum: on the block."
-_REF = (
-    "in math is not a reference in RSM. Write :ref:<label>:: outside the math instead."
+_REFERENCES = {
+    "ref",
+    "eqref",
+    "pageref",
+    "autoref",
+    "cref",
+    "Cref",
+    "nameref",
+    "hyperref",
+}
+_CITATIONS = {
+    "cite",
+    "citep",
+    "citet",
+    "citealp",
+    "citealt",
+    "citeauthor",
+    "citeyear",
+    "citeyearpar",
+    "nocite",
+    "parencite",
+    "textcite",
+    "autocite",
+}
+_NONUM = "Use :nonum: on the block to remove the number."
+_NOTE = "Use a :note: outside the math instead."
+_STRUCTURE_COMMANDS = (
+    {
+        "label": "Give the math block a :label: instead.",
+        "tag": f"RSM numbers the block. {_NONUM}",
+        "notag": _NONUM,
+        "nonumber": _NONUM,
+        "caption": "Use :caption: in a :figure: or a :table: instead.",
+        "footnote": _NOTE,
+        "footnotemark": _NOTE,
+        "footnotetext": _NOTE,
+    }
+    | dict.fromkeys(_REFERENCES, "Write :ref:<label>:: outside the math instead.")
+    | dict.fromkeys(_CITATIONS, "Write :cite:<key>:: outside the math instead.")
+    | dict.fromkeys(_SECTIONING, "Use a heading such as ## Title instead.")
 )
-_STRUCTURE_COMMANDS = {
-    "label": "in math is ignored by RSM. Give the block a :label: instead.",
-    "tag": (
-        "in math does not set the number in RSM. RSM numbers the block. "
-        "Use :nonum: on the block to remove the number."
-    ),
-    "notag": _NO_NUMBER,
-    "nonumber": _NO_NUMBER,
-    "ref": _REF,
-    "eqref": _REF,
-    "cite": (
-        "in math is not a citation in RSM. Write :cite:<key>:: outside the math "
-        "instead."
-    ),
-    "caption": (
-        "in math is ignored by RSM. Use :caption: in a :figure: or a :table: instead."
-    ),
-} | dict.fromkeys(
-    _SECTIONING,
-    "in math does not start a section in RSM. Use a heading such as ## Title instead.",
-)
+# A star only removes the number, and RSM numbers math blocks itself.
 _STARRED_ENVS = {"align*", "gather*", "multline*", "flalign*", "alignat*", "equation*"}
+# The export to LaTeX has no inner form of eqnarray to put inside a numbered
+# equation, and align gives the same layout.
+_EQNARRAY = "Use align instead, and :nonum: on the block to remove the number."
 # \\ and \% are matched as control symbols, so that the letters after \\ are not
 # read as a command and a % after \ does not start a comment.
 _MATH_TOKEN = re.compile(
-    r"\\begin\s*\{(?P<env>[A-Za-z]+\*)\}|\\(?P<cmd>[A-Za-z]+)|\\.|%[^\n]*", re.DOTALL
+    r"\\begin\s*\{(?P<env>[A-Za-z]+\*?)\}|\\(?P<cmd>[A-Za-z]+)|\\.|%[^\n]*", re.DOTALL
 )
 
 
-def _warn_structure_commands(
-    text: str, start_point: tuple[int, int], numbered: bool
-) -> None:
-    """Warn about each LaTeX command in math that is about document structure.
-
-    `numbered` is whether the math is a block that RSM numbers. Only then does a
-    starred environment try to remove a number.
-    """
+def _check_structure_commands(text: str, start_point: tuple[int, int]) -> None:
+    """Stop the build at the first LaTeX command in math that does the job of an
+    RSM tag or meta key: a label, a number, a reference, a citation, a section, a
+    caption or a footnote."""
     for m in _MATH_TOKEN.finditer(text):
-        name = m.group("cmd")
+        name, env = m.group("cmd"), m.group("env")
         if name in _STRUCTURE_COMMANDS:
-            msg = f"\\{name} {_STRUCTURE_COMMANDS[name]}"
-        elif numbered and m.group("env") in _STARRED_ENVS:
-            msg = f"{m.group('env')} {_NO_NUMBER}"
+            what, advice = f"\\{name}", _STRUCTURE_COMMANDS[name]
+        elif env in _STARRED_ENVS:
+            what = env
+            advice = (
+                f"Use {env.removesuffix('*')} and put :nonum: on the block to "
+                "remove the number."
+            )
+        elif env in ("eqnarray", "eqnarray*"):
+            what, advice = env, _EQNARRAY
         else:
             continue
         before = text[: m.start()].encode("utf-8")
@@ -1032,7 +1061,10 @@ def _warn_structure_commands(
         if line_start == 0:
             col += start_point[1]
         width = len(m.group(0).encode("utf-8"))
-        logger.warning(msg, extra=_user_position((row, col), (row, col + width)))
+        raise RSMParserError(
+            msg=f"{what} cannot be used in math (line {row + 1}). {advice}",
+            position=_user_position((row, col), (row, col + width)),
+        )
 
 
 def _check_raw_html(raw: nodes.RawHtml) -> None:
@@ -1543,13 +1575,7 @@ def _abstractify(cst: TSTree) -> nodes.Manuscript | None:
             text = asis.text.decode("utf-8")
             child: nodes.Node
             if ast_node_type in ["math", "mathblock"]:
-                numbered = (
-                    ast_node_type == "mathblock"
-                    and not ast_node.nonum
-                    and not ast_node.preamble
-                    and getattr(ast_root_node, "numbering", "section") != "none"
-                )
-                _warn_structure_commands(text, asis.start_point, numbered)
+                _check_structure_commands(text, asis.start_point)
             if ast_node_type in ["code", "codeblock"]:
                 child = nodes.SourceCode(text, lang=ast_node.lang)
             else:

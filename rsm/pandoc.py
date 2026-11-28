@@ -280,17 +280,11 @@ class PandocTranslator:
 
     _LATEX_ENVS = {
         "align",
-        "align*",
         "gather",
-        "gather*",
         "multline",
-        "multline*",
         "flalign",
-        "flalign*",
         "alignat",
-        "alignat*",
         "equation",
-        "equation*",
         "split",
     }
 
@@ -330,24 +324,20 @@ class PandocTranslator:
     def _display_env(self, src: str) -> str:
         # RSM gives the block one number, which braiid.lua writes after the math, so
         # the environment takes the inner form that numbers no line itself.
-        m = re.fullmatch(r"\\begin\{([\w*]+)\}(.*)\\end\{\1\}", src, re.DOTALL)
+        m = re.fullmatch(r"\\begin\{(\w+)\}(.*)\\end\{\1\}", src, re.DOTALL)
         if not m:
             return src
         env, body = m.groups()
-        env = env.removesuffix("*")
         if env == "equation":
             return body.strip()
         inner = self._INNER_ENVS.get(env, env)
         return f"\\begin{{{inner}}}{body}\\end{{{inner}}}"
 
     def _number_env(self, node: nodes.MathBlock, src: str) -> str:
-        m = re.fullmatch(r"\\begin\{([\w*]+)\}(.*)\\end\{\1\}", src, re.DOTALL)
+        m = re.fullmatch(r"\\begin\{(\w+)\}(.*)\\end\{\1\}", src, re.DOTALL)
         if not m:
             return src
         env, body = m.groups()
-        # The number of a block comes only from RSM, so a star is layout only and
-        # a starred environment is treated as its unstarred form.
-        env = env.removesuffix("*")
         number = node.full_number
         tag = ""
         if number:
