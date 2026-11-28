@@ -16,6 +16,7 @@ class FakeServer:
 
     def serve(self, root, **kwargs):
         self.root = root
+        self.kwargs = kwargs
 
 
 def _serve(monkeypatch, folder, *options, argv0="rsm"):
@@ -91,3 +92,31 @@ def test_serve_creates_missing_output_folder(monkeypatch, folder):
 
     assert server.root == "new out"
     assert (folder / "new out" / "my paper.html").exists()
+
+
+def test_serve_opens_built_page_when_folder_has_other_pages(monkeypatch, folder):
+    (folder / "out dir" / "other.html").write_text("<p>Other</p>")
+    (folder / "out dir" / "third.html").write_text("<p>Third</p>")
+    opened = []
+
+    class NowThread:
+        def __init__(self, target, daemon):
+            self.target = target
+
+        def start(self):
+            self.target()
+
+    monkeypatch.setattr("threading.Thread", NowThread)
+    monkeypatch.setattr("time.sleep", lambda s: None)
+    monkeypatch.setattr("webbrowser.open", opened.append)
+    server = FakeServer()
+    monkeypatch.setattr(cli.livereload, "Server", lambda: server)
+    monkeypatch.chdir(folder)
+    monkeypatch.setattr(
+        "sys.argv", ["rsm", "serve", "my paper.rsm", "-o", "out dir/", "--port", "5601"]
+    )
+    assert cli.main() == 0
+
+    assert server.kwargs["default_filename"] == "my paper.html"
+    assert opened == ["http://127.0.0.1:5601/my paper.html"]
+    assert not (folder / "out dir" / ".rsm-index.html").exists()

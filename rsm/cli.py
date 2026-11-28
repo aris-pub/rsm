@@ -311,114 +311,6 @@ def _cmd_build(args: Namespace) -> int:
     return 0
 
 
-def _find_html_files(directory: str) -> list:
-    """Find all HTML files in the given directory (non-recursive).
-
-    Excludes the special .rsm-index.html file used for directory listings.
-
-    Parameters
-    ----------
-    directory : str
-        Path to directory to search
-
-    Returns
-    -------
-    list of Path
-        List of HTML file paths, sorted alphabetically
-    """
-    dir_path = Path(directory)
-    html_files = []
-
-    for file_path in dir_path.glob("*.html"):
-        if file_path.is_file() and file_path.name != ".rsm-index.html":
-            html_files.append(file_path)
-
-    return sorted(html_files, key=lambda p: p.name)
-
-
-def _generate_index_page(html_files: list) -> str:
-    """Generate an HTML index page listing all HTML files.
-
-    Parameters
-    ----------
-    html_files : list of Path
-        List of HTML file paths to include in the listing
-
-    Returns
-    -------
-    str
-        HTML content for the index page
-    """
-    sorted_files = sorted(html_files, key=lambda p: p.name)
-
-    links = []
-    for file_path in sorted_files:
-        filename = file_path.name
-        links.append(f'        <li><a href="{filename}">{filename}</a></li>')
-
-    links_html = "\n".join(links)
-
-    html = f"""<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RSM - Available Pages</title>
-    <style>
-        body {{
-            font-family: system-ui, -apple-system, sans-serif;
-            max-width: 800px;
-            margin: 2rem auto;
-            padding: 0 1rem;
-            line-height: 1.6;
-        }}
-        h1 {{
-            color: #333;
-            border-bottom: 2px solid #e0e0e0;
-            padding-bottom: 0.5rem;
-        }}
-        ul {{
-            list-style: none;
-            padding: 0;
-        }}
-        li {{
-            margin: 0.75rem 0;
-        }}
-        a {{
-            color: #0066cc;
-            text-decoration: none;
-            font-size: 1.1rem;
-            padding: 0.5rem;
-            display: block;
-            border-radius: 4px;
-            transition: background-color 0.2s;
-        }}
-        a:hover {{
-            background-color: #f0f0f0;
-        }}
-        .info {{
-            color: #666;
-            font-size: 0.9rem;
-            margin-top: 2rem;
-            padding-top: 1rem;
-            border-top: 1px solid #e0e0e0;
-        }}
-    </style>
-</head>
-<body>
-    <h1>Available Pages</h1>
-    <ul>
-{links_html}
-    </ul>
-    <div class="info">
-        <p>Serving {len(sorted_files)} HTML file(s) from this directory.</p>
-    </div>
-</body>
-</html>"""
-
-    return html
-
-
 def _cmd_init(args: Namespace) -> int:
     """Handle 'rsm init' subcommand - scaffold a new RSM project."""
     from pathlib import Path
@@ -699,37 +591,8 @@ def _cmd_serve(args: Namespace) -> int:
     if custom_css:
         server.watch(custom_css, livereload.shell(cmd_parts))
 
-    # Determine what file to serve based on HTML files in output directory
-    html_files = _find_html_files(str(output_dir))
-    default_file = "index.html"
-
-    if len(html_files) == 0:
-        default_file = output_filename
-    elif len(html_files) == 1:
-        # Single HTML file, serve it directly
-        default_file = html_files[0].name
-    else:
-        # Multiple HTML files, generate an index page
-        index_content = _generate_index_page(html_files)
-        index_path = output_dir / ".rsm-index.html"
-        index_path.write_text(index_content)
-        default_file = ".rsm-index.html"
-
-    # Start serving
-    # Don't use livereload's open_url - we'll open browser with specific URL
     port = args.port
-
-    # Determine the URL to open
-    if len(html_files) == 1:
-        # Single file - navigate directly to it
-        url = f"http://127.0.0.1:{port}/{default_file}"
-    else:
-        # Multiple files or no files - show index or root
-        url = (
-            f"http://127.0.0.1:{port}/{default_file}"
-            if default_file != "index.html"
-            else f"http://127.0.0.1:{port}/"
-        )
+    url = f"http://127.0.0.1:{port}/{output_filename}"
 
     # Open default browser in a background thread after a short delay
     if not args.no_browser:
@@ -743,7 +606,7 @@ def _cmd_serve(args: Namespace) -> int:
     try:
         server.serve(
             root=str(output_dir),
-            default_filename=default_file,
+            default_filename=output_filename,
             open_url=False,
             port=port,
         )
