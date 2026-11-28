@@ -750,20 +750,46 @@ function hashKey(el) {
   return "h:" + el.dataset.hash + (i > 0 ? "#" + (i + 1) : "");
 }
 
-// The key under which a block's fold is saved and carried in a view link: its
-// label, or, for a block without a label, the hash of its source text that the
-// build writes as data-hash. A block that the build makes without source text
-// (the notes list, a bibliography from citations, the author block) is keyed
-// by its type, data-block. Node ids are not used because they count blocks in
+// The key under which saved folds and view links name a block: its label, or,
+// for a block without a label, the hash of its source text that the build
+// writes as data-hash. A block that the build makes without source text (the
+// notes list, a bibliography from citations, the author block) is keyed by its
+// type, data-block. Node ids are not used because they count blocks in
 // document order and so move to another block when the document changes. A
 // heading's label sits on its section (or abstract, contents, ...) wrapper.
-export function collapseKey(hr) {
-  // A pinned copy's fold is not saved, and a view link does not carry it.
-  if (hr.closest(".rail-pinned") || !canFold(hr)) return null;
-  if (hr.dataset.hash) return hashKey(hr);
-  if (hr.dataset.block) return "b:" + hr.dataset.block;
-  const owner = hr.classList.contains("heading") ? hr.parentElement : hr;
+export function blockKey(el) {
+  if (el.closest(".rail-pinned")) return null;
+  if (el.dataset.hash) return hashKey(el);
+  if (el.dataset.block) return "b:" + el.dataset.block;
+  const owner = el.classList.contains("heading") ? el.parentElement : el;
   return owner && owner.id ? "l:" + owner.id : null;
+}
+
+// The block that a key from blockKey names, or null when no block on the page
+// has that key.
+export function blockByKey(key) {
+  if (typeof key !== "string") return null;
+  const rest = key.slice(2);
+  if (key.startsWith("h:")) {
+    const [hash, n] = rest.split("#");
+    if (!/^[0-9a-f]+$/.test(hash)) return null;
+    return sameHash(hash)[(Number(n) || 1) - 1] || null;
+  }
+  if (key.startsWith("b:")) {
+    return document.querySelector(`.manuscript [data-block="${CSS.escape(rest)}"]`);
+  }
+  if (key.startsWith("l:")) {
+    const el = document.getElementById(rest);
+    // An id on a block that has data-hash is a build-made id, not a label.
+    return el && !el.dataset.hash ? el : null;
+  }
+  return null;
+}
+
+// A saved fold must never fold a block that has no fold control, so such a
+// block has no fold key.
+export function collapseKey(hr) {
+  return canFold(hr) ? blockKey(hr) : null;
 }
 
 function persistCollapse(hr, collapsed) {

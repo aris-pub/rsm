@@ -335,3 +335,101 @@ class TestChangedDocument:
             "() => document.querySelectorAll('.manuscript .hide').length"
         )
         assert hidden == 0
+
+
+# An unlabelled theorem and an unlabelled proof, with filler after them so that
+# the page scrolls. The steps have labels because reordering needs them. V4
+# adds a paragraph before the theorem.
+_V3 = (
+    """# Parts
+
+:theorem:
+
+  An unlabelled theorem.
+
+::
+
+:proof:
+
+  :step: {:label: s-1} First step. ::
+
+  :step: {:label: s-2} Second step. ::
+
+  :step: {:label: s-3} Third step. ::
+
+::
+
+"""
+    + "\n\n".join(f"Filler paragraph {i}." for i in range(40))
+    + "\n"
+)
+_V4 = _V3.replace(":theorem:", "A new first paragraph.\n\n:theorem:", 1)
+
+
+def _step_texts(page: Page):
+    return page.locator(".proof.hr .step").evaluate_all(
+        "els => els.map(e => e.textContent.trim().split(' ')[0])"
+    )
+
+
+class TestChangedDocumentParts:
+    """Pins, the step order and the block at the top of the window use the same
+    keys as folds."""
+
+    def test_pin_stays_on_its_block(self, page: Page, interactive_server: str):
+        page.goto(f"{interactive_server}/basic.html")
+        _serve(page, interactive_server, _V3)
+        token = page.evaluate(
+            """async () => {
+              const T = await import('/static/tooltips.js');
+              const S = await import('/static/shareview.js');
+              T.pinTarget('#' + document.querySelector('.manuscript .theorem.hr').id);
+              return S.captureState();
+            }"""
+        )
+        _serve(page, interactive_server, _V4, f"?view={_token(token)}")
+        expect(page.locator(".rail-pinned-body > [data-pin-target]")).to_have_count(1)
+        assert page.evaluate(
+            """() => document.querySelector('.rail-pinned-body > [data-pin-target]')
+                 .dataset.pinTarget === '#' +
+                 document.querySelector('.manuscript .theorem.hr').id"""
+        )
+
+    def test_step_order_stays_on_its_steps(self, page: Page, interactive_server: str):
+        if page.viewport_size["width"] < 1321:
+            page.set_viewport_size({"width": 1400, "height": 900})
+        page.goto(f"{interactive_server}/basic.html")
+        _serve(page, interactive_server, _V3)
+        order = page.evaluate(
+            """async () => {
+              const H = await import('/static/handrails.js');
+              const proof = document.querySelector('.manuscript .proof.hr');
+              const s = [...proof.querySelectorAll('.step')].map(H.blockKey);
+              return {[H.blockKey(proof)]: [s[2], s[0], s[1]]};
+            }"""
+        )
+        _serve(
+            page, interactive_server, _V4, f"?view={_token({'v': 1, 'order': order})}"
+        )
+        assert _step_texts(page) == ["Third", "First", "Second"]
+
+    def test_anchor_stays_on_its_block(self, page: Page, interactive_server: str):
+        page.goto(f"{interactive_server}/basic.html")
+        _serve(page, interactive_server, _V3)
+        token = page.evaluate(
+            """async () => {
+              const S = await import('/static/shareview.js');
+              const t = document.querySelector('.manuscript .theorem.hr');
+              window.scrollTo({top: window.scrollY + t.getBoundingClientRect().top - 20,
+                               behavior: 'instant'});
+              return S.captureState();
+            }"""
+        )
+        assert token["anchor"].startswith("h:"), token
+        _serve(page, interactive_server, _V4, f"?view={_token(token)}")
+        page.wait_for_timeout(500)
+        top = page.evaluate(
+            """() => document.querySelector('.manuscript .theorem.hr')
+                 .getBoundingClientRect().top"""
+        )
+        assert abs(top - token["anchorTop"]) <= 3, (top, token)

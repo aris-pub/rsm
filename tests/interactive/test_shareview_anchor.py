@@ -216,7 +216,7 @@ class TestAnchorChoice:
         _place(page, "par-3-4")
         sender_top = _top(page, "par-3-4")
         url = _copy_view_url(page)
-        assert _token(url)["anchor"] == "par-3-4"
+        assert _token(url)["anchor"] == "l:par-3-4"
 
         _open_as_recipient(page, url)
         _settle(page)
@@ -230,7 +230,7 @@ class TestAnchorChoice:
         _place(page, "stp-f5")
         sender_top = _top(page, "stp-f5")
         url = _copy_view_url(page)
-        assert _token(url)["anchor"] == "stp-f5"
+        assert _token(url)["anchor"] == "l:stp-f5"
 
         _open_as_recipient(page, url)
         _settle(page)
@@ -245,7 +245,7 @@ class TestAnchorChoice:
         _fresh_sender(page, interactive_server)
         _place(page, "par-4-2", top=-30)
         url = _copy_view_url(page)
-        assert _token(url)["anchor"] == "par-4-2"
+        assert _token(url)["anchor"] == "l:par-4-2"
 
         _open_as_recipient(page, url)
         _settle(page)
@@ -316,7 +316,7 @@ class TestLateLayout:
 class TestOldTokens:
     def test_anchor_only_token(self, page: Page, interactive_server: str):
         _load(page, interactive_server)
-        token = _encode({"v": 1, "anchor": "par-2-3"})
+        token = _encode({"v": 1, "anchor": "l:par-2-3"})
         _open_as_recipient(
             page, f"{interactive_server}/shareview_long.html?view={token}"
         )
@@ -332,7 +332,7 @@ class TestOldTokens:
               return H.collapseKey(document.getElementById('stp-f1').closest('.proof.hr'));
             }"""
         )
-        token = _encode({"v": 1, "folds": {key: False}, "anchor": "stp-f3"})
+        token = _encode({"v": 1, "folds": {key: False}, "anchor": "l:stp-f3"})
         _open_as_recipient(
             page, f"{interactive_server}/shareview_long.html?view={token}"
         )
@@ -377,7 +377,7 @@ class TestPins:
         _place(page, "par-1-6")
         sender_top = _top(page, "par-1-6")
         url = _copy_view_url(page)
-        assert _token(url)["pins"] == ["par-1-1", "lem-main"]
+        assert _token(url)["pins"] == ["l:par-1-1", "l:lem-main"]
 
         # The recipient has their own saved settings already.
         page.evaluate("() => localStorage.clear()")
@@ -498,7 +498,7 @@ class TestSlowLoad:
     def test_shared_anchor_is_in_view_when_the_page_is_shown(
         self, page: Page, interactive_server: str
     ):
-        token = _encode({"v": 1, "anchor": "par-4-2", "anchorTop": SENDER_TOP})
+        token = _encode({"v": 1, "anchor": "l:par-4-2", "anchorTop": SENDER_TOP})
         self._open_with_slow_fonts(
             page, f"{interactive_server}/shareview_long.html?view={token}", "par-4-2"
         )
@@ -545,7 +545,7 @@ class TestSlowLoad:
                 }"""
             )
 
-        token = _encode({"v": 1, "anchor": "par-4-2", "anchorTop": SENDER_TOP})
+        token = _encode({"v": 1, "anchor": "l:par-4-2", "anchorTop": SENDER_TOP})
         self._open_with_slow_fonts(
             page,
             f"{interactive_server}/shareview_long.html?view={token}",
