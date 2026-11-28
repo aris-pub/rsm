@@ -108,12 +108,6 @@ file is saved. It takes every option of ``rsm build``, and these:
 ``--no-browser``
    Does not open the browser.
 
-Without a file, ``rsm serve`` serves the current folder and builds each
-``.rsm`` file in it again each time the file is saved. In this case it does
-not take ``-c``, ``-v``, ``--log-format``, ``--log-no-timestamps`` or
-``--log-no-lineno``. With ``-o``, the pages are built into that folder and
-that folder is served.
-
 .. rubric:: Related
 
 :ref:`Build <cli-build>`.

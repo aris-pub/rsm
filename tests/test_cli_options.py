@@ -137,58 +137,10 @@ def test_removed_option_is_rejected(monkeypatch, capsys, command, option):
     assert "unrecognized arguments" in capsys.readouterr().err
 
 
-SERVE_NEEDS_FILE = [
-    ["-c"],
-    ["--string"],
-    ["-v"],
-    ["--verbose"],
-    ["--log-no-timestamps"],
-    ["--log-no-lineno"],
-    ["--log-format", "json"],
-    ["--log-format", "rsm"],
-]
-
-SERVE_WITHOUT_FILE = [
-    ["--css", "x.css"],
-    ["--menu-right"],
-    ["--standalone"],
-    ["-o", "out"],
-    ["--port", "5600"],
-    ["--no-browser"],
-    ["--sidebar"],
-    ["--no-theme-toggle"],
-    ["--strict"],
-]
-
-
-def _serve_without_file(monkeypatch, option):
-    calls = []
-    monkeypatch.setattr(cli, "_cmd_serve", lambda args: calls.append(args) or 0)
-    monkeypatch.setattr("sys.argv", ["rsm", "serve", *option])
-    status = cli.main()
-    return status, calls
-
-
-@pytest.mark.parametrize("option", SERVE_NEEDS_FILE, ids=" ".join)
-def test_serve_rejects_option_without_file(monkeypatch, capsys, option):
-    with pytest.raises(SystemExit) as exc:
-        _serve_without_file(monkeypatch, option)
-    assert exc.value.code == 2
-    assert "needs a source file" in capsys.readouterr().err
-
-
-@pytest.mark.parametrize("option", SERVE_WITHOUT_FILE, ids=" ".join)
-def test_serve_accepts_option_without_file(monkeypatch, option):
-    status, calls = _serve_without_file(monkeypatch, option)
-    assert status == 0
-    assert len(calls) == 1
-
-
 def test_serve_with_file_defaults_to_rsm_log_format(monkeypatch):
     status, calls = _parse(monkeypatch, "serve", [])
     assert status == 0
     assert calls[0].log_format == "rsm"
-
 
 
 def _help_text(monkeypatch, capsys, command):
