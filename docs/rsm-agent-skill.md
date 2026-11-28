@@ -284,7 +284,8 @@ Consider a chain of circles :html:{:alt: the circle $C_0$} <mtp-display model="p
   export), and the copies the page makes of its own content (reference previews, the
   pinned excerpt, the proof State view). Text read out of the document (a still
   image's alt text taken from a caption, the proof tree labels) uses the fallback too.
-  Without `:alt:` nothing stands in, and RSM warns.
+  Without `:alt:` nothing stands in, and RSM warns. `rsm export` stops with an error
+  that gives the line of each `:html:` or `:htmlblock:` with no `:alt:`.
 - Without JavaScript the page shows the HTML, as it does with JavaScript.
 - Allowed wherever inline content is: paragraphs, spans, `**bold**`, `*italic*`,
   theorems, captions, list items and table cells. Not in a link's text (`:ref:` or
@@ -995,7 +996,7 @@ Key properties of the operator:
 
 ::
 
-**Figures that hold HTML.** A `:figure:` holds HTML from a file named by `:path:` (an HTML fragment, for example a `fig.html` that contains `<svg>...</svg>`), or from an `:htmlblock:` inside it. The markup is written into the page, so it picks up the page CSS variables (dark mode, accent color). A raw image file (`.png`, `.jpg`, `.svg`) is embedded as an `<img>` and cannot see those variables. A copy of the page's own content (a reference preview, for example) shows the figure's `:static:` image, or else its `:alt:`, in place of the live HTML, and so does output other than HTML (pandoc export). Without either, pandoc export writes a note to see the online version.
+**Figures that hold HTML.** A `:figure:` holds HTML from a file named by `:path:` (an HTML fragment, for example a `fig.html` that contains `<svg>...</svg>`), or from an `:htmlblock:` inside it. The markup is written into the page, so it picks up the page CSS variables (dark mode, accent color). A raw image file (`.png`, `.jpg`, `.svg`) is embedded as an `<img>` and cannot see those variables. A copy of the page's own content (a reference preview, for example) shows the figure's `:static:` image, or else its `:alt:`, in place of the live HTML. Output other than HTML (pandoc export) shows the `:static:` image, and `rsm export` stops with an error that names each figure that holds HTML and has no `:static:`. An `:html:` or `:htmlblock:` outside a figure is replaced by its `:alt:` in an export, and one with no `:alt:` also stops the export with an error.
 
 **Notation in figures that hold HTML.** Readers can rename the symbols declared in a `:notation:` block (for example, change `\emb` from `F` to `\varphi`). Math in the page is typeset again with the new symbol, but a figure that draws a symbol itself (in SVG `<text>`, or on a canvas) must update the label in its own script. `window.rsm.notation.get("\\emb")` returns the current LaTeX of a macro (`"F"`, or `"\\varphi"` after the rename). After every rename, and after a reset to the author's default, RSM dispatches the event `rsm:notation-change` on `document`. Its `detail` has `macro` (the macro name, `"\\emb"`), `latex` (its new value) and `macros` (a copy of the current values of all macros). On load, the event is also dispatched once for each macro whose current value differs from its default: one that the reader renamed on an earlier visit, or one renamed by a shared view link (`?view=`). To typeset a symbol, rather than write its LaTeX as text, pass it to `window.rsm.renderMath(latex, el, {display})`, which renders into the element `el` with the document's current notation. A rename does not update math that was rendered this way, so the figure's script renders it again when the event arrives. `window.rsm` can be missing while the figure's own script first runs, so the script calls it from a `load` listener on `window`.
 

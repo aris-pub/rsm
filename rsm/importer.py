@@ -59,6 +59,18 @@ def resolve_project(
     root and overrides auto-detection. For a single .tex file it defaults to
     that file.
     """
+    text, root, _main_tex = resolve_project_files(input_path, main)
+    return text, root
+
+
+def resolve_project_files(
+    input_path: str | Path, main: str | None = None
+) -> tuple[str, Path, Path]:
+    """Return the flattened .tex source, the project root and the main .tex file.
+
+    As :func:`resolve_project`, and also the main .tex file, whose folder is
+    where LaTeX looks for the project's own .sty files.
+    """
     p = Path(input_path)
     if not p.exists():
         raise ImporterError(f"input not found: {input_path}")
@@ -80,7 +92,7 @@ def resolve_project(
 
     root = Path(root).resolve()
     main_tex = find_main_tex(root, override=main)
-    return flatten(main_tex, root), root
+    return flatten(main_tex, root), root, main_tex
 
 
 def is_archive(path: Path) -> bool:

@@ -72,6 +72,15 @@ function buildExcerpt(rawHref) {
     clone
       .find("[data-menu-label]")
       .removeAttr("data-menu-label data-menu-link data-menu-code data-menu-static-toggle tabindex");
+    // A copy of a video would play on its own, so a video with a still image
+    // shows the image instead, as a figure that holds HTML does.
+    const still = $t[0].getAttribute("data-static");
+    if (classes.contains("video") && still) {
+      const img = document.createElement("img");
+      img.src = still;
+      img.alt = $t[0].getAttribute("data-alt") || "";
+      clone.find("video").replaceWith(img);
+    }
     content = `<div>${clone.html()}</div>`;
   } else if (tag === "SPAN" && classes.contains("math")) {
     content = `<div>${$t.html()}</div>`;

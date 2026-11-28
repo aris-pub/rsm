@@ -6,6 +6,7 @@ pandoc; the structured output needs AnyStyle, so they assert the parts that
 hold either way (the key is present, pandoc's collapsed copy is gone).
 """
 
+import logging
 import shutil
 
 import pytest
@@ -385,3 +386,152 @@ def test_import_paragraph_title_with_colon(tmp_path):
     assert 'class="error"' not in html, out
     # It renders as a plain colon, backslash gone.
     assert "Task #1: Masked LM" in html
+
+
+# rsm-dyb: pandoc drops a LaTeX command that it cannot expand, and reports it
+# only with --verbose. The import turns each report into a warning.
+
+_UNKNOWN_COMMANDS = r"""\documentclass{article}
+\begin{document}
+We study the co\Ktheory{} of rings, and the map\fooarrow{} below.
+\end{document}
+"""
+
+
+def _skipped_warnings(caplog) -> list[str]:
+    return [
+        r.getMessage()
+        for r in caplog.records
+        if r.levelno == logging.WARNING and "pandoc dropped" in r.getMessage()
+    ]
+
+
+def test_import_warns_about_each_dropped_command(tmp_path, caplog):
+    caplog.set_level(logging.WARNING, logger="RSM")
+    (tmp_path / "t.tex").write_text(_UNKNOWN_COMMANDS, encoding="utf-8")
+    app.import_project(str(tmp_path / "t.tex"))
+    warnings = _skipped_warnings(caplog)
+    assert len(warnings) == 2, warnings
+    assert "\\Ktheory{}" in warnings[0] and "line 3" in warnings[0]
+    assert "\\fooarrow{}" in warnings[1] and "line 3" in warnings[1]
+
+
+def test_import_of_a_string_warns_about_dropped_commands(caplog):
+    caplog.set_level(logging.WARNING, logger="RSM")
+    app.pandoc_import(source=_UNKNOWN_COMMANDS, from_format="latex")
+    assert len(_skipped_warnings(caplog)) == 2
+
+
+def test_import_of_a_file_warns_about_dropped_commands(tmp_path, caplog):
+    caplog.set_level(logging.WARNING, logger="RSM")
+    (tmp_path / "t.tex").write_text(_UNKNOWN_COMMANDS, encoding="utf-8")
+    app.pandoc_import(path=str(tmp_path / "t.tex"), from_format="latex")
+    assert len(_skipped_warnings(caplog)) == 2
+
+
+def test_import_without_dropped_commands_warns_about_none(tmp_path, caplog):
+    caplog.set_level(logging.WARNING, logger="RSM")
+    (tmp_path / "main.tex").write_text(_XREF, encoding="utf-8")
+    app.import_project(str(tmp_path))
+    assert not [r for r in caplog.records if "pandoc" in r.getMessage().lower()], (
+        caplog.text
+    )
+
+
+# rsm-9oh: pandoc looks for the .sty file of a \usepackage in the folder where
+# it runs, so the import runs it in the project's folder, wherever rsm runs.
+
+_LOCAL_STY = r"""\documentclass{article}
+\usepackage{mymacros}
+\begin{document}
+We study the co\Ktheory{} of rings.
+\end{document}
+"""
+
+
+def _paper(tmp_path):
+    paper = tmp_path / "paper"
+    paper.mkdir()
+    (paper / "t3.tex").write_text(_LOCAL_STY, encoding="utf-8")
+    (paper / "mymacros.sty").write_text(
+        r"\newcommand{\Ktheory}{$K$-theory}" + "\n", encoding="utf-8"
+    )
+    elsewhere = tmp_path / "elsewhere"
+    elsewhere.mkdir()
+    return paper, elsewhere
+
+
+def _tar(paper, out):
+    import tarfile
+
+    with tarfile.open(out, "w:gz") as tar:
+        for f in paper.iterdir():
+            tar.add(f, arcname=f.name)
+    return out
+
+
+def _zip(paper, out):
+    import zipfile
+
+    with zipfile.ZipFile(out, "w") as z:
+        for f in paper.iterdir():
+            z.write(f, arcname=f.name)
+    return out
+
+
+@pytest.mark.parametrize("kind", ["file", "folder", "tar", "zip"])
+def test_import_uses_macros_from_a_local_sty(tmp_path, monkeypatch, kind):
+    paper, elsewhere = _paper(tmp_path)
+    src = {
+        "file": lambda: paper / "t3.tex",
+        "folder": lambda: paper,
+        "tar": lambda: _tar(paper, tmp_path / "paper.tar.gz"),
+        "zip": lambda: _zip(paper, tmp_path / "paper.zip"),
+    }[kind]()
+    monkeypatch.chdir(elsewhere)
+    out = app.import_project(str(src))
+    assert "co$K$-theory of rings" in out, out
+
+
+# LaTeX looks for a .sty in the folder of the main file, so pandoc runs there,
+# also when the main file is in a subfolder of the folder or the archive.
+@pytest.mark.parametrize("kind", ["folder", "tar", "zip"])
+def test_import_uses_a_local_sty_next_to_a_main_file_in_a_subfolder(
+    tmp_path, monkeypatch, kind
+):
+    paper, elsewhere = _paper(tmp_path)
+    project = tmp_path / "project"
+    project.mkdir()
+    paper.rename(project / "paper")
+    if kind == "folder":
+        src = project
+    else:
+        import tarfile
+        import zipfile
+
+        files = sorted((project / "paper").iterdir())
+        if kind == "tar":
+            src = tmp_path / "project.tar.gz"
+            with tarfile.open(src, "w:gz") as tar:
+                for f in files:
+                    tar.add(f, arcname=f"paper/{f.name}")
+        else:
+            src = tmp_path / "project.zip"
+            with zipfile.ZipFile(src, "w") as z:
+                for f in files:
+                    z.write(f, arcname=f"paper/{f.name}")
+    monkeypatch.chdir(elsewhere)
+    out = app.import_project(str(src))
+    assert "co$K$-theory of rings" in out, out
+
+
+@pytest.mark.skipif(shutil.which("pandoc") is None, reason="pandoc not installed")
+def test_import_warning_for_a_dropped_math_command_gives_its_line(caplog):
+    import logging
+
+    from rsm.app import pandoc_import
+
+    caplog.set_level(logging.WARNING, logger="RSM")
+    tex = "\\documentclass{article}\n\\begin{document}\nSee $x = \\eqref{a}$ here.\n\\end{document}\n"
+    pandoc_import(source=tex, from_format="latex")
+    assert "dropped \\eqref from math at line 3" in caplog.text, caplog.text

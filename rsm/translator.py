@@ -1013,6 +1013,10 @@ class AppendNodeTag(AppendOpenTag):
                 else str(node.static)
             )
             kwargs["data-static"] = static_src
+            # A reference preview of a video shows its still image, and the
+            # <video> element has no alt text to take.
+            if isinstance(node, nodes.Video) and node.alt:
+                kwargs["data-alt"] = html_escape(node.alt, quote=True)
         elif isinstance(node, nodes.Figure) and node.holds_html and node.alt:
             # Without a still image the alt text appears nowhere else in the
             # page, and a reference preview of the figure shows it instead.
@@ -4735,7 +4739,13 @@ class HandrailsTranslator(Translator):
         menu_zone, menu_attrs = self._hr_menu_zone(
             label=kind,
             link=(True if node.label else "disabled"),
-            static_toggle=(True if has_static else "disabled"),
+            # A video plays without JavaScript, so the page has no still image
+            # of it to switch to.
+            static_toggle=(
+                False
+                if isinstance(parent, nodes.Video)
+                else (True if has_static else "disabled")
+            ),
         )
         items.extend(
             [

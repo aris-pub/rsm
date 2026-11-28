@@ -17,7 +17,7 @@ import rsm
 from conftest import compare_have_want
 from rsm import nodes
 from rsm.app import ParserApp
-from rsm.pandoc import PandocTranslator
+from rsm.pandoc import PandocExportError, PandocTranslator
 
 WIDGET = '<mtp-display model="pappus" name="c0"></mtp-display>'
 
@@ -229,6 +229,13 @@ def test_missing_alt_warns(caplog):
     assert any(":html:" in r.message and ":alt:" in r.message for r in caplog.records)
 
 
+def test_missing_alt_warning_says_export_stops(caplog):
+    with caplog.at_level(logging.WARNING):
+        _render("A :html: <b>x</b> :: b.\n")
+    (message,) = [r.message for r in caplog.records if ":alt:" in r.message]
+    assert "rsm export" in message and "error" in message
+
+
 def test_alt_does_not_warn(caplog):
     with caplog.at_level(logging.WARNING):
         _render("A :html:{:alt: x} <b>x</b> :: b.\n")
@@ -344,10 +351,12 @@ def test_pandoc_export_uses_the_fallback():
     assert "x-dial" not in repr(ast)
 
 
-def test_pandoc_export_without_alt_emits_nothing():
+def test_pandoc_export_without_alt_is_an_error():
     tree = _tree("A :html: <x-dial></x-dial> :: b.\n")
-    ast = PandocTranslator().translate(tree)
-    assert "x-dial" not in repr(ast)
+    with pytest.raises(PandocExportError) as excinfo:
+        PandocTranslator().translate(tree)
+    assert ":html: (line 1)" in str(excinfo.value)
+    assert ":alt:" in str(excinfo.value)
 
 
 def test_embedded_source_is_escaped():
