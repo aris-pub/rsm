@@ -839,6 +839,10 @@ def pandoc_export(
 
 # ─── Pandoc import ────────────────────────────────────────────────────────────
 
+_PANDOC_SKIPPED = re.compile(
+    r"^\[INFO\] Skipped '(.*)' at (?:.* )?line (\d+) column \d+$", re.MULTILINE
+)
+
 
 class PandocImportApp(RSMApp):
     """Any pandoc-supported format → pandoc JSON AST → RSM source text."""
@@ -867,8 +871,15 @@ class PandocImportApp(RSMApp):
         self._from_format = from_format
 
     def run(self, initial_args: Any = None) -> str:
+        # pandoc reports each LaTeX command that it drops only with --verbose.
         if self._path:
-            cmd = ["pandoc", f"--from={self._from_format}", "--to=json", self._path]
+            cmd = [
+                "pandoc",
+                f"--from={self._from_format}",
+                "--to=json",
+                "--verbose",
+                self._path,
+            ]
             try:
                 proc = subprocess.run(cmd, capture_output=True, text=True, check=True)
             except FileNotFoundError:
@@ -878,7 +889,7 @@ class PandocImportApp(RSMApp):
             except subprocess.CalledProcessError as e:
                 raise RSMApplicationError(f"pandoc failed: {e.stderr}")
         else:
-            cmd = ["pandoc", f"--from={self._from_format}", "--to=json"]
+            cmd = ["pandoc", f"--from={self._from_format}", "--to=json", "--verbose"]
             try:
                 proc = subprocess.run(
                     cmd, input=self._source, capture_output=True, text=True, check=True
@@ -889,6 +900,12 @@ class PandocImportApp(RSMApp):
                 )
             except subprocess.CalledProcessError as e:
                 raise RSMApplicationError(f"pandoc failed: {e.stderr}")
+        for match in _PANDOC_SKIPPED.finditer(proc.stderr):
+            command, line = match.groups()
+            logger.warning(
+                f"pandoc dropped {command} at line {line}, so the text that it "
+                "stands for is not in the RSM source"
+            )
         pandoc_ast = json.loads(proc.stdout)
         unnumbered: set[str] = set()
         if self._from_format == "latex":

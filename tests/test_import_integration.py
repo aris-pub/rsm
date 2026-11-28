@@ -6,6 +6,7 @@ pandoc; the structured output needs AnyStyle, so they assert the parts that
 hold either way (the key is present, pandoc's collapsed copy is gone).
 """
 
+import logging
 import shutil
 
 import pytest
@@ -385,3 +386,53 @@ def test_import_paragraph_title_with_colon(tmp_path):
     assert 'class="error"' not in html, out
     # It renders as a plain colon, backslash gone.
     assert "Task #1: Masked LM" in html
+
+
+# rsm-dyb: pandoc drops a LaTeX command that it cannot expand, and reports it
+# only with --verbose. The import turns each report into a warning.
+
+_UNKNOWN_COMMANDS = r"""\documentclass{article}
+\begin{document}
+We study the co\Ktheory{} of rings, and the map\fooarrow{} below.
+\end{document}
+"""
+
+
+def _skipped_warnings(caplog) -> list[str]:
+    return [
+        r.getMessage()
+        for r in caplog.records
+        if r.levelno == logging.WARNING and "pandoc dropped" in r.getMessage()
+    ]
+
+
+def test_import_warns_about_each_dropped_command(tmp_path, caplog):
+    caplog.set_level(logging.WARNING, logger="RSM")
+    (tmp_path / "t.tex").write_text(_UNKNOWN_COMMANDS, encoding="utf-8")
+    app.import_project(str(tmp_path / "t.tex"))
+    warnings = _skipped_warnings(caplog)
+    assert len(warnings) == 2, warnings
+    assert "\\Ktheory{}" in warnings[0] and "line 3" in warnings[0]
+    assert "\\fooarrow{}" in warnings[1] and "line 3" in warnings[1]
+
+
+def test_import_of_a_string_warns_about_dropped_commands(caplog):
+    caplog.set_level(logging.WARNING, logger="RSM")
+    app.pandoc_import(source=_UNKNOWN_COMMANDS, from_format="latex")
+    assert len(_skipped_warnings(caplog)) == 2
+
+
+def test_import_of_a_file_warns_about_dropped_commands(tmp_path, caplog):
+    caplog.set_level(logging.WARNING, logger="RSM")
+    (tmp_path / "t.tex").write_text(_UNKNOWN_COMMANDS, encoding="utf-8")
+    app.pandoc_import(path=str(tmp_path / "t.tex"), from_format="latex")
+    assert len(_skipped_warnings(caplog)) == 2
+
+
+def test_import_without_dropped_commands_warns_about_none(tmp_path, caplog):
+    caplog.set_level(logging.WARNING, logger="RSM")
+    (tmp_path / "main.tex").write_text(_XREF, encoding="utf-8")
+    app.import_project(str(tmp_path))
+    assert not [r for r in caplog.records if "pandoc" in r.getMessage().lower()], (
+        caplog.text
+    )

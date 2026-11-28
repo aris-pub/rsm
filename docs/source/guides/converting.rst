@@ -209,7 +209,10 @@ RSM writes:
 Read the result before you build it. Pandoc does not read every LaTeX
 package, RSM drops commands that it does not know, and an environment with
 another name, such as ``thm`` from ``\newtheorem{thm}{Theorem}``, is imported
-as plain text.
+as plain text. RSM prints a warning for each command that it drops, with the
+command and its line. In a project of several files, RSM counts the line in
+the main file, with each file loaded by ``\input`` or ``\include`` written in
+its place.
 
 
 Import other formats
