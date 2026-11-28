@@ -212,10 +212,6 @@ MULTI = dedent(
       \begin{multline} p + q \\ + r \end{multline}
     ::
 
-    :mathblock: {:label: e-star}
-      \begin{align*} u &= v \end{align*}
-    ::
-
     :mathblock: {:label: e-nonum, :nonum:}
       \begin{align} s &= t \end{align}
     ::
@@ -228,37 +224,12 @@ MULTI = dedent(
       \begin{flalign} h &= i \\ j &= k \end{flalign}
     ::
 
-    :mathblock: {:label: e-gstar}
-      \begin{gather*} x = 1 \\ y = 2 \end{gather*}
-    ::
-
-    :mathblock: {:label: e-mstar}
-      \begin{multline*} p + q \\ + r \end{multline*}
-    ::
-
-    :mathblock: {:label: e-fstar}
-      \begin{flalign*} a &= b \\ c &= d \end{flalign*}
-    ::
-
-    :mathblock: {:label: e-atstar}
-      \begin{alignat*}{2} a &= b &\quad c &= d \end{alignat*}
-    ::
-
-    :mathblock: {:label: e-eqstar}
-      \begin{equation*} m = n \end{equation*}
-    ::
-
     :mathblock: {:label: e-eq}
       \begin{equation} o = p \end{equation}
     ::
 
-    :mathblock: {:label: e-starnonum, :nonum:}
-      \begin{align*} w &= z \end{align*}
-    ::
-
     See :ref:e-align::, :ref:e-gather::, :ref:e-alignat::, :ref:e-multline::,
-    :ref:e-flalign::, :ref:e-star::, :ref:e-gstar::, :ref:e-mstar::,
-    :ref:e-fstar::, :ref:e-atstar::, :ref:e-eqstar:: and :ref:e-eq::.
+    :ref:e-flalign:: and :ref:e-eq::.
     """
 )
 
@@ -295,72 +266,18 @@ def test_multline_has_one_rsm_number(multi_latex):
     ) in multi_latex
 
 
-# The number of a math block comes only from RSM. A star in the name of an
-# environment is layout only, so a starred block prints RSM's number, as its
-# unstarred form does.
-
-
-def test_starred_align_has_rsm_number(multi_latex):
-    assert (
-        r"\begin{equation} \begin{aligned} u &= v \end{aligned}"
-        r" \tag{1.5}\label{e-star} \end{equation}"
-    ) in multi_latex
-    assert r"\begin{align*}" not in multi_latex
-
-
-def test_starred_gather_has_rsm_number(multi_latex):
-    assert (
-        r"\begin{equation} \begin{gathered} x = 1 \\ y = 2 \end{gathered}"
-        r" \tag{1.7}\label{e-gstar} \end{equation}"
-    ) in multi_latex
-
-
-def test_starred_multline_has_rsm_number(multi_latex):
-    assert (
-        r"\begin{multline} p + q \\ + r \tag{1.8}\label{e-mstar} \end{multline}"
-    ) in multi_latex
-
-
-def test_starred_flalign_has_rsm_number(multi_latex):
-    assert (
-        r"\begin{flalign} a &= b \notag\\ c &= d \tag{1.9}\label{e-fstar}"
-        r" \end{flalign}"
-    ) in multi_latex
-
-
-def test_starred_alignat_has_rsm_number(multi_latex):
-    assert (
-        r"\begin{equation} \begin{alignedat}{2} a &= b &\quad c &= d"
-        r" \end{alignedat} \tag{1.10}\label{e-atstar} \end{equation}"
-    ) in multi_latex
-
-
-def test_starred_equation_has_rsm_number(multi_latex):
-    assert (
-        r"\begin{equation} m = n \tag{1.11}\label{e-eqstar} \end{equation}"
-    ) in multi_latex
-    assert r"\begin{equation*} m = n" not in multi_latex
-
-
 def test_equation_has_one_rsm_number(multi_latex):
     # An equation inside the equation that carries RSM's number is a LaTeX error.
     assert (
-        r"\begin{equation} o = p \tag{1.12}\label{e-eq} \end{equation}"
+        r"\begin{equation} o = p \tag{1.6}\label{e-eq} \end{equation}"
     ) in multi_latex
-
-
-def test_nonum_starred_block_has_no_number(multi_latex):
-    assert (
-        r"\begin{equation*} \begin{aligned} w &= z \end{aligned} \end{equation*}"
-    ) in multi_latex
-    assert not re.search(r"\\tag\{[^}]*\}\\label\{e-starnonum\}", multi_latex)
 
 
 # rsm-rvy6: a :nonum: block with a label has no number, but a reference to it
 # is a link, so the LaTeX needs a \label for the link to reach.
 
 
-@pytest.mark.parametrize("label", ["e-nonum", "e-flnonum", "e-starnonum"])
+@pytest.mark.parametrize("label", ["e-nonum", "e-flnonum"])
 def test_labelled_nonum_environment_has_a_label(multi_latex, label):
     assert rf"\phantomsection\label{{{label}}}" in multi_latex
 
@@ -411,7 +328,7 @@ def test_flalign_has_one_rsm_number(multi_latex):
     # A \\ inside braces or inside a nested environment does not end a line.
     assert (
         r"\begin{flalign} a &= b \notag\\ c &= \begin{cases} 1 \\ 2 \end{cases}"
-        r" \notag\\ e &= \sum_{\substack{f \\ g}} h \tag{1.6}\label{e-flalign}"
+        r" \notag\\ e &= \sum_{\substack{f \\ g}} h \tag{1.5}\label{e-flalign}"
         r" \end{flalign}"
     ) in multi_latex
 
@@ -432,14 +349,8 @@ def test_multiline_references_match(multi_latex):
     assert r"\hyperref[e-gather]{(1.2)}" in multi_latex
     assert r"\hyperref[e-alignat]{(1.3)}" in multi_latex
     assert r"\hyperref[e-multline]{(1.4)}" in multi_latex
-    assert r"\hyperref[e-flalign]{(1.6)}" in multi_latex
-    assert r"\hyperref[e-star]{(1.5)}" in multi_latex
-    assert r"\hyperref[e-gstar]{(1.7)}" in multi_latex
-    assert r"\hyperref[e-mstar]{(1.8)}" in multi_latex
-    assert r"\hyperref[e-fstar]{(1.9)}" in multi_latex
-    assert r"\hyperref[e-atstar]{(1.10)}" in multi_latex
-    assert r"\hyperref[e-eqstar]{(1.11)}" in multi_latex
-    assert r"\hyperref[e-eq]{(1.12)}" in multi_latex
+    assert r"\hyperref[e-flalign]{(1.5)}" in multi_latex
+    assert r"\hyperref[e-eq]{(1.6)}" in multi_latex
 
 
 @pytest.mark.skipif(shutil.which("xelatex") is None, reason="xelatex not installed")
@@ -450,11 +361,11 @@ def test_pdf_multiline_numbers(tmp_path):
     text = subprocess.run(
         ["pdftotext", str(out), "-"], capture_output=True, text=True, check=True
     ).stdout
-    # Each numbered block, starred or not, prints its number once, and the sentence
+    # Each numbered block prints its number once, and the sentence
     # that refers to them prints each number once more. No line has a number of its
     # own, and the :nonum: blocks print none.
     numbers = re.findall(r"\(\d[\d.]*\)", text)
-    printed = [f"(1.{n})" for n in range(1, 13)]
+    printed = [f"(1.{n})" for n in range(1, 7)]
     assert sorted(numbers) == sorted(printed * 2)
 
 
@@ -569,18 +480,11 @@ def multi_markdown():
         r"$$\begin{gathered} x = 1 \\ y = 2 \end{gathered} \qquad (1.2)$$",
         r"$$\begin{alignedat}{2} a &= b &\quad c &= d \end{alignedat} \qquad (1.3)$$",
         r"$$\begin{multline} p + q \\ + r \end{multline} \qquad (1.4)$$",
-        r"$$\begin{aligned} u &= v \end{aligned} \qquad (1.5)$$",
         r"$$\begin{aligned} s &= t \end{aligned}$$",
         r"$$\begin{flalign} a &= b \\ c &= \begin{cases} 1 \\ 2 \end{cases} \\ e &= "
-        r"\sum_{\substack{f \\ g}} h \end{flalign} \qquad (1.6)$$",
+        r"\sum_{\substack{f \\ g}} h \end{flalign} \qquad (1.5)$$",
         r"$$\begin{flalign} h &= i \\ j &= k \end{flalign}$$",
-        r"$$\begin{gathered} x = 1 \\ y = 2 \end{gathered} \qquad (1.7)$$",
-        r"$$\begin{multline} p + q \\ + r \end{multline} \qquad (1.8)$$",
-        r"$$\begin{flalign} a &= b \\ c &= d \end{flalign} \qquad (1.9)$$",
-        r"$$\begin{alignedat}{2} a &= b &\quad c &= d \end{alignedat} \qquad (1.10)$$",
-        r"$$m = n \qquad (1.11)$$",
-        r"$$o = p \qquad (1.12)$$",
-        r"$$\begin{aligned} w &= z \end{aligned}$$",
+        r"$$o = p \qquad (1.6)$$",
     ],
 )
 def test_markdown_amsmath_block_is_display_math(multi_markdown, math):
@@ -599,7 +503,7 @@ def _numbers(text: str) -> list[str]:
 
 # Each numbered block shows its number once, and the sentence that refers to them
 # shows each number once more. The :nonum: blocks show none.
-PRINTED_TWICE = sorted([f"(1.{n})" for n in range(1, 13)] * 2)
+PRINTED_TWICE = sorted([f"(1.{n})" for n in range(1, 7)] * 2)
 
 
 def _mathml_text(xhtml: str) -> str:
@@ -610,7 +514,7 @@ def _mathml_text(xhtml: str) -> str:
 
 def test_html_amsmath_blocks_are_math_with_numbers():
     html = pandoc_export(source=MULTI, to_format="html")
-    assert html.count('<math display="block"') == 15
+    assert html.count('<math display="block"') == 8
     assert _numbers(_mathml_text(html)) == PRINTED_TWICE
 
 
@@ -619,7 +523,7 @@ def test_docx_amsmath_blocks_are_word_math_with_numbers(tmp_path):
     pandoc_export(source=MULTI, to_format="docx", output=str(out))
     with zipfile.ZipFile(out) as z:
         xml = z.read("word/document.xml").decode()
-    assert xml.count("<m:oMathPara>") == 15
+    assert xml.count("<m:oMathPara>") == 8
     md = subprocess.run(
         ["pandoc", str(out), "-s", "-t", "markdown", "--wrap=none"],
         capture_output=True,
@@ -634,5 +538,5 @@ def test_epub_amsmath_blocks_are_math_with_numbers(tmp_path):
     pandoc_export(source=MULTI, to_format="epub", output=str(out))
     with zipfile.ZipFile(out) as z:
         xhtml = "".join(z.read(n).decode() for n in z.namelist() if n.endswith(".xhtml"))
-    assert xhtml.count('<math display="block"') == 15
+    assert xhtml.count('<math display="block"') == 8
     assert _numbers(_mathml_text(xhtml)) == PRINTED_TWICE

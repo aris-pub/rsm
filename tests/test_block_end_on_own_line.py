@@ -24,7 +24,7 @@ def _paragraph_text(manuscript):
     return [
         "".join(t.text for t in p.traverse() if type(t) is nodes.Text).strip()
         for p in _of_type(manuscript, nodes.Paragraph)
-        if not isinstance(p, nodes.Caption)
+        if not isinstance(p, nodes.Caption) and not p.wraps_block
     ]
 
 
