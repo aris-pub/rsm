@@ -201,7 +201,7 @@ class PandocTranslator:
         nodes.Algorithm: None,
         nodes.Contents: "_block_toc",
         nodes.HtmlBlock: "_block_html",
-        nodes.Video: "_block_asset_placeholder",
+        nodes.Video: "_block_figure",
         nodes.Subproof: "_block_proof",  # same as Proof — recurse into children
         nodes.ClaimBlock: "_block_construct",
         nodes.Construct: "_block_construct",
@@ -481,12 +481,14 @@ class PandocTranslator:
         return self._walk_children_as_inlines(node)
 
     def _block_figure(self, node: nodes.Asset) -> list[dict]:
-        if isinstance(node, nodes.Figure) and node.holds_html and not node.static:
+        is_html = isinstance(node, nodes.Figure) and node.holds_html
+        if (is_html or isinstance(node, nodes.Video)) and not node.static:
             name = " ".join(
                 filter(None, [node.kindname, node.label or node.full_number])
             )
+            shows = "shows HTML" if is_html else "is a video"
             self._problems[id(node)] = (
-                f"{name}{_where(node)} shows HTML and has no "
+                f"{name}{_where(node)} {shows} and has no "
                 ":static: image. Add :static: with an image to show in its place."
             )
             return []
@@ -527,19 +529,6 @@ class PandocTranslator:
                 ],
             },
         ]
-
-    def _block_asset_placeholder(self, node: nodes.Node) -> list[dict]:
-        # If a :static: fallback image exists, render it as a figure
-        if isinstance(node, nodes.Asset) and node.static:
-            return self._block_figure(node)
-        kind = type(node).__name__
-        path = getattr(node, "path", "")
-        text = (
-            f"[{kind} asset: {path} — see online version]"
-            if path
-            else f"[{kind} — see online version]"
-        )
-        return [{"t": "Para", "c": [{"t": "Emph", "c": [{"t": "Str", "c": text}]}]}]
 
     def _block_construct(self, node: nodes.Node) -> list[dict]:
         return self._walk_children_as_blocks(node)

@@ -122,11 +122,15 @@ MP4, WebM or MOV:
 .. rsm::
    :source-only:
 
-   :video: {:label: vid-demo, :path: demo.mp4}
+   :video: {:label: vid-demo, :path: demo.mp4, :static: demo-frame.png}
      :caption: The proof of the main lemma, step by step.
    ::
 
 A video is numbered and referenced like a figure, as "Video 1".
+
+A file exported to PDF, LaTeX or another format shows the ``:static:`` image
+of a video, such as one frame of it, with the caption. ``rsm export`` stops
+with an error if a video has no ``:static:``.
 
 See :ref:`tag-figure`, :ref:`tag-video` and :ref:`tag-htmlblock` in the
 language reference.

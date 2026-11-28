@@ -1277,15 +1277,6 @@ class TestCitationsAsPlainText:
 class TestMissingBlockHandlers:
     """rsm-kaw, rsm-90w, rsm-9r9, rsm-09d, rsm-b0j: Missing block handlers."""
 
-    def test_video_emits_placeholder(self):
-        blocks = _blocks("""\
-        :video: {
-          :path: demo.mp4
-        }
-        ::
-        """)
-        assert len(blocks) > 0  # Not silently dropped
-
     def test_authorblock_silently_skipped(self):
         """AuthorBlock should not crash or warn."""
         _blocks("""\
@@ -1589,6 +1580,43 @@ def test_export_of_html_with_alt_uses_the_alt():
     assert "bold word" in latex
     assert "A rule." in latex
     assert "<b>" not in latex and "<hr>" not in latex
+
+
+_VIDEOS = """\
+# Doc
+
+:video: {:label: vid-a, :path: demo.mp4}
+  :caption: The demo.
+::
+
+:video: {:path: other.mp4}
+::
+
+See :ref:vid-a::.
+"""
+
+
+@_PANDOC_SKIP
+@pytest.mark.parametrize("fmt", ["latex", "html"])
+def test_export_of_video_without_static_is_an_error(fmt):
+    message = _export_error(_VIDEOS, fmt)
+    assert "Video vid-a (line 3)" in message
+    assert "Video 2 (line 7)" in message
+    assert message.count("has no :static: image. Add :static:") == 2
+    assert "see online version" not in message
+
+
+@_PANDOC_SKIP
+def test_export_of_video_with_static_keeps_caption_number_and_label():
+    source = _VIDEOS.replace(
+        ":path: demo.mp4}", ":path: demo.mp4, :static: frame.png}"
+    ).replace(":path: other.mp4}", ":path: other.mp4, :static: other.png}")
+    latex = pandoc_export(source=source, to_format="latex")
+    assert "frame.png" in latex and "other.png" in latex
+    assert "demo.mp4" not in latex
+    assert "The demo." in latex
+    assert r"\label{vid-a}" in latex
+    assert r"\hyperref[vid-a]{Video 1}" in latex
 
 
 @_PANDOC_SKIP

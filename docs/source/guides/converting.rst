@@ -136,11 +136,12 @@ An exported file is static, so the parts of the page that the reader works
 with are not in it: the handrails, the tooltips, the sidebar and the proof
 tools.
 
-A figure that holds HTML shows its ``:static:`` image. An ``:html:`` or
-``:htmlblock:`` outside a figure is replaced by its ``:alt:`` text. If a figure
-that holds HTML has no ``:static:``, or an ``:html:`` or ``:htmlblock:``
-outside a figure has no ``:alt:``, the export stops with an error that gives
-the line of each one. See :ref:`guide-interactive-figures`.
+A figure that holds HTML and a video show their ``:static:`` image. An
+``:html:`` or ``:htmlblock:`` outside a figure is replaced by its ``:alt:``
+text. If a figure that holds HTML or a video has no ``:static:``, or an
+``:html:`` or ``:htmlblock:`` outside a figure has no ``:alt:``, the export
+stops with an error that gives the line of each one. See
+:ref:`guide-interactive-figures`.
 
 
 Import a Markdown file
