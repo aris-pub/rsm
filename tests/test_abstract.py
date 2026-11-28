@@ -55,11 +55,11 @@ def test_simple():
         <p class="manuscript-date">March 29, 2022</p>
 
         <div class="author-block">
-        <p class="author-names"><span class="author-name"><span class="author-name-text" data-affiliation="Max Planck Institute for Mathematics in the Sciences">Leo Torres</span><a class="author-contact" href="mailto:leo@leotrs.com" aria-label="Email Leo Torres" data-tip="Email Leo Torres"><span class="icon mail" aria-hidden="true"><svg overflow="visible"><use href="#hr-icon-mail" width="100%" height="100%"/></svg></span></a></span></p>
+        <p class="author-names"><span class="author-name"><span class="author-name-text" data-affiliation="1">Leo Torres</span><a class="author-contact" href="mailto:leo@leotrs.com" aria-label="Email Leo Torres" data-tip="Email Leo Torres"><span class="icon mail" aria-hidden="true"><svg overflow="visible"><use href="#hr-icon-mail" width="100%" height="100%"/></svg></span></a></span></p>
         <button type="button" class="author-summary" aria-expanded="false" hidden>1 affiliation<span aria-hidden="true"> · </span>1 email</button>
         <div class="author-details">
         <ol class="author-affiliations">
-        <li>Max Planck Institute for Mathematics in the Sciences</li>
+        <li data-affiliation="1">Max Planck Institute for Mathematics in the Sciences</li>
         </ol>
         <p class="author-correspondence">Correspondence: <a href="mailto:leo@leotrs.com">leo@leotrs.com</a></p>
         </div>

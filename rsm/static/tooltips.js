@@ -458,7 +458,7 @@ export function createTooltips() {
     functionBefore: (instance, helper) => previewWanted(helper.origin),
   });
 
-  $(".manuscriptwrapper .author-names sup[data-tooltip]:not(.tooltipstered)").tooltipster({
+  $(".manuscriptwrapper .author-names sup:is([data-affiliation], [data-note]):not(.tooltipstered)").tooltipster({
     theme: ['tooltipster-shadow', 'tooltipster-shadow-rsm'],
     delay: 200,
     minWidth: 100,
@@ -475,8 +475,11 @@ export function createTooltips() {
       touchleave: true
     },
     functionInit: function (instance, helper) {
-      let text = $(helper.origin).attr("data-tooltip");
-      setTooltipContent(instance, text);
+      const tip = $("<div></div>");
+      for (const key of ["affiliation", "note"]) {
+        tip.append(authorDetail(helper.origin, key));
+      }
+      instance.content($('<div class="manuscriptwrapper"></div>').append(tip));
     },
   });
 
@@ -491,8 +494,8 @@ export function createTooltips() {
     functionInit: function (instance, helper) {
       const tip = $('<div class="author-tip"></div>');
       for (const key of ["affiliation", "note"]) {
-        const text = helper.origin.getAttribute(`data-${key}`);
-        if (text) tip.append($("<p></p>").text(text));
+        const detail = authorDetail(helper.origin, key);
+        if (detail) tip.append($("<p></p>").append(detail));
       }
       // .manuscriptwrapper so that the page's CSS applies inside the tooltip.
       instance.content($('<div class="manuscriptwrapper"></div>').append(tip));
@@ -577,6 +580,25 @@ function calcPreview($calc) {
         "data-menu-collapse-all data-menu-static-toggle data-start-collapsed tabindex"
     );
   return `<div class="calc-preview">${clone[0].outerHTML}</div>`;
+}
+
+// A copy of the affiliation or note that an author name or superscript points
+// at, taken from the author details. The details are already rendered and
+// escaped, so no HTML is read from the attribute.
+function authorDetail(origin, key) {
+  const value = origin.getAttribute(`data-${key}`);
+  if (!value) return null;
+  const source = $(origin)
+    .closest(".author-block")
+    .find(`.author-details [data-${key}]`)
+    .filter((_, el) => el.getAttribute(`data-${key}`) === value)
+    .first();
+  if (!source.length) return null;
+  const nodes = source.clone().contents();
+  // The details start each entry with its number or symbol, which the
+  // tooltip does not repeat.
+  const first = nodes.first();
+  return first.is("sup") ? nodes.slice(1) : nodes;
 }
 
 function stripHandrail(hr) {

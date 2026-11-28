@@ -172,14 +172,21 @@ class TestNotShortened:
 
 
 class TestNameTooltip:
-    def test_name_carries_its_own_affiliation_and_note(self):
+    def test_name_points_at_its_own_affiliation_and_note(self):
         block = _block(SHORTEN)
         ada = block.select(".author-name-text")[0]
-        assert ada["data-affiliation"] == "University of London"
-        assert ada["data-note"] == "Equal contribution"
+        assert ada["data-affiliation"] == "1"
+        assert ada["data-note"] == "*"
         cy = block.select(".author-name-text")[2]
-        assert cy["data-affiliation"] == "Universidad de Chile"
+        assert cy["data-affiliation"] == "3"
         assert not cy.has_attr("data-note")
+
+    def test_details_carry_the_numbers_and_symbols(self):
+        block = _block(SHORTEN)
+        items = block.select(".author-affiliations li")
+        assert [li["data-affiliation"] for li in items] == ["1", "2", "3", "4"]
+        assert items[2].get_text() == "3Universidad de Chile"
+        assert block.select_one("p.author-note")["data-note"] == "*"
 
     def test_name_without_affiliation_or_note_has_no_tooltip_data(self):
         block = _block(authors=[("A", "", "", "", ""), ("B", "", "a@b.org", "", "")])
@@ -192,9 +199,50 @@ class TestNameTooltip:
         ada = block.select(".author-name")[0]
         assert ada.select_one(".author-name-text").find_next_sibling("sup").get_text() == "1"
 
-    def test_tooltip_data_is_escaped(self):
-        block = _block(authors=[("A", 'Lab "X" & Co', "", "", ""), ("B", "U", "", "", "")])
-        assert block.select(".author-name-text")[0]["data-affiliation"] == 'Lab "X" & Co'
+
+
+ESCAPE_AUTHORS = [
+    ("A", 'Lab "X" <b>bold</b>', 'a"b@x.org', "", 'Note "one" <i>it</i>'),
+    ("B", "Other & Co", "", "", "Plain"),
+]
+
+
+class TestEscaping:
+    """Affiliations, notes and emails are text: RSM accepts HTML only in :html:
+    and :htmlblock: (rsm-8ckc)."""
+
+    def test_affiliation_list_is_escaped(self):
+        block = _block(authors=ESCAPE_AUTHORS)
+        items = block.select(".author-affiliations li")
+        assert items[0].get_text() == '1Lab "X" <b>bold</b>'
+        assert items[1].get_text() == "2Other & Co"
+        assert block.select(".author-affiliations b") == []
+
+    def test_notes_are_escaped(self):
+        block = _block(authors=ESCAPE_AUTHORS)
+        note = block.select("p.author-note")[0]
+        assert note.get_text() == '*Note "one" <i>it</i>'
+        assert block.select("p.author-note i") == []
+
+    def test_superscripts_hold_no_text_of_the_value(self):
+        block = _block(authors=ESCAPE_AUTHORS)
+        aff, note = block.select(".author-name")[0].select("sup")
+        assert aff.attrs == {"data-affiliation": "1"}
+        assert note.attrs == {"data-note": "*"}
+        assert aff.get_text() == "1"
+        assert note.get_text() == "*"
+
+    def test_correspondence_link_is_escaped(self):
+        block = _block(authors=ESCAPE_AUTHORS)
+        link = block.select_one(".author-correspondence a")
+        assert link["href"] == 'mailto:a"b@x.org'
+        assert link.get_text() == 'a"b@x.org'
+
+    def test_name_points_at_its_affiliation_and_note(self):
+        block = _block(authors=ESCAPE_AUTHORS)
+        name = block.select(".author-name-text")[0]
+        assert name["data-affiliation"] == "1"
+        assert name["data-note"] == "*"
 
 
 class TestChevron:

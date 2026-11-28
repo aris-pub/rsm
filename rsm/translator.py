@@ -1624,40 +1624,32 @@ class Translator:
         total_affiliations = getattr(self.tree, "total_unique_affiliations", 0)
         total_notes = getattr(self.tree, "total_unique_notes", 0)
 
-        # Build reverse maps for tooltips
         notes_node = next(
             (c for c in node.children if isinstance(c, nodes.AuthorNotes)), None
         )
-        aff_by_num: dict[int, str] = {}
-        if notes_node:
-            aff_by_num = {v: k for k, v in notes_node.affiliation_map.items()}
 
         name_parts = []
         for author in authors:
             if not author.name:
                 continue
-            # authors.js builds the name's tooltip from these attributes.
+            # tooltips.js copies the name's tooltip from the details that these
+            # attributes point at, so that no HTML is read from an attribute.
             tip_attrs = ""
-            if author.affiliation:
-                tip_attrs += (
-                    f' data-affiliation="{html_escape(author.affiliation, quote=True)}"'
-                )
-            if author.author_note:
-                tip_attrs += f' data-note="{html_escape(author.author_note, quote=True)}"'
+            if author.affiliation and author.affiliation_number is not None:
+                tip_attrs += f' data-affiliation="{author.affiliation_number}"'
+            if author.author_note and author.note_symbol:
+                tip_attrs += f' data-note="{author.note_symbol}"'
             name_html = (
                 f'<span class="author-name-text"{tip_attrs}>'
                 f"{_wrap_hyphenated_words(author.name)}</span>"
             )
             sup_parts = []
             if author.affiliation_number is not None and total_affiliations > 1:
-                tooltip = aff_by_num.get(author.affiliation_number, "")
-                sup_parts.append(
-                    f'<sup data-tooltip="{tooltip}">{author.affiliation_number}</sup>'
-                )
+                num = author.affiliation_number
+                sup_parts.append(f'<sup data-affiliation="{num}">{num}</sup>')
             if author.note_symbol and total_notes > 1:
-                sup_parts.append(
-                    f'<sup data-tooltip="{author.author_note}">{author.note_symbol}</sup>'
-                )
+                sym = author.note_symbol
+                sup_parts.append(f'<sup data-note="{sym}">{sym}</sup>')
             name_html += "".join(sup_parts)
             name_attr = html_escape(author.name, quote=True)
             if author.email:
@@ -1776,25 +1768,30 @@ class Translator:
 
         if node.affiliation_map:
             html += '<ol class="author-affiliations">\n'
-            if total_affiliations > 1:
-                for aff_text, aff_num in node.affiliation_map.items():
-                    html += f'<li value="{aff_num}"><sup>{aff_num}</sup>{_wrap_hyphenated_words(aff_text)}</li>\n'
-            else:
-                for aff_text in node.affiliation_map:
-                    html += f"<li>{_wrap_hyphenated_words(aff_text)}</li>\n"
+            for aff_text, aff_num in node.affiliation_map.items():
+                text = _wrap_hyphenated_words(html_escape(aff_text, quote=False))
+                if total_affiliations > 1:
+                    html += (
+                        f'<li value="{aff_num}" data-affiliation="{aff_num}">'
+                        f"<sup>{aff_num}</sup>{text}</li>\n"
+                    )
+                else:
+                    html += f'<li data-affiliation="{aff_num}">{text}</li>\n'
             html += "</ol>\n"
 
         if node.note_map:
-            if total_notes > 1:
-                for note_text, note_sym in node.note_map.items():
-                    html += f'<p class="author-note"><sup>{note_sym}</sup>{_wrap_hyphenated_words(note_text)}</p>\n'
-            else:
-                for note_text in node.note_map:
-                    html += f'<p class="author-note">{_wrap_hyphenated_words(note_text)}</p>\n'
+            for note_text, note_sym in node.note_map.items():
+                text = _wrap_hyphenated_words(html_escape(note_text, quote=False))
+                sup = f"<sup>{note_sym}</sup>" if total_notes > 1 else ""
+                html += (
+                    f'<p class="author-note" data-note="{note_sym}">{sup}{text}</p>\n'
+                )
 
         if node.emails:
             email_links = ", ".join(
-                f'<a href="mailto:{email}">{email}</a>' for _, email in node.emails
+                f'<a href="mailto:{html_escape(email, quote=True)}">'
+                f"{html_escape(email, quote=False)}</a>"
+                for _, email in node.emails
             )
             html += (
                 f'<p class="author-correspondence">Correspondence: {email_links}</p>\n'

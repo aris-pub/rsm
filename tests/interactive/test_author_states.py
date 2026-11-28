@@ -226,6 +226,38 @@ class TestNameTooltip:
         assert " ".join(tip.inner_text().split()) == "ETH Zurich"
 
 
+class TestEscapedTooltips:
+    """Tooltips show an affiliation or note that looks like HTML as text
+    (rsm-8ckc)."""
+
+    @pytest.mark.parametrize(
+        "origin, text, tag",
+        [
+            (".author-name:has-text('Ada') sup >> nth=0", 'Lab "X" <b>bold</b>', "b"),
+            (".author-name:has-text('Ada') sup >> nth=1", 'Note "one" <i>it</i>', "i"),
+        ],
+        ids=["affiliation", "note"],
+    )
+    def test_superscript_tooltip_shows_the_text(
+        self, page: Page, interactive_server, origin, text, tag
+    ):
+        _load(page, interactive_server, "author_escape")
+        page.hover(origin)
+        tip = page.locator(TIP)
+        expect(tip).to_be_visible(timeout=3000)
+        assert " ".join(tip.inner_text().split()) == text
+        assert tip.locator(tag).count() == 0
+
+    def test_name_tooltip_shows_the_text(self, page: Page, interactive_server):
+        _load(page, interactive_server, "author_escape")
+        page.hover(".author-name-text >> text=Ada Lovelace")
+        tip = page.locator(TIP)
+        expect(tip).to_be_visible(timeout=3000)
+        expect(tip).to_contain_text('Lab "X" <b>bold</b>')
+        expect(tip).to_contain_text('Note "one" <i>it</i>')
+        assert tip.locator("b, i").count() == 0
+
+
 class TestWithoutJavaScript:
     @pytest.mark.parametrize("name", ["author_states", "author_states_full"])
     def test_every_name_and_all_details_without_controls(
