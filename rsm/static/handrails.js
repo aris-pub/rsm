@@ -233,8 +233,11 @@ function showMenuFor(hr) {
     if (useEl) useEl.setAttribute("href", on ? "#hr-icon-unpin" : "#hr-icon-pin");
   }
 
-  // Configure link and code items
-  configureItem(singletonMenu.querySelector('[data-role="link"]'), link);
+  // A pinned copy and the blocks in it have no ids to link to.
+  configureItem(
+    singletonMenu.querySelector('[data-role="link"]'),
+    hr.closest(".rail-pinned") ? null : link,
+  );
   // The build enables the Source item on every handrail, but the element may
   // have no captured source (missing offsets, or no .rsm-source div to slice
   // from). Disable it up front with a reason so a click cannot reach showSource

@@ -1938,7 +1938,10 @@ var RSM = (() => {
       const useEl = pinEl.querySelector("svg use");
       if (useEl) useEl.setAttribute("href", on ? "#hr-icon-unpin" : "#hr-icon-pin");
     }
-    configureItem(singletonMenu.querySelector('[data-role="link"]'), link);
+    configureItem(
+      singletonMenu.querySelector('[data-role="link"]'),
+      hr.closest(".rail-pinned") ? null : link
+    );
     const codeEl = singletonMenu.querySelector('[data-role="code"]');
     if (code && code !== "disabled" && !hrHasSource(hr)) {
       configureItem(codeEl, "disabled");

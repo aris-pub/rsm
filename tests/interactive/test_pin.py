@@ -612,3 +612,39 @@ class TestPinTargets:
         expect(page.locator('.ref-pin[data-pin-target="#sec-targets"]')).to_have_count(
             0
         )
+
+
+class TestCopyLinkInPinnedCopy:
+    """A pinned copy has no ids, so its menu offers no Copy link, for the pinned
+    block or for any block inside it. The blocks in the text keep Copy link."""
+
+    LINK = '#hr-menu-singleton [data-role="link"]'
+
+    def test_pinned_block_has_no_copy_link(self, page: Page, interactive_server: str):
+        _load(page, interactive_server)
+        _pin(page, "#thm-x")
+        _open_menu(page, page.locator(f'{PINS}[data-pin-target="#thm-x"]'))
+        expect(page.locator(self.LINK)).to_be_hidden()
+
+    def test_block_inside_a_pinned_copy_has_no_copy_link(
+        self, page: Page, interactive_server: str
+    ):
+        _load(page, interactive_server)
+        _open_menu(page, page.locator(".manuscript .proof.hr").first)
+        page.locator('#hr-menu-singleton [data-role="pin"]').click()
+        step = page.locator(f"{PINS} .step.hr").filter(has_text="First").first
+        step.scroll_into_view_if_needed()
+        step.hover()
+        step.locator(":scope > .hr-border-zone .hr-border-dots").click()
+        expect(page.locator("#hr-menu-singleton .hr-menu")).to_be_visible()
+        expect(page.locator(self.LINK)).to_be_hidden()
+
+    def test_block_in_the_text_keeps_copy_link(
+        self, page: Page, interactive_server: str
+    ):
+        _load(page, interactive_server)
+        _pin(page, "#thm-x")
+        _open_menu(page, page.locator(f'{PINS}[data-pin-target="#thm-x"]'))
+        page.keyboard.press("Escape")
+        _open_menu(page, page.locator(".manuscript #thm-x"))
+        expect(page.locator(self.LINK)).to_be_visible()
