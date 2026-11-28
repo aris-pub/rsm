@@ -2275,15 +2275,14 @@ var RSM = (() => {
       return {};
     }
   }
+  function canFold(hr) {
+    return hr.getAttribute("data-menu-collapse") === "true" || !!hr.querySelector(":scope > .hr-collapse-zone .hr-collapse");
+  }
   function collapseKey(hr) {
-    if (hr.closest(".rail-pinned")) return null;
-    const nid = hr.getAttribute("data-nodeid");
-    if (nid != null) return "n:" + nid;
-    const sec = hr.closest("section");
-    if (sec && sec.id) return "s:" + sec.id;
-    if (hr.id) return "e:" + hr.id;
-    const txt = (hr.textContent || "").replace(/\s+/g, " ").trim();
-    return txt ? "t:" + txt : null;
+    if (hr.closest(".rail-pinned") || !canFold(hr)) return null;
+    if (hr.dataset.hash) return "h:" + hr.dataset.hash;
+    const owner = hr.classList.contains("heading") ? hr.parentElement : hr;
+    return owner && owner.id ? "l:" + owner.id : null;
   }
   function persistCollapse(hr, collapsed) {
     const key = collapseKey(hr);

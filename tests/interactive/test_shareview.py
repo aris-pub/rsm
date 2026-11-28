@@ -14,6 +14,8 @@ from urllib.parse import parse_qs, urlparse
 import pytest
 from playwright.sync_api import Page, expect
 
+import rsm
+
 pytestmark = pytest.mark.interactive
 
 RSM_READY = "() => window.__rsmShown === true"
@@ -81,14 +83,17 @@ class TestCopyAction:
 class TestRestore:
     def test_fold_roundtrips(self, page: Page, interactive_server: str):
         _load(page, interactive_server)
-        # Collapse a step, then snapshot the view.
+        # Collapse a proof, then snapshot the view.
         page.evaluate(
             """async () => {
               const H = await import('/static/handrails.js');
-              H.closeHandrail(document.getElementById('stp-setup'));
+              H.closeHandrail(document.getElementById('stp-setup').closest('.proof.hr'));
             }"""
         )
-        assert _collapsed(page, "stp-setup") is True
+        proof = page.evaluate(
+            "() => document.getElementById('stp-setup').closest('.proof.hr').id"
+        )
+        assert _collapsed(page, proof) is True
         url = _copy_view_url(page)
 
         # Open the shared link as a FRESH recipient (clear localStorage so the
@@ -97,7 +102,7 @@ class TestRestore:
         page.goto(url)
         page.wait_for_function(RSM_READY, timeout=10_000)
         expect(page.locator(".rsm-shared-pill")).to_be_visible(timeout=5000)
-        assert _collapsed(page, "stp-setup") is True
+        assert _collapsed(page, proof) is True
 
     def test_view_param_is_stripped(self, page: Page, interactive_server: str):
         _load(page, interactive_server)
@@ -224,8 +229,11 @@ class TestResetPill:
         page.evaluate(
             """async () => {
               const H = await import('/static/handrails.js');
-              H.closeHandrail(document.getElementById('stp-setup'));
+              H.closeHandrail(document.getElementById('stp-setup').closest('.proof.hr'));
             }"""
+        )
+        proof = page.evaluate(
+            "() => document.getElementById('stp-setup').closest('.proof.hr').id"
         )
         url = _copy_view_url(page)
         page.evaluate("() => localStorage.clear()")
@@ -233,11 +241,11 @@ class TestResetPill:
         page.wait_for_function(RSM_READY, timeout=10_000)
         pill = page.locator(".rsm-shared-pill")
         expect(pill).to_be_visible(timeout=5000)
-        assert _collapsed(page, "stp-setup") is True
+        assert _collapsed(page, proof) is True
         pill.locator(".rsm-shared-pill-reset").click()
         page.wait_for_function(RSM_READY, timeout=10_000)
         # Pristine paper: the fold is gone and no pill (the recipient never saved it).
-        assert _collapsed(page, "stp-setup") is False
+        assert _collapsed(page, proof) is False
         expect(page.locator(".rsm-shared-pill")).to_have_count(0)
 
 
@@ -251,3 +259,79 @@ class TestAccessibility:
         expect(pill).to_be_visible(timeout=5000)
         expect(pill).to_have_attribute("role", "status")
         expect(pill).to_have_attribute("aria-live", "polite")
+
+
+# Two builds of one document, served one after the other at the same URL. V2
+# adds a paragraph before the theorem, which shifts every node id after it.
+_V1 = """# Folds
+
+:theorem:
+
+  An unlabelled theorem.
+
+::
+
+The last paragraph.
+"""
+_V2 = _V1.replace(":theorem:", "A new first paragraph.\n\n:theorem:", 1)
+
+
+def _serve(page: Page, server: str, source: str, query: str = "") -> None:
+    html = rsm.build(source=source, handrails=True, standalone=False, sidebar=True)
+    page.unroute("**/view-change.html*")
+    page.route(
+        "**/view-change.html*",
+        lambda route: route.fulfill(body=html, content_type="text/html"),
+    )
+    page.evaluate("() => localStorage.clear()")
+    page.goto(f"{server}/view-change.html{query}")
+    page.wait_for_function(RSM_READY, timeout=10_000)
+
+
+def _collapsed_texts(page: Page):
+    return page.evaluate(
+        r"""() => [...document.querySelectorAll('.manuscript .hr-collapsed')]
+             .map(h => (h.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 30))"""
+    )
+
+
+class TestChangedDocument:
+    def test_unlabelled_fold_stays_on_its_block(
+        self, page: Page, interactive_server: str
+    ):
+        page.goto(f"{interactive_server}/basic.html")
+        _serve(page, interactive_server, _V1)
+        page.locator(".theorem.hr > .hr-collapse-zone .hr-collapse").click()
+        token = page.evaluate(
+            """async () => {
+              const S = await import('/static/shareview.js');
+              return S.captureState();
+            }"""
+        )
+        _serve(page, interactive_server, _V2, f"?view={_token(token)}")
+        texts = _collapsed_texts(page)
+        assert len(texts) == 1 and "unlabelled theor" in texts[0], texts
+
+    def test_fold_that_matches_no_block_is_ignored(
+        self, page: Page, interactive_server: str
+    ):
+        page.goto(f"{interactive_server}/basic.html")
+        _serve(page, interactive_server, _V1)
+        folds = page.evaluate(
+            """() => {
+              const p = [...document.querySelectorAll('.manuscript .paragraph.hr')]
+                .find(el => el.textContent.includes('The last paragraph'));
+              const folds = {'n:1': true, 'n:2': true, 'l:gone': true,
+                             'h:00000000': true};
+              if (p.dataset.hash) folds['h:' + p.dataset.hash] = true;
+              return folds;
+            }"""
+        )
+        _serve(
+            page, interactive_server, _V1, f"?view={_token({'v': 1, 'folds': folds})}"
+        )
+        assert _collapsed_texts(page) == []
+        hidden = page.evaluate(
+            "() => document.querySelectorAll('.manuscript .hide').length"
+        )
+        assert hidden == 0

@@ -728,32 +728,22 @@ function loadCollapseState() {
   }
 }
 
-// A stable per-document persistence key for any collapsible handrail.
-//
-// data-nodeid is emitted only on a node's full container (the element wrapping
-// heading + content). For self-wrapping blocks (theorem, proof, step, ...) that
-// container IS the .hr handrail, so it carries the nodeid directly. A section is
-// the exception: its nodeid lands on the <section> wrapper, while the
-// collapsible handrail is the inner .heading.hr, whose body are its *siblings*
-// inside that section. So the heading element itself has no nodeid, and every
-// id-less collapsible block is a heading. The fallbacks below therefore only
-// ever apply to headings:
-//   - section id (the author's label): present on numbered sections, and more
-//     stable across rebuilds than a renumbered nodeid.
-//   - heading text: the document title, the generated table-of-contents, and
-//     the bibliography have no <section> of their own (they climb to the
-//     manuscript root), so borrowing an ancestor's nodeid would collide them
-//     all onto root nodeid 0. Their text is the only handle that stays distinct.
+function canFold(hr) {
+  return hr.getAttribute("data-menu-collapse") === "true" ||
+    !!hr.querySelector(":scope > .hr-collapse-zone .hr-collapse");
+}
+
+// The key under which a block's fold is saved and carried in a view link: its
+// label, or, for a block without a label, the hash of its source text that the
+// build writes as data-hash. Node ids are not used because they count blocks in
+// document order and so move to another block when the document changes. A
+// heading's label sits on its section (or abstract, contents, ...) wrapper.
 export function collapseKey(hr) {
   // A pinned copy's fold is not saved, and a view link does not carry it.
-  if (hr.closest(".rail-pinned")) return null;
-  const nid = hr.getAttribute("data-nodeid");
-  if (nid != null) return "n:" + nid;
-  const sec = hr.closest("section");
-  if (sec && sec.id) return "s:" + sec.id;
-  if (hr.id) return "e:" + hr.id;
-  const txt = (hr.textContent || "").replace(/\s+/g, " ").trim();
-  return txt ? "t:" + txt : null;
+  if (hr.closest(".rail-pinned") || !canFold(hr)) return null;
+  if (hr.dataset.hash) return "h:" + hr.dataset.hash;
+  const owner = hr.classList.contains("heading") ? hr.parentElement : hr;
+  return owner && owner.id ? "l:" + owner.id : null;
 }
 
 function persistCollapse(hr, collapsed) {
@@ -793,9 +783,8 @@ export function collapseInitial(root) {
 
 
 // Re-apply the reader's persisted collapse choices, overriding the author
-// defaults from collapseInitial. Call after collapseInitial on load. Iterates
-// every .hr, not just .hr[data-nodeid], because section headings carry no
-// nodeid (see collapseKey) yet are collapsible and must be restored too.
+// defaults from collapseInitial. Call after collapseInitial on load. A saved
+// key that matches no block on the page is not applied.
 export function restoreCollapse(root) {
   const state = loadCollapseState();
   suppressPersist = true;

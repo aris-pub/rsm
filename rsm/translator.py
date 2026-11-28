@@ -110,6 +110,8 @@ by ``rsm-build``.
 """
 
 import copy
+import functools
+import hashlib
 import logging
 import re
 import textwrap
@@ -741,6 +743,32 @@ def _step_anchor_id(step: "nodes.Step") -> str:
     return ""
 
 
+@functools.lru_cache(maxsize=4)
+def _line_starts(src: str) -> tuple[int, ...]:
+    starts = [0]
+    for line in src.split("\n")[:-1]:
+        starts.append(starts[-1] + len(line) + 1)
+    return tuple(starts)
+
+
+def _source_hash(node: "nodes.Node", src: str) -> str:
+    """Return a short hash of the node's own source text, or "" if it has none.
+
+    The reader saves the fold of a block that has no label under this hash, so
+    that the fold stays with its block when blocks before it are added, removed
+    or moved, and is dropped when the block itself is edited.
+    """
+    if not src or node.start_point[0] < 0:
+        return ""
+    starts = _line_starts(src)
+    start_row, start_col = node.start_point[0], node.start_point[1]
+    end_row, end_col = node.end_point[0], node.end_point[1]
+    if end_row >= len(starts):
+        return ""
+    text = src[starts[start_row] + start_col : starts[end_row] + end_col]
+    return hashlib.sha1(text.encode()).hexdigest()[:8]
+
+
 # FOR DOCUMENTATION: Classes that inherit from EditCommand are meant to encapsulate
 # _reusable_ operations that convert a node into HTML text.  If an operation is not
 # reusable on multiple node classes and is particular to just one node class, it should
@@ -1046,6 +1074,10 @@ class AppendNodeTag(AppendOpenTag):
             # jump targets) don't get ids. Stable within a built artifact;
             # labeled blocks keep the semantic id set above.
             id_ = f"n{node.nodeid}"
+        if not node.label and "hr" in classes:
+            source_hash = _source_hash(node, manuscript_source)
+            if source_hash:
+                kwargs["data-hash"] = source_hash
 
         super().__init__(
             tag=tag,
@@ -3479,6 +3511,10 @@ class HandrailsTranslator(Translator):
                 )
                 kwargs["data-source-start"] = str(start_offset)
                 kwargs["data-source-end"] = str(end_offset)
+        if node is not None and not node.label and self.tree:
+            source_hash = _source_hash(node, self.tree.src or "")
+            if source_hash:
+                kwargs["data-hash"] = source_hash
 
         return (
             AppendOpenTag(classes=classes, is_selectable=True, **kwargs)
