@@ -242,7 +242,7 @@ class RSMApp(Pipeline, Generic[T]):
         try:
             result: T = super().run(initial_args)
         except RSMParserError as e:
-            logger.error(f"There was an error: {e}")
+            logger.error(f"There was an error: {e}", extra=e.position)
             return None
         logger.info("Done.")
         return result

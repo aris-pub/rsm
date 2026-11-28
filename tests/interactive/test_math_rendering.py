@@ -157,8 +157,9 @@ class TestMathOnDemandLoading:
 
 class TestAnnotatedEquations:
     """MathJax must keep \\class in math so interactive figures can bind to
-    parts of an equation. The other html extension commands (\\href, \\cssId,
+    parts of an equation. The other html extension commands (\\cssId,
     \\style) are removed, so they stay untrusted as they were under Temml.
+    \\href in math is a build error, so it never reaches MathJax.
     """
 
     def test_class_renders_carrying_the_class(
@@ -196,15 +197,14 @@ class TestAnnotatedEquations:
     def test_other_html_commands_stay_untrusted(
         self, page: Page, interactive_server: str
     ):
-        """\\href must render as an undefined command, never as a link."""
+        """\\cssId must render as an undefined command, never set an id."""
         page.goto(f"{interactive_server}/math-class.html")
         wait_for_rsm(page)
 
-        block = page.locator("#eqn-href")
+        block = page.locator("#eqn-cssid")
         expect(block.locator("mjx-container")).to_have_count(1)
-        assert "\\href" in block.text_content()
-        assert page.locator("#eqn-href mjx-container a").count() == 0
-        assert page.locator("#eqn-href mjx-container [href]").count() == 0
+        assert "\\cssId" in block.text_content()
+        assert page.locator("#injected").count() == 0
 
     def test_class_survives_notation_rerender(
         self, page: Page, interactive_server: str
