@@ -436,3 +436,58 @@ def test_import_without_dropped_commands_warns_about_none(tmp_path, caplog):
     assert not [r for r in caplog.records if "pandoc" in r.getMessage().lower()], (
         caplog.text
     )
+
+
+# rsm-9oh: pandoc looks for the .sty file of a \usepackage in the folder where
+# it runs, so the import runs it in the project's folder, wherever rsm runs.
+
+_LOCAL_STY = r"""\documentclass{article}
+\usepackage{mymacros}
+\begin{document}
+We study the co\Ktheory{} of rings.
+\end{document}
+"""
+
+
+def _paper(tmp_path):
+    paper = tmp_path / "paper"
+    paper.mkdir()
+    (paper / "t3.tex").write_text(_LOCAL_STY, encoding="utf-8")
+    (paper / "mymacros.sty").write_text(
+        r"\newcommand{\Ktheory}{$K$-theory}" + "\n", encoding="utf-8"
+    )
+    elsewhere = tmp_path / "elsewhere"
+    elsewhere.mkdir()
+    return paper, elsewhere
+
+
+def _tar(paper, out):
+    import tarfile
+
+    with tarfile.open(out, "w:gz") as tar:
+        for f in paper.iterdir():
+            tar.add(f, arcname=f.name)
+    return out
+
+
+def _zip(paper, out):
+    import zipfile
+
+    with zipfile.ZipFile(out, "w") as z:
+        for f in paper.iterdir():
+            z.write(f, arcname=f.name)
+    return out
+
+
+@pytest.mark.parametrize("kind", ["file", "folder", "tar", "zip"])
+def test_import_uses_macros_from_a_local_sty(tmp_path, monkeypatch, kind):
+    paper, elsewhere = _paper(tmp_path)
+    src = {
+        "file": lambda: paper / "t3.tex",
+        "folder": lambda: paper,
+        "tar": lambda: _tar(paper, tmp_path / "paper.tar.gz"),
+        "zip": lambda: _zip(paper, tmp_path / "paper.zip"),
+    }[kind]()
+    monkeypatch.chdir(elsewhere)
+    out = app.import_project(str(src))
+    assert "co$K$-theory of rings" in out, out

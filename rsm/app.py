@@ -856,6 +856,7 @@ class PandocImportApp(RSMApp):
         log_format: str = "rsm",
         log_time: bool = True,
         log_lineno: bool = True,
+        cwd: str | Path | None = None,
     ) -> None:
         if (not source and not path) or (source and path):
             raise RSMApplicationError("Must specify exactly one of source, path")
@@ -869,6 +870,9 @@ class PandocImportApp(RSMApp):
         self._source = source
         self._path = path
         self._from_format = from_format
+        # pandoc looks for the .sty file of a \usepackage in the folder where it
+        # runs, so a project's own packages are found only from its folder.
+        self._cwd = cwd
 
     def run(self, initial_args: Any = None) -> str:
         # pandoc reports each LaTeX command that it drops only with --verbose.
@@ -878,10 +882,13 @@ class PandocImportApp(RSMApp):
                 f"--from={self._from_format}",
                 "--to=json",
                 "--verbose",
-                self._path,
+                # A relative path is relative to where rsm runs, not to cwd.
+                str(Path(self._path).resolve()),
             ]
             try:
-                proc = subprocess.run(cmd, capture_output=True, text=True, check=True)
+                proc = subprocess.run(
+                    cmd, capture_output=True, text=True, check=True, cwd=self._cwd
+                )
             except FileNotFoundError:
                 raise RSMApplicationError(
                     "pandoc executable not found; install pandoc from https://pandoc.org"
@@ -892,7 +899,12 @@ class PandocImportApp(RSMApp):
             cmd = ["pandoc", f"--from={self._from_format}", "--to=json", "--verbose"]
             try:
                 proc = subprocess.run(
-                    cmd, input=self._source, capture_output=True, text=True, check=True
+                    cmd,
+                    input=self._source,
+                    capture_output=True,
+                    text=True,
+                    check=True,
+                    cwd=self._cwd,
                 )
             except FileNotFoundError:
                 raise RSMApplicationError(
@@ -926,6 +938,7 @@ def pandoc_import(
     log_format: str = "rsm",
     log_time: bool = True,
     log_lineno: bool = True,
+    cwd: str | Path | None = None,
 ) -> str:
     return PandocImportApp(
         source=source,
@@ -935,6 +948,7 @@ def pandoc_import(
         log_format=log_format,
         log_time=log_time,
         log_lineno=log_lineno,
+        cwd=cwd,
     ).run()
 
 
@@ -965,6 +979,7 @@ def import_project(
         log_format=log_format,
         log_time=log_time,
         log_lineno=log_lineno,
+        cwd=root,
     )
     macros = preamble_macros(text)
     if macros:
