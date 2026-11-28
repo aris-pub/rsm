@@ -26,6 +26,7 @@ from typing import Any
 
 from rsm import nodes
 from rsm.bibextract import sanitize_key
+from rsm.tsparser import _MATH_TOKEN, _STRUCTURE_COMMANDS
 
 logger = logging.getLogger("RSM").getChild("pandoc")
 
@@ -1126,6 +1127,58 @@ _NUMBERED_ENVS = ("align", "alignat", "flalign", "gather", "multline")
 _EQNARRAY_RELATION = re.compile(r"(?<!\\)&([^&]*?)(?<!\\)&")
 
 
+def _drop_structure_commands(src: str) -> tuple[str, list[str]]:
+    """Remove from math each LaTeX command that RSM does with a tag, such as a
+    reference or a citation, with its star and its arguments.
+
+    The build stops at these commands, so the import must not keep them. Return
+    the math that is left and the names of the commands that were removed, in
+    order.
+    """
+    kept: list[str] = []
+    names: list[str] = []
+    pos = 0
+    for m in _MATH_TOKEN.finditer(src):
+        name = m.group("cmd")
+        if name not in _STRUCTURE_COMMANDS or m.start() < pos:
+            continue
+        kept.append(src[pos : m.start()])
+        names.append(name)
+        pos = _end_of_arguments(src, m.end())
+    kept.append(src[pos:])
+    return "".join(kept), names
+
+
+def _end_of_arguments(src: str, i: int) -> int:
+    """The index after the star and the [...] and {...} arguments that follow a
+    command ending at ``i``."""
+    while True:
+        j = i
+        while j < len(src) and src[j] in " \t":
+            j += 1
+        if j < len(src) and src[j] == "*":
+            i = j + 1
+            continue
+        if j >= len(src) or src[j] not in "[{":
+            return i
+        close = "]" if src[j] == "[" else "}"
+        depth = 0
+        k = j
+        while k < len(src):
+            c = src[k]
+            if c == "\\":
+                k += 2
+                continue
+            if c == src[j]:
+                depth += 1
+            elif c == close:
+                depth -= 1
+                if depth == 0:
+                    break
+            k += 1
+        i = min(k + 1, len(src))
+
+
 _QEDHERE = re.compile(r"[ \t]*\\qedhere(?![A-Za-z])")
 
 
@@ -1213,10 +1266,40 @@ class PandocImporter:
         rsm_text = PandocImporter().from_json(json.loads(proc.stdout))
     """
 
-    def __init__(self, unnumbered: Iterable[str] = ()) -> None:
+    def __init__(self, unnumbered: Iterable[str] = (), source: str = "") -> None:
         # Theorem-like classes declared with \newtheorem*. The JSON AST does not
         # record this, so the caller reads it from the LaTeX source.
         self._unnumbered = set(unnumbered)
+        # The JSON AST has no line numbers, so the line of a command that is
+        # dropped from math is found by searching the LaTeX source for the math.
+        self._source = source
+        self._math_cursor = 0
+
+    def _math_without_structure(self, original: str, src: str) -> str:
+        """Drop from ``src``, the math made from pandoc's ``original``, each command
+        that RSM does with a tag, and warn about each one with its line."""
+        src, names = _drop_structure_commands(src)
+        if not names:
+            return src
+        start = self._source.find(original, self._math_cursor) if original else -1
+        if start < 0 and original:
+            start = self._source.find(original)
+        end = start + len(original)
+        if start >= 0:
+            self._math_cursor = end
+        pos = start
+        for name in names:
+            line = ""
+            if start >= 0:
+                found = self._source.find(f"\\{name}", pos, end)
+                if found >= 0:
+                    line = f" at line {self._source.count(chr(10), 0, found) + 1}"
+                    pos = found + 1
+            logger.warning(
+                f"rsm import dropped \\{name} from math{line}, since it cannot be "
+                f"used in math in RSM. {_STRUCTURE_COMMANDS[name]}"
+            )
+        return src
 
     def from_json(self, pandoc_ast: dict) -> str:
         meta = pandoc_ast.get("meta", {})
@@ -1461,6 +1544,7 @@ class PandocImporter:
                 continue
             flush()
             src, numbered = _display_math(inline["c"][1])
+            src = self._math_without_structure(inline["c"][1], src).strip()
             label = self._label_of.get(id(inline))
             if not numbered:
                 meta = " {:nonum:}"
@@ -1776,8 +1860,8 @@ class PandocImporter:
         return f":code:{meta} {code} ::"
 
     def _inline_math(self, c: list) -> str:
-        math_type, src = c
-        src = _drop_qedhere(src)
+        math_type, original = c
+        src = self._math_without_structure(original, _drop_qedhere(original))
         is_display = isinstance(math_type, dict) and math_type.get("t") == "DisplayMath"
         # $...$ sits directly against adjacent text; the verbose :math: ... ::
         # form cannot. Fall back to it for display math (handled by _block_para

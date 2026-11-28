@@ -199,7 +199,10 @@ RSM writes:
   ``equation`` and ``align``, gets a label. Math that LaTeX leaves
   unnumbered, such as ``equation*`` and ``\[...\]``, gets ``:nonum:``.
   ``\tag`` is dropped, because RSM numbers the equations itself.
-  ``eqnarray`` becomes ``align``, and ``a &=& b`` becomes ``a &= b``,
+  ``eqnarray`` becomes ``align``, and ``a &=& b`` becomes ``a &= b``.
+  A LaTeX command that is not allowed in math, such as ``\eqref`` or
+  ``\cite`` inside an equation, is dropped from the math with a warning. See
+  :ref:`tag-mathblock` for the list of these commands,
 - ``\ref`` and ``\eqref`` as ``:ref:``. RSM writes the kind of the target in
   the text of a reference, so a word such as "Theorem" in
   ``Theorem~\ref{thm:main}`` is dropped,
