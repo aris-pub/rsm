@@ -793,7 +793,9 @@ class PandocExportApp(RSMApp[str]):
             import shutil as _shutil
 
             result = _re.sub(r"^\s*hidelinks,?\s*\n", "", result, flags=_re.MULTILINE)
-            # Copy braiid.sty next to the output so lualatex/pdflatex can find it
+            # braiid.sty and its fonts go next to the output so that XeLaTeX or
+            # LuaLaTeX finds them. braiid.sty loads fontspec, so pdflatex cannot
+            # compile the output.
             if self._output:
                 sty_src = Path(__file__).parent.parent / "braiid" / "braiid.sty"
                 sty_dst = Path(self._output).parent / "braiid.sty"

@@ -356,6 +356,56 @@ def test_nonum_starred_block_has_no_number(multi_latex):
     assert not re.search(r"\\tag\{[^}]*\}\\label\{e-starnonum\}", multi_latex)
 
 
+# rsm-rvy6: a :nonum: block with a label has no number, but a reference to it
+# is a link, so the LaTeX needs a \label for the link to reach.
+
+
+@pytest.mark.parametrize("label", ["e-nonum", "e-flnonum", "e-starnonum"])
+def test_labelled_nonum_environment_has_a_label(multi_latex, label):
+    assert rf"\phantomsection\label{{{label}}}" in multi_latex
+
+
+NONUM = dedent(
+    r"""
+    # Doc
+
+    ## Sec
+
+    :mathblock: {:label: eq-a, :nonum:}
+    x = 1
+    ::
+
+    :mathblock: {:label: eq-b, :nonum:}
+    \begin{align} y &= 2 \end{align}
+    ::
+
+    See :ref:eq-a:: and :ref:eq-b::.
+    """
+)
+
+
+def test_labelled_nonum_math_has_a_label():
+    latex = " ".join(pandoc_export(source=NONUM, to_format="latex").split())
+    assert r"\phantomsection\label{eq-a}{\[x = 1\]}" in latex
+    assert r"\phantomsection\label{eq-b}" in latex
+    assert r"\tag" not in latex
+
+
+@pytest.mark.skipif(shutil.which("xelatex") is None, reason="xelatex not installed")
+def test_references_to_labelled_nonum_math_are_defined(tmp_path):
+    tex = tmp_path / "m.tex"
+    pandoc_export(source=NONUM, to_format="latex", output=str(tex))
+    for _ in range(2):
+        subprocess.run(
+            ["xelatex", "-interaction=nonstopmode", tex.name],
+            cwd=tmp_path,
+            capture_output=True,
+            check=True,
+        )
+    log = (tmp_path / "m.log").read_text(errors="replace")
+    assert "undefined" not in log.lower()
+
+
 def test_flalign_has_one_rsm_number(multi_latex):
     # amsmath has no inner form of flalign, so every line but the last gets \notag.
     # A \\ inside braces or inside a nested environment does not end a line.

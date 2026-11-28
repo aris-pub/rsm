@@ -327,7 +327,12 @@ class PandocTranslator:
         if has_env:
             # Other formats drop raw LaTeX, so the block also carries a display math
             # form, and braiid.lua keeps the one that suits the output format.
-            raw = {"t": "RawBlock", "c": ["latex", self._number_env(node, stripped)]}
+            latex = self._number_env(node, stripped)
+            if node.label and not node.full_number:
+                # A \label inside an unnumbered environment has no anchor of its
+                # own, so the anchor goes before the environment.
+                latex = rf"\phantomsection\label{{{node.label}}}" + "\n" + latex
+            raw = {"t": "RawBlock", "c": ["latex", latex]}
             display = self._display_math(node, self._display_env(stripped))
             return [{"t": "Div", "c": [["", ["math-env"], []], [raw, *display]]}]
         return self._display_math(node, src)
@@ -335,7 +340,12 @@ class PandocTranslator:
     def _display_math(self, node: nodes.MathBlock, src: str) -> list[dict]:
         math = {"t": "Math", "c": [{"t": "DisplayMath"}, src]}
         if not node.full_number:
-            return [{"t": "Para", "c": [math]}]
+            if not node.label:
+                return [{"t": "Para", "c": [math]}]
+            # pandoc writes the id of a Span as an anchor, so a reference to the
+            # block has a target even though the block has no number.
+            span = {"t": "Span", "c": [[node.label, [], []], [math]]}
+            return [{"t": "Para", "c": [span]}]
         # braiid.lua prints RSM's number as the equation's tag, so that the number
         # agrees with the text of references to the equation.
         attrs = [node.label or "", ["equation"], [["number", node.full_number]]]
