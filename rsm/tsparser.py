@@ -33,7 +33,7 @@ import re
 from collections.abc import Callable
 from datetime import datetime
 from itertools import groupby
-from typing import Any, NamedTuple, cast
+from typing import Any, NamedTuple, TypeGuard, cast
 
 import tree_sitter
 import tree_sitter_rsm
@@ -684,6 +684,46 @@ def _parse_meta_into_dict(node: TSNode) -> dict[str, Any]:
     return pairs
 
 
+def _is_plain_text(node: nodes.Node | None) -> TypeGuard[nodes.Text]:
+    return isinstance(node, nodes.Text) and not isinstance(node, nodes.Error)
+
+
+def _move_edge_spaces_out(span: nodes.Span) -> None:
+    """Move a space just inside ** or * to just outside the span.
+
+    _normalize_text strips the spaces at both ends of the text inside a span. In
+    '**graded **x' the space after 'graded' is the only space between the
+    words, so it goes before or after the span instead.
+    """
+    parent = span.parent
+    if not isinstance(parent, nodes.NodeWithChildren) or not span.children:
+        return
+
+    def add_space(after: bool) -> None:
+        sib = span.next_sibling() if after else span.prev_sibling()
+        if _is_plain_text(sib):
+            if after and not sib.text[:1].isspace():
+                sib.text = " " + sib.text
+            elif not after and not sib.text[-1:].isspace():
+                sib.text += " "
+            return
+        point = span.end_point if after else span.start_point
+        space = nodes.Text(" ", start_point=point, end_point=point)
+        space.parent = parent
+        # Nodes compare equal by value, so the span is found by identity.
+        index = next(i for i, c in enumerate(parent.children) if c is span)
+        parent._children.insert(index + 1 if after else index, space)
+
+    first = span.children[0]
+    if _is_plain_text(first) and first.text[:1].isspace():
+        first.text = first.text.lstrip()
+        add_space(after=False)
+    last = span.children[-1]
+    if _is_plain_text(last) and last.text[-1:].isspace():
+        last.text = last.text.rstrip()
+        add_space(after=True)
+
+
 def _normalize_text(root: nodes.Node | None) -> str:
     if root is None:
         return ""
@@ -1244,6 +1284,7 @@ def _abstractify(cst: TSTree) -> nodes.Manuscript | None:
     # The same for headings whose title carries inline markup.
     title_builds: list[tuple[nodes.Heading, nodes.Span]] = []
     raw_html_nodes: list[nodes.RawHtml] = []
+    marker_spans: list[nodes.Span] = []
     # A footnote or aside call right after a word leaves a stray '::' as an
     # ERROR. The call's own message covers that ERROR, so the log gets no second
     # message, and the page shows the call's message there.
@@ -1565,6 +1606,8 @@ def _abstractify(cst: TSTree) -> nodes.Manuscript | None:
                 ast_node.append(child)
             if ast_node_type == "html":
                 raw_html_nodes.append(ast_node)
+        if ast_node_type in ("spanstrong", "spanemphas"):
+            marker_spans.append(ast_node)
 
         # mathblocks that are marked as claims must be enclosed within a ClaimBlock
         if ast_node_type == "mathblock" and ast_node.isclaim:
@@ -1668,6 +1711,11 @@ def _abstractify(cst: TSTree) -> nodes.Manuscript | None:
                 if c.type in PUSH_THESE_TYPES and c.id not in skip_these_ids
             ]
         )
+
+    # The list is in the order in which the spans were made, so reversing it
+    # handles a span inside another span before the outer span.
+    for span in reversed(marker_spans):
+        _move_edge_spaces_out(span)
 
     # Move the inline reftext nodes off their holders and onto the references.
     # Reparent directly (not via append, which rejects a node that already has a
