@@ -969,9 +969,9 @@ def import_project(
     the importer.
     """
     from rsm.bibemit import references_block
-    from rsm.importer import preamble_macros, resolve_project
+    from rsm.importer import preamble_macros, resolve_project_files
 
-    text, root = resolve_project(path, main)
+    text, root, main_tex = resolve_project_files(path, main)
     rsm_source = pandoc_import(
         source=text,
         from_format=from_format,
@@ -979,7 +979,7 @@ def import_project(
         log_format=log_format,
         log_time=log_time,
         log_lineno=log_lineno,
-        cwd=root,
+        cwd=main_tex.parent,
     )
     macros = preamble_macros(text)
     if macros:

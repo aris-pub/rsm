@@ -491,3 +491,35 @@ def test_import_uses_macros_from_a_local_sty(tmp_path, monkeypatch, kind):
     monkeypatch.chdir(elsewhere)
     out = app.import_project(str(src))
     assert "co$K$-theory of rings" in out, out
+
+
+# LaTeX looks for a .sty in the folder of the main file, so pandoc runs there,
+# also when the main file is in a subfolder of the folder or the archive.
+@pytest.mark.parametrize("kind", ["folder", "tar", "zip"])
+def test_import_uses_a_local_sty_next_to_a_main_file_in_a_subfolder(
+    tmp_path, monkeypatch, kind
+):
+    paper, elsewhere = _paper(tmp_path)
+    project = tmp_path / "project"
+    project.mkdir()
+    paper.rename(project / "paper")
+    if kind == "folder":
+        src = project
+    else:
+        import tarfile
+        import zipfile
+
+        files = sorted((project / "paper").iterdir())
+        if kind == "tar":
+            src = tmp_path / "project.tar.gz"
+            with tarfile.open(src, "w:gz") as tar:
+                for f in files:
+                    tar.add(f, arcname=f"paper/{f.name}")
+        else:
+            src = tmp_path / "project.zip"
+            with zipfile.ZipFile(src, "w") as z:
+                for f in files:
+                    z.write(f, arcname=f"paper/{f.name}")
+    monkeypatch.chdir(elsewhere)
+    out = app.import_project(str(src))
+    assert "co$K$-theory of rings" in out, out
