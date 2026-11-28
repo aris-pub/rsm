@@ -23,7 +23,7 @@ def test_single_author_with_handrails():
         <section class="level-1">
 
         <div class="author-block">
-        <div class="heading hr-hidden hr" tabindex=0>
+        <div class="heading hr-hidden hr" data-block="authorblock" tabindex=0>
 
         <div class="hr-collapse-zone">
 
@@ -124,7 +124,7 @@ def test_six_authors_with_handrails():
         <section class="level-1">
 
         <div class="author-block">
-        <div class="heading hr-hidden hr" tabindex=0>
+        <div class="heading hr-hidden hr" data-block="authorblock" tabindex=0>
 
         <div class="hr-collapse-zone">
 

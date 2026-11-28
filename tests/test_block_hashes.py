@@ -64,3 +64,21 @@ def test_hash_does_not_depend_on_position():
 def test_hash_changes_with_the_block_text():
     edited = SRC.replace("An unlabelled claim.", "An edited claim.")
     assert _hashes(_render(SRC), "theorem")[0] != _hashes(_render(edited), "theorem")[0]
+
+
+def test_generated_blocks_name_their_type():
+    # The notes list and a bibliography made from citations have no source text.
+    # A page has only one of each, so the type is enough to find them again.
+    src = """# Title
+
+Text.:note:fn:: It cites :cite:knuth::.
+
+:note: {:label: fn} A note. ::
+
+:references:
+  @book{knuth, title={Art}, author={Knuth, Donald E}, year={2014}}
+::
+"""
+    html = _render(src)
+    assert 'data-block="noteslist"' in html
+    assert 'data-block="bibliography"' in html

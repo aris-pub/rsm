@@ -213,3 +213,24 @@ class TestChangedDocument:
         )
         _serve(page, interactive_server, _V1)
         assert _collapsed_and_hidden(page) == {"collapsed": [], "hidden": []}
+
+
+def test_generated_headings_persist(page: Page, interactive_server: str):
+    """The notes list and the bibliography have no label and no source text."""
+    page.goto(f"{interactive_server}/notes.html")
+    page.wait_for_function(RSM_READY, timeout=10_000)
+    page.evaluate("() => localStorage.clear()")
+    page.reload()
+    page.wait_for_function(RSM_READY, timeout=10_000)
+    folded = """() => [...document.querySelectorAll('.manuscript .heading.hr')]
+      .filter(h => !h.dataset.hash)
+      .map(h => h.classList.contains('hr-collapsed'))"""
+    page.evaluate(
+        """() => [...document.querySelectorAll('.manuscript .heading.hr')]
+          .filter(h => !h.dataset.hash)
+          .forEach(h => h.querySelector(':scope > .hr-collapse-zone .hr-collapse').click())"""
+    )
+    assert page.evaluate(folded) == [True, True]
+    page.reload()
+    page.wait_for_function(RSM_READY, timeout=10_000)
+    assert page.evaluate(folded) == [True, True]

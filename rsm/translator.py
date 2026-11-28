@@ -743,6 +743,9 @@ def _step_anchor_id(step: "nodes.Step") -> str:
     return ""
 
 
+_ONE_PER_PAGE = (nodes.NotesList, nodes.Bibliography, nodes.AuthorBlock)
+
+
 @functools.lru_cache(maxsize=4)
 def _line_starts(src: str) -> tuple[int, ...]:
     starts = [0]
@@ -3515,6 +3518,10 @@ class HandrailsTranslator(Translator):
             source_hash = _source_hash(node, self.tree.src or "")
             if source_hash:
                 kwargs["data-hash"] = source_hash
+            elif isinstance(node, _ONE_PER_PAGE):
+                # The build makes these blocks without source text. A page has
+                # only one of each, so the reader finds them by type.
+                kwargs["data-block"] = type(node).__name__.lower()
 
         return (
             AppendOpenTag(classes=classes, is_selectable=True, **kwargs)

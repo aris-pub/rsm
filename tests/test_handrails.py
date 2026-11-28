@@ -807,7 +807,7 @@ def test_author():
         <p class="manuscript-date">April 13, 2024</p>
 
         <div class="author-block">
-        <div class="heading hr-hidden hr" tabindex=0>
+        <div class="heading hr-hidden hr" data-block="authorblock" tabindex=0>
 
         <div class="hr-collapse-zone">
 
@@ -925,7 +925,7 @@ def test_bibliography():
 
         <section class="level-2">
 
-        <div class="heading hr" tabindex=0>
+        <div class="heading hr" data-block="bibliography" tabindex=0>
 
         <div class="hr-collapse-zone">
 

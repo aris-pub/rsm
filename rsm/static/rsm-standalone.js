@@ -2290,6 +2290,7 @@ var RSM = (() => {
   function collapseKey(hr) {
     if (hr.closest(".rail-pinned") || !canFold(hr)) return null;
     if (hr.dataset.hash) return "h:" + hr.dataset.hash;
+    if (hr.dataset.block) return "b:" + hr.dataset.block;
     const owner = hr.classList.contains("heading") ? hr.parentElement : hr;
     return owner && owner.id ? "l:" + owner.id : null;
   }

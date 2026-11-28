@@ -738,13 +738,16 @@ function canFold(hr) {
 
 // The key under which a block's fold is saved and carried in a view link: its
 // label, or, for a block without a label, the hash of its source text that the
-// build writes as data-hash. Node ids are not used because they count blocks in
+// build writes as data-hash. A block that the build makes without source text
+// (the notes list, a bibliography from citations, the author block) is keyed
+// by its type, data-block. Node ids are not used because they count blocks in
 // document order and so move to another block when the document changes. A
 // heading's label sits on its section (or abstract, contents, ...) wrapper.
 export function collapseKey(hr) {
   // A pinned copy's fold is not saved, and a view link does not carry it.
   if (hr.closest(".rail-pinned") || !canFold(hr)) return null;
   if (hr.dataset.hash) return "h:" + hr.dataset.hash;
+  if (hr.dataset.block) return "b:" + hr.dataset.block;
   const owner = hr.classList.contains("heading") ? hr.parentElement : hr;
   return owner && owner.id ? "l:" + owner.id : null;
 }
