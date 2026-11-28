@@ -82,6 +82,9 @@ def _strip_generated_blocks(html: str) -> str:
     # (id="thm-x", id="sec-intro") do not match and are still asserted. Emission
     # of the synthetic ids is covered by tests/test_block_ids.py.
     html = re.sub(r'\s*id="n\d+"', "", html)
+    # Source hashes of unlabelled blocks change with any edit to the source.
+    # Their emission is covered by tests/test_block_hashes.py.
+    html = re.sub(r'\s*data-hash="[0-9a-f]+"', "", html)
     # Normalize menu zones: strip any content inside hr-menu-zone divs
     html = re.sub(
         r'<div class="hr-menu-zone">\s*(?:<div class="hr-menu">.*?</div>\s*)*</div>',

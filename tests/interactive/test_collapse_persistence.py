@@ -14,6 +14,8 @@ The collapsed *appearance* is already covered by the visual snapshots
 import pytest
 from playwright.sync_api import Page
 
+import rsm
+
 pytestmark = pytest.mark.interactive
 
 RSM_READY = "() => window.__rsmShown === true"
@@ -90,3 +92,165 @@ def test_every_collapsible_block_persists(page: Page, interactive_server: str):
         f"{len(dropped)}/{len(flags)} blocks did not persist collapsed; "
         f"dropped: {[(f['heading'], f['text']) for f in dropped]}"
     )
+
+
+# Three builds of one document, served one after the other at the same URL, so
+# that they share one localStorage entry. V2 adds a paragraph before the
+# theorems and edits the labelled theorem. V3 edits the unlabelled theorem.
+_V1 = """# Folds
+
+:theorem:
+
+  An unlabelled theorem.
+
+::
+
+:theorem: {:label: thm-kept}
+
+  A labelled theorem.
+
+::
+
+The last paragraph.
+"""
+_V2 = _V1.replace(
+    ":theorem:\n\n  An", "A new first paragraph.\n\n:theorem:\n\n  An"
+).replace("A labelled theorem.", "A labelled theorem, edited.")
+_V3 = _V1.replace("An unlabelled theorem.", "An unlabelled theorem, edited.")
+
+_UNLABELLED = ".theorem.hr:not(#thm-kept)"
+
+
+def _serve(page: Page, server: str, source: str) -> None:
+    html = rsm.build(source=source, handrails=True, standalone=False)
+    page.unroute("**/fold-change.html")
+    page.route(
+        "**/fold-change.html",
+        lambda route: route.fulfill(body=html, content_type="text/html"),
+    )
+    page.goto(f"{server}/fold-change.html")
+    page.wait_for_function(RSM_READY, timeout=10_000)
+
+
+def _fold(page: Page, selector: str) -> None:
+    page.locator(f"{selector} > .hr-collapse-zone .hr-collapse").click()
+
+
+def _collapsed_and_hidden(page: Page):
+    return page.evaluate(
+        r"""() => ({
+          collapsed: [...document.querySelectorAll('.manuscript .hr-collapsed')]
+            .map(h => (h.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 30)),
+          hidden: [...document.querySelectorAll('.manuscript .hide')]
+            .filter(el => !el.closest('.hr-collapsed'))
+            .map(el => (el.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 30)),
+        })"""
+    )
+
+
+class TestChangedDocument:
+    def test_unlabelled_fold_stays_on_its_block(
+        self, page: Page, interactive_server: str
+    ):
+        _serve(page, interactive_server, _V1)
+        page.evaluate("() => localStorage.clear()")
+        _fold(page, _UNLABELLED)
+        _serve(page, interactive_server, _V2)
+        state = _collapsed_and_hidden(page)
+        assert len(state["collapsed"]) == 1, state
+        assert page.locator(_UNLABELLED).evaluate(
+            "el => el.classList.contains('hr-collapsed')"
+        )
+        assert state["hidden"] == [], state
+
+    def test_labelled_fold_stays_on_its_label(
+        self, page: Page, interactive_server: str
+    ):
+        _serve(page, interactive_server, _V1)
+        page.evaluate("() => localStorage.clear()")
+        _fold(page, "#thm-kept")
+        _serve(page, interactive_server, _V2)
+        assert page.locator("#thm-kept").evaluate(
+            "el => el.classList.contains('hr-collapsed')"
+        )
+        assert len(_collapsed_and_hidden(page)["collapsed"]) == 1
+
+    def test_fold_of_edited_unlabelled_block_is_dropped(
+        self, page: Page, interactive_server: str
+    ):
+        _serve(page, interactive_server, _V1)
+        page.evaluate("() => localStorage.clear()")
+        _fold(page, _UNLABELLED)
+        _serve(page, interactive_server, _V3)
+        assert _collapsed_and_hidden(page) == {"collapsed": [], "hidden": []}
+
+    def test_keys_that_match_no_block_are_ignored(
+        self, page: Page, interactive_server: str
+    ):
+        _serve(page, interactive_server, _V1)
+        page.evaluate(
+            """() => localStorage.setItem('rsm-collapse:' + location.pathname,
+                 JSON.stringify({'l:gone': true, 'h:00000000': true, 'n:1': true,
+                                 'n:2': true, 'n:3': true}))"""
+        )
+        _serve(page, interactive_server, _V1)
+        assert _collapsed_and_hidden(page) == {"collapsed": [], "hidden": []}
+
+    def test_saved_fold_on_a_block_that_cannot_fold_is_ignored(
+        self, page: Page, interactive_server: str
+    ):
+        _serve(page, interactive_server, _V1)
+        page.evaluate(
+            """() => {
+              const p = [...document.querySelectorAll('.manuscript .paragraph.hr')]
+                .find(el => el.textContent.includes('The last paragraph'));
+              const state = {};
+              if (p.dataset.hash) state['h:' + p.dataset.hash] = true;
+              if (p.dataset.nodeid) state['n:' + p.dataset.nodeid] = true;
+              localStorage.setItem('rsm-collapse:' + location.pathname,
+                                   JSON.stringify(state));
+            }"""
+        )
+        _serve(page, interactive_server, _V1)
+        assert _collapsed_and_hidden(page) == {"collapsed": [], "hidden": []}
+
+
+def test_blocks_with_the_same_source_keep_their_own_folds(
+    page: Page, interactive_server: str
+):
+    source = (
+        _V1.replace("An unlabelled theorem.", "Same text.")
+        .replace("A labelled theorem.", "Same text.")
+        .replace(" {:label: thm-kept}", "")
+    )
+    _serve(page, interactive_server, source)
+    page.evaluate("() => localStorage.clear()")
+    page.locator(".theorem.hr").nth(1).locator(
+        ":scope > .hr-collapse-zone .hr-collapse"
+    ).click()
+    _serve(page, interactive_server, source)
+    folded = page.locator(".theorem.hr").evaluate_all(
+        "els => els.map(e => e.classList.contains('hr-collapsed'))"
+    )
+    assert folded == [False, True]
+
+
+def test_generated_headings_persist(page: Page, interactive_server: str):
+    """The notes list and the bibliography have no label and no source text."""
+    page.goto(f"{interactive_server}/notes.html")
+    page.wait_for_function(RSM_READY, timeout=10_000)
+    page.evaluate("() => localStorage.clear()")
+    page.reload()
+    page.wait_for_function(RSM_READY, timeout=10_000)
+    folded = """() => [...document.querySelectorAll('.manuscript .heading.hr')]
+      .filter(h => !h.dataset.hash)
+      .map(h => h.classList.contains('hr-collapsed'))"""
+    page.evaluate(
+        """() => [...document.querySelectorAll('.manuscript .heading.hr')]
+          .filter(h => !h.dataset.hash)
+          .forEach(h => h.querySelector(':scope > .hr-collapse-zone .hr-collapse').click())"""
+    )
+    assert page.evaluate(folded) == [True, True]
+    page.reload()
+    page.wait_for_function(RSM_READY, timeout=10_000)
+    assert page.evaluate(folded) == [True, True]

@@ -231,6 +231,11 @@ Some text. See :ref:s::.
 """
 
 
+def _unhash(html: str) -> str:
+    # Two different sources give different source hashes.
+    return re.sub(r' data-hash="[0-9a-f]+"', "", html)
+
+
 @pytest.mark.parametrize("template", [PARAGRAPH, SECTION], ids=["paragraph", "section"])
 @pytest.mark.parametrize(
     "meta",
@@ -243,5 +248,7 @@ def test_not_accepted_outside_theorems(template, meta, caplog):
     with caplog.at_level(logging.WARNING, logger="RSM"):
         html = rsm.render(template.format(meta=meta), handrails=True)
     assert not [r for r in caplog.records if r.levelno >= logging.WARNING]
-    assert html == rsm.render(template.format(meta=""), handrails=True)
+    assert _unhash(html) == _unhash(
+        rsm.render(template.format(meta=""), handrails=True)
+    )
     assert "Hint" not in html

@@ -15,7 +15,7 @@
 // own saved reading); a quiet "Shared view / Reset to original" pill, shown only
 // when a view is loaded, returns the recipient to the pristine paper.
 
-import { collapseKey, openHandrail, closeHandrail, withoutPersist, launchToast } from "./handrails.js";
+import { collapseKey, blockKey, blockByKey, openHandrail, closeHandrail, withoutPersist, launchToast } from "./handrails.js";
 import { extractModel, applyToBody, flatten, isValidOrder } from "./reorder.js";
 import { getNotationMacros, listNotation } from "./notation.js";
 import { currentPins, pinTarget } from "./tooltips.js";
@@ -50,7 +50,7 @@ function isShown(el) {
 }
 
 // The block at the top of the reading viewport, to land the recipient where the
-// sender was: the shown block (with an id) on screen whose top is closest to the
+// sender was: the shown block (with a key) on screen whose top is closest to the
 // window's top, with that top in px (negative when it starts above the window).
 function currentAnchor() {
   let best = null;
@@ -60,11 +60,13 @@ function currentAnchor() {
     if (hr.closest(".rsm-source") || !isShown(hr)) continue;
     const r = hr.getBoundingClientRect();
     if (r.bottom <= 0 || r.top >= vh) continue;
+    const key = blockKey(hr);
+    if (!key) continue;
     const dist = Math.abs(r.top);
     // A block and its first child often share a top to within a pixel. Keep
     // the outer one, which comes first and is usually the labelled block.
     if (dist < bestDist - 2) {
-      best = { id: hr.id, top: Math.round(r.top) };
+      best = { key, top: Math.round(r.top) };
       bestDist = dist;
     }
   }
@@ -96,14 +98,16 @@ export function captureState() {
   // order differs from ascending build order).
   const order = {};
   for (const proof of document.querySelectorAll(".proof[data-nodeid]")) {
+    const proofKey = blockKey(proof);
+    if (!proofKey) continue;
     const steps = [...proof.querySelectorAll(".step")].filter(isDagStep);
     if (steps.length < 2) continue;
     if (!steps.some((s) => s.dataset.stateIdx != null)) continue;
-    const cur = steps.map((s) => s.dataset.nodeid || "");
+    const cur = steps.map((s) => blockKey(s) || "");
     const sorted = [...steps]
       .sort((a, b) => Number(a.dataset.stateIdx) - Number(b.dataset.stateIdx))
-      .map((s) => s.dataset.nodeid || "");
-    if (cur.join(",") !== sorted.join(",")) order[proof.dataset.nodeid] = cur;
+      .map((s) => blockKey(s) || "");
+    if (cur.join(",") !== sorted.join(",")) order[proofKey] = cur;
   }
   if (Object.keys(order).length) state.order = order;
 
@@ -118,15 +122,17 @@ export function captureState() {
   }
   if (Object.keys(notation).length) state.notation = notation;
 
-  // The pinned blocks, by id, newest first.
+  // The pinned blocks, newest first.
   const pins = currentPins()
     .filter((t) => t.startsWith("#"))
-    .map((t) => decodeURIComponent(t.slice(1)));
+    .map((t) => document.getElementById(decodeURIComponent(t.slice(1))))
+    .map((el) => el && blockKey(el))
+    .filter(Boolean);
   if (pins.length) state.pins = pins;
 
   const anchor = currentAnchor();
   if (anchor) {
-    state.anchor = anchor.id;
+    state.anchor = anchor.key;
     state.anchorTop = anchor.top;
   }
 
@@ -167,14 +173,17 @@ function restoreFolds(state) {
 
 function restoreOrder(state) {
   if (!state.order) return;
-  for (const [pid, ord] of Object.entries(state.order)) {
+  for (const [proofKey, keys] of Object.entries(state.order)) {
     try {
+      const proof = blockByKey(proofKey);
+      if (!proof || !Array.isArray(keys)) continue;
       const railItem = document.querySelector(
-        `.proof-rail-item[data-proof="${pid}"]`,
+        `.proof-rail-item[data-proof="${proof.dataset.nodeid}"]`,
       );
       if (!railItem) continue;
       const model = extractModel(railItem);
       if (!model) continue;
+      const ord = keys.map((k) => blockByKey(k)?.dataset.nodeid);
       const rank = new Map(ord.map((id, i) => [id, i]));
       const at = (id) => (rank.has(id) ? rank.get(id) : 1e9);
       const newChildren = new Map(model.children);
@@ -198,11 +207,11 @@ function restoreOrder(state) {
 // oldest is pinned first.
 function restorePins(state) {
   if (!Array.isArray(state.pins)) return;
-  for (const id of [...state.pins].reverse()) {
-    const el = typeof id === "string" && document.getElementById(id);
-    if (!el) continue;
+  for (const key of [...state.pins].reverse()) {
+    const el = blockByKey(key);
+    if (!el || !el.id) continue;
     try {
-      pinTarget("#" + id, el, { transient: true });
+      pinTarget("#" + el.id, el, { transient: true });
     } catch {
       /* pinning unavailable, skip */
     }
@@ -212,7 +221,7 @@ function restorePins(state) {
 // Scroll so the anchor's top sits where it sat for the sender. Tokens made
 // before anchorTop existed land it at the top, as scrollIntoView did.
 function placeAnchor(state) {
-  const el = document.getElementById(state.anchor);
+  const el = blockByKey(state.anchor);
   if (!el) return;
   const want = Number(state.anchorTop) || 0;
   const d = el.getBoundingClientRect().top - want;
@@ -227,7 +236,7 @@ let pendingAnchor = null;
 // Place a shared view's anchor. Returns whether there was one to place.
 export function placeSharedAnchor() {
   const state = pendingAnchor;
-  if (!state || !state.anchor || !document.getElementById(state.anchor)) return false;
+  if (!state || !blockByKey(state.anchor)) return false;
   placeAnchor(state);
   return true;
 }

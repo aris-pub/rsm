@@ -9,6 +9,7 @@ the handrail menu label of its caption. Numbering is unchanged: an :figure: bloc
 shares its counter with figures.
 """
 
+import re
 from textwrap import dedent
 
 import pytest
@@ -130,10 +131,15 @@ def test_output_without_blockname(kind, handrails):
         assert f'data-menu-label="{word}"' in html
 
 
+def _unhash(html: str) -> str:
+    # Two different sources give different source hashes.
+    return re.sub(r' data-hash="[0-9a-f]+"', "", html)
+
+
 @pytest.mark.parametrize("kind", KINDS)
 def test_css_classes_unchanged(kind):
-    with_name = rsm.render(_src(kind, "Demo"), handrails=True)
-    without = rsm.render(_src(kind), handrails=True)
+    with_name = _unhash(rsm.render(_src(kind, "Demo"), handrails=True))
+    without = _unhash(rsm.render(_src(kind), handrails=True))
     assert with_name.replace("Demo", DEFAULT[kind]) == without
 
 

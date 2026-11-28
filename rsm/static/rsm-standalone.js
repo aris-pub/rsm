@@ -1549,7 +1549,13 @@ var RSM = (() => {
       const unpin = ev.target.closest(".pin-unpin");
       if (unpin) {
         const copy = unpin.closest("[data-pin-target]");
-        if (copy) unpinTarget(copy.dataset.pinTarget);
+        if (!copy) return;
+        const pins = [...copy.parentElement.querySelectorAll(":scope > [data-pin-target]")];
+        const i = pins.indexOf(copy);
+        const next = pins[i + 1] || pins[i - 1];
+        unpinTarget(copy.dataset.pinTarget);
+        const to = next ? next.querySelector(".pin-unpin") : document.querySelector('.rail-strip-btn[data-view="pinned"]');
+        if (to) to.focus();
         return;
       }
       const btn = ev.target.closest(".ref-pin");
@@ -1957,7 +1963,10 @@ var RSM = (() => {
       const useEl = pinEl.querySelector("svg use");
       if (useEl) useEl.setAttribute("href", on ? "#hr-icon-unpin" : "#hr-icon-pin");
     }
-    configureItem(singletonMenu.querySelector('[data-role="link"]'), link);
+    configureItem(
+      singletonMenu.querySelector('[data-role="link"]'),
+      hr.closest(".rail-pinned") ? null : link
+    );
     const codeEl = singletonMenu.querySelector('[data-role="code"]');
     if (code && code !== "disabled" && !hrHasSource(hr)) {
       configureItem(codeEl, "disabled");
@@ -2294,15 +2303,42 @@ var RSM = (() => {
       return {};
     }
   }
+  function canFold(hr) {
+    return hr.getAttribute("data-menu-collapse") === "true" || !!hr.querySelector(":scope > .hr-collapse-zone .hr-collapse");
+  }
+  function sameHash(hash) {
+    return [...document.querySelectorAll(`[data-hash="${hash}"]`)].filter((el) => !el.closest(".rail-pinned, .tooltipster-base"));
+  }
+  function hashKey(el) {
+    const i = sameHash(el.dataset.hash).indexOf(el);
+    return "h:" + el.dataset.hash + (i > 0 ? "#" + (i + 1) : "");
+  }
+  function blockKey(el) {
+    if (el.closest(".rail-pinned")) return null;
+    if (el.dataset.hash) return hashKey(el);
+    if (el.dataset.block) return "b:" + el.dataset.block;
+    const owner = el.classList.contains("heading") ? el.parentElement : el;
+    return owner && owner.id ? "l:" + owner.id : null;
+  }
+  function blockByKey(key) {
+    if (typeof key !== "string") return null;
+    const rest = key.slice(2);
+    if (key.startsWith("h:")) {
+      const [hash, n] = rest.split("#");
+      if (!/^[0-9a-f]+$/.test(hash)) return null;
+      return sameHash(hash)[(Number(n) || 1) - 1] || null;
+    }
+    if (key.startsWith("b:")) {
+      return document.querySelector(`.manuscript [data-block="${CSS.escape(rest)}"]`);
+    }
+    if (key.startsWith("l:")) {
+      const el = document.getElementById(rest);
+      return el && !el.dataset.hash ? el : null;
+    }
+    return null;
+  }
   function collapseKey(hr) {
-    if (hr.closest(".rail-pinned")) return null;
-    const nid = hr.getAttribute("data-nodeid");
-    if (nid != null) return "n:" + nid;
-    const sec = hr.closest("section");
-    if (sec && sec.id) return "s:" + sec.id;
-    if (hr.id) return "e:" + hr.id;
-    const txt = (hr.textContent || "").replace(/\s+/g, " ").trim();
-    return txt ? "t:" + txt : null;
+    return canFold(hr) ? blockKey(hr) : null;
   }
   function persistCollapse(hr, collapsed) {
     const key = collapseKey(hr);
@@ -4176,9 +4212,11 @@ var RSM = (() => {
       if (hr.closest(".rsm-source") || !isShown(hr)) continue;
       const r = hr.getBoundingClientRect();
       if (r.bottom <= 0 || r.top >= vh) continue;
+      const key = blockKey(hr);
+      if (!key) continue;
       const dist = Math.abs(r.top);
       if (dist < bestDist - 2) {
-        best = { id: hr.id, top: Math.round(r.top) };
+        best = { key, top: Math.round(r.top) };
         bestDist = dist;
       }
     }
@@ -4198,12 +4236,14 @@ var RSM = (() => {
     if (Object.keys(folds).length) state.folds = folds;
     const order = {};
     for (const proof of document.querySelectorAll(".proof[data-nodeid]")) {
+      const proofKey = blockKey(proof);
+      if (!proofKey) continue;
       const steps = [...proof.querySelectorAll(".step")].filter(isDagStep3);
       if (steps.length < 2) continue;
       if (!steps.some((s) => s.dataset.stateIdx != null)) continue;
-      const cur = steps.map((s) => s.dataset.nodeid || "");
-      const sorted = [...steps].sort((a, b) => Number(a.dataset.stateIdx) - Number(b.dataset.stateIdx)).map((s) => s.dataset.nodeid || "");
-      if (cur.join(",") !== sorted.join(",")) order[proof.dataset.nodeid] = cur;
+      const cur = steps.map((s) => blockKey(s) || "");
+      const sorted = [...steps].sort((a, b) => Number(a.dataset.stateIdx) - Number(b.dataset.stateIdx)).map((s) => blockKey(s) || "");
+      if (cur.join(",") !== sorted.join(",")) order[proofKey] = cur;
     }
     if (Object.keys(order).length) state.order = order;
     const notation = {};
@@ -4214,11 +4254,11 @@ var RSM = (() => {
     } catch {
     }
     if (Object.keys(notation).length) state.notation = notation;
-    const pins = currentPins().filter((t) => t.startsWith("#")).map((t) => decodeURIComponent(t.slice(1)));
+    const pins = currentPins().filter((t) => t.startsWith("#")).map((t) => document.getElementById(decodeURIComponent(t.slice(1)))).map((el) => el && blockKey(el)).filter(Boolean);
     if (pins.length) state.pins = pins;
     const anchor = currentAnchor();
     if (anchor) {
-      state.anchor = anchor.id;
+      state.anchor = anchor.key;
       state.anchorTop = anchor.top;
     }
     return state;
@@ -4246,14 +4286,17 @@ var RSM = (() => {
   }
   function restoreOrder(state) {
     if (!state.order) return;
-    for (const [pid, ord] of Object.entries(state.order)) {
+    for (const [proofKey, keys] of Object.entries(state.order)) {
       try {
+        const proof = blockByKey(proofKey);
+        if (!proof || !Array.isArray(keys)) continue;
         const railItem = document.querySelector(
-          `.proof-rail-item[data-proof="${pid}"]`
+          `.proof-rail-item[data-proof="${proof.dataset.nodeid}"]`
         );
         if (!railItem) continue;
         const model = extractModel(railItem);
         if (!model) continue;
+        const ord = keys.map((k) => blockByKey(k)?.dataset.nodeid);
         const rank = new Map(ord.map((id, i) => [id, i]));
         const at = (id) => rank.has(id) ? rank.get(id) : 1e9;
         const newChildren = new Map(model.children);
@@ -4269,17 +4312,17 @@ var RSM = (() => {
   }
   function restorePins(state) {
     if (!Array.isArray(state.pins)) return;
-    for (const id of [...state.pins].reverse()) {
-      const el = typeof id === "string" && document.getElementById(id);
-      if (!el) continue;
+    for (const key of [...state.pins].reverse()) {
+      const el = blockByKey(key);
+      if (!el || !el.id) continue;
       try {
-        pinTarget("#" + id, el, { transient: true });
+        pinTarget("#" + el.id, el, { transient: true });
       } catch {
       }
     }
   }
   function placeAnchor(state) {
-    const el = document.getElementById(state.anchor);
+    const el = blockByKey(state.anchor);
     if (!el) return;
     const want = Number(state.anchorTop) || 0;
     const d = el.getBoundingClientRect().top - want;
@@ -4288,7 +4331,7 @@ var RSM = (() => {
   var pendingAnchor = null;
   function placeSharedAnchor() {
     const state = pendingAnchor;
-    if (!state || !state.anchor || !document.getElementById(state.anchor)) return false;
+    if (!state || !blockByKey(state.anchor)) return false;
     placeAnchor(state);
     return true;
   }

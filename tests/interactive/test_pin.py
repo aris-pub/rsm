@@ -612,3 +612,140 @@ class TestPinTargets:
         expect(page.locator('.ref-pin[data-pin-target="#sec-targets"]')).to_have_count(
             0
         )
+
+
+class TestCopyLinkInPinnedCopy:
+    """A pinned copy has no ids, so its menu offers no Copy link, for the pinned
+    block or for any block inside it. The blocks in the text keep Copy link."""
+
+    LINK = '#hr-menu-singleton [data-role="link"]'
+
+    def test_pinned_block_has_no_copy_link(self, page: Page, interactive_server: str):
+        _load(page, interactive_server)
+        _pin(page, "#thm-x")
+        _open_menu(page, page.locator(f'{PINS}[data-pin-target="#thm-x"]'))
+        expect(page.locator(self.LINK)).to_be_hidden()
+
+    def test_block_inside_a_pinned_copy_has_no_copy_link(
+        self, page: Page, interactive_server: str
+    ):
+        _load(page, interactive_server)
+        _open_menu(page, page.locator(".manuscript .proof.hr").first)
+        page.locator('#hr-menu-singleton [data-role="pin"]').click()
+        step = page.locator(f"{PINS} .step.hr").filter(has_text="First").first
+        step.scroll_into_view_if_needed()
+        step.hover()
+        step.locator(":scope > .hr-border-zone .hr-border-dots").click()
+        expect(page.locator("#hr-menu-singleton .hr-menu")).to_be_visible()
+        expect(page.locator(self.LINK)).to_be_hidden()
+
+    def test_block_in_the_text_keeps_copy_link(
+        self, page: Page, interactive_server: str
+    ):
+        _load(page, interactive_server)
+        _pin(page, "#thm-x")
+        _open_menu(page, page.locator(f'{PINS}[data-pin-target="#thm-x"]'))
+        page.keyboard.press("Escape")
+        _open_menu(page, page.locator(".manuscript #thm-x"))
+        expect(page.locator(self.LINK)).to_be_visible()
+
+
+def _unpin_with_enter(page: Page, href: str) -> None:
+    btn = page.locator(f'{PINS}[data-pin-target="{href}"] .pin-unpin')
+    # Pinning opens the panel a frame later, and a button in the closed panel
+    # (display: none) cannot take focus, so wait until it is shown.
+    expect(btn).to_be_visible()
+    btn.focus()
+    expect(btn).to_be_focused()
+    page.keyboard.press("Enter")
+    expect(page.locator(f'{PINS}[data-pin-target="{href}"]')).to_have_count(0)
+
+
+def _focused(page: Page) -> dict:
+    return page.evaluate(
+        """() => {
+          const a = document.activeElement;
+          const copy = a && a.closest('[data-pin-target]');
+          return {
+            unpin: !!(a && a.matches('.pin-unpin')),
+            target: copy ? copy.dataset.pinTarget : null,
+            strip: a && a.matches('.rail-strip-btn') ? a.dataset.view : null,
+            visible: !!(a && a.getClientRects().length),
+          };
+        }"""
+    )
+
+
+class TestFocusAfterUnpin:
+    """After the unpin button removes a pin, focus goes to the next pin's unpin
+    button, or to the previous one when the removed pin was last. After the
+    last pin of all, focus goes to the Pinned button of the strip."""
+
+    def test_focus_goes_to_the_next_pin(self, page: Page, interactive_server: str):
+        _load(page, interactive_server)
+        _pin(page, "#thm-x")
+        _pin(page, "#st-1")
+        assert _targets(page) == ["#st-1", "#thm-x"]
+        _unpin_with_enter(page, "#st-1")
+        assert _focused(page) == {
+            "unpin": True,
+            "target": "#thm-x",
+            "strip": None,
+            "visible": True,
+        }
+
+    def test_focus_goes_to_the_previous_pin_after_the_last_in_the_list(
+        self, page: Page, interactive_server: str
+    ):
+        _load(page, interactive_server)
+        _pin(page, "#thm-x")
+        _pin(page, "#st-1")
+        _unpin_with_enter(page, "#thm-x")
+        assert _focused(page) == {
+            "unpin": True,
+            "target": "#st-1",
+            "strip": None,
+            "visible": True,
+        }
+
+    def test_focus_goes_to_the_strip_after_the_last_pin(
+        self, page: Page, interactive_server: str
+    ):
+        _load(page, interactive_server)
+        _pin(page, "#thm-x")
+        _unpin_with_enter(page, "#thm-x")
+        page.wait_for_function(
+            "() => !document.documentElement.classList.contains('rail-open')",
+            timeout=3000,
+        )
+        focused = _focused(page)
+        assert focused["strip"] == "pinned" and focused["visible"], focused
+
+    def test_focus_goes_to_the_bottom_bar_on_a_phone(
+        self, playwright, browser, interactive_server: str
+    ):
+        ctx = browser.new_context(**playwright.devices["iPhone 13"])
+        page = ctx.new_page()
+        try:
+            page.goto(f"{interactive_server}/sidebar.html")
+            page.wait_for_function(RSM_READY, timeout=10_000)
+            theorem = page.locator(".manuscript .theorem").first
+            theorem.scroll_into_view_if_needed()
+            theorem.locator(":scope > .hr-border-zone .hr-border-dots").click()
+            page.locator('#hr-menu-singleton [data-role="pin"]').click()
+            page.wait_for_function(
+                "() => document.documentElement.classList.contains('rail-open')"
+            )
+            btn = page.locator(f"{PINS} .pin-unpin")
+            expect(btn).to_be_visible()
+            btn.focus()
+            expect(btn).to_be_focused()
+            page.keyboard.press("Enter")
+            page.wait_for_function(
+                "() => !document.documentElement.classList.contains('rail-open')",
+                timeout=3000,
+            )
+            focused = _focused(page)
+            assert focused["strip"] == "pinned" and focused["visible"], focused
+        finally:
+            ctx.close()

@@ -347,7 +347,18 @@ function setupPinDelegation() {
     const unpin = ev.target.closest(".pin-unpin");
     if (unpin) {
       const copy = unpin.closest("[data-pin-target]");
-      if (copy) unpinTarget(copy.dataset.pinTarget);
+      if (!copy) return;
+      // The removed copy holds the focused button, so focus would fall to the
+      // body. Move it to a neighbouring pin, or to the Pinned button once the
+      // panel closes on the last pin.
+      const pins = [...copy.parentElement.querySelectorAll(":scope > [data-pin-target]")];
+      const i = pins.indexOf(copy);
+      const next = pins[i + 1] || pins[i - 1];
+      unpinTarget(copy.dataset.pinTarget);
+      const to = next
+        ? next.querySelector(".pin-unpin")
+        : document.querySelector('.rail-strip-btn[data-view="pinned"]');
+      if (to) to.focus();
       return;
     }
     const btn = ev.target.closest(".ref-pin");

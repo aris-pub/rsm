@@ -233,8 +233,11 @@ function showMenuFor(hr) {
     if (useEl) useEl.setAttribute("href", on ? "#hr-icon-unpin" : "#hr-icon-pin");
   }
 
-  // Configure link and code items
-  configureItem(singletonMenu.querySelector('[data-role="link"]'), link);
+  // A pinned copy and the blocks in it have no ids to link to.
+  configureItem(
+    singletonMenu.querySelector('[data-role="link"]'),
+    hr.closest(".rail-pinned") ? null : link,
+  );
   // The build enables the Source item on every handrail, but the element may
   // have no captured source (missing offsets, or no .rsm-source div to slice
   // from). Disable it up front with a reason so a click cannot reach showSource
@@ -728,32 +731,65 @@ function loadCollapseState() {
   }
 }
 
-// A stable per-document persistence key for any collapsible handrail.
-//
-// data-nodeid is emitted only on a node's full container (the element wrapping
-// heading + content). For self-wrapping blocks (theorem, proof, step, ...) that
-// container IS the .hr handrail, so it carries the nodeid directly. A section is
-// the exception: its nodeid lands on the <section> wrapper, while the
-// collapsible handrail is the inner .heading.hr, whose body are its *siblings*
-// inside that section. So the heading element itself has no nodeid, and every
-// id-less collapsible block is a heading. The fallbacks below therefore only
-// ever apply to headings:
-//   - section id (the author's label): present on numbered sections, and more
-//     stable across rebuilds than a renumbered nodeid.
-//   - heading text: the document title, the generated table-of-contents, and
-//     the bibliography have no <section> of their own (they climb to the
-//     manuscript root), so borrowing an ancestor's nodeid would collide them
-//     all onto root nodeid 0. Their text is the only handle that stays distinct.
+function canFold(hr) {
+  return hr.getAttribute("data-menu-collapse") === "true" ||
+    !!hr.querySelector(":scope > .hr-collapse-zone .hr-collapse");
+}
+
+// The blocks in the text with this hash, in document order. Pinned copies and
+// reference previews are copies of a block in the text, so they do not count.
+function sameHash(hash) {
+  return [...document.querySelectorAll(`[data-hash="${hash}"]`)]
+    .filter((el) => !el.closest(".rail-pinned, .tooltipster-base"));
+}
+
+// Blocks with the same source text have the same hash, so the second one is
+// keyed "h:<hash>#2", the third "h:<hash>#3", and so on.
+function hashKey(el) {
+  const i = sameHash(el.dataset.hash).indexOf(el);
+  return "h:" + el.dataset.hash + (i > 0 ? "#" + (i + 1) : "");
+}
+
+// The key under which saved folds and view links name a block: its label, or,
+// for a block without a label, the hash of its source text that the build
+// writes as data-hash. A block that the build makes without source text (the
+// notes list, a bibliography from citations, the author block) is keyed by its
+// type, data-block. Node ids are not used because they count blocks in
+// document order and so move to another block when the document changes. A
+// heading's label sits on its section (or abstract, contents, ...) wrapper.
+export function blockKey(el) {
+  if (el.closest(".rail-pinned")) return null;
+  if (el.dataset.hash) return hashKey(el);
+  if (el.dataset.block) return "b:" + el.dataset.block;
+  const owner = el.classList.contains("heading") ? el.parentElement : el;
+  return owner && owner.id ? "l:" + owner.id : null;
+}
+
+// The block that a key from blockKey names, or null when no block on the page
+// has that key.
+export function blockByKey(key) {
+  if (typeof key !== "string") return null;
+  const rest = key.slice(2);
+  if (key.startsWith("h:")) {
+    const [hash, n] = rest.split("#");
+    if (!/^[0-9a-f]+$/.test(hash)) return null;
+    return sameHash(hash)[(Number(n) || 1) - 1] || null;
+  }
+  if (key.startsWith("b:")) {
+    return document.querySelector(`.manuscript [data-block="${CSS.escape(rest)}"]`);
+  }
+  if (key.startsWith("l:")) {
+    const el = document.getElementById(rest);
+    // An id on a block that has data-hash is a build-made id, not a label.
+    return el && !el.dataset.hash ? el : null;
+  }
+  return null;
+}
+
+// A saved fold must never fold a block that has no fold control, so such a
+// block has no fold key.
 export function collapseKey(hr) {
-  // A pinned copy's fold is not saved, and a view link does not carry it.
-  if (hr.closest(".rail-pinned")) return null;
-  const nid = hr.getAttribute("data-nodeid");
-  if (nid != null) return "n:" + nid;
-  const sec = hr.closest("section");
-  if (sec && sec.id) return "s:" + sec.id;
-  if (hr.id) return "e:" + hr.id;
-  const txt = (hr.textContent || "").replace(/\s+/g, " ").trim();
-  return txt ? "t:" + txt : null;
+  return canFold(hr) ? blockKey(hr) : null;
 }
 
 function persistCollapse(hr, collapsed) {
@@ -793,9 +829,8 @@ export function collapseInitial(root) {
 
 
 // Re-apply the reader's persisted collapse choices, overriding the author
-// defaults from collapseInitial. Call after collapseInitial on load. Iterates
-// every .hr, not just .hr[data-nodeid], because section headings carry no
-// nodeid (see collapseKey) yet are collapsible and must be restored too.
+// defaults from collapseInitial. Call after collapseInitial on load. A saved
+// key that matches no block on the page is not applied.
 export function restoreCollapse(root) {
   const state = loadCollapseState();
   suppressPersist = true;
