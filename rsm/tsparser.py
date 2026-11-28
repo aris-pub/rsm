@@ -1052,7 +1052,7 @@ def _check_raw_html(raw: nodes.RawHtml) -> None:
         if not raw.alt:
             logger.warning(
                 "An inline :html: has no :alt:, so nothing stands in for it in "
-                "reference previews and in output other than HTML",
+                "reference previews, and rsm export stops with an error",
                 extra=extra,
             )
         return

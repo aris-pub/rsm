@@ -229,6 +229,13 @@ def test_missing_alt_warns(caplog):
     assert any(":html:" in r.message and ":alt:" in r.message for r in caplog.records)
 
 
+def test_missing_alt_warning_says_export_stops(caplog):
+    with caplog.at_level(logging.WARNING):
+        _render("A :html: <b>x</b> :: b.\n")
+    (message,) = [r.message for r in caplog.records if ":alt:" in r.message]
+    assert "rsm export" in message and "error" in message
+
+
 def test_alt_does_not_warn(caplog):
     with caplog.at_level(logging.WARNING):
         _render("A :html:{:alt: x} <b>x</b> :: b.\n")
