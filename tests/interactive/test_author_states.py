@@ -258,6 +258,26 @@ class TestEscapedTooltips:
         assert tip.locator("b, i").count() == 0
 
 
+class TestMarkupInTooltips:
+    """Tooltips show the inline markup of an affiliation or note (rsm-ugg)."""
+
+    def test_superscript_tooltip_shows_math(self, page: Page, interactive_server):
+        _load(page, interactive_server, "author_markup")
+        page.hover(".author-name:has-text('Ada') sup >> nth=0")
+        tip = page.locator(TIP)
+        expect(tip).to_be_visible(timeout=3000)
+        expect(tip.locator("mjx-container")).to_have_count(1)
+        expect(tip).to_contain_text("Lab of")
+
+    def test_name_tooltip_shows_math_and_emphasis(self, page: Page, interactive_server):
+        _load(page, interactive_server, "author_markup")
+        page.hover(".author-name-text >> nth=0")
+        tip = page.locator(TIP)
+        expect(tip).to_be_visible(timeout=3000)
+        expect(tip.locator("mjx-container")).to_have_count(1)
+        expect(tip.locator("em")).to_have_text("one")
+
+
 class TestWithoutJavaScript:
     @pytest.mark.parametrize("name", ["author_states", "author_states_full"])
     def test_every_name_and_all_details_without_controls(

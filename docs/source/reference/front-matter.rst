@@ -66,10 +66,10 @@ To show only the first and last authors of a long list, use
 .. rubric:: Meta keys
 
 ``:name:``
-   The name of the author.
+   The name of the author. It can hold inline markup, such as math.
 
 ``:affiliation:``
-   The institution of the author.
+   The institution of the author. It can hold inline markup, such as math.
 
 ``:email:``
    An email address, linked from the mail icon next to the name.
@@ -79,7 +79,8 @@ To show only the first and last authors of a long list, use
    next to the name.
 
 ``:author-note:``
-   A note on the author, such as "Equal contribution".
+   A note on the author, such as "Equal contribution". It can hold inline
+   markup, such as math.
 
 .. rubric:: Example
 

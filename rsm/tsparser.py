@@ -809,6 +809,21 @@ def _normalize_text(root: nodes.Node | None) -> str:
         if isinstance(title, str) and title:
             # getattr above found a title on this node.
             node.title = EscapedString(title, DELIMS).escape()  # type: ignore[attr-defined]
+        for key in _MARKUP_KEYS:
+            value = getattr(node, key, None)
+            if (
+                isinstance(value, str)
+                and value
+                and not getattr(node, f"{key}_nodes", None)
+            ):
+                setattr(node, key, EscapedString(value, DELIMS).escape())
+        if (
+            node.reftext_template != node.classreftext
+            and not node.reftext_template_nodes
+        ):
+            node.reftext_template = EscapedString(
+                node.reftext_template, DELIMS
+            ).escape()
 
     return ""  # This function modifies nodes in place
 
@@ -904,17 +919,36 @@ def _drop_tags_not_allowed_in_heading(
     return kept
 
 
-def _markup_title_children(meta: TSNode) -> list[TSNode]:
-    """The pieces of a :title: value in this meta, if the title holds markup.
-    A plain title is read as text by _parse_meta_into_dict."""
+def _markup_meta_children(meta: TSNode) -> list[tuple[str, list[TSNode]]]:
+    """The key and the pieces of each value in this meta that holds markup,
+    among the keys whose values may hold it (:title:, :eyebrow:, :name: and
+    the others of metakey_title). A value with text only is read as text by
+    _parse_meta_into_dict."""
+    found = []
     for pair in meta.named_children:
-        if pair.type == "pair" and pair.named_children[0].type == "metakey_title":
-            pieces = [
-                c for c in pair.named_children[1].named_children if c.type != "comment"
-            ]
-            if any(c.type != "text" for c in pieces):
-                return _drop_tags_not_allowed_in_heading(pieces, "a title")
-    return []
+        if pair.type != "pair" or pair.named_children[0].type != "metakey_title":
+            continue
+        key = pair.named_children[0].named_children[0].type
+        pieces = [
+            c for c in pair.named_children[1].named_children if c.type != "comment"
+        ]
+        if any(c.type != "text" for c in pieces):
+            where = "a title" if key == "title" else f"the :{_source_key(key)}: value"
+            found.append((key, _drop_tags_not_allowed_in_heading(pieces, where)))
+    return found
+
+
+def _source_key(key: str) -> str:
+    """A key as the author writes it, such as author-note for author_note."""
+    return key.replace("_", "-")
+
+
+# The attribute that holds the value of a meta key, when it is not the key.
+_META_ATTR = {"reftext": "reftext_template"}
+
+# The keys besides :title: whose values may hold markup. A value without markup
+# is unescaped in _normalize_text, as a title is.
+_MARKUP_KEYS = ("affiliation", "author_note", "blockname", "eyebrow", "name")
 
 
 def _join_title_text(children: list[nodes.Node]) -> list[nodes.Node]:
@@ -1241,8 +1275,9 @@ def _abstractify(cst: TSTree) -> nodes.Manuscript | None:
     # holder collects the inline children as the main loop builds them; after the
     # loop they move onto the reference node's reftext_nodes.
     reftext_builds: list[tuple[nodes.BaseReference, nodes.Span]] = []
-    # The same for headings whose title carries inline markup.
-    title_builds: list[tuple[nodes.Heading, nodes.Span]] = []
+    # The same for meta values that carry inline markup, such as a heading's
+    # title: (node, key, holder).
+    meta_builds: list[tuple[nodes.Node, str, nodes.Span]] = []
     raw_html_nodes: list[nodes.RawHtml] = []
     # A footnote or aside call right after a word leaves a stray '::' as an
     # ERROR. The call's own message covers that ERROR, so the log gets no second
@@ -1261,10 +1296,15 @@ def _abstractify(cst: TSTree) -> nodes.Manuscript | None:
 
     def ingest_meta(ast_node: nodes.Node, meta: TSNode) -> None:
         ast_node.ingest_dict_as_meta(_parse_meta_into_dict(meta))
-        pieces = _markup_title_children(meta)
-        if pieces and isinstance(ast_node, nodes.Heading):
+        for key, pieces in _markup_meta_children(meta):
+            if key == "title" and not isinstance(ast_node, nodes.Heading):
+                continue
+            if not pieces:
+                # Every piece was a tag that is left out.
+                setattr(ast_node, _META_ATTR.get(key, key), "")
+                continue
             holder = nodes.Span()
-            title_builds.append((ast_node, holder))
+            meta_builds.append((ast_node, key, holder))
             stack.extend(reversed([(holder, c) for c in pieces]))
 
     while stack:
@@ -1370,7 +1410,7 @@ def _abstractify(cst: TSTree) -> nodes.Manuscript | None:
             title_children = _drop_tags_not_allowed_in_heading(title_children)
             if len(title_children) > 1 or any(c.type != "text" for c in title_children):
                 holder = nodes.Span()
-                title_builds.append((ast_node, holder))
+                meta_builds.append((ast_node, "title", holder))
                 stack += reversed([(holder, c) for c in title_children])
             elif title_children:
                 assert title_children[0].text is not None
@@ -1685,20 +1725,25 @@ def _abstractify(cst: TSTree) -> nodes.Manuscript | None:
 
     # The title nodes stay children of their holder (unlike reftext nodes), so
     # that a node in the title can find its siblings when it is rendered.
-    for heading, holder in title_builds:
+    for owner, key, holder in meta_builds:
         children = _join_title_text(list(holder.children))
         for child in children:
             # A title written over several lines keeps each line's indent.
             if isinstance(child, nodes.Text):
                 child.text = re.sub(r"\s+", " ", child.text)
+                # The holder is not in the tree, so _normalize_text does not
+                # unescape these pieces.
+                if key != "title" and not child.asis:
+                    child.text = EscapedString(child.text, DELIMS).escape()
         if isinstance(children[0], nodes.Text):
             children[0].text = children[0].text.lstrip()
         if isinstance(children[-1], nodes.Text):
             # A comma at the end of a meta pair is dropped (see _metaval_str).
             text = children[-1].text.rstrip()
             children[-1].text = text[:-1].rstrip() if text.endswith(",") else text
-        heading.title_nodes = children
-        heading.title = _flatten_reftext(children).strip()
+        attr = _META_ATTR.get(key, key)
+        setattr(owner, f"{attr}_nodes", children)
+        setattr(owner, attr, _flatten_reftext(children).strip())
 
     for raw in raw_html_nodes:
         _check_raw_html(raw)

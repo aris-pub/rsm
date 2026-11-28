@@ -64,7 +64,8 @@ A block that holds only meta keys and shows nothing in the page. It ends with
    shows no date.
 
 ``:eyebrow:``
-   A short line of text above the title, such as "Preprint".
+   A short line of text above the title, such as "Preprint". It can hold
+   inline markup, such as math.
 
 ``:no-minimap:``
    Turns off the map of the page that replaces the scroll bar, and keeps the
