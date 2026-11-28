@@ -1122,7 +1122,8 @@ _DISPLAY_ENV = re.compile(
 # The environments that LaTeX numbers when they are not starred. pandoc writes
 # \[...\] and $$...$$ as bare math, and an environment such as aligned can only
 # sit inside those, so all other display math is unnumbered.
-_NUMBERED_ENVS = ("align", "alignat", "eqnarray", "flalign", "gather", "multline")
+_NUMBERED_ENVS = ("align", "alignat", "flalign", "gather", "multline")
+_EQNARRAY_RELATION = re.compile(r"(?<!\\)&([^&]*?)(?<!\\)&")
 
 
 _QEDHERE = re.compile(r"[ \t]*\\qedhere(?![A-Za-z])")
@@ -1155,6 +1156,12 @@ def _display_math(src: str) -> tuple[str, bool]:
     body = _NOTAG.sub("", body)
     if env == "equation":
         return body.strip(), numbered
+    if env == "eqnarray":
+        # RSM cannot build eqnarray. Its lines are "lhs & rel & rhs", and align
+        # gives the same layout with "lhs & rel rhs".
+        rows = re.split(r"(\\\\)", body)
+        rows[::2] = [_EQNARRAY_RELATION.sub(r"&\1", row, count=1) for row in rows[::2]]
+        env, body = "align", "".join(rows)
     if env in _NUMBERED_ENVS:
         return f"\\begin{{{env}}}{body}\\end{{{env}}}", numbered
     return _NOTAG.sub("", src).strip(), False

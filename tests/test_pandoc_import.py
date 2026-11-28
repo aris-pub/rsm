@@ -1018,3 +1018,31 @@ def test_link_whose_text_is_its_address_has_no_text():
     text = [{"t": "Str", "c": "https://example.org"}]
     out = PandocImporter().from_json(_para_with_link(text, "https://example.org"))
     assert ":url:https://example.org::" in out
+
+
+# eqnarray cannot be built in RSM, so the import writes align, with the two
+# ampersands around the relation of each line turned into one before it.
+
+
+def test_eqnarray_becomes_align():
+    src = (
+        "\\begin{eqnarray}\n\\label{e}\na &=& b \\\\\nc & \\le & d \\nonumber\n"
+        "\\end{eqnarray}"
+    )
+    out = _import_math(src)
+    assert (
+        ":mathblock: {:label: eqn-1}\n  \\begin{align}\na &= b \\\\\nc & \\le  d\n"
+        "\\end{align}\n::"
+    ) in out, out
+    _parse_without_errors(out)
+
+
+def test_starred_eqnarray_becomes_align_with_nonum():
+    out = _import_math("\\begin{eqnarray*}\na &=& b\n\\end{eqnarray*}")
+    assert ":mathblock: {:nonum:}\n  \\begin{align}\na &= b\n\\end{align}\n::" in out
+    _parse_without_errors(out)
+
+
+def test_eqnarray_keeps_an_escaped_ampersand():
+    out = _import_math("\\begin{eqnarray}\na \\& b &=& c\n\\end{eqnarray}")
+    assert "a \\& b &= c" in out, out
