@@ -1,4 +1,5 @@
 import logging
+import re
 
 import pytest
 
@@ -241,3 +242,32 @@ def test_span_key_renders_its_tag(caplog, key, tag):
     )
     assert f'<span class="span" data-nodeid="3"><{tag}>few words</{tag}></span>' in h, h
     assert not caplog.records, caplog.text
+
+
+def _p(src):
+    h = rsm.render(src, handrails=False, source_offsets=False)
+    p = h[h.index("<p>") + 3 : h.index("</p>")]
+    return re.sub(r'<span class="span" data-nodeid="\d+">(.*?)</span>', r"\1", p)
+
+
+# A space just inside the markers of bold or italic moves outside the tag, so the
+# reader still sees a space between the words (rsm-9iq).
+@pytest.mark.parametrize(
+    "src, want",
+    [
+        ("Some **graded **x here.", "Some <strong>graded</strong> x here."),
+        ("Some and** lead**z here.", "Some and <strong>lead</strong>z here."),
+        ("Some *it *y here.", "Some <em>it</em> y here."),
+        ("Some and* lead*z here.", "Some and <em>lead</em>z here."),
+        ("Some **graded ** x here.", "Some <strong>graded</strong> x here."),
+        ("Some **graded**x here.", "Some <strong>graded</strong>x here."),
+    ],
+)
+def test_space_inside_markers_moves_outside(caplog, src, want):
+    caplog.set_level(logging.WARNING)
+    assert _p(src) == want
+    assert not caplog.records, caplog.text
+
+
+def test_space_inside_span_tag_is_still_dropped():
+    assert _p("A :span: {:strong:} graded :: x.") == "A <strong>graded</strong> x."

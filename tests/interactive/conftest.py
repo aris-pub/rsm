@@ -74,6 +74,7 @@ SIDEBAR_FIXTURES = {
     "asides",
     "shareview_long",
     "widget_preview",
+    "video_preview",
     "calc_preview",
     "rawhtml",
     "toc_switch_sidebar",

@@ -74,8 +74,9 @@ A reader can also switch a figure to its static version, and back, with the
 "Static" item in the figure's handrail menu. Try it on the figure above.
 
 Without ``:static:``, the tooltip of an HTML figure shows its ``:alt:`` text,
-a page with JavaScript turned off shows nothing in its place, and the files
-that RSM makes show a note that points to the web page.
+a page with JavaScript turned off shows nothing in its place, and RSM does not
+export the document to PDF, LaTeX or another format: ``rsm export`` stops with
+an error that names the figure.
 
 See :ref:`guide-interactive-figures` for HTML written inside the document and
 for videos.

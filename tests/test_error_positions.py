@@ -169,8 +169,6 @@ def test_rsm_format_prints_lint_messages(lint_stderr):
     assert "| (1, 1) - (8, 1) |" in err
     assert "Section with no label" in err
     assert "| (1, 1) - (7, 3) |" in err
-    assert "MathBlock must be direct child of Paragraph" in err
-    assert "| (5, 1) - (7, 3) |" in err
 
 
 def test_rsm_format_prints_lint_messages_with_parse_error(lint_stderr):

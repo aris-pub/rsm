@@ -11,7 +11,7 @@ import pytest
 import rsm
 from rsm import nodes
 from rsm.app import ParserApp
-from rsm.pandoc import PandocTranslator
+from rsm.pandoc import PandocExportError, PandocTranslator
 
 
 def _render(src: str, handrails: bool = False) -> str:
@@ -135,10 +135,11 @@ def test_pandoc_figure_with_html_uses_its_static_image():
     assert "widget.html" not in out
 
 
-def test_pandoc_figure_with_html_and_no_static_says_see_online():
-    out = _pandoc_blocks(FIG_BLOCK)
-    assert "see online version" in out
-    assert "canvas" not in out
+def test_pandoc_figure_with_html_and_no_static_is_an_error():
+    with pytest.raises(PandocExportError) as excinfo:
+        _pandoc_blocks(FIG_BLOCK)
+    assert "Figure fig-a (line 3)" in str(excinfo.value)
+    assert ":static:" in str(excinfo.value)
 
 
 def test_pandoc_html_block_uses_its_alt():

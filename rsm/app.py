@@ -242,7 +242,7 @@ class RSMApp(Pipeline, Generic[T]):
         try:
             result: T = super().run(initial_args)
         except RSMParserError as e:
-            logger.error(f"There was an error: {e}")
+            logger.error(f"There was an error: {e}", extra=e.position)
             return None
         logger.info("Done.")
         return result
@@ -781,7 +781,10 @@ class PandocExportApp(RSMApp[str]):
         manuscript = self._parser.run(initial_args)
         if manuscript is None:
             return None
-        pandoc_ast = pandoc_module.PandocTranslator().translate(manuscript)
+        try:
+            pandoc_ast = pandoc_module.PandocTranslator().translate(manuscript)
+        except pandoc_module.PandocExportError as exc:
+            raise RSMApplicationError(str(exc)) from exc
         result = _PandocRunner(self._to_format, self._output).run(pandoc_ast)
 
         # For LaTeX output, remove Pandoc's hidelinks (braiid.sty sets its own link colors)
@@ -790,7 +793,9 @@ class PandocExportApp(RSMApp[str]):
             import shutil as _shutil
 
             result = _re.sub(r"^\s*hidelinks,?\s*\n", "", result, flags=_re.MULTILINE)
-            # Copy braiid.sty next to the output so lualatex/pdflatex can find it
+            # braiid.sty and its fonts go next to the output so that XeLaTeX or
+            # LuaLaTeX finds them. braiid.sty loads fontspec, so pdflatex cannot
+            # compile the output.
             if self._output:
                 sty_src = Path(__file__).parent.parent / "braiid" / "braiid.sty"
                 sty_dst = Path(self._output).parent / "braiid.sty"
@@ -834,6 +839,10 @@ def pandoc_export(
 
 # ─── Pandoc import ────────────────────────────────────────────────────────────
 
+_PANDOC_SKIPPED = re.compile(
+    r"^\[INFO\] Skipped '(.*)' at (?:.* )?line (\d+) column \d+$", re.MULTILINE
+)
+
 
 class PandocImportApp(RSMApp):
     """Any pandoc-supported format → pandoc JSON AST → RSM source text."""
@@ -847,6 +856,7 @@ class PandocImportApp(RSMApp):
         log_format: str = "rsm",
         log_time: bool = True,
         log_lineno: bool = True,
+        cwd: str | Path | None = None,
     ) -> None:
         if (not source and not path) or (source and path):
             raise RSMApplicationError("Must specify exactly one of source, path")
@@ -860,12 +870,25 @@ class PandocImportApp(RSMApp):
         self._source = source
         self._path = path
         self._from_format = from_format
+        # pandoc looks for the .sty file of a \usepackage in the folder where it
+        # runs, so a project's own packages are found only from its folder.
+        self._cwd = cwd
 
     def run(self, initial_args: Any = None) -> str:
+        # pandoc reports each LaTeX command that it drops only with --verbose.
         if self._path:
-            cmd = ["pandoc", f"--from={self._from_format}", "--to=json", self._path]
+            cmd = [
+                "pandoc",
+                f"--from={self._from_format}",
+                "--to=json",
+                "--verbose",
+                # A relative path is relative to where rsm runs, not to cwd.
+                str(Path(self._path).resolve()),
+            ]
             try:
-                proc = subprocess.run(cmd, capture_output=True, text=True, check=True)
+                proc = subprocess.run(
+                    cmd, capture_output=True, text=True, check=True, cwd=self._cwd
+                )
             except FileNotFoundError:
                 raise RSMApplicationError(
                     "pandoc executable not found; install pandoc from https://pandoc.org"
@@ -873,10 +896,15 @@ class PandocImportApp(RSMApp):
             except subprocess.CalledProcessError as e:
                 raise RSMApplicationError(f"pandoc failed: {e.stderr}")
         else:
-            cmd = ["pandoc", f"--from={self._from_format}", "--to=json"]
+            cmd = ["pandoc", f"--from={self._from_format}", "--to=json", "--verbose"]
             try:
                 proc = subprocess.run(
-                    cmd, input=self._source, capture_output=True, text=True, check=True
+                    cmd,
+                    input=self._source,
+                    capture_output=True,
+                    text=True,
+                    check=True,
+                    cwd=self._cwd,
                 )
             except FileNotFoundError:
                 raise RSMApplicationError(
@@ -884,8 +912,15 @@ class PandocImportApp(RSMApp):
                 )
             except subprocess.CalledProcessError as e:
                 raise RSMApplicationError(f"pandoc failed: {e.stderr}")
+        for match in _PANDOC_SKIPPED.finditer(proc.stderr):
+            command, line = match.groups()
+            logger.warning(
+                f"pandoc dropped {command} at line {line}, so the text that it "
+                "stands for is not in the RSM source"
+            )
         pandoc_ast = json.loads(proc.stdout)
         unnumbered: set[str] = set()
+        tex = ""
         if self._from_format == "latex":
             from rsm.importer import unnumbered_theorems
 
@@ -893,7 +928,9 @@ class PandocImportApp(RSMApp):
                 encoding="utf-8", errors="replace"
             )
             unnumbered = unnumbered_theorems(tex)
-        return pandoc_module.PandocImporter(unnumbered=unnumbered).from_json(pandoc_ast)
+        return pandoc_module.PandocImporter(unnumbered=unnumbered, source=tex).from_json(
+            pandoc_ast
+        )
 
 
 def pandoc_import(
@@ -904,6 +941,7 @@ def pandoc_import(
     log_format: str = "rsm",
     log_time: bool = True,
     log_lineno: bool = True,
+    cwd: str | Path | None = None,
 ) -> str:
     return PandocImportApp(
         source=source,
@@ -913,6 +951,7 @@ def pandoc_import(
         log_format=log_format,
         log_time=log_time,
         log_lineno=log_lineno,
+        cwd=cwd,
     ).run()
 
 
@@ -933,9 +972,9 @@ def import_project(
     the importer.
     """
     from rsm.bibemit import references_block
-    from rsm.importer import preamble_macros, resolve_project
+    from rsm.importer import preamble_macros, resolve_project_files
 
-    text, root = resolve_project(path, main)
+    text, root, main_tex = resolve_project_files(path, main)
     rsm_source = pandoc_import(
         source=text,
         from_format=from_format,
@@ -943,6 +982,7 @@ def import_project(
         log_format=log_format,
         log_time=log_time,
         log_lineno=log_lineno,
+        cwd=main_tex.parent,
     )
     macros = preamble_macros(text)
     if macros:

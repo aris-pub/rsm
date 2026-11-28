@@ -39,7 +39,7 @@ paragraphs, lists, math and other blocks.
 
 ``:blockname:``
    A name that replaces "Theorem" in the label and in references to the
-   block, such as ``Conjecture``.
+   block, such as ``Conjecture``. It can hold inline markup, such as math.
 
 .. rubric:: Example
 

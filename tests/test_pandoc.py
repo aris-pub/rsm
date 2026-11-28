@@ -1277,29 +1277,6 @@ class TestCitationsAsPlainText:
 class TestMissingBlockHandlers:
     """rsm-kaw, rsm-90w, rsm-9r9, rsm-09d, rsm-b0j: Missing block handlers."""
 
-    def test_html_emits_placeholder(self):
-        blocks = _blocks("""\
-        :figure: {
-          :path: widget.html
-        }
-        ::
-        """)
-        text = str(blocks)
-        assert (
-            "online" in text.lower()
-            or "widget" in text.lower()
-            or "html" in text.lower()
-        )
-
-    def test_video_emits_placeholder(self):
-        blocks = _blocks("""\
-        :video: {
-          :path: demo.mp4
-        }
-        ::
-        """)
-        assert len(blocks) > 0  # Not silently dropped
-
     def test_authorblock_silently_skipped(self):
         """AuthorBlock should not crash or warn."""
         _blocks("""\
@@ -1488,3 +1465,173 @@ def test_export_without_pandoc_warnings_logs_none(tmp_path, caplog):
         output=str(tmp_path / "doc.docx"),
     )
     assert not [r for r in caplog.records if "pandoc" in r.getMessage()]
+
+
+# rsm-ivf0: an exported file cannot show HTML. A figure that holds HTML needs a
+# :static: image, and an :html: or :htmlblock: outside a figure needs an :alt:,
+# or the export stops with an error that names each one.
+
+_HTML_FIGURES = """\
+# Doc
+
+:figure: {
+  :label: fig-x
+  :path: some.html
+  :alt: A chart.
+}
+
+  :caption: My caption.
+
+::
+
+:figure: {:alt: A slider.}
+
+  :htmlblock:
+  <div>x</div>
+  ::
+
+  :caption: Cap two.
+
+::
+
+See :ref:fig-x::.
+"""
+
+
+def _export_error(source: str, to_format: str = "latex") -> str:
+    with pytest.raises(RSMApplicationError) as excinfo:
+        pandoc_export(source=source, to_format=to_format)
+    return str(excinfo.value)
+
+
+@_PANDOC_SKIP
+@pytest.mark.parametrize("fmt", ["latex", "html", "markdown"])
+def test_export_of_html_figure_without_static_is_an_error(fmt):
+    message = _export_error(_HTML_FIGURES, fmt)
+    assert "Figure fig-x (line 3)" in message
+    assert "Figure 2 (line 13)" in message
+    assert message.count("has no :static: image. Add :static:") == 2
+
+
+@_PANDOC_SKIP
+def test_export_of_html_figure_without_static_writes_no_file(tmp_path):
+    out = tmp_path / "doc.docx"
+    with pytest.raises(RSMApplicationError):
+        pandoc_export(source=_HTML_FIGURES, to_format="docx", output=str(out))
+    assert not out.exists()
+
+
+def test_translator_raises_on_html_figure_without_static():
+    from rsm.pandoc import PandocExportError
+
+    with pytest.raises(PandocExportError) as excinfo:
+        _translate(_HTML_FIGURES)
+    assert len(excinfo.value.problems) == 2
+
+
+@_PANDOC_SKIP
+def test_export_of_html_figure_with_static_keeps_caption_and_label():
+    source = _HTML_FIGURES.replace(
+        ":alt: A chart.", ":alt: A chart.\n  :static: chart.png"
+    ).replace(
+        ":figure: {:alt: A slider.}", ":figure: {:alt: A slider., :static: s.png}"
+    )
+    latex = pandoc_export(source=source, to_format="latex")
+    assert "chart.png" in latex and "s.png" in latex
+    assert "My caption." in latex and "Cap two." in latex
+    assert r"\label{fig-x}" in latex
+
+
+@_PANDOC_SKIP
+def test_cli_export_of_html_figure_without_static_prints_error(
+    tmp_path, monkeypatch, capsys
+):
+    src = tmp_path / "paper.rsm"
+    src.write_text(_HTML_FIGURES)
+    monkeypatch.setattr(sys, "argv", ["rsm", "export", str(src), "--to", "latex"])
+    assert cli.main() == 1
+    err = capsys.readouterr().err
+    assert "Figure fig-x (line 3)" in err
+    assert ":static:" in err
+    assert "Traceback" not in err
+
+
+@_PANDOC_SKIP
+def test_export_of_inline_html_without_alt_is_an_error():
+    message = _export_error("# Doc\n\nA :html: <b>x</b> :: and more.\n")
+    assert ":html: (line 3)" in message
+    assert ":alt:" in message
+
+
+@_PANDOC_SKIP
+def test_export_of_html_block_without_alt_is_an_error():
+    message = _export_error("# Doc\n\nText.\n\n:htmlblock:\n<div>z</div>\n::\n")
+    assert ":htmlblock: (line 5)" in message
+    assert ":alt:" in message
+
+
+@_PANDOC_SKIP
+def test_export_of_html_with_alt_uses_the_alt():
+    source = (
+        "# Doc\n\nA :html: {:alt: bold word} <b>x</b> :: here.\n\n"
+        ":htmlblock: {:alt: A rule.}\n<hr>\n::\n"
+    )
+    latex = pandoc_export(source=source, to_format="latex")
+    assert "bold word" in latex
+    assert "A rule." in latex
+    assert "<b>" not in latex and "<hr>" not in latex
+
+
+_VIDEOS = """\
+# Doc
+
+:video: {:label: vid-a, :path: demo.mp4}
+  :caption: The demo.
+::
+
+:video: {:path: other.mp4}
+::
+
+See :ref:vid-a::.
+"""
+
+
+@_PANDOC_SKIP
+@pytest.mark.parametrize("fmt", ["latex", "html"])
+def test_export_of_video_without_static_is_an_error(fmt):
+    message = _export_error(_VIDEOS, fmt)
+    assert "Video vid-a (line 3)" in message
+    assert "Video 2 (line 7)" in message
+    assert message.count("has no :static: image. Add :static:") == 2
+    assert "see online version" not in message
+
+
+@_PANDOC_SKIP
+def test_export_of_video_with_static_keeps_caption_number_and_label():
+    source = _VIDEOS.replace(
+        ":path: demo.mp4}", ":path: demo.mp4, :static: frame.png}"
+    ).replace(":path: other.mp4}", ":path: other.mp4, :static: other.png}")
+    latex = pandoc_export(source=source, to_format="latex")
+    assert "frame.png" in latex and "other.png" in latex
+    assert "demo.mp4" not in latex
+    assert "The demo." in latex
+    assert r"\label{vid-a}" in latex
+    assert r"\hyperref[vid-a]{Video 1}" in latex
+
+
+def test_exported_video_without_alt_has_video_alt_text():
+    blocks = _blocks(
+        "# Doc\n\n## Sec\n\n:video: {:path: clip.mp4, :static: frame.png}\n::\n"
+    )
+    (figure,) = [b for b in blocks if b["t"] == "Figure"]
+    image = figure["c"][2][0]["c"][0]
+    assert image["c"][1] == [{"t": "Str", "c": "Video 1.1"}]
+
+
+@_PANDOC_SKIP
+def test_html_block_inside_figure_with_static_needs_no_alt():
+    source = (
+        "# Doc\n\n:figure: {:static: s.png}\n\n  :htmlblock:\n  <div>x</div>\n"
+        "  ::\n\n  :caption: C.\n\n::\n"
+    )
+    assert "s.png" in pandoc_export(source=source, to_format="latex")

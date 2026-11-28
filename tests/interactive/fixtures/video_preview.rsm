@@ -1,0 +1,26 @@
+# Video previews
+
+## Videos
+  {:label: sec-videos}
+
+:video: {
+  :label: vid-still
+  :path: video-640x360.webm
+  :static: fixtures-static-light.png
+  :alt: One frame of the video.
+}
+
+  :caption: A video with a still image.
+
+::
+
+:video: {
+  :label: vid-bare
+  :path: video-640x360.webm
+}
+
+  :caption: A video with no still image.
+
+::
+
+See :ref:vid-still:: and :ref:vid-bare:: for the two videos.

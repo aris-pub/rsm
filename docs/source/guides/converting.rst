@@ -136,9 +136,11 @@ An exported file is static, so the parts of the page that the reader works
 with are not in it: the handrails, the tooltips, the sidebar and the proof
 tools.
 
-A figure that holds HTML shows its ``:static:`` image if it has one, and a
-note that points to the web page otherwise. An ``:html:`` or ``:htmlblock:``
-outside a figure is replaced by its ``:alt:`` text. See
+A figure that holds HTML and a video show their ``:static:`` image. An
+``:html:`` or ``:htmlblock:`` outside a figure is replaced by its ``:alt:``
+text. If a figure that holds HTML or a video has no ``:static:``, or an
+``:html:`` or ``:htmlblock:`` outside a figure has no ``:alt:``, the export
+stops with an error that gives the line of each one. See
 :ref:`guide-interactive-figures`.
 
 
@@ -198,7 +200,11 @@ RSM writes:
 - display math as ``:mathblock:``. Math that LaTeX numbers, such as
   ``equation`` and ``align``, gets a label. Math that LaTeX leaves
   unnumbered, such as ``equation*`` and ``\[...\]``, gets ``:nonum:``.
-  ``\tag`` is dropped, because RSM numbers the equations itself,
+  ``\tag`` is dropped, because RSM numbers the equations itself.
+  ``eqnarray`` becomes ``align``, and ``a &=& b`` becomes ``a &= b``.
+  A LaTeX command that is not allowed in math, such as ``\eqref`` or
+  ``\cite`` inside an equation, is dropped from the math with a warning. See
+  :ref:`tag-mathblock` for the list of these commands,
 - ``\ref`` and ``\eqref`` as ``:ref:``. RSM writes the kind of the target in
   the text of a reference, so a word such as "Theorem" in
   ``Theorem~\ref{thm:main}`` is dropped,
@@ -208,7 +214,10 @@ RSM writes:
 Read the result before you build it. Pandoc does not read every LaTeX
 package, RSM drops commands that it does not know, and an environment with
 another name, such as ``thm`` from ``\newtheorem{thm}{Theorem}``, is imported
-as plain text.
+as plain text. RSM prints a warning for each command that it drops, with the
+command and its line. In a project of several files, RSM counts the line in
+the main file, with each file loaded by ``\input`` or ``\include`` written in
+its place.
 
 
 Import other formats

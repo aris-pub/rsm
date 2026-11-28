@@ -26,6 +26,7 @@ from typing import Any
 
 from rsm import nodes
 from rsm.bibextract import sanitize_key
+from rsm.tsparser import _MATH_TOKEN, _STRUCTURE_COMMANDS
 
 logger = logging.getLogger("RSM").getChild("pandoc")
 
@@ -78,6 +79,25 @@ def _normalize_date_to_iso(raw: str) -> str:
 # ─── Export: RSM AST → pandoc JSON ───────────────────────────────────────────
 
 
+class PandocExportError(Exception):
+    """The document has parts that an exported file cannot show.
+
+    :attr:`problems` holds one message for each part, and the exception's message
+    lists all of them.
+    """
+
+    def __init__(self, problems: list[str]) -> None:
+        self.problems = problems
+        lines = "\n".join(f"  {p}" for p in problems)
+        super().__init__(f"these parts of the document cannot be exported:\n{lines}")
+
+
+def _where(node: nodes.Node) -> str:
+    # tree-sitter counts rows from 0, and the user counts lines from 1.
+    row = node.start_point[0]
+    return f" (line {row + 1})" if row >= 0 else ""
+
+
 class PandocTranslator:
     """Convert a ``nodes.Manuscript`` tree to a pandoc JSON AST dict.
 
@@ -94,8 +114,13 @@ class PandocTranslator:
     """
 
     def translate(self, tree: nodes.Manuscript) -> dict:
+        # Keyed by node, because a node can be walked more than once (an :html: in
+        # a title, for example) and each part is named once.
+        self._problems: dict[int, str] = {}
         meta = self._build_meta(tree)
         blocks = self._walk_children_as_blocks(tree)
+        if self._problems:
+            raise PandocExportError(list(self._problems.values()))
         return {
             "pandoc-api-version": PANDOC_API_VERSION,
             "meta": meta,
@@ -114,8 +139,13 @@ class PandocTranslator:
             for a in authors:
                 if not a.name:
                     continue
-                inlines: list[dict] = [{"t": "Str", "c": a.name}]
-                if getattr(a, "affiliation", None):
+                inlines = self._walk_inlines(a.name_nodes) or [
+                    {"t": "Str", "c": a.name}
+                ]
+                if a.affiliation_nodes:
+                    inlines += [{"t": "Str", "c": " — "}]
+                    inlines += self._walk_inlines(a.affiliation_nodes)
+                elif getattr(a, "affiliation", None):
                     inlines += [{"t": "Str", "c": f" — {a.affiliation}"}]
                 if getattr(a, "email", None):
                     inlines += [
@@ -177,7 +207,7 @@ class PandocTranslator:
         nodes.Algorithm: None,
         nodes.Contents: "_block_toc",
         nodes.HtmlBlock: "_block_html",
-        nodes.Video: "_block_asset_placeholder",
+        nodes.Video: "_block_figure",
         nodes.Subproof: "_block_proof",  # same as Proof — recurse into children
         nodes.ClaimBlock: "_block_construct",
         nodes.Construct: "_block_construct",
@@ -208,7 +238,7 @@ class PandocTranslator:
         nodes.Span: "_inline_span",  # Keyword via MRO
         nodes.Math: "_inline_math",
         nodes.Code: "_inline_code",
-        nodes.RawHtml: "_walk_children_as_inlines",
+        nodes.RawHtml: "_inline_rawhtml",
         nodes.Reference: "_inline_reference",
         nodes.URL: "_inline_url",
         nodes.Cite: "_inline_cite",
@@ -225,6 +255,13 @@ class PandocTranslator:
                 inlines: list[dict] = getattr(self, method_name)(node)
                 return inlines
         return self._inline_fallback(node)
+
+    def _walk_inlines(self, inline_nodes: list[nodes.Node]) -> list[dict]:
+        result: list[dict] = []
+        # A copy, because the nodes of a meta value stay in their holder.
+        for node in copy.deepcopy(inline_nodes):
+            result.extend(self._walk_inline(node))
+        return result
 
     def _walk_children_as_inlines(self, node: nodes.Node) -> list[dict]:
         result: list[dict] = []
@@ -280,17 +317,11 @@ class PandocTranslator:
 
     _LATEX_ENVS = {
         "align",
-        "align*",
         "gather",
-        "gather*",
         "multline",
-        "multline*",
         "flalign",
-        "flalign*",
         "alignat",
-        "alignat*",
         "equation",
-        "equation*",
         "split",
     }
 
@@ -303,7 +334,12 @@ class PandocTranslator:
         if has_env:
             # Other formats drop raw LaTeX, so the block also carries a display math
             # form, and braiid.lua keeps the one that suits the output format.
-            raw = {"t": "RawBlock", "c": ["latex", self._number_env(node, stripped)]}
+            latex = self._number_env(node, stripped)
+            if node.label and not node.full_number:
+                # A \label inside an unnumbered environment has no anchor of its
+                # own, so the anchor goes before the environment.
+                latex = rf"\phantomsection\label{{{node.label}}}" + "\n" + latex
+            raw = {"t": "RawBlock", "c": ["latex", latex]}
             display = self._display_math(node, self._display_env(stripped))
             return [{"t": "Div", "c": [["", ["math-env"], []], [raw, *display]]}]
         return self._display_math(node, src)
@@ -311,7 +347,12 @@ class PandocTranslator:
     def _display_math(self, node: nodes.MathBlock, src: str) -> list[dict]:
         math = {"t": "Math", "c": [{"t": "DisplayMath"}, src]}
         if not node.full_number:
-            return [{"t": "Para", "c": [math]}]
+            if not node.label:
+                return [{"t": "Para", "c": [math]}]
+            # pandoc writes the id of a Span as an anchor, so a reference to the
+            # block has a target even though the block has no number.
+            span = {"t": "Span", "c": [[node.label, [], []], [math]]}
+            return [{"t": "Para", "c": [span]}]
         # braiid.lua prints RSM's number as the equation's tag, so that the number
         # agrees with the text of references to the equation.
         attrs = [node.label or "", ["equation"], [["number", node.full_number]]]
@@ -330,24 +371,20 @@ class PandocTranslator:
     def _display_env(self, src: str) -> str:
         # RSM gives the block one number, which braiid.lua writes after the math, so
         # the environment takes the inner form that numbers no line itself.
-        m = re.fullmatch(r"\\begin\{([\w*]+)\}(.*)\\end\{\1\}", src, re.DOTALL)
+        m = re.fullmatch(r"\\begin\{(\w+)\}(.*)\\end\{\1\}", src, re.DOTALL)
         if not m:
             return src
         env, body = m.groups()
-        env = env.removesuffix("*")
         if env == "equation":
             return body.strip()
         inner = self._INNER_ENVS.get(env, env)
         return f"\\begin{{{inner}}}{body}\\end{{{inner}}}"
 
     def _number_env(self, node: nodes.MathBlock, src: str) -> str:
-        m = re.fullmatch(r"\\begin\{([\w*]+)\}(.*)\\end\{\1\}", src, re.DOTALL)
+        m = re.fullmatch(r"\\begin\{(\w+)\}(.*)\\end\{\1\}", src, re.DOTALL)
         if not m:
             return src
         env, body = m.groups()
-        # The number of a block comes only from RSM, so a star is layout only and
-        # a starred environment is treated as its unstarred form.
-        env = env.removesuffix("*")
         number = node.full_number
         tag = ""
         if number:
@@ -428,17 +465,39 @@ class PandocTranslator:
             kvs = [["of", proves.label], ["of-text", proves.reftext]]
         return [{"t": "Div", "c": [["", [cls], kvs], inner]}]
 
+    def _missing_alt(self, node: nodes.Node, tag: str) -> None:
+        self._problems[id(node)] = (
+            f"{tag}{_where(node)} has no :alt:. Add :alt: with the text to show "
+            "in its place."
+        )
+
     def _block_html(self, node: nodes.HtmlBlock) -> list[dict]:
         # Raw HTML has no place outside a web page, so its :alt: stands in.
+        if not node.alt:
+            self._missing_alt(node, ":htmlblock:")
         inlines = self._walk_children_as_inlines(node)
         return [{"t": "Para", "c": inlines}] if inlines else []
 
+    def _inline_rawhtml(self, node: nodes.RawHtml) -> list[dict]:
+        if not node.alt:
+            self._missing_alt(node, ":html:")
+        return self._walk_children_as_inlines(node)
+
     def _block_figure(self, node: nodes.Asset) -> list[dict]:
-        if isinstance(node, nodes.Figure) and node.holds_html and not node.static:
-            return self._block_asset_placeholder(node)
+        is_html = isinstance(node, nodes.Figure) and node.holds_html
+        if (is_html or isinstance(node, nodes.Video)) and not node.static:
+            name = " ".join(
+                filter(None, [node.kindname, node.label or node.full_number])
+            )
+            shows = "shows HTML" if is_html else "is a video"
+            self._problems[id(node)] = (
+                f"{name}{_where(node)} {shows} and has no "
+                ":static: image. Add :static: with an image to show in its place."
+            )
+            return []
         # Use :static: path for non-web export when available
         path = str(node.static) if node.static else str(node.path)
-        alt_text = node.alt or f"Figure {node.full_number or ''}".strip()
+        alt_text = node.alt or f"{node.kindname} {node.full_number or ''}".strip()
         image = {
             "t": "Image",
             "c": [["", [], []], [{"t": "Str", "c": alt_text}], [path, ""]],
@@ -473,19 +532,6 @@ class PandocTranslator:
                 ],
             },
         ]
-
-    def _block_asset_placeholder(self, node: nodes.Node) -> list[dict]:
-        # If a :static: fallback image exists, render it as a figure
-        if isinstance(node, nodes.Asset) and node.static:
-            return self._block_figure(node)
-        kind = type(node).__name__
-        path = getattr(node, "path", "")
-        text = (
-            f"[{kind} asset: {path} — see online version]"
-            if path
-            else f"[{kind} — see online version]"
-        )
-        return [{"t": "Para", "c": [{"t": "Emph", "c": [{"t": "Str", "c": text}]}]}]
 
     def _block_construct(self, node: nodes.Node) -> list[dict]:
         return self._walk_children_as_blocks(node)
@@ -675,6 +721,11 @@ class PandocTranslator:
         text = node.overwrite_reftext or (
             node.target.reftext if hasattr(node.target, "reftext") else str(node.target)
         )
+        markup = (
+            []
+            if node.overwrite_reftext or not isinstance(node.target, nodes.Node)
+            else self._walk_inlines(node.target.reftext_markup())
+        )
         anchor = (
             f"#{node.target.label}"
             if hasattr(node.target, "label") and node.target.label
@@ -683,9 +734,8 @@ class PandocTranslator:
         # A normal pandoc Link to the target's anchor works across all output
         # formats (LaTeX \hyperref, HTML <a>); a format-specific
         # RawInline would be silently dropped whenever the export target differs.
-        return [
-            {"t": "Link", "c": [["", [], []], [{"t": "Str", "c": text}], [anchor, ""]]}
-        ]
+        inlines = markup or [{"t": "Str", "c": text}]
+        return [{"t": "Link", "c": [["", [], []], inlines, [anchor, ""]]}]
 
     def _inline_url(self, node: nodes.URL) -> list[dict]:
         target = str(node.target)
@@ -1132,7 +1182,60 @@ _DISPLAY_ENV = re.compile(
 # The environments that LaTeX numbers when they are not starred. pandoc writes
 # \[...\] and $$...$$ as bare math, and an environment such as aligned can only
 # sit inside those, so all other display math is unnumbered.
-_NUMBERED_ENVS = ("align", "alignat", "eqnarray", "flalign", "gather", "multline")
+_NUMBERED_ENVS = ("align", "alignat", "flalign", "gather", "multline")
+_EQNARRAY_RELATION = re.compile(r"(?<!\\)&([^&]*?)(?<!\\)&")
+
+
+def _drop_structure_commands(src: str) -> tuple[str, list[str]]:
+    """Remove from math each LaTeX command that RSM does with a tag, such as a
+    reference or a citation, with its star and its arguments.
+
+    The build stops at these commands, so the import must not keep them. Return
+    the math that is left and the names of the commands that were removed, in
+    order.
+    """
+    kept: list[str] = []
+    names: list[str] = []
+    pos = 0
+    for m in _MATH_TOKEN.finditer(src):
+        name = m.group("cmd")
+        if name not in _STRUCTURE_COMMANDS or m.start() < pos:
+            continue
+        kept.append(src[pos : m.start()])
+        names.append(name)
+        pos = _end_of_arguments(src, m.end())
+    kept.append(src[pos:])
+    return "".join(kept), names
+
+
+def _end_of_arguments(src: str, i: int) -> int:
+    """The index after the star and the [...] and {...} arguments that follow a
+    command ending at ``i``."""
+    while True:
+        j = i
+        while j < len(src) and src[j] in " \t":
+            j += 1
+        if j < len(src) and src[j] == "*":
+            i = j + 1
+            continue
+        if j >= len(src) or src[j] not in "[{":
+            return i
+        close = "]" if src[j] == "[" else "}"
+        depth = 0
+        k = j
+        while k < len(src):
+            c = src[k]
+            if c == "\\":
+                k += 2
+                continue
+            if c == src[j]:
+                depth += 1
+            elif c == close:
+                depth -= 1
+                if depth == 0:
+                    break
+            k += 1
+        i = min(k + 1, len(src))
 
 
 _QEDHERE = re.compile(r"[ \t]*\\qedhere(?![A-Za-z])")
@@ -1165,6 +1268,12 @@ def _display_math(src: str) -> tuple[str, bool]:
     body = _NOTAG.sub("", body)
     if env == "equation":
         return body.strip(), numbered
+    if env == "eqnarray":
+        # RSM cannot build eqnarray. Its lines are "lhs & rel & rhs", and align
+        # gives the same layout with "lhs & rel rhs".
+        rows = re.split(r"(\\\\)", body)
+        rows[::2] = [_EQNARRAY_RELATION.sub(r"&\1", row, count=1) for row in rows[::2]]
+        env, body = "align", "".join(rows)
     if env in _NUMBERED_ENVS:
         return f"\\begin{{{env}}}{body}\\end{{{env}}}", numbered
     return _NOTAG.sub("", src).strip(), False
@@ -1216,10 +1325,40 @@ class PandocImporter:
         rsm_text = PandocImporter().from_json(json.loads(proc.stdout))
     """
 
-    def __init__(self, unnumbered: Iterable[str] = ()) -> None:
+    def __init__(self, unnumbered: Iterable[str] = (), source: str = "") -> None:
         # Theorem-like classes declared with \newtheorem*. The JSON AST does not
         # record this, so the caller reads it from the LaTeX source.
         self._unnumbered = set(unnumbered)
+        # The JSON AST has no line numbers, so the line of a command that is
+        # dropped from math is found by searching the LaTeX source for the math.
+        self._source = source
+        self._math_cursor = 0
+
+    def _math_without_structure(self, original: str, src: str) -> str:
+        """Drop from ``src``, the math made from pandoc's ``original``, each command
+        that RSM does with a tag, and warn about each one with its line."""
+        src, names = _drop_structure_commands(src)
+        if not names:
+            return src
+        start = self._source.find(original, self._math_cursor) if original else -1
+        if start < 0 and original:
+            start = self._source.find(original)
+        end = start + len(original)
+        if start >= 0:
+            self._math_cursor = end
+        pos = start
+        for name in names:
+            line = ""
+            if start >= 0:
+                found = self._source.find(f"\\{name}", pos, end)
+                if found >= 0:
+                    line = f" at line {self._source.count(chr(10), 0, found) + 1}"
+                    pos = found + 1
+            logger.warning(
+                f"rsm import dropped \\{name} from math{line}, since it cannot be "
+                f"used in math in RSM. {_STRUCTURE_COMMANDS[name]}"
+            )
+        return src
 
     def from_json(self, pandoc_ast: dict) -> str:
         meta = pandoc_ast.get("meta", {})
@@ -1464,6 +1603,7 @@ class PandocImporter:
                 continue
             flush()
             src, numbered = _display_math(inline["c"][1])
+            src = self._math_without_structure(inline["c"][1], src).strip()
             label = self._label_of.get(id(inline))
             if not numbered:
                 meta = " {:nonum:}"
@@ -1779,8 +1919,8 @@ class PandocImporter:
         return f":code:{meta} {code} ::"
 
     def _inline_math(self, c: list) -> str:
-        math_type, src = c
-        src = _drop_qedhere(src)
+        math_type, original = c
+        src = self._math_without_structure(original, _drop_qedhere(original))
         is_display = isinstance(math_type, dict) and math_type.get("t") == "DisplayMath"
         # $...$ sits directly against adjacent text; the verbose :math: ... ::
         # form cannot. Fall back to it for display math (handled by _block_para

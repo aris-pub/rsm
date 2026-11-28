@@ -1108,8 +1108,7 @@ def test_inline_math_followed_by_punctuation():
 
         <div class="hr-content-zone">
 
-        <p>one <span class="inline-wrapper">
-        <span class="math" data-nodeid="3">\(2+2=4\)</span><span>.</span></span></p>
+        <p>one <span class="inline-wrapper"><span class="math" data-nodeid="3">\(2+2=4\)</span><span>.</span></span></p>
 
         </div>
 
@@ -1179,8 +1178,7 @@ def test_inline_math_followed_by_punctuation():
 
         <div class="hr-content-zone">
 
-        <p>three <span class="inline-wrapper">
-        <span class="math" data-nodeid="13">\(2+2=4\)</span><span>.</span></span> Another sentence.</p>
+        <p>three <span class="inline-wrapper"><span class="math" data-nodeid="13">\(2+2=4\)</span><span>.</span></span> Another sentence.</p>
 
         </div>
 
@@ -1215,8 +1213,7 @@ def test_inline_math_followed_by_punctuation():
 
         <div class="hr-content-zone">
 
-        <p>four <span class="inline-wrapper">
-        <span class="math" data-nodeid="18">\(H_k\)</span><span>,</span></span> the maximal.</p>
+        <p>four <span class="inline-wrapper"><span class="math" data-nodeid="18">\(H_k\)</span><span>,</span></span> the maximal.</p>
 
         </div>
 
@@ -1251,8 +1248,7 @@ def test_inline_math_followed_by_punctuation():
 
         <div class="hr-content-zone">
 
-        <p>five <span class="inline-wrapper">
-        <span class="math" data-nodeid="23">\(x\)</span><span>;</span></span> then.</p>
+        <p>five <span class="inline-wrapper"><span class="math" data-nodeid="23">\(x\)</span><span>;</span></span> then.</p>
 
         </div>
 
@@ -1287,8 +1283,7 @@ def test_inline_math_followed_by_punctuation():
 
         <div class="hr-content-zone">
 
-        <p>six <span class="inline-wrapper">
-        <span class="math" data-nodeid="28">\(y\)</span><span>)</span></span> end.</p>
+        <p>six <span class="inline-wrapper"><span class="math" data-nodeid="28">\(y\)</span><span>)</span></span> end.</p>
 
         </div>
 

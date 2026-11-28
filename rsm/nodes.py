@@ -12,6 +12,7 @@ subclasses whose only purpose is to differentiate themselves from others via the
 
 """
 
+import copy
 import textwrap
 from collections.abc import Callable, Generator, Iterable
 from datetime import datetime
@@ -191,6 +192,10 @@ class Node:
         """Whether this node's handrail should start collapsed (applied by JS on load)."""
         self.reftext_template: str = reftext_template or self.classreftext
         """Reftext template, or "" to use :attr:`classreftext`."""
+        # The inline nodes of a :reftext: or a :blockname: that holds markup, for
+        # the HTML. reftext_template and blockname then hold the plain text.
+        self.reftext_template_nodes: list[Node] = []
+        self.blockname_nodes: list[Node] = []
         # Plain tuples, not tree-sitter Points: tree-sitter 0.26's Point cannot
         # be copied or unpickled, and RSM deep-copies heading titles.
         self.start_point: tuple[int, int] = (start_point[0], start_point[1])
@@ -514,6 +519,29 @@ class Node:
         return self.reftext_template.format(
             nodeclass=self.kindname, number=self.full_number or ""
         ).strip()
+
+    def reftext_markup(self) -> list["Node"]:
+        """A copy of :attr:`reftext` as inline nodes, when its :reftext: or its
+        :blockname: holds markup, or an empty list otherwise."""
+        if self.reftext_template_nodes:
+            return copy.deepcopy(self.reftext_template_nodes)
+        if self.reftext_template != self.classreftext:
+            return []
+        return self.kindname_markup(self.classreftext)
+
+    def kindname_markup(self, template: str) -> list["Node"]:
+        """A copy of `template`, filled in with the kind name and the number, as
+        inline nodes, when :blockname: holds markup, or an empty list otherwise."""
+        if not self.blockname_nodes:
+            return []
+        mark = "\0"
+        filled = template.format(nodeclass=mark, number=self.full_number or "").strip()
+        before, _, after = filled.partition(mark)
+        result: list[Node] = [Text(before)] if before else []
+        result += copy.deepcopy(self.blockname_nodes)
+        if after:
+            result.append(Text(after))
+        return result
 
     @overload
     def traverse(
@@ -1260,6 +1288,7 @@ class Manuscript(Heading):
         self.src = src
         self.date = date
         self.eyebrow = eyebrow
+        self.eyebrow_nodes: list[Node] = []
         self.plain_title = plain_title
         self.numbering = numbering
         self.accent = accent
@@ -1324,6 +1353,11 @@ class Author(Node):
         """ORCID identifier."""
         self.author_note: str = author_note
         """Author note (e.g., 'Equal contribution')."""
+        # The inline nodes of a value that holds markup, for the HTML. The value
+        # above then holds the plain text.
+        self.name_nodes: list[Node] = []
+        self.affiliation_nodes: list[Node] = []
+        self.author_note_nodes: list[Node] = []
 
         self.affiliation_number: int | None = None
         """Affiliation number assigned by transformer (auto-deduped)."""
@@ -1423,7 +1457,10 @@ class BaseParagraph(Heading):
 
 
 class Paragraph(BaseParagraph):
-    pass
+    # Set by the transformer on a paragraph that it made to hold a math block, code
+    # block or algorithm that stands on its own. Such a paragraph adds nothing to
+    # the page, so the block looks the same as before it was wrapped.
+    wraps_block: bool = False
 
 
 class Note(BaseParagraph):

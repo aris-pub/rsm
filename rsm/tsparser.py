@@ -33,7 +33,7 @@ import re
 from collections.abc import Callable
 from datetime import datetime
 from itertools import groupby
-from typing import Any, NamedTuple, cast
+from typing import Any, NamedTuple, TypeGuard, cast
 
 import tree_sitter
 import tree_sitter_rsm
@@ -179,8 +179,15 @@ class RSMParserError(Exception):
 
     """
 
-    def __init__(self, pos: int | None = None, msg: str | None = None) -> None:
+    def __init__(
+        self,
+        pos: int | None = None,
+        msg: str | None = None,
+        position: dict[str, int] | None = None,
+    ) -> None:
         self.pos = pos
+        # The fields of _user_position, so that rsm check points at the source.
+        self.position = position or {}
         self.msg = f"Parser error at position {self.pos}" if msg is None else msg
         super().__init__(self.msg)
 
@@ -684,6 +691,46 @@ def _parse_meta_into_dict(node: TSNode) -> dict[str, Any]:
     return pairs
 
 
+def _is_plain_text(node: nodes.Node | None) -> TypeGuard[nodes.Text]:
+    return isinstance(node, nodes.Text) and not isinstance(node, nodes.Error)
+
+
+def _move_edge_spaces_out(span: nodes.Span) -> None:
+    """Move a space just inside ** or * to just outside the span.
+
+    _normalize_text strips the spaces at both ends of the text inside a span. In
+    '**graded **x' the space after 'graded' is the only space between the
+    words, so it goes before or after the span instead.
+    """
+    parent = span.parent
+    if not isinstance(parent, nodes.NodeWithChildren) or not span.children:
+        return
+
+    def add_space(after: bool) -> None:
+        sib = span.next_sibling() if after else span.prev_sibling()
+        if _is_plain_text(sib):
+            if after and not sib.text[:1].isspace():
+                sib.text = " " + sib.text
+            elif not after and not sib.text[-1:].isspace():
+                sib.text += " "
+            return
+        point = span.end_point if after else span.start_point
+        space = nodes.Text(" ", start_point=point, end_point=point)
+        space.parent = parent
+        # Nodes compare equal by value, so the span is found by identity.
+        index = next(i for i, c in enumerate(parent.children) if c is span)
+        parent._children.insert(index + 1 if after else index, space)
+
+    first = span.children[0]
+    if _is_plain_text(first) and first.text[:1].isspace():
+        first.text = first.text.lstrip()
+        add_space(after=False)
+    last = span.children[-1]
+    if _is_plain_text(last) and last.text[-1:].isspace():
+        last.text = last.text.rstrip()
+        add_space(after=True)
+
+
 def _normalize_text(root: nodes.Node | None) -> str:
     if root is None:
         return ""
@@ -809,6 +856,21 @@ def _normalize_text(root: nodes.Node | None) -> str:
         if isinstance(title, str) and title:
             # getattr above found a title on this node.
             node.title = EscapedString(title, DELIMS).escape()  # type: ignore[attr-defined]
+        for key in _MARKUP_KEYS:
+            value = getattr(node, key, None)
+            if (
+                isinstance(value, str)
+                and value
+                and not getattr(node, f"{key}_nodes", None)
+            ):
+                setattr(node, key, EscapedString(value, DELIMS).escape())
+        if (
+            node.reftext_template != node.classreftext
+            and not node.reftext_template_nodes
+        ):
+            node.reftext_template = EscapedString(
+                node.reftext_template, DELIMS
+            ).escape()
 
     return ""  # This function modifies nodes in place
 
@@ -904,17 +966,36 @@ def _drop_tags_not_allowed_in_heading(
     return kept
 
 
-def _markup_title_children(meta: TSNode) -> list[TSNode]:
-    """The pieces of a :title: value in this meta, if the title holds markup.
-    A plain title is read as text by _parse_meta_into_dict."""
+def _markup_meta_children(meta: TSNode) -> list[tuple[str, list[TSNode]]]:
+    """The key and the pieces of each value in this meta that holds markup,
+    among the keys whose values may hold it (:title:, :eyebrow:, :name: and
+    the others of metakey_title). A value with text only is read as text by
+    _parse_meta_into_dict."""
+    found = []
     for pair in meta.named_children:
-        if pair.type == "pair" and pair.named_children[0].type == "metakey_title":
-            pieces = [
-                c for c in pair.named_children[1].named_children if c.type != "comment"
-            ]
-            if any(c.type != "text" for c in pieces):
-                return _drop_tags_not_allowed_in_heading(pieces, "a title")
-    return []
+        if pair.type != "pair" or pair.named_children[0].type != "metakey_title":
+            continue
+        key = pair.named_children[0].named_children[0].type
+        pieces = [
+            c for c in pair.named_children[1].named_children if c.type != "comment"
+        ]
+        if any(c.type != "text" for c in pieces):
+            where = "a title" if key == "title" else f"the :{_source_key(key)}: value"
+            found.append((key, _drop_tags_not_allowed_in_heading(pieces, where)))
+    return found
+
+
+def _source_key(key: str) -> str:
+    """A key as the author writes it, such as author-note for author_note."""
+    return key.replace("_", "-")
+
+
+# The attribute that holds the value of a meta key, when it is not the key.
+_META_ATTR = {"reftext": "reftext_template"}
+
+# The keys besides :title: whose values may hold markup. A value without markup
+# is unescaped in _normalize_text, as a title is.
+_MARKUP_KEYS = ("affiliation", "author_note", "blockname", "eyebrow", "name")
 
 
 def _join_title_text(children: list[nodes.Node]) -> list[nodes.Node]:
@@ -976,53 +1057,90 @@ _SECTIONING = {
     "paragraph",
     "subparagraph",
 }
-_NO_NUMBER = "does not remove the number in RSM. Use :nonum: on the block."
-_REF = (
-    "in math is not a reference in RSM. Write :ref:<label>:: outside the math instead."
+_REFERENCES = {
+    "ref",
+    "eqref",
+    "pageref",
+    "autoref",
+    "cref",
+    "Cref",
+    "nameref",
+    "hyperref",
+}
+_CITATIONS = {
+    "cite",
+    "citep",
+    "citet",
+    "citealp",
+    "citealt",
+    "citeauthor",
+    "citeyear",
+    "citeyearpar",
+    "nocite",
+    "parencite",
+    "textcite",
+    "autocite",
+}
+_COUNTERS = {
+    "setcounter",
+    "addtocounter",
+    "stepcounter",
+    "refstepcounter",
+    "numberwithin",
+}
+_NONUM = "Use :nonum: on the block to remove the number."
+_NOTE = "Use a :note: outside the math instead."
+_URL = "Write :url:<address>:: outside the math instead."
+_STRUCTURE_COMMANDS = (
+    {
+        "label": "Give the math block a :label: instead.",
+        "tag": f"RSM numbers the block. {_NONUM}",
+        "notag": _NONUM,
+        "nonumber": _NONUM,
+        "caption": "Use :caption: in a :figure: or a :table: instead.",
+        "footnote": _NOTE,
+        "footnotemark": _NOTE,
+        "footnotetext": _NOTE,
+        "href": _URL,
+        "url": _URL,
+    }
+    | dict.fromkeys(
+        _COUNTERS,
+        "RSM numbers the blocks itself. Use :numbering: in :config: to choose how, "
+        "or :nonum: on the block to remove the number.",
+    )
+    | dict.fromkeys(_REFERENCES, "Write :ref:<label>:: outside the math instead.")
+    | dict.fromkeys(_CITATIONS, "Write :cite:<key>:: outside the math instead.")
+    | dict.fromkeys(_SECTIONING, "Use a heading such as ## Title instead.")
 )
-_STRUCTURE_COMMANDS = {
-    "label": "in math is ignored by RSM. Give the block a :label: instead.",
-    "tag": (
-        "in math does not set the number in RSM. RSM numbers the block. "
-        "Use :nonum: on the block to remove the number."
-    ),
-    "notag": _NO_NUMBER,
-    "nonumber": _NO_NUMBER,
-    "ref": _REF,
-    "eqref": _REF,
-    "cite": (
-        "in math is not a citation in RSM. Write :cite:<key>:: outside the math "
-        "instead."
-    ),
-    "caption": (
-        "in math is ignored by RSM. Use :caption: in a :figure: or a :table: instead."
-    ),
-} | dict.fromkeys(
-    _SECTIONING,
-    "in math does not start a section in RSM. Use a heading such as ## Title instead.",
-)
+# A star only removes the number, and RSM numbers math blocks itself.
 _STARRED_ENVS = {"align*", "gather*", "multline*", "flalign*", "alignat*", "equation*"}
+# The export to LaTeX has no inner form of eqnarray to put inside a numbered
+# equation, and align gives the same layout.
+_EQNARRAY = "Use align instead, and :nonum: on the block to remove the number."
 # \\ and \% are matched as control symbols, so that the letters after \\ are not
 # read as a command and a % after \ does not start a comment.
 _MATH_TOKEN = re.compile(
-    r"\\begin\s*\{(?P<env>[A-Za-z]+\*)\}|\\(?P<cmd>[A-Za-z]+)|\\.|%[^\n]*", re.DOTALL
+    r"\\begin\s*\{(?P<env>[A-Za-z]+\*?)\}|\\(?P<cmd>[A-Za-z]+)|\\.|%[^\n]*", re.DOTALL
 )
 
 
-def _warn_structure_commands(
-    text: str, start_point: tuple[int, int], numbered: bool
-) -> None:
-    """Warn about each LaTeX command in math that is about document structure.
-
-    `numbered` is whether the math is a block that RSM numbers. Only then does a
-    starred environment try to remove a number.
-    """
+def _check_structure_commands(text: str, start_point: tuple[int, int]) -> None:
+    """Stop the build at the first LaTeX command in math that does the job of an
+    RSM tag or meta key: a label, a number, a reference, a citation, a section, a
+    caption or a footnote."""
     for m in _MATH_TOKEN.finditer(text):
-        name = m.group("cmd")
+        name, env = m.group("cmd"), m.group("env")
         if name in _STRUCTURE_COMMANDS:
-            msg = f"\\{name} {_STRUCTURE_COMMANDS[name]}"
-        elif numbered and m.group("env") in _STARRED_ENVS:
-            msg = f"{m.group('env')} {_NO_NUMBER}"
+            what, advice = f"\\{name}", _STRUCTURE_COMMANDS[name]
+        elif env in _STARRED_ENVS:
+            what = env
+            advice = (
+                f"Use {env.removesuffix('*')} and put :nonum: on the block to "
+                "remove the number."
+            )
+        elif env in ("eqnarray", "eqnarray*"):
+            what, advice = env, _EQNARRAY
         else:
             continue
         before = text[: m.start()].encode("utf-8")
@@ -1032,7 +1150,10 @@ def _warn_structure_commands(
         if line_start == 0:
             col += start_point[1]
         width = len(m.group(0).encode("utf-8"))
-        logger.warning(msg, extra=_user_position((row, col), (row, col + width)))
+        raise RSMParserError(
+            msg=f"{what} cannot be used in math (line {row + 1}). {advice}",
+            position=_user_position((row, col), (row, col + width)),
+        )
 
 
 def _check_raw_html(raw: nodes.RawHtml) -> None:
@@ -1052,7 +1173,7 @@ def _check_raw_html(raw: nodes.RawHtml) -> None:
         if not raw.alt:
             logger.warning(
                 "An inline :html: has no :alt:, so nothing stands in for it in "
-                "reference previews and in output other than HTML",
+                "reference previews, and rsm export stops with an error",
                 extra=extra,
             )
         return
@@ -1241,9 +1362,11 @@ def _abstractify(cst: TSTree) -> nodes.Manuscript | None:
     # holder collects the inline children as the main loop builds them; after the
     # loop they move onto the reference node's reftext_nodes.
     reftext_builds: list[tuple[nodes.BaseReference, nodes.Span]] = []
-    # The same for headings whose title carries inline markup.
-    title_builds: list[tuple[nodes.Heading, nodes.Span]] = []
+    # The same for meta values that carry inline markup, such as a heading's
+    # title: (node, key, holder).
+    meta_builds: list[tuple[nodes.Node, str, nodes.Span]] = []
     raw_html_nodes: list[nodes.RawHtml] = []
+    marker_spans: list[nodes.Span] = []
     # A footnote or aside call right after a word leaves a stray '::' as an
     # ERROR. The call's own message covers that ERROR, so the log gets no second
     # message, and the page shows the call's message there.
@@ -1261,10 +1384,15 @@ def _abstractify(cst: TSTree) -> nodes.Manuscript | None:
 
     def ingest_meta(ast_node: nodes.Node, meta: TSNode) -> None:
         ast_node.ingest_dict_as_meta(_parse_meta_into_dict(meta))
-        pieces = _markup_title_children(meta)
-        if pieces and isinstance(ast_node, nodes.Heading):
+        for key, pieces in _markup_meta_children(meta):
+            if key == "title" and not isinstance(ast_node, nodes.Heading):
+                continue
+            if not pieces:
+                # Every piece was a tag that is left out.
+                setattr(ast_node, _META_ATTR.get(key, key), "")
+                continue
             holder = nodes.Span()
-            title_builds.append((ast_node, holder))
+            meta_builds.append((ast_node, key, holder))
             stack.extend(reversed([(holder, c) for c in pieces]))
 
     while stack:
@@ -1370,7 +1498,7 @@ def _abstractify(cst: TSTree) -> nodes.Manuscript | None:
             title_children = _drop_tags_not_allowed_in_heading(title_children)
             if len(title_children) > 1 or any(c.type != "text" for c in title_children):
                 holder = nodes.Span()
-                title_builds.append((ast_node, holder))
+                meta_builds.append((ast_node, "title", holder))
                 stack += reversed([(holder, c) for c in title_children])
             elif title_children:
                 assert title_children[0].text is not None
@@ -1543,13 +1671,7 @@ def _abstractify(cst: TSTree) -> nodes.Manuscript | None:
             text = asis.text.decode("utf-8")
             child: nodes.Node
             if ast_node_type in ["math", "mathblock"]:
-                numbered = (
-                    ast_node_type == "mathblock"
-                    and not ast_node.nonum
-                    and not ast_node.preamble
-                    and getattr(ast_root_node, "numbering", "section") != "none"
-                )
-                _warn_structure_commands(text, asis.start_point, numbered)
+                _check_structure_commands(text, asis.start_point)
             if ast_node_type in ["code", "codeblock"]:
                 child = nodes.SourceCode(text, lang=ast_node.lang)
             else:
@@ -1565,6 +1687,8 @@ def _abstractify(cst: TSTree) -> nodes.Manuscript | None:
                 ast_node.append(child)
             if ast_node_type == "html":
                 raw_html_nodes.append(ast_node)
+        if ast_node_type in ("spanstrong", "spanemphas"):
+            marker_spans.append(ast_node)
 
         # mathblocks that are marked as claims must be enclosed within a ClaimBlock
         if ast_node_type == "mathblock" and ast_node.isclaim:
@@ -1669,6 +1793,11 @@ def _abstractify(cst: TSTree) -> nodes.Manuscript | None:
             ]
         )
 
+    # The list is in the order in which the spans were made, so reversing it
+    # handles a span inside another span before the outer span.
+    for span in reversed(marker_spans):
+        _move_edge_spaces_out(span)
+
     # Move the inline reftext nodes off their holders and onto the references.
     # Reparent directly (not via append, which rejects a node that already has a
     # parent) so the reference becomes their parent for any upward walk during
@@ -1685,20 +1814,25 @@ def _abstractify(cst: TSTree) -> nodes.Manuscript | None:
 
     # The title nodes stay children of their holder (unlike reftext nodes), so
     # that a node in the title can find its siblings when it is rendered.
-    for heading, holder in title_builds:
+    for owner, key, holder in meta_builds:
         children = _join_title_text(list(holder.children))
         for child in children:
             # A title written over several lines keeps each line's indent.
             if isinstance(child, nodes.Text):
                 child.text = re.sub(r"\s+", " ", child.text)
+                # The holder is not in the tree, so _normalize_text does not
+                # unescape these pieces.
+                if key != "title" and not child.asis:
+                    child.text = EscapedString(child.text, DELIMS).escape()
         if isinstance(children[0], nodes.Text):
             children[0].text = children[0].text.lstrip()
         if isinstance(children[-1], nodes.Text):
             # A comma at the end of a meta pair is dropped (see _metaval_str).
             text = children[-1].text.rstrip()
             children[-1].text = text[:-1].rstrip() if text.endswith(",") else text
-        heading.title_nodes = children
-        heading.title = _flatten_reftext(children).strip()
+        attr = _META_ATTR.get(key, key)
+        setattr(owner, f"{attr}_nodes", children)
+        setattr(owner, attr, _flatten_reftext(children).strip())
 
     for raw in raw_html_nodes:
         _check_raw_html(raw)

@@ -1018,3 +1018,107 @@ def test_link_whose_text_is_its_address_has_no_text():
     text = [{"t": "Str", "c": "https://example.org"}]
     out = PandocImporter().from_json(_para_with_link(text, "https://example.org"))
     assert ":url:https://example.org::" in out
+
+
+# eqnarray cannot be built in RSM, so the import writes align, with the two
+# ampersands around the relation of each line turned into one before it.
+
+
+def test_eqnarray_becomes_align():
+    src = (
+        "\\begin{eqnarray}\n\\label{e}\na &=& b \\\\\nc & \\le & d \\nonumber\n"
+        "\\end{eqnarray}"
+    )
+    out = _import_math(src)
+    assert (
+        ":mathblock: {:label: eqn-1}\n  \\begin{align}\na &= b \\\\\nc & \\le  d\n"
+        "\\end{align}\n::"
+    ) in out, out
+    _parse_without_errors(out)
+
+
+def test_starred_eqnarray_becomes_align_with_nonum():
+    out = _import_math("\\begin{eqnarray*}\na &=& b\n\\end{eqnarray*}")
+    assert ":mathblock: {:nonum:}\n  \\begin{align}\na &= b\n\\end{align}\n::" in out
+    _parse_without_errors(out)
+
+
+def test_eqnarray_keeps_an_escaped_ampersand():
+    out = _import_math("\\begin{eqnarray}\na \\& b &=& c\n\\end{eqnarray}")
+    assert "a \\& b &= c" in out, out
+
+
+# A LaTeX command in math that RSM does with a tag (a reference, a citation, a
+# label and the rest) cannot be built, so the import drops it and warns.
+
+
+def _inline(src):
+    return {"t": "Math", "c": [{"t": "InlineMath"}, src]}
+
+
+def _import_inline(src, source=""):
+    para = {"t": "Para", "c": [*_words("See"), {"t": "Space"}, _inline(src)]}
+    return PandocImporter(source=source).from_json({"blocks": [para]})
+
+
+def test_reference_in_inline_math_is_dropped_with_warning(caplog):
+    out = _import_inline("x = \\eqref{e1} + 1")
+    assert "$x =  + 1$" in out, out
+    assert (
+        "rsm import dropped \\eqref from math, since it cannot be used in math in "
+        "RSM. Write :ref:<label>:: outside the math instead."
+    ) in caplog.text
+    _parse_without_errors(out)
+
+
+def test_command_in_display_math_is_dropped_with_warning(caplog):
+    out = _import_math("\\begin{equation}\nx = y \\cite[p. 2]{knuth}\n\\end{equation}")
+    assert ":mathblock: {:label: eqn-1}\n  x = y\n::" in out, out
+    assert "rsm import dropped \\cite from math" in caplog.text
+    _parse_without_errors(out)
+
+
+def test_warning_gives_the_line_of_the_command(caplog):
+    tex = "\\begin{document}\nSee $x = \\ref{a}$.\nThen\n$y = \\ref{b}$.\n"
+    blocks = [
+        {"t": "Para", "c": [_inline("x = \\ref{a}")]},
+        {"t": "Para", "c": [_inline("y = \\ref{b}")]},
+    ]
+    PandocImporter(source=tex).from_json({"blocks": blocks})
+    assert "dropped \\ref from math at line 2, since" in caplog.text
+    assert "dropped \\ref from math at line 4, since" in caplog.text
+
+
+def test_every_command_that_cannot_be_built_is_dropped(caplog):
+    # The import reads the same list as the build errors, so the two agree.
+    from rsm.tsparser import _STRUCTURE_COMMANDS
+
+    for name in _STRUCTURE_COMMANDS:
+        caplog.clear()
+        out = _import_inline(f"a \\{name}*[o]{{x}}{{y}} b")
+        assert "$a  b$" in out, (name, out)
+        assert f"dropped \\{name} from math" in caplog.text, name
+        _parse_without_errors(out)
+
+
+def test_layout_commands_in_math_are_kept(caplog):
+    out = _import_inline("\\labelx + \\partial f + \\urlstyle{tt}")
+    assert "$\\labelx + \\partial f + \\urlstyle{tt}$" in out, out
+    assert caplog.text == ""
+
+
+@pytest.mark.skipif(shutil.which("pandoc") is None, reason="pandoc not installed")
+def test_latex_with_eqnarray_and_eqref_in_math_imports_and_builds(tmp_path):
+    import rsm
+
+    tex = tmp_path / "a.tex"
+    tex.write_text(
+        "\\documentclass{article}\n\\usepackage{amsmath}\n\\begin{document}\n"
+        "\\section{A}\n\\begin{eqnarray}\na &=& b \\label{e1}\n\\end{eqnarray}\n"
+        "Then $x = \\eqref{e1}$ and\n\\begin{eqnarray*} c &\\le& d \\end{eqnarray*}\n"
+        "\\end{document}\n"
+    )
+    out = rsm.app.import_project(str(tex), from_format="latex")
+    assert "eqnarray" not in out, out
+    assert "\\eqref" not in out, out
+    rsm.tsparser.TSParser().parse(out)

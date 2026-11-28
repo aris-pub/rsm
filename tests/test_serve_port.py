@@ -2,7 +2,6 @@
 
 import socket
 import subprocess
-import time
 from contextlib import closing
 
 import pytest
@@ -22,21 +21,13 @@ def test_serve_with_custom_port(tmp_path):
     rsm_file = tmp_path / "test.rsm"
     rsm_file.write_text("# Test\n\nContent.")
 
-    # Build first
-    subprocess.run(
-        ["rsm", "build", str(rsm_file)],
-        cwd=tmp_path,
-        check=True,
-        capture_output=True,
-    )
-
     # Find a free port
     port = find_free_port()
 
     # Start server in background with custom port (will timeout after 2 seconds, which is expected)
     try:
         result = subprocess.run(
-            ["rsm", "serve", "--port", str(port), "--no-browser"],
+            ["rsm", "serve", "test.rsm", "--port", str(port), "--no-browser"],
             cwd=tmp_path,
             timeout=2,
             capture_output=True,
@@ -64,14 +55,6 @@ def test_serve_port_in_use_error_message(tmp_path):
     rsm_file = tmp_path / "test.rsm"
     rsm_file.write_text("# Test\n\nContent.")
 
-    # Build first
-    subprocess.run(
-        ["rsm", "build", str(rsm_file)],
-        cwd=tmp_path,
-        check=True,
-        capture_output=True,
-    )
-
     # Find a free port and occupy it
     port = find_free_port()
 
@@ -84,7 +67,7 @@ def test_serve_port_in_use_error_message(tmp_path):
     try:
         # Try to serve on the same port
         result = subprocess.run(
-            ["rsm", "serve", "--port", str(port), "--no-browser"],
+            ["rsm", "serve", "test.rsm", "--port", str(port), "--no-browser"],
             cwd=tmp_path,
             timeout=2,
             capture_output=True,
@@ -107,18 +90,10 @@ def test_serve_default_port_5500(tmp_path):
     rsm_file = tmp_path / "test.rsm"
     rsm_file.write_text("# Test\n\nContent.")
 
-    # Build first
-    subprocess.run(
-        ["rsm", "build", str(rsm_file)],
-        cwd=tmp_path,
-        check=True,
-        capture_output=True,
-    )
-
     # Start server without --port flag (will timeout after 2 seconds, which is expected)
     try:
         result = subprocess.run(
-            ["rsm", "serve", "--no-browser"],
+            ["rsm", "serve", "test.rsm", "--no-browser"],
             cwd=tmp_path,
             timeout=2,
             capture_output=True,
@@ -139,43 +114,3 @@ def test_serve_default_port_5500(tmp_path):
     # If server exited, it should have been an error (port conflict is possible with default port)
     # Allow both success and error, we just want to verify the default is 5500
     assert result.returncode != 0 or "http://127.0.0.1:5500" in result.stderr
-
-
-@pytest.mark.slow
-def test_serve_no_html_files_shows_empty_index(tmp_path):
-    """Test that serving with no HTML files generates an empty index page instead of 404.
-
-    NOTE: This test has a race condition - it waits for the subprocess to create
-    the .rsm-index.html file. The sleep duration is set conservatively to reduce
-    flakiness on slow/busy systems.
-    """
-    # Start server in directory with no HTML files
-    port = find_free_port()
-
-    process = subprocess.Popen(
-        ["rsm", "serve", "--port", str(port), "--no-browser"],
-        cwd=tmp_path,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        text=True,
-    )
-
-    try:
-        # Give the server time to start and create the index file
-        time.sleep(2.0)
-
-        # Check that it created an empty index page
-        index_file = tmp_path / ".rsm-index.html"
-        assert index_file.exists(), "Empty index page should be created"
-
-        # Verify the content is an empty list page
-        content = index_file.read_text()
-        assert "RSM - Available Pages" in content
-        assert "<ul>" in content
-    finally:
-        # Always kill the server process
-        process.terminate()
-        try:
-            process.wait(timeout=2)
-        except subprocess.TimeoutExpired:
-            process.kill()

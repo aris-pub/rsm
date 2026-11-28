@@ -173,8 +173,7 @@ def test_handrails_math_with_trailing_punctuation():
         if depth == 0:
             i = m.end()
             break
-    # The inline wrapper writes a newline after its opening tag.
-    assert _text(inner[:i]) == "1-\n\\(K\\)."
+    assert _text(inner[:i]) == "1-\\(K\\)."
     assert inner[i:].startswith(" Next.")
 
 

@@ -1,0 +1,15 @@
+# Author values with markup
+
+:author: {
+  :name: Ada **B** Lovelace
+  :affiliation: Lab of $K_4$ graphs
+  :author-note: Note *one*
+} ::
+
+:author: {
+  :name: Bo Chen
+  :affiliation: Other
+  :author-note: Plain
+} ::
+
+Text.
