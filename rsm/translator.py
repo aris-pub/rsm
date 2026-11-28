@@ -1819,7 +1819,7 @@ class Translator:
                 name_html = self._meta_html(name, name_nodes.get(name, []))
                 html += (
                     f'<p class="author-orcid">{name_html}: '
-                    f"{_wrap_hyphenated_words(orcid)}</p>\n"
+                    f"{_wrap_hyphenated_words(html_escape(orcid, quote=False))}</p>\n"
                 )
 
         html += "</div>\n"

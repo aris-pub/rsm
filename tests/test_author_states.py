@@ -244,6 +244,14 @@ class TestEscaping:
         assert name["data-affiliation"] == "1"
         assert name["data-note"] == "*"
 
+    def test_orcid_line_is_escaped(self):
+        block = _block(authors=[("A", "", "", '0000-<b>x</b>"', "")])
+        line = block.select_one(".author-orcid")
+        assert line.get_text() == 'A: 0000-<b>x</b>"'
+        assert line.select("b") == []
+        link = block.select_one("a.author-contact")
+        assert link["href"] == 'https://orcid.org/0000-<b>x</b>"'
+
 
 class TestChevron:
     """The handrail chevron is left out when the block has nothing to open."""
