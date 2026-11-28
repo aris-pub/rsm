@@ -494,7 +494,7 @@ class PandocTranslator:
             return []
         # Use :static: path for non-web export when available
         path = str(node.static) if node.static else str(node.path)
-        alt_text = node.alt or f"Figure {node.full_number or ''}".strip()
+        alt_text = node.alt or f"{node.kindname} {node.full_number or ''}".strip()
         image = {
             "t": "Image",
             "c": [["", [], []], [{"t": "Str", "c": alt_text}], [path, ""]],

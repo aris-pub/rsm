@@ -128,9 +128,10 @@ MP4, WebM or MOV:
 
 A video is numbered and referenced like a figure, as "Video 1".
 
-A file exported to PDF, LaTeX or another format shows the ``:static:`` image
-of a video, such as one frame of it, with the caption. ``rsm export`` stops
-with an error if a video has no ``:static:``.
+The tooltip of a reference to a video and a file exported to PDF, LaTeX or
+another format show the ``:static:`` image of the video, such as one frame of
+it, with the caption. ``rsm export`` stops with an error if a video has no
+``:static:``.
 
 See :ref:`tag-figure`, :ref:`tag-video` and :ref:`tag-htmlblock` in the
 language reference.

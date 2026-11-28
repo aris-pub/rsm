@@ -1341,6 +1341,13 @@ var RSM = (() => {
       clone = copyOf($t);
       stripHandrail(clone);
       clone.find("[data-menu-label]").removeAttr("data-menu-label data-menu-link data-menu-code data-menu-static-toggle tabindex");
+      const still = $t[0].getAttribute("data-static");
+      if (classes.contains("video") && still) {
+        const img = document.createElement("img");
+        img.src = still;
+        img.alt = $t[0].getAttribute("data-alt") || "";
+        clone.find("video").replaceWith(img);
+      }
       content = `<div>${clone.html()}</div>`;
     } else if (tag === "SPAN" && classes.contains("math")) {
       content = `<div>${$t.html()}</div>`;

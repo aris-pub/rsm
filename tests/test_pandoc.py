@@ -1619,6 +1619,15 @@ def test_export_of_video_with_static_keeps_caption_number_and_label():
     assert r"\hyperref[vid-a]{Video 1}" in latex
 
 
+def test_exported_video_without_alt_has_video_alt_text():
+    blocks = _blocks(
+        "# Doc\n\n## Sec\n\n:video: {:path: clip.mp4, :static: frame.png}\n::\n"
+    )
+    (figure,) = [b for b in blocks if b["t"] == "Figure"]
+    image = figure["c"][2][0]["c"][0]
+    assert image["c"][1] == [{"t": "Str", "c": "Video 1.1"}]
+
+
 @_PANDOC_SKIP
 def test_html_block_inside_figure_with_static_needs_no_alt():
     source = (

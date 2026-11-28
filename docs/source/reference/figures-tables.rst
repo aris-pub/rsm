@@ -108,8 +108,8 @@ A video file, with the browser's controls and an optional caption.
 
 ``:static:``
    An image, such as one frame of the video, shown instead of the video in
-   exported files. ``rsm export`` stops with an error if a video has no
-   ``:static:``.
+   the tooltip of a reference to it and in exported files. ``rsm export``
+   stops with an error if a video has no ``:static:``.
 
 ``:blockname:``
    As for ``:figure:``.
