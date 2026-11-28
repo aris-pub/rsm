@@ -371,19 +371,19 @@ starts the next pair. A colon anywhere else stays in the value, as in `Ratio 3:1
 
 | Key | Description |
 |-----|-------------|
-| `:affiliation:` | Author institutional affiliation |
+| `:affiliation:` | Author institutional affiliation; may hold inline markup |
 | `:alt:` | Alt text for figure images; the fallback of `:html:` and `:htmlblock:` |
-| `:author-note:` | Author note (e.g. "Equal contribution") |
-| `:blockname:` | Name a theorem-like block, figure, video or table is called by, in place of its type's name |
+| `:author-note:` | Author note (e.g. "Equal contribution"); may hold inline markup |
+| `:blockname:` | Name a theorem-like block, figure, video or table is called by, in place of its type's name; may hold inline markup |
 | `:email:` | Author email |
-| `:eyebrow:` | Short label above the manuscript title |
+| `:eyebrow:` | Short label above the manuscript title; may hold inline markup |
 | `:goal:` | Theorem goal |
 | `:icon:` | Icon assigned to the block |
 | `:label:` | Cross-reference label |
-| `:name:` | Author name |
+| `:name:` | Author name; may hold inline markup |
 | `:orcid:` | Author ORCID identifier |
 | `:plain-title:` | Plain text for the browser tab, in place of the manuscript title |
-| `:reftext:` | Label display text for references |
+| `:reftext:` | Label display text for references; may hold inline markup |
 | `:title:` | Block or manuscript title; may hold inline markup, as a heading does |
 
 **Boolean keys** (presence = true, no value needed):

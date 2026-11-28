@@ -53,7 +53,7 @@ An image, or an interactive figure written in HTML, with an optional caption.
 
 ``:blockname:``
    A name that replaces "Figure" in the figure's label and in references to
-   it, such as ``Diagram``.
+   it, such as ``Diagram``. It can hold inline markup, such as math.
 
 ``:as-paragraph:``
    Shows the figure as part of the text, with no number and no caption. A
@@ -145,6 +145,7 @@ A table, with an optional head, a body and an optional caption, in that order.
 
 ``:blockname:``
    A name that replaces "Table" in the table's label and in references to it.
+   It can hold inline markup, such as math.
 
 .. rubric:: Example
 

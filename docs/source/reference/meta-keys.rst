@@ -44,7 +44,7 @@ Every tag takes these keys. A key that has no use for a tag, such as
 
 ``:reftext:``
    Text that replaces the kind and number in every reference to the block,
-   such as "the main lemma".
+   such as "the main lemma". It can hold inline markup, such as math.
 
 .. rubric:: Example
 

@@ -931,11 +931,16 @@ def _caption_name(parent: nodes.Node) -> str:
     ).strip()
 
 
-def _caption_label(parent: nodes.Node) -> AppendOpenCloseTag:
+def _caption_label(parent: nodes.Node, translator: "Translator") -> AppendOpenCloseTag:
     """A caption's label, "Figure 1. "."""
+    markup = parent.kindname_markup(parent.classreftext)
+    if markup:
+        name = translator._render_inline_nodes(markup)
+    else:
+        name = html_escape(_caption_name(parent), quote=False)
     return AppendOpenCloseTag(
         tag="span",
-        content=f"{_caption_name(parent)}. ",
+        content=f"{name}. ",
         classes=["label"],
         newline_inner=False,
         newline_outer=False,
@@ -1577,7 +1582,8 @@ class Translator:
         if node.eyebrow:
             batch.items.append(
                 AppendParagraph(
-                    _wrap_hyphenated_words(node.eyebrow), classes=["manuscript-eyebrow"]
+                    self._meta_html(node.eyebrow, node.eyebrow_nodes),
+                    classes=["manuscript-eyebrow"],
                 )
             )
 
@@ -1621,40 +1627,32 @@ class Translator:
         total_affiliations = getattr(self.tree, "total_unique_affiliations", 0)
         total_notes = getattr(self.tree, "total_unique_notes", 0)
 
-        # Build reverse maps for tooltips
         notes_node = next(
             (c for c in node.children if isinstance(c, nodes.AuthorNotes)), None
         )
-        aff_by_num: dict[int, str] = {}
-        if notes_node:
-            aff_by_num = {v: k for k, v in notes_node.affiliation_map.items()}
 
         name_parts = []
         for author in authors:
             if not author.name:
                 continue
-            # authors.js builds the name's tooltip from these attributes.
+            # tooltips.js copies the name's tooltip from the details that these
+            # attributes point at, so that no HTML is read from an attribute.
             tip_attrs = ""
-            if author.affiliation:
-                tip_attrs += (
-                    f' data-affiliation="{html_escape(author.affiliation, quote=True)}"'
-                )
-            if author.author_note:
-                tip_attrs += f' data-note="{html_escape(author.author_note, quote=True)}"'
+            if author.affiliation and author.affiliation_number is not None:
+                tip_attrs += f' data-affiliation="{author.affiliation_number}"'
+            if author.author_note and author.note_symbol:
+                tip_attrs += f' data-note="{author.note_symbol}"'
             name_html = (
                 f'<span class="author-name-text"{tip_attrs}>'
-                f"{_wrap_hyphenated_words(author.name)}</span>"
+                f"{self._meta_html(author.name, author.name_nodes)}</span>"
             )
             sup_parts = []
             if author.affiliation_number is not None and total_affiliations > 1:
-                tooltip = aff_by_num.get(author.affiliation_number, "")
-                sup_parts.append(
-                    f'<sup data-tooltip="{tooltip}">{author.affiliation_number}</sup>'
-                )
+                num = author.affiliation_number
+                sup_parts.append(f'<sup data-affiliation="{num}">{num}</sup>')
             if author.note_symbol and total_notes > 1:
-                sup_parts.append(
-                    f'<sup data-tooltip="{author.author_note}">{author.note_symbol}</sup>'
-                )
+                sym = author.note_symbol
+                sup_parts.append(f'<sup data-note="{sym}">{sym}</sup>')
             name_html += "".join(sup_parts)
             name_attr = html_escape(author.name, quote=True)
             if author.email:
@@ -1753,6 +1751,17 @@ class Translator:
 
         total_affiliations = len(node.affiliation_map)
         total_notes = len(node.note_map)
+        # The details list each value once, so they take the markup of the first
+        # author who has it.
+        siblings = node.parent.children if node.parent else ()
+        aff_nodes: dict[str, list[nodes.Node]] = {}
+        note_nodes: dict[str, list[nodes.Node]] = {}
+        name_nodes: dict[str, list[nodes.Node]] = {}
+        for a in siblings:
+            if isinstance(a, nodes.Author):
+                aff_nodes.setdefault(a.affiliation, a.affiliation_nodes)
+                note_nodes.setdefault(a.author_note, a.author_note_nodes)
+                name_nodes.setdefault(a.name, a.name_nodes)
 
         # The summary label counts what the details hold. It starts out hidden,
         # and the stylesheet shows it while the page script has the block closed.
@@ -1773,25 +1782,30 @@ class Translator:
 
         if node.affiliation_map:
             html += '<ol class="author-affiliations">\n'
-            if total_affiliations > 1:
-                for aff_text, aff_num in node.affiliation_map.items():
-                    html += f'<li value="{aff_num}"><sup>{aff_num}</sup>{_wrap_hyphenated_words(aff_text)}</li>\n'
-            else:
-                for aff_text in node.affiliation_map:
-                    html += f"<li>{_wrap_hyphenated_words(aff_text)}</li>\n"
+            for aff_text, aff_num in node.affiliation_map.items():
+                text = self._meta_html(aff_text, aff_nodes.get(aff_text, []))
+                if total_affiliations > 1:
+                    html += (
+                        f'<li value="{aff_num}" data-affiliation="{aff_num}">'
+                        f"<sup>{aff_num}</sup>{text}</li>\n"
+                    )
+                else:
+                    html += f'<li data-affiliation="{aff_num}">{text}</li>\n'
             html += "</ol>\n"
 
         if node.note_map:
-            if total_notes > 1:
-                for note_text, note_sym in node.note_map.items():
-                    html += f'<p class="author-note"><sup>{note_sym}</sup>{_wrap_hyphenated_words(note_text)}</p>\n'
-            else:
-                for note_text in node.note_map:
-                    html += f'<p class="author-note">{_wrap_hyphenated_words(note_text)}</p>\n'
+            for note_text, note_sym in node.note_map.items():
+                text = self._meta_html(note_text, note_nodes.get(note_text, []))
+                sup = f"<sup>{note_sym}</sup>" if total_notes > 1 else ""
+                html += (
+                    f'<p class="author-note" data-note="{note_sym}">{sup}{text}</p>\n'
+                )
 
         if node.emails:
             email_links = ", ".join(
-                f'<a href="mailto:{email}">{email}</a>' for _, email in node.emails
+                f'<a href="mailto:{html_escape(email, quote=True)}">'
+                f"{html_escape(email, quote=False)}</a>"
+                for _, email in node.emails
             )
             html += (
                 f'<p class="author-correspondence">Correspondence: {email_links}</p>\n'
@@ -1799,7 +1813,11 @@ class Translator:
 
         if node.orcids:
             for name, orcid in node.orcids:
-                html += f'<p class="author-orcid">{_wrap_hyphenated_words(f"{name}: {orcid}")}</p>\n'
+                name_html = self._meta_html(name, name_nodes.get(name, []))
+                html += (
+                    f'<p class="author-orcid">{name_html}: '
+                    f"{_wrap_hyphenated_words(html_escape(orcid, quote=False))}</p>\n"
+                )
 
         html += "</div>\n"
         return html
@@ -2451,6 +2469,15 @@ class Translator:
             node, tag="span", newline_inner=False, newline_outer=False
         )
 
+    def _meta_html(self, value: str, value_nodes: list[nodes.Node]) -> str:
+        """The HTML of a meta value: its inline nodes when it holds markup, or
+        its escaped text."""
+        if value_nodes:
+            # A copy, because rendering changes the nodes (math takes the
+            # punctuation after it), and a value may be shown more than once.
+            return self._render_inline_nodes(copy.deepcopy(value_nodes))
+        return _wrap_hyphenated_words(html_escape(value, quote=False))
+
     def _title_html(self, node: nodes.Heading) -> str:
         if node.title_nodes:
             return self._render_inline_nodes(node.title_nodes)
@@ -2503,6 +2530,8 @@ class Translator:
             reftext = _wrap_hyphenated_words(
                 html_escape(node.overwrite_reftext, quote=False)
             )
+        elif isinstance(tgt, nodes.Node) and tgt.reftext_markup():
+            reftext = self._render_inline_nodes(tgt.reftext_markup()).strip()
         else:
             reftext = html_escape(str(getattr(tgt, "reftext", tgt)), quote=False)
             # The text of a bare URL is the URL, which is not prose.
@@ -2600,11 +2629,18 @@ class Translator:
         desc: str = "",
         classes: list | None = None,
         desc_nodes: list[nodes.Node] | None = None,
+        label_nodes: list[nodes.Node] | None = None,
     ) -> nodes.Paragraph:
         if classes is None:
             classes = ["hr-label"]
         para = nodes.Paragraph(classes=classes)
-        if label:
+        if label_nodes:
+            span = nodes.Span(classes=["label"])
+            for n in label_nodes:
+                n.parent = None
+                span.append(n)
+            para.append(span)
+        elif label:
             span = nodes.Span(classes=["label"])
             span.append(nodes.Text(text=label))
             para.append(span)
@@ -2621,10 +2657,16 @@ class Translator:
         return para
 
     def visit_theorem(self, node: nodes.Theorem) -> AppendBatchAndDefer:
+        suffix = (f" {node.full_number}" if not node.nonum and node.number else "") + (
+            ": " if node.title else "."
+        )
         title = self._make_title_node(
-            label=node.kindname
-            + (f" {node.full_number}" if not node.nonum and node.number else "")
-            + (": " if node.title else "."),
+            label=node.kindname + suffix,
+            label_nodes=(
+                copy.deepcopy(node.blockname_nodes) + [nodes.Text(suffix)]
+                if node.blockname_nodes
+                else None
+            ),
             desc=node.title or "",
             # A copy, because the title nodes stay in their holder, where the
             # plain-text uses of the title read them.
@@ -3212,7 +3254,7 @@ class Translator:
         parent = node.parent
         # A caption is always inside the block that it captions.
         assert parent is not None
-        caption = _caption_label(parent)
+        caption = _caption_label(parent, self)
         # Tables use figcaption outside <table> (inside table-wrapper) so the caption
         # doesn't participate in the table's intrinsic width calculation.
         use_figcaption = isinstance(parent, (nodes.Asset, nodes.Table, nodes.CodeBlock))
@@ -4652,7 +4694,7 @@ class HandrailsTranslator(Translator):
         parent = node.parent
         # A caption is always inside the block that it captions.
         assert parent is not None
-        caption_label = _caption_label(parent)
+        caption_label = _caption_label(parent, self)
 
         # Create figcaption with handrail classes
         figcaption_classes = ["hr", "hr-hidden"]

@@ -114,8 +114,13 @@ class PandocTranslator:
             for a in authors:
                 if not a.name:
                     continue
-                inlines: list[dict] = [{"t": "Str", "c": a.name}]
-                if getattr(a, "affiliation", None):
+                inlines = self._walk_inlines(a.name_nodes) or [
+                    {"t": "Str", "c": a.name}
+                ]
+                if a.affiliation_nodes:
+                    inlines += [{"t": "Str", "c": " — "}]
+                    inlines += self._walk_inlines(a.affiliation_nodes)
+                elif getattr(a, "affiliation", None):
                     inlines += [{"t": "Str", "c": f" — {a.affiliation}"}]
                 if getattr(a, "email", None):
                     inlines += [
@@ -225,6 +230,13 @@ class PandocTranslator:
                 inlines: list[dict] = getattr(self, method_name)(node)
                 return inlines
         return self._inline_fallback(node)
+
+    def _walk_inlines(self, inline_nodes: list[nodes.Node]) -> list[dict]:
+        result: list[dict] = []
+        # A copy, because the nodes of a meta value stay in their holder.
+        for node in copy.deepcopy(inline_nodes):
+            result.extend(self._walk_inline(node))
+        return result
 
     def _walk_children_as_inlines(self, node: nodes.Node) -> list[dict]:
         result: list[dict] = []
@@ -675,6 +687,11 @@ class PandocTranslator:
         text = node.overwrite_reftext or (
             node.target.reftext if hasattr(node.target, "reftext") else str(node.target)
         )
+        markup = (
+            []
+            if node.overwrite_reftext or not isinstance(node.target, nodes.Node)
+            else self._walk_inlines(node.target.reftext_markup())
+        )
         anchor = (
             f"#{node.target.label}"
             if hasattr(node.target, "label") and node.target.label
@@ -683,9 +700,8 @@ class PandocTranslator:
         # A normal pandoc Link to the target's anchor works across all output
         # formats (LaTeX \hyperref, HTML <a>); a format-specific
         # RawInline would be silently dropped whenever the export target differs.
-        return [
-            {"t": "Link", "c": [["", [], []], [{"t": "Str", "c": text}], [anchor, ""]]}
-        ]
+        inlines = markup or [{"t": "Str", "c": text}]
+        return [{"t": "Link", "c": [["", [], []], inlines, [anchor, ""]]}]
 
     def _inline_url(self, node: nodes.URL) -> list[dict]:
         target = str(node.target)

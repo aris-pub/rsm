@@ -51,15 +51,15 @@ def test_five_authors_no_collapse():
         <h1>Test</h1>
 
         <div class="author-block">
-        <p class="author-names"><span class="author-name"><span class="author-name-text" data-affiliation="MIT">Author 1</span><sup data-tooltip="MIT">1</sup></span>, <span class="author-name"><span class="author-name-text" data-affiliation="Harvard">Author 2</span><sup data-tooltip="Harvard">2</sup></span>, <span class="author-name"><span class="author-name-text" data-affiliation="Stanford">Author 3</span><sup data-tooltip="Stanford">3</sup></span>, <span class="author-name"><span class="author-name-text" data-affiliation="Berkeley">Author 4</span><sup data-tooltip="Berkeley">4</sup></span>, <span class="author-name"><span class="author-name-text" data-affiliation="Yale">Author 5</span><sup data-tooltip="Yale">5</sup></span></p>
+        <p class="author-names"><span class="author-name"><span class="author-name-text" data-affiliation="1">Author 1</span><sup data-affiliation="1">1</sup></span>, <span class="author-name"><span class="author-name-text" data-affiliation="2">Author 2</span><sup data-affiliation="2">2</sup></span>, <span class="author-name"><span class="author-name-text" data-affiliation="3">Author 3</span><sup data-affiliation="3">3</sup></span>, <span class="author-name"><span class="author-name-text" data-affiliation="4">Author 4</span><sup data-affiliation="4">4</sup></span>, <span class="author-name"><span class="author-name-text" data-affiliation="5">Author 5</span><sup data-affiliation="5">5</sup></span></p>
         <button type="button" class="author-summary" aria-expanded="false" hidden>5 affiliations</button>
         <div class="author-details">
         <ol class="author-affiliations">
-        <li value="1"><sup>1</sup>MIT</li>
-        <li value="2"><sup>2</sup>Harvard</li>
-        <li value="3"><sup>3</sup>Stanford</li>
-        <li value="4"><sup>4</sup>Berkeley</li>
-        <li value="5"><sup>5</sup>Yale</li>
+        <li value="1" data-affiliation="1"><sup>1</sup>MIT</li>
+        <li value="2" data-affiliation="2"><sup>2</sup>Harvard</li>
+        <li value="3" data-affiliation="3"><sup>3</sup>Stanford</li>
+        <li value="4" data-affiliation="4"><sup>4</sup>Berkeley</li>
+        <li value="5" data-affiliation="5"><sup>5</sup>Yale</li>
         </ol>
         </div>
         </div>
@@ -129,16 +129,16 @@ def test_six_authors():
         <h1>Test</h1>
 
         <div class="author-block">
-        <p class="author-names"><span class="author-name"><span class="author-name-text" data-affiliation="MIT">Author 1</span><sup data-tooltip="MIT">1</sup></span>, <span class="author-name"><span class="author-name-text" data-affiliation="Harvard">Author 2</span><sup data-tooltip="Harvard">2</sup></span>, <span class="author-name"><span class="author-name-text" data-affiliation="Stanford">Author 3</span><sup data-tooltip="Stanford">3</sup></span>, <span class="author-name"><span class="author-name-text" data-affiliation="Berkeley">Author 4</span><sup data-tooltip="Berkeley">4</sup></span>, <span class="author-name"><span class="author-name-text" data-affiliation="Yale">Author 5</span><sup data-tooltip="Yale">5</sup></span>, <span class="author-name"><span class="author-name-text" data-affiliation="Princeton">Author 6</span><sup data-tooltip="Princeton">6</sup></span></p>
+        <p class="author-names"><span class="author-name"><span class="author-name-text" data-affiliation="1">Author 1</span><sup data-affiliation="1">1</sup></span>, <span class="author-name"><span class="author-name-text" data-affiliation="2">Author 2</span><sup data-affiliation="2">2</sup></span>, <span class="author-name"><span class="author-name-text" data-affiliation="3">Author 3</span><sup data-affiliation="3">3</sup></span>, <span class="author-name"><span class="author-name-text" data-affiliation="4">Author 4</span><sup data-affiliation="4">4</sup></span>, <span class="author-name"><span class="author-name-text" data-affiliation="5">Author 5</span><sup data-affiliation="5">5</sup></span>, <span class="author-name"><span class="author-name-text" data-affiliation="6">Author 6</span><sup data-affiliation="6">6</sup></span></p>
         <button type="button" class="author-summary" aria-expanded="false" hidden>6 affiliations</button>
         <div class="author-details">
         <ol class="author-affiliations">
-        <li value="1"><sup>1</sup>MIT</li>
-        <li value="2"><sup>2</sup>Harvard</li>
-        <li value="3"><sup>3</sup>Stanford</li>
-        <li value="4"><sup>4</sup>Berkeley</li>
-        <li value="5"><sup>5</sup>Yale</li>
-        <li value="6"><sup>6</sup>Princeton</li>
+        <li value="1" data-affiliation="1"><sup>1</sup>MIT</li>
+        <li value="2" data-affiliation="2"><sup>2</sup>Harvard</li>
+        <li value="3" data-affiliation="3"><sup>3</sup>Stanford</li>
+        <li value="4" data-affiliation="4"><sup>4</sup>Berkeley</li>
+        <li value="5" data-affiliation="5"><sup>5</sup>Yale</li>
+        <li value="6" data-affiliation="6"><sup>6</sup>Princeton</li>
         </ol>
         </div>
         </div>
