@@ -920,6 +920,7 @@ class PandocImportApp(RSMApp):
             )
         pandoc_ast = json.loads(proc.stdout)
         unnumbered: set[str] = set()
+        tex = ""
         if self._from_format == "latex":
             from rsm.importer import unnumbered_theorems
 
@@ -927,7 +928,9 @@ class PandocImportApp(RSMApp):
                 encoding="utf-8", errors="replace"
             )
             unnumbered = unnumbered_theorems(tex)
-        return pandoc_module.PandocImporter(unnumbered=unnumbered).from_json(pandoc_ast)
+        return pandoc_module.PandocImporter(unnumbered=unnumbered, source=tex).from_json(
+            pandoc_ast
+        )
 
 
 def pandoc_import(

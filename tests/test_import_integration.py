@@ -523,3 +523,15 @@ def test_import_uses_a_local_sty_next_to_a_main_file_in_a_subfolder(
     monkeypatch.chdir(elsewhere)
     out = app.import_project(str(src))
     assert "co$K$-theory of rings" in out, out
+
+
+@pytest.mark.skipif(shutil.which("pandoc") is None, reason="pandoc not installed")
+def test_import_warning_for_a_dropped_math_command_gives_its_line(caplog):
+    import logging
+
+    from rsm.app import pandoc_import
+
+    caplog.set_level(logging.WARNING, logger="RSM")
+    tex = "\\documentclass{article}\n\\begin{document}\nSee $x = \\eqref{a}$ here.\n\\end{document}\n"
+    pandoc_import(source=tex, from_format="latex")
+    assert "dropped \\eqref from math at line 3" in caplog.text, caplog.text
