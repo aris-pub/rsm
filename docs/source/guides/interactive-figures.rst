@@ -103,13 +103,14 @@ instead:
   of the figure if it has one, and its ``:alt:`` text otherwise. A second
   copy of a live chart or widget would not work in a tooltip.
 - In a file exported to PDF, LaTeX or another format, a figure shows its
-  ``:static:`` image if it has one, and a note that points to the web page
-  otherwise. An ``:html:`` or ``:htmlblock:`` outside a figure is replaced by
-  its ``:alt:`` text.
+  ``:static:`` image. An ``:html:`` or ``:htmlblock:`` outside a figure is
+  replaced by its ``:alt:`` text.
 
 So write an ``:alt:`` for every figure and every ``:html:`` or
 ``:htmlblock:`` that is not inside a figure, and a ``:static:`` image for
-every figure that holds HTML.
+every figure that holds HTML. ``rsm export`` stops with an error if a figure
+that holds HTML has no ``:static:``, or if an ``:html:`` or ``:htmlblock:``
+outside a figure has no ``:alt:``. The error gives the line of each one.
 
 
 Add a video

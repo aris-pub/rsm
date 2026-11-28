@@ -781,7 +781,10 @@ class PandocExportApp(RSMApp[str]):
         manuscript = self._parser.run(initial_args)
         if manuscript is None:
             return None
-        pandoc_ast = pandoc_module.PandocTranslator().translate(manuscript)
+        try:
+            pandoc_ast = pandoc_module.PandocTranslator().translate(manuscript)
+        except pandoc_module.PandocExportError as exc:
+            raise RSMApplicationError(str(exc)) from exc
         result = _PandocRunner(self._to_format, self._output).run(pandoc_ast)
 
         # For LaTeX output, remove Pandoc's hidelinks (braiid.sty sets its own link colors)

@@ -78,6 +78,25 @@ def _normalize_date_to_iso(raw: str) -> str:
 # ─── Export: RSM AST → pandoc JSON ───────────────────────────────────────────
 
 
+class PandocExportError(Exception):
+    """The document has parts that an exported file cannot show.
+
+    :attr:`problems` holds one message for each part, and the exception's message
+    lists all of them.
+    """
+
+    def __init__(self, problems: list[str]) -> None:
+        self.problems = problems
+        lines = "\n".join(f"  {p}" for p in problems)
+        super().__init__(f"these parts of the document cannot be exported:\n{lines}")
+
+
+def _where(node: nodes.Node) -> str:
+    # tree-sitter counts rows from 0, and the user counts lines from 1.
+    row = node.start_point[0]
+    return f" (line {row + 1})" if row >= 0 else ""
+
+
 class PandocTranslator:
     """Convert a ``nodes.Manuscript`` tree to a pandoc JSON AST dict.
 
@@ -94,8 +113,13 @@ class PandocTranslator:
     """
 
     def translate(self, tree: nodes.Manuscript) -> dict:
+        # Keyed by node, because a node can be walked more than once (an :html: in
+        # a title, for example) and each part is named once.
+        self._problems: dict[int, str] = {}
         meta = self._build_meta(tree)
         blocks = self._walk_children_as_blocks(tree)
+        if self._problems:
+            raise PandocExportError(list(self._problems.values()))
         return {
             "pandoc-api-version": PANDOC_API_VERSION,
             "meta": meta,
@@ -208,7 +232,7 @@ class PandocTranslator:
         nodes.Span: "_inline_span",  # Keyword via MRO
         nodes.Math: "_inline_math",
         nodes.Code: "_inline_code",
-        nodes.RawHtml: "_walk_children_as_inlines",
+        nodes.RawHtml: "_inline_rawhtml",
         nodes.Reference: "_inline_reference",
         nodes.URL: "_inline_url",
         nodes.Cite: "_inline_cite",
@@ -428,14 +452,34 @@ class PandocTranslator:
             kvs = [["of", proves.label], ["of-text", proves.reftext]]
         return [{"t": "Div", "c": [["", [cls], kvs], inner]}]
 
+    def _missing_alt(self, node: nodes.Node, tag: str) -> None:
+        self._problems[id(node)] = (
+            f"{tag}{_where(node)} has no :alt:. Add :alt: with the text to show "
+            "in its place."
+        )
+
     def _block_html(self, node: nodes.HtmlBlock) -> list[dict]:
         # Raw HTML has no place outside a web page, so its :alt: stands in.
+        if not node.alt:
+            self._missing_alt(node, ":htmlblock:")
         inlines = self._walk_children_as_inlines(node)
         return [{"t": "Para", "c": inlines}] if inlines else []
 
+    def _inline_rawhtml(self, node: nodes.RawHtml) -> list[dict]:
+        if not node.alt:
+            self._missing_alt(node, ":html:")
+        return self._walk_children_as_inlines(node)
+
     def _block_figure(self, node: nodes.Asset) -> list[dict]:
         if isinstance(node, nodes.Figure) and node.holds_html and not node.static:
-            return self._block_asset_placeholder(node)
+            name = " ".join(
+                filter(None, [node.kindname, node.label or node.full_number])
+            )
+            self._problems[id(node)] = (
+                f"{name}{_where(node)} shows HTML and has no "
+                ":static: image. Add :static: with an image to show in its place."
+            )
+            return []
         # Use :static: path for non-web export when available
         path = str(node.static) if node.static else str(node.path)
         alt_text = node.alt or f"Figure {node.full_number or ''}".strip()
