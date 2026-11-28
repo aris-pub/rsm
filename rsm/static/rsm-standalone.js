@@ -1542,7 +1542,13 @@ var RSM = (() => {
       const unpin = ev.target.closest(".pin-unpin");
       if (unpin) {
         const copy = unpin.closest("[data-pin-target]");
-        if (copy) unpinTarget(copy.dataset.pinTarget);
+        if (!copy) return;
+        const pins = [...copy.parentElement.querySelectorAll(":scope > [data-pin-target]")];
+        const i = pins.indexOf(copy);
+        const next = pins[i + 1] || pins[i - 1];
+        unpinTarget(copy.dataset.pinTarget);
+        const to = next ? next.querySelector(".pin-unpin") : document.querySelector('.rail-strip-btn[data-view="pinned"]');
+        if (to) to.focus();
         return;
       }
       const btn = ev.target.closest(".ref-pin");
