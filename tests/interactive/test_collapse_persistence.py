@@ -215,6 +215,26 @@ class TestChangedDocument:
         assert _collapsed_and_hidden(page) == {"collapsed": [], "hidden": []}
 
 
+def test_blocks_with_the_same_source_keep_their_own_folds(
+    page: Page, interactive_server: str
+):
+    source = (
+        _V1.replace("An unlabelled theorem.", "Same text.")
+        .replace("A labelled theorem.", "Same text.")
+        .replace(" {:label: thm-kept}", "")
+    )
+    _serve(page, interactive_server, source)
+    page.evaluate("() => localStorage.clear()")
+    page.locator(".theorem.hr").nth(1).locator(
+        ":scope > .hr-collapse-zone .hr-collapse"
+    ).click()
+    _serve(page, interactive_server, source)
+    folded = page.locator(".theorem.hr").evaluate_all(
+        "els => els.map(e => e.classList.contains('hr-collapsed'))"
+    )
+    assert folded == [False, True]
+
+
 def test_generated_headings_persist(page: Page, interactive_server: str):
     """The notes list and the bibliography have no label and no source text."""
     page.goto(f"{interactive_server}/notes.html")

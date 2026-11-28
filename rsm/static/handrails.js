@@ -736,6 +736,20 @@ function canFold(hr) {
     !!hr.querySelector(":scope > .hr-collapse-zone .hr-collapse");
 }
 
+// The blocks in the text with this hash, in document order. Pinned copies and
+// reference previews are copies of a block in the text, so they do not count.
+function sameHash(hash) {
+  return [...document.querySelectorAll(`[data-hash="${hash}"]`)]
+    .filter((el) => !el.closest(".rail-pinned, .tooltipster-base"));
+}
+
+// Blocks with the same source text have the same hash, so the second one is
+// keyed "h:<hash>#2", the third "h:<hash>#3", and so on.
+function hashKey(el) {
+  const i = sameHash(el.dataset.hash).indexOf(el);
+  return "h:" + el.dataset.hash + (i > 0 ? "#" + (i + 1) : "");
+}
+
 // The key under which a block's fold is saved and carried in a view link: its
 // label, or, for a block without a label, the hash of its source text that the
 // build writes as data-hash. A block that the build makes without source text
@@ -746,7 +760,7 @@ function canFold(hr) {
 export function collapseKey(hr) {
   // A pinned copy's fold is not saved, and a view link does not carry it.
   if (hr.closest(".rail-pinned") || !canFold(hr)) return null;
-  if (hr.dataset.hash) return "h:" + hr.dataset.hash;
+  if (hr.dataset.hash) return hashKey(hr);
   if (hr.dataset.block) return "b:" + hr.dataset.block;
   const owner = hr.classList.contains("heading") ? hr.parentElement : hr;
   return owner && owner.id ? "l:" + owner.id : null;

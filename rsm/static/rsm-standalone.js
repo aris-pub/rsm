@@ -2287,9 +2287,16 @@ var RSM = (() => {
   function canFold(hr) {
     return hr.getAttribute("data-menu-collapse") === "true" || !!hr.querySelector(":scope > .hr-collapse-zone .hr-collapse");
   }
+  function sameHash(hash) {
+    return [...document.querySelectorAll(`[data-hash="${hash}"]`)].filter((el) => !el.closest(".rail-pinned, .tooltipster-base"));
+  }
+  function hashKey(el) {
+    const i = sameHash(el.dataset.hash).indexOf(el);
+    return "h:" + el.dataset.hash + (i > 0 ? "#" + (i + 1) : "");
+  }
   function collapseKey(hr) {
     if (hr.closest(".rail-pinned") || !canFold(hr)) return null;
-    if (hr.dataset.hash) return "h:" + hr.dataset.hash;
+    if (hr.dataset.hash) return hashKey(hr);
     if (hr.dataset.block) return "b:" + hr.dataset.block;
     const owner = hr.classList.contains("heading") ? hr.parentElement : hr;
     return owner && owner.id ? "l:" + owner.id : null;
