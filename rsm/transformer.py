@@ -180,7 +180,7 @@ class Transformer:
         self.tree = tree
 
         self.prepare_paragraph_assets()
-        self.wrap_standalone_lists()
+        self.wrap_standalone_blocks()
         self.check_calc_rows()
         self.check_tabs()
         self.collect_labels()
@@ -320,26 +320,41 @@ class Transformer:
                 f"Strict mode enabled: CST errors detected in manuscript:\n{error_summary}"
             )
 
-    def wrap_standalone_lists(self) -> None:
-        """Put each list that is not part of a paragraph into a paragraph of its own.
+    def wrap_standalone_blocks(self) -> None:
+        """Put each list, math block, code block and algorithm that is not part of
+        a paragraph into a paragraph of its own.
 
-        A list after a blank line starts a paragraph that holds only the list, so
-        that every list is part of a paragraph, and the paragraph (not the list)
-        gets the handrail.
+        A list after a blank line starts a paragraph that holds only the list, and
+        the paragraph (not the list) gets the handrail. A math block, code block or
+        algorithm keeps its own handrail, so its paragraph adds nothing to the page.
         """
+        self._wrap_standalone(
+            (
+                nodes.Itemize,
+                nodes.Enumerate,
+                nodes.MathBlock,
+                nodes.CodeBlock,
+                nodes.Algorithm,
+            )
+        )
+
+    def _wrap_standalone(self, kinds: tuple[type[nodes.Node], ...]) -> None:
         assert self.tree is not None
-        lists = [
+        blocks = [
             node
             for node in self.tree.traverse()
-            if isinstance(node, (nodes.Itemize, nodes.Enumerate))
+            if isinstance(node, kinds)
             and not isinstance(node, nodes.Contents)
+            # A preamble is not shown, so it is not part of any paragraph.
+            and not (isinstance(node, nodes.MathBlock) and node.preamble)
             and not isinstance(node.parent, nodes.BaseParagraph)
             and node.first_ancestor_of_type(nodes.Contents) is None
         ]
-        for lst in lists:
+        for block in blocks:
             par = nodes.Paragraph()
-            lst.replace_self(par)
-            par.append(lst)
+            par.wraps_block = not isinstance(block, (nodes.Itemize, nodes.Enumerate))
+            block.replace_self(par)
+            par.append(block)
 
     def prepare_paragraph_assets(self) -> None:
         """Give each asset with :as-paragraph: no number and no caption.
@@ -1160,6 +1175,10 @@ class Transformer:
         nodeid = 0
         for node in self.tree.traverse():
             if isinstance(node, (nodes.AuthorBlock, nodes.AuthorNotes)):
+                continue
+            # The page has no tag for such a paragraph, so the ids of the tags
+            # stay as they were before the block was wrapped.
+            if isinstance(node, nodes.Paragraph) and node.wraps_block:
                 continue
             node.nodeid = nodeid
             nodeid += 1

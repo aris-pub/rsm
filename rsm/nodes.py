@@ -1423,7 +1423,10 @@ class BaseParagraph(Heading):
 
 
 class Paragraph(BaseParagraph):
-    pass
+    # Set by the transformer on a paragraph that it made to hold a math block, code
+    # block or algorithm that stands on its own. Such a paragraph adds nothing to
+    # the page, so the block looks the same as before it was wrapped.
+    wraps_block: bool = False
 
 
 class Note(BaseParagraph):

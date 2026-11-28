@@ -970,6 +970,12 @@ def _asset_classes(node: nodes.Asset) -> list[str]:
     return classes
 
 
+def _wraps_block(node: nodes.Node | None) -> bool:
+    """Whether node is a paragraph that the transformer made to hold a math block,
+    code block or algorithm that stands on its own. The page has no tag for it."""
+    return isinstance(node, nodes.Paragraph) and node.wraps_block
+
+
 def _in_paragraph_asset(node: nodes.Node) -> bool:
     """Whether node is the body of an :as-paragraph: asset, which sits inside
     the asset's own paragraph handrail and so gets none."""
@@ -1501,9 +1507,11 @@ class Translator:
         Paragraphs and note and aside definitions open a <p>. Captions and list
         items are paragraphs in the tree but open no <p> of their own.
         """
-        return isinstance(
-            node.parent, (nodes.Paragraph, nodes.Note)
-        ) and not isinstance(node.parent, nodes.Caption)
+        return (
+            isinstance(node.parent, (nodes.Paragraph, nodes.Note))
+            and not isinstance(node.parent, nodes.Caption)
+            and not _wraps_block(node.parent)
+        )
 
     def _close_p_before(self, node: nodes.TerminalBlock) -> list[EditCommand]:
         """Commands that close the parent's <p> before a terminal block.
@@ -1872,6 +1880,8 @@ class Translator:
         # does not correspond to the tag opened at the start of the paragraph.
         #
         # A paragraph cannot start with a mathblock.
+        if node.wraps_block:
+            return AppendBatchAndDefer([])
         # A labelled block's title paragraph carries the block's fold label, set
         # by the handrails translator.
         fold_label = getattr(node, "fold_label", "")
@@ -4521,7 +4531,7 @@ class HandrailsTranslator(Translator):
 
     def visit_paragraph(self, node: nodes.Paragraph) -> AppendBatchAndDefer:
         cmd = super().visit_paragraph(node)
-        if _in_paragraph_asset(node):
+        if _in_paragraph_asset(node) or node.wraps_block:
             return cmd
         batch = self._replace_node_with_handrails(node, collapse_in_hr=False)
         if "hr-hidden" not in batch.items[0].classes:
@@ -4534,7 +4544,7 @@ class HandrailsTranslator(Translator):
         # then the corresponding leave_* method MUST MUST MUST call leave_node(node) and
         # add it to the returned batch!!!
         batch = super().leave_paragraph(node)
-        if _in_paragraph_asset(node):
+        if _in_paragraph_asset(node) or node.wraps_block:
             return batch
         batch.items.insert(-1, self._hr_info_zone_icon(getattr(node, "icon", None)))
         return batch
@@ -4731,6 +4741,7 @@ class HandrailsTranslator(Translator):
         offset_class = (
             ["hr-offset"]
             if isinstance(node.parent, (nodes.Paragraph, nodes.Note))
+            and not _wraps_block(node.parent)
             else []
         )
         batch.items[handrail_idx].classes += ["hr-hidden"] + offset_class
@@ -5035,6 +5046,7 @@ class HandrailsTranslator(Translator):
         offset_class = (
             ["hr-offset"]
             if isinstance(node.parent, (nodes.Paragraph, nodes.Note))
+            and not _wraps_block(node.parent)
             else []
         )
         batch.items[handrail_idx].classes += ["hr-hidden"] + offset_class
