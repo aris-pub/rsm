@@ -78,6 +78,10 @@ instead. The rule is the same for inline math, displayed math and
    * - ``\tag``, ``\tag*``, ``\notag``, ``\nonumber``
      - Nothing to set the number, since RSM numbers the block.
        ``:nonum:`` on the block to remove the number.
+   * - ``\setcounter``, ``\addtocounter``, ``\stepcounter``,
+       ``\refstepcounter``, ``\numberwithin``
+     - Nothing, since RSM numbers the blocks. ``:numbering:`` in ``:config:``
+       chooses how, and ``:nonum:`` on the block removes the number.
    * - ``align*``, ``gather*``, ``multline*``, ``flalign*``, ``alignat*``,
        ``equation*``
      - The same environment without the star, and ``:nonum:`` on the block
@@ -98,6 +102,8 @@ instead. The rule is the same for inline math, displayed math and
      - ``:caption:`` in a ``:figure:`` or a ``:table:``.
    * - ``\footnote``, ``\footnotemark``, ``\footnotetext``
      - A ``:note:`` outside the math.
+   * - ``\href``, ``\url``
+     - ``:url:<address>::`` outside the math.
 
 .. rubric:: Syntax
 

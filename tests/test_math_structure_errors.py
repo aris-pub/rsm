@@ -20,6 +20,11 @@ CITE = "Write :cite:<key>:: outside the math instead."
 SECTION = "Use a heading such as ## Title instead."
 CAPTION = "Use :caption: in a :figure: or a :table: instead."
 FOOTNOTE = "Use a :note: outside the math instead."
+COUNTER = (
+    "RSM numbers the blocks itself. Use :numbering: in :config: to choose how, "
+    "or :nonum: on the block to remove the number."
+)
+URL = "Write :url:<address>:: outside the math instead."
 
 
 def _error(src: str) -> RSMParserError:
@@ -56,6 +61,13 @@ def _message(name: str, line: int, advice: str) -> str:
         (r"\section{A} a = b", "section", SECTION),
         (r"\caption{A} a = b", "caption", CAPTION),
         (r"a = b \footnote{A}", "footnote", FOOTNOTE),
+        (r"\setcounter{equation}{4} a = b", "setcounter", COUNTER),
+        (r"\addtocounter{equation}{1} a = b", "addtocounter", COUNTER),
+        (r"\stepcounter{equation} a = b", "stepcounter", COUNTER),
+        (r"\refstepcounter{equation} a = b", "refstepcounter", COUNTER),
+        (r"\numberwithin{equation}{section} a = b", "numberwithin", COUNTER),
+        (r"a = \href{https://example.org}{b}", "href", URL),
+        (r"a = \url{https://example.org}", "url", URL),
     ],
 )
 def test_display_math_errors(latex, name, advice):
@@ -167,7 +179,7 @@ def test_eqnarray_errors(env):
         r"\partial f",
         r"\tagged",
         r"\labelx",
-        r"\refstepcounter",
+        r"\urlstyle{tt}",
         r"\captionof",
         r"\citex",
         r"a \\label",

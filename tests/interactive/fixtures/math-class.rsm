@@ -10,6 +10,6 @@ We refer to :ref:eqn-ann::.
 
 A trust-gated command other than \class stays untrusted:
 :mathblock:
-  {:label: eqn-href}
-  \href{https://example.com}{a}
+  {:label: eqn-cssid}
+  \cssId{injected}{a}
 ::

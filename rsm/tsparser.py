@@ -1007,8 +1007,16 @@ _CITATIONS = {
     "textcite",
     "autocite",
 }
+_COUNTERS = {
+    "setcounter",
+    "addtocounter",
+    "stepcounter",
+    "refstepcounter",
+    "numberwithin",
+}
 _NONUM = "Use :nonum: on the block to remove the number."
 _NOTE = "Use a :note: outside the math instead."
+_URL = "Write :url:<address>:: outside the math instead."
 _STRUCTURE_COMMANDS = (
     {
         "label": "Give the math block a :label: instead.",
@@ -1019,7 +1027,14 @@ _STRUCTURE_COMMANDS = (
         "footnote": _NOTE,
         "footnotemark": _NOTE,
         "footnotetext": _NOTE,
+        "href": _URL,
+        "url": _URL,
     }
+    | dict.fromkeys(
+        _COUNTERS,
+        "RSM numbers the blocks itself. Use :numbering: in :config: to choose how, "
+        "or :nonum: on the block to remove the number.",
+    )
     | dict.fromkeys(_REFERENCES, "Write :ref:<label>:: outside the math instead.")
     | dict.fromkeys(_CITATIONS, "Write :cite:<key>:: outside the math instead.")
     | dict.fromkeys(_SECTIONING, "Use a heading such as ## Title instead.")
