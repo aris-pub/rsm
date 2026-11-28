@@ -652,7 +652,11 @@ class TestCopyLinkInPinnedCopy:
 
 def _unpin_with_enter(page: Page, href: str) -> None:
     btn = page.locator(f'{PINS}[data-pin-target="{href}"] .pin-unpin')
+    # Pinning opens the panel a frame later, and a button in the closed panel
+    # (display: none) cannot take focus, so wait until it is shown.
+    expect(btn).to_be_visible()
     btn.focus()
+    expect(btn).to_be_focused()
     page.keyboard.press("Enter")
     expect(page.locator(f'{PINS}[data-pin-target="{href}"]')).to_have_count(0)
 
@@ -732,7 +736,10 @@ class TestFocusAfterUnpin:
             page.wait_for_function(
                 "() => document.documentElement.classList.contains('rail-open')"
             )
-            page.locator(f"{PINS} .pin-unpin").focus()
+            btn = page.locator(f"{PINS} .pin-unpin")
+            expect(btn).to_be_visible()
+            btn.focus()
+            expect(btn).to_be_focused()
             page.keyboard.press("Enter")
             page.wait_for_function(
                 "() => !document.documentElement.classList.contains('rail-open')",
