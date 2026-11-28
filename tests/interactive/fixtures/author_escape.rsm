@@ -1,0 +1,16 @@
+# Escaped author values
+
+:author: {
+  :name: Ada Lovelace
+  :affiliation: Lab "X" <b>bold</b>
+  :email: a"b@x.org
+  :author-note: Note "one" <i>it</i>
+} ::
+
+:author: {
+  :name: Bo Chen
+  :affiliation: Other
+  :author-note: Plain
+} ::
+
+Text.

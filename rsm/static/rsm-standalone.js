@@ -1636,7 +1636,7 @@ var RSM = (() => {
       triggerClose: { click: true, mouseleave: true, originClick: true },
       functionBefore: (instance, helper) => previewWanted(helper.origin)
     });
-    $(".manuscriptwrapper .author-names sup[data-tooltip]:not(.tooltipstered)").tooltipster({
+    $(".manuscriptwrapper .author-names sup:is([data-affiliation], [data-note]):not(.tooltipstered)").tooltipster({
       theme: ["tooltipster-shadow", "tooltipster-shadow-rsm"],
       delay: 200,
       minWidth: 100,
@@ -1653,8 +1653,11 @@ var RSM = (() => {
         touchleave: true
       },
       functionInit: function(instance, helper) {
-        let text = $(helper.origin).attr("data-tooltip");
-        setTooltipContent(instance, text);
+        const tip = $("<div></div>");
+        for (const key of ["affiliation", "note"]) {
+          tip.append(authorDetail(helper.origin, key));
+        }
+        instance.content($('<div class="manuscriptwrapper"></div>').append(tip));
       }
     });
     const $authorNames = $(
@@ -1666,8 +1669,8 @@ var RSM = (() => {
       functionInit: function(instance, helper) {
         const tip = $('<div class="author-tip"></div>');
         for (const key of ["affiliation", "note"]) {
-          const text = helper.origin.getAttribute(`data-${key}`);
-          if (text) tip.append($("<p></p>").text(text));
+          const detail = authorDetail(helper.origin, key);
+          if (detail) tip.append($("<p></p>").append(detail));
         }
         instance.content($('<div class="manuscriptwrapper"></div>').append(tip));
       },
@@ -1725,6 +1728,15 @@ var RSM = (() => {
       "data-menu-label data-menu-link data-menu-code data-menu-collapse data-menu-collapse-all data-menu-static-toggle data-start-collapsed tabindex"
     );
     return `<div class="calc-preview">${clone[0].outerHTML}</div>`;
+  }
+  function authorDetail(origin, key) {
+    const value = origin.getAttribute(`data-${key}`);
+    if (!value) return null;
+    const source = $(origin).closest(".author-block").find(`.author-details [data-${key}]`).filter((_, el) => el.getAttribute(`data-${key}`) === value).first();
+    if (!source.length) return null;
+    const nodes = source.clone().contents();
+    const first = nodes.first();
+    return first.is("sup") ? nodes.slice(1) : nodes;
   }
   function stripHandrail(hr) {
     hr.find(".hr-collapse-zone").remove();

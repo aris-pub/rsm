@@ -234,7 +234,7 @@ two lines of three backticks is numbered the same way but takes no caption.
 
 ``:blockname:``
    A name that replaces "Code Block" in the block's label and in references
-   to it, such as ``Listing``.
+   to it, such as ``Listing``. It can hold inline markup, such as math.
 
 .. rubric:: Example
 

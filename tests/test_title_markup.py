@@ -187,5 +187,8 @@ def test_markup_title_is_escaped():
 
 
 def test_other_text_keys_stay_plain():
-    html = _render(":paragraph: {:title: T} Body.\n\n:author: {:name: A $x$ B} ::\n")
+    html = _render(
+        ":paragraph: {:title: T} Body.\n\n:author: {:name: A, :email: a$x$b@x.org} ::\n"
+    )
     assert '<span class="math">' not in html
+    assert "a$x$b@x.org" in html

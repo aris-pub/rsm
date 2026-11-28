@@ -1,5 +1,5 @@
-"""rsm serve without a file watches the .rsm files of the current folder and
-rebuilds each one into the -o folder, which it serves."""
+"""rsm serve builds one source file and rebuilds it with the same rsm that
+started serve."""
 
 import pytest
 
@@ -16,13 +16,14 @@ class FakeServer:
 
     def serve(self, root, **kwargs):
         self.root = root
+        self.kwargs = kwargs
 
 
-def _serve(monkeypatch, folder, *options):
+def _serve(monkeypatch, folder, *options, argv0="rsm"):
     server = FakeServer()
     monkeypatch.setattr(cli.livereload, "Server", lambda: server)
     monkeypatch.chdir(folder)
-    monkeypatch.setattr("sys.argv", ["rsm", "serve", "--no-browser", *options])
+    monkeypatch.setattr("sys.argv", [argv0, "serve", "--no-browser", *options])
     assert cli.main() == 0
     return server
 
@@ -48,45 +49,14 @@ def folder(tmp_path):
     return folder
 
 
-def test_watches_rsm_files_of_current_folder(monkeypatch, folder):
-    (folder / "out dir" / "old.rsm").write_text("# Old\n\nHello.\n")
-    _record_shell(monkeypatch)
-    server = _serve(monkeypatch, folder, "-o", "out dir/")
-
-    assert "my paper.rsm" in server.watched
-    assert not any("old.rsm" in path for path in server.watched)
-    assert server.root == "out dir"
-
-
-def test_rebuild_command_keeps_paths_with_spaces(monkeypatch, folder):
-    commands = _record_shell(monkeypatch)
-    server = _serve(monkeypatch, folder, "-o", "out dir/")
-
-    server.watched["my paper.rsm"]()
-
-    assert commands == [
-        ["rsm", "build", "my paper.rsm", "-o", "out dir/my paper"],
-    ]
-
-
-def test_css_rebuild_command_keeps_paths_with_spaces(monkeypatch, folder):
-    (folder / "my style.css").write_text("body { color: red; }\n")
-    commands = _record_shell(monkeypatch)
-    server = _serve(monkeypatch, folder, "-o", "out dir/", "--css", "my style.css")
-
-    server.watched["my style.css"]()
-
-    assert commands == [
-        [
-            "rsm",
-            "build",
-            "my paper.rsm",
-            "-o",
-            "out dir/my paper",
-            "--css",
-            "my style.css",
-        ],
-    ]
+def test_serve_without_file_is_an_error(monkeypatch, capsys, folder):
+    monkeypatch.setattr(cli.livereload, "Server", FakeServer)
+    monkeypatch.chdir(folder)
+    monkeypatch.setattr("sys.argv", ["rsm", "serve", "--no-browser"])
+    with pytest.raises(SystemExit) as exc:
+        cli.main()
+    assert exc.value.code == 2
+    assert "the following arguments are required: src" in capsys.readouterr().err
 
 
 def test_rebuild_command_with_file_keeps_paths_with_spaces(monkeypatch, folder):
@@ -94,26 +64,59 @@ def test_rebuild_command_with_file_keeps_paths_with_spaces(monkeypatch, folder):
     server = _serve(monkeypatch, folder, "my paper.rsm", "-o", "out dir/")
 
     assert server.watched["my paper.rsm"] is not None
-    assert commands[0][:5] == ["rsm", "build", "my paper.rsm", "-o", "out dir/"]
+    assert commands[0][1:5] == ["build", "my paper.rsm", "-o", "out dir/"]
 
 
-@pytest.mark.slow
-def test_rebuild_writes_into_served_folder(monkeypatch, folder):
-    server = _serve(monkeypatch, folder, "-o", "out dir/")
+def test_rebuild_uses_the_rsm_that_started_serve(monkeypatch, folder):
+    commands = _record_shell(monkeypatch)
+    argv0 = "/some venv/bin/rsm"
+    _serve(monkeypatch, folder, "my paper.rsm", "-o", "out dir/", argv0=argv0)
 
-    server.watched["my paper.rsm"]()
-
-    assert server.root == "out dir"
-    assert (folder / "out dir" / "my paper.html").exists()
-    assert not (folder / "my paper.html").exists()
+    assert commands[0][0] == argv0
 
 
-@pytest.mark.slow
-def test_css_rebuild_writes_into_served_folder(monkeypatch, folder):
+def test_css_rebuild_uses_the_rsm_that_started_serve(monkeypatch, folder):
     (folder / "my style.css").write_text("body { color: red; }\n")
-    server = _serve(monkeypatch, folder, "-o", "out dir/", "--css", "my style.css")
+    commands = _record_shell(monkeypatch)
+    argv0 = "/some venv/bin/rsm"
+    server = _serve(
+        monkeypatch, folder, "my paper.rsm", "--css", "my style.css", argv0=argv0
+    )
 
-    server.watched["my style.css"]()
+    assert "my style.css" in server.watched
+    assert all(cmd[0] == argv0 for cmd in commands)
 
-    assert (folder / "out dir" / "my paper.html").exists()
-    assert not (folder / "my paper.html").exists()
+
+def test_serve_creates_missing_output_folder(monkeypatch, folder):
+    server = _serve(monkeypatch, folder, "my paper.rsm", "-o", "new out/")
+
+    assert server.root == "new out"
+    assert (folder / "new out" / "my paper.html").exists()
+
+
+def test_serve_opens_built_page_when_folder_has_other_pages(monkeypatch, folder):
+    (folder / "out dir" / "other.html").write_text("<p>Other</p>")
+    (folder / "out dir" / "third.html").write_text("<p>Third</p>")
+    opened = []
+
+    class NowThread:
+        def __init__(self, target, daemon):
+            self.target = target
+
+        def start(self):
+            self.target()
+
+    monkeypatch.setattr("threading.Thread", NowThread)
+    monkeypatch.setattr("time.sleep", lambda s: None)
+    monkeypatch.setattr("webbrowser.open", opened.append)
+    server = FakeServer()
+    monkeypatch.setattr(cli.livereload, "Server", lambda: server)
+    monkeypatch.chdir(folder)
+    monkeypatch.setattr(
+        "sys.argv", ["rsm", "serve", "my paper.rsm", "-o", "out dir/", "--port", "5601"]
+    )
+    assert cli.main() == 0
+
+    assert server.kwargs["default_filename"] == "my paper.html"
+    assert opened == ["http://127.0.0.1:5601/my paper.html"]
+    assert not (folder / "out dir" / ".rsm-index.html").exists()
