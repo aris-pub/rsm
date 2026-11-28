@@ -698,9 +698,6 @@ def _shown_prose(node: nodes.Node, html: str) -> tuple[str, bool]:
         return _visible_text(node.html), False
     if isinstance(node, (nodes.Math, nodes.Code)):
         return "x", False
-    # The inline wrapper writes a newline after its opening tag, which is not
-    # a space that the reader sees between words.
-    html = re.sub(r'(<span class="inline-wrapper">)\n', r"\1", html)
     html = re.sub(r'<span class="math"[^>]*>[^<]*</span>', "x", html)
     html = re.sub(r"<code\b[^>]*>.*?</code>", "x", html, flags=re.S)
     bare_url = isinstance(node, nodes.URL) and not (
@@ -4965,6 +4962,7 @@ class HandrailsTranslator(Translator):
             AppendOpenTagManualClose(
                 tag="span",
                 classes=["inline-wrapper"],
+                newline_inner=False,
                 newline_outer=False,
             ),
         )
@@ -4999,7 +4997,10 @@ class HandrailsTranslator(Translator):
         return AppendBatchAndDefer(
             [
                 AppendOpenTagManualClose(
-                    tag="span", classes=["inline-wrapper"], newline_outer=False
+                    tag="span",
+                    classes=["inline-wrapper"],
+                    newline_inner=False,
+                    newline_outer=False,
                 ),
                 *batch.items,
             ]
